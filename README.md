@@ -3,12 +3,8 @@
 📚 **Shelfdroid** is a 3rd-party Android client for Audiobookshelf, designed to give you easy access to your audiobook collection. Stream, organize, and enjoy your audiobooks with a seamless and intuitive interface built specifically for Android.
 
 ## Features
+WIP
 
-- 📖 **Stream Audiobooks**: Access your Audiobookshelf library and stream your audiobooks on the go.
-- 🎧 **Offline Listening**: Download audiobooks for offline listening anytime, anywhere.
-- 🎵 **Custom Playback Controls**: Control playback speed, bookmarks, and sleep timers.
-- 🔍 **Search and Filter**: Easily find and filter audiobooks in your collection.
-- 🎨 **User-Friendly Interface**: Simple and intuitive UI designed with Android users in mind.
 
 ## Screenshots
 
@@ -30,17 +26,17 @@
 2. Open the project in Android Studio.
 3. Build and run the app on your device.
 
-### Configuration
-
-- Update the `BASE_URL` in `AppConfig.java` to point to your Audiobookshelf server.
-
 ## Roadmap
-
+- [ ] **Stream Audiobooks**: Access your Audiobookshelf library and stream your audiobooks on the go.
+- [ ] **Offline Listening**: Download audiobooks for offline listening anytime, anywhere.
+- [ ] **Custom Playback Controls**: Control playback speed, bookmarks, and sleep timers.
+- [ ] **Search and Filter**: Easily find and filter audiobooks in your collection.
+- [ ] **User-Friendly Interface**: Simple and intuitive UI designed with Android users in mind.
 - [ ] Add support for custom themes.
 - [ ] Implement audiobook chapter support.
 - [ ] Add in-app settings for customizing playback.
 - [ ] Integration with Google Assistant for voice controls.
-
+- 
 ## Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request for review.
