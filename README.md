@@ -1,17 +1,67 @@
-# shelfdroid
-📚 A 3rd-party Android client for Audiobookshelf, bringing your audiobook collection to life with seamless streaming and intuitive controls.
+# ShelfDroid
 
-This is a Kotlin Multiplatform project targeting Android, iOS.
+📚 **ShelfDroid** is a 3rd-party Android client for Audiobookshelf, designed to give you easy access to your audiobook collection. Stream, organize, and enjoy your audiobooks with a seamless and intuitive interface built specifically for Android.
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
-
-* `/iosApp` contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform, 
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+## Features
+WIP
 
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## Screenshots
+
+<!-- Add screenshots of your app here -->
+
+## Getting Started
+
+### Prerequisites
+
+- An Audiobookshelf server instance.
+- Android device running version X.X or higher.
+
+### Installation
+
+1. Clone this repository:
+    ```bash
+    git clone https://github.com/yourusername/shelfdroid.git
+    ```
+2. Open the project in Android Studio.
+3. Build and run the app on your device.
+
+## Roadmap
+- [ ] **Stream Audiobooks**: Access your Audiobookshelf library and stream your audiobooks on the go.
+- [ ] **Offline Listening**: Download audiobooks for offline listening anytime, anywhere.
+- [ ] **Custom Playback Controls**: Control playback speed, bookmarks, and sleep timers.
+- [ ] **Search and Filter**: Easily find and filter audiobooks in your collection.
+- [ ] **User-Friendly Interface**: Simple and intuitive UI designed with Android users in mind.
+- [ ] Add support for custom themes.
+- [ ] Implement audiobook chapter support.
+- [ ] Add in-app settings for customizing playback.
+- [ ] Integration with Google Assistant for voice controls.
+-
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request for review.
+
+1. Fork the Project.
+2. Create your feature branch:
+    ```bash
+    git checkout -b feature/AmazingFeature
+    ```
+3. Commit your changes:
+    ```bash
+    git commit -m 'Add some AmazingFeature'
+    ```
+4. Push to the branch:
+    ```bash
+    git push origin feature/AmazingFeature
+    ```
+5. Open a pull request.
+
+## Acknowledgements
+
+- [Audiobookshelf](https://github.com/advplyr/audiobookshelf) - The server this client connects to.
+
+## Contact
+
+Fernando Fransisco Halim - [100nandoo](https://github.com/100nandoo)
+
+Project Link: [https://github.com/100nandoo/shelfdroid](https://github.com/100nandoo/shelfdroid)
