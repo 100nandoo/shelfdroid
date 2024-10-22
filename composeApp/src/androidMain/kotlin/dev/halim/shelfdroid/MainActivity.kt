@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import dev.halim.shelfdroid.login.LoginScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,4 +21,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppAndroidPreview() {
     App()
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun LoginScreenPreview(){
+    LoginScreen()
 }
