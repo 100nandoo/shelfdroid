@@ -1,14 +1,30 @@
 package dev.halim.shelfdroid
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import dev.halim.shelfdroid.di.appModule
 import dev.halim.shelfdroid.login.LoginScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.KoinApplication
 
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
-        LoginScreen()
+    KoinApplication(
+        application = {
+            modules(appModule)
+        }
+    ) {
+        val navController = rememberNavController()
+        MaterialTheme {
+            NavHost(navController = navController, startDestination = "login") {
+                composable("login") {
+                    LoginScreen()
+                }
+            }
+        }
     }
 }
