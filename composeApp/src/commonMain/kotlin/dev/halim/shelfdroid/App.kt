@@ -7,11 +7,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.di.appModule
 import dev.halim.shelfdroid.login.LoginScreen
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinApplication
 
 @Composable
-@Preview
 fun App() {
     KoinApplication(
         application = {
@@ -20,8 +18,8 @@ fun App() {
     ) {
         val navController = rememberNavController()
         MaterialTheme {
-            NavHost(navController = navController, startDestination = "login") {
-                composable("login") {
+            NavHost(navController = navController, startDestination = ShelfDroidScreen.Login.title) {
+                composable(ShelfDroidScreen.Login.title) {
                     LoginScreen()
                 }
             }
