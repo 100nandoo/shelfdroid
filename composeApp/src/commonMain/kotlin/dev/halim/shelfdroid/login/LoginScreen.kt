@@ -76,8 +76,8 @@ fun LoginScreen() {
             Text("Login")
         }
 
-        if(uiState.responseJson.isNotBlank()){
-            Text("Response: ${uiState.responseJson}")
+        if(uiState.token.isNotBlank()){
+            Text("Token: ${uiState.token}")
         }
     }
 }

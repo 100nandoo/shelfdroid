@@ -1,5 +1,9 @@
 package dev.halim.shelfdroid.di
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import dev.halim.shelfdroid.datastore.DataStoreKeys
+import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.login.LoginViewModel
 import dev.halim.shelfdroid.network.Api
 import io.ktor.client.HttpClient
@@ -12,18 +16,24 @@ import org.koin.dsl.module
 
 
 val appModule = module {
-    viewModel { LoginViewModel(get()) }
+    viewModel { LoginViewModel(get(), get(), get()) }
     single {
         HttpClient {
             install(ContentNegotiation) {
-                json(json = Json {
-                    ignoreUnknownKeys = true
-                    prettyPrint = true
-                    isLenient = true
-                }, contentType = ContentType.Any)
+                json(json = get(), contentType = ContentType.Any)
             }
         }
     }
     single<Api> { Api(get()) }
-
+    single<DataStore<Preferences>> { createDataStore() }
+    single {
+        Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+            isLenient = true
+        }
+    }
+    single<DataStoreKeys>{
+        DataStoreKeys()
+    }
 }
