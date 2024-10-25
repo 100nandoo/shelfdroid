@@ -5,7 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import dev.halim.shelfdroid.screen.SplashScreen
+import dev.halim.shelfdroid.screen.home.HomeScreen
 import dev.halim.shelfdroid.screen.login.LoginScreen
+import dev.halim.shelfdroid.screen.settings.SettingsScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -28,5 +31,23 @@ fun AppAndroidPreview() {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen({})
+    LoginScreen({}, {})
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    HomeScreen()
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun SplashScreenPreview() {
+    SplashScreen()
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun SettingsScreenPreview() {
+    SettingsScreen()
 }
