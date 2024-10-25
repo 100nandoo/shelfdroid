@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.login
+package dev.halim.shelfdroid.screen.login
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -7,13 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.datastore.DataStoreKeys
 import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.network.UnauthorizedException
 import dev.halim.shelfdroid.network.login.LoginRequest
 import dev.halim.shelfdroid.network.login.LoginResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -27,25 +27,10 @@ class LoginViewModel(
 
     val uiState: StateFlow<LoginUiState> = _uiState
 
-    init {
-        viewModelScope.launch {
-            dataStore.data.map { pref ->
-                pref[dataStoreKeys.TOKEN] ?: ""
-            }.collect { token ->
-                _uiState.value = _uiState.value.copy(token = token)
-            }
-        }
-    }
-
     fun onEvent(loginEvent: LoginEvent) {
         when (loginEvent) {
             is LoginEvent.LoginButtonPressed -> viewModelScope.launch {
-                val response = login()
-                val token = response.user.token
-                if (token.isNotBlank()) {
-                    dataStore.edit { it[dataStoreKeys.TOKEN] = token }
-                }
-                _uiState.value = _uiState.value.copy(token = token)
+                login()
             }
         }
     }
@@ -54,18 +39,26 @@ class LoginViewModel(
         _uiState.value = newState
     }
 
-    suspend fun login(): LoginResponse {
+    suspend fun login() {
         Api.baseUrl = _uiState.value.server
+        _uiState.value = _uiState.value.copy(loginState = LoginState.Loading)
         return withContext(Dispatchers.IO) {
             runCatching {
-                api.login(
-                    LoginRequest(
-                        _uiState.value.username,
-                        _uiState.value.password
-                    )
-                )
+                api.login(LoginRequest(_uiState.value.username, _uiState.value.password))
             }
-                .getOrNull() ?: LoginResponse()
+                .onSuccess { loginResponse: LoginResponse ->
+                    dataStore.edit { it[dataStoreKeys.TOKEN] = loginResponse.user.token }
+                    _uiState.value =
+                        _uiState.value.copy(loginState = LoginState.Success(loginResponse.user.token))
+                }
+                .onFailure { throwable ->
+                    val errorMessage = when (throwable) {
+                        is UnauthorizedException -> "Invalid username or password."
+                        else -> "Unknown error occurred"
+                    }
+                    _uiState.value =
+                        _uiState.value.copy(loginState = LoginState.Failure(errorMessage))
+                }
         }
     }
 }
@@ -74,9 +67,15 @@ data class LoginUiState(
     val server: String = "",
     val username: String = "",
     val password: String = "",
-    val isLoading: Boolean = false,
-    val token: String = ""
+    val loginState: LoginState = LoginState.NotLoggedIn
 )
+
+sealed class LoginState {
+    data object NotLoggedIn : LoginState()
+    data object Loading : LoginState()
+    data class Success(val token: String) : LoginState()
+    data class Failure(val errorMessage: String) : LoginState()
+}
 
 sealed class LoginEvent {
     data object LoginButtonPressed : LoginEvent()
