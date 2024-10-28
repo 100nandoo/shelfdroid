@@ -31,7 +31,7 @@ fun AppAndroidPreview() {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen({}, {})
+    LoginScreen({})
 }
 
 @Preview(showSystemUi = true, showBackground = true)
@@ -49,5 +49,5 @@ fun SplashScreenPreview() {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
-    SettingsScreen()
+    SettingsScreen({})
 }

@@ -6,15 +6,19 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import okio.Path.Companion.toPath
 
-expect fun createDataStore(): DataStore<Preferences>
-
-fun getDataStore(producePath: () -> String): DataStore<Preferences> =
-    PreferenceDataStoreFactory.createWithPath(
-        produceFile = { producePath().toPath() }
-    )
+expect fun createDataStoreManager(): DataStoreManager
 
 internal const val dataStoreFileName = "shelfdroid.preferences_pb"
 
-class DataStoreKeys {
-    val TOKEN = stringPreferencesKey("token")
+class DataStoreManager(private val producePath: () -> String) {
+    val dataStore: DataStore<Preferences> by lazy {
+        PreferenceDataStoreFactory.createWithPath(
+            produceFile = { producePath().toPath() }
+        )
+    }
+
+    object DataStoreKeys {
+        val TOKEN = stringPreferencesKey("token")
+        val BASE_URL = stringPreferencesKey("base_url")
+    }
 }

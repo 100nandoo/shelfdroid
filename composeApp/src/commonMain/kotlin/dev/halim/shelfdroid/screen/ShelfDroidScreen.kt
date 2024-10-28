@@ -1,14 +1,11 @@
 package dev.halim.shelfdroid.screen
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import dev.halim.shelfdroid.screen.home.HomeScreen
 import dev.halim.shelfdroid.screen.login.LoginScreen
 import dev.halim.shelfdroid.screen.settings.SettingsScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 enum class ShelfDroidScreen(val title: String) {
     Login(title = "login"),
@@ -18,9 +15,7 @@ enum class ShelfDroidScreen(val title: String) {
 }
 
 fun NavGraphBuilder.declareComposeScreen(
-    navController: NavHostController,
-    snackbarHostState: SnackbarHostState,
-    scope: CoroutineScope
+    navController: NavHostController
 ) {
 
     composable(ShelfDroidScreen.Login.title) {
@@ -30,8 +25,6 @@ fun NavGraphBuilder.declareComposeScreen(
                     inclusive = true
                 }
             }
-        }, onLoginFailure = { errorMessage ->
-            scope.launch { snackbarHostState.showSnackbar(errorMessage) }
         })
     }
     composable(ShelfDroidScreen.Home.title) {
@@ -41,6 +34,12 @@ fun NavGraphBuilder.declareComposeScreen(
         SplashScreen()
     }
     composable(ShelfDroidScreen.Settings.title) {
-        SettingsScreen()
+        SettingsScreen(onLogoutSuccess = {
+            navController.navigate(ShelfDroidScreen.Login.title) {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+            }
+        })
     }
 }

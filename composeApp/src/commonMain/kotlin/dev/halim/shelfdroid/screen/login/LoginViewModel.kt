@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.screen.login
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.halim.shelfdroid.datastore.DataStoreKeys
+import dev.halim.shelfdroid.datastore.DataStoreManager
+import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.BASE_URL
+import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.UnauthorizedException
 import dev.halim.shelfdroid.network.login.LoginRequest
@@ -19,8 +19,7 @@ import kotlinx.coroutines.withContext
 
 class LoginViewModel(
     private val api: Api,
-    private val dataStore: DataStore<Preferences>,
-    private val dataStoreKeys: DataStoreKeys
+    private val dataStoreManager: DataStoreManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -47,7 +46,10 @@ class LoginViewModel(
                 api.login(LoginRequest(_uiState.value.username, _uiState.value.password))
             }
                 .onSuccess { loginResponse: LoginResponse ->
-                    dataStore.edit { it[dataStoreKeys.TOKEN] = loginResponse.user.token }
+                    dataStoreManager.dataStore.edit {
+                        it[BASE_URL] = _uiState.value.server
+                        it[TOKEN] = loginResponse.user.token
+                    }
                     _uiState.value =
                         _uiState.value.copy(loginState = LoginState.Success(loginResponse.user.token))
                 }

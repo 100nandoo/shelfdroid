@@ -14,13 +14,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import dev.halim.shelfdroid.screen.ShelfDroidScreen
 
 sealed class BottomNavScreen(val route: String, val title: String, val icon: ImageVector) {
-    object Settings : BottomNavScreen(
+    data object Settings : BottomNavScreen(
         ShelfDroidScreen.Settings.title,
         ShelfDroidScreen.Settings.title,
         Icons.Outlined.Settings
     )
 
-    object Home : BottomNavScreen(
+    data object Home : BottomNavScreen(
         ShelfDroidScreen.Home.title,
         ShelfDroidScreen.Home.title,
         Icons.Outlined.Home
