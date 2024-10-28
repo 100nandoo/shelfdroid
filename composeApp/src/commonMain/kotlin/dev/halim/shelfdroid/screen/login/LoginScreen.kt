@@ -1,15 +1,17 @@
 package dev.halim.shelfdroid.screen.login
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -49,8 +51,9 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             else -> {
                 Column(
                     Modifier
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth().fillMaxHeight().imePadding(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom
                 ) {
                     OutlinedTextField(
                         value = uiState.server,
@@ -96,7 +99,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 }
                 if (uiState.loginState is Failure) {
                     val errorMessage = (uiState.loginState as Failure).errorMessage
-//                onLoginFailure(errorMessage)
                     scope.launch { snackbarHostState.showSnackbar(errorMessage) }
                 }
                 if (uiState.loginState is LoginState.Success) {

@@ -1,9 +1,14 @@
 package dev.halim.shelfdroid.screen
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -33,7 +38,9 @@ fun MainScreen(
                 }
             }
         }
-    }) {
+    },
+        modifier = Modifier.windowInsetsPadding(insets = WindowInsets.systemBars)
+    ) {
         NavHost(
             navController = navController,
             startDestination = startDestination.value
