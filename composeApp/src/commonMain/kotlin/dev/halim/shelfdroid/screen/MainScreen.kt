@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.screen
 
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
@@ -40,12 +39,12 @@ fun MainScreen(
         }
     },
         modifier = Modifier.windowInsetsPadding(insets = WindowInsets.systemBars)
-    ) {
+    ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = startDestination.value
         ) {
-            declareComposeScreen(navController)
+            declareComposeScreen(navController, paddingValues)
         }
     }
 }

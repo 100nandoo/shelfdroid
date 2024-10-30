@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import dev.halim.shelfdroid.screen.SplashScreen
@@ -39,7 +40,7 @@ fun LoginScreenPreview() {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen()
+    HomeScreen(PaddingValues())
 }
 
 @Preview(showSystemUi = true, showBackground = true)
@@ -51,5 +52,5 @@ fun SplashScreenPreview() {
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
-    SettingsScreen({})
+    SettingsScreen(PaddingValues()) {}
 }

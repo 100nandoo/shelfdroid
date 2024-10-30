@@ -1,33 +1,41 @@
 package dev.halim.shelfdroid.network
 
 import dev.halim.shelfdroid.datastore.DataStoreManager
+import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
+import dev.halim.shelfdroid.network.library.LibrariesResponse
 import dev.halim.shelfdroid.network.login.LoginRequest
 import dev.halim.shelfdroid.network.login.LoginResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.post
+import io.ktor.client.request.header
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 
-class Api(private val client: HttpClient) {
+class Api(private val client: HttpClient, private val dataStoreManager: DataStoreManager) {
     companion object {
         var baseUrl = ""
         const val LOGIN_PATH = "/login"
         const val LOGOUT_PATH = "/logout"
+        const val LIBRARIES_PATH = "/api/libraries"
     }
 
     suspend fun <T> handleApiCall(
-        uiStateUpdater: suspend (T?) -> Unit,
+        successStateUpdater: suspend (T?) -> Unit,
         errorStateUpdater: suspend (String) -> Unit,
         apiCall: suspend () -> T
     ) {
         runCatching { apiCall() }
-            .onSuccess { response -> uiStateUpdater(response) }
+            .onSuccess { response -> successStateUpdater(response) }
             .onFailure { throwable ->
+                println(throwable)
                 val errorMessage = when (throwable) {
                     is UnauthorizedException -> "Invalid username or password."
                     else -> "Unknown error occurred"
@@ -37,20 +45,36 @@ class Api(private val client: HttpClient) {
     }
 
     suspend fun login(loginRequest: LoginRequest): LoginResponse {
-        return makePostRequest("$baseUrl$LOGIN_PATH", loginRequest)
+        return makeRequest("$baseUrl$LOGIN_PATH", HttpMethod.Post, loginRequest)
     }
 
     suspend fun logout(): LogoutResponse {
-        return makePostRequest("$baseUrl$LOGOUT_PATH")
+        return makeRequest("$baseUrl$LOGOUT_PATH", HttpMethod.Post)
     }
 
-    private suspend inline fun <reified T> makePostRequest(
+    suspend fun libraries(): LibrariesResponse {
+        return makeRequest("$baseUrl$LIBRARIES_PATH", HttpMethod.Get)
+    }
+
+    private suspend inline fun <reified T> makeRequest(
         url: String,
+        method: HttpMethod,
         body: Any? = null
     ): T {
-        val response: HttpResponse = client.post(url) {
+        val token = dataStoreManager.dataStore.data.firstOrNull()?.get(TOKEN)
+
+        val response: HttpResponse = client.request(url) {
             contentType(ContentType.Application.Json)
-            if (body != null) setBody(body)
+            if (token != null && url != "$baseUrl$LOGIN_PATH" && url != "$baseUrl$LOGOUT_PATH") {
+                header("Authorization", "Bearer $token")
+            }
+            this.method = method
+            when (method) {
+                HttpMethod.Post -> {
+                    if (body != null) setBody(body)
+                }
+                HttpMethod.Get -> {}
+            }
         }
         return handleResponse(response)
     }

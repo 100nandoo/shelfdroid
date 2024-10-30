@@ -34,7 +34,7 @@ class SettingsViewModel(
         _uiState.value = _uiState.value.copy(settingsState = SettingsState.Loading)
         viewModelScope.launch {
             api.handleApiCall(
-                uiStateUpdater = {
+                successStateUpdater = {
                     dataStoreManager.dataStore.edit { it.clear() }
                     _uiState.value = _uiState.value.copy(settingsState = SettingsState.Success)
                 },

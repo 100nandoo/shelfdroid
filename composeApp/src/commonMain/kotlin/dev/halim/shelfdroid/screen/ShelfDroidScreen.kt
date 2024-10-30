@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.screen
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -15,7 +16,8 @@ enum class ShelfDroidScreen(val title: String) {
 }
 
 fun NavGraphBuilder.declareComposeScreen(
-    navController: NavHostController
+    navController: NavHostController,
+    paddingValues: PaddingValues
 ) {
 
     composable(ShelfDroidScreen.Login.title) {
@@ -28,13 +30,13 @@ fun NavGraphBuilder.declareComposeScreen(
         })
     }
     composable(ShelfDroidScreen.Home.title) {
-        HomeScreen()
+        HomeScreen(paddingValues)
     }
     composable(ShelfDroidScreen.Splash.title) {
         SplashScreen()
     }
     composable(ShelfDroidScreen.Settings.title) {
-        SettingsScreen(onLogoutSuccess = {
+        SettingsScreen(paddingValues, onLogoutSuccess = {
             navController.navigate(ShelfDroidScreen.Login.title) {
                 popUpTo(navController.graph.id) {
                     inclusive = true
