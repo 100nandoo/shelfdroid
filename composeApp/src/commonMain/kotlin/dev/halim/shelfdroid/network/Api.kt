@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.network
 
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
-import dev.halim.shelfdroid.network.library.LibrariesResponse
 import dev.halim.shelfdroid.network.login.LoginRequest
 import dev.halim.shelfdroid.network.login.LoginResponse
 import io.ktor.client.HttpClient
@@ -17,7 +16,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 
 class Api(private val client: HttpClient, private val dataStoreManager: DataStoreManager) {
     companion object {
@@ -25,6 +23,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         const val LOGIN_PATH = "/login"
         const val LOGOUT_PATH = "/logout"
         const val LIBRARIES_PATH = "/api/libraries"
+        const val BATCH_LIBRARY_ITEMS = "/api/items/batch/get"
     }
 
     suspend fun <T> handleApiCall(
@@ -54,6 +53,14 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
 
     suspend fun libraries(): LibrariesResponse {
         return makeRequest("$baseUrl$LIBRARIES_PATH", HttpMethod.Get)
+    }
+
+    suspend fun batchLibraryItems(batchLibraryItemsRequest: BatchLibraryItemsRequest): LibraryItemsResponse {
+        return makeRequest(
+            "$baseUrl$BATCH_LIBRARY_ITEMS",
+            HttpMethod.Post,
+            batchLibraryItemsRequest
+        )
     }
 
     private suspend inline fun <reified T> makeRequest(
