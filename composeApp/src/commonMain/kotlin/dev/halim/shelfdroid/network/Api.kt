@@ -67,19 +67,13 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         )
     }
 
-
     private suspend inline fun <reified T> makeRequest(
         url: String,
         method: HttpMethod,
         body: Any? = null
     ): T {
-        val token = dataStoreManager.dataStore.data.firstOrNull()?.get(TOKEN)
-
         val response: HttpResponse = client.request(url) {
             contentType(ContentType.Application.Json)
-            if (token != null && url != "$baseUrl$LOGIN_PATH" && url != "$baseUrl$LOGOUT_PATH") {
-                header("Authorization", "Bearer $token")
-            }
             this.method = method
             when (method) {
                 HttpMethod.Post -> {

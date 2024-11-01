@@ -7,6 +7,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.rememberNavController
+import coil3.compose.setSingletonImageLoaderFactory
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.BASE_URL
 import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
@@ -17,6 +18,9 @@ import dev.halim.shelfdroid.screen.ShelfDroidScreen
 import kotlinx.coroutines.flow.first
 import org.koin.compose.KoinApplication
 import org.koin.compose.getKoin
+import org.koin.core.Koin
+import org.koin.core.parameter.parametersOf
+
 
 @Composable
 fun App() {
@@ -24,17 +28,21 @@ fun App() {
         application = { modules(appModule) }
     ) {
         val navController = rememberNavController()
-        val startDestination = setupInitialState()
+        val koin = getKoin()
+        val startDestination = setupInitialState(koin)
 
         MaterialTheme {
+            setSingletonImageLoaderFactory { context ->
+                koin.get { parametersOf(context) }
+            }
             MainScreen(navController, startDestination)
         }
     }
 }
 
 @Composable
-private fun setupInitialState(): MutableState<String> {
-    val dataStoreManager: DataStoreManager = getKoin().get()
+private fun setupInitialState(koin: Koin): MutableState<String> {
+    val dataStoreManager: DataStoreManager = koin.get()
 
     val startDestination = remember { mutableStateOf(ShelfDroidScreen.Splash.title) }
 

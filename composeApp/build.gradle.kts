@@ -50,6 +50,10 @@ kotlin {
             implementation(libs.androidx.datastore.preferences)
 
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.compose.core)
+            implementation(libs.coil.mp)
+            implementation(libs.coil.network.ktor)
             implementation(libs.koin.compose.viewmodel.nav)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
