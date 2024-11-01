@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.network.book
+package dev.halim.shelfdroid.network.libraryitem
 
 
 import kotlinx.serialization.SerialName

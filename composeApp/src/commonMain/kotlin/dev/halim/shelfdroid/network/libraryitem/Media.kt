@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.network.book
+package dev.halim.shelfdroid.network.libraryitem
 
 
 import dev.halim.shelfdroid.network.FileMetadata
@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-abstract class Item {
+sealed class Media {
     abstract val libraryItemId: String
     abstract val coverPath: String?
     abstract val tags: List<String>
@@ -29,7 +29,7 @@ class Book(
     val chapters: List<BookChapter> = listOf(),
     @SerialName("ebookFile")
     val ebookFile: EbookFile? = EbookFile()
-) : Item()
+) : Media()
 
 @Serializable
 class Podcast(
@@ -49,7 +49,7 @@ class Podcast(
     val maxEpisodesToKeep: Int = 0,
     @SerialName("maxNewEpisodesToDownload")
     val maxNewEpisodesToDownload: Int = 0
-) : Item()
+) : Media()
 
 @Serializable
 data class AudioFile(

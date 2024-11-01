@@ -14,7 +14,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -66,19 +65,21 @@ fun HomeScreen(paddingValues: PaddingValues) {
 
 @Composable
 fun PagerContent(page: Int, uiState: HomeUiState, onRefresh: () -> Unit) {
-    Row( modifier = Modifier
-        .fillMaxWidth()
-        .height(40.dp)
-        .background(Color.White)
-        .padding(horizontal = 8.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(Color.White)
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center) {
+        horizontalArrangement = Arrangement.Center
+    ) {
         Text(
             text = uiState.librariesResponse.libraries[page].name,
             textAlign = TextAlign.Center
         )
         IconButton(onClick = { onRefresh() }) {
-            Icon(Icons.Filled.Refresh, contentDescription = "refresh",  tint = Color.Blue)
+            Icon(Icons.Filled.Refresh, contentDescription = "refresh", tint = Color.Blue)
         }
     }
 }

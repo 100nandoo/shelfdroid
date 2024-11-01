@@ -1,19 +1,37 @@
 package dev.halim.shelfdroid.network
 
-import dev.halim.shelfdroid.network.book.Item
+import dev.halim.shelfdroid.network.libraryitem.LibraryItemSerializer
+import dev.halim.shelfdroid.network.libraryitem.Media
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class LibraryItemsResponse(
-    @SerialName("libraryItems")
-    val libraryItems: List<LibraryItem> = listOf(),
+    @SerialName("results")
+    val results: List<LibraryItem> = listOf(),
+    @SerialName("total")
+    val total: Int = 0,
+    @SerialName("limit")
+    val limit: Int = 0,
+    @SerialName("page")
+    val page: Int = 0,
+    @SerialName("sortBy")
+    val sortBy: String = "",
+    @SerialName("sortDesc")
+    val sortDesc: Boolean = false,
+    @SerialName("filterBy")
+    val filterBy: String = "",
+    @SerialName("mediaType")
+    val mediaType: String = "",
+    @SerialName("minified")
+    val minified: Boolean = false,
+    @SerialName("collapseseries")
+    val collapseseries: Boolean = false,
+    @SerialName("include")
+    val include: String = ""
 )
 
-@Serializable
-data class BatchLibraryItemsRequest(val libraryItemIds: List<String>)
-
-@Serializable
+@Serializable(with = LibraryItemSerializer::class)
 data class LibraryItem(
     @SerialName("id")
     val id: String = "",
@@ -34,7 +52,7 @@ data class LibraryItem(
     @SerialName("ctimeMs")
     val ctimeMs: Long = 0,
     @SerialName("birthtimeMs")
-    val birthtimeMs: Int = 0,
+    val birthtimeMs: Long = 0,
     @SerialName("addedAt")
     val addedAt: Long = 0,
     @SerialName("updatedAt")
@@ -50,7 +68,7 @@ data class LibraryItem(
     @SerialName("mediaType")
     val mediaType: String = "",
     @SerialName("media")
-    val media: Item,
+    val media: Media,
     @SerialName("libraryFiles")
     val libraryFiles: List<LibraryFile> = listOf(),
 )
@@ -86,5 +104,5 @@ data class Metadata(
     @SerialName("ctimeMs")
     val ctimeMs: Long = 0,
     @SerialName("birthtimeMs")
-    val birthtimeMs: Int = 0
+    val birthtimeMs: Long = 0
 )

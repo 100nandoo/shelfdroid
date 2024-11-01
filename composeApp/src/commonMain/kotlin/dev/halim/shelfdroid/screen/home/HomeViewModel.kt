@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LibrariesResponse
-import dev.halim.shelfdroid.network.BatchLibraryItemsRequest
+import dev.halim.shelfdroid.network.LibraryItemsResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -50,29 +50,33 @@ class HomeViewModel(
                         homeState = HomeState.Success,
                         librariesResponse = librariesResponse ?: LibrariesResponse()
                     )
-                    val libraryIds = librariesResponse?.libraries?.map { it.id } ?: listOf()
-                    fetchLibraryItems(libraryIds)
+                    librariesResponse?.libraries?.firstOrNull()?.id?.let { libraryId ->
+                        fetchLibraryItems(libraryId)
+                    }
                 },
                 errorStateUpdater = { errorMessage ->
-                    _uiState.value = _uiState.value.copy(homeState = HomeState.Failure(errorMessage))
+                    _uiState.value =
+                        _uiState.value.copy(homeState = HomeState.Failure(errorMessage))
                 },
                 apiCall = { api.libraries() }
             )
         }
     }
 
-    private suspend fun fetchLibraryItems(libraryIds: List<String>) {
+    private suspend fun fetchLibraryItems(libraryId: String) {
         api.handleApiCall(
             successStateUpdater = { libraryItemsResponse ->
-                val response = libraryItemsResponse
-                _uiState.value = _uiState.value.copy(
-                    homeState = HomeState.Success,
-                )
+                libraryItemsResponse?.let {
+                    _uiState.value = _uiState.value.copy(
+                        homeState = HomeState.Success, libraryItemsResponse = libraryItemsResponse
+                    )
+                }
+
             },
             errorStateUpdater = { errorMessage ->
                 _uiState.value = _uiState.value.copy(homeState = HomeState.Failure(errorMessage))
             },
-            apiCall = { api.batchLibraryItems(BatchLibraryItemsRequest(libraryIds)) }
+            apiCall = { api.libraryItems(libraryId) }
         )
     }
 
@@ -80,7 +84,8 @@ class HomeViewModel(
 
 data class HomeUiState(
     val homeState: HomeState = HomeState.NotLoggedOut,
-    val librariesResponse: LibrariesResponse = LibrariesResponse()
+    val librariesResponse: LibrariesResponse = LibrariesResponse(),
+    val libraryItemsResponse: LibraryItemsResponse = LibraryItemsResponse()
 )
 
 sealed class HomeState {

@@ -55,13 +55,18 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         return makeRequest("$baseUrl$LIBRARIES_PATH", HttpMethod.Get)
     }
 
-    suspend fun batchLibraryItems(batchLibraryItemsRequest: BatchLibraryItemsRequest): LibraryItemsResponse {
+    suspend fun libraryItems(libraryId: String): LibraryItemsResponse {
+        return makeRequest("$baseUrl/api/libraries/$libraryId/items", HttpMethod.Get)
+    }
+
+    suspend fun batchLibraryItems(batchLibraryItemsRequest: BatchLibraryItemsRequest): BatchLibraryItemsResponse {
         return makeRequest(
             "$baseUrl$BATCH_LIBRARY_ITEMS",
             HttpMethod.Post,
             batchLibraryItemsRequest
         )
     }
+
 
     private suspend inline fun <reified T> makeRequest(
         url: String,
