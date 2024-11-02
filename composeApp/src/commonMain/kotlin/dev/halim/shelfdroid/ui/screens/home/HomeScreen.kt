@@ -105,7 +105,7 @@ fun LibraryHeader(
     ) {
         Text(
             text = uiState.librariesResponse.libraries[page].name,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center
         )
         IconButton(onClick = onRefresh) {

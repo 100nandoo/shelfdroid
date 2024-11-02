@@ -1,9 +1,10 @@
 package dev.halim.shelfdroid
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.rememberNavController
@@ -13,6 +14,7 @@ import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.BASE_URL
 import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
 import dev.halim.shelfdroid.di.appModule
 import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.ui.screens.MainScreen
 import dev.halim.shelfdroid.ui.screens.ShelfDroidScreen
 import kotlinx.coroutines.flow.first
@@ -30,8 +32,12 @@ fun App() {
         val navController = rememberNavController()
         val koin = getKoin()
         val startDestination = setupInitialState(koin)
+        val isDarkMode by koin.get<DataStoreManager>().isDarkModeFlow.collectAsState(false)
+        LaunchedEffect(isDarkMode){
+            SharedObject.setDarkMode(isDarkMode)
+        }
 
-        MaterialTheme {
+        ShelfDroidTheme(isDarkMode) {
             setSingletonImageLoaderFactory { context ->
                 koin.get { parametersOf(context) }
             }
