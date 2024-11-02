@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.screen.settings
+package dev.halim.shelfdroid.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.screen.settings
+package dev.halim.shelfdroid.ui.screens.settings
 
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel

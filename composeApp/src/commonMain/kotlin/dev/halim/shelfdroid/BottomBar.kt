@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import dev.halim.shelfdroid.screen.ShelfDroidScreen
+import dev.halim.shelfdroid.ui.screens.ShelfDroidScreen
 
 sealed class BottomNavScreen(val route: String, val title: String, val icon: ImageVector) {
     data object Settings : BottomNavScreen(

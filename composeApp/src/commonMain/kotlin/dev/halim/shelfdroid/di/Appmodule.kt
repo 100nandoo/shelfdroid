@@ -12,15 +12,16 @@ import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
 import dev.halim.shelfdroid.datastore.createDataStoreManager
 import dev.halim.shelfdroid.network.Api
-import dev.halim.shelfdroid.screen.home.HomeViewModel
-import dev.halim.shelfdroid.screen.login.LoginViewModel
-import dev.halim.shelfdroid.screen.settings.SettingsViewModel
+import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
+import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
+import dev.halim.shelfdroid.ui.screens.settings.SettingsViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.buildUrl
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
@@ -44,14 +45,19 @@ val appModule = module {
             install(ContentNegotiation) {
                 json(json = get(), contentType = ContentType.Any)
             }
-            if (token.isNullOrBlank().not()) {
+            token?.let {
                 defaultRequest {
+                    buildUrl {
+                        if (url.toString().contains("cover")) {
+                            parameters.append("token", token)
+                        }
+                    }
                     header(HttpHeaders.Authorization, "Bearer $token")
                 }
             }
         }
     }
-    single<Api> { Api(get(), get()) }
+    single<Api> { Api(get()) }
     single<DataStoreManager> { createDataStoreManager() }
 
     single {
@@ -67,7 +73,7 @@ val appModule = module {
 
         ImageLoader.Builder(context)
             .memoryCachePolicy(CachePolicy.ENABLED)
-            .components { KtorNetworkFetcherFactory(httpClient) }
+            .components { add(KtorNetworkFetcherFactory(httpClient)) }
             .memoryCache {
                 MemoryCache.Builder()
                     .maxSizePercent(context, 0.25)

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.screen.login
+package dev.halim.shelfdroid.ui.screens.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,8 +31,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.LoadingScreen
-import dev.halim.shelfdroid.screen.login.LoginState.Failure
-import dev.halim.shelfdroid.screen.login.LoginState.Loading
+import dev.halim.shelfdroid.ui.screens.login.LoginState.Failure
+import dev.halim.shelfdroid.ui.screens.login.LoginState.Loading
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 

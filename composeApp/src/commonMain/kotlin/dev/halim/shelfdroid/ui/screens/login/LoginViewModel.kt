@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.screen.login
+package dev.halim.shelfdroid.ui.screens.login
 
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel

@@ -1,12 +1,12 @@
-package dev.halim.shelfdroid.screen
+package dev.halim.shelfdroid.ui.screens
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import dev.halim.shelfdroid.screen.home.HomeScreen
-import dev.halim.shelfdroid.screen.login.LoginScreen
-import dev.halim.shelfdroid.screen.settings.SettingsScreen
+import dev.halim.shelfdroid.ui.screens.home.HomeScreen
+import dev.halim.shelfdroid.ui.screens.login.LoginScreen
+import dev.halim.shelfdroid.ui.screens.settings.SettingsScreen
 
 enum class ShelfDroidScreen(val title: String) {
     Login(title = "login"),

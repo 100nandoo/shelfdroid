@@ -13,8 +13,8 @@ import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.BASE_URL
 import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
 import dev.halim.shelfdroid.di.appModule
 import dev.halim.shelfdroid.network.Api
-import dev.halim.shelfdroid.screen.MainScreen
-import dev.halim.shelfdroid.screen.ShelfDroidScreen
+import dev.halim.shelfdroid.ui.screens.MainScreen
+import dev.halim.shelfdroid.ui.screens.ShelfDroidScreen
 import kotlinx.coroutines.flow.first
 import org.koin.compose.KoinApplication
 import org.koin.compose.getKoin

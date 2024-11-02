@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.screen.home
+package dev.halim.shelfdroid.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,19 +26,14 @@ class HomeViewModel(
             is HomeEvent.LibraryItemPressed -> viewModelScope.launch {
 
             }
-
-            HomeEvent.ChangeLibrary -> {
-
-            }
-
             HomeEvent.RefreshLibrary -> {
                 libraries()
             }
+            is HomeEvent.ChangeLibrary -> {
+                val page = homeEvent.page
+                fetchLibraryItems(_uiState.value.librariesResponse.libraries[page].id)
+            }
         }
-    }
-
-    fun updateUiState(newState: HomeUiState) {
-        _uiState.value = newState
     }
 
     private fun libraries() {
@@ -50,9 +45,6 @@ class HomeViewModel(
                         homeState = HomeState.Success,
                         librariesResponse = librariesResponse ?: LibrariesResponse()
                     )
-                    librariesResponse?.libraries?.firstOrNull()?.id?.let { libraryId ->
-                        fetchLibraryItems(libraryId)
-                    }
                 },
                 errorStateUpdater = { errorMessage ->
                     _uiState.value =
@@ -63,23 +55,24 @@ class HomeViewModel(
         }
     }
 
-    private suspend fun fetchLibraryItems(libraryId: String) {
-        api.handleApiCall(
-            successStateUpdater = { libraryItemsResponse ->
-                libraryItemsResponse?.let {
-                    _uiState.value = _uiState.value.copy(
-                        homeState = HomeState.Success, libraryItemsResponse = libraryItemsResponse
-                    )
-                }
+    private fun fetchLibraryItems(libraryId: String) {
+        viewModelScope.launch {
+            api.handleApiCall(
+                successStateUpdater = { libraryItemsResponse ->
+                    libraryItemsResponse?.let {
+                        _uiState.value = _uiState.value.copy(
+                            homeState = HomeState.Success, libraryItemsResponse = libraryItemsResponse
+                        )
+                    }
 
-            },
-            errorStateUpdater = { errorMessage ->
-                _uiState.value = _uiState.value.copy(homeState = HomeState.Failure(errorMessage))
-            },
-            apiCall = { api.libraryItems(libraryId) }
-        )
+                },
+                errorStateUpdater = { errorMessage ->
+                    _uiState.value = _uiState.value.copy(homeState = HomeState.Failure(errorMessage))
+                },
+                apiCall = { api.libraryItems(libraryId) }
+            )
+        }
     }
-
 }
 
 data class HomeUiState(
@@ -97,6 +90,6 @@ sealed class HomeState {
 
 sealed class HomeEvent {
     data object LibraryItemPressed : HomeEvent()
-    data object ChangeLibrary : HomeEvent()
+    data class ChangeLibrary(val page: Int) : HomeEvent()
     data object RefreshLibrary : HomeEvent()
 }

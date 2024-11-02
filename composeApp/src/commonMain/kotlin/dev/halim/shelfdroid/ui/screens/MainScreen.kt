@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.screen
+package dev.halim.shelfdroid.ui.screens
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.systemBars

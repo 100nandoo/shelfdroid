@@ -7,10 +7,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import dev.halim.shelfdroid.screen.SplashScreen
-import dev.halim.shelfdroid.screen.home.HomeScreen
-import dev.halim.shelfdroid.screen.login.LoginScreen
-import dev.halim.shelfdroid.screen.settings.SettingsScreen
+import dev.halim.shelfdroid.ui.screens.SplashScreen
+import dev.halim.shelfdroid.ui.screens.home.HomeScreen
+import dev.halim.shelfdroid.ui.screens.login.LoginScreen
+import dev.halim.shelfdroid.ui.screens.settings.SettingsScreen
 
 class MainActivity : ComponentActivity() {
 
