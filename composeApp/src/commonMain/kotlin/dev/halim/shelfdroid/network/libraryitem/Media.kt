@@ -1,10 +1,8 @@
 package dev.halim.shelfdroid.network.libraryitem
 
-
 import dev.halim.shelfdroid.network.FileMetadata
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
 
 @Serializable
 sealed class Media {
@@ -12,44 +10,6 @@ sealed class Media {
     abstract val coverPath: String?
     abstract val tags: List<String>
 }
-
-@Serializable
-class Book(
-    @SerialName("libraryItemId")
-    override val libraryItemId: String = "",
-    @SerialName("coverPath")
-    override val coverPath: String?,
-    @SerialName("tags")
-    override val tags: List<String>,
-    @SerialName("metadata")
-    val metadata: BookMetadata = BookMetadata(),
-    @SerialName("audioFiles")
-    val audioFiles: List<AudioFile> = listOf(),
-    @SerialName("chapters")
-    val chapters: List<BookChapter> = listOf(),
-    @SerialName("ebookFile")
-    val ebookFile: EbookFile? = EbookFile()
-) : Media()
-
-@Serializable
-class Podcast(
-    @SerialName("libraryItemId")
-    override val libraryItemId: String = "",
-    @SerialName("coverPath")
-    override val coverPath: String?,
-    @SerialName("tags")
-    override val tags: List<String>,
-    @SerialName("autoDownloadEpisodes")
-    val autoDownloadEpisodes: Boolean = false,
-    @SerialName("autoDownloadSchedule")
-    val autoDownloadSchedule: String = "",
-    @SerialName("lastEpisodeCheck")
-    val lastEpisodeCheck: Long = 0,
-    @SerialName("maxEpisodesToKeep")
-    val maxEpisodesToKeep: Int = 0,
-    @SerialName("maxNewEpisodesToDownload")
-    val maxNewEpisodesToDownload: Int = 0
-) : Media()
 
 @Serializable
 data class AudioFile(
@@ -104,28 +64,65 @@ data class AudioFile(
 )
 
 @Serializable
-data class BookChapter(
-    @SerialName("id")
-    val id: Int = 0,
-    @SerialName("start")
-    val start: Double = 0.0,
-    @SerialName("end")
-    val end: Double = 0.0,
-    @SerialName("title")
-    val title: String = ""
-)
-
-
-@Serializable
-data class EbookFile(
-    @SerialName("ino")
-    val ino: String = "",
-    @SerialName("metadata")
-    val metadata: FileMetadata = FileMetadata(),
-    @SerialName("ebookFormat")
-    val ebookFormat: String = "",
-    @SerialName("addedAt")
-    val addedAt: Long = 0,
-    @SerialName("updatedAt")
-    val updatedAt: Long = 0
+data class AudioMetaTags(
+    @SerialName("tagAlbum")
+    val tagAlbum: String = "",
+    @SerialName("tagArtist")
+    val tagArtist: String = "",
+    @SerialName("tagGenre")
+    val tagGenre: String = "",
+    @SerialName("tagTitle")
+    val tagTitle: String = "",
+    @SerialName("tagSeries")
+    val tagSeries: String? = "",
+    @SerialName("tagSeriesPart")
+    val tagSeriesPart: String? = "",
+    @SerialName("tagTrack")
+    val tagTrack: String = "",
+    @SerialName("tagDisc")
+    val tagDisc: String? = "",
+    @SerialName("tagSubtitle")
+    val tagSubtitle: String? = "",
+    @SerialName("tagAlbumArtist")
+    val tagAlbumArtist: String = "",
+    @SerialName("tagDate")
+    val tagDate: String? = "",
+    @SerialName("tagComposer")
+    val tagComposer: String = "",
+    @SerialName("tagPublisher")
+    val tagPublisher: String? = "",
+    @SerialName("tagComment")
+    val tagComment: String? = "",
+    @SerialName("tagDescription")
+    val tagDescription: String? = "",
+    @SerialName("tagEncoder")
+    val tagEncoder: String? = "",
+    @SerialName("tagEncodedBy")
+    val tagEncodedBy: String? = "",
+    @SerialName("tagIsbn")
+    val tagIsbn: String? = "",
+    @SerialName("tagLanguage")
+    val tagLanguage: String? = "",
+    @SerialName("tagASIN")
+    val tagASIN: String? = "",
+    @SerialName("tagOverdriveMediaMarker")
+    val tagOverdriveMediaMarker: String? = "",
+    @SerialName("tagOriginalYear")
+    val tagOriginalYear: String? = "",
+    @SerialName("tagReleaseCountry")
+    val tagReleaseCountry: String? = "",
+    @SerialName("tagReleaseType")
+    val tagReleaseType: String? = "",
+    @SerialName("tagReleaseStatus")
+    val tagReleaseStatus: String? = "",
+    @SerialName("tagISRC")
+    val tagISRC: String? = "",
+    @SerialName("tagMusicBrainzTrackId")
+    val tagMusicBrainzTrackId: String? = "",
+    @SerialName("tagMusicBrainzAlbumId")
+    val tagMusicBrainzAlbumId: String? = "",
+    @SerialName("tagMusicBrainzAlbumArtistId")
+    val tagMusicBrainzAlbumArtistId: String? = "",
+    @SerialName("tagMusicBrainzArtistId")
+    val tagMusicBrainzArtistId: String? = ""
 )

@@ -9,10 +9,10 @@ import dev.halim.shelfdroid.ui.screens.login.LoginScreen
 import dev.halim.shelfdroid.ui.screens.settings.SettingsScreen
 
 enum class ShelfDroidScreen(val title: String) {
-    Login(title = "login"),
-    Home(title = "home"),
-    Splash(title = "splash"),
-    Settings(title = "settings"),
+    Login(title = "Login"),
+    Home(title = "Home"),
+    Splash(title = "Splash"),
+    Settings(title = "Settings"),
 }
 
 fun NavGraphBuilder.declareComposeScreen(
@@ -21,7 +21,7 @@ fun NavGraphBuilder.declareComposeScreen(
 ) {
 
     composable(ShelfDroidScreen.Login.title) {
-        LoginScreen(onLoginSuccess = {
+        LoginScreen(paddingValues, onLoginSuccess = {
             navController.navigate(ShelfDroidScreen.Home.title) {
                 popUpTo(ShelfDroidScreen.Login.title) {
                     inclusive = true
@@ -33,7 +33,7 @@ fun NavGraphBuilder.declareComposeScreen(
         HomeScreen(paddingValues)
     }
     composable(ShelfDroidScreen.Splash.title) {
-        SplashScreen()
+        SplashScreen(paddingValues)
     }
     composable(ShelfDroidScreen.Settings.title) {
         SettingsScreen(paddingValues, onLogoutSuccess = {

@@ -9,7 +9,6 @@ import coil3.request.CachePolicy
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
 import dev.halim.shelfdroid.datastore.createDataStoreManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
@@ -17,14 +16,8 @@ import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
 import dev.halim.shelfdroid.ui.screens.settings.SettingsViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.header
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.buildUrl
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import org.koin.core.module.dsl.viewModel
@@ -34,30 +27,15 @@ import org.koin.dsl.module
 val appModule = module {
     viewModel { LoginViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
-    viewModel { HomeViewModel(get()) }
+    viewModel { HomeViewModel(get(), get()) }
     single {
-        val dataStoreManager: DataStoreManager = get()
-        val token = runBlocking {
-            dataStoreManager.dataStore.data.firstOrNull()?.get(TOKEN)
-        }
-
         HttpClient {
             install(ContentNegotiation) {
                 json(json = get(), contentType = ContentType.Any)
             }
-            token?.let {
-                defaultRequest {
-                    buildUrl {
-                        if (url.toString().contains("cover")) {
-                            parameters.append("token", token)
-                        }
-                    }
-                    header(HttpHeaders.Authorization, "Bearer $token")
-                }
-            }
         }
     }
-    single<Api> { Api(get()) }
+    single<Api> { Api(get(), get()) }
     single<DataStoreManager> { createDataStoreManager() }
 
     single {

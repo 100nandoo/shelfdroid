@@ -1,11 +1,13 @@
 package dev.halim.shelfdroid.ui.screens.home
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,11 +17,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,10 +36,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.ui.components.LibraryItemCover
-import dev.halim.shelfdroid.ui.components.LibraryItemNoCover
+import dev.halim.shelfdroid.ui.components.HomeLibraryItem
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -43,49 +48,93 @@ import org.koin.compose.viewmodel.koinViewModel
 fun HomeScreen(paddingValues: PaddingValues) {
     val viewModel = koinViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
-    val libraryCount = uiState.librariesResponse.libraries.size
-
-    if (libraryCount == 0) {
-        Text(
-            text = "No libraries available",
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        return
-    }
+    val libraryCount = uiState.librariesUiState.size
 
     val bottomPadding = paddingValues.calculateBottomPadding()
     val pagerState = rememberPagerState(pageCount = { libraryCount })
+    var lastPage by remember { mutableStateOf(pagerState.currentPage) }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            viewModel.onEvent(HomeEvent.ChangeLibrary(page))
+            if (page != lastPage) {
+                viewModel.onEvent(HomeEvent.ChangeLibrary(page))
+                lastPage = page
+            }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-    ) {
-        HorizontalPager(
-            modifier = Modifier.padding(bottom = bottomPadding),
-            state = pagerState
-        ) { page ->
-            Column(modifier = Modifier.fillMaxSize()) {
-                LibraryContent(
-                    uiState = uiState,
-                    modifier = Modifier.weight(1f)
-                )
-                LibraryHeader(
-                    page = page,
-                    uiState = uiState,
-                    onRefresh = { viewModel.onEvent(HomeEvent.RefreshLibrary) }
+    val loadingIndicatorAlpha = remember { Animatable(0f) }
+
+    LaunchedEffect(uiState.homeState) {
+        when (uiState.homeState) {
+            is HomeState.Loading -> loadingIndicatorAlpha.animateTo(1f)
+            else -> loadingIndicatorAlpha.animateTo(0f)
+        }
+    }
+
+    HomeScreenContent(
+        libraryCount,
+        bottomPadding,
+        pagerState,
+        uiState,
+        { homeEvent -> viewModel.onEvent(homeEvent) },
+        loadingIndicatorAlpha
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun HomeScreenContent(
+    libraryCount: Int = 1,
+    bottomPadding: Dp = 16.dp,
+    pagerState: PagerState = rememberPagerState { 1 },
+    uiState: HomeUiState = HomeUiState(),
+    onEvent: (HomeEvent) -> Unit = {},
+    loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
+) {
+    if (libraryCount == 0 && uiState.homeState == HomeState.Success) {
+        NoLibrary()
+    }
+
+    HorizontalPager(
+        modifier = Modifier.padding(bottom = bottomPadding),
+        state = pagerState,
+    ) { page ->
+        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+            LibraryContent(
+                modifier = Modifier.weight(1f),
+                uiState = uiState,
+                page = page,
+            )
+            LibraryHeader(
+                page = page,
+                uiState = uiState,
+                onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) }
+            )
+            if (loadingIndicatorAlpha.value > 0f) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            alpha = loadingIndicatorAlpha.value
+                        }
                 )
             }
         }
+    }
+}
+
+@Composable
+fun NoLibrary() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "No libraries available",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineSmall,
+        )
     }
 }
 
@@ -104,7 +153,7 @@ fun LibraryHeader(
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
-            text = uiState.librariesResponse.libraries[page].name,
+            text = uiState.librariesUiState[page].name,
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center
         )
@@ -120,37 +169,40 @@ fun LibraryHeader(
 
 @Composable
 fun LibraryContent(
+    modifier: Modifier = Modifier,
     uiState: HomeUiState,
-    modifier: Modifier = Modifier
+    page: Int
 ) {
-    val gridState = rememberLazyGridState(
-        initialFirstVisibleItemIndex = uiState.libraryItemsResponse.results.size - 1
-    )
+    val response = uiState.libraryItemsUiState[page]
 
-    LazyVerticalGrid(
-        state = gridState,
-        columns = GridCells.Adaptive(minSize = 160.dp),
-        modifier = modifier
-            .fillMaxSize()
-            .padding(8.dp),
-        reverseLayout = true,
-        verticalArrangement = Arrangement.Bottom
-    ) {
-        items(
-            items = uiState.libraryItemsResponse.results,
-            key = { it.id }
-        ) { libraryItem ->
-            var imageLoadFailed by remember { mutableStateOf(false) }
+    if (response?.isNotEmpty() == true) {
+        val gridState = rememberLazyGridState(
+            initialFirstVisibleItemIndex = response.size - 1
+        )
 
-            if (imageLoadFailed) {
-                LibraryItemNoCover()
-            } else {
-                LibraryItemCover(
-                    itemId = libraryItem.id,
-                    onError = { imageLoadFailed = true },
+        LazyVerticalGrid(
+            state = gridState,
+            columns = GridCells.Adaptive(minSize = 160.dp),
+            modifier = modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            reverseLayout = true,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            items(
+                items = response,
+                key = { it.id }
+            ) { libraryItem ->
+                var imageLoadFailed by remember { mutableStateOf(false) }
+
+                HomeLibraryItem(
+                    uiState = libraryItem,
+                    showNoCover = imageLoadFailed,
+                    onImageError = { imageLoadFailed = true },
                     modifier = Modifier
                 )
             }
         }
     }
+
 }

@@ -10,14 +10,12 @@ import androidx.compose.runtime.remember
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.setSingletonImageLoaderFactory
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.BASE_URL
-import dev.halim.shelfdroid.datastore.DataStoreManager.DataStoreKeys.TOKEN
 import dev.halim.shelfdroid.di.appModule
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.ui.screens.MainScreen
 import dev.halim.shelfdroid.ui.screens.ShelfDroidScreen
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import org.koin.compose.KoinApplication
 import org.koin.compose.getKoin
 import org.koin.core.Koin
@@ -32,7 +30,7 @@ fun App() {
         val navController = rememberNavController()
         val koin = getKoin()
         val startDestination = setupInitialState(koin)
-        val isDarkMode by koin.get<DataStoreManager>().isDarkModeFlow.collectAsState(false)
+        val isDarkMode by koin.get<DataStoreManager>().isDarkMode.collectAsState(false)
         LaunchedEffect(isDarkMode){
             SharedObject.setDarkMode(isDarkMode)
         }
@@ -53,15 +51,14 @@ private fun setupInitialState(koin: Koin): MutableState<String> {
     val startDestination = remember { mutableStateOf(ShelfDroidScreen.Splash.title) }
 
     LaunchedEffect(Unit) {
-        val preferences = dataStoreManager.dataStore.data.first()
-        val token = preferences[TOKEN]
-        val baseUrl = preferences[BASE_URL]
+        val token = dataStoreManager.token.firstOrNull()
+        val baseUrl = dataStoreManager.baseUrl.firstOrNull()
 
-        if (!baseUrl.isNullOrEmpty()) {
+        if (!baseUrl.isNullOrBlank()) {
             Api.baseUrl = baseUrl
         }
 
-        startDestination.value = if (token != null) {
+        startDestination.value = if (token.isNullOrBlank().not()) {
             ShelfDroidScreen.Home.title
         } else {
             ShelfDroidScreen.Login.title

@@ -1,14 +1,13 @@
 package dev.halim.shelfdroid.ui.screens.settings
 
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.network.LogoutResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
@@ -22,8 +21,7 @@ class SettingsViewModel(
 
     init {
         viewModelScope.launch {
-            dataStoreManager.dataStore.data.collectLatest { preferences ->
-                val isDarkMode = preferences[DataStoreManager.DataStoreKeys.IS_DARK_MODE] ?: false
+            dataStoreManager.isDarkMode.collectLatest { isDarkMode ->
                 _uiState.value = _uiState.value.copy(isDarkMode = isDarkMode)
             }
         }
@@ -37,39 +35,22 @@ class SettingsViewModel(
 
             is SettingsEvent.SwitchToggle -> {
                 viewModelScope.launch {
-                    try {
-                        dataStoreManager.dataStore.edit { preferences ->
-                            preferences[DataStoreManager.DataStoreKeys.IS_DARK_MODE] = settingsEvent.isDarkMode
-                        }
-                        _uiState.value = _uiState.value.copy(isDarkMode = settingsEvent.isDarkMode)
-                    } catch (e: Exception) {
-                        _uiState.value = _uiState.value.copy(
-                            settingsState = SettingsState.Failure("Failed to update dark mode setting")
-                        )
-                    }
+                    dataStoreManager.setDarkMode(settingsEvent.isDarkMode)
                 }
             }
         }
     }
 
-    fun updateUiState(newState: SettingsUiState) {
-        _uiState.value = newState
-    }
-
-    private fun logout() {
-        _uiState.value = _uiState.value.copy(settingsState = SettingsState.Loading)
-        viewModelScope.launch {
-            api.handleApiCall(
-                successStateUpdater = {
-                    dataStoreManager.dataStore.edit { it.clear() }
-                    _uiState.value = _uiState.value.copy(settingsState = SettingsState.Success)
-                },
-                errorStateUpdater = { errorMessage ->
-                    _uiState.value =
-                        _uiState.value.copy(settingsState = SettingsState.Failure(errorMessage))
-                },
-                apiCall = { api.logout() }
-            )
+    private suspend fun logout() {
+        api.logout().collect { result ->
+            result.onSuccess { _ ->
+                dataStoreManager.clear()
+                _uiState.value = _uiState.value.copy(settingsState = SettingsState.Success)
+            }
+            result.onFailure { error ->
+                _uiState.value =
+                    _uiState.value.copy(settingsState = SettingsState.Failure(error.message))
+            }
         }
     }
 }
@@ -83,7 +64,7 @@ sealed class SettingsState {
     data object NotLoggedOut : SettingsState()
     data object Loading : SettingsState()
     data object Success : SettingsState()
-    data class Failure(val errorMessage: String) : SettingsState()
+    data class Failure(val errorMessage: String?) : SettingsState()
 }
 
 sealed class SettingsEvent {
