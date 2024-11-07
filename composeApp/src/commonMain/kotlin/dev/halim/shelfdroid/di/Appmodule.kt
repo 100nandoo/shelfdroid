@@ -20,14 +20,14 @@ import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import okio.FileSystem
-import org.koin.core.module.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 
 val appModule = module {
-    viewModel { LoginViewModel(get(), get()) }
-    viewModel { SettingsViewModel(get(), get()) }
-    viewModel { HomeViewModel(get(), get()) }
+    viewModelOf(::LoginViewModel)
+    viewModelOf(::SettingsViewModel)
+    viewModelOf(::HomeViewModel)
     single {
         HttpClient {
             install(ContentNegotiation) {

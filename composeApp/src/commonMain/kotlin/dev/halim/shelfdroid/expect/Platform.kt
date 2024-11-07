@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid
+package dev.halim.shelfdroid.expect
 
 interface Platform {
     val name: String
