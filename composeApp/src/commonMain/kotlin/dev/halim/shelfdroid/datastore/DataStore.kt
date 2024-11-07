@@ -6,13 +6,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import dev.halim.shelfdroid.network.User
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
 
 expect fun createDataStoreManager(): DataStoreManager
@@ -35,7 +32,10 @@ class DataStoreManager(private val producePath: () -> String) {
     private fun readString(key: Preferences.Key<String>, default: String = ""): Flow<String> =
         dataStore.data.map { it[key] ?: default }
 
-    private fun readBoolean(key: Preferences.Key<Boolean>, default: Boolean = false): Flow<Boolean> =
+    private fun readBoolean(
+        key: Preferences.Key<Boolean>,
+        default: Boolean = false
+    ): Flow<Boolean> =
         dataStore.data.map { it[key] ?: default }
 
     private suspend fun writeString(key: Preferences.Key<String>, value: String) {

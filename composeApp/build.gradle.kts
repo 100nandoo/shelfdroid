@@ -35,6 +35,9 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.media3.common)
+            implementation(libs.androidx.media3.exoplayer)
+            implementation(libs.androidx.media3.session)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
         }
@@ -46,17 +49,21 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodel)
-            implementation(libs.androidx.datastore.preferences)
 
+            implementation(libs.androidx.datastore.preferences)
+            implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+
             implementation(libs.coil.compose)
             implementation(libs.coil.compose.core)
             implementation(libs.coil.mp)
             implementation(libs.coil.network.ktor)
+
             implementation(libs.koin.compose.viewmodel.nav)
+
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
+
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization)
         }

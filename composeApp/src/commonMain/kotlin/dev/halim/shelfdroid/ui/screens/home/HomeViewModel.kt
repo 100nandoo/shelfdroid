@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.network.libraryitem.Podcast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.roundToLong
 
 class HomeViewModel(
     private val api: Api,
@@ -139,10 +140,10 @@ class HomeViewModel(
         return list.map { libraryItem ->
             val mediaProgress =
                 response.mediaProgress.firstOrNull { it.libraryItemId == libraryItem.id }
-            val url = api.generateItemCoverUrl(libraryItem.id)
+            val coverUrl = api.generateItemCoverUrl(libraryItem.id)
             when (libraryItem.mediaType) {
-                "book" -> BookUiState(libraryItem, mediaProgress, url)
-                else -> PodcastUiState(libraryItem, url)
+                "book" -> BookUiState(libraryItem, mediaProgress, coverUrl)
+                else -> PodcastUiState(libraryItem, coverUrl)
             }
         }
     }
@@ -156,7 +157,7 @@ data class HomeUiState(
 
 sealed class HomeLibraryItemUiState {
     abstract val id: String
-    abstract val ino: String
+    abstract val inoDurations: Map<String, Double>
     abstract val author: String
     abstract val title: String
     abstract val cover: String
@@ -164,7 +165,7 @@ sealed class HomeLibraryItemUiState {
 
 data class BookUiState(
     override val id: String,
-    override val ino: String,
+    override val inoDurations: Map<String, Double>,
     override val author: String,
     override val title: String,
     override val cover: String,
@@ -174,19 +175,40 @@ data class BookUiState(
 ) : HomeLibraryItemUiState() {
     constructor(libraryItem: LibraryItem, mediaProgress: MediaProgress?, cover: String) : this(
         libraryItem.id,
-        libraryItem.ino,
-        (libraryItem.media as Book).metadata.authors.joinToString { it.name },
+        (libraryItem.media as Book).audioFiles.associate { it.ino to it.duration },
+        libraryItem.media.metadata.authors.joinToString { it.name },
         libraryItem.media.metadata.title ?: "",
         cover,
         mediaProgress?.duration ?: 0.0,
         mediaProgress?.progress ?: 0.0,
         mediaProgress?.currentTime ?: 0.0
     )
-}
+
+    fun findInoIdAndSeekTiming(api: Api): Pair<String, Long> {
+        var url = api.generateItemStreamUrl(id, inoDurations.keys.first())
+
+        if (inoDurations.size == 1) {
+            val seekTime = (currentTime * 1000).roundToLong()
+            return url to seekTime
+        }
+
+        var cumulativeTime = 0.0
+        for ((inoId, duration) in inoDurations) {
+            cumulativeTime += duration
+
+            if (currentTime <= cumulativeTime) {
+                url = api.generateItemStreamUrl(id, inoId)
+                val seekTime = (currentTime - (cumulativeTime - duration)).roundToLong()
+                return url to seekTime
+            }
+        }
+
+        return url to 0L
+    }}
 
 data class PodcastUiState(
     override val id: String,
-    override val ino: String,
+    override val inoDurations: Map<String, Double>,
     override val author: String,
     override val title: String,
     override val cover: String,
@@ -194,8 +216,8 @@ data class PodcastUiState(
 ) : HomeLibraryItemUiState() {
     constructor(libraryItem: LibraryItem, cover: String) : this(
         libraryItem.id,
-        libraryItem.ino,
-        (libraryItem.media as Podcast).metadata.author ?: "",
+        (libraryItem.media as Podcast).episodes.associate { it.audioFile.ino to it.audioFile.duration },
+        libraryItem.media.metadata.author ?: "",
         libraryItem.media.metadata.title ?: "",
         cover,
         libraryItem.media.episodes.size

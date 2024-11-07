@@ -85,6 +85,12 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         return "$baseUrl/api/items/$itemId/cover?token=$token"
     }
 
+    fun generateItemStreamUrl(itemId: String, ino: String): String {
+        val token = dataStoreManager.tokenBlocking
+        return "$baseUrl/api/items/$itemId/file/$ino?token=$token"
+    }
+
+
     private inline fun <reified T> makeRequestFlow(
         url: String,
         method: HttpMethod,

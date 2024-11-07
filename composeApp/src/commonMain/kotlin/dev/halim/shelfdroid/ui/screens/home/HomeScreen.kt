@@ -174,7 +174,6 @@ fun LibraryContent(
     page: Int
 ) {
     val response = uiState.libraryItemsUiState[page]
-
     if (response?.isNotEmpty() == true) {
         val gridState = rememberLazyGridState(
             initialFirstVisibleItemIndex = response.size - 1
@@ -199,6 +198,7 @@ fun LibraryContent(
                     uiState = libraryItem,
                     showNoCover = imageLoadFailed,
                     onImageError = { imageLoadFailed = true },
+                    onPlayPauseClick = {  },
                     modifier = Modifier
                 )
             }

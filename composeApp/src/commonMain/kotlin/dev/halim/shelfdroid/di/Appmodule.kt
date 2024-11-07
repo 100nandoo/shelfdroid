@@ -10,6 +10,7 @@ import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.createDataStoreManager
+import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
@@ -20,6 +21,7 @@ import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import okio.FileSystem
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -35,8 +37,9 @@ val appModule = module {
             }
         }
     }
-    single<Api> { Api(get(), get()) }
+    singleOf(::Api)
     single<DataStoreManager> { createDataStoreManager() }
+    singleOf(::MediaManager)
 
     single {
         Json {
