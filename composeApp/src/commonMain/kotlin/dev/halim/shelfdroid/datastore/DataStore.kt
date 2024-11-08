@@ -1,28 +1,21 @@
 package dev.halim.shelfdroid.datastore
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import okio.Path.Companion.toPath
 
-expect fun createDataStoreManager(): DataStoreManager
+expect fun createDataStore(coroutineScope: CoroutineScope): DataStore<Preferences>
 
 internal const val dataStoreFileName = "shelfdroid.preferences_pb"
 
-class DataStoreManager(private val producePath: () -> String) {
-    private val dataStore: DataStore<Preferences> by lazy {
-        PreferenceDataStoreFactory.createWithPath(
-            produceFile = { producePath().toPath() }
-        )
-    }
-
+class DataStoreManager(private val dataStore: DataStore<Preferences>) {
     private object Keys {
         val BASE_URL = stringPreferencesKey("base_url")
         val TOKEN = stringPreferencesKey("token")

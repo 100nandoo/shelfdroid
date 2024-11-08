@@ -7,15 +7,12 @@ expect class MediaItemWrapper {
     val mediaId: String
 }
 
-expect class MediaManager() {
+expect class PlayerWrapper
+
+expect class MediaManager(playerWrapper: PlayerWrapper) {
     val playerState: StateFlow<MediaPlayerState>
     fun playBookUiState(uiState: BookUiState)
-    fun addItem(uiState: BookUiState)
-    fun currentItem(): MediaItemWrapper?
-    fun play()
-    fun pause()
     fun release()
-    fun isPlaying(): Boolean
 }
 
 data class MediaPlayerState(

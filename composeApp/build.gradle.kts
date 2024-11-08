@@ -40,6 +40,8 @@ kotlin {
             implementation(libs.androidx.media3.session)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
+
+            implementation(libs.koin.android)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -59,6 +61,8 @@ kotlin {
             implementation(libs.coil.mp)
             implementation(libs.coil.network.ktor)
 
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel.nav)
 
             implementation(libs.ktor.client.core)

@@ -28,11 +28,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import dev.halim.shelfdroid.SharedObject
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.PlaybackState
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import dev.halim.shelfdroid.ui.screens.home.HomeLibraryItemUiState
 import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun HomeLibraryItem(
@@ -130,7 +132,7 @@ fun HomeLibraryItem(
 
 @Composable
 fun LibraryItemPlayIcon(onPlayPauseClick: (String) -> Unit, id: String) {
-    val mediaManager = koinInject<MediaManager>()
+    val mediaManager = koinInject<MediaManager> { parametersOf(SharedObject.playerWrapper) }
     val playerState by mediaManager.playerState.collectAsStateWithLifecycle()
 
     val isCurrentMediaItem = playerState.currentMediaItemWrapper?.mediaId == id

@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid
 
+import dev.halim.shelfdroid.expect.PlayerWrapper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -10,4 +11,6 @@ object SharedObject {
     fun setDarkMode(isDark: Boolean) {
         _isDarkMode.value = isDark
     }
+
+    var playerWrapper: PlayerWrapper? = null
 }

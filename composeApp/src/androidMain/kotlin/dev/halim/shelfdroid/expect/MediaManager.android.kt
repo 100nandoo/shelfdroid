@@ -3,53 +3,62 @@ package dev.halim.shelfdroid.expect
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaSession
-import dev.halim.shelfdroid.ContextUtils
+import androidx.media3.session.MediaController
+import dev.halim.shelfdroid.SharedObject
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-actual class MediaManager {
-    private var exoPlayer: ExoPlayer
-    private var mediaSession: MediaSession
+actual class MediaManager actual constructor(playerWrapper: PlayerWrapper) {
+    private var exoPlayer: MediaController = playerWrapper.mediaController
+    private var seekTime = 0L
 
-    private val _playerState = MutableStateFlow(MediaPlayerState())
+    private val _playerState = MutableStateFlow(getMediaPlayerStateFromExoPlayer())
     actual val playerState = _playerState.asStateFlow()
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
-
-
     init {
-        val context = ContextUtils.context
-        exoPlayer = ExoPlayer.Builder(context).build()
-        mediaSession = MediaSession.Builder(context, exoPlayer).build()
-
         setupPlayerListeners()
         startProgressTracking()
     }
 
+    private fun getMediaPlayerStateFromExoPlayer(): MediaPlayerState {
+        return MediaPlayerState(
+            isPlaying = exoPlayer.isPlaying,
+            playbackState = mapPlayerState(exoPlayer.isPlaying, exoPlayer.playbackState),
+            currentMediaItemWrapper = exoPlayer.currentMediaItem?.let { MediaItemWrapper(it) }
+        )
+    }
+
+    private fun mapPlayerState(isPlaying: Boolean, playbackState: Int): PlaybackState {
+        return when (playbackState) {
+            Player.STATE_BUFFERING -> PlaybackState.Buffering
+            Player.STATE_READY -> {
+                if (seekTime > 0) {
+                    exoPlayer.seekTo(seekTime)
+                    seekTime = 0
+                }
+                if (isPlaying) {
+                    PlaybackState.Playing
+                } else PlaybackState.Pause
+            }
+
+            Player.STATE_IDLE -> PlaybackState.Idle
+            Player.STATE_ENDED -> PlaybackState.Ended
+            else -> _playerState.value.playbackState
+        }
+    }
+
     private fun setupPlayerListeners() {
+        fun updatePlayerState(isPlaying: Boolean, playbackState: Int) {
+            val targetState = mapPlayerState(isPlaying, playbackState)
+            _playerState.update { it.copy(isPlaying = isPlaying, playbackState = targetState) }
+        }
+
         exoPlayer.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 _playerState
                     .update { it.copy(currentMediaItemWrapper = mediaItem?.let { MediaItemWrapper(it) }) }
-            }
-
-            private fun updatePlayerState(isPlaying: Boolean, playbackState: Int) {
-                val targetState = when (playbackState) {
-                    Player.STATE_BUFFERING -> PlaybackState.Buffering
-                    Player.STATE_READY -> if (isPlaying) PlaybackState.Playing else PlaybackState.Pause
-                    Player.STATE_IDLE -> PlaybackState.Idle
-                    Player.STATE_ENDED -> PlaybackState.Ended
-                    else -> _playerState.value.playbackState
-                }
-                _playerState.update { it.copy(isPlaying = isPlaying, playbackState = targetState) }
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -60,6 +69,14 @@ actual class MediaManager {
                 updatePlayerState(exoPlayer.isPlaying, playbackState)
             }
         })
+    }
+
+    private fun restart(){
+        SharedObject.playerWrapper?.mediaController?.let {
+            exoPlayer = it
+            _playerState.value = getMediaPlayerStateFromExoPlayer()
+            setupPlayerListeners()
+        }
     }
 
     private fun startProgressTracking() {
@@ -76,10 +93,20 @@ actual class MediaManager {
     }
 
     actual fun playBookUiState(uiState: BookUiState) {
+        if (exoPlayer.isConnected.not()) {
+            restart()
+        }
         if (_playerState.value.currentMediaItemWrapper?.mediaId != uiState.id) {
             exoPlayer.pause()
             exoPlayer.clearMediaItems()
-            addItem(uiState)
+            val mediaItem = MediaItem.Builder()
+                .setUri(uiState.url)
+                .setMediaId(uiState.id)
+                .build()
+
+            exoPlayer.addMediaItem(mediaItem)
+            seekTime = uiState.seekTime
+            exoPlayer.prepare()
             exoPlayer.play()
         } else {
             if (_playerState.value.isPlaying) {
@@ -90,35 +117,13 @@ actual class MediaManager {
         }
     }
 
-    actual fun addItem(uiState: BookUiState) {
-        val mediaItem = MediaItem.Builder().setUri(uiState.url).setMediaId(uiState.id).build()
-        exoPlayer.addMediaItem(mediaItem)
-        exoPlayer.prepare()
-        exoPlayer.seekTo(uiState.seekTime)
-    }
-
-    actual fun currentItem(): MediaItemWrapper? {
-        return exoPlayer.currentMediaItem?.let { MediaItemWrapper(it) }
-    }
-
-    actual fun play() {
-        exoPlayer.play()
-    }
-
-    actual fun pause() {
-        exoPlayer.pause()
-    }
-
     actual fun release() {
-        coroutineScope.cancel()
         exoPlayer.release()
-        mediaSession.release()
     }
-
-    actual fun isPlaying(): Boolean = exoPlayer.isPlaying
 }
 
-actual class MediaItemWrapper(val mediaItem: MediaItem) {
+actual class MediaItemWrapper(mediaItem: MediaItem) {
     actual val mediaId: String = mediaItem.mediaId
 }
 
+actual class PlayerWrapper(val mediaController: MediaController)
