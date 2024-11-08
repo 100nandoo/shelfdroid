@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
@@ -19,18 +20,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import dev.halim.shelfdroid.expect.MediaManager
-import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.expect.PlaybackState
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import dev.halim.shelfdroid.ui.screens.home.HomeLibraryItemUiState
 import org.koin.compose.koinInject
@@ -40,12 +39,9 @@ fun HomeLibraryItem(
     uiState: HomeLibraryItemUiState,
     showNoCover: Boolean,
     onImageError: () -> Unit,
-    onPlayPauseClick: () -> Unit,
+    onPlayPauseClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val mediaManager = koinInject<MediaManager>()
-    val api = koinInject<Api>()
-    var isPlay by remember { mutableStateOf(false) }
     Card(
         modifier = modifier.padding(4.dp),
         shape = RoundedCornerShape(8.dp)
@@ -88,24 +84,7 @@ fun HomeLibraryItem(
                 }
 
                 if (uiState is BookUiState) {
-                    Icon(
-                        imageVector = if (isPlay) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = "Play",
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(48.dp)
-                            .clickable {
-                                if (isPlay) {
-                                    mediaManager.pause()
-                                } else {
-                                    if (mediaManager.currentItem() == null) {
-                                        val (ino, target) = uiState.findInoIdAndSeekTiming(api)
-                                        mediaManager.addItem(ino, target)
-                                    }
-                                    mediaManager.play()
-                                }
-                                isPlay = isPlay.not()
-                            }
-                    )
+                    LibraryItemPlayIcon({ onPlayPauseClick(uiState.id) }, uiState.id)
                 }
             }
             if (uiState is BookUiState) {
@@ -114,8 +93,8 @@ fun HomeLibraryItem(
                     LinearProgressIndicator(
                         progress = { float },
                         modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        trackColor = MaterialTheme.colorScheme.tertiary
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        trackColor = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 } else {
                     Box(modifier = Modifier.padding(bottom = 16.dp))
@@ -147,4 +126,29 @@ fun HomeLibraryItem(
             )
         }
     }
+}
+
+@Composable
+fun LibraryItemPlayIcon(onPlayPauseClick: (String) -> Unit, id: String) {
+    val mediaManager = koinInject<MediaManager>()
+    val playerState by mediaManager.playerState.collectAsStateWithLifecycle()
+
+    val isCurrentMediaItem = playerState.currentMediaItemWrapper?.mediaId == id
+
+    val icon = when (playerState.playbackState) {
+        PlaybackState.Buffering -> if (isCurrentMediaItem) Icons.Default.HourglassTop else Icons.Default.PlayArrow
+        PlaybackState.Playing -> {
+            if (isCurrentMediaItem) Icons.Default.Pause else Icons.Default.PlayArrow
+        }
+        PlaybackState.Pause -> Icons.Default.PlayArrow
+        else -> Icons.Default.PlayArrow
+    }
+
+    Icon(
+        imageVector = icon,
+        contentDescription = "Play",
+        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        modifier = Modifier.size(48.dp)
+            .clickable { onPlayPauseClick(id) }
+    )
 }

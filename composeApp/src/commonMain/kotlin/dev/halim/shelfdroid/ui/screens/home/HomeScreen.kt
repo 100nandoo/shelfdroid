@@ -40,7 +40,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.ui.components.HomeLibraryItem
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -103,12 +105,10 @@ fun HomeScreenContent(
         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
             LibraryContent(
                 modifier = Modifier.weight(1f),
-                uiState = uiState,
-                page = page,
+                list = uiState.libraryItemsUiState[page],
             )
             LibraryHeader(
-                page = page,
-                uiState = uiState,
+                name = uiState.librariesUiState[page].name,
                 onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) }
             )
             if (loadingIndicatorAlpha.value > 0f) {
@@ -140,8 +140,7 @@ fun NoLibrary() {
 
 @Composable
 fun LibraryHeader(
-    page: Int,
-    uiState: HomeUiState,
+    name: String,
     onRefresh: () -> Unit
 ) {
     Row(
@@ -153,7 +152,7 @@ fun LibraryHeader(
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
-            text = uiState.librariesUiState[page].name,
+            text = name,
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center
         )
@@ -170,14 +169,13 @@ fun LibraryHeader(
 @Composable
 fun LibraryContent(
     modifier: Modifier = Modifier,
-    uiState: HomeUiState,
-    page: Int
+    list: List<HomeLibraryItemUiState>?
 ) {
-    val response = uiState.libraryItemsUiState[page]
-    if (response?.isNotEmpty() == true) {
+    if (list?.isNotEmpty() == true) {
         val gridState = rememberLazyGridState(
-            initialFirstVisibleItemIndex = response.size - 1
+            initialFirstVisibleItemIndex = list.size - 1
         )
+        val mediaManager = koinInject<MediaManager>()
 
         LazyVerticalGrid(
             state = gridState,
@@ -189,7 +187,7 @@ fun LibraryContent(
             verticalArrangement = Arrangement.Bottom
         ) {
             items(
-                items = response,
+                items = list,
                 key = { it.id }
             ) { libraryItem ->
                 var imageLoadFailed by remember { mutableStateOf(false) }
@@ -198,7 +196,11 @@ fun LibraryContent(
                     uiState = libraryItem,
                     showNoCover = imageLoadFailed,
                     onImageError = { imageLoadFailed = true },
-                    onPlayPauseClick = {  },
+                    onPlayPauseClick = {
+                        if (libraryItem is BookUiState) {
+                            mediaManager.playBookUiState(libraryItem)
+                        }
+                    },
                     modifier = Modifier
                 )
             }

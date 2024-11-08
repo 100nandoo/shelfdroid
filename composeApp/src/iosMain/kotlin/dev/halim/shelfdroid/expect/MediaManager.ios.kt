@@ -1,10 +1,17 @@
 package dev.halim.shelfdroid.expect
 
+import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
 actual class MediaManager {
-    actual fun addItem(url: String, target: Long) {
+    private val _playerState = MutableStateFlow(MediaPlayerState())
+    actual val playerState = _playerState.asStateFlow()
+
+    actual fun addItem(uiState: BookUiState) {
     }
 
-    actual fun currentItem(): MediaItem? {
+    actual fun currentItem(): MediaItemWrapper? {
         return null
     }
 
@@ -18,7 +25,10 @@ actual class MediaManager {
     actual fun release() {
     }
 
-    actual fun isPlaying():Boolean = false
+    actual fun isPlaying(): Boolean = false
+
 }
 
-actual class MediaItem
+actual class MediaItemWrapper {
+    actual val mediaId: String = ""
+}

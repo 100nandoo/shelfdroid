@@ -21,9 +21,21 @@ import dev.halim.shelfdroid.ui.screens.home.LibraryHeader
 
 val homeUiState = HomeUiState()
 val homeLibraryItemUiState =
-    BookUiState("1", mapOf("2" to 3.0), "Jane Doe", "The Art of Peace", "", 0.0, 1.0, 0.0)
+    BookUiState("1", mapOf("2" to 3.0), "Jane Doe", "The Art of Peace", "",
+        0.0, 1.0, 0.0, "", 0)
 val homeLibraryItemUiState2 =
-    BookUiState("2", mapOf("3" to 4.0), "Jane Doe, Marrow Slakovakovatich", "The Art of Consolidating Long Meeting", "", 0.8, 0.5, 0.0)
+    BookUiState(
+        "2",
+        mapOf("3" to 4.0),
+        "Jane Doe, Marrow Slakovakovatich",
+        "The Art of Consolidating Long Meeting",
+        "",
+        0.8,
+        0.5,
+        0.0,
+        "",
+        0
+    )
 val homeLibraryItemUiStateList = listOf(homeLibraryItemUiState, homeLibraryItemUiState2)
 
 @Preview(showSystemUi = true, showBackground = true)
@@ -38,8 +50,7 @@ fun LibraryContentPreview() {
                 verticalArrangement = Arrangement.Bottom
             ) {
                 LibraryHeader(
-                    page = 0,
-                    uiState = homeUiState,
+                    name = homeUiState.librariesUiState[0].name,
                     onRefresh = { }
                 )
             }
@@ -60,8 +71,7 @@ fun DarkLibraryContentScreenPreview() {
                 verticalArrangement = Arrangement.Bottom
             ) {
                 LibraryHeader(
-                    page = 0,
-                    uiState = homeUiState,
+                    name = homeUiState.librariesUiState[0].name,
                     onRefresh = { }
                 )
             }

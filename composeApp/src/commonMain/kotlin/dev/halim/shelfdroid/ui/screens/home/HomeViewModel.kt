@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.Library
 import dev.halim.shelfdroid.network.LibraryItem
@@ -16,10 +15,8 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 
 class HomeViewModel(
-    private val api: Api,
-    private val dataStoreManager: DataStoreManager
+    private val api: Api
 ) : ViewModel() {
-
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
@@ -142,7 +139,7 @@ class HomeViewModel(
                 response.mediaProgress.firstOrNull { it.libraryItemId == libraryItem.id }
             val coverUrl = api.generateItemCoverUrl(libraryItem.id)
             when (libraryItem.mediaType) {
-                "book" -> BookUiState(libraryItem, mediaProgress, coverUrl)
+                "book" -> BookUiState.from(libraryItem, mediaProgress, coverUrl, api)
                 else -> PodcastUiState(libraryItem, coverUrl)
             }
         }
@@ -172,39 +169,57 @@ data class BookUiState(
     val duration: Double,
     val progress: Double,
     val currentTime: Double,
+    val url: String,
+    val seekTime: Long
 ) : HomeLibraryItemUiState() {
-    constructor(libraryItem: LibraryItem, mediaProgress: MediaProgress?, cover: String) : this(
-        libraryItem.id,
-        (libraryItem.media as Book).audioFiles.associate { it.ino to it.duration },
-        libraryItem.media.metadata.authors.joinToString { it.name },
-        libraryItem.media.metadata.title ?: "",
-        cover,
-        mediaProgress?.duration ?: 0.0,
-        mediaProgress?.progress ?: 0.0,
-        mediaProgress?.currentTime ?: 0.0
-    )
-
-    fun findInoIdAndSeekTiming(api: Api): Pair<String, Long> {
-        var url = api.generateItemStreamUrl(id, inoDurations.keys.first())
-
-        if (inoDurations.size == 1) {
-            val seekTime = (currentTime * 1000).roundToLong()
-            return url to seekTime
+    companion object {
+        fun from(
+            libraryItem: LibraryItem, mediaProgress: MediaProgress?,
+            cover: String, api: Api
+        ): BookUiState {
+            val id = libraryItem.id
+            val inoDurations = (libraryItem.media as Book).audioFiles
+                .associate { it.ino to it.duration }
+            val author = libraryItem.media.metadata.authors.joinToString { it.name }
+            val title = libraryItem.media.metadata.title ?: ""
+            val duration = mediaProgress?.duration ?: 0.0
+            val progress = mediaProgress?.progress ?: 0.0
+            val currentTime = mediaProgress?.currentTime ?: 0.0
+            val (url, seekTime) = findInoIdAndSeekTiming(id, inoDurations, currentTime, api)
+            return BookUiState(
+                id, inoDurations, author, title, cover,
+                duration, progress, currentTime, url, seekTime
+            )
         }
 
-        var cumulativeTime = 0.0
-        for ((inoId, duration) in inoDurations) {
-            cumulativeTime += duration
+        private fun findInoIdAndSeekTiming(
+            id: String,
+            inoDurations: Map<String, Double>,
+            currentTime: Double,
+            api: Api
+        ): Pair<String, Long> {
+            var url = api.generateItemStreamUrl(id, inoDurations.keys.first())
 
-            if (currentTime <= cumulativeTime) {
-                url = api.generateItemStreamUrl(id, inoId)
-                val seekTime = (currentTime - (cumulativeTime - duration)).roundToLong()
+            if (inoDurations.size == 1) {
+                val seekTime = (currentTime * 1000).roundToLong()
                 return url to seekTime
             }
-        }
 
-        return url to 0L
-    }}
+            var cumulativeTime = 0.0
+            for ((inoId, duration) in inoDurations) {
+                cumulativeTime += duration
+
+                if (currentTime <= cumulativeTime) {
+                    url = api.generateItemStreamUrl(id, inoId)
+                    val seekTime = (currentTime - (cumulativeTime - duration)).roundToLong()
+                    return url to seekTime
+                }
+            }
+
+            return url to 0L
+        }
+    }
+}
 
 data class PodcastUiState(
     override val id: String,
