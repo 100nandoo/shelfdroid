@@ -4,18 +4,18 @@ import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-actual class MediaManager actual constructor(playerWrapper: PlayerWrapper) {
+actual class MediaManager actual constructor(player: PlatformPlayer) {
     private val _playerState = MutableStateFlow(MediaPlayerState())
     actual val playerState = _playerState.asStateFlow()
-    actual fun playBookUiState(uiState: BookUiState) {
-    }
-
-    actual fun release() {
-    }
+    actual fun playBookUiState(uiState: BookUiState) {}
 }
 
-actual class MediaItemWrapper {
-    actual val mediaId: String = ""
+actual class PlatformMediaItem {
+    actual val id: String = ""
 }
 
-actual class PlayerWrapper
+actual interface PlatformPlayer {
+    companion object {
+        val INSTANCE = object : PlatformPlayer {}
+    }
+}

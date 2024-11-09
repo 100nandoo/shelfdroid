@@ -8,17 +8,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.compose.rememberNavController
-import coil3.ImageLoader
-import coil3.PlatformContext
 import coil3.compose.setSingletonImageLoaderFactory
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.di.appModule
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.ui.screens.MainScreen
 import dev.halim.shelfdroid.ui.screens.ShelfDroidScreen
 import kotlinx.coroutines.flow.firstOrNull
-import org.koin.compose.KoinApplication
+import org.koin.compose.KoinContext
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
@@ -26,17 +23,12 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun App() {
-    KoinApplication(
-        application = { modules(appModule) }
-    ) {
+    KoinContext {
         val navController = rememberNavController()
         val startDestination = setupInitialState()
         val koin = getKoin()
         val dataStoreManager: DataStoreManager = koinInject()
         val isDarkMode by dataStoreManager.isDarkMode.collectAsState(true)
-        LaunchedEffect(isDarkMode) {
-            SharedObject.setDarkMode(isDarkMode)
-        }
 
         ShelfDroidTheme(isDarkMode) {
             setSingletonImageLoaderFactory { context ->

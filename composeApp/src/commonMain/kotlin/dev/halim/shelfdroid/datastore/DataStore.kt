@@ -5,13 +5,13 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import kotlinx.coroutines.CoroutineScope
+import dev.halim.shelfdroid.expect.PlatformContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 
-expect fun createDataStore(coroutineScope: CoroutineScope): DataStore<Preferences>
+expect fun createDataStore(platformContext: PlatformContext): DataStore<Preferences>
 
 internal const val dataStoreFileName = "shelfdroid.preferences_pb"
 
@@ -46,7 +46,7 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
     val baseUrl: Flow<String> = readString(Keys.BASE_URL)
     suspend fun setBaseUrl(value: String) = writeString(Keys.BASE_URL, value)
 
-    val isDarkMode: Flow<Boolean> = readBoolean(Keys.IS_DARK_MODE)
+    val isDarkMode: Flow<Boolean> = readBoolean(Keys.IS_DARK_MODE, true)
     suspend fun setDarkMode(value: Boolean) = writeBoolean(Keys.IS_DARK_MODE, value)
 
     val token: Flow<String> = readString(Keys.TOKEN)

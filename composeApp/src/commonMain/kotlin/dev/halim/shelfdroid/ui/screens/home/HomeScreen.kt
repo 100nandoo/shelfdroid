@@ -40,12 +40,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.SharedObject
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.ui.components.HomeLibraryItem
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -177,7 +175,7 @@ fun LibraryContent(
         val gridState = rememberLazyGridState(
             initialFirstVisibleItemIndex = list.size - 1
         )
-        val mediaManager = koinInject<MediaManager> { parametersOf( SharedObject.playerWrapper) }
+        val mediaManager = koinInject<MediaManager>()
 
         LazyVerticalGrid(
             state = gridState,

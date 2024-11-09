@@ -1,16 +1,13 @@
 package dev.halim.shelfdroid.datastore
 
+import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import dev.halim.shelfdroid.ContextUtils
-import kotlinx.coroutines.CoroutineScope
 import okio.Path.Companion.toPath
 
-actual fun createDataStore(coroutineScope: CoroutineScope): DataStore<Preferences> {
-    val context = ContextUtils.context
+actual fun createDataStore(platformContext: Context): DataStore<Preferences> {
     return PreferenceDataStoreFactory.createWithPath(
-        produceFile = { context.filesDir.resolve(dataStoreFileName).absolutePath.toPath() },
-        scope = coroutineScope
+        produceFile = { platformContext.filesDir.resolve(dataStoreFileName).absolutePath.toPath() }
     )
 }
