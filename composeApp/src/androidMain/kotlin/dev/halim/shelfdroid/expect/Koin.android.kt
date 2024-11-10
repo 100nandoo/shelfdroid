@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.expect
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.content.Intent
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.media3.common.TrackSelectionParameters
@@ -10,6 +12,7 @@ import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import dev.halim.shelfdroid.MainActivity
 import dev.halim.shelfdroid.PlaybackService
 import dev.halim.shelfdroid.datastore.createDataStore
 import org.koin.dsl.module
@@ -43,11 +46,29 @@ actual val targetModule = module {
                 val settable = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
                 return settable
             }
+
         }
     }
     single<MediaLibrarySession> { (serviceContext: PlaybackService) ->
         println("targetModule android MediaLibrarySession")
+        val sessionActivityPendingIntent = pendingIntent(serviceContext)
+
         MediaLibrarySession.Builder(serviceContext, get(), get())
+            .setSessionActivity(sessionActivityPendingIntent)
             .build()
     }
+}
+
+// Handle on click push notification
+private fun pendingIntent(serviceContext: PlaybackService): PendingIntent {
+    val mainActivityIntent = Intent(serviceContext, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+    }
+    val sessionActivityPendingIntent = PendingIntent.getActivity(
+        serviceContext,
+        0,
+        mainActivityIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    return sessionActivityPendingIntent
 }

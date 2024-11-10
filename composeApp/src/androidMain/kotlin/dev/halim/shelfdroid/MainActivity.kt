@@ -2,6 +2,7 @@ package dev.halim.shelfdroid
 
 import android.content.ComponentName
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -9,21 +10,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.core.view.WindowCompat
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.expect.initializeKoin
 import org.koin.android.ext.android.inject
-import org.koin.android.ext.koin.androidContext
 
 class MainActivity : ComponentActivity() {
 
     private val dataStoreManager: DataStoreManager by inject()
+    private lateinit var controllerFuture: ListenableFuture<MediaController>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("MainActivity", "onCreate")
+
         enableEdgeToEdge()
-        initializeKoin {
-            androidContext(applicationContext)
-        }
         setContent {
             val controller = WindowCompat.getInsetsController(window, window.decorView)
             val isDarkMode = dataStoreManager.isDarkMode.collectAsState(true)
@@ -39,6 +40,18 @@ class MainActivity : ComponentActivity() {
             this,
             ComponentName(this, PlaybackService::class.java)
         )
-        MediaController.Builder(this, sessionToken).buildAsync()
+        controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
+        controllerFuture.addListener({}, MoreExecutors.directExecutor())
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::controllerFuture.isInitialized) {
+            if (!controllerFuture.isDone) {
+                controllerFuture.cancel(true)
+            } else {
+                controllerFuture.get().release()
+            }
+        }
     }
 }

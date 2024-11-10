@@ -14,6 +14,7 @@ class PlaybackService : MediaLibraryService(), KoinComponent {
     private lateinit var mediaSession: MediaLibrarySession
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        println("PlaybackService onTaskRemoved")
         stopSelf()
     }
 
@@ -22,9 +23,11 @@ class PlaybackService : MediaLibraryService(), KoinComponent {
         val context: Context = this
         player = get { parametersOf(context) }
         mediaSession = get { parametersOf(context) }
+        println("PlaybackService onCreate")
     }
 
     override fun onDestroy() {
+        println("PlaybackService onDestroy")
         mediaSession.release()
         player.release()
         super.onDestroy()
