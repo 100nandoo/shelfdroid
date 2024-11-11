@@ -20,10 +20,12 @@ import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val appModule = module {
@@ -42,7 +44,7 @@ val appModule = module {
     }
     singleOf(::Api)
     singleOf(::DataStoreManager)
-    singleOf(::MediaManager)
+    single<MediaManager> { MediaManager(get(), get(), get(named("io"))) }
 
     single {
         Json {
@@ -73,4 +75,7 @@ val appModule = module {
             .crossfade(true)
             .logger(DebugLogger()).build()
     }
+
+    single<CoroutineScope>(named("io")) { CoroutineScope(Dispatchers.IO) }
+    single<CoroutineScope>(named("main")) { CoroutineScope(Dispatchers.Main) }
 }

@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.media3.common.MediaItem
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -14,7 +15,9 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import dev.halim.shelfdroid.MainActivity
 import dev.halim.shelfdroid.PlaybackService
+import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.createDataStore
+import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import org.koin.dsl.module
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -37,16 +40,26 @@ actual val targetModule = module {
         player
     }
     single<MediaLibrarySession.Callback> {
+        val dataStoreManager by inject<DataStoreManager>()
         @UnstableApi
         object : MediaLibrarySession.Callback {
             override fun onPlaybackResumption(
                 mediaSession: MediaSession,
                 controller: MediaSession.ControllerInfo
             ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-                val settable = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
-                return settable
-            }
+                val settableFuture = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
 
+                val uiState = dataStoreManager.readSerializableBlocking(::BookUiState.name, BookUiState.serializer())
+                val mediaItems = mutableListOf<MediaItem>()
+
+                uiState?.toMediaItem()?.let { mediaItems.add(it) }
+
+                val startPosition = dataStoreManager.currentPositionBlocking
+                val mediaItemsWithPosition = MediaSession.MediaItemsWithStartPosition(mediaItems, 0, startPosition)
+
+                settableFuture.set(mediaItemsWithPosition)
+                return settableFuture
+            }
         }
     }
     single<MediaLibrarySession> { (serviceContext: PlaybackService) ->

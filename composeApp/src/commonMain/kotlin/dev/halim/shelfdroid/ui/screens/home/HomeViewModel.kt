@@ -12,6 +12,7 @@ import dev.halim.shelfdroid.network.libraryitem.Podcast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlin.math.roundToLong
 
 class HomeViewModel(
@@ -160,6 +161,7 @@ sealed class HomeLibraryItemUiState {
     abstract val cover: String
 }
 
+@Serializable
 data class BookUiState(
     override val id: String,
     override val inoDurations: Map<String, Double>,

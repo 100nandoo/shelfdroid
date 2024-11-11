@@ -2,13 +2,21 @@ package dev.halim.shelfdroid.expect
 
 
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-actual class MediaManager actual constructor(val player: PlatformPlayer) {
+actual class MediaManager actual constructor(
+    private val player: PlatformPlayer,
+    private val dataStoreManager: DataStoreManager,
+    private val io: CoroutineScope
+) {
     private var seekTime = 0L
 
     private val _playerState = MutableStateFlow(getMediaPlayerStateFromExoPlayer())
@@ -16,7 +24,6 @@ actual class MediaManager actual constructor(val player: PlatformPlayer) {
 
     init {
         setupPlayerListeners()
-        startProgressTracking()
     }
 
     private fun getMediaPlayerStateFromExoPlayer(): MediaPlayerState {
@@ -37,12 +44,33 @@ actual class MediaManager actual constructor(val player: PlatformPlayer) {
                 }
                 if (isPlaying) {
                     PlaybackState.Playing
-                } else PlaybackState.Pause
+                } else {
+                    PlaybackState.Pause
+                }
             }
 
-            Player.STATE_IDLE -> PlaybackState.Idle
-            Player.STATE_ENDED -> PlaybackState.Ended
+            Player.STATE_IDLE -> {
+                PlaybackState.Idle
+            }
+
+            Player.STATE_ENDED -> {
+                PlaybackState.Ended
+            }
+
             else -> _playerState.value.playbackState
+        }
+    }
+
+    private fun updateCurrentPosition() {
+        val currentPosition = player.currentPosition
+        io.launch {
+            dataStoreManager.setCurrentPosition(currentPosition)
+        }
+    }
+
+    private fun updateCurrentItem(uiState: BookUiState) {
+        io.launch {
+            dataStoreManager.writeSerializable(::BookUiState.name, uiState, BookUiState.serializer())
         }
     }
 
@@ -68,40 +96,42 @@ actual class MediaManager actual constructor(val player: PlatformPlayer) {
         })
     }
 
-    private fun startProgressTracking() {
-//        coroutineScope.launch {
-//            while (true) {
-//                delay(1000)
-//                if (platformPlayer.isPlaying) {
-//                    _playerState.update {
-//                        it.copy(progress = platformPlayer.currentPosition)
-//                    }
-//                }
-//            }
-//        }
-    }
-
     actual fun playBookUiState(uiState: BookUiState) {
         if (_playerState.value.item?.id != uiState.id) {
             player.pause()
             player.clearMediaItems()
-            val mediaItem = MediaItem.Builder()
-                .setUri(uiState.url)
-                .setMediaId(uiState.id)
-                .build()
 
+            val mediaItem = uiState.toMediaItem()
             player.addMediaItem(mediaItem)
             seekTime = uiState.seekTime
+
             player.prepare()
             player.play()
+
+            updateCurrentItem(uiState)
         } else {
             if (_playerState.value.isPlaying) {
                 player.pause()
+                updateCurrentPosition()
             } else {
                 player.play()
             }
         }
     }
+}
+
+fun BookUiState.toMediaItem(): MediaItem {
+    val metadata = MediaMetadata.Builder()
+        .setTitle(this.title)
+        .setArtist(this.author)
+        .setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK)
+        .build()
+    val mediaItem = MediaItem.Builder()
+        .setUri(this.url)
+        .setMediaId(this.id)
+        .setMediaMetadata(metadata)
+        .build()
+    return mediaItem
 }
 
 actual class PlatformMediaItem(mediaItem: MediaItem) {

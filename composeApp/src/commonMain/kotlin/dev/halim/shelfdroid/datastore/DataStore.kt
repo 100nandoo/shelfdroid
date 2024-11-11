@@ -4,39 +4,71 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.halim.shelfdroid.expect.PlatformContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 
 expect fun createDataStore(platformContext: PlatformContext): DataStore<Preferences>
 
 internal const val dataStoreFileName = "shelfdroid.preferences_pb"
 
-class DataStoreManager(private val dataStore: DataStore<Preferences>) {
+class DataStoreManager(private val dataStore: DataStore<Preferences>, private val json: Json) {
     private object Keys {
         val BASE_URL = stringPreferencesKey("base_url")
         val TOKEN = stringPreferencesKey("token")
         val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
+        val CURRENT_POSITION = longPreferencesKey("current_position")
+
+        fun <T> serializedKey(name: String) = stringPreferencesKey("serialized_$name")
     }
 
     private fun readString(key: Preferences.Key<String>, default: String = ""): Flow<String> =
-        dataStore.data.map { it[key] ?: default }
-
-    private fun readBoolean(
-        key: Preferences.Key<Boolean>,
-        default: Boolean = false
-    ): Flow<Boolean> =
         dataStore.data.map { it[key] ?: default }
 
     private suspend fun writeString(key: Preferences.Key<String>, value: String) {
         dataStore.edit { it[key] = value }
     }
 
+    private fun readLong(key: Preferences.Key<Long>, default: Long = 0): Flow<Long> =
+        dataStore.data.map { it[key] ?: default }
+
+    private suspend fun writeLong(key: Preferences.Key<Long>, value: Long) {
+        dataStore.edit { it[key] = value }
+    }
+
+    private fun readBoolean(key: Preferences.Key<Boolean>, default: Boolean = false): Flow<Boolean> {
+        return dataStore.data.map { it[key] ?: default }
+    }
+
     private suspend fun writeBoolean(key: Preferences.Key<Boolean>, value: Boolean) {
         dataStore.edit { it[key] = value }
+    }
+
+    fun <T> readSerializable(name: String, serializer: KSerializer<T>): Flow<T?> {
+        return dataStore.data.map { preferences ->
+            preferences[Keys.serializedKey<T>(name)]?.let {
+                runCatching { json.decodeFromString(serializer, it) }.getOrNull()
+            }
+        }
+    }
+
+    fun <T> readSerializableBlocking(name: String, serializer: KSerializer<T>): T? {
+        return runBlocking {
+            dataStore.data.firstOrNull()?.get(Keys.serializedKey<T>(name))?.let {
+                runCatching { json.decodeFromString(serializer, it) }.getOrNull()
+            }
+        }
+    }
+
+    suspend fun <T> writeSerializable(name: String, value: T, serializer: KSerializer<T>) {
+        val jsonString = json.encodeToString(serializer, value)
+        writeString(Keys.serializedKey<T>(name), jsonString)
     }
 
     suspend fun clear() = dataStore.edit { it.clear() }
@@ -49,9 +81,12 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
     val isDarkMode: Flow<Boolean> = readBoolean(Keys.IS_DARK_MODE, true)
     suspend fun setDarkMode(value: Boolean) = writeBoolean(Keys.IS_DARK_MODE, value)
 
+    val currentPosition: Flow<Long> = readLong(Keys.CURRENT_POSITION, 0)
+    val currentPositionBlocking: Long = runBlocking { dataStore.data.firstOrNull()?.get(Keys.CURRENT_POSITION) ?: 0 }
+    suspend fun setCurrentPosition(value: Long) = writeLong(Keys.CURRENT_POSITION, value)
+
     val token: Flow<String> = readString(Keys.TOKEN)
-    val tokenBlocking: String?
-        get() = runBlocking {
-            dataStore.data.firstOrNull()?.get(Keys.TOKEN)
-        }
+    val tokenBlocking: String? = runBlocking {
+        dataStore.data.firstOrNull()?.get(Keys.TOKEN)
+    }
 }
