@@ -3,7 +3,9 @@ package dev.halim.shelfdroid
 import android.content.Intent
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.expect.PlatformPlayer
@@ -33,11 +35,16 @@ class PlaybackService : MediaLibraryService(), KoinComponent {
         pauseAllPlayersAndStopSelf()
     }
 
+    @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
         get<PlatformPlayer> { parametersOf(this) }
         mediaSession = get { parametersOf(this) }
-        println("PlaybackService onCreate")
+        get<MediaNotification.Provider> { parametersOf(this) }
+        val sdkInt = android.os.Build.VERSION.SDK_INT
+        if(sdkInt < 34){
+            setMediaNotificationProvider(get())
+        }
     }
 
     override fun onDestroy() {
