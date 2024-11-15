@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LoginRequest
-import dev.halim.shelfdroid.network.LoginResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

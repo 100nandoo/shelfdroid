@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.di
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.disk.DiskCache
@@ -9,6 +11,7 @@ import coil3.request.CachePolicy
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dev.halim.shelfdroid.datastore.DataStoreManager
+import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
@@ -44,6 +47,7 @@ val appModule = module {
     }
     singleOf(::Api)
     singleOf(::DataStoreManager)
+    single<DataStore<Preferences>> { createDataStore(get()) }
     single<MediaManager> { MediaManager(get(), get(), get(named("io"))) }
 
     single {

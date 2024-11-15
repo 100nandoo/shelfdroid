@@ -26,23 +26,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         const val LIBRARIES_PATH = "/api/libraries"
         const val BATCH_LIBRARY_ITEMS = "/api/items/batch/get"
         const val ME_PATH = "/api/me"
-    }
-
-    suspend fun <T> handleApiCall(
-        successStateUpdater: suspend (T?) -> Unit,
-        errorStateUpdater: suspend (String) -> Unit,
-        apiCall: suspend () -> T
-    ): Result<T> {
-        return runCatching { apiCall() }
-            .onSuccess { response -> successStateUpdater(response) }
-            .onFailure { throwable ->
-                println(throwable)
-                val errorMessage = when (throwable) {
-                    is UnauthorizedException -> "Invalid username or password."
-                    else -> "Unknown error occurred"
-                }
-                errorStateUpdater(errorMessage)
-            }
+        const val SYNC_PROGRESS_PATH = "/api/session/%s/sync"
     }
 
     private fun mapErrorToMessage(throwable: Throwable): String {
@@ -78,6 +62,11 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
             HttpMethod.Post,
             BatchLibraryItemsRequest(libraryItemIds)
         )
+    }
+
+    fun syncProgress(id: String, syncProgressRequest: SyncProgressRequest): Flow<Result<Unit>>{
+        val path = SYNC_PROGRESS_PATH.replace("%s", id)
+        return makeRequestFlow("$baseUrl$path", HttpMethod.Post, syncProgressRequest)
     }
 
     fun generateItemCoverUrl(itemId: String): String {

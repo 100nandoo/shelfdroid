@@ -21,5 +21,4 @@ class ShelfdroidApp : Application() {
         val sessionToken = SessionToken(this, ComponentName(this, PlaybackService::class.java))
         MediaController.Builder(this, sessionToken).buildAsync()
     }
-
 }

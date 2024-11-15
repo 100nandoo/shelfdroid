@@ -4,17 +4,12 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.core.bundle.Bundle
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player.COMMAND_PLAY_PAUSE
-import androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
-import androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -35,13 +30,11 @@ import dev.halim.shelfdroid.MainActivity
 import dev.halim.shelfdroid.PlaybackService
 import dev.halim.shelfdroid.R
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import org.koin.dsl.module
 
 @SuppressLint("UnsafeOptInUsageError")
 actual val targetModule = module {
-    single<DataStore<Preferences>> { createDataStore(get()) }
     single<PlatformPlayer> { (serviceContext: PlaybackService) ->
         val player = ExoPlayer.Builder(serviceContext)
             .setAudioAttributes(AudioAttributes.DEFAULT, true)
@@ -100,6 +93,10 @@ actual val targetModule = module {
     single<MediaNotification.Provider> { (serviceContext: PlaybackService) ->
         @UnstableApi
         class CustomMediaNotificationProvider(context: Context) : DefaultMediaNotificationProvider(context) {
+            init {
+                setSmallIcon(R.drawable.ic_notification)
+            }
+
             override fun addNotificationActions(
                 mediaSession: MediaSession,
                 mediaButtons: ImmutableList<CommandButton>,
@@ -107,15 +104,12 @@ actual val targetModule = module {
                 actionFactory: MediaNotification.ActionFactory
             ): IntArray {
                 val playPause = mediaButtons.firstOrNull { it.playerCommand == COMMAND_PLAY_PAUSE }
-                val prevItem = mediaButtons.firstOrNull { it.playerCommand == COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM }
-                val nextItem = mediaButtons.firstOrNull { it.playerCommand == COMMAND_SEEK_TO_NEXT_MEDIA_ITEM }
+                playPause?.extras?.putInt(COMMAND_KEY_COMPACT_VIEW_INDEX, 1)
                 val notificationMediaButtons = if (playPause != null) {
                     ImmutableList.builder<CommandButton>().apply {
-                        if (prevItem != null) add(prevItem)
                         add(backCommandButton)
                         add(playPause)
                         add(forwardCommandButton)
-                        if (nextItem != null) add(nextItem)
                     }.build()
                 } else {
                     mediaButtons
@@ -139,13 +133,18 @@ const val CUSTOM_FORWARD = "CUSTOM_FORWARD"
 val backCommandButton = CommandButton.Builder(ICON_SKIP_BACK_10)
     .setSessionCommand(SessionCommand(CUSTOM_BACK, Bundle()))
     .setDisplayName(CUSTOM_BACK)
+    .setExtras(Bundle().apply {
+        putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX, 0)
+    })
     .build()
 
 @SuppressLint("UnsafeOptInUsageError")
 val forwardCommandButton = CommandButton.Builder(ICON_SKIP_FORWARD_10)
     .setSessionCommand(SessionCommand(CUSTOM_BACK, Bundle()))
     .setDisplayName(CUSTOM_FORWARD)
-    .build()
+    .setExtras(Bundle().apply {
+        putInt(DefaultMediaNotificationProvider.COMMAND_KEY_COMPACT_VIEW_INDEX, 2)
+    }).build()
 
 
 @OptIn(UnstableApi::class)
@@ -164,7 +163,7 @@ private fun handlePlaybackResumption(
     dataStoreManager: DataStoreManager
 ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
     val settableFuture = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
-
+    println("handlePlaybackResumption")
     val uiState = dataStoreManager.readSerializableBlocking(::BookUiState.name, BookUiState.serializer())
     val mediaItems = mutableListOf<MediaItem>()
     uiState?.toMediaItem()?.let { mediaItems.add(it) }
