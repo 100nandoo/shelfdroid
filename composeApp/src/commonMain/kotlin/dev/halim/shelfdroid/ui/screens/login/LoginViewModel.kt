@@ -35,8 +35,10 @@ class LoginViewModel(
         val request = LoginRequest(_uiState.value.username, _uiState.value.password)
         api.login(request).collect { result ->
             result.onSuccess { response ->
+                Api.baseUrl = _uiState.value.server
                 dataStoreManager.setBaseUrl(_uiState.value.server)
                 dataStoreManager.setToken(response.user.token)
+                dataStoreManager.generateDeviceId()
                 _uiState.value = _uiState.value.copy(loginState = LoginState.Success)
             }
             result.onFailure { error ->

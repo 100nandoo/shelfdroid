@@ -8,11 +8,14 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.halim.shelfdroid.expect.PlatformContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 expect fun createDataStore(platformContext: PlatformContext): DataStore<Preferences>
 
@@ -22,6 +25,7 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>, private va
     private object Keys {
         val BASE_URL = stringPreferencesKey("base_url")
         val TOKEN = stringPreferencesKey("token")
+        val DEVICE_ID = stringPreferencesKey("device_id")
         val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
         val CURRENT_POSITION = longPreferencesKey("current_position")
 
@@ -73,10 +77,25 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>, private va
 
     suspend fun clear() = dataStore.edit { it.clear() }
 
-    suspend fun setToken(value: String) = writeString(Keys.TOKEN, value)
 
     val baseUrl: Flow<String> = readString(Keys.BASE_URL)
     suspend fun setBaseUrl(value: String) = writeString(Keys.BASE_URL, value)
+
+    val deviceId: Flow<String> = readString(Keys.DEVICE_ID)
+    val deviceIdBlocking: String = runBlocking { dataStore.data.firstOrNull()?.get(Keys.DEVICE_ID) ?: "" }
+    @OptIn(ExperimentalUuidApi::class)
+    suspend fun generateDeviceId(){
+        val uuid = Uuid.random().toString()
+        if (readString(Keys.DEVICE_ID).first().isBlank()){
+            writeString(Keys.DEVICE_ID, uuid)
+        }
+    }
+
+    val token: Flow<String> = readString(Keys.TOKEN)
+    suspend fun setToken(value: String) = writeString(Keys.TOKEN, value)
+    val tokenBlocking: String? = runBlocking {
+        dataStore.data.firstOrNull()?.get(Keys.TOKEN)
+    }
 
     val isDarkMode: Flow<Boolean> = readBoolean(Keys.IS_DARK_MODE, true)
     suspend fun setDarkMode(value: Boolean) = writeBoolean(Keys.IS_DARK_MODE, value)
@@ -85,8 +104,4 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>, private va
     val currentPositionBlocking: Long = runBlocking { dataStore.data.firstOrNull()?.get(Keys.CURRENT_POSITION) ?: 0 }
     suspend fun setCurrentPosition(value: Long) = writeLong(Keys.CURRENT_POSITION, value)
 
-    val token: Flow<String> = readString(Keys.TOKEN)
-    val tokenBlocking: String? = runBlocking {
-        dataStore.data.firstOrNull()?.get(Keys.TOKEN)
-    }
 }

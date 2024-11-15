@@ -1,6 +1,12 @@
 package dev.halim.shelfdroid.network
 
+import dev.halim.shelfdroid.app_name
 import dev.halim.shelfdroid.datastore.DataStoreManager
+import dev.halim.shelfdroid.expect.getDeviceName
+import dev.halim.shelfdroid.expect.manufacturer
+import dev.halim.shelfdroid.expect.sdkVersion
+import dev.halim.shelfdroid.expect.supportedMimeType
+import dev.halim.shelfdroid.version
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -14,9 +20,12 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 
 class Api(private val client: HttpClient, private val dataStoreManager: DataStoreManager) {
     companion object {
@@ -27,7 +36,20 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         const val BATCH_LIBRARY_ITEMS = "/api/items/batch/get"
         const val ME_PATH = "/api/me"
         const val SYNC_PROGRESS_PATH = "/api/session/%s/sync"
+        const val PLAY_BOOK_PATH = "/api/items/%s/play"
     }
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            dataStoreManager.token.collect { token = it }
+            dataStoreManager.deviceId.collect { deviceId = it }
+        }
+    }
+
+    private var deviceId = dataStoreManager.deviceIdBlocking
+    private var token = dataStoreManager.tokenBlocking
+    private val deviceInfoRequest =
+        DeviceInfoRequest(deviceId, app_name, version, manufacturer(), getDeviceName(), sdkVersion())
 
     private fun mapErrorToMessage(throwable: Throwable): String {
         return when (throwable) {
@@ -36,7 +58,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         }
     }
 
-     fun login(loginRequest: LoginRequest): Flow<Result<LoginResponse>> {
+    fun login(loginRequest: LoginRequest): Flow<Result<LoginResponse>> {
         return makeRequestFlow("$baseUrl$LOGIN_PATH", HttpMethod.Post, loginRequest)
     }
 
@@ -64,18 +86,25 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         )
     }
 
-    fun syncProgress(id: String, syncProgressRequest: SyncProgressRequest): Flow<Result<Unit>>{
+    fun playBook(itemId: String): Flow<Result<PlayBookResponse>> {
+        val path = PLAY_BOOK_PATH.replace("%s", itemId)
+        return makeRequestFlow(
+            "$baseUrl$path",
+            HttpMethod.Post,
+            PlayBookRequest(deviceInfoRequest, false, false, supportedMimeType, app_name)
+        )
+    }
+
+    fun syncSession(id: String, syncSessionRequest: SyncSessionRequest): Flow<Result<Unit>> {
         val path = SYNC_PROGRESS_PATH.replace("%s", id)
-        return makeRequestFlow("$baseUrl$path", HttpMethod.Post, syncProgressRequest)
+        return makeRequestFlow("$baseUrl$path", HttpMethod.Post, syncSessionRequest)
     }
 
     fun generateItemCoverUrl(itemId: String): String {
-        val token = dataStoreManager.tokenBlocking
         return "$baseUrl/api/items/$itemId/cover?token=$token"
     }
 
     fun generateItemStreamUrl(itemId: String, ino: String): String {
-        val token = dataStoreManager.tokenBlocking
         return "$baseUrl/api/items/$itemId/file/$ino?token=$token"
     }
 
@@ -87,8 +116,6 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         queryParams: Map<String, String>? = null
     ): Flow<Result<T>> {
         return flow {
-            val token = dataStoreManager.token.firstOrNull()
-
             try {
                 val response: HttpResponse = client.request(url) {
                     contentType(ContentType.Application.Json)
@@ -107,6 +134,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
                         HttpMethod.Post -> {
                             if (body != null) setBody(body)
                         }
+
                         HttpMethod.Get -> {}
                     }
                 }
