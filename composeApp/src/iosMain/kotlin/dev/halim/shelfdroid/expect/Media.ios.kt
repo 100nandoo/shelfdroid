@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 actual class MediaManager actual constructor(
     player: PlatformPlayer, dataStoreManager: DataStoreManager,
     io: CoroutineScope,
-    api: Api
+    main: CoroutineScope,
+    sessionManager: SessionManager
 ) {
     private val _playerState = MutableStateFlow(MediaPlayerState())
     actual val playerState = _playerState.asStateFlow()

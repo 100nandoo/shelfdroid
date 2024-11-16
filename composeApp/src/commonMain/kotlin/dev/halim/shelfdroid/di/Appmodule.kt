@@ -13,6 +13,7 @@ import coil3.util.DebugLogger
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.expect.MediaManager
+import dev.halim.shelfdroid.expect.SessionManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
@@ -48,8 +49,8 @@ val appModule = module {
     singleOf(::Api)
     singleOf(::DataStoreManager)
     single<DataStore<Preferences>> { createDataStore(get()) }
-    single<MediaManager> { MediaManager(get(), get(), get(named("io")), get()) }
-
+    singleOf(::SessionManager)
+    single<MediaManager> { MediaManager(get(), get(), get(named("io")), get(named("main")), get()) }
     single {
         Json {
             ignoreUnknownKeys = true

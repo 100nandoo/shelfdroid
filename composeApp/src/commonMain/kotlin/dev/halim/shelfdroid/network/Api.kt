@@ -2,7 +2,7 @@ package dev.halim.shelfdroid.network
 
 import dev.halim.shelfdroid.app_name
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.expect.getDeviceName
+import dev.halim.shelfdroid.expect.deviceName
 import dev.halim.shelfdroid.expect.manufacturer
 import dev.halim.shelfdroid.expect.sdkVersion
 import dev.halim.shelfdroid.expect.supportedMimeType
@@ -49,7 +49,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
     private var deviceId = dataStoreManager.deviceIdBlocking
     private var token = dataStoreManager.tokenBlocking
     private val deviceInfoRequest =
-        DeviceInfoRequest(deviceId, app_name, version, manufacturer(), getDeviceName(), sdkVersion())
+        DeviceInfoRequest(deviceId, app_name, version, manufacturer, deviceName, sdkVersion)
 
     private fun mapErrorToMessage(throwable: Throwable): String {
         return when (throwable) {

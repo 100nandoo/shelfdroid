@@ -15,13 +15,10 @@ actual abstract class PlatformContext private constructor() {
     }
 }
 
-actual fun getDeviceName(): String {
-    return UIDevice.currentDevice.model
-}
+actual val deviceName: String = UIDevice.currentDevice.model
 
-actual fun sdkVersion(): Int {
-    return runCatching { UIDevice.currentDevice.systemVersion.toDouble().toInt() }.getOrElse { 0 }
-}
+actual val sdkVersion: Int = runCatching { UIDevice.currentDevice.systemVersion.toDouble().toInt() }
+    .getOrElse { 0 }
 
-actual fun manufacturer(): String = "Apple"
+actual val manufacturer: String = "Apple"
 actual val supportedMimeType: List<String> = emptyList()

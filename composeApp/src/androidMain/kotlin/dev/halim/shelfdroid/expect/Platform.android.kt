@@ -11,18 +11,11 @@ actual fun getPlatform(): Platform = AndroidPlatform()
 
 actual typealias PlatformContext = Context
 
-actual fun getDeviceName(): String {
-    val deviceName = Build.MODEL
-    val manufacturer = Build.MANUFACTURER
-    val deviceFullName = "$manufacturer $deviceName"
-    return deviceFullName
-}
+actual val deviceName: String = Build.MODEL
 
-actual fun sdkVersion(): Int {
-    return Build.VERSION.SDK_INT
-}
+actual val sdkVersion: Int = Build.VERSION.SDK_INT
 
-actual fun manufacturer(): String = Build.MANUFACTURER
+actual val manufacturer: String = Build.MANUFACTURER
 actual val supportedMimeType: List<String> = listOf(
     "audio/flac",
     "audio/mp4",

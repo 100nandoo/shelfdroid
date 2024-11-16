@@ -6,11 +6,11 @@ interface Platform {
 
 expect fun getPlatform(): Platform
 
-expect fun manufacturer(): String
+expect val manufacturer: String
 
-expect fun getDeviceName(): String
+expect val deviceName: String
 
-expect fun sdkVersion(): Int
+expect val sdkVersion: Int
 
 expect val supportedMimeType: List<String>
 

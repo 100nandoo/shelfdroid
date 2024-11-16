@@ -1,12 +1,11 @@
 package dev.halim.shelfdroid.expect
 
 
+import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.network.Api
-import dev.halim.shelfdroid.network.SyncSessionRequest
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,18 +17,37 @@ actual class MediaManager actual constructor(
     private val player: PlatformPlayer,
     private val dataStoreManager: DataStoreManager,
     private val io: CoroutineScope,
-    private val api: Api
+    private val main: CoroutineScope,
+    private val sessionManager: SessionManager
 ) {
     private var seekTime = 0L
-    private var startTime = 0L
     private var duration = 0L
-    private var sessionId: String = ""
 
     private val _playerState = MutableStateFlow(getMediaPlayerStateFromExoPlayer())
     actual val playerState = _playerState.asStateFlow()
 
     init {
         setupPlayerListeners()
+        observePlayerState()
+    }
+
+    private fun observePlayerState() {
+        io.launch {
+            playerState.collect { state ->
+                main.launch {
+                    val time = player.currentPosition / 1000
+                    when (state.playbackState) {
+                        is PlaybackState.Playing -> {
+                            sessionManager.onEvent(SessionEvent.PlaySameItem(time))
+                        }
+                        is PlaybackState.Pause -> {
+                            sessionManager.onEvent(SessionEvent.Pause(time))
+                        }
+                        else -> {}
+                    }
+                }
+            }
+        }
     }
 
     private fun getMediaPlayerStateFromExoPlayer(): MediaPlayerState {
@@ -80,28 +98,6 @@ actual class MediaManager actual constructor(
         }
     }
 
-    private fun startSession(itemId: String) {
-        io.launch {
-            api.playBook(itemId).collect { result ->
-                result.onSuccess { response ->
-                    sessionId = response.id
-                }
-            }
-
-        }
-    }
-
-    private fun syncSession() {
-        val current = player.currentPosition / 1000
-        io.launch {
-            val time = current - startTime / 1000
-            val request = SyncSessionRequest(current, time, duration)
-            api.syncSession(sessionId, request).collect { response ->
-                response.isSuccess
-            }
-        }
-    }
-
     private fun setupPlayerListeners() {
         fun updatePlayerState(isPlaying: Boolean, playbackState: Int) {
             val targetState = mapPlayerState(isPlaying, playbackState)
@@ -110,15 +106,21 @@ actual class MediaManager actual constructor(
 
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                Log.d("Media", "onMediaItemTransition: ${mediaItem?.mediaId}")
+                if (mediaItem != null) {
+                    sessionManager.onEvent(SessionEvent.Play(mediaItem.mediaId, seekTime / 1000, duration))
+                }
                 _playerState
                     .update { it.copy(item = mediaItem?.let { PlatformMediaItem(it) }) }
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
+                Log.d("Media", "isPlaying: $isPlaying")
                 updatePlayerState(isPlaying, player.playbackState)
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
+                Log.d("Media", "onPlaybackStateChanged: $playbackState")
                 updatePlayerState(player.isPlaying, playbackState)
             }
         })
@@ -132,19 +134,16 @@ actual class MediaManager actual constructor(
             val mediaItem = uiState.toMediaItem()
             player.addMediaItem(mediaItem)
             seekTime = uiState.seekTime
-            startTime = uiState.seekTime
             duration = uiState.duration.toLong()
 
             player.prepare()
             player.play()
 
             updateCurrentItem(uiState)
-            startSession(uiState.id)
         } else {
             if (_playerState.value.isPlaying) {
                 player.pause()
                 updateCurrentPosition()
-                syncSession()
             } else {
                 player.play()
             }
