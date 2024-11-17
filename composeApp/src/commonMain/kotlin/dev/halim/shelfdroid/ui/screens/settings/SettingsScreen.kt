@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.ui.screens.settings
 
+import SettingsBody
 import SettingsLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.ui.components.SettingsSwitchItem
+import dev.halim.shelfdroid.version
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -60,6 +62,10 @@ fun SettingsScreenContent(
 
         SettingsLabel(text = "Others")
         Spacer(modifier = Modifier.height(4.dp))
+        SettingsBody(text = "Version $version")
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         TextButton(
             onClick = { onEvent(SettingsEvent.LogoutButtonPressed) },
             modifier = Modifier

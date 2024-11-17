@@ -10,7 +10,11 @@ import dev.halim.shelfdroid.network.User
 import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.network.libraryitem.Podcast
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToLong
@@ -21,24 +25,38 @@ class HomeViewModel(
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
+        .onStart { apis() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), HomeUiState())
+
+    private val _navState = MutableStateFlow(Pair(false, BookUiState()))
+    val navState = _navState
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), Pair(false, BookUiState()))
 
     private val libraryIds = mutableListOf<String>()
     private val libraryItemIds = mutableMapOf<String, List<String>>()
 
-    init {
-        apis()
-    }
-
     fun onEvent(homeEvent: HomeEvent) {
         when (homeEvent) {
-            is HomeEvent.LibraryItemPressed -> Unit
             is HomeEvent.RefreshLibrary -> apis(homeEvent.page)
             is HomeEvent.ChangeLibrary -> apis(homeEvent.page)
+            is HomeEvent.NavigateToPlayer -> {
+                navigateToPlayer(homeEvent.bookUiState)
+            }
         }
     }
 
+    private fun navigateToPlayer(bookUiState: BookUiState) {
+        viewModelScope.launch {
+            _navState.update { _navState.value.copy(true, bookUiState) }
+        }
+    }
+
+    fun resetNavigationState() {
+        _navState.update { it.copy(first = false) }
+    }
+
     private fun apis(page: Int = 0) {
-        _uiState.value = _uiState.value.copy(homeState = HomeState.Loading)
+        _uiState.update { it.copy(homeState = HomeState.Loading) }
         viewModelScope.launch {
             val libraries = getLibraries()
             val librariesUiState = libraries.map { library ->
@@ -48,11 +66,13 @@ class HomeViewModel(
             val libraryItems = getLibraryItems(ids)
             val user = getMe()
             val mappedList = mapToLibraryItemUiState(user, libraryItems)
-            _uiState.value = _uiState.value.copy(
-                homeState = HomeState.Success,
-                librariesUiState = librariesUiState,
-                libraryItemsUiState = mapOf(page to mappedList)
-            )
+            _uiState.update {
+                it.copy(
+                    homeState = HomeState.Success,
+                    librariesUiState = librariesUiState,
+                    libraryItemsUiState = mapOf(page to mappedList)
+                )
+            }
         }
     }
 
@@ -62,10 +82,12 @@ class HomeViewModel(
             val libraryItems = getLibraryItems(ids)
             val user = getMe()
             val mappedList = mapToLibraryItemUiState(user, libraryItems)
-            _uiState.value = _uiState.value.copy(
-                homeState = HomeState.Success,
-                libraryItemsUiState = mapOf(page to mappedList)
-            )
+            _uiState.update {
+                it.copy(
+                    homeState = HomeState.Success,
+                    libraryItemsUiState = mapOf(page to mappedList)
+                )
+            }
         }
     }
 
@@ -79,8 +101,7 @@ class HomeViewModel(
                 }
             }
             result.onFailure { error ->
-                _uiState.value =
-                    _uiState.value.copy(homeState = HomeState.Failure(error.message))
+                _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
             }
         }
         return libraryItems
@@ -96,8 +117,7 @@ class HomeViewModel(
                     libraryItemIds[libraryId] = ids
                 }
                 result.onFailure { error ->
-                    _uiState.value =
-                        _uiState.value.copy(homeState = HomeState.Failure(error.message))
+                    _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
                 }
             }
         }
@@ -111,8 +131,7 @@ class HomeViewModel(
                 list.addAll(response.libraryItems)
             }
             result.onFailure { error ->
-                _uiState.value =
-                    _uiState.value.copy(homeState = HomeState.Failure(error.message))
+                _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
             }
         }
         return list
@@ -121,12 +140,8 @@ class HomeViewModel(
     private suspend fun getMe(): User {
         var user = User()
         api.me().collect { result ->
-            result.onSuccess { response ->
-                user = response
-            }
-            result.onFailure { error ->
-                _uiState.value = _uiState.value.copy(homeState = HomeState.Failure(error.message))
-            }
+            result.onSuccess { response -> user = response }
+            result.onFailure { error -> _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) } }
         }
         return user
     }
@@ -163,16 +178,16 @@ sealed class HomeLibraryItemUiState {
 
 @Serializable
 data class BookUiState(
-    override val id: String,
-    override val inoDurations: Map<String, Double>,
-    override val author: String,
-    override val title: String,
-    override val cover: String,
-    val duration: Double,
-    val progress: Double,
-    val currentTime: Double,
-    val url: String,
-    val seekTime: Long
+    override val id: String = "",
+    override val inoDurations: Map<String, Double> = emptyMap(),
+    override val author: String = "",
+    override val title: String = "",
+    override val cover: String = "",
+    val duration: Double = 0.0,
+    val progress: Double = 0.0,
+    val currentTime: Double = 0.0,
+    val url: String = "",
+    val seekTime: Long = 0L
 ) : HomeLibraryItemUiState() {
     companion object {
         fun from(
@@ -253,7 +268,7 @@ sealed class HomeState {
 }
 
 sealed class HomeEvent {
-    data object LibraryItemPressed : HomeEvent()
     data class ChangeLibrary(val page: Int) : HomeEvent()
     data class RefreshLibrary(val page: Int) : HomeEvent()
+    data class NavigateToPlayer(val bookUiState: BookUiState) : HomeEvent()
 }

@@ -7,6 +7,7 @@ import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LoginRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
@@ -39,11 +40,9 @@ class LoginViewModel(
                 dataStoreManager.setBaseUrl(_uiState.value.server)
                 dataStoreManager.setToken(response.user.token)
                 dataStoreManager.generateDeviceId()
-                _uiState.value = _uiState.value.copy(loginState = LoginState.Success)
+                _uiState.update { it.copy(loginState = LoginState.Success) }
             }
-            result.onFailure { error ->
-                _uiState.value = _uiState.value.copy(loginState = LoginState.Failure(error.message))
-            }
+            result.onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
         }
     }
 }

@@ -149,6 +149,14 @@ actual class MediaManager actual constructor(
             }
         }
     }
+
+    actual fun seekForward() {
+        player.seekForward()
+    }
+
+    actual fun seekBackward() {
+        player.seekBack()
+    }
 }
 
 fun BookUiState.toMediaItem(): MediaItem {

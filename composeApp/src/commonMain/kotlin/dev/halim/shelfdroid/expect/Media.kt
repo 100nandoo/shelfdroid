@@ -17,6 +17,8 @@ expect class MediaManager(
 ) {
     val playerState: StateFlow<MediaPlayerState>
     fun playBookUiState(uiState: BookUiState)
+    fun seekForward()
+    fun seekBackward()
 }
 
 data class MediaPlayerState(

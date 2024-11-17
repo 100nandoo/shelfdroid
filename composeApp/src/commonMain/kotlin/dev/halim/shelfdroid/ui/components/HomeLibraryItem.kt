@@ -31,8 +31,11 @@ import coil3.compose.AsyncImage
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.PlaybackState
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import dev.halim.shelfdroid.ui.screens.home.HomeEvent
 import dev.halim.shelfdroid.ui.screens.home.HomeLibraryItemUiState
+import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HomeLibraryItem(
@@ -40,18 +43,17 @@ fun HomeLibraryItem(
     showNoCover: Boolean,
     onImageError: () -> Unit,
     onPlayPauseClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
+    val viewModel = koinViewModel<HomeViewModel>()
+
     Card(
         modifier = modifier.padding(4.dp),
+        onClick = { if (uiState is BookUiState) viewModel.onEvent(HomeEvent.NavigateToPlayer(uiState)) },
         shape = RoundedCornerShape(8.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                contentAlignment = Alignment.Center
-            ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(contentAlignment = Alignment.Center) {
                 if (showNoCover) {
                     Box(
                         modifier = Modifier
@@ -140,6 +142,7 @@ fun LibraryItemPlayIcon(onPlayPauseClick: (String) -> Unit, id: String) {
         PlaybackState.Playing -> {
             if (isCurrentMediaItem) Icons.Default.Pause else Icons.Default.PlayArrow
         }
+
         PlaybackState.Pause -> Icons.Default.PlayArrow
         else -> Icons.Default.PlayArrow
     }

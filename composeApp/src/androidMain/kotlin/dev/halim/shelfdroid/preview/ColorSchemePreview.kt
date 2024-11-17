@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.preview
 
+import ShelfDroidPreview
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,33 +25,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.theme.darkScheme
 import dev.halim.shelfdroid.theme.lightScheme
 
-@Preview(showBackground = true)
+@ShelfDroidPreview
 @Composable
 fun ColorSchemePreview() {
-    ShelfDroidTheme(false) {
-        ColorSchemeScreen()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DarkColorSchemePreview() {
-    ShelfDroidTheme(true) {
-        ColorSchemeScreen(true)
-    }
+    ShelfDroidPreview { ColorSchemeScreen() }
 }
 
 @Composable
-fun ColorSchemeScreen(
-    isDarkMode: Boolean = false
-) {
-    val colorScheme: ColorScheme = if (isDarkMode) darkScheme else lightScheme
+fun ColorSchemeScreen() {
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+
+    val colorScheme: ColorScheme = if (isSystemInDarkTheme) darkScheme else lightScheme
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = colorScheme.background
@@ -112,7 +102,7 @@ fun ColorSchemeScreen(
                 ColorItem(
                     name = name,
                     color = color,
-                    isDarkMode = isDarkMode
+                    isDarkMode = isSystemInDarkTheme
                 )
             }
         }

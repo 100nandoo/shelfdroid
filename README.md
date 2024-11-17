@@ -36,7 +36,7 @@ WIP
 - [ ] Implement audiobook chapter support.
 - [ ] Add in-app settings for customizing playback.
 - [ ] Integration with Google Assistant for voice controls.
--
+
 ## Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request for review.

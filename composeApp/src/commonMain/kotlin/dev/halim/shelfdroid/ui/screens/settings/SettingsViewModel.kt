@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.network.Api
-import dev.halim.shelfdroid.network.LogoutResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
@@ -22,7 +22,7 @@ class SettingsViewModel(
     init {
         viewModelScope.launch {
             dataStoreManager.isDarkMode.collectLatest { isDarkMode ->
-                _uiState.value = _uiState.value.copy(isDarkMode = isDarkMode)
+                _uiState.update { it.copy(isDarkMode = isDarkMode) }
             }
         }
     }
@@ -45,11 +45,10 @@ class SettingsViewModel(
         api.logout().collect { result ->
             result.onSuccess { _ ->
                 dataStoreManager.clear()
-                _uiState.value = _uiState.value.copy(settingsState = SettingsState.Success)
+                _uiState.update { it.copy(settingsState = SettingsState.Success) }
             }
             result.onFailure { error ->
-                _uiState.value =
-                    _uiState.value.copy(settingsState = SettingsState.Failure(error.message))
+                _uiState.update { it.copy(settingsState = SettingsState.Failure(error.message)) }
             }
         }
     }

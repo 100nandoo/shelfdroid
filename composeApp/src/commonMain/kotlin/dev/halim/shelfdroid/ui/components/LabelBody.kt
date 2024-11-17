@@ -17,3 +17,16 @@ fun SettingsLabel(
         modifier = modifier
     )
 }
+
+@Composable
+fun SettingsBody(
+    text: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodyLarge,
+) {
+    Text(
+        text = text,
+        style = style,
+        modifier = modifier
+    )
+}

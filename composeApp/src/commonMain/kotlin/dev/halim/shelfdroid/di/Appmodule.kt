@@ -18,6 +18,7 @@ import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
 import dev.halim.shelfdroid.ui.screens.settings.SettingsViewModel
+import dev.halim.shelfdroid.ui.screens.player.PlayerViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
@@ -25,6 +26,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import org.koin.core.module.dsl.singleOf
@@ -36,6 +38,8 @@ val appModule = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::HomeViewModel)
+    viewModelOf(::PlayerViewModel)
+
     single {
         HttpClient {
             install(ContentNegotiation) {
@@ -81,6 +85,6 @@ val appModule = module {
             .logger(DebugLogger()).build()
     }
 
-    single<CoroutineScope>(named("io")) { CoroutineScope(Dispatchers.IO) }
-    single<CoroutineScope>(named("main")) { CoroutineScope(Dispatchers.Main) }
+    single<CoroutineScope>(named("io")) { CoroutineScope(Dispatchers.IO + SupervisorJob()) }
+    single<CoroutineScope>(named("main")) { CoroutineScope(Dispatchers.Main + SupervisorJob()) }
 }

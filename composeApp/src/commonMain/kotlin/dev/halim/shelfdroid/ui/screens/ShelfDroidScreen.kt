@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import dev.halim.shelfdroid.ui.screens.home.HomeScreen
 import dev.halim.shelfdroid.ui.screens.login.LoginScreen
+import dev.halim.shelfdroid.ui.screens.player.PlayerScreen
 import dev.halim.shelfdroid.ui.screens.settings.SettingsScreen
 
 enum class ShelfDroidScreen(val title: String) {
@@ -13,6 +14,7 @@ enum class ShelfDroidScreen(val title: String) {
     Home(title = "Home"),
     Splash(title = "Splash"),
     Settings(title = "Settings"),
+    Player(title = "Player"),
 }
 
 fun NavGraphBuilder.declareComposeScreen(
@@ -30,7 +32,9 @@ fun NavGraphBuilder.declareComposeScreen(
         })
     }
     composable(ShelfDroidScreen.Home.title) {
-        HomeScreen(paddingValues)
+        HomeScreen(paddingValues, { bookUiState ->
+            navController.navigate(ShelfDroidScreen.Player.title)
+        })
     }
     composable(ShelfDroidScreen.Splash.title) {
         SplashScreen(paddingValues)
@@ -43,5 +47,8 @@ fun NavGraphBuilder.declareComposeScreen(
                 }
             }
         })
+    }
+    composable(ShelfDroidScreen.Player.title) {
+        PlayerScreen(paddingValues)
     }
 }

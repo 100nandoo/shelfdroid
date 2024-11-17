@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.preview
 
+import ShelfDroidPreview
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,21 +9,22 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.ui.components.HomeLibraryItem
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import dev.halim.shelfdroid.ui.screens.home.HomeState
 import dev.halim.shelfdroid.ui.screens.home.HomeUiState
 import dev.halim.shelfdroid.ui.screens.home.LibraryHeader
+import dev.halim.shelfdroid.ui.screens.home.LibraryUiState
 
-val homeUiState = HomeUiState()
+
 val homeLibraryItemUiState =
-    BookUiState("1", mapOf("2" to 3.0), "Jane Doe", "The Art of Peace", "",
-        0.0, 1.0, 0.0, "", 0)
+    BookUiState(
+        "1", mapOf("2" to 3.0), "Jane Doe", "The Art of Peace", "",
+        0.0, 1.0, 0.0, "", 0
+    )
 val homeLibraryItemUiState2 =
     BookUiState(
         "2",
@@ -37,56 +39,39 @@ val homeLibraryItemUiState2 =
         0
     )
 val homeLibraryItemUiStateList = listOf(homeLibraryItemUiState, homeLibraryItemUiState2)
+val libraryUiStateList = listOf(LibraryUiState("123", "Main"), LibraryUiState("234", "Podcast"))
+val homeUiState = HomeUiState(
+    HomeState.Success, libraryUiStateList, mapOf(
+        (0 to homeLibraryItemUiStateList),
+        (1 to homeLibraryItemUiStateList)
+    )
+)
 
-@Preview(showSystemUi = true, showBackground = true)
+@ShelfDroidPreview
 @Composable
 fun LibraryContentPreview() {
-    ShelfDroidTheme(false) {
-        Scaffold { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = paddingValues.calculateBottomPadding()),
-                verticalArrangement = Arrangement.Bottom
-            ) {
-                LibraryHeader(
-                    name = homeUiState.librariesUiState[0].name,
-                    onRefresh = { }
-                )
-            }
-
+    ShelfDroidPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            LibraryHeader(
+                name = homeUiState.librariesUiState[0].name,
+                onRefresh = { }
+            )
         }
     }
 }
 
-@Preview(showSystemUi = true, showBackground = true)
-@Composable
-fun DarkLibraryContentScreenPreview() {
-    ShelfDroidTheme(true) {
-        Scaffold { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = paddingValues.calculateBottomPadding()),
-                verticalArrangement = Arrangement.Bottom
-            ) {
-                LibraryHeader(
-                    name = homeUiState.librariesUiState[0].name,
-                    onRefresh = { }
-                )
-            }
-        }
-    }
-}
-
-@Preview(showSystemUi = true, showBackground = true)
+@ShelfDroidPreview
 @Composable
 fun LibraryItemNoCoverPreview() {
     val response = homeLibraryItemUiStateList
     val gridState = rememberLazyGridState(
         initialFirstVisibleItemIndex = response.size - 1
     )
-    ShelfDroidTheme(false) {
+    ShelfDroidPreview {
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Adaptive(minSize = 160.dp),
@@ -100,34 +85,7 @@ fun LibraryItemNoCoverPreview() {
                 items = response,
                 key = { it.id }
             ) { item ->
-                HomeLibraryItem(item, true, {}, {})
-            }
-        }
-    }
-}
-
-@Preview(showSystemUi = true, showBackground = true)
-@Composable
-fun DarkLibraryItemNoCoverPreview() {
-    val response = homeLibraryItemUiStateList
-    val gridState = rememberLazyGridState(
-        initialFirstVisibleItemIndex = response.size - 1
-    )
-    ShelfDroidTheme(true) {
-        LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Adaptive(minSize = 160.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            reverseLayout = true,
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            items(
-                items = response,
-                key = { it.id }
-            ) { item ->
-                HomeLibraryItem(item, true, {}, {})
+                HomeLibraryItem(item, true, {}, {}, Modifier)
             }
         }
     }

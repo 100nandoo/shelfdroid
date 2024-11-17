@@ -47,7 +47,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(paddingValues: PaddingValues) {
+fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (BookUiState) -> Unit) {
     val viewModel = koinViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val libraryCount = uiState.librariesUiState.size
@@ -61,6 +61,15 @@ fun HomeScreen(paddingValues: PaddingValues) {
             if (page != lastPage) {
                 viewModel.onEvent(HomeEvent.ChangeLibrary(page))
                 lastPage = page
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.navState.collect { (isNavigate, bookUiState) ->
+            if (isNavigate){
+                onBookClicked(bookUiState)
+                viewModel.resetNavigationState()
             }
         }
     }
