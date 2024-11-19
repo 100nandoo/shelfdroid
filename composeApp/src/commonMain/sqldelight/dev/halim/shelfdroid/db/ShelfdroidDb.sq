@@ -1,0 +1,22 @@
+CREATE TABLE LibraryEntity(
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    displayOrder INTEGER NOT NULL,
+    icon TEXT,
+    mediaType TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    lastUpdate INTEGER NOT NULL
+);
+
+insertLibrary:
+INSERT INTO LibraryEntity(id, name, displayOrder, icon, mediaType, provider, createdAt, lastUpdate)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAllLibraries:
+SELECT LibraryEntity.*
+FROM LibraryEntity;
+
+removeAllLibraries:
+DELETE FROM LibraryEntity;
+

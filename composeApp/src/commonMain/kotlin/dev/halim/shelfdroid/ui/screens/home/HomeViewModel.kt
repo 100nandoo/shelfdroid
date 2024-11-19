@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.halim.shelfdroid.db.Database
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.Library
 import dev.halim.shelfdroid.network.LibraryItem
@@ -20,7 +21,8 @@ import kotlinx.serialization.Serializable
 import kotlin.math.roundToLong
 
 class HomeViewModel(
-    private val api: Api
+    private val api: Api,
+    private val database: Database
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -59,6 +61,7 @@ class HomeViewModel(
         _uiState.update { it.copy(homeState = HomeState.Loading) }
         viewModelScope.launch {
             val libraries = getLibraries()
+            database.addAll(libraries)
             val librariesUiState = libraries.map { library ->
                 LibraryUiState(library.id, library.name)
             }

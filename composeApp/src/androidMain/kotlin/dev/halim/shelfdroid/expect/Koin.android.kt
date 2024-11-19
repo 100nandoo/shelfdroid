@@ -30,7 +30,10 @@ import dev.halim.shelfdroid.MainActivity
 import dev.halim.shelfdroid.PlaybackService
 import dev.halim.shelfdroid.R
 import dev.halim.shelfdroid.datastore.DataStoreManager
+import dev.halim.shelfdroid.db.AndroidDatabaseDriverFactory
+import dev.halim.shelfdroid.db.Database
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -123,6 +126,9 @@ actual val targetModule = module {
             }
         }
         CustomMediaNotificationProvider(serviceContext)
+    }
+    single<Database>{
+        Database(AndroidDatabaseDriverFactory(androidContext()))
     }
 }
 
