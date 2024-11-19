@@ -60,11 +60,11 @@ data class MediaProgress(
     @SerialName("mediaItemType")
     val mediaItemType: String = "",
     @SerialName("duration")
-    val duration: Double = 0.0,
+    val duration: Float = 0f,
     @SerialName("progress")
-    val progress: Double = 0.0,
+    val progress: Float = 0f,
     @SerialName("currentTime")
-    val currentTime: Double = 0.0,
+    val currentTime: Float = 0f,
     @SerialName("isFinished")
     val isFinished: Boolean = false,
     @SerialName("hideFromContinueListening")

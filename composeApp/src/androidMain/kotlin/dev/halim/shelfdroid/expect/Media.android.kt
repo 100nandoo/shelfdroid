@@ -20,9 +20,6 @@ actual class MediaManager actual constructor(
     private val main: CoroutineScope,
     private val sessionManager: SessionManager
 ) {
-    private var seekTime = 0L
-    private var duration = 0L
-
     private val _playerState = MutableStateFlow(getMediaPlayerStateFromExoPlayer())
     actual val playerState = _playerState.asStateFlow()
 
@@ -35,15 +32,9 @@ actual class MediaManager actual constructor(
         io.launch {
             playerState.collect { state ->
                 main.launch {
-                    val time = player.currentPosition / 1000
-                    when (state.playbackState) {
-                        is PlaybackState.Playing -> {
-                            sessionManager.onEvent(SessionEvent.PlaySameItem(time))
-                        }
-                        is PlaybackState.Pause -> {
-                            sessionManager.onEvent(SessionEvent.Pause(time))
-                        }
-                        else -> {}
+                    if (state.playbackState is PlaybackState.Pause) {
+                        val time = player.currentPosition / 1000
+                        sessionManager.onEvent(SessionEvent.Pause(time))
                     }
                 }
             }
@@ -62,10 +53,6 @@ actual class MediaManager actual constructor(
         return when (playbackState) {
             Player.STATE_BUFFERING -> PlaybackState.Buffering
             Player.STATE_READY -> {
-                if (seekTime > 0) {
-                    player.seekTo(seekTime)
-                    seekTime = 0
-                }
                 if (isPlaying) {
                     PlaybackState.Playing
                 } else {
@@ -106,10 +93,6 @@ actual class MediaManager actual constructor(
 
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                Log.d("Media", "onMediaItemTransition: ${mediaItem?.mediaId}")
-                if (mediaItem != null) {
-                    sessionManager.onEvent(SessionEvent.Play(mediaItem.mediaId, seekTime / 1000, duration))
-                }
                 _playerState
                     .update { it.copy(item = mediaItem?.let { PlatformMediaItem(it) }) }
             }
@@ -129,16 +112,12 @@ actual class MediaManager actual constructor(
     actual fun playBookUiState(uiState: BookUiState) {
         if (_playerState.value.item?.id != uiState.id) {
             player.pause()
-            player.clearMediaItems()
-
             val mediaItem = uiState.toMediaItem()
-            player.addMediaItem(mediaItem)
-            seekTime = uiState.seekTime
-            duration = uiState.duration.toLong()
-
+            player.setMediaItem(mediaItem)
             player.prepare()
             player.play()
 
+            sessionManager.onEvent(SessionEvent.Play(uiState))
             updateCurrentItem(uiState)
         } else {
             if (_playerState.value.isPlaying) {
@@ -169,6 +148,7 @@ fun BookUiState.toMediaItem(): MediaItem {
         .setUri(this.url)
         .setMediaId(this.id)
         .setMediaMetadata(metadata)
+        .setClippingConfiguration(MediaItem.ClippingConfiguration.Builder().setStartPositionMs(seekTime).build())
         .build()
     return mediaItem
 }

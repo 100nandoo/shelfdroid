@@ -99,7 +99,7 @@ fun HomeLibraryItem(
                         trackColor = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 } else {
-                    Box(modifier = Modifier.padding(bottom = 16.dp))
+                    Box(modifier = Modifier.padding(bottom = 4.dp))
                 }
             }
 

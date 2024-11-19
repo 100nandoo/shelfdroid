@@ -6,5 +6,4 @@ import kotlinx.serialization.Serializable
 data class SyncSessionRequest(
     val currentTime: Long,
     val timeListened: Long,
-    val duration: Long,
 )

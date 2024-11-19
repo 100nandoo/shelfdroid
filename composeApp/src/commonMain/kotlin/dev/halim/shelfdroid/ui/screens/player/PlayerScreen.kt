@@ -27,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,14 +35,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import org.koin.compose.viewmodel.koinViewModel
+import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import org.koin.compose.viewmodel.koinNavViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
-fun PlayerScreen(paddingValues: PaddingValues) {
-    val viewModel = koinViewModel<PlayerViewModel>()
+fun PlayerScreen(paddingValues: PaddingValues, bookUiState: BookUiState) {
+    val viewModel = koinNavViewModel<PlayerViewModel>()
     val uiState by viewModel.uiState.collectAsState()
-
-    PlayerScreenContent(paddingValues = paddingValues)
+    val bookUiState = remember { bookUiState }
+    PlayerScreenContent(paddingValues = paddingValues, bookUiState.cover, bookUiState.title, bookUiState.author)
 }
 
 @Composable
@@ -52,14 +56,14 @@ fun PlayerScreenContent(
     authorName: String = "Adam",
     progress: Float = 0f,
     onProgressChange: (Float) -> Unit = {},
-    onImageError: () -> Unit = {  },
+    onImageError: () -> Unit = { },
     onSeekBack: () -> Unit = {},
-    onSeekForward: () -> Unit= {},
+    onSeekForward: () -> Unit = {},
     isPlaying: Boolean = false,
-    onPlayPauseToggle: () -> Unit= {},
+    onPlayPauseToggle: () -> Unit = {},
     playbackSpeed: Float = 0f,
-    onPlaybackSpeedChange: () -> Unit= {},
-    onSleepTimer: () -> Unit= {},
+    onPlaybackSpeedChange: () -> Unit = {},
+    onSleepTimer: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier

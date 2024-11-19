@@ -4,13 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
 class PlayerViewModel(private val api: Api, private val mediaManager: MediaManager) : ViewModel() {
-
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState: StateFlow<PlayerUiState> = _uiState
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), PlayerUiState())
@@ -34,7 +34,7 @@ class PlayerViewModel(private val api: Api, private val mediaManager: MediaManag
     }
 }
 
-data class PlayerUiState(val state: PlayerState = PlayerState.Loading)
+data class PlayerUiState(val state: PlayerState = PlayerState.Success, val bookUiState: BookUiState = BookUiState())
 
 sealed class PlayerState {
     data object Loading : PlayerState()

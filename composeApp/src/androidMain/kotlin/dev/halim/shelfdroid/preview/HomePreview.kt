@@ -22,19 +22,16 @@ import dev.halim.shelfdroid.ui.screens.home.LibraryUiState
 
 val homeLibraryItemUiState =
     BookUiState(
-        "1", mapOf("2" to 3.0), "Jane Doe", "The Art of Peace", "",
-        0.0, 1.0, 0.0, "", 0
+        "1", "Jane Doe", "The Art of Peace", "",
+        0f, "", 0
     )
 val homeLibraryItemUiState2 =
     BookUiState(
         "2",
-        mapOf("3" to 4.0),
         "Jane Doe, Marrow Slakovakovatich",
         "The Art of Consolidating Long Meeting",
         "",
-        0.8,
-        0.5,
-        0.0,
+        0.5f,
         "",
         0
     )

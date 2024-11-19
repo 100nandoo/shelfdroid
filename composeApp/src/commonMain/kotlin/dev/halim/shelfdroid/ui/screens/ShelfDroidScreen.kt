@@ -4,51 +4,63 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import dev.halim.shelfdroid.ui.screens.home.HomeScreen
 import dev.halim.shelfdroid.ui.screens.login.LoginScreen
 import dev.halim.shelfdroid.ui.screens.player.PlayerScreen
 import dev.halim.shelfdroid.ui.screens.settings.SettingsScreen
+import kotlinx.serialization.Serializable
 
-enum class ShelfDroidScreen(val title: String) {
-    Login(title = "Login"),
-    Home(title = "Home"),
-    Splash(title = "Splash"),
-    Settings(title = "Settings"),
-    Player(title = "Player"),
-}
+@Serializable
+object LoginRoute
+
+@Serializable
+object HomeRoute
+
+@Serializable
+object SplashRoute
+
+@Serializable
+object SettingsRoute
+
+@Serializable
+object PlayerRoute
+
 
 fun NavGraphBuilder.declareComposeScreen(
     navController: NavHostController,
     paddingValues: PaddingValues
 ) {
 
-    composable(ShelfDroidScreen.Login.title) {
+    composable<LoginRoute> {
         LoginScreen(paddingValues, onLoginSuccess = {
-            navController.navigate(ShelfDroidScreen.Home.title) {
-                popUpTo(ShelfDroidScreen.Login.title) {
+            navController.navigate(HomeRoute) {
+                popUpTo(LoginRoute){
                     inclusive = true
                 }
             }
         })
     }
-    composable(ShelfDroidScreen.Home.title) {
+    composable<HomeRoute> {
         HomeScreen(paddingValues, { bookUiState ->
-            navController.navigate(ShelfDroidScreen.Player.title)
+            navController.navigate(bookUiState)
         })
     }
-    composable(ShelfDroidScreen.Splash.title) {
+    composable<SplashRoute> {
         SplashScreen(paddingValues)
     }
-    composable(ShelfDroidScreen.Settings.title) {
+    composable<SettingsRoute> {
         SettingsScreen(paddingValues, onLogoutSuccess = {
-            navController.navigate(ShelfDroidScreen.Login.title) {
+            navController.navigate(LoginRoute) {
                 popUpTo(navController.graph.id) {
                     inclusive = true
                 }
             }
         })
     }
-    composable(ShelfDroidScreen.Player.title) {
-        PlayerScreen(paddingValues)
+    composable<BookUiState> { backStackEntry ->
+        val bookUiState: BookUiState = backStackEntry.toRoute()
+        PlayerScreen(paddingValues, bookUiState)
     }
 }

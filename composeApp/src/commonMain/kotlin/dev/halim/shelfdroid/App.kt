@@ -12,13 +12,16 @@ import coil3.compose.setSingletonImageLoaderFactory
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.theme.ShelfDroidTheme
+import dev.halim.shelfdroid.ui.screens.HomeRoute
+import dev.halim.shelfdroid.ui.screens.LoginRoute
 import dev.halim.shelfdroid.ui.screens.MainScreen
-import dev.halim.shelfdroid.ui.screens.ShelfDroidScreen
+import dev.halim.shelfdroid.ui.screens.SplashRoute
 import kotlinx.coroutines.flow.firstOrNull
 import org.koin.compose.KoinContext
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
+import kotlin.reflect.KClass
 
 
 @Composable
@@ -40,10 +43,10 @@ fun App() {
 }
 
 @Composable
-private fun setupInitialState(): MutableState<String> {
+private fun setupInitialState(): MutableState<KClass<*>> {
     val dataStoreManager: DataStoreManager = koinInject()
 
-    val startDestination = remember { mutableStateOf(ShelfDroidScreen.Splash.title) }
+    val startDestination: MutableState<KClass<*>> = remember { mutableStateOf(SplashRoute::class) }
 
     LaunchedEffect(Unit) {
         val token = dataStoreManager.token.firstOrNull()
@@ -54,9 +57,9 @@ private fun setupInitialState(): MutableState<String> {
         }
 
         startDestination.value = if (token.isNullOrBlank().not()) {
-            ShelfDroidScreen.Home.title
+            HomeRoute::class
         } else {
-            ShelfDroidScreen.Login.title
+            LoginRoute::class
         }
     }
 

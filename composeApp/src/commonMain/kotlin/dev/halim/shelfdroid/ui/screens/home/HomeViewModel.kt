@@ -170,7 +170,6 @@ data class HomeUiState(
 
 sealed class HomeLibraryItemUiState {
     abstract val id: String
-    abstract val inoDurations: Map<String, Double>
     abstract val author: String
     abstract val title: String
     abstract val cover: String
@@ -179,13 +178,10 @@ sealed class HomeLibraryItemUiState {
 @Serializable
 data class BookUiState(
     override val id: String = "",
-    override val inoDurations: Map<String, Double> = emptyMap(),
     override val author: String = "",
     override val title: String = "",
     override val cover: String = "",
-    val duration: Double = 0.0,
-    val progress: Double = 0.0,
-    val currentTime: Double = 0.0,
+    val progress: Float = 0f,
     val url: String = "",
     val seekTime: Long = 0L
 ) : HomeLibraryItemUiState() {
@@ -199,20 +195,18 @@ data class BookUiState(
                 .associate { it.ino to it.duration }
             val author = libraryItem.media.metadata.authors.joinToString { it.name }
             val title = libraryItem.media.metadata.title ?: ""
-            val duration = mediaProgress?.duration ?: 0.0
-            val progress = mediaProgress?.progress ?: 0.0
-            val currentTime = mediaProgress?.currentTime ?: 0.0
+            val progress = mediaProgress?.progress ?: 0f
+            val currentTime = mediaProgress?.currentTime ?: 0f
             val (url, seekTime) = findInoIdAndSeekTiming(id, inoDurations, currentTime, api)
             return BookUiState(
-                id, inoDurations, author, title, cover,
-                duration, progress, currentTime, url, seekTime
+                id, author, title, cover, progress, url, seekTime
             )
         }
 
-        private fun findInoIdAndSeekTiming(
+        private inline fun findInoIdAndSeekTiming(
             id: String,
             inoDurations: Map<String, Double>,
-            currentTime: Double,
+            currentTime: Float,
             api: Api
         ): Pair<String, Long> {
             var url = api.generateItemStreamUrl(id, inoDurations.keys.first())
@@ -240,7 +234,6 @@ data class BookUiState(
 
 data class PodcastUiState(
     override val id: String,
-    override val inoDurations: Map<String, Double>,
     override val author: String,
     override val title: String,
     override val cover: String,
@@ -248,8 +241,7 @@ data class PodcastUiState(
 ) : HomeLibraryItemUiState() {
     constructor(libraryItem: LibraryItem, cover: String) : this(
         libraryItem.id,
-        (libraryItem.media as Podcast).episodes.associate { it.audioFile.ino to it.audioFile.duration },
-        libraryItem.media.metadata.author ?: "",
+        (libraryItem.media as Podcast).metadata.author ?: "",
         libraryItem.media.metadata.title ?: "",
         cover,
         libraryItem.media.episodes.size

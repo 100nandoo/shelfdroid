@@ -2,50 +2,48 @@ package dev.halim.shelfdroid.expect
 
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.SyncSessionRequest
+import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 sealed class SessionEvent {
-    data class Play(val itemId: String, val startTime: Long, val duration: Long) : SessionEvent()
-    data class PlaySameItem(val startTime: Long) : SessionEvent()
-    data class Pause(val current: Long) : SessionEvent()
+    data class Play(val bookUiState: BookUiState) : SessionEvent()
+    data class Pause(val deltaInSecond: Long) : SessionEvent()
 }
 
 class SessionManager(
     private val api: Api,
     private val io: CoroutineScope
 ) {
-    private var startTime: Long = 0L
-    private var duration: Long = 0L
+    private var bookUiState: BookUiState = BookUiState()
     private var sessionId: String = ""
     private val sessionInitialized = CompletableDeferred<Unit>()
 
     fun onEvent(event: SessionEvent) {
         when (event) {
             is SessionEvent.Play -> {
-                startTime = event.startTime
-                duration = event.duration
+                bookUiState = event.bookUiState
                 io.launch {
-                    startSession(event.itemId)
+                    startSession(event.bookUiState.id)
                     sessionInitialized.complete(Unit)
                 }
             }
-            is SessionEvent.PlaySameItem-> {
-                startTime = event.startTime
-            }
+
             is SessionEvent.Pause -> {
                 io.launch {
                     sessionInitialized.await()
-                    syncSession(event.current)
+                    syncSession(event.deltaInSecond)
                 }
             }
         }
     }
 
-    private suspend fun syncSession(current: Long) {
-        val timeListened = current - startTime
-        val request = SyncSessionRequest(current, timeListened, duration)
+    private suspend fun syncSession(deltaInSecond: Long) {
+        val start = (bookUiState.seekTime / 1000)
+        val currentInSecond = start + deltaInSecond
+        val timeListened = currentInSecond - start
+        val request = SyncSessionRequest(currentInSecond, timeListened)
         api.syncSession(sessionId, request).collect { response ->
             response.isSuccess
         }

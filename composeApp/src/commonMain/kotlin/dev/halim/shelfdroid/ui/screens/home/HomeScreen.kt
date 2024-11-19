@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.ui.screens.home
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,7 +44,6 @@ import dev.halim.shelfdroid.ui.components.HomeLibraryItem
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (BookUiState) -> Unit) {
     val viewModel = koinViewModel<HomeViewModel>()
@@ -67,7 +65,7 @@ fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (BookUiState) -> Uni
 
     LaunchedEffect(Unit) {
         viewModel.navState.collect { (isNavigate, bookUiState) ->
-            if (isNavigate){
+            if (isNavigate) {
                 onBookClicked(bookUiState)
                 viewModel.resetNavigationState()
             }
@@ -93,7 +91,6 @@ fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (BookUiState) -> Uni
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreenContent(
     libraryCount: Int = 1,
