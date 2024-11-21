@@ -34,16 +34,15 @@ class LoginViewModel(
     private suspend fun login() {
         Api.baseUrl = _uiState.value.server
         val request = LoginRequest(_uiState.value.username, _uiState.value.password)
-        api.login(request).collect { result ->
-            result.onSuccess { response ->
-                Api.baseUrl = _uiState.value.server
-                dataStoreManager.setBaseUrl(_uiState.value.server)
-                dataStoreManager.setToken(response.user.token)
-                dataStoreManager.generateDeviceId()
-                _uiState.update { it.copy(loginState = LoginState.Success) }
-            }
-            result.onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
+        val result = api.login(request)
+        result.onSuccess { response ->
+            Api.baseUrl = _uiState.value.server
+            dataStoreManager.setBaseUrl(_uiState.value.server)
+            dataStoreManager.setToken(response.user.token)
+            dataStoreManager.generateDeviceId()
+            _uiState.update { it.copy(loginState = LoginState.Success) }
         }
+        result.onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
     }
 }
 

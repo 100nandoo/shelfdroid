@@ -42,14 +42,13 @@ class SettingsViewModel(
     }
 
     private suspend fun logout() {
-        api.logout().collect { result ->
-            result.onSuccess { _ ->
-                dataStoreManager.clear()
-                _uiState.update { it.copy(settingsState = SettingsState.Success) }
-            }
-            result.onFailure { error ->
-                _uiState.update { it.copy(settingsState = SettingsState.Failure(error.message)) }
-            }
+        val result = api.logout()
+        result.onSuccess { _ ->
+            dataStoreManager.clear()
+            _uiState.update { it.copy(settingsState = SettingsState.Success) }
+        }
+        result.onFailure { error ->
+            _uiState.update { it.copy(settingsState = SettingsState.Failure(error.message)) }
         }
     }
 }

@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
 class Api(private val client: HttpClient, private val dataStoreManager: DataStoreManager) {
@@ -58,46 +57,46 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         }
     }
 
-    fun login(loginRequest: LoginRequest): Flow<Result<LoginResponse>> {
-        return makeRequestFlow("$baseUrl$LOGIN_PATH", HttpMethod.Post, loginRequest)
+    suspend fun login(loginRequest: LoginRequest): Result<LoginResponse> {
+        return makeRequest("$baseUrl$LOGIN_PATH", HttpMethod.Post, loginRequest)
     }
 
-    fun logout(): Flow<Result<LogoutResponse>> {
-        return makeRequestFlow("$baseUrl$LOGOUT_PATH", HttpMethod.Post)
+    suspend fun logout(): Result<LogoutResponse> {
+        return makeRequest("$baseUrl$LOGOUT_PATH", HttpMethod.Post)
     }
 
-    fun libraries(): Flow<Result<LibrariesResponse>> {
-        return makeRequestFlow("$baseUrl$LIBRARIES_PATH", HttpMethod.Get)
+    suspend fun libraries(): Result<LibrariesResponse> {
+        return makeRequest("$baseUrl$LIBRARIES_PATH", HttpMethod.Get)
     }
 
-    fun libraryItems(libraryId: String): Flow<Result<LibraryItemsResponse>> {
-        return makeRequestFlow("$baseUrl/api/libraries/$libraryId/items", HttpMethod.Get)
+    suspend fun libraryItems(libraryId: String): Result<LibraryItemsResponse> {
+        return makeRequest("$baseUrl/api/libraries/$libraryId/items", HttpMethod.Get)
     }
 
-    fun me(): Flow<Result<User>> {
-        return makeRequestFlow("$baseUrl$ME_PATH", HttpMethod.Get)
+    suspend fun me(): Result<User> {
+        return makeRequest("$baseUrl$ME_PATH", HttpMethod.Get)
     }
 
-    fun batchLibraryItems(libraryItemIds: List<String>): Flow<Result<BatchLibraryItemsResponse>> {
-        return makeRequestFlow(
+    suspend fun batchLibraryItems(libraryItemIds: List<String>): Result<BatchLibraryItemsResponse> {
+        return makeRequest(
             "$baseUrl$BATCH_LIBRARY_ITEMS",
             HttpMethod.Post,
             BatchLibraryItemsRequest(libraryItemIds)
         )
     }
 
-    fun playBook(itemId: String): Flow<Result<PlayBookResponse>> {
+    suspend fun playBook(itemId: String): Result<PlayBookResponse> {
         val path = PLAY_BOOK_PATH.replace("%s", itemId)
-        return makeRequestFlow(
+        return makeRequest(
             "$baseUrl$path",
             HttpMethod.Post,
             PlayBookRequest(deviceInfoRequest, false, false, supportedMimeType, app_name)
         )
     }
 
-    fun syncSession(id: String, syncSessionRequest: SyncSessionRequest): Flow<Result<Unit>> {
+    suspend fun syncSession(id: String, syncSessionRequest: SyncSessionRequest): Result<Unit> {
         val path = SYNC_PROGRESS_PATH.replace("%s", id)
-        return makeRequestFlow("$baseUrl$path", HttpMethod.Post, syncSessionRequest)
+        return makeRequest("$baseUrl$path", HttpMethod.Post, syncSessionRequest)
     }
 
     fun generateItemCoverUrl(itemId: String): String {
@@ -108,45 +107,40 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         return "$baseUrl/api/items/$itemId/file/$ino?token=$token"
     }
 
-
-    private inline fun <reified T> makeRequestFlow(
+    private suspend inline fun <reified T> makeRequest(
         url: String,
         method: HttpMethod,
         body: Any? = null,
         queryParams: Map<String, String>? = null
-    ): Flow<Result<T>> {
-        return flow {
-            try {
-                val response: HttpResponse = client.request(url) {
-                    contentType(ContentType.Application.Json)
-                    if (token.isNullOrBlank().not()) {
-                        header(HttpHeaders.Authorization, "Bearer $token")
-                    }
-                    this.method = method
+    ): Result<T> {
+        return try {
+            val response: HttpResponse = client.request(url) {
+                contentType(ContentType.Application.Json)
+                if (token.isNullOrBlank().not()) {
+                    header(HttpHeaders.Authorization, "Bearer $token")
+                }
+                this.method = method
 
-                    queryParams?.let { params ->
-                        for ((key, value) in params) {
-                            parameter(key, value)
-                        }
-                    }
-
-                    when (method) {
-                        HttpMethod.Post -> {
-                            if (body != null) setBody(body)
-                        }
-
-                        HttpMethod.Get -> {}
+                queryParams?.let { params ->
+                    for ((key, value) in params) {
+                        parameter(key, value)
                     }
                 }
 
-                val result = handleResponse<T>(response)
-                emit(Result.success(result))
-
-            } catch (e: Throwable) {
-                println(e)
-                val errorMessage = mapErrorToMessage(e)
-                emit(Result.failure(Exception(errorMessage, e)))
+                when (method) {
+                    HttpMethod.Post -> {
+                        if (body != null) setBody(body)
+                    }
+                    HttpMethod.Get -> {} // No body needed for GET
+                }
             }
+
+            val result = handleResponse<T>(response)
+            Result.success(result)
+        } catch (e: Throwable) {
+            println(e)
+            val errorMessage = mapErrorToMessage(e)
+            Result.failure(Exception(errorMessage, e))
         }
     }
 

@@ -96,16 +96,15 @@ class HomeViewModel(
 
     private suspend fun getLibraries(): List<Library> {
         val libraryItems = mutableListOf<Library>()
-        api.libraries().collect { result ->
-            result.onSuccess { librariesResponse ->
-                libraryItems.addAll(librariesResponse.libraries)
-                if (libraryIds.isEmpty()) {
-                    libraryIds.addAll(libraryItems.map { it.id })
-                }
+        val result = api.libraries()
+        result.onSuccess { librariesResponse ->
+            libraryItems.addAll(librariesResponse.libraries)
+            if (libraryIds.isEmpty()) {
+                libraryIds.addAll(libraryItems.map { it.id })
             }
-            result.onFailure { error ->
-                _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
-            }
+        }
+        result.onFailure { error ->
+            _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
         }
         return libraryItems
     }
@@ -114,14 +113,13 @@ class HomeViewModel(
         val libraryId = kotlin.runCatching { libraryIds[page] }.getOrNull()
         val ids = mutableListOf<String>()
         libraryId?.let {
-            api.libraryItems(libraryId).collect { result ->
-                result.onSuccess { response ->
-                    ids.addAll(response.results.map { it.id })
-                    libraryItemIds[libraryId] = ids
-                }
-                result.onFailure { error ->
-                    _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
-                }
+            val result = api.libraryItems(libraryId)
+            result.onSuccess { response ->
+                ids.addAll(response.results.map { it.id })
+                libraryItemIds[libraryId] = ids
+            }
+            result.onFailure { error ->
+                _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
             }
         }
         return ids
@@ -129,23 +127,21 @@ class HomeViewModel(
 
     private suspend fun getLibraryItems(ids: List<String>): List<LibraryItem> {
         val list = mutableListOf<LibraryItem>()
-        api.batchLibraryItems(ids).collect { result ->
-            result.onSuccess { response ->
-                list.addAll(response.libraryItems)
-            }
-            result.onFailure { error ->
-                _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
-            }
+        val result = api.batchLibraryItems(ids)
+        result.onSuccess { response ->
+            list.addAll(response.libraryItems)
+        }
+        result.onFailure { error ->
+            _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
         }
         return list
     }
 
     private suspend fun getMe(): User {
         var user = User()
-        api.me().collect { result ->
-            result.onSuccess { response -> user = response }
-            result.onFailure { error -> _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) } }
-        }
+        val result = api.me()
+        result.onSuccess { response -> user = response }
+        result.onFailure { error -> _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) } }
         return user
     }
 

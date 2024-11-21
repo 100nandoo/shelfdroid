@@ -44,16 +44,14 @@ class SessionManager(
         val currentInSecond = start + deltaInSecond
         val timeListened = currentInSecond - start
         val request = SyncSessionRequest(currentInSecond, timeListened)
-        api.syncSession(sessionId, request).collect { response ->
-            response.isSuccess
-        }
+        val response = api.syncSession(sessionId, request)
+        response.isSuccess
     }
 
     private suspend fun startSession(itemId: String) {
-        api.playBook(itemId).collect { result ->
-            result.onSuccess { response ->
-                sessionId = response.id
-            }
+        val result = api.playBook(itemId)
+        result.onSuccess { response ->
+            sessionId = response.id
         }
     }
 }
