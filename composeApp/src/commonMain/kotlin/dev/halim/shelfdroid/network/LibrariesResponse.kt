@@ -4,6 +4,16 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class LibraryResponse(
+    @SerialName("issues")
+    val issues: Int = 0,
+    @SerialName("numUserPlaylists")
+    val numUserPlaylists: Int = 0,
+    @SerialName("library")
+    val library: Library = Library(),
+)
+
+@Serializable
 data class LibrariesResponse(
     @SerialName("libraries")
     val libraries: List<Library> = listOf(),

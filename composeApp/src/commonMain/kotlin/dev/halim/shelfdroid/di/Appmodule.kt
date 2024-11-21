@@ -15,6 +15,8 @@ import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.SessionManager
 import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.store.LibraryStore
+import dev.halim.shelfdroid.store.LibraryStoreFactory
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
 import dev.halim.shelfdroid.ui.screens.settings.SettingsViewModel
@@ -87,4 +89,6 @@ val appModule = module {
 
     single<CoroutineScope>(named("io")) { CoroutineScope(Dispatchers.IO + SupervisorJob()) }
     single<CoroutineScope>(named("main")) { CoroutineScope(Dispatchers.Main + SupervisorJob()) }
+
+    single<LibraryStore> { LibraryStoreFactory(get(), get()).create() }
 }

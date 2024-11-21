@@ -66,6 +66,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization)
 
+            implementation(libs.sqldelight.coroutines)
+
             implementation(libs.store)
         }
         iosMain.dependencies {

@@ -17,6 +17,14 @@ selectAllLibraries:
 SELECT LibraryEntity.*
 FROM LibraryEntity;
 
+selectLibraryById:
+SELECT LibraryEntity.*
+FROM LibraryEntity
+WHERE id = ?;
+
 removeAllLibraries:
 DELETE FROM LibraryEntity;
 
+removeLibraryById:
+DELETE FROM LibraryEntity
+WHERE id = ?;

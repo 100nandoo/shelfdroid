@@ -179,7 +179,7 @@ fun LibraryContent(
 ) {
     if (list?.isNotEmpty() == true) {
         val gridState = rememberLazyGridState(
-            initialFirstVisibleItemIndex = list.size - 1
+            initialFirstVisibleItemIndex = 0
         )
         val mediaManager = koinInject<MediaManager>()
 

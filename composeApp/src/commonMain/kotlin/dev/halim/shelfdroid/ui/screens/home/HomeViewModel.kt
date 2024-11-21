@@ -2,14 +2,15 @@ package dev.halim.shelfdroid.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.halim.shelfdroid.db.Database
+import dev.halim.shelfdroid.db.LibraryEntity
 import dev.halim.shelfdroid.network.Api
-import dev.halim.shelfdroid.network.Library
 import dev.halim.shelfdroid.network.LibraryItem
 import dev.halim.shelfdroid.network.MediaProgress
 import dev.halim.shelfdroid.network.User
 import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.network.libraryitem.Podcast
+import dev.halim.shelfdroid.store.LibraryStore
+import dev.halim.shelfdroid.store.StoreData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,11 +19,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.mobilenativefoundation.store.store5.impl.extensions.get
 import kotlin.math.roundToLong
 
 class HomeViewModel(
     private val api: Api,
-    private val database: Database
+    private val libraryStore: LibraryStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -61,7 +63,6 @@ class HomeViewModel(
         _uiState.update { it.copy(homeState = HomeState.Loading) }
         viewModelScope.launch {
             val libraries = getLibraries()
-            database.addAll(libraries)
             val librariesUiState = libraries.map { library ->
                 LibraryUiState(library.id, library.name)
             }
@@ -94,17 +95,15 @@ class HomeViewModel(
         }
     }
 
-    private suspend fun getLibraries(): List<Library> {
-        val libraryItems = mutableListOf<Library>()
-        val result = api.libraries()
-        result.onSuccess { librariesResponse ->
-            libraryItems.addAll(librariesResponse.libraries)
+    private suspend fun getLibraries(): List<LibraryEntity> {
+        val libraryItems = mutableListOf<LibraryEntity>()
+        val result = libraryStore.get("")
+        if (result is StoreData.Collection) {
+            val librariesResponse = result.data
+            libraryItems.addAll(librariesResponse)
             if (libraryIds.isEmpty()) {
                 libraryIds.addAll(libraryItems.map { it.id })
             }
-        }
-        result.onFailure { error ->
-            _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
         }
         return libraryItems
     }

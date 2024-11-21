@@ -65,6 +65,10 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         return makeRequest("$baseUrl$LOGOUT_PATH", HttpMethod.Post)
     }
 
+    suspend fun library(id: String): Result<LibraryResponse> {
+        return makeRequest("$baseUrl$LIBRARIES_PATH/$id", HttpMethod.Get)
+    }
+
     suspend fun libraries(): Result<LibrariesResponse> {
         return makeRequest("$baseUrl$LIBRARIES_PATH", HttpMethod.Get)
     }
