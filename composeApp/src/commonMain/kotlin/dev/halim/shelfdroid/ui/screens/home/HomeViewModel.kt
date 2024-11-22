@@ -9,8 +9,9 @@ import dev.halim.shelfdroid.network.MediaProgress
 import dev.halim.shelfdroid.network.User
 import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.network.libraryitem.Podcast
+import dev.halim.shelfdroid.store.LibraryKey
 import dev.halim.shelfdroid.store.LibraryStore
-import dev.halim.shelfdroid.store.StoreData
+import dev.halim.shelfdroid.store.StoreOutput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,9 +36,6 @@ class HomeViewModel(
     private val _navState = MutableStateFlow(Pair(false, BookUiState()))
     val navState = _navState
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), Pair(false, BookUiState()))
-
-    private val libraryIds = mutableListOf<String>()
-    private val libraryItemIds = mutableMapOf<String, List<String>>()
 
     fun onEvent(homeEvent: HomeEvent) {
         when (homeEvent) {
@@ -66,7 +64,7 @@ class HomeViewModel(
             val librariesUiState = libraries.map { library ->
                 LibraryUiState(library.id, library.name)
             }
-            val ids = getLibraryItemIds(page)
+            val ids = libraries[page].itemIds
             val libraryItems = getLibraryItems(ids)
             val user = getMe()
             val mappedList = mapToLibraryItemUiState(user, libraryItems)
@@ -82,46 +80,27 @@ class HomeViewModel(
 
     private fun getCurrentPage(page: Int) {
         viewModelScope.launch {
-            val ids = getLibraryItemIds(page)
-            val libraryItems = getLibraryItems(ids)
-            val user = getMe()
-            val mappedList = mapToLibraryItemUiState(user, libraryItems)
-            _uiState.update {
-                it.copy(
-                    homeState = HomeState.Success,
-                    libraryItemsUiState = mapOf(page to mappedList)
-                )
-            }
+//            val ids = getLibraryItemIds(page)
+//            val libraryItems = getLibraryItems(ids)
+//            val user = getMe()
+//            val mappedList = mapToLibraryItemUiState(user, libraryItems)
+//            _uiState.update {
+//                it.copy(
+//                    homeState = HomeState.Success,
+//                    libraryItemsUiState = mapOf(page to mappedList)
+//                )
+//            }
         }
     }
 
     private suspend fun getLibraries(): List<LibraryEntity> {
         val libraryItems = mutableListOf<LibraryEntity>()
-        val result = libraryStore.get("")
-        if (result is StoreData.Collection) {
+        val result = libraryStore.get(LibraryKey.All)
+        if (result is StoreOutput.Collection) {
             val librariesResponse = result.data
             libraryItems.addAll(librariesResponse)
-            if (libraryIds.isEmpty()) {
-                libraryIds.addAll(libraryItems.map { it.id })
-            }
         }
         return libraryItems
-    }
-
-    private suspend fun getLibraryItemIds(page: Int): List<String> {
-        val libraryId = kotlin.runCatching { libraryIds[page] }.getOrNull()
-        val ids = mutableListOf<String>()
-        libraryId?.let {
-            val result = api.libraryItems(libraryId)
-            result.onSuccess { response ->
-                ids.addAll(response.results.map { it.id })
-                libraryItemIds[libraryId] = ids
-            }
-            result.onFailure { error ->
-                _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
-            }
-        }
-        return ids
     }
 
     private suspend fun getLibraryItems(ids: List<String>): List<LibraryItem> {

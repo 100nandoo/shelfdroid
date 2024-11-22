@@ -1,3 +1,6 @@
+import kotlin.String;
+import kotlin.collections.List;
+
 CREATE TABLE LibraryEntity(
     id TEXT NOT NULL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -6,25 +9,26 @@ CREATE TABLE LibraryEntity(
     mediaType TEXT NOT NULL,
     provider TEXT NOT NULL,
     createdAt INTEGER NOT NULL,
-    lastUpdate INTEGER NOT NULL
+    lastUpdate INTEGER NOT NULL,
+    itemIds TEXT AS List<String> NOT NULL
 );
 
-insertLibrary:
-INSERT INTO LibraryEntity(id, name, displayOrder, icon, mediaType, provider, createdAt, lastUpdate)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?);
+insert:
+INSERT INTO LibraryEntity(id, name, displayOrder, icon, mediaType, provider, createdAt, lastUpdate, itemIds)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);
 
-selectAllLibraries:
+selectAll:
 SELECT LibraryEntity.*
 FROM LibraryEntity;
 
-selectLibraryById:
+selectById:
 SELECT LibraryEntity.*
 FROM LibraryEntity
 WHERE id = ?;
 
-removeAllLibraries:
+removeAll:
 DELETE FROM LibraryEntity;
 
-removeLibraryById:
+removeById:
 DELETE FROM LibraryEntity
 WHERE id = ?;

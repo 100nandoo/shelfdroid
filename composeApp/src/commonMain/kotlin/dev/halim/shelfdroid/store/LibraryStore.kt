@@ -12,17 +12,27 @@ import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder
 
+
+sealed class LibraryNetwork {
+    data class Single(val library: Library, val itemIds: List<String>): LibraryNetwork()
+    data class Collection(val libraries: List<Library>, val itemIds: Map<String, List<String>>): LibraryNetwork()
+}
+
+sealed class LibraryKey {
+    data object All : LibraryKey()
+    data class Single(val id: String) : LibraryKey()
+}
+
 object LibraryExtensions {
-    fun Library.toEntity(): LibraryEntity =
+    fun Library.toEntity(ids: List<String>): LibraryEntity =
         LibraryEntity(
             this.id, this.name, this.displayOrder.toLong(), this.icon, this.mediaType,
-            this.provider, this.createdAt, this.lastUpdate
+            this.provider, this.createdAt, this.lastUpdate, ids
         )
 }
 
-typealias LibraryInput = StoreData<Library>
-typealias LibraryOutput = StoreData<LibraryEntity>
-typealias LibraryStore = Store<String, LibraryOutput>
+typealias LibraryOutput = StoreOutput<LibraryEntity>
+typealias LibraryStore = Store<LibraryKey, LibraryOutput>
 
 class LibraryStoreFactory(
     private val api: Api,
@@ -32,13 +42,40 @@ class LibraryStoreFactory(
         return StoreBuilder.from(createFetcher(), createSourceOfTruth()).build()
     }
 
-    private fun createFetcher(): Fetcher<String, LibraryInput> {
-        return Fetcher.ofResult { id ->
+    private fun createFetcher(): Fetcher<LibraryKey, LibraryNetwork> {
+        return Fetcher.ofResult { key ->
             try {
-                val result = if (id.isBlank()) {
-                    api.libraries().getOrNull()?.libraries?.let { StoreData.Collection(it) }
-                } else {
-                    api.library(id).getOrNull()?.library?.let { StoreData.Single(it) }
+                val result = when (key) {
+                    is LibraryKey.All -> {
+                        val ids = mutableMapOf<String, List<String>>()
+                        val libraries = api.libraries().getOrNull()?.libraries
+                        libraries?.forEach {
+                            val result = api.libraryItems(it.id)
+                            result.onSuccess { response ->
+                                ids[it.id] = response.results.map { it.id }
+                            }
+                            result.onFailure { error ->
+                                FetcherResult.Error.Exception(error)
+                            }
+                        }
+                        libraries?.let { LibraryNetwork.Collection(it, ids) }
+                    }
+
+                    is LibraryKey.Single -> {
+                        val library = api.library(key.id).getOrNull()?.library
+                        library?.let {
+                            val result = api.libraryItems(it.id)
+                            val ids = mutableListOf<String>()
+                            result.onSuccess { response ->
+                                ids.addAll(response.results.map { it.id })
+                            }
+                            result.onFailure { error ->
+                                FetcherResult.Error.Exception(error)
+                            }
+
+                            it.let { LibraryNetwork.Single(it, ids) }
+                        }
+                    }
                 }
                 result?.let { FetcherResult.Data(it) } ?: FetcherResult.Error.Message("No Library")
             } catch (e: Exception) {
@@ -47,30 +84,41 @@ class LibraryStoreFactory(
         }
     }
 
-    private fun createSourceOfTruth(): SourceOfTruth<String, LibraryInput, LibraryOutput> {
+    private fun createSourceOfTruth(): SourceOfTruth<LibraryKey, LibraryNetwork, LibraryOutput> {
         return SourceOfTruth.of(
-            reader = { id ->
-                if (id.isBlank()) {
-                    database.libraries().map { entities ->
-                        if (entities.isEmpty()) null else StoreData.Collection(entities)
+            reader = { key ->
+                when (key) {
+                    is LibraryKey.All -> {
+                        database.libraryDao.allLibrary()
+                            .map { entities -> if (entities.isEmpty()) null else StoreOutput.Collection(entities) }
                     }
-                } else {
-                    database.get(id).map { library ->
-                        StoreData.Single(library)
+
+                    is LibraryKey.Single -> {
+                        database.libraryDao.getLibrary(key.id).map { library -> StoreOutput.Single(library) }
                     }
                 }
             },
             writer = { _, output ->
                 when (output) {
-                    is StoreData.Single -> database.add(output.data.toEntity())
-                    is StoreData.Collection -> database.addAll(output.data.map { it.toEntity() })
+                    is LibraryNetwork.Single -> {
+                        database.libraryDao.addLibrary(output.library.toEntity(output.itemIds))
+                    }
+
+                    is LibraryNetwork.Collection -> database.libraryDao.addAllLibrary(output.libraries.map {
+                        it.toEntity(
+                            output.itemIds[it.id] ?: emptyList()
+                        )
+                    })
                 }
             },
-            delete = { id ->
-                database.remove(id)
+            delete = { key ->
+                when (key) {
+                    is LibraryKey.All -> database.libraryDao.removeAllLibrary()
+                    is LibraryKey.Single -> database.libraryDao.removeLibrary(key.id)
+                }
             },
             deleteAll = {
-                database.removeAll()
+                database.libraryDao.removeAllLibrary()
             }
         )
     }
