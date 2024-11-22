@@ -23,7 +23,6 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class Api(private val client: HttpClient, private val dataStoreManager: DataStoreManager) {
@@ -33,6 +32,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         const val LOGOUT_PATH = "/logout"
         const val LIBRARIES_PATH = "/api/libraries"
         const val BATCH_LIBRARY_ITEMS = "/api/items/batch/get"
+        const val LIBRARY_ITEM = "/api/items/%s"
         const val ME_PATH = "/api/me"
         const val SYNC_PROGRESS_PATH = "/api/session/%s/sync"
         const val PLAY_BOOK_PATH = "/api/items/%s/play"
@@ -79,6 +79,14 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
 
     suspend fun me(): Result<User> {
         return makeRequest("$baseUrl$ME_PATH", HttpMethod.Get)
+    }
+
+    suspend fun libraryItem(id: String): Result<LibraryItem> {
+        val path = LIBRARY_ITEM.replace("%s", id)
+        return makeRequest(
+            "$baseUrl$path",
+            HttpMethod.Get
+        )
     }
 
     suspend fun batchLibraryItems(libraryItemIds: List<String>): Result<BatchLibraryItemsResponse> {
@@ -135,6 +143,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
                     HttpMethod.Post -> {
                         if (body != null) setBody(body)
                     }
+
                     HttpMethod.Get -> {} // No body needed for GET
                 }
             }

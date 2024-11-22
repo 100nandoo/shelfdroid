@@ -2,14 +2,15 @@ package dev.halim.shelfdroid.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.halim.shelfdroid.db.ItemEntity
 import dev.halim.shelfdroid.db.LibraryEntity
-import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LibraryItem
-import dev.halim.shelfdroid.network.MediaProgress
-import dev.halim.shelfdroid.network.User
-import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.network.libraryitem.Podcast
+import dev.halim.shelfdroid.store.ItemExtensions.toUiState
+import dev.halim.shelfdroid.store.ItemKey
+import dev.halim.shelfdroid.store.ItemStore
 import dev.halim.shelfdroid.store.LibraryKey
+import dev.halim.shelfdroid.store.LibraryOutput
 import dev.halim.shelfdroid.store.LibraryStore
 import dev.halim.shelfdroid.store.StoreOutput
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,12 +21,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.mobilenativefoundation.store.store5.impl.extensions.fresh
 import org.mobilenativefoundation.store.store5.impl.extensions.get
-import kotlin.math.roundToLong
 
 class HomeViewModel(
-    private val api: Api,
-    private val libraryStore: LibraryStore
+    private val libraryStore: LibraryStore,
+    private val itemStore: ItemStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -40,7 +41,7 @@ class HomeViewModel(
     fun onEvent(homeEvent: HomeEvent) {
         when (homeEvent) {
             is HomeEvent.RefreshLibrary -> apis(homeEvent.page)
-            is HomeEvent.ChangeLibrary -> apis(homeEvent.page)
+            is HomeEvent.ChangeLibrary -> apis(homeEvent.page, false)
             is HomeEvent.NavigateToPlayer -> {
                 navigateToPlayer(homeEvent.bookUiState)
             }
@@ -57,45 +58,29 @@ class HomeViewModel(
         _navState.update { it.copy(first = false) }
     }
 
-    private fun apis(page: Int = 0) {
+    private fun apis(page: Int = 0, fresh: Boolean = true) {
         _uiState.update { it.copy(homeState = HomeState.Loading) }
         viewModelScope.launch {
-            val libraries = getLibraries()
+            val libraries = getLibraries(fresh)
             val librariesUiState = libraries.map { library ->
                 LibraryUiState(library.id, library.name)
             }
-            val ids = libraries[page].itemIds
-            val libraryItems = getLibraryItems(ids)
-            val user = getMe()
-            val mappedList = mapToLibraryItemUiState(user, libraryItems)
+            val libraryItems = getLibraryItems(libraries[page].id, fresh)
             _uiState.update {
                 it.copy(
                     homeState = HomeState.Success,
                     librariesUiState = librariesUiState,
-                    libraryItemsUiState = mapOf(page to mappedList)
+                    libraryItemsUiState = mapOf(page to libraryItems.map { it.toUiState() })
                 )
             }
         }
     }
 
-    private fun getCurrentPage(page: Int) {
-        viewModelScope.launch {
-//            val ids = getLibraryItemIds(page)
-//            val libraryItems = getLibraryItems(ids)
-//            val user = getMe()
-//            val mappedList = mapToLibraryItemUiState(user, libraryItems)
-//            _uiState.update {
-//                it.copy(
-//                    homeState = HomeState.Success,
-//                    libraryItemsUiState = mapOf(page to mappedList)
-//                )
-//            }
-        }
-    }
-
-    private suspend fun getLibraries(): List<LibraryEntity> {
+    private suspend fun getLibraries(fresh: Boolean): List<LibraryEntity> {
         val libraryItems = mutableListOf<LibraryEntity>()
-        val result = libraryStore.get(LibraryKey.All)
+        val result: LibraryOutput =
+            if (fresh) libraryStore.fresh(LibraryKey.All as LibraryKey)
+            else libraryStore.get(LibraryKey.All as LibraryKey)
         if (result is StoreOutput.Collection) {
             val librariesResponse = result.data
             libraryItems.addAll(librariesResponse)
@@ -103,39 +88,15 @@ class HomeViewModel(
         return libraryItems
     }
 
-    private suspend fun getLibraryItems(ids: List<String>): List<LibraryItem> {
-        val list = mutableListOf<LibraryItem>()
-        val result = api.batchLibraryItems(ids)
-        result.onSuccess { response ->
-            list.addAll(response.libraryItems)
-        }
-        result.onFailure { error ->
-            _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) }
+    private suspend fun getLibraryItems(libraryId: String, fresh: Boolean): List<ItemEntity> {
+        val list = mutableListOf<ItemEntity>()
+        val itemIds = (libraryStore.get(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
+        val result = if (fresh) itemStore.fresh(ItemKey.Collection(itemIds))
+        else itemStore.get(ItemKey.Collection(itemIds))
+        if (result is StoreOutput.Collection<ItemEntity>) {
+            list.addAll(result.data)
         }
         return list
-    }
-
-    private suspend fun getMe(): User {
-        var user = User()
-        val result = api.me()
-        result.onSuccess { response -> user = response }
-        result.onFailure { error -> _uiState.update { it.copy(homeState = HomeState.Failure(error.message)) } }
-        return user
-    }
-
-    private fun mapToLibraryItemUiState(
-        response: User,
-        list: List<LibraryItem>
-    ): List<HomeLibraryItemUiState> {
-        return list.map { libraryItem ->
-            val mediaProgress =
-                response.mediaProgress.firstOrNull { it.libraryItemId == libraryItem.id }
-            val coverUrl = api.generateItemCoverUrl(libraryItem.id)
-            when (libraryItem.mediaType) {
-                "book" -> BookUiState.from(libraryItem, mediaProgress, coverUrl, api)
-                else -> PodcastUiState(libraryItem, coverUrl)
-            }
-        }
     }
 }
 
@@ -161,53 +122,7 @@ data class BookUiState(
     val progress: Float = 0f,
     val url: String = "",
     val seekTime: Long = 0L
-) : HomeLibraryItemUiState() {
-    companion object {
-        fun from(
-            libraryItem: LibraryItem, mediaProgress: MediaProgress?,
-            cover: String, api: Api
-        ): BookUiState {
-            val id = libraryItem.id
-            val inoDurations = (libraryItem.media as Book).audioFiles
-                .associate { it.ino to it.duration }
-            val author = libraryItem.media.metadata.authors.joinToString { it.name }
-            val title = libraryItem.media.metadata.title ?: ""
-            val progress = mediaProgress?.progress ?: 0f
-            val currentTime = mediaProgress?.currentTime ?: 0f
-            val (url, seekTime) = findInoIdAndSeekTiming(id, inoDurations, currentTime, api)
-            return BookUiState(
-                id, author, title, cover, progress, url, seekTime
-            )
-        }
-
-        private inline fun findInoIdAndSeekTiming(
-            id: String,
-            inoDurations: Map<String, Double>,
-            currentTime: Float,
-            api: Api
-        ): Pair<String, Long> {
-            var url = api.generateItemStreamUrl(id, inoDurations.keys.first())
-
-            if (inoDurations.size == 1) {
-                val seekTime = (currentTime * 1000).roundToLong()
-                return url to seekTime
-            }
-
-            var cumulativeTime = 0.0
-            for ((inoId, duration) in inoDurations) {
-                cumulativeTime += duration
-
-                if (currentTime <= cumulativeTime) {
-                    url = api.generateItemStreamUrl(id, inoId)
-                    val seekTime = (currentTime - (cumulativeTime - duration)).roundToLong()
-                    return url to seekTime
-                }
-            }
-
-            return url to 0L
-        }
-    }
-}
+) : HomeLibraryItemUiState()
 
 data class PodcastUiState(
     override val id: String,

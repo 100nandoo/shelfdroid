@@ -1,0 +1,61 @@
+import kotlinx.serialization.descriptors.PrimitiveKind.FLOAT;
+
+CREATE TABLE ItemEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    ino TEXT NOT NULL,
+    libraryId TEXT NOT NULL,
+    author TEXT,
+    title TEXT NOT NULL,
+    cover TEXT,
+    mediaType TEXT NOT NULL,
+    url TEXT,
+    progress REAL NOT NULL ,
+    seekTime INTEGER NOT NULL,
+    FOREIGN KEY (libraryId) REFERENCES LibraryEntity(id) ON DELETE CASCADE
+);
+
+insert:
+INSERT INTO ItemEntity (
+    id, ino, libraryId, author, title, cover, mediaType, url, progress, seekTime
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectById:
+SELECT *
+FROM ItemEntity
+WHERE id = ?;
+
+selectByLibraryId:
+SELECT *
+FROM ItemEntity
+WHERE libraryId = ?;
+
+selectAll:
+SELECT *
+FROM ItemEntity;
+
+updateById:
+UPDATE ItemEntity
+SET
+    ino = ?,
+    libraryId = ?,
+    author = ?,
+    title = ?,
+    cover = ?,
+    mediaType = ?,
+    url = ?,
+    progress = ?,
+    seekTime = ?
+WHERE id = ?;
+
+upsert:
+INSERT OR REPLACE INTO ItemEntity (
+    id, ino, libraryId, author, title, cover, mediaType, url, progress, seekTime
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+removeAll:
+DELETE FROM ItemEntity;
+
+removeById:
+DELETE FROM ItemEntity
+WHERE id = ?;

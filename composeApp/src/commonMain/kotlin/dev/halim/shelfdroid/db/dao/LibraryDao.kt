@@ -1,12 +1,15 @@
-package dev.halim.shelfdroid.db
+package dev.halim.shelfdroid.db.dao
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneNotNull
+import dev.halim.shelfdroid.db.LibraryEntity
+import dev.halim.shelfdroid.db.LibraryQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 
+// TODO add use upsert instead of add
 class LibraryDao(private val libraryQuery: LibraryQueries) {
     fun addLibrary(libraryEntity: LibraryEntity) {
         libraryQuery.insert(
