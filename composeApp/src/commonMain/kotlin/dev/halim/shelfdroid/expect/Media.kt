@@ -19,6 +19,7 @@ expect class MediaManager(
     fun playBookUiState(uiState: BookUiState)
     fun seekForward()
     fun seekBackward()
+    fun changeSpeed(speed: Float)
 }
 
 data class MediaPlayerState(

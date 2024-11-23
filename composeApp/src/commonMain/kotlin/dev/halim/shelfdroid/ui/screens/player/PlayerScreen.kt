@@ -11,11 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forward10
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,43 +25,48 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import dev.halim.shelfdroid.expect.MediaManager
+import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
-import org.koin.compose.viewmodel.koinNavViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
-@OptIn(KoinExperimentalAPI::class)
 @Composable
-fun PlayerScreen(paddingValues: PaddingValues, bookUiState: BookUiState) {
-    val viewModel = koinNavViewModel<PlayerViewModel>()
+fun PlayerScreen(paddingValues: PaddingValues, id: String) {
+    val viewModel: PlayerViewModel = koinViewModel(parameters = { parametersOf(id) })
     val uiState by viewModel.uiState.collectAsState()
-    val bookUiState = remember { bookUiState }
-    PlayerScreenContent(paddingValues = paddingValues, bookUiState.cover, bookUiState.title, bookUiState.author)
+    val bookUiState by remember(uiState) { derivedStateOf { uiState.bookUiState } }
+    PlayerScreenContent(
+        paddingValues = paddingValues, bookUiState, bookUiState.cover, bookUiState.title,
+        bookUiState.author,
+    )
 }
 
 @Composable
 fun PlayerScreenContent(
     paddingValues: PaddingValues = PaddingValues(),
+    bookUiState: BookUiState = BookUiState(),
     imageUrl: String = "",
     title: String = "Chapter 26",
     authorName: String = "Adam",
     progress: Float = 0f,
     onProgressChange: (Float) -> Unit = {},
     onImageError: () -> Unit = { },
-    onSeekBack: () -> Unit = {},
-    onSeekForward: () -> Unit = {},
-    isPlaying: Boolean = false,
-    onPlayPauseToggle: () -> Unit = {},
-    playbackSpeed: Float = 0f,
-    onPlaybackSpeedChange: () -> Unit = {},
     onSleepTimer: () -> Unit = {},
 ) {
     Column(
@@ -87,10 +91,10 @@ fun PlayerScreenContent(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        BasicPlayerControl(onSeekBack, onPlayPauseToggle, isPlaying, onSeekForward)
+        BasicPlayerControl(bookUiState)
         Spacer(modifier = Modifier.height(16.dp))
 
-        AdvancedPlayerControl(onPlaybackSpeedChange, playbackSpeed, onSleepTimer)
+        AdvancedPlayerControl(onSleepTimer)
     }
 }
 
@@ -136,8 +140,6 @@ fun BasicPlayerContent(
 
 @Composable
 fun AdvancedPlayerControl(
-    onPlaybackSpeedChange: () -> Unit,
-    playbackSpeed: Float,
     onSleepTimer: () -> Unit
 ) {
     Row(
@@ -145,9 +147,7 @@ fun AdvancedPlayerControl(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
-        TextButton(onClick = onPlaybackSpeedChange) {
-            Text(text = "Speed: ${playbackSpeed}x")
-        }
+        StepsSlider()
 
         TextButton(onClick = onSleepTimer) {
             Text(text = "Sleep Timer")
@@ -156,36 +156,56 @@ fun AdvancedPlayerControl(
 }
 
 @Composable
-fun BasicPlayerControl(
-    onSeekBack: () -> Unit,
-    onPlayPauseToggle: () -> Unit,
-    isPlaying: Boolean,
-    onSeekForward: () -> Unit
-) {
+fun BasicPlayerControl(bookUiState: BookUiState) {
+    val mediaManager = koinInject<MediaManager>()
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
-        IconButton(onClick = onSeekBack) {
+        IconButton(onClick = { mediaManager.seekBackward() }) {
             Icon(
                 imageVector = Icons.Default.Replay10,
                 contentDescription = "Seek Back 10s"
             )
         }
 
-        IconButton(onClick = onPlayPauseToggle) {
-            Icon(
-                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                contentDescription = if (isPlaying) "Pause" else "Play"
-            )
-        }
+        LibraryItemPlayIcon({ mediaManager.playBookUiState(bookUiState) }, bookUiState.id)
 
-        IconButton(onClick = onSeekForward) {
+        IconButton(onClick = { mediaManager.seekForward() }) {
             Icon(
                 imageVector = Icons.Default.Forward10,
                 contentDescription = "Seek Forward 10s"
             )
         }
+    }
+}
+
+@Composable
+fun StepsSlider() {
+    val mediaManager = koinInject<MediaManager>()
+    var sliderPosition by remember { mutableStateOf(1f) }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Speed: ${sliderPosition}x")
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Slider(
+            modifier = Modifier
+                .semantics { contentDescription = "speed slider" }
+                .width(150.dp),
+            value = sliderPosition,
+            onValueChange = { sliderPosition = it },
+            valueRange = 0.5f..2f,
+            onValueChangeFinished = {
+                mediaManager.changeSpeed(sliderPosition)
+            },
+            steps = 5,
+        )
+
     }
 }

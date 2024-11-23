@@ -3,38 +3,44 @@ package dev.halim.shelfdroid.ui.screens.player
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.expect.MediaManager
-import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.store.ItemExtensions.toBookUiState
+import dev.halim.shelfdroid.store.ItemKey
+import dev.halim.shelfdroid.store.StoreManager
+import dev.halim.shelfdroid.store.StoreOutput
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import org.mobilenativefoundation.store.store5.impl.extensions.get
 
-class PlayerViewModel(private val api: Api, private val mediaManager: MediaManager) : ViewModel() {
+class PlayerViewModel(
+    private val storeManager: StoreManager, private val mediaManager: MediaManager, val id: String
+) : ViewModel() {
+
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState: StateFlow<PlayerUiState> = _uiState
+        .onStart { initUiState() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), PlayerUiState())
 
     fun onEvent(event: PlayerEvent) {
         when (event) {
-            is PlayerEvent.SeekBack -> {
-                mediaManager.seekBackward()
-            }
-
-            PlayerEvent.SeekForward -> {
-                mediaManager.seekForward()
-            }
-
-            PlayerEvent.PlayPause -> {
-                TODO()
-            }
-
             PlayerEvent.ProgressChanged -> TODO()
+        }
+    }
+
+    private fun initUiState() {
+        viewModelScope.launch {
+            val result = storeManager.itemStore.get(ItemKey.Single(id)) as StoreOutput.Single
+            _uiState.update { it.copy(state = PlayerState.Success, bookUiState = result.data.toBookUiState()) }
         }
     }
 }
 
-data class PlayerUiState(val state: PlayerState = PlayerState.Success, val bookUiState: BookUiState = BookUiState())
+data class PlayerUiState(val state: PlayerState = PlayerState.Loading, val bookUiState: BookUiState = BookUiState())
 
 sealed class PlayerState {
     data object Loading : PlayerState()
@@ -50,8 +56,5 @@ sealed class AdvancedPlayerEvent {
 }
 
 sealed class PlayerEvent {
-    data object SeekBack : PlayerEvent()
-    data object SeekForward : PlayerEvent()
-    data object PlayPause : PlayerEvent()
     data object ProgressChanged : PlayerEvent()
 }

@@ -45,7 +45,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (BookUiState) -> Unit) {
+fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (String) -> Unit) {
     val viewModel = koinViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val libraryCount = uiState.librariesUiState.size
@@ -64,9 +64,9 @@ fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (BookUiState) -> Uni
     }
 
     LaunchedEffect(Unit) {
-        viewModel.navState.collect { (isNavigate, bookUiState) ->
+        viewModel.navState.collect { (isNavigate, id) ->
             if (isNavigate) {
-                onBookClicked(bookUiState)
+                onBookClicked(id)
                 viewModel.resetNavigationState()
             }
         }

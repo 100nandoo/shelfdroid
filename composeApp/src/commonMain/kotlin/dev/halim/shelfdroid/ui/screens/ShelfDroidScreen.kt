@@ -5,7 +5,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import dev.halim.shelfdroid.ui.screens.home.HomeScreen
 import dev.halim.shelfdroid.ui.screens.login.LoginScreen
 import dev.halim.shelfdroid.ui.screens.player.PlayerScreen
@@ -25,7 +24,7 @@ object SplashRoute
 object SettingsRoute
 
 @Serializable
-object PlayerRoute
+data class PlayerRoute(val id: String)
 
 
 fun NavGraphBuilder.declareComposeScreen(
@@ -43,8 +42,8 @@ fun NavGraphBuilder.declareComposeScreen(
         })
     }
     composable<HomeRoute> {
-        HomeScreen(paddingValues, { bookUiState ->
-            navController.navigate(bookUiState)
+        HomeScreen(paddingValues, { id ->
+            navController.navigate(PlayerRoute(id))
         })
     }
     composable<SplashRoute> {
@@ -59,8 +58,8 @@ fun NavGraphBuilder.declareComposeScreen(
             }
         })
     }
-    composable<BookUiState> { backStackEntry ->
-        val bookUiState: BookUiState = backStackEntry.toRoute()
-        PlayerScreen(paddingValues, bookUiState)
+    composable<PlayerRoute> { backStackEntry ->
+        val playerRoute: PlayerRoute = backStackEntry.toRoute()
+        PlayerScreen(paddingValues, playerRoute.id)
     }
 }

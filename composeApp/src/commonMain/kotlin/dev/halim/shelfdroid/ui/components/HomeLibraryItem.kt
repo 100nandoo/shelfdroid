@@ -91,7 +91,7 @@ fun HomeLibraryItem(
             }
             if (uiState is BookUiState) {
                 if (uiState.progress > 0.0) {
-                    val float = uiState.progress.toFloat()
+                    val float = uiState.progress
                     LinearProgressIndicator(
                         progress = { float },
                         modifier = Modifier.fillMaxWidth(),

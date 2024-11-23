@@ -31,6 +31,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -45,6 +46,9 @@ val appModule = module {
     viewModelOf(::SettingsViewModel)
     viewModelOf(::HomeViewModel)
     viewModelOf(::PlayerViewModel)
+    viewModel { (id: String) ->
+        PlayerViewModel(get(), get(), id)
+    }
 
     single {
         HttpClient {

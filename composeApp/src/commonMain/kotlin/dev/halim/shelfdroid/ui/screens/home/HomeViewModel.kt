@@ -31,23 +31,23 @@ class HomeViewModel(
         .onStart { apis() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), HomeUiState())
 
-    private val _navState = MutableStateFlow(Pair(false, BookUiState()))
+    private val _navState = MutableStateFlow(Pair(false, ""))
     val navState = _navState
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), Pair(false, BookUiState()))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), Pair(false, ""))
 
     fun onEvent(homeEvent: HomeEvent) {
         when (homeEvent) {
             is HomeEvent.RefreshLibrary -> apis(homeEvent.page)
             is HomeEvent.ChangeLibrary -> apis(homeEvent.page)
             is HomeEvent.NavigateToPlayer -> {
-                navigateToPlayer(homeEvent.bookUiState)
+                navigateToPlayer(homeEvent.bookUiState.id)
             }
         }
     }
 
-    private fun navigateToPlayer(bookUiState: BookUiState) {
+    private fun navigateToPlayer(itemId: String) {
         viewModelScope.launch {
-            _navState.update { _navState.value.copy(true, bookUiState) }
+            _navState.update { _navState.value.copy(true, itemId) }
         }
     }
 

@@ -136,6 +136,10 @@ actual class MediaManager actual constructor(
     actual fun seekBackward() {
         player.seekBack()
     }
+
+    actual fun changeSpeed(speed: Float){
+        player.setPlaybackSpeed(speed)
+    }
 }
 
 fun BookUiState.toMediaItem(): MediaItem {

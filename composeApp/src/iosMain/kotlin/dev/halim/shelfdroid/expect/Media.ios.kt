@@ -22,6 +22,10 @@ actual class MediaManager actual constructor(
     actual fun seekBackward() {
         TODO()
     }
+
+    actual fun changeSpeed(speed: Float) {
+        TODO()
+    }
 }
 
 actual class PlatformMediaItem {
