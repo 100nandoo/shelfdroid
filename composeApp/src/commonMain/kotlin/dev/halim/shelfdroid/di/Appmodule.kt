@@ -15,12 +15,7 @@ import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.SessionManager
 import dev.halim.shelfdroid.network.Api
-import dev.halim.shelfdroid.store.ItemKey
-import dev.halim.shelfdroid.store.ItemOutput
-import dev.halim.shelfdroid.store.ItemStoreFactory
-import dev.halim.shelfdroid.store.LibraryKey
-import dev.halim.shelfdroid.store.LibraryOutput
-import dev.halim.shelfdroid.store.LibraryStoreFactory
+import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
 import dev.halim.shelfdroid.ui.screens.player.PlayerViewModel
@@ -36,23 +31,19 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import org.koin.core.module.dsl.singleOf
-import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import org.mobilenativefoundation.store.store5.Store
 
 object ComponentName {
-    const val ITEM = "item"
-    const val LIBRARY = "library"
     const val IO = "io"
     const val MAIN = "main"
 }
 
 val appModule = module {
     viewModelOf(::LoginViewModel)
-    viewModel { SettingsViewModel(get(), get(), get(named(ComponentName.LIBRARY))) }
-    viewModel { HomeViewModel(get(named(ComponentName.LIBRARY)), get(named(ComponentName.ITEM))) }
+    viewModelOf(::SettingsViewModel)
+    viewModelOf(::HomeViewModel)
     viewModelOf(::PlayerViewModel)
 
     single {
@@ -69,7 +60,15 @@ val appModule = module {
     singleOf(::DataStoreManager)
     single<DataStore<Preferences>> { createDataStore(get()) }
     singleOf(::SessionManager)
-    single<MediaManager> { MediaManager(get(), get(), get(named(ComponentName.IO)), get(named(ComponentName.MAIN)), get()) }
+    single<MediaManager> {
+        MediaManager(
+            get(),
+            get(),
+            get(named(ComponentName.IO)),
+            get(named(ComponentName.MAIN)),
+            get()
+        )
+    }
     single {
         Json {
             ignoreUnknownKeys = true
@@ -103,6 +102,5 @@ val appModule = module {
     single<CoroutineScope>(named(ComponentName.IO)) { CoroutineScope(Dispatchers.IO + SupervisorJob()) }
     single<CoroutineScope>(named(ComponentName.MAIN)) { CoroutineScope(Dispatchers.Main + SupervisorJob()) }
 
-    single<Store<LibraryKey, LibraryOutput>> (named(ComponentName.LIBRARY)) { LibraryStoreFactory(get(), get()).create() }
-    single<Store<ItemKey, ItemOutput>>(named(ComponentName.ITEM)) { ItemStoreFactory(get(), get()).create() }
+    factory { StoreManager(get(), get(), get(named(ComponentName.IO))) }
 }

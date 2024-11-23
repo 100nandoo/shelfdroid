@@ -101,7 +101,7 @@ class LibraryStoreFactory(
             writer = { _, output ->
                 when (output) {
                     is LibraryNetwork.Single -> {
-                        database.libraryDao.addLibrary(output.library.toEntity(output.itemIds))
+                        database.libraryDao.upsertLibrary(output.library.toEntity(output.itemIds))
                     }
 
                     is LibraryNetwork.Collection -> database.libraryDao.addAllLibrary(output.libraries.map {

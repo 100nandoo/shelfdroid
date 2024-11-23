@@ -4,18 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.network.Api
-import dev.halim.shelfdroid.store.LibraryStore
+import dev.halim.shelfdroid.store.StoreManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.mobilenativefoundation.store.core5.ExperimentalStoreApi
 
 class SettingsViewModel(
     private val api: Api,
     private val dataStoreManager: DataStoreManager,
-    private val libraryStore: LibraryStore
+    private val storeManager: StoreManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -44,12 +43,11 @@ class SettingsViewModel(
         }
     }
 
-    @OptIn(ExperimentalStoreApi::class)
     private suspend fun logout() {
         val result = api.logout()
         result.onSuccess { _ ->
             dataStoreManager.clear()
-            libraryStore.clear()
+            storeManager.clear()
             _uiState.update { it.copy(settingsState = SettingsState.Success) }
         }
         result.onFailure { error ->

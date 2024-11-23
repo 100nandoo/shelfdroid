@@ -6,12 +6,11 @@ import dev.halim.shelfdroid.db.ItemEntity
 import dev.halim.shelfdroid.db.LibraryEntity
 import dev.halim.shelfdroid.network.LibraryItem
 import dev.halim.shelfdroid.network.libraryitem.Podcast
-import dev.halim.shelfdroid.store.ItemExtensions.toUiState
+import dev.halim.shelfdroid.store.ItemExtensions.toBookUiState
 import dev.halim.shelfdroid.store.ItemKey
-import dev.halim.shelfdroid.store.ItemStore
 import dev.halim.shelfdroid.store.LibraryKey
 import dev.halim.shelfdroid.store.LibraryOutput
-import dev.halim.shelfdroid.store.LibraryStore
+import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.store.StoreOutput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,12 +20,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.mobilenativefoundation.store.store5.impl.extensions.fresh
 import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 class HomeViewModel(
-    private val libraryStore: LibraryStore,
-    private val itemStore: ItemStore
+    private val storeManager: StoreManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -41,7 +38,7 @@ class HomeViewModel(
     fun onEvent(homeEvent: HomeEvent) {
         when (homeEvent) {
             is HomeEvent.RefreshLibrary -> apis(homeEvent.page)
-            is HomeEvent.ChangeLibrary -> apis(homeEvent.page, false)
+            is HomeEvent.ChangeLibrary -> apis(homeEvent.page)
             is HomeEvent.NavigateToPlayer -> {
                 navigateToPlayer(homeEvent.bookUiState)
             }
@@ -58,29 +55,27 @@ class HomeViewModel(
         _navState.update { it.copy(first = false) }
     }
 
-    private fun apis(page: Int = 0, fresh: Boolean = true) {
+    private fun apis(page: Int = 0) {
         _uiState.update { it.copy(homeState = HomeState.Loading) }
         viewModelScope.launch {
-            val libraries = getLibraries(fresh)
+            val libraries = getLibraries()
             val librariesUiState = libraries.map { library ->
                 LibraryUiState(library.id, library.name)
             }
-            val libraryItems = getLibraryItems(libraries[page].id, fresh)
+            val libraryItems = getLibraryItems(libraries[page].id)
             _uiState.update {
                 it.copy(
                     homeState = HomeState.Success,
                     librariesUiState = librariesUiState,
-                    libraryItemsUiState = mapOf(page to libraryItems.map { it.toUiState() })
+                    libraryItemsUiState = mapOf(page to libraryItems.map { it.toBookUiState() })
                 )
             }
         }
     }
 
-    private suspend fun getLibraries(fresh: Boolean): List<LibraryEntity> {
+    private suspend fun getLibraries(): List<LibraryEntity> {
         val libraryItems = mutableListOf<LibraryEntity>()
-        val result: LibraryOutput =
-            if (fresh) libraryStore.fresh(LibraryKey.All as LibraryKey)
-            else libraryStore.get(LibraryKey.All as LibraryKey)
+        val result: LibraryOutput = storeManager.libraryStore.get(LibraryKey.All as LibraryKey)
         if (result is StoreOutput.Collection) {
             val librariesResponse = result.data
             libraryItems.addAll(librariesResponse)
@@ -88,11 +83,10 @@ class HomeViewModel(
         return libraryItems
     }
 
-    private suspend fun getLibraryItems(libraryId: String, fresh: Boolean): List<ItemEntity> {
+    private suspend fun getLibraryItems(libraryId: String): List<ItemEntity> {
         val list = mutableListOf<ItemEntity>()
-        val itemIds = (libraryStore.get(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
-        val result = if (fresh) itemStore.fresh(ItemKey.Collection(itemIds))
-        else itemStore.get(ItemKey.Collection(itemIds))
+        val itemIds = (storeManager.libraryStore.get(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
+        val result = storeManager.itemStore.get(ItemKey.Collection(itemIds))
         if (result is StoreOutput.Collection<ItemEntity>) {
             list.addAll(result.data)
         }

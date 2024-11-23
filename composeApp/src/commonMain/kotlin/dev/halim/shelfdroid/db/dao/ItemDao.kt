@@ -10,21 +10,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 
 class ItemDao(private val itemQuery: ItemQueries) {
-    fun addItem(itemEntity: ItemEntity) {
-        itemQuery.insert(
-            itemEntity.id,
-            itemEntity.ino,
-            itemEntity.libraryId,
-            itemEntity.author,
-            itemEntity.title,
-            itemEntity.cover,
-            itemEntity.mediaType,
-            itemEntity.url,
-            itemEntity.progress,
-            itemEntity.seekTime
-        )
-    }
-
     fun upsertItem(itemEntity: ItemEntity) {
         itemQuery.upsert(
             itemEntity.id,

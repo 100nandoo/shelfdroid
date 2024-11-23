@@ -19,7 +19,7 @@ import kotlin.math.roundToLong
 
 
 sealed class ItemNetwork {
-    data class Single(val item: LibraryItem, val mediaProgress: MediaProgress) : ItemNetwork()
+    data class Single(val item: LibraryItem, val mediaProgress: MediaProgress?) : ItemNetwork()
     data class Collection(val items: List<LibraryItem>, val mediaProgresses: List<MediaProgress>) :
         ItemNetwork()
 }
@@ -57,7 +57,7 @@ object ItemExtensions {
         return url to 0L
     }
 
-    fun LibraryItem.toEntity(api: Api, mediaProgress: MediaProgress?): ItemEntity? {
+    fun LibraryItem.toEntity(api: Api, mediaProgress: MediaProgress?): ItemEntity {
         return when (media) {
             is Book -> {
                 val cover = api.generateItemCoverUrl(id)
@@ -67,8 +67,20 @@ object ItemExtensions {
                 val progress = mediaProgress?.progress?.toDouble() ?: 0.0
                 val currentTime = mediaProgress?.currentTime ?: 0f
                 val (url, seekTime) = findInoIdAndSeekTiming(id, inoDurations, currentTime, api)
-                ItemEntity(this.id, this.ino, this.libraryId, author, title, cover, this.mediaType, url, progress, seekTime)
+                ItemEntity(
+                    this.id,
+                    this.ino,
+                    this.libraryId,
+                    author,
+                    title,
+                    cover,
+                    this.mediaType,
+                    url,
+                    progress,
+                    seekTime
+                )
             }
+
             is Podcast -> {
                 // TODO("Handle url, progress, seekTime")
                 val author = media.metadata.author
@@ -79,12 +91,13 @@ object ItemExtensions {
         }
     }
 
-    fun ItemEntity.toUiState(): BookUiState {
+    fun ItemEntity.toBookUiState(): BookUiState {
         return BookUiState(
             this.id, this.author ?: "", this.title, this.cover ?: "", this.progress.toFloat(),
             this.url ?: "", this.seekTime
         )
     }
+    // TODO: handle to PodcastUiState
 
 }
 
@@ -114,7 +127,7 @@ class ItemStoreFactory(
                         val item = api.libraryItem(key.itemId).getOrNull()
                         val mediaProgress = api.me().getOrNull()?.mediaProgress
                             ?.firstOrNull { it.libraryItemId == key.itemId }
-                        if (item != null && mediaProgress != null) {
+                        if (item != null) {
                             ItemNetwork.Single(item, mediaProgress)
                         } else {
                             null
@@ -133,12 +146,14 @@ class ItemStoreFactory(
             reader = { key ->
                 when (key) {
                     is ItemKey.Collection -> {
-                        val result = database.itemDao.allItem()
-                            .map { entities -> if (entities.isEmpty()) null else StoreOutput.Collection(entities
-                                .filter { key.itemIds.contains(it.id) }) }
-                        result
+                        database.itemDao.allItem()
+                            .map { entities ->
+                                entities.takeIf { it.isNotEmpty() }
+                                    ?.filter { it.id in key.itemIds }
+                                    ?.takeIf { it.isNotEmpty() }
+                                    ?.let { StoreOutput.Collection(it) }
+                            }
                     }
-
                     is ItemKey.Single -> {
                         database.itemDao.getItem(key.itemId).map { item -> StoreOutput.Single(item) }
                     }
@@ -147,11 +162,12 @@ class ItemStoreFactory(
             writer = { _, output ->
                 when (output) {
                     is ItemNetwork.Single -> {
-                        output.item.toEntity(api, output.mediaProgress)?.let { database.itemDao.upsertItem(it) }
+                        val entity = output.item.toEntity(api, output.mediaProgress)
+                        database.itemDao.upsertItem(entity)
                     }
 
                     is ItemNetwork.Collection -> {
-                        database.itemDao.addAllItem(output.items.mapNotNull { item ->
+                        database.itemDao.addAllItem(output.items.map { item ->
                             val mediaProgress = output.mediaProgresses.firstOrNull { it.libraryItemId == item.id }
                             item.toEntity(api, mediaProgress)
                         })

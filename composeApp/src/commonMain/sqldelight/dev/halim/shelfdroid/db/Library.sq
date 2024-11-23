@@ -13,8 +13,8 @@ CREATE TABLE LibraryEntity(
     itemIds TEXT AS List<String> NOT NULL
 );
 
-insert:
-INSERT INTO LibraryEntity(id, name, displayOrder, icon, mediaType, provider, createdAt, lastUpdate, itemIds)
+upsert:
+INSERT OR REPLACE INTO LibraryEntity(id, name, displayOrder, icon, mediaType, provider, createdAt, lastUpdate, itemIds)
 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectAll:

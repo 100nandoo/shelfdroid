@@ -9,10 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 
-// TODO add use upsert instead of add
 class LibraryDao(private val libraryQuery: LibraryQueries) {
-    fun addLibrary(libraryEntity: LibraryEntity) {
-        libraryQuery.insert(
+    fun upsertLibrary(libraryEntity: LibraryEntity) {
+        libraryQuery.upsert(
             libraryEntity.id,
             libraryEntity.name,
             libraryEntity.displayOrder,
@@ -27,7 +26,7 @@ class LibraryDao(private val libraryQuery: LibraryQueries) {
 
     fun addAllLibrary(list: List<LibraryEntity>) {
         removeAllLibrary()
-        list.forEach { addLibrary(it) }
+        list.forEach { upsertLibrary(it) }
     }
 
     fun getLibrary(id: String): Flow<LibraryEntity> {
