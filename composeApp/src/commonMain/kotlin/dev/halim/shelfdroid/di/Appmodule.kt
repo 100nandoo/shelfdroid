@@ -12,6 +12,7 @@ import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.createDataStore
+import dev.halim.shelfdroid.db.DatabaseAdapter
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.SessionManager
 import dev.halim.shelfdroid.network.Api
@@ -107,4 +108,5 @@ val appModule = module {
     single<CoroutineScope>(named(ComponentName.MAIN)) { CoroutineScope(Dispatchers.Main + SupervisorJob()) }
 
     factory { StoreManager(get(), get(), get(named(ComponentName.IO))) }
+    singleOf(::DatabaseAdapter)
 }

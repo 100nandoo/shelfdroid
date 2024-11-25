@@ -32,7 +32,7 @@ import dev.halim.shelfdroid.R
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.db.AndroidDatabaseDriverFactory
 import dev.halim.shelfdroid.db.Database
-import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -127,8 +127,8 @@ actual val targetModule = module {
         }
         CustomMediaNotificationProvider(serviceContext)
     }
-    single<Database>{
-        Database(AndroidDatabaseDriverFactory(androidContext()))
+    single<Database> {
+        Database(AndroidDatabaseDriverFactory(androidContext()), get())
     }
 }
 
@@ -170,9 +170,12 @@ private fun handlePlaybackResumption(
 ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
     val settableFuture = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
     println("handlePlaybackResumption")
-    val uiState = dataStoreManager.readSerializableBlocking(::BookUiState.name, BookUiState.serializer())
+    val shelfdroidMediaItem = dataStoreManager.readSerializableBlocking(
+        ::ShelfdroidMediaItemImpl.name,
+        ShelfdroidMediaItemImpl.serializer()
+    )
     val mediaItems = mutableListOf<MediaItem>()
-    uiState?.toMediaItem()?.let { mediaItems.add(it) }
+    shelfdroidMediaItem?.toMediaItem()?.let { mediaItems.add(it) }
 
     val startPosition = dataStoreManager.currentPositionBlocking
     val mediaItemsWithPosition = MediaSession.MediaItemsWithStartPosition(mediaItems, 0, startPosition)

@@ -4,14 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.db.ItemEntity
 import dev.halim.shelfdroid.db.LibraryEntity
-import dev.halim.shelfdroid.network.LibraryItem
-import dev.halim.shelfdroid.network.libraryitem.Podcast
+import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.store.ItemExtensions.toBookUiState
 import dev.halim.shelfdroid.store.ItemKey
 import dev.halim.shelfdroid.store.LibraryKey
 import dev.halim.shelfdroid.store.LibraryOutput
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.store.StoreOutput
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -97,15 +98,8 @@ class HomeViewModel(
 data class HomeUiState(
     val homeState: HomeState = HomeState.Loading,
     val librariesUiState: List<LibraryUiState> = emptyList(),
-    val libraryItemsUiState: Map<Int, List<HomeLibraryItemUiState>> = emptyMap()
+    val libraryItemsUiState: Map<Int, List<ShelfdroidMediaItem>> = emptyMap()
 )
-
-sealed class HomeLibraryItemUiState {
-    abstract val id: String
-    abstract val author: String
-    abstract val title: String
-    abstract val cover: String
-}
 
 @Serializable
 data class BookUiState(
@@ -113,25 +107,26 @@ data class BookUiState(
     override val author: String = "",
     override val title: String = "",
     override val cover: String = "",
+    override val url: String = "",
+    override val seekTime: Long = 0L,
     val progress: Float = 0f,
-    val url: String = "",
-    val seekTime: Long = 0L
-) : HomeLibraryItemUiState()
+    val chapters: List<BookChapter> = emptyList(),
+    val currentChapterId: Long = 0L
+) : ShelfdroidMediaItem() {
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime)
+
+}
 
 data class PodcastUiState(
     override val id: String,
     override val author: String,
     override val title: String,
     override val cover: String,
-    val episodeCount: Int
-) : HomeLibraryItemUiState() {
-    constructor(libraryItem: LibraryItem, cover: String) : this(
-        libraryItem.id,
-        (libraryItem.media as Podcast).metadata.author ?: "",
-        libraryItem.media.metadata.title ?: "",
-        cover,
-        libraryItem.media.episodes.size
-    )
+    override val url: String,
+    override val seekTime: Long = 0L,
+    val episodeCount: Int,
+) : ShelfdroidMediaItem() {
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime)
 }
 
 data class LibraryUiState(

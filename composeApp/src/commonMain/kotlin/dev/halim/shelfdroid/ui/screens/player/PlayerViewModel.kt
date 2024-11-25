@@ -3,11 +3,13 @@ package dev.halim.shelfdroid.ui.screens.player
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.expect.MediaManager
-import dev.halim.shelfdroid.store.ItemExtensions.toBookUiState
+import dev.halim.shelfdroid.network.libraryitem.BookChapter
+import dev.halim.shelfdroid.store.ItemExtensions.toBookPlayerUiState
 import dev.halim.shelfdroid.store.ItemKey
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.store.StoreOutput
-import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,12 +37,34 @@ class PlayerViewModel(
     private fun initUiState() {
         viewModelScope.launch {
             val result = storeManager.itemStore.get(ItemKey.Single(id)) as StoreOutput.Single
-            _uiState.update { it.copy(state = PlayerState.Success, bookUiState = result.data.toBookUiState()) }
+            _uiState.update {
+                it.copy(
+                    state = PlayerState.Success,
+                    bookPlayerUiState = result.data.toBookPlayerUiState()
+                )
+            }
         }
     }
 }
 
-data class PlayerUiState(val state: PlayerState = PlayerState.Loading, val bookUiState: BookUiState = BookUiState())
+class BookPlayerUiState(
+    override val id: String = "",
+    override val author: String = "",
+    override val title: String = "",
+    override val cover: String = "",
+    override val url: String = "",
+    override val seekTime: Long = 0L,
+    val progress: Float = 0f,
+    val chapters: List<BookChapter> = emptyList(),
+    val currentChapter: BookChapter = BookChapter()
+) : ShelfdroidMediaItem() {
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime)
+}
+
+data class PlayerUiState(
+    val state: PlayerState = PlayerState.Loading,
+    val bookPlayerUiState: BookPlayerUiState = BookPlayerUiState()
+)
 
 sealed class PlayerState {
     data object Loading : PlayerState()

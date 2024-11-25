@@ -7,5 +7,5 @@ import org.koin.dsl.module
 actual val targetModule = module {
     single<PlatformContext> { PlatformContext.INSTANCE }
     single<PlatformPlayer> { PlatformPlayer.INSTANCE }
-    single<Database> { Database(IOSDatabaseDriverFactory()) }
+    single<Database> { Database(IOSDatabaseDriverFactory(), get()) }
 }

@@ -1,3 +1,6 @@
+import dev.halim.shelfdroid.network.libraryitem.BookChapter;
+import kotlin.collections.List;
+
 CREATE TABLE ItemEntity (
     id TEXT NOT NULL PRIMARY KEY,
     ino TEXT NOT NULL,
@@ -9,12 +12,15 @@ CREATE TABLE ItemEntity (
     url TEXT,
     progress REAL NOT NULL ,
     seekTime INTEGER NOT NULL,
+    chapters TEXT AS List<BookChapter> NOT NULL,
+    currentChapterId INTEGER NOT NULL,
     FOREIGN KEY (libraryId) REFERENCES LibraryEntity(id) ON DELETE CASCADE
 );
 
 upsert:
-INSERT OR REPLACE INTO ItemEntity (id, ino, libraryId, author, title, cover, mediaType, url, progress, seekTime)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO ItemEntity (id, ino, libraryId, author, title, cover, mediaType, url, progress, seekTime,
+chapters, currentChapterId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectById:
 SELECT *
@@ -41,7 +47,9 @@ SET
     mediaType = ?,
     url = ?,
     progress = ?,
-    seekTime = ?
+    seekTime = ?,
+    chapters = ?,
+    currentChapterId = ?
 WHERE id = ?;
 
 removeAll:

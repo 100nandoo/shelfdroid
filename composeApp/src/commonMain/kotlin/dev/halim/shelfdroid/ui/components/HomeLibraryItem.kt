@@ -30,16 +30,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.PlaybackState
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import dev.halim.shelfdroid.ui.screens.home.HomeEvent
-import dev.halim.shelfdroid.ui.screens.home.HomeLibraryItemUiState
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HomeLibraryItem(
-    uiState: HomeLibraryItemUiState,
+    uiState: ShelfdroidMediaItem,
     showNoCover: Boolean,
     onImageError: () -> Unit,
     onPlayPauseClick: (String) -> Unit,

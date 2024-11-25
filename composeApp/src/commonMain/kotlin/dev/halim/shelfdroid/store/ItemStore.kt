@@ -6,9 +6,11 @@ import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LibraryItem
 import dev.halim.shelfdroid.network.MediaProgress
 import dev.halim.shelfdroid.network.libraryitem.Book
+import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.network.libraryitem.Podcast
 import dev.halim.shelfdroid.store.ItemExtensions.toEntity
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import dev.halim.shelfdroid.ui.screens.player.BookPlayerUiState
 import kotlinx.coroutines.flow.map
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.FetcherResult
@@ -30,6 +32,11 @@ sealed class ItemKey {
 }
 
 object ItemExtensions {
+
+    private inline fun getCurrentChapterId(currentTime: Long, chapters: List<BookChapter>): Long {
+        return (chapters.find { currentTime >= it.start && currentTime <= it.end }?.id ?: chapters.first().id).toLong()
+    }
+
     private inline fun findInoIdAndSeekTiming(
         id: String,
         inoDurations: Map<String, Double>,
@@ -66,7 +73,9 @@ object ItemExtensions {
                 val title = media.metadata.title ?: ""
                 val progress = mediaProgress?.progress?.toDouble() ?: 0.0
                 val currentTime = mediaProgress?.currentTime ?: 0f
+                val chapters = media.chapters
                 val (url, seekTime) = findInoIdAndSeekTiming(id, inoDurations, currentTime, api)
+                val currentChapterId = getCurrentChapterId(seekTime / 1000, chapters)
                 ItemEntity(
                     this.id,
                     this.ino,
@@ -77,7 +86,9 @@ object ItemExtensions {
                     this.mediaType,
                     url,
                     progress,
-                    seekTime
+                    seekTime,
+                    chapters,
+                    currentChapterId
                 )
             }
 
@@ -86,15 +97,37 @@ object ItemExtensions {
                 val author = media.metadata.author
                 val title = media.metadata.title ?: ""
                 val cover = api.generateItemCoverUrl(id)
-                ItemEntity(this.id, this.ino, this.libraryId, author, title, cover, this.mediaType, "", 0.0, 0)
+                ItemEntity(
+                    this.id,
+                    this.ino,
+                    this.libraryId,
+                    author,
+                    title,
+                    cover,
+                    this.mediaType,
+                    "",
+                    0.0,
+                    0,
+                    emptyList(),
+                    0
+                )
             }
         }
     }
 
     fun ItemEntity.toBookUiState(): BookUiState {
         return BookUiState(
-            this.id, this.author ?: "", this.title, this.cover ?: "", this.progress.toFloat(),
-            this.url ?: "", this.seekTime
+            this.id, this.author ?: "", this.title, this.cover ?: "", this.url ?: "",
+            this.seekTime, this.progress.toFloat(), this.chapters
+        )
+    }
+
+    fun ItemEntity.toBookPlayerUiState(): BookPlayerUiState {
+        val currentChapter = chapters[currentChapterId.toInt()]
+
+        return BookPlayerUiState(
+            this.id, this.author ?: "", this.title, this.cover ?: "", this.url ?: "",
+            this.seekTime, this.progress.toFloat(), this.chapters, currentChapter
         )
     }
     // TODO: handle to PodcastUiState
@@ -154,6 +187,7 @@ class ItemStoreFactory(
                                     ?.let { StoreOutput.Collection(it) }
                             }
                     }
+
                     is ItemKey.Single -> {
                         database.itemDao.getItem(key.itemId).map { item -> StoreOutput.Single(item) }
                     }

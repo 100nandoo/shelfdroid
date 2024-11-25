@@ -21,7 +21,9 @@ class ItemDao(private val itemQuery: ItemQueries) {
             itemEntity.mediaType,
             itemEntity.url,
             itemEntity.progress,
-            itemEntity.seekTime
+            itemEntity.seekTime,
+            itemEntity.chapters,
+            itemEntity.currentChapterId
         )
     }
 

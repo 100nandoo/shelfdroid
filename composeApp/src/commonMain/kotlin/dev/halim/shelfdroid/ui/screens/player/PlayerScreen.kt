@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
-import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -50,17 +49,20 @@ import org.koin.core.parameter.parametersOf
 fun PlayerScreen(paddingValues: PaddingValues, id: String) {
     val viewModel: PlayerViewModel = koinViewModel(parameters = { parametersOf(id) })
     val uiState by viewModel.uiState.collectAsState()
-    val bookUiState by remember(uiState) { derivedStateOf { uiState.bookUiState } }
+    val bookPlayerUiState by remember(uiState) { derivedStateOf { uiState.bookPlayerUiState } }
     PlayerScreenContent(
-        paddingValues = paddingValues, bookUiState, bookUiState.cover, bookUiState.title,
-        bookUiState.author,
+        paddingValues = paddingValues,
+        bookPlayerUiState,
+        bookPlayerUiState.cover,
+        bookPlayerUiState.currentChapter.title,
+        bookPlayerUiState.author,
     )
 }
 
 @Composable
 fun PlayerScreenContent(
     paddingValues: PaddingValues = PaddingValues(),
-    bookUiState: BookUiState = BookUiState(),
+    bookUiState: BookPlayerUiState = BookPlayerUiState(),
     imageUrl: String = "",
     title: String = "Chapter 26",
     authorName: String = "Adam",
@@ -156,7 +158,7 @@ fun AdvancedPlayerControl(
 }
 
 @Composable
-fun BasicPlayerControl(bookUiState: BookUiState) {
+fun BasicPlayerControl(bookPlayerUiState: BookPlayerUiState) {
     val mediaManager = koinInject<MediaManager>()
 
     Row(
@@ -171,7 +173,7 @@ fun BasicPlayerControl(bookUiState: BookUiState) {
             )
         }
 
-        LibraryItemPlayIcon({ mediaManager.playBookUiState(bookUiState) }, bookUiState.id)
+        LibraryItemPlayIcon({ mediaManager.playBookUiState(bookPlayerUiState.toImpl()) }, bookPlayerUiState.id)
 
         IconButton(onClick = { mediaManager.seekForward() }) {
             Icon(

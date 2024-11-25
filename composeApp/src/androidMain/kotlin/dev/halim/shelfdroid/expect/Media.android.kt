@@ -6,7 +6,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -79,9 +80,13 @@ actual class MediaManager actual constructor(
         }
     }
 
-    private fun updateCurrentItem(uiState: BookUiState) {
+    private fun updateCurrentItem(mediaItem: ShelfdroidMediaItemImpl) {
         io.launch {
-            dataStoreManager.writeSerializable(::BookUiState.name, uiState, BookUiState.serializer())
+            dataStoreManager.writeSerializable(
+                ::ShelfdroidMediaItemImpl.name,
+                mediaItem,
+                ShelfdroidMediaItemImpl.serializer()
+            )
         }
     }
 
@@ -109,16 +114,16 @@ actual class MediaManager actual constructor(
         })
     }
 
-    actual fun playBookUiState(uiState: BookUiState) {
-        if (_playerState.value.item?.id != uiState.id) {
+    actual fun playBookUiState(shelfdroidMediaItem: ShelfdroidMediaItemImpl) {
+        if (_playerState.value.item?.id != shelfdroidMediaItem.id) {
             player.pause()
-            val mediaItem = uiState.toMediaItem()
+            val mediaItem = shelfdroidMediaItem.toMediaItem()
             player.setMediaItem(mediaItem)
             player.prepare()
             player.play()
 
-            sessionManager.onEvent(SessionEvent.Play(uiState))
-            updateCurrentItem(uiState)
+            sessionManager.onEvent(SessionEvent.Play(shelfdroidMediaItem))
+            updateCurrentItem(shelfdroidMediaItem)
         } else {
             if (_playerState.value.isPlaying) {
                 player.pause()
@@ -137,12 +142,12 @@ actual class MediaManager actual constructor(
         player.seekBack()
     }
 
-    actual fun changeSpeed(speed: Float){
+    actual fun changeSpeed(speed: Float) {
         player.setPlaybackSpeed(speed)
     }
 }
 
-fun BookUiState.toMediaItem(): MediaItem {
+fun ShelfdroidMediaItemImpl.toMediaItem(): MediaItem {
     val metadata = MediaMetadata.Builder()
         .setTitle(this.title)
         .setArtist(this.author)

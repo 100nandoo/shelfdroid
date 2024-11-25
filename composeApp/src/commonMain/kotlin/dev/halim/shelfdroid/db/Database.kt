@@ -8,10 +8,11 @@ interface DatabaseDriverFactory {
     fun createDriver(): SqlDriver
 }
 
-class Database(databaseDriverFactory: DatabaseDriverFactory) {
+class Database(databaseDriverFactory: DatabaseDriverFactory, adapter: DatabaseAdapter) {
     private val database = ShelfdroidDb(
         databaseDriverFactory.createDriver(),
-        LibraryEntityAdapter = LibraryEntity.Adapter(listOfStringsAdapter)
+        LibraryEntityAdapter = LibraryEntity.Adapter(adapter.listOfStringsAdapter),
+        ItemEntityAdapter = ItemEntity.Adapter(adapter.listOfBookChaptersAdapter)
     )
     val libraryDao = LibraryDao(database.libraryQueries)
     val itemDao = ItemDao(database.itemQueries)

@@ -2,13 +2,13 @@ package dev.halim.shelfdroid.expect
 
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.SyncSessionRequest
-import dev.halim.shelfdroid.ui.screens.home.BookUiState
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 sealed class SessionEvent {
-    data class Play(val bookUiState: BookUiState) : SessionEvent()
+    data class Play(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : SessionEvent()
     data class Pause(val deltaInSecond: Long) : SessionEvent()
 }
 
@@ -16,16 +16,16 @@ class SessionManager(
     private val api: Api,
     private val io: CoroutineScope
 ) {
-    private var bookUiState: BookUiState = BookUiState()
+    private var shelfdroidMediaItem: ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl()
     private var sessionId: String = ""
     private val sessionInitialized = CompletableDeferred<Unit>()
 
     fun onEvent(event: SessionEvent) {
         when (event) {
             is SessionEvent.Play -> {
-                bookUiState = event.bookUiState
+                shelfdroidMediaItem = event.shelfdroidMediaItem
                 io.launch {
-                    startSession(event.bookUiState.id)
+                    startSession(event.shelfdroidMediaItem.id)
                     sessionInitialized.complete(Unit)
                 }
             }
@@ -40,7 +40,7 @@ class SessionManager(
     }
 
     private suspend fun syncSession(deltaInSecond: Long) {
-        val start = (bookUiState.seekTime / 1000)
+        val start = (shelfdroidMediaItem.seekTime / 1000)
         val currentInSecond = start + deltaInSecond
         val timeListened = currentInSecond - start
         val request = SyncSessionRequest(currentInSecond, timeListened)
