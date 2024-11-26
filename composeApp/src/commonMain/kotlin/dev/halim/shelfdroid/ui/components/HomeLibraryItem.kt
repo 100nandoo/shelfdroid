@@ -20,9 +20,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,8 +44,6 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun HomeLibraryItem(
     uiState: ShelfdroidMediaItem,
-    showNoCover: Boolean,
-    onImageError: () -> Unit,
     onPlayPauseClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -54,37 +56,7 @@ fun HomeLibraryItem(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(contentAlignment = Alignment.Center) {
-                if (showNoCover) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .background(
-                                MaterialTheme.colorScheme.secondaryContainer,
-                                shape = RoundedCornerShape(8.dp, 8.dp)
-                            ),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(top = 8.dp),
-                            text = "No cover",
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    AsyncImage(
-                        model = uiState.cover,
-                        contentDescription = "Library item cover image",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp, 8.dp))
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .aspectRatio(1f),
-                        onError = { onImageError() }
-                    )
-                }
-
+                ItemCover(uiState.cover)
                 if (uiState is BookUiState) {
                     LibraryItemPlayIcon({ onPlayPauseClick(uiState.id) }, uiState.id)
                 }
@@ -128,6 +100,43 @@ fun HomeLibraryItem(
             )
         }
     }
+}
+
+@Composable
+fun ItemCover(coverUrl: String, shape: Shape = RoundedCornerShape(8.dp, 8.dp)) {
+    var imageLoadFailed by remember { mutableStateOf(false) }
+    if (imageLoadFailed) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .background(
+                    MaterialTheme.colorScheme.secondaryContainer,
+                    shape = shape
+                ),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Text(
+                modifier = Modifier.padding(top = 8.dp),
+                text = "No cover",
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                textAlign = TextAlign.Center
+            )
+        }
+
+    } else {
+        AsyncImage(
+            model = coverUrl,
+            contentDescription = "Library item cover image",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .aspectRatio(1f),
+            onError = { imageLoadFailed = true }
+        )
+    }
+
 }
 
 @Composable

@@ -66,5 +66,5 @@ private fun setupInitialState(): MutableState<KClass<*>> {
     return startDestination
 }
 
-val version = "0.1 23-11-2024 1ebbeb"
+val version = "0.1 26-11-2024 b4d4b5"
 val app_name = "Shelfdroid"

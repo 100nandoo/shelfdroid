@@ -1,12 +1,10 @@
 package dev.halim.shelfdroid.ui.screens.player
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,7 +22,6 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,15 +29,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.expect.MediaManager
+import dev.halim.shelfdroid.ui.components.ItemCover
 import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
+import dev.halim.shelfdroid.utility.formatTime
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -48,27 +46,30 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun PlayerScreen(paddingValues: PaddingValues, id: String) {
     val viewModel: PlayerViewModel = koinViewModel(parameters = { parametersOf(id) })
-    val uiState by viewModel.uiState.collectAsState()
-    val bookPlayerUiState by remember(uiState) { derivedStateOf { uiState.bookPlayerUiState } }
-    PlayerScreenContent(
-        paddingValues = paddingValues,
-        bookPlayerUiState,
-        bookPlayerUiState.cover,
-        bookPlayerUiState.currentChapter.title,
-        bookPlayerUiState.author,
-    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(PlayerUiState())
+    val progressUiState by viewModel.playerProgressUiState.collectAsStateWithLifecycle(PlayerProgressUiState())
+    if (uiState.state == PlayerState.Success) {
+        val bookPlayerUiState by remember(uiState) { derivedStateOf { uiState.bookPlayerUiState } }
+        PlayerScreenContent(
+            paddingValues = paddingValues,
+            bookPlayerUiState,
+            progressUiState,
+            bookPlayerUiState.cover,
+            bookPlayerUiState.currentChapter.title,
+            bookPlayerUiState.author,
+        )
+    }
 }
 
 @Composable
 fun PlayerScreenContent(
     paddingValues: PaddingValues = PaddingValues(),
-    bookUiState: BookPlayerUiState = BookPlayerUiState(),
+    uiState: BookPlayerUiState = BookPlayerUiState(),
+    progressUiState: PlayerProgressUiState = PlayerProgressUiState(),
     imageUrl: String = "",
     title: String = "Chapter 26",
     authorName: String = "Adam",
-    progress: Float = 0f,
     onProgressChange: (Float) -> Unit = {},
-    onImageError: () -> Unit = { },
     onSleepTimer: () -> Unit = {},
 ) {
     Column(
@@ -78,22 +79,13 @@ fun PlayerScreenContent(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        BasicPlayerContent(imageUrl, onImageError, title, authorName)
+        BasicPlayerContent(imageUrl, title, authorName)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Progress Slider
-        Slider(
-            value = progress,
-            onValueChange = onProgressChange,
-            modifier = Modifier.fillMaxWidth(),
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary
-            )
-        )
+        PlayerProgress(progressUiState, onProgressChange)
         Spacer(modifier = Modifier.height(16.dp))
 
-        BasicPlayerControl(bookUiState)
+        BasicPlayerControl(uiState)
         Spacer(modifier = Modifier.height(16.dp))
 
         AdvancedPlayerControl(onSleepTimer)
@@ -101,27 +93,47 @@ fun PlayerScreenContent(
 }
 
 @Composable
+fun PlayerProgress(
+    uiState: PlayerProgressUiState,
+    onProgressChange: (Float) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = formatTime(uiState.currentTime.toLong()),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+        Text(
+            text = formatTime(uiState.totalTime.toLong()),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+    }
+
+    Slider(
+        value = uiState.progress,
+        onValueChange = onProgressChange,
+        modifier = Modifier.fillMaxWidth(),
+        colors = SliderDefaults.colors(
+            thumbColor = MaterialTheme.colorScheme.primary,
+            activeTrackColor = MaterialTheme.colorScheme.primary
+        )
+    )
+}
+
+@Composable
 fun BasicPlayerContent(
-    imageUrl: String,
-    onImageError: () -> Unit,
+    url: String,
     title: String,
     authorName: String,
 ) {
-    // Episode Image with AsyncImage
-    AsyncImage(
-        model = imageUrl,
-        contentDescription = "Library item cover image",
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .aspectRatio(1f),
-        onError = { onImageError() }
-    )
+    ItemCover(url, RoundedCornerShape(8.dp))
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Episode Title
     Text(
         text = title,
         style = MaterialTheme.typography.headlineLarge,
@@ -130,7 +142,6 @@ fun BasicPlayerContent(
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    // Author Name
     Text(
         text = authorName,
         style = MaterialTheme.typography.bodyMedium,
@@ -160,7 +171,6 @@ fun AdvancedPlayerControl(
 @Composable
 fun BasicPlayerControl(bookPlayerUiState: BookPlayerUiState) {
     val mediaManager = koinInject<MediaManager>()
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,

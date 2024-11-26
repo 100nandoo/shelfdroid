@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -27,6 +28,10 @@ class PlayerViewModel(
     val uiState: StateFlow<PlayerUiState> = _uiState
         .onStart { initUiState() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), PlayerUiState())
+
+    private val _playerProgress = MutableStateFlow(PlayerProgressUiState())
+    val playerProgressUiState = _playerProgress
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), PlayerProgressUiState())
 
     fun onEvent(event: PlayerEvent) {
         when (event) {
@@ -43,8 +48,37 @@ class PlayerViewModel(
                     bookPlayerUiState = result.data.toBookPlayerUiState()
                 )
             }
+            _playerProgress.update {
+               initProgress()
+            }
+
+            mediaManager.playerState.value.currentPosition.collect { position ->
+                _playerProgress.emit(initProgress(position))
+            }
         }
     }
+
+    private fun initProgress(position: Long = 0): PlayerProgressUiState {
+        val bookPlayerUiState = _uiState.value.bookPlayerUiState
+        val currentChapter = bookPlayerUiState.currentChapter
+        val currentTime = (bookPlayerUiState.seekTime / 1000) - currentChapter.start + (position / 1000)
+        val totalTime = currentChapter.end - currentChapter.start
+        val progress = (currentTime / totalTime).toFloat()
+        return PlayerProgressUiState(currentTime, totalTime, progress)
+    }
+}
+
+data class PlayerProgressUiState(
+    val currentTime: Double = 0.0,
+    val totalTime: Double = 0.0,
+    val progress: Float = 0f
+)
+
+fun BookPlayerUiState.toPlayerProgressUiState(): PlayerProgressUiState {
+    val currentTime = (seekTime / 1000) - currentChapter.start
+    val totalTime = currentChapter.end - currentChapter.start
+    val progress = (currentTime / totalTime).toFloat()
+    return PlayerProgressUiState(currentTime, totalTime, progress)
 }
 
 class BookPlayerUiState(

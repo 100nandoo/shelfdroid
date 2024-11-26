@@ -82,7 +82,7 @@ fun LibraryItemNoCoverPreview() {
                 items = response,
                 key = { it.id }
             ) { item ->
-                HomeLibraryItem(item, true, {}, {}, Modifier)
+                HomeLibraryItem(item, {}, Modifier)
             }
         }
     }

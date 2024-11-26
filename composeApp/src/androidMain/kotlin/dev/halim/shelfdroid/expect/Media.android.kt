@@ -6,13 +6,18 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 actual class MediaManager actual constructor(
     private val player: PlatformPlayer,
@@ -46,8 +51,16 @@ actual class MediaManager actual constructor(
         return MediaPlayerState(
             isPlaying = player.isPlaying,
             playbackState = mapPlayerState(player.isPlaying, player.playbackState),
-            item = player.currentMediaItem?.let { PlatformMediaItem(it) }
-        )
+            item = player.currentMediaItem?.let { PlatformMediaItem(it) },
+            currentPosition = flow {
+                while (currentCoroutineContext().isActive) {
+                    if (player.currentPosition > 0 && player.isPlaying) {
+                        println("currentPosition from flow: ${player.currentPosition}")
+                        emit(player.currentPosition)
+                    }
+                    delay(1.toDuration(DurationUnit.SECONDS))
+                }
+            })
     }
 
     private fun mapPlayerState(isPlaying: Boolean, playbackState: Int): PlaybackState {

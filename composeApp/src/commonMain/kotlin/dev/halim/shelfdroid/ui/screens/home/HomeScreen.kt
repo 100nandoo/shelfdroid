@@ -197,12 +197,9 @@ fun LibraryContent(
                 items = list,
                 key = { it.id }
             ) { libraryItem ->
-                var imageLoadFailed by remember { mutableStateOf(false) }
 
                 HomeLibraryItem(
                     uiState = libraryItem,
-                    showNoCover = imageLoadFailed,
-                    onImageError = { imageLoadFailed = true },
                     onPlayPauseClick = {
                         if (libraryItem is BookUiState) {
                             mediaManager.playBookUiState(libraryItem.toImpl())
