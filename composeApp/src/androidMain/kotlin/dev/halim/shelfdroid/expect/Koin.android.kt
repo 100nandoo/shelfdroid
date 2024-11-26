@@ -47,6 +47,7 @@ actual val targetModule = module {
             TrackSelectionParameters.AudioOffloadPreferences.Builder()
                 .setAudioOffloadMode(TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED)
                 .setIsGaplessSupportRequired(true)
+                .setIsSpeedChangeSupportRequired(true)
                 .build()
         player.trackSelectionParameters =
             player.trackSelectionParameters

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.mobilenativefoundation.store.store5.impl.extensions.fresh
 import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 class HomeViewModel(
@@ -29,12 +30,12 @@ class HomeViewModel(
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
-        .onStart { apis() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), HomeUiState())
+        .onStart { apis(fresh = true) }
+        .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
 
     private val _navState = MutableStateFlow(Pair(false, ""))
     val navState = _navState
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), Pair(false, ""))
+        .stateIn(viewModelScope, SharingStarted.Lazily, Pair(false, ""))
 
     fun onEvent(homeEvent: HomeEvent) {
         when (homeEvent) {
@@ -56,14 +57,14 @@ class HomeViewModel(
         _navState.update { it.copy(first = false) }
     }
 
-    private fun apis(page: Int = 0) {
+    private fun apis(page: Int = 0, fresh: Boolean = false) {
         _uiState.update { it.copy(homeState = HomeState.Loading) }
         viewModelScope.launch {
-            val libraries = getLibraries()
+            val libraries = getLibraries(fresh)
             val librariesUiState = libraries.map { library ->
                 LibraryUiState(library.id, library.name)
             }
-            val libraryItems = getLibraryItems(libraries[page].id)
+            val libraryItems = getLibraryItems(libraries[page].id, fresh)
             _uiState.update {
                 it.copy(
                     homeState = HomeState.Success,
@@ -74,9 +75,10 @@ class HomeViewModel(
         }
     }
 
-    private suspend fun getLibraries(): List<LibraryEntity> {
+    private suspend fun getLibraries(fresh: Boolean): List<LibraryEntity> {
         val libraryItems = mutableListOf<LibraryEntity>()
-        val result: LibraryOutput = storeManager.libraryStore.get(LibraryKey.All as LibraryKey)
+        val result: LibraryOutput = if (fresh) storeManager.libraryStore.fresh(LibraryKey.All as LibraryKey) else
+            storeManager.libraryStore.get(LibraryKey.All as LibraryKey)
         if (result is StoreOutput.Collection) {
             val librariesResponse = result.data
             libraryItems.addAll(librariesResponse)
@@ -84,10 +86,11 @@ class HomeViewModel(
         return libraryItems
     }
 
-    private suspend fun getLibraryItems(libraryId: String): List<ItemEntity> {
+    private suspend fun getLibraryItems(libraryId: String, fresh: Boolean): List<ItemEntity> {
         val list = mutableListOf<ItemEntity>()
         val itemIds = (storeManager.libraryStore.get(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
-        val result = storeManager.itemStore.get(ItemKey.Collection(itemIds))
+        val result = if (fresh) storeManager.itemStore.fresh(ItemKey.Collection(itemIds)) else storeManager.itemStore
+            .get(ItemKey.Collection(itemIds))
         if (result is StoreOutput.Collection<ItemEntity>) {
             list.addAll(result.data)
         }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HourglassTop
@@ -156,11 +157,14 @@ fun LibraryItemPlayIcon(onPlayPauseClick: (String) -> Unit, id: String) {
         else -> Icons.Default.PlayArrow
     }
 
-    Icon(
-        imageVector = icon,
-        contentDescription = "Play",
-        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-        modifier = Modifier.size(48.dp)
-            .clickable { onPlayPauseClick(id) }
-    )
+    Box(modifier = Modifier.clip(CircleShape)
+        .clickable { onPlayPauseClick(id) }
+        .size(60.dp)) {
+        Icon(
+            imageVector = icon,
+            contentDescription = "Play",
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(48.dp).align(Alignment.Center)
+        )
+    }
 }
