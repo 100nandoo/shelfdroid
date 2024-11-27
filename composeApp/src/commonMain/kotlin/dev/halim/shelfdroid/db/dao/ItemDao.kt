@@ -22,6 +22,8 @@ class ItemDao(private val itemQuery: ItemQueries) {
             itemEntity.url,
             itemEntity.progress,
             itemEntity.seekTime,
+            itemEntity.startTime,
+            itemEntity.endTime,
             itemEntity.chapters,
             itemEntity.currentChapterId
         )

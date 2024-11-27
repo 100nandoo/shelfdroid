@@ -11,8 +11,8 @@ import dev.halim.shelfdroid.store.LibraryKey
 import dev.halim.shelfdroid.store.LibraryOutput
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.store.StoreOutput
-import dev.halim.shelfdroid.store.cachedAndRefresh
 import dev.halim.shelfdroid.store.cached
+import dev.halim.shelfdroid.store.cachedAndRefresh
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -94,9 +94,11 @@ class HomeViewModel(
 
     private suspend fun getLibraryItems(libraryId: String, fresh: Boolean): List<ItemEntity> {
         val list = mutableListOf<ItemEntity>()
-        val itemIds = (storeManager.libraryStore.cached(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
-        val result = if (fresh) storeManager.itemStore.cachedAndRefresh(ItemKey.Collection(itemIds)) else storeManager.itemStore
-            .cached(ItemKey.Collection(itemIds))
+        val itemIds =
+            (storeManager.libraryStore.cached(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
+        val result =
+            if (fresh) storeManager.itemStore.cachedAndRefresh(ItemKey.Collection(itemIds)) else storeManager.itemStore
+                .cached(ItemKey.Collection(itemIds))
         if (result is StoreOutput.Collection<ItemEntity>) {
             list.addAll(result.data)
         }
@@ -118,12 +120,14 @@ data class BookUiState(
     override val cover: String = "",
     override val url: String = "",
     override val seekTime: Long = 0L,
+    override val startTime: Long = 0L,
+    override val endTime: Long = 0L,
     val progress: Float = 0f,
     val chapters: List<BookChapter> = emptyList(),
-    val currentChapterId: Long = 0L
+    val currentChapterId: Long = 0L,
 ) : ShelfdroidMediaItem() {
-    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime)
-
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime,
+        startTime, endTime)
 }
 
 data class PodcastUiState(
@@ -133,9 +137,12 @@ data class PodcastUiState(
     override val cover: String,
     override val url: String,
     override val seekTime: Long = 0L,
+    override val startTime: Long,
+    override val endTime: Long,
     val episodeCount: Int,
 ) : ShelfdroidMediaItem() {
-    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime)
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime,
+        startTime, endTime)
 }
 
 data class LibraryUiState(

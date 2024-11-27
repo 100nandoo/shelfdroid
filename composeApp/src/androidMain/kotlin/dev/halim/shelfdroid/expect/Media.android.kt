@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import dev.halim.shelfdroid.datastore.DataStoreEvent
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineScope
@@ -39,7 +40,8 @@ actual class MediaManager actual constructor(
             playerState.collect { state ->
                 main.launch {
                     if (state.playbackState is PlaybackState.Pause) {
-                        val time = player.currentPosition / 1000
+                        val time = (player.currentPosition  + (player.currentMediaItem
+                            ?.clippingConfiguration?.startPositionMs ?: 0L)) / 1000
                         sessionManager.onEvent(SessionEvent.Pause(time))
                     }
                 }
@@ -93,16 +95,6 @@ actual class MediaManager actual constructor(
         }
     }
 
-    private fun updateCurrentItem(mediaItem: ShelfdroidMediaItemImpl) {
-        io.launch {
-            dataStoreManager.writeSerializable(
-                ::ShelfdroidMediaItemImpl.name,
-                mediaItem,
-                ShelfdroidMediaItemImpl.serializer()
-            )
-        }
-    }
-
     private fun setupPlayerListeners() {
         fun updatePlayerState(isPlaying: Boolean, playbackState: Int) {
             val targetState = mapPlayerState(isPlaying, playbackState)
@@ -134,9 +126,9 @@ actual class MediaManager actual constructor(
             player.setMediaItem(mediaItem)
             player.prepare()
             player.play()
-
+            player.seekTo(shelfdroidMediaItem.seekTime)
             sessionManager.onEvent(SessionEvent.Play(shelfdroidMediaItem))
-            updateCurrentItem(shelfdroidMediaItem)
+            dataStoreManager.onEvent(DataStoreEvent.MediaItemChanged(shelfdroidMediaItem))
         } else {
             if (_playerState.value.isPlaying) {
                 player.pause()
@@ -170,7 +162,12 @@ fun ShelfdroidMediaItemImpl.toMediaItem(): MediaItem {
         .setUri(this.url)
         .setMediaId(this.id)
         .setMediaMetadata(metadata)
-        .setClippingConfiguration(MediaItem.ClippingConfiguration.Builder().setStartPositionMs(seekTime).build())
+        .setClippingConfiguration(
+            MediaItem.ClippingConfiguration.Builder()
+                .setStartPositionMs(startTime)
+                .setEndPositionMs(endTime)
+                .build()
+        )
         .build()
     return mediaItem
 }

@@ -12,6 +12,8 @@ CREATE TABLE ItemEntity (
     url TEXT,
     progress REAL NOT NULL ,
     seekTime INTEGER NOT NULL,
+    startTime INTEGER NOT NULL,
+    endTime INTEGER NOT NULL,
     chapters TEXT AS List<BookChapter> NOT NULL,
     currentChapterId INTEGER NOT NULL,
     FOREIGN KEY (libraryId) REFERENCES LibraryEntity(id) ON DELETE CASCADE
@@ -19,8 +21,8 @@ CREATE TABLE ItemEntity (
 
 upsert:
 INSERT OR REPLACE INTO ItemEntity (id, ino, libraryId, author, title, cover, mediaType, url, progress, seekTime,
-chapters, currentChapterId)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+startTime, endTime, chapters, currentChapterId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectById:
 SELECT *
@@ -48,6 +50,8 @@ SET
     url = ?,
     progress = ?,
     seekTime = ?,
+    startTime = ?,
+    endTime = ?,
     chapters = ?,
     currentChapterId = ?
 WHERE id = ?;

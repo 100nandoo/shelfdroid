@@ -21,20 +21,10 @@ import dev.halim.shelfdroid.ui.screens.home.LibraryUiState
 
 
 val homeLibraryItemUiState =
-    BookUiState(
-        "1", "Jane Doe", "The Art of Peace", "", "",
-        0, 0.75f
-    )
+    BookUiState("1", "Jane Doe", "The Art of Peace", "", "", 0)
 val homeLibraryItemUiState2 =
-    BookUiState(
-        "2",
-        "Jane Doe, Marrow Slakovakovatich",
-        "The Art of Consolidating Long Meeting",
-        "",
-        "",
-        0,
-        0.5f
-    )
+    BookUiState("2", "Jane Doe, Marrow Slakovakovatich",
+        "The Art of Consolidating Long Meeting", "", "", 0)
 val homeLibraryItemUiStateList = listOf(homeLibraryItemUiState, homeLibraryItemUiState2)
 val libraryUiStateList = listOf(LibraryUiState("123", "Main"), LibraryUiState("234", "Podcast"))
 val homeUiState = HomeUiState(

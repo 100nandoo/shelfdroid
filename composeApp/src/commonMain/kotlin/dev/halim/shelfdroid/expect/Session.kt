@@ -9,21 +9,24 @@ import kotlinx.coroutines.launch
 
 sealed class SessionEvent {
     data class Play(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : SessionEvent()
-    data class Pause(val deltaInSecond: Long) : SessionEvent()
+    data class Pause(val currentPosition: Long) : SessionEvent()
 }
 
 class SessionManager(
     private val api: Api,
     private val io: CoroutineScope
 ) {
-    private var shelfdroidMediaItem: ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl()
+    private var startTime: Long = -1
     private var sessionId: String = ""
     private val sessionInitialized = CompletableDeferred<Unit>()
 
     fun onEvent(event: SessionEvent) {
         when (event) {
             is SessionEvent.Play -> {
-                shelfdroidMediaItem = event.shelfdroidMediaItem
+                val newStartTime = (event.shelfdroidMediaItem.seekTime + event.shelfdroidMediaItem.startTime) / 1000
+                if (newStartTime > startTime && startTime == -1L){
+                    startTime = newStartTime
+                }
                 io.launch {
                     startSession(event.shelfdroidMediaItem.id)
                     sessionInitialized.complete(Unit)
@@ -33,17 +36,15 @@ class SessionManager(
             is SessionEvent.Pause -> {
                 io.launch {
                     sessionInitialized.await()
-                    syncSession(event.deltaInSecond)
+                    syncSession(event.currentPosition)
                 }
             }
         }
     }
 
-    private suspend fun syncSession(deltaInSecond: Long) {
-        val start = (shelfdroidMediaItem.seekTime / 1000)
-        val currentInSecond = start + deltaInSecond
-        val timeListened = currentInSecond - start
-        val request = SyncSessionRequest(currentInSecond, timeListened)
+    private suspend fun syncSession(currentPosition: Long) {
+        val timeListened = currentPosition - startTime
+        val request = SyncSessionRequest(currentPosition, timeListened)
         val response = api.syncSession(sessionId, request)
         response.isSuccess
     }

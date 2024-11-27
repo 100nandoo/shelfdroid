@@ -32,20 +32,21 @@ sealed class ItemKey {
 
 object ItemExtensions {
 
-    private inline fun getCurrentChapterId(currentTime: Long, chapters: List<BookChapter>): Long {
-        return (chapters.find { currentTime >= it.start && currentTime <= it.end }?.id ?: chapters.first().id).toLong()
+    private inline fun getCurrentChapter(currentTime: Float, chapters: List<BookChapter>): BookChapter {
+        return (chapters.find { currentTime >= it.start && currentTime <= it.end } ?: chapters.first())
     }
 
     private inline fun findInoIdAndSeekTiming(
         id: String,
         inoDurations: Map<String, Double>,
         currentTime: Float,
+        startTime: Long,
         api: Api
     ): Pair<String, Long> {
         var url = api.generateItemStreamUrl(id, inoDurations.keys.first())
 
         if (inoDurations.size == 1) {
-            val seekTime = (currentTime * 1000).roundToLong()
+            val seekTime = (currentTime * 1000).roundToLong() - startTime
             return url to seekTime
         }
 
@@ -73,8 +74,13 @@ object ItemExtensions {
                 val progress = mediaProgress?.progress?.toDouble() ?: 0.0
                 val currentTime = mediaProgress?.currentTime ?: 0f
                 val chapters = media.chapters
-                val (url, seekTime) = findInoIdAndSeekTiming(id, inoDurations, currentTime, api)
-                val currentChapterId = getCurrentChapterId(seekTime / 1000, chapters)
+                val currentChapter = getCurrentChapter(currentTime, chapters)
+                val currentChapterId = currentChapter.id.toLong()
+                val startTime = (currentChapter.start * 1000).toLong()
+                val endTime = (currentChapter.end * 1000).toLong()
+
+                val (url, seekTime) = findInoIdAndSeekTiming(id, inoDurations, currentTime, startTime, api)
+
                 ItemEntity(
                     this.id,
                     this.ino,
@@ -86,6 +92,8 @@ object ItemExtensions {
                     url,
                     progress,
                     seekTime,
+                    startTime,
+                    endTime,
                     chapters,
                     currentChapterId
                 )
@@ -107,6 +115,8 @@ object ItemExtensions {
                     "",
                     0.0,
                     0,
+                    0,
+                    0,
                     emptyList(),
                     0
                 )
@@ -117,7 +127,7 @@ object ItemExtensions {
     fun ItemEntity.toBookUiState(): BookUiState {
         return BookUiState(
             this.id, this.author ?: "", this.title, this.cover ?: "", this.url ?: "",
-            this.seekTime, this.progress.toFloat(), this.chapters
+            this.seekTime, this.startTime, this.endTime, this.progress.toFloat(), this.chapters
         )
     }
 
@@ -126,7 +136,7 @@ object ItemExtensions {
 
         return BookPlayerUiState(
             this.id, this.author ?: "", this.title, this.cover ?: "", this.url ?: "",
-            this.seekTime, this.progress.toFloat(), this.chapters, currentChapter
+            this.seekTime, this.startTime, this.endTime, this.progress.toFloat(), this.chapters, currentChapter
         )
     }
     // TODO: handle to PodcastUiState

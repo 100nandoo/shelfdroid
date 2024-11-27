@@ -7,10 +7,13 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.halim.shelfdroid.expect.PlatformContext
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -21,7 +24,13 @@ expect fun createDataStore(platformContext: PlatformContext): DataStore<Preferen
 
 internal const val dataStoreFileName = "shelfdroid.preferences_pb"
 
-class DataStoreManager(private val dataStore: DataStore<Preferences>, private val json: Json) {
+sealed class DataStoreEvent {
+    data class MediaItemChanged(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : DataStoreEvent()
+}
+
+class DataStoreManager(
+    private val dataStore: DataStore<Preferences>, private val json: Json, private val io: CoroutineScope
+) {
     private object Keys {
         val BASE_URL = stringPreferencesKey("base_url")
         val TOKEN = stringPreferencesKey("token")
@@ -31,6 +40,19 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>, private va
 
         fun <T> serializedKey(name: String) = stringPreferencesKey("serialized_$name")
     }
+
+    fun onEvent(event: DataStoreEvent) {
+        when (event) {
+            is DataStoreEvent.MediaItemChanged -> {
+                io.launch {
+                    writeSerializable(
+                        ::ShelfdroidMediaItemImpl.name, event.shelfdroidMediaItem, ShelfdroidMediaItemImpl.serializer()
+                    )
+                }
+            }
+        }
+    }
+
 
     private fun readString(key: Preferences.Key<String>, default: String = ""): Flow<String> =
         dataStore.data.map { it[key] ?: default }
@@ -83,10 +105,11 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>, private va
 
     val deviceId: Flow<String> = readString(Keys.DEVICE_ID)
     val deviceIdBlocking: String = runBlocking { dataStore.data.firstOrNull()?.get(Keys.DEVICE_ID) ?: "" }
+
     @OptIn(ExperimentalUuidApi::class)
-    suspend fun generateDeviceId(){
+    suspend fun generateDeviceId() {
         val uuid = Uuid.random().toString()
-        if (readString(Keys.DEVICE_ID).first().isBlank()){
+        if (readString(Keys.DEVICE_ID).first().isBlank()) {
             writeString(Keys.DEVICE_ID, uuid)
         }
     }

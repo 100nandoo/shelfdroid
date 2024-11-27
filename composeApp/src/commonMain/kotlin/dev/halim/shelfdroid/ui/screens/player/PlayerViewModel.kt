@@ -13,7 +13,6 @@ import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -61,10 +60,10 @@ class PlayerViewModel(
     private fun initProgress(position: Long = 0): PlayerProgressUiState {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
         val currentChapter = bookPlayerUiState.currentChapter
-        val currentTime = (bookPlayerUiState.seekTime / 1000) - currentChapter.start + (position / 1000)
+        val currentTime = if (position == 0L) bookPlayerUiState.seekTime / 1000 else position / 1000
         val totalTime = currentChapter.end - currentChapter.start
         val progress = (currentTime / totalTime).toFloat()
-        return PlayerProgressUiState(currentTime, totalTime, progress)
+        return PlayerProgressUiState(currentTime.toDouble(), totalTime, progress)
     }
 }
 
@@ -74,13 +73,6 @@ data class PlayerProgressUiState(
     val progress: Float = 0f
 )
 
-fun BookPlayerUiState.toPlayerProgressUiState(): PlayerProgressUiState {
-    val currentTime = (seekTime / 1000) - currentChapter.start
-    val totalTime = currentChapter.end - currentChapter.start
-    val progress = (currentTime / totalTime).toFloat()
-    return PlayerProgressUiState(currentTime, totalTime, progress)
-}
-
 class BookPlayerUiState(
     override val id: String = "",
     override val author: String = "",
@@ -88,11 +80,14 @@ class BookPlayerUiState(
     override val cover: String = "",
     override val url: String = "",
     override val seekTime: Long = 0L,
+    override val startTime: Long = 0L,
+    override val endTime: Long = 0L,
     val progress: Float = 0f,
     val chapters: List<BookChapter> = emptyList(),
-    val currentChapter: BookChapter = BookChapter()
+    val currentChapter: BookChapter = BookChapter(),
 ) : ShelfdroidMediaItem() {
-    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime)
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime,
+        startTime, endTime)
 }
 
 data class PlayerUiState(

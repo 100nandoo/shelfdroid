@@ -62,7 +62,7 @@ val appModule = module {
         CoroutineScope(Dispatchers.Default)
     }
     singleOf(::Api)
-    singleOf(::DataStoreManager)
+    single<DataStoreManager>{ DataStoreManager(get(), get(), get(named(ComponentName.IO)))}
     single<DataStore<Preferences>> { createDataStore(get()) }
     singleOf(::SessionManager)
     single<MediaManager> {
