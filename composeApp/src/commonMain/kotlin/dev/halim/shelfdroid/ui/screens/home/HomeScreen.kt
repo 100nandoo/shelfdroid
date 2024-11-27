@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.components.HomeLibraryItem
+import dev.halim.shelfdroid.ui.generic.GenericMessageScreen
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -101,9 +102,12 @@ fun HomeScreenContent(
     onEvent: (HomeEvent) -> Unit = {},
     loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
 ) {
-    if (libraryCount == 0 && uiState.homeState == HomeState.Success) {
-        NoLibrary()
+    if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
+        GenericMessageScreen("No libraries available.")
+    } else if (uiState.homeState is HomeState.Failure){
+        GenericMessageScreen(uiState.homeState.errorMessage ?: "")
     }
+
 
     HorizontalPager(
         modifier = Modifier.padding(bottom = bottomPadding),
@@ -128,20 +132,6 @@ fun HomeScreenContent(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun NoLibrary() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "No libraries available",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineSmall,
-        )
     }
 }
 

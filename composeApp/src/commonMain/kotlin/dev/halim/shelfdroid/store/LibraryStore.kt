@@ -7,15 +7,14 @@ import dev.halim.shelfdroid.network.Library
 import dev.halim.shelfdroid.store.LibraryExtensions.toEntity
 import kotlinx.coroutines.flow.map
 import org.mobilenativefoundation.store.store5.Fetcher
-import org.mobilenativefoundation.store.store5.FetcherResult
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder
 
 
 sealed class LibraryNetwork {
-    data class Single(val library: Library, val itemIds: List<String>): LibraryNetwork()
-    data class Collection(val libraries: List<Library>, val itemIds: Map<String, List<String>>): LibraryNetwork()
+    data class Single(val library: Library, val itemIds: List<String>) : LibraryNetwork()
+    data class Collection(val libraries: List<Library>, val itemIds: Map<String, List<String>>) : LibraryNetwork()
 }
 
 sealed class LibraryKey {
@@ -43,44 +42,37 @@ class LibraryStoreFactory(
     }
 
     private fun createFetcher(): Fetcher<LibraryKey, LibraryNetwork> {
-        return Fetcher.ofResult { key ->
-            try {
-                val result = when (key) {
-                    is LibraryKey.All -> {
-                        val ids = mutableMapOf<String, List<String>>()
-                        val libraries = api.libraries().getOrNull()?.libraries
-                        libraries?.forEach {
-                            val result = api.libraryItems(it.id)
-                            result.onSuccess { response ->
-                                ids[it.id] = response.results.map { it.id }
-                            }
-                            result.onFailure { error ->
-                                FetcherResult.Error.Exception(error)
-                            }
+        return Fetcher.of { key ->
+            val result = when (key) {
+                is LibraryKey.All -> {
+                    val ids = mutableMapOf<String, List<String>>()
+                    val libraries = api.libraries().getOrNull()?.libraries ?: error(libraryError())
+                    libraries.forEach {
+                        val result = api.libraryItems(it.id)
+                        result.onSuccess { response ->
+                            ids[it.id] = response.results.map { it.id }
                         }
-                        libraries?.let { LibraryNetwork.Collection(it, ids) }
-                    }
-
-                    is LibraryKey.Single -> {
-                        val library = api.library(key.id).getOrNull()?.library
-                        library?.let {
-                            val result = api.libraryItems(it.id)
-                            val ids = mutableListOf<String>()
-                            result.onSuccess { response ->
-                                ids.addAll(response.results.map { it.id })
-                            }
-                            result.onFailure { error ->
-                                FetcherResult.Error.Exception(error)
-                            }
-
-                            it.let { LibraryNetwork.Single(it, ids) }
+                        result.onFailure { error ->
+                            error(error)
                         }
                     }
+                    LibraryNetwork.Collection(libraries, ids)
                 }
-                result?.let { FetcherResult.Data(it) } ?: FetcherResult.Error.Message("No Library")
-            } catch (e: Exception) {
-                FetcherResult.Error.Exception(e)
+
+                is LibraryKey.Single -> {
+                    val library = api.library(key.id).getOrNull()?.library ?: error(libraryError(key.id))
+                    val result = api.libraryItems(library.id)
+                    val ids = mutableListOf<String>()
+                    result.onSuccess { response ->
+                        ids.addAll(response.results.map { it.id })
+                    }
+                    result.onFailure { error ->
+                        error(error)
+                    }
+                    LibraryNetwork.Single(library, ids)
+                }
             }
+            result
         }
     }
 
@@ -123,3 +115,4 @@ class LibraryStoreFactory(
         )
     }
 }
+

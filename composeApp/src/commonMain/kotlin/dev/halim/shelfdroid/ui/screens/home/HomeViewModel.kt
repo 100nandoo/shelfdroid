@@ -11,8 +11,11 @@ import dev.halim.shelfdroid.store.LibraryKey
 import dev.halim.shelfdroid.store.LibraryOutput
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.store.StoreOutput
+import dev.halim.shelfdroid.store.cachedAndRefresh
+import dev.halim.shelfdroid.store.cached
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +24,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.mobilenativefoundation.store.store5.impl.extensions.fresh
-import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 class HomeViewModel(
     private val storeManager: StoreManager
@@ -57,9 +58,13 @@ class HomeViewModel(
         _navState.update { it.copy(first = false) }
     }
 
+    private val handler = CoroutineExceptionHandler { _, exception ->
+        _uiState.update { it.copy(homeState = HomeState.Failure(exception.message)) }
+    }
+
     private fun apis(page: Int = 0, fresh: Boolean = false) {
         _uiState.update { it.copy(homeState = HomeState.Loading) }
-        viewModelScope.launch {
+        viewModelScope.launch(handler) {
             val libraries = getLibraries(fresh)
             val librariesUiState = libraries.map { library ->
                 LibraryUiState(library.id, library.name)
@@ -77,8 +82,9 @@ class HomeViewModel(
 
     private suspend fun getLibraries(fresh: Boolean): List<LibraryEntity> {
         val libraryItems = mutableListOf<LibraryEntity>()
-        val result: LibraryOutput = if (fresh) storeManager.libraryStore.fresh(LibraryKey.All as LibraryKey) else
-            storeManager.libraryStore.get(LibraryKey.All as LibraryKey)
+        val result: LibraryOutput? =
+            if (fresh) storeManager.libraryStore.cachedAndRefresh(LibraryKey.All as LibraryKey)
+            else storeManager.libraryStore.cached(LibraryKey.All as LibraryKey)
         if (result is StoreOutput.Collection) {
             val librariesResponse = result.data
             libraryItems.addAll(librariesResponse)
@@ -88,9 +94,9 @@ class HomeViewModel(
 
     private suspend fun getLibraryItems(libraryId: String, fresh: Boolean): List<ItemEntity> {
         val list = mutableListOf<ItemEntity>()
-        val itemIds = (storeManager.libraryStore.get(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
-        val result = if (fresh) storeManager.itemStore.fresh(ItemKey.Collection(itemIds)) else storeManager.itemStore
-            .get(ItemKey.Collection(itemIds))
+        val itemIds = (storeManager.libraryStore.cached(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
+        val result = if (fresh) storeManager.itemStore.cachedAndRefresh(ItemKey.Collection(itemIds)) else storeManager.itemStore
+            .cached(ItemKey.Collection(itemIds))
         if (result is StoreOutput.Collection<ItemEntity>) {
             list.addAll(result.data)
         }

@@ -13,7 +13,6 @@ import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import dev.halim.shelfdroid.ui.screens.player.BookPlayerUiState
 import kotlinx.coroutines.flow.map
 import org.mobilenativefoundation.store.store5.Fetcher
-import org.mobilenativefoundation.store.store5.FetcherResult
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder
@@ -146,31 +145,24 @@ class ItemStoreFactory(
     }
 
     private fun createFetcher(): Fetcher<ItemKey, ItemNetwork> {
-        return Fetcher.ofResult { key ->
-            try {
-                val result = when (key) {
-                    is ItemKey.Collection -> {
-                        val ids = key.itemIds
-                        val items = api.batchLibraryItems(ids).getOrNull()?.libraryItems
-                        val mediaProgresses = api.me().getOrNull()?.mediaProgress ?: emptyList()
-                        items?.let { ItemNetwork.Collection(it, mediaProgresses) }
-                    }
-
-                    is ItemKey.Single -> {
-                        val item = api.libraryItem(key.itemId).getOrNull()
-                        val mediaProgress = api.me().getOrNull()?.mediaProgress
-                            ?.firstOrNull { it.libraryItemId == key.itemId }
-                        if (item != null) {
-                            ItemNetwork.Single(item, mediaProgress)
-                        } else {
-                            null
-                        }
-                    }
+        return Fetcher.of { key ->
+            val result = when (key) {
+                is ItemKey.Collection -> {
+                    val ids = key.itemIds
+                    val items = api.batchLibraryItems(ids).getOrNull()?.libraryItems
+                        ?: error(itemError(key.itemIds.joinToString("\n")))
+                    val mediaProgresses = api.me().getOrNull()?.mediaProgress ?: emptyList()
+                    ItemNetwork.Collection(items, mediaProgresses)
                 }
-                result?.let { FetcherResult.Data(it) } ?: FetcherResult.Error.Message("No Item")
-            } catch (e: Exception) {
-                FetcherResult.Error.Exception(e)
+
+                is ItemKey.Single -> {
+                    val item = api.libraryItem(key.itemId).getOrNull() ?: error(itemError(key.itemId))
+                    val mediaProgress = api.me().getOrNull()?.mediaProgress
+                        ?.firstOrNull { it.libraryItemId == key.itemId }
+                    ItemNetwork.Single(item, mediaProgress)
+                }
             }
+            result
         }
     }
 
