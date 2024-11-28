@@ -8,7 +8,6 @@ import androidx.media3.common.Player
 import dev.halim.shelfdroid.datastore.DataStoreEvent
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,40 +15,51 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 actual class MediaManager actual constructor(
     private val player: PlatformPlayer,
     private val dataStoreManager: DataStoreManager,
-    private val io: CoroutineScope,
-    private val main: CoroutineScope,
     private val sessionManager: SessionManager
 ) {
-    private val _playerState = MutableStateFlow(getMediaPlayerStateFromExoPlayer())
+    private val _playerState = MutableStateFlow(setupPlayerState())
     actual val playerState = _playerState.asStateFlow()
 
     init {
         setupPlayerListeners()
-        observePlayerState()
     }
 
-    private fun observePlayerState() {
-        io.launch {
-            playerState.collect { state ->
-                main.launch {
-                    if (state.playbackState is PlaybackState.Pause) {
-                        val time = (player.currentPosition  + (player.currentMediaItem
-                            ?.clippingConfiguration?.startPositionMs ?: 0L)) / 1000
-                        sessionManager.onEvent(SessionEvent.Pause(time))
-                    }
-                }
+    actual fun playBookUiState(item: ShelfdroidMediaItemImpl) {
+        if (_playerState.value.item?.id != item.id) {
+            pause()
+            changeItem(item)
+            player.play()
+            player.seekTo(item.seekTime)
+            sessionEventPlay(item)
+            dataStoreEventChangeMediaItem(item)
+        } else {
+            if (_playerState.value.isPlaying) {
+                pause()
+            } else {
+                player.play()
             }
         }
     }
 
-    private fun getMediaPlayerStateFromExoPlayer(): MediaPlayerState {
+    actual fun seekForward() {
+        player.seekForward()
+    }
+
+    actual fun seekBackward() {
+        player.seekBack()
+    }
+
+    actual fun changeSpeed(speed: Float) {
+        player.setPlaybackSpeed(speed)
+    }
+
+    private fun setupPlayerState(): MediaPlayerState {
         return MediaPlayerState(
             isPlaying = player.isPlaying,
             playbackState = mapPlayerState(player.isPlaying, player.playbackState),
@@ -88,13 +98,6 @@ actual class MediaManager actual constructor(
         }
     }
 
-    private fun updateCurrentPosition() {
-        val currentPosition = player.currentPosition
-        io.launch {
-            dataStoreManager.setCurrentPosition(currentPosition)
-        }
-    }
-
     private fun setupPlayerListeners() {
         fun updatePlayerState(isPlaying: Boolean, playbackState: Int) {
             val targetState = mapPlayerState(isPlaying, playbackState)
@@ -119,36 +122,35 @@ actual class MediaManager actual constructor(
         })
     }
 
-    actual fun playBookUiState(shelfdroidMediaItem: ShelfdroidMediaItemImpl) {
-        if (_playerState.value.item?.id != shelfdroidMediaItem.id) {
-            player.pause()
-            val mediaItem = shelfdroidMediaItem.toMediaItem()
-            player.setMediaItem(mediaItem)
-            player.prepare()
-            player.play()
-            player.seekTo(shelfdroidMediaItem.seekTime)
-            sessionManager.onEvent(SessionEvent.Play(shelfdroidMediaItem))
-            dataStoreManager.onEvent(DataStoreEvent.MediaItemChanged(shelfdroidMediaItem))
-        } else {
-            if (_playerState.value.isPlaying) {
-                player.pause()
-                updateCurrentPosition()
-            } else {
-                player.play()
-            }
-        }
+    private fun sessionEventPlay(shelfdroidMediaItem: ShelfdroidMediaItemImpl) {
+        sessionManager.onEvent(SessionEvent.Play(shelfdroidMediaItem))
     }
 
-    actual fun seekForward() {
-        player.seekForward()
+    private fun sessionEventPause() {
+        val time = (player.currentPosition + (player.currentMediaItem
+            ?.clippingConfiguration?.startPositionMs ?: 0L)) / 1000
+        sessionManager.onEvent(SessionEvent.Pause(time))
     }
 
-    actual fun seekBackward() {
-        player.seekBack()
+    private fun dataStoreEventChangeMediaItem(shelfdroidMediaItem: ShelfdroidMediaItemImpl) {
+        dataStoreManager.onEvent(DataStoreEvent.MediaItemChanged(shelfdroidMediaItem))
     }
 
-    actual fun changeSpeed(speed: Float) {
-        player.setPlaybackSpeed(speed)
+    private fun dataStoreEventUpdateCurrentPosition() {
+        val currentPosition = player.currentPosition
+        dataStoreManager.onEvent(DataStoreEvent.UpdateCurrentPosition(currentPosition))
+    }
+
+    private fun changeItem(item: ShelfdroidMediaItemImpl) {
+        val mediaItem = item.toMediaItem()
+        player.setMediaItem(mediaItem)
+        player.prepare()
+    }
+
+    private fun pause() {
+        player.pause()
+        sessionEventPause()
+        dataStoreEventUpdateCurrentPosition()
     }
 }
 

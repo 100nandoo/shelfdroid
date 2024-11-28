@@ -69,8 +69,6 @@ val appModule = module {
         MediaManager(
             get(),
             get(),
-            get(named(ComponentName.IO)),
-            get(named(ComponentName.MAIN)),
             get()
         )
     }

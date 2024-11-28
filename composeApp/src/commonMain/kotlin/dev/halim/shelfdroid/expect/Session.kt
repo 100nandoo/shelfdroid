@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 sealed class SessionEvent {
+    data class ChangeItem(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : SessionEvent()
     data class Play(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : SessionEvent()
     data class Pause(val currentPosition: Long) : SessionEvent()
 }
@@ -22,28 +23,27 @@ class SessionManager(
 
     fun onEvent(event: SessionEvent) {
         when (event) {
-            is SessionEvent.Play -> {
-                val newStartTime = (event.shelfdroidMediaItem.seekTime + event.shelfdroidMediaItem.startTime) / 1000
-                if (newStartTime > startTime && startTime == -1L){
-                    startTime = newStartTime
-                }
-                io.launch {
-                    startSession(event.shelfdroidMediaItem.id)
-                    sessionInitialized.complete(Unit)
-                }
+            is SessionEvent.ChangeItem -> {
+                startTime = (event.shelfdroidMediaItem.seekTime + event.shelfdroidMediaItem.startTime) / 1000
             }
-
-            is SessionEvent.Pause -> {
+            is SessionEvent.Play -> {
                 io.launch {
                     sessionInitialized.await()
+                    startSession(event.shelfdroidMediaItem.id)
+                }
+            }
+            is SessionEvent.Pause -> {
+                io.launch {
                     syncSession(event.currentPosition)
                 }
             }
+
         }
     }
 
     private suspend fun syncSession(currentPosition: Long) {
         val timeListened = currentPosition - startTime
+        sessionInitialized.complete(Unit)
         val request = SyncSessionRequest(currentPosition, timeListened)
         val response = api.syncSession(sessionId, request)
         response.isSuccess

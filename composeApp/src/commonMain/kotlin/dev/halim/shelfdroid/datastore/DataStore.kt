@@ -26,6 +26,7 @@ internal const val dataStoreFileName = "shelfdroid.preferences_pb"
 
 sealed class DataStoreEvent {
     data class MediaItemChanged(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : DataStoreEvent()
+    data class UpdateCurrentPosition(val value: Long): DataStoreEvent()
 }
 
 class DataStoreManager(
@@ -45,10 +46,18 @@ class DataStoreManager(
         when (event) {
             is DataStoreEvent.MediaItemChanged -> {
                 io.launch {
+                    val mediaItem = event.shelfdroidMediaItem
                     writeSerializable(
-                        ::ShelfdroidMediaItemImpl.name, event.shelfdroidMediaItem, ShelfdroidMediaItemImpl.serializer()
+                        ::ShelfdroidMediaItemImpl.name,
+                        mediaItem,
+                        ShelfdroidMediaItemImpl.serializer()
                     )
+                    setCurrentPosition(mediaItem.seekTime)
                 }
+            }
+
+            is DataStoreEvent.UpdateCurrentPosition -> {
+                io.launch { setCurrentPosition(event.value) }
             }
         }
     }
@@ -125,6 +134,6 @@ class DataStoreManager(
 
     val currentPosition: Flow<Long> = readLong(Keys.CURRENT_POSITION, 0)
     val currentPositionBlocking: Long = runBlocking { dataStore.data.firstOrNull()?.get(Keys.CURRENT_POSITION) ?: 0 }
-    suspend fun setCurrentPosition(value: Long) = writeLong(Keys.CURRENT_POSITION, value)
+    suspend private fun setCurrentPosition(value: Long) = writeLong(Keys.CURRENT_POSITION, value)
 
 }

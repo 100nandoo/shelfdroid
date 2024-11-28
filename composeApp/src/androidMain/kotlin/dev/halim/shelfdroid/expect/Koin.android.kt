@@ -41,6 +41,8 @@ actual val targetModule = module {
     single<PlatformPlayer> { (serviceContext: PlaybackService) ->
         val player = ExoPlayer.Builder(serviceContext)
             .setAudioAttributes(AudioAttributes.DEFAULT, true)
+            .setSeekBackIncrementMs(10000)
+            .setSeekForwardIncrementMs(10000)
             .build()
 
         val audioOffloadPreferences =

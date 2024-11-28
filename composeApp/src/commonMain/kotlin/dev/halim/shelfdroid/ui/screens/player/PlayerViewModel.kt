@@ -48,11 +48,15 @@ class PlayerViewModel(
                 )
             }
             _playerProgress.update {
-               initProgress()
+                initProgress()
             }
 
-            mediaManager.playerState.value.currentPosition.collect { position ->
-                _playerProgress.emit(initProgress(position))
+            mediaManager.playerState.collect {
+                if (it.item?.id == id) {
+                    mediaManager.playerState.value.currentPosition.collect { position ->
+                        _playerProgress.emit(initProgress(position))
+                    }
+                }
             }
         }
     }
@@ -86,8 +90,10 @@ class BookPlayerUiState(
     val chapters: List<BookChapter> = emptyList(),
     val currentChapter: BookChapter = BookChapter(),
 ) : ShelfdroidMediaItem() {
-    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime,
-        startTime, endTime)
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
+        id, author, title, cover, url, seekTime,
+        startTime, endTime
+    )
 }
 
 data class PlayerUiState(

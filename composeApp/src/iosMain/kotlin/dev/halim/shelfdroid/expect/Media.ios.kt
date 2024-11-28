@@ -2,19 +2,16 @@ package dev.halim.shelfdroid.expect
 
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 actual class MediaManager actual constructor(
     player: PlatformPlayer, dataStoreManager: DataStoreManager,
-    io: CoroutineScope,
-    main: CoroutineScope,
     sessionManager: SessionManager
 ) {
     private val _playerState = MutableStateFlow(MediaPlayerState())
     actual val playerState = _playerState.asStateFlow()
-    actual fun playBookUiState(shelfdroidMediaItem: ShelfdroidMediaItemImpl) {}
+    actual fun playBookUiState(item: ShelfdroidMediaItemImpl) {}
     actual fun seekForward() {
         TODO()
     }

@@ -13,12 +13,10 @@ expect class PlatformMediaItem {
 
 expect class MediaManager(
     player: PlatformPlayer, dataStoreManager: DataStoreManager,
-    io: CoroutineScope,
-    main: CoroutineScope,
     sessionManager: SessionManager
 ) {
     val playerState: StateFlow<MediaPlayerState>
-    fun playBookUiState(shelfdroidMediaItem: ShelfdroidMediaItemImpl)
+    fun playBookUiState(item: ShelfdroidMediaItemImpl)
     fun seekForward()
     fun seekBackward()
     fun changeSpeed(speed: Float)
