@@ -13,19 +13,13 @@ class ItemDao(private val itemQuery: ItemQueries) {
     fun upsertItem(itemEntity: ItemEntity) {
         itemQuery.upsert(
             itemEntity.id,
-            itemEntity.ino,
+            itemEntity.inoId,
             itemEntity.libraryId,
             itemEntity.author,
             itemEntity.title,
             itemEntity.cover,
             itemEntity.mediaType,
-            itemEntity.url,
-            itemEntity.progress,
-            itemEntity.seekTime,
-            itemEntity.startTime,
-            itemEntity.endTime,
             itemEntity.chapters,
-            itemEntity.currentChapterId
         )
     }
 

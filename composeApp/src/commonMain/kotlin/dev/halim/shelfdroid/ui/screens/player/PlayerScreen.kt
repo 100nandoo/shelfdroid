@@ -61,6 +61,7 @@ fun PlayerScreen(paddingValues: PaddingValues, id: String) {
             bookPlayerUiState.cover,
             bookPlayerUiState.currentChapter.title,
             bookPlayerUiState.author,
+            onProgressChange = { viewModel.onEvent(PlayerEvent.ProgressChanged(it))}
         )
     }
 }
@@ -116,10 +117,9 @@ fun PlayerProgress(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
     }
-
     Slider(
         value = uiState.progress,
-        onValueChange = onProgressChange,
+        onValueChange = { onProgressChange(it) },
         modifier = Modifier.fillMaxWidth(),
         colors = SliderDefaults.colors(
             thumbColor = MaterialTheme.colorScheme.primary,

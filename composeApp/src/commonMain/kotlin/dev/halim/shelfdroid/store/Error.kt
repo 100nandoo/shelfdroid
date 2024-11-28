@@ -1,9 +1,13 @@
 package dev.halim.shelfdroid.store
 
 fun libraryError(id: String = ""): String {
-    return if (id.isEmpty()) "No libraries found for LibraryKey.All!" else "No library found for id = ${id}!"
+    return if (id.isEmpty()) "No libraries found for at all!" else "No library found with id = ${id}!"
 }
 
 fun itemError(id: String = ""): String {
-    return if (id.isEmpty()) "No items found for ids = $id!" else "No item found for id = $id!"
+    return if (id.isEmpty()) "No items found for at all!" else "No item found with id = $id!"
+}
+
+fun progressError(id: String = ""): String {
+    return if (id.isEmpty()) "No progress found at all!" else "No progress found with item id = ${id}!"
 }

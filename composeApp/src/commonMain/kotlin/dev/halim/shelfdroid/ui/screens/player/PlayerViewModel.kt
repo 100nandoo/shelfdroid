@@ -4,10 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
-import dev.halim.shelfdroid.store.ItemExtensions.toBookPlayerUiState
-import dev.halim.shelfdroid.store.ItemKey
-import dev.halim.shelfdroid.store.StoreManager
-import dev.halim.shelfdroid.store.StoreOutput
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,10 +13,9 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 class PlayerViewModel(
-    private val storeManager: StoreManager, private val mediaManager: MediaManager, val id: String
+    private val playerRepository: PlayerRepository, private val mediaManager: MediaManager, val id: String
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlayerUiState())
@@ -34,17 +29,24 @@ class PlayerViewModel(
 
     fun onEvent(event: PlayerEvent) {
         when (event) {
-            PlayerEvent.ProgressChanged -> TODO()
+            is PlayerEvent.ProgressChanged -> {
+                val result = initProgress(event.progress)
+                _playerProgress.update {
+                    result
+                }
+               val positionMs = (result.currentTime * 1000).toLong()
+                mediaManager.seekTo(positionMs)
+            }
         }
     }
 
     private fun initUiState() {
         viewModelScope.launch {
-            val result = storeManager.itemStore.get(ItemKey.Single(id)) as StoreOutput.Single
+            val result = playerRepository.getPlayerModel(id)
             _uiState.update {
                 it.copy(
                     state = PlayerState.Success,
-                    bookPlayerUiState = result.data.toBookPlayerUiState()
+                    bookPlayerUiState = result
                 )
             }
             _playerProgress.update {
@@ -60,6 +62,15 @@ class PlayerViewModel(
             }
         }
     }
+
+    private fun initProgress(progress: Float): PlayerProgressUiState {
+        val bookPlayerUiState = _uiState.value.bookPlayerUiState
+        val currentChapter = bookPlayerUiState.currentChapter
+        val totalTime = currentChapter.end - currentChapter.start
+        val currentTime = progress * totalTime
+        return PlayerProgressUiState(currentTime, totalTime, progress)
+    }
+
 
     private fun initProgress(position: Long = 0): PlayerProgressUiState {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
@@ -115,5 +126,5 @@ sealed class AdvancedPlayerEvent {
 }
 
 sealed class PlayerEvent {
-    data object ProgressChanged : PlayerEvent()
+    data class ProgressChanged(val progress: Float) : PlayerEvent()
 }

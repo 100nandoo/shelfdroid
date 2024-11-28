@@ -4,18 +4,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.db.ItemEntity
 import dev.halim.shelfdroid.db.LibraryEntity
+import dev.halim.shelfdroid.db.ProgressEntity
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.store.ItemExtensions.toBookUiState
 import dev.halim.shelfdroid.store.ItemKey
 import dev.halim.shelfdroid.store.LibraryKey
 import dev.halim.shelfdroid.store.LibraryOutput
+import dev.halim.shelfdroid.store.ProgressKey
 import dev.halim.shelfdroid.store.StoreManager
-import dev.halim.shelfdroid.store.StoreOutput
+import dev.halim.shelfdroid.store.asCollection
+import dev.halim.shelfdroid.store.asSingle
 import dev.halim.shelfdroid.store.cached
-import dev.halim.shelfdroid.store.cachedAndRefresh
+import dev.halim.shelfdroid.store.freshOrCached
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +44,7 @@ class HomeViewModel(
 
     fun onEvent(homeEvent: HomeEvent) {
         when (homeEvent) {
-            is HomeEvent.RefreshLibrary -> apis(homeEvent.page)
+            is HomeEvent.RefreshLibrary -> apis(homeEvent.page, true)
             is HomeEvent.ChangeLibrary -> apis(homeEvent.page)
             is HomeEvent.NavigateToPlayer -> {
                 navigateToPlayer(homeEvent.bookUiState.id)
@@ -77,32 +81,38 @@ class HomeViewModel(
                     libraryItemsUiState = mapOf(page to libraryItems.map { it.toBookUiState() })
                 )
             }
+            launch {
+                getMediaProgresses(fresh)
+            }
         }
+
     }
 
     private suspend fun getLibraries(fresh: Boolean): List<LibraryEntity> {
         val libraryItems = mutableListOf<LibraryEntity>()
-        val result: LibraryOutput? =
-            if (fresh) storeManager.libraryStore.cachedAndRefresh(LibraryKey.All as LibraryKey)
-            else storeManager.libraryStore.cached(LibraryKey.All as LibraryKey)
-        if (result is StoreOutput.Collection) {
-            val librariesResponse = result.data
-            libraryItems.addAll(librariesResponse)
-        }
+        val result: LibraryOutput =
+            if (fresh) storeManager.libraryStore.freshOrCached(LibraryKey.All)
+            else storeManager.libraryStore.cached(LibraryKey.All)
+        libraryItems.addAll(result.asCollection().data)
         return libraryItems
     }
 
     private suspend fun getLibraryItems(libraryId: String, fresh: Boolean): List<ItemEntity> {
         val list = mutableListOf<ItemEntity>()
-        val itemIds =
-            (storeManager.libraryStore.cached(LibraryKey.Single(libraryId)) as StoreOutput.Single).data.itemIds
+        val itemIds = storeManager.libraryStore.cached(LibraryKey.Single(libraryId)).asSingle().data.itemIds
+        val itemKey = ItemKey.Collection(itemIds)
         val result =
-            if (fresh) storeManager.itemStore.cachedAndRefresh(ItemKey.Collection(itemIds)) else storeManager.itemStore
-                .cached(ItemKey.Collection(itemIds))
-        if (result is StoreOutput.Collection<ItemEntity>) {
-            list.addAll(result.data)
-        }
+            if (fresh) storeManager.itemStore.freshOrCached(itemKey)
+            else storeManager.itemStore.cached(itemKey)
+        list.addAll(result.asCollection().data)
         return list
+    }
+
+    private suspend fun getMediaProgresses(fresh: Boolean): List<ProgressEntity> {
+        val result =
+            if (fresh) storeManager.progressStore.freshOrCached(ProgressKey.All)
+            else storeManager.progressStore.cached(ProgressKey.All)
+        return result.asCollection().data
     }
 }
 
@@ -126,8 +136,10 @@ data class BookUiState(
     val chapters: List<BookChapter> = emptyList(),
     val currentChapterId: Long = 0L,
 ) : ShelfdroidMediaItem() {
-    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime,
-        startTime, endTime)
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
+        id, author, title, cover, url, seekTime,
+        startTime, endTime
+    )
 }
 
 data class PodcastUiState(
@@ -141,8 +153,10 @@ data class PodcastUiState(
     override val endTime: Long,
     val episodeCount: Int,
 ) : ShelfdroidMediaItem() {
-    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(id, author, title, cover, url, seekTime,
-        startTime, endTime)
+    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
+        id, author, title, cover, url, seekTime,
+        startTime, endTime
+    )
 }
 
 data class LibraryUiState(

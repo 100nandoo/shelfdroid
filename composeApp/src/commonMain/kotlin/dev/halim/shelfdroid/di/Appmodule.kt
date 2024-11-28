@@ -19,6 +19,7 @@ import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
+import dev.halim.shelfdroid.ui.screens.player.PlayerRepository
 import dev.halim.shelfdroid.ui.screens.player.PlayerViewModel
 import dev.halim.shelfdroid.ui.screens.settings.SettingsViewModel
 import io.ktor.client.HttpClient
@@ -107,4 +108,5 @@ val appModule = module {
 
     factory { StoreManager(get(), get(), get(named(ComponentName.IO))) }
     singleOf(::DatabaseAdapter)
+    singleOf(::PlayerRepository)
 }

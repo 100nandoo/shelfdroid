@@ -19,6 +19,7 @@ expect class MediaManager(
     fun playBookUiState(item: ShelfdroidMediaItemImpl)
     fun seekForward()
     fun seekBackward()
+    fun seekTo(positionMs: Long)
     fun changeSpeed(speed: Float)
 }
 

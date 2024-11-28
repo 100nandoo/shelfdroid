@@ -47,6 +47,10 @@ actual class MediaManager actual constructor(
         }
     }
 
+    actual fun seekTo(positionMs: Long) {
+        player.seekTo(positionMs)
+    }
+
     actual fun seekForward() {
         player.seekForward()
     }

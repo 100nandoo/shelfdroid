@@ -6,17 +6,14 @@ import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LibraryItem
 import dev.halim.shelfdroid.network.MediaProgress
 import dev.halim.shelfdroid.network.libraryitem.Book
-import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.network.libraryitem.Podcast
 import dev.halim.shelfdroid.store.ItemExtensions.toEntity
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
-import dev.halim.shelfdroid.ui.screens.player.BookPlayerUiState
 import kotlinx.coroutines.flow.map
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder
-import kotlin.math.roundToLong
 
 
 sealed class ItemNetwork {
@@ -31,116 +28,35 @@ sealed class ItemKey {
 }
 
 object ItemExtensions {
+    fun LibraryItem.toEntity(api: Api): ItemEntity {
 
-    private inline fun getCurrentChapter(currentTime: Float, chapters: List<BookChapter>): BookChapter {
-        return (chapters.find { currentTime >= it.start && currentTime <= it.end } ?: chapters.first())
-    }
-
-    private inline fun findInoIdAndSeekTiming(
-        id: String,
-        inoDurations: Map<String, Double>,
-        currentTime: Float,
-        startTime: Long,
-        api: Api
-    ): Pair<String, Long> {
-        var url = api.generateItemStreamUrl(id, inoDurations.keys.first())
-
-        if (inoDurations.size == 1) {
-            val seekTime = (currentTime * 1000).roundToLong() - startTime
-            return url to seekTime
-        }
-
-        var cumulativeTime = 0.0
-        for ((inoId, duration) in inoDurations) {
-            cumulativeTime += duration
-
-            if (currentTime <= cumulativeTime) {
-                url = api.generateItemStreamUrl(id, inoId)
-                val seekTime = (currentTime - (cumulativeTime - duration)).roundToLong()
-                return url to seekTime
-            }
-        }
-
-        return url to 0L
-    }
-
-    fun LibraryItem.toEntity(api: Api, mediaProgress: MediaProgress?): ItemEntity {
         return when (media) {
             is Book -> {
                 val cover = api.generateItemCoverUrl(id)
-                val inoDurations = media.audioFiles.associate { it.ino to it.duration }
+                val inoId = media.audioFiles.first().ino
                 val author = media.metadata.authors.joinToString { it.name }
                 val title = media.metadata.title ?: ""
-                val progress = mediaProgress?.progress?.toDouble() ?: 0.0
-                val currentTime = mediaProgress?.currentTime ?: 0f
                 val chapters = media.chapters
-                val currentChapter = getCurrentChapter(currentTime, chapters)
-                val currentChapterId = currentChapter.id.toLong()
-                val startTime = (currentChapter.start * 1000).toLong()
-                val endTime = (currentChapter.end * 1000).toLong()
-
-                val (url, seekTime) = findInoIdAndSeekTiming(id, inoDurations, currentTime, startTime, api)
-
-                ItemEntity(
-                    this.id,
-                    this.ino,
-                    this.libraryId,
-                    author,
-                    title,
-                    cover,
-                    this.mediaType,
-                    url,
-                    progress,
-                    seekTime,
-                    startTime,
-                    endTime,
-                    chapters,
-                    currentChapterId
-                )
+                ItemEntity(this.id, inoId, libraryId, author, title, cover, mediaType, chapters)
             }
 
             is Podcast -> {
-                // TODO("Handle url, progress, seekTime")
                 val author = media.metadata.author
                 val title = media.metadata.title ?: ""
                 val cover = api.generateItemCoverUrl(id)
-                ItemEntity(
-                    this.id,
-                    this.ino,
-                    this.libraryId,
-                    author,
-                    title,
-                    cover,
-                    this.mediaType,
-                    "",
-                    0.0,
-                    0,
-                    0,
-                    0,
-                    emptyList(),
-                    0
-                )
+                ItemEntity(this.id, "", libraryId, author, title, cover, mediaType, emptyList())
             }
         }
     }
 
     fun ItemEntity.toBookUiState(): BookUiState {
         return BookUiState(
-            this.id, this.author ?: "", this.title, this.cover ?: "", this.url ?: "",
-            this.seekTime, this.startTime, this.endTime, this.progress.toFloat(), this.chapters
+            this.id, this.author ?: "", this.title, this.cover ?: "", "",
+            0, 0, 0, 0.0f, this.chapters
         )
     }
 
-    fun ItemEntity.toBookPlayerUiState(): BookPlayerUiState {
-        val currentChapter = chapters[currentChapterId.toInt()]
-
-        return BookPlayerUiState(
-            this.id, this.author ?: "", this.title, this.cover ?: "", this.url ?: "",
-            this.seekTime, this.startTime, this.endTime, this.progress.toFloat(), this.chapters, currentChapter
-        )
-    }
     // TODO: handle to PodcastUiState
-
 }
 
 typealias ItemOutput = StoreOutput<ItemEntity>
@@ -198,14 +114,13 @@ class ItemStoreFactory(
             writer = { _, output ->
                 when (output) {
                     is ItemNetwork.Single -> {
-                        val entity = output.item.toEntity(api, output.mediaProgress)
+                        val entity = output.item.toEntity(api)
                         database.itemDao.upsertItem(entity)
                     }
 
                     is ItemNetwork.Collection -> {
                         database.itemDao.addAllItem(output.items.map { item ->
-                            val mediaProgress = output.mediaProgresses.firstOrNull { it.libraryItemId == item.id }
-                            item.toEntity(api, mediaProgress)
+                            item.toEntity(api)
                         })
                     }
                 }
