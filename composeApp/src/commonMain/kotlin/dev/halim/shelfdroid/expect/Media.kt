@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
+import kotlin.time.Duration
 
 expect class PlatformMediaItem {
     val id: String
@@ -13,7 +14,7 @@ expect class PlatformMediaItem {
 
 expect class MediaManager(
     player: PlatformPlayer, dataStoreManager: DataStoreManager,
-    sessionManager: SessionManager
+    sessionManager: SessionManager, main: CoroutineScope
 ) {
     val playerState: StateFlow<MediaPlayerState>
     fun playBookUiState(item: ShelfdroidMediaItemImpl)
@@ -21,6 +22,7 @@ expect class MediaManager(
     fun seekBackward()
     fun seekTo(positionMs: Long)
     fun changeSpeed(speed: Float)
+    fun setSleepTimer(duration: Duration)
 }
 
 data class MediaPlayerState(

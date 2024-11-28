@@ -31,35 +31,35 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import dev.halim.shelfdroid.expect.MediaManager
+import dev.halim.shelfdroid.expect.MediaPlayerState
 import dev.halim.shelfdroid.expect.PlaybackState
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import dev.halim.shelfdroid.ui.screens.home.HomeEvent
-import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
-import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun HomeLibraryItem(
+fun HomeBook(
     uiState: ShelfdroidMediaItem,
-    onPlayPauseClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    playerState: MediaPlayerState = MediaPlayerState(),
+    onEvent: (HomeEvent) -> Unit = {},
 ) {
-    val viewModel = koinViewModel<HomeViewModel>()
-
     Card(
         modifier = modifier.padding(4.dp),
-        onClick = { if (uiState is BookUiState) viewModel.onEvent(HomeEvent.NavigateToPlayer(uiState)) },
+        onClick = { if (uiState is BookUiState) onEvent(HomeEvent.NavigateToPlayer(uiState)) },
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(contentAlignment = Alignment.Center) {
                 ItemCover(uiState.cover)
                 if (uiState is BookUiState) {
-                    LibraryItemPlayIcon({ onPlayPauseClick(uiState.id) }, uiState.id)
+                    LibraryItemPlayIcon(
+                        uiState.toImpl(),
+                        { onEvent(HomeEvent.PlayBook(uiState.toImpl())) },
+                        playerState
+                    )
                 }
             }
             if (uiState is BookUiState) {
@@ -141,30 +141,34 @@ fun ItemCover(coverUrl: String, shape: Shape = RoundedCornerShape(8.dp, 8.dp)) {
 }
 
 @Composable
-fun LibraryItemPlayIcon(onPlayPauseClick: (String) -> Unit, id: String) {
-    val mediaManager = koinInject<MediaManager>()
-    val playerState by mediaManager.playerState.collectAsStateWithLifecycle()
-
-    val isCurrentMediaItem = playerState.item?.id == id
-
+fun LibraryItemPlayIcon(
+    mediaItem: ShelfdroidMediaItemImpl,
+    onPlay: (ShelfdroidMediaItemImpl) -> Unit,
+    playerState: MediaPlayerState,
+) {
+    val isCurrentMediaItem = playerState.item?.id == mediaItem.id
     val icon = when (playerState.playbackState) {
         PlaybackState.Buffering -> if (isCurrentMediaItem) Icons.Default.HourglassTop else Icons.Default.PlayArrow
         PlaybackState.Playing -> {
             if (isCurrentMediaItem) Icons.Default.Pause else Icons.Default.PlayArrow
         }
-
         PlaybackState.Pause -> Icons.Default.PlayArrow
         else -> Icons.Default.PlayArrow
     }
 
-    Box(modifier = Modifier.clip(CircleShape)
-        .clickable { onPlayPauseClick(id) }
-        .size(60.dp)) {
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .clickable { onPlay(mediaItem) }
+            .size(60.dp)
+    ) {
         Icon(
             imageVector = icon,
-            contentDescription = "Play",
+            contentDescription = "Play or Pause",
             tint = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.size(48.dp).align(Alignment.Center)
+            modifier = Modifier
+                .size(48.dp)
+                .align(Alignment.Center)
         )
     }
 }

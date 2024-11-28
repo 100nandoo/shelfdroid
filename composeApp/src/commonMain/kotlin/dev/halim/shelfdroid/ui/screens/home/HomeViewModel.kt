@@ -2,24 +2,13 @@ package dev.halim.shelfdroid.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.halim.shelfdroid.db.ItemEntity
-import dev.halim.shelfdroid.db.LibraryEntity
-import dev.halim.shelfdroid.db.ProgressEntity
+import dev.halim.shelfdroid.expect.MediaManager
+import dev.halim.shelfdroid.expect.MediaPlayerState
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
-import dev.halim.shelfdroid.store.ItemExtensions.toBookUiState
-import dev.halim.shelfdroid.store.ItemKey
-import dev.halim.shelfdroid.store.LibraryKey
-import dev.halim.shelfdroid.store.LibraryOutput
-import dev.halim.shelfdroid.store.ProgressKey
-import dev.halim.shelfdroid.store.StoreManager
-import dev.halim.shelfdroid.store.asCollection
-import dev.halim.shelfdroid.store.asSingle
-import dev.halim.shelfdroid.store.cached
-import dev.halim.shelfdroid.store.freshOrCached
+import dev.halim.shelfdroid.repo.HomeRepository
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +19,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 class HomeViewModel(
-    private val storeManager: StoreManager
+    private val homeRepository: HomeRepository,
+    private val mediaManager: MediaManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -42,12 +32,19 @@ class HomeViewModel(
     val navState = _navState
         .stateIn(viewModelScope, SharingStarted.Lazily, Pair(false, ""))
 
-    fun onEvent(homeEvent: HomeEvent) {
-        when (homeEvent) {
-            is HomeEvent.RefreshLibrary -> apis(homeEvent.page, true)
-            is HomeEvent.ChangeLibrary -> apis(homeEvent.page)
+    val playerState = mediaManager.playerState
+        .stateIn(viewModelScope, SharingStarted.Lazily, MediaPlayerState())
+
+    fun onEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.RefreshLibrary -> currentLibraryItems(event.page, true)
+            is HomeEvent.ChangeLibrary -> currentLibraryItems(event.page, false)
             is HomeEvent.NavigateToPlayer -> {
-                navigateToPlayer(homeEvent.bookUiState.id)
+                navigateToPlayer(event.bookUiState.id)
+            }
+
+            is HomeEvent.PlayBook -> {
+                mediaManager.playBookUiState(event.mediaItemImpl)
             }
         }
     }
@@ -69,50 +66,30 @@ class HomeViewModel(
     private fun apis(page: Int = 0, fresh: Boolean = false) {
         _uiState.update { it.copy(homeState = HomeState.Loading) }
         viewModelScope.launch(handler) {
-            val libraries = getLibraries(fresh)
-            val librariesUiState = libraries.map { library ->
-                LibraryUiState(library.id, library.name)
-            }
-            val libraryItems = getLibraryItems(libraries[page].id, fresh)
+            val libraries = homeRepository.getLibraries(fresh)
+            val libraryItems = homeRepository.getLibraryItems(libraries[page].id, fresh)
             _uiState.update {
                 it.copy(
                     homeState = HomeState.Success,
-                    librariesUiState = librariesUiState,
-                    libraryItemsUiState = mapOf(page to libraryItems.map { it.toBookUiState() })
+                    librariesUiState = libraries,
+                    libraryItemsUiState = mapOf(page to libraryItems)
                 )
             }
-            launch {
-                getMediaProgresses(fresh)
+        }
+    }
+
+    private fun currentLibraryItems(page: Int, fresh: Boolean) {
+        _uiState.update { it.copy(homeState = HomeState.Loading) }
+        val id = _uiState.value.librariesUiState[page].id
+        viewModelScope.launch(handler) {
+            val libraryItems = homeRepository.getLibraryItems(id, fresh)
+            _uiState.update {
+                it.copy(
+                    homeState = HomeState.Success,
+                    libraryItemsUiState = mapOf(page to libraryItems)
+                )
             }
         }
-
-    }
-
-    private suspend fun getLibraries(fresh: Boolean): List<LibraryEntity> {
-        val libraryItems = mutableListOf<LibraryEntity>()
-        val result: LibraryOutput =
-            if (fresh) storeManager.libraryStore.freshOrCached(LibraryKey.All)
-            else storeManager.libraryStore.cached(LibraryKey.All)
-        libraryItems.addAll(result.asCollection().data)
-        return libraryItems
-    }
-
-    private suspend fun getLibraryItems(libraryId: String, fresh: Boolean): List<ItemEntity> {
-        val list = mutableListOf<ItemEntity>()
-        val itemIds = storeManager.libraryStore.cached(LibraryKey.Single(libraryId)).asSingle().data.itemIds
-        val itemKey = ItemKey.Collection(itemIds)
-        val result =
-            if (fresh) storeManager.itemStore.freshOrCached(itemKey)
-            else storeManager.itemStore.cached(itemKey)
-        list.addAll(result.asCollection().data)
-        return list
-    }
-
-    private suspend fun getMediaProgresses(fresh: Boolean): List<ProgressEntity> {
-        val result =
-            if (fresh) storeManager.progressStore.freshOrCached(ProgressKey.All)
-            else storeManager.progressStore.cached(ProgressKey.All)
-        return result.asCollection().data
     }
 }
 
@@ -133,8 +110,7 @@ data class BookUiState(
     override val startTime: Long = 0L,
     override val endTime: Long = 0L,
     val progress: Float = 0f,
-    val chapters: List<BookChapter> = emptyList(),
-    val currentChapterId: Long = 0L,
+    val chapters: List<BookChapter> = emptyList()
 ) : ShelfdroidMediaItem() {
     override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
         id, author, title, cover, url, seekTime,
@@ -174,4 +150,5 @@ sealed class HomeEvent {
     data class ChangeLibrary(val page: Int) : HomeEvent()
     data class RefreshLibrary(val page: Int) : HomeEvent()
     data class NavigateToPlayer(val bookUiState: BookUiState) : HomeEvent()
+    data class PlayBook(val mediaItemImpl: ShelfdroidMediaItemImpl) : HomeEvent()
 }

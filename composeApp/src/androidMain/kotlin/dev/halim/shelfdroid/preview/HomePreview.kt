@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.ui.components.HomeLibraryItem
+import dev.halim.shelfdroid.ui.components.HomeBook
 import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import dev.halim.shelfdroid.ui.screens.home.HomeState
 import dev.halim.shelfdroid.ui.screens.home.HomeUiState
@@ -72,7 +72,7 @@ fun LibraryItemNoCoverPreview() {
                 items = response,
                 key = { it.id }
             ) { item ->
-                HomeLibraryItem(item, {}, Modifier)
+                HomeBook(item, Modifier)
             }
         }
     }

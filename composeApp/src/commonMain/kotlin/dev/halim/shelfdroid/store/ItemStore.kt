@@ -8,7 +8,6 @@ import dev.halim.shelfdroid.network.MediaProgress
 import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.network.libraryitem.Podcast
 import dev.halim.shelfdroid.store.ItemExtensions.toEntity
-import dev.halim.shelfdroid.ui.screens.home.BookUiState
 import kotlinx.coroutines.flow.map
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.SourceOfTruth
@@ -29,7 +28,6 @@ sealed class ItemKey {
 
 object ItemExtensions {
     fun LibraryItem.toEntity(api: Api): ItemEntity {
-
         return when (media) {
             is Book -> {
                 val cover = api.generateItemCoverUrl(id)
@@ -48,15 +46,6 @@ object ItemExtensions {
             }
         }
     }
-
-    fun ItemEntity.toBookUiState(): BookUiState {
-        return BookUiState(
-            this.id, this.author ?: "", this.title, this.cover ?: "", "",
-            0, 0, 0, 0.0f, this.chapters
-        )
-    }
-
-    // TODO: handle to PodcastUiState
 }
 
 typealias ItemOutput = StoreOutput<ItemEntity>

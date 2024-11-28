@@ -8,6 +8,7 @@ import androidx.media3.common.Player
 import dev.halim.shelfdroid.datastore.DataStoreEvent
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,13 +16,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 actual class MediaManager actual constructor(
     private val player: PlatformPlayer,
     private val dataStoreManager: DataStoreManager,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val main: CoroutineScope
 ) {
     private val _playerState = MutableStateFlow(setupPlayerState())
     actual val playerState = _playerState.asStateFlow()
@@ -61,6 +65,13 @@ actual class MediaManager actual constructor(
 
     actual fun changeSpeed(speed: Float) {
         player.setPlaybackSpeed(speed)
+    }
+
+    actual fun setSleepTimer(duration: Duration) {
+        main.launch {
+            delay(duration)
+            pause()
+        }
     }
 
     private fun setupPlayerState(): MediaPlayerState {
@@ -156,6 +167,7 @@ actual class MediaManager actual constructor(
         sessionEventPause()
         dataStoreEventUpdateCurrentPosition()
     }
+
 }
 
 fun ShelfdroidMediaItemImpl.toMediaItem(): MediaItem {

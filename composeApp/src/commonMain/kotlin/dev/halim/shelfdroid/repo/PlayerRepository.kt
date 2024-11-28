@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.ui.screens.player
+package dev.halim.shelfdroid.repo
 
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
@@ -8,6 +8,7 @@ import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.store.asSingle
 import dev.halim.shelfdroid.store.cached
 import dev.halim.shelfdroid.store.freshOrCached
+import dev.halim.shelfdroid.ui.screens.player.BookPlayerUiState
 import kotlin.math.roundToLong
 
 class PlayerRepository(private val storeManager: StoreManager, private val api: Api) {

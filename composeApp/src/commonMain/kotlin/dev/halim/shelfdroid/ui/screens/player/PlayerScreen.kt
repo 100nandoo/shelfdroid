@@ -27,9 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,29 +37,37 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.expect.MediaManager
+import dev.halim.shelfdroid.expect.MediaPlayerState
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import dev.halim.shelfdroid.ui.components.ItemCover
 import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
 import dev.halim.shelfdroid.utility.formatTime
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun PlayerScreen(paddingValues: PaddingValues, id: String) {
     val viewModel: PlayerViewModel = koinViewModel(parameters = { parametersOf(id) })
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(PlayerUiState())
     val progressUiState by viewModel.playerProgressUiState.collectAsStateWithLifecycle(PlayerProgressUiState())
+    val advanceUiState by viewModel.advanceUiState.collectAsStateWithLifecycle(AdvanceUiState())
+    val playerState by viewModel.playerState.collectAsStateWithLifecycle()
+
     if (uiState.state == PlayerState.Success) {
         val bookPlayerUiState by remember(uiState) { derivedStateOf { uiState.bookPlayerUiState } }
         PlayerScreenContent(
             paddingValues = paddingValues,
             bookPlayerUiState,
             progressUiState,
+            playerState,
             bookPlayerUiState.cover,
             bookPlayerUiState.currentChapter.title,
             bookPlayerUiState.author,
-            onProgressChange = { viewModel.onEvent(PlayerEvent.ProgressChanged(it))}
+            advanceUiState.speed,
+            onEvent = { event -> viewModel.onEvent(event) }
         )
     }
 }
@@ -71,11 +77,12 @@ fun PlayerScreenContent(
     paddingValues: PaddingValues = PaddingValues(),
     uiState: BookPlayerUiState = BookPlayerUiState(),
     progressUiState: PlayerProgressUiState = PlayerProgressUiState(),
+    playerState: MediaPlayerState = MediaPlayerState(),
     imageUrl: String = "",
     title: String = "Chapter 26",
     authorName: String = "Adam",
-    onProgressChange: (Float) -> Unit = {},
-    onSleepTimer: () -> Unit = {},
+    speed: Float = 1f,
+    onEvent: (PlayerEvent) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -87,20 +94,20 @@ fun PlayerScreenContent(
         BasicPlayerContent(imageUrl, title, authorName)
         Spacer(modifier = Modifier.height(16.dp))
 
-        PlayerProgress(progressUiState, onProgressChange)
+        PlayerProgress(progressUiState, onEvent)
         Spacer(modifier = Modifier.height(16.dp))
 
-        BasicPlayerControl(uiState)
+        BasicPlayerControl(uiState.toImpl(), playerState, onEvent)
         Spacer(modifier = Modifier.height(16.dp))
 
-        AdvancedPlayerControl(onSleepTimer)
+        AdvancedPlayerControl(speed, onEvent)
     }
 }
 
 @Composable
 fun PlayerProgress(
     uiState: PlayerProgressUiState,
-    onProgressChange: (Float) -> Unit
+    onEvent: (PlayerEvent) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -119,7 +126,7 @@ fun PlayerProgress(
     }
     Slider(
         value = uiState.progress,
-        onValueChange = { onProgressChange(it) },
+        onValueChange = { onEvent(PlayerEvent.ProgressChanged(it)) },
         modifier = Modifier.fillMaxWidth(),
         colors = SliderDefaults.colors(
             thumbColor = MaterialTheme.colorScheme.primary,
@@ -157,31 +164,35 @@ fun BasicPlayerContent(
 
 @Composable
 fun AdvancedPlayerControl(
-    onSleepTimer: () -> Unit
+    speed: Float,
+    onEvent: (PlayerEvent) -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
-        StepsSlider()
+        StepsSlider(speed, onEvent)
 
-        TextButton(onClick = onSleepTimer) {
+        TextButton(onClick = { onEvent(PlayerEvent.SetSleepTimer(10.seconds)) }) {
             Text(text = "Sleep Timer")
         }
     }
 }
 
 @Composable
-fun BasicPlayerControl(bookPlayerUiState: BookPlayerUiState) {
-    val mediaManager = koinInject<MediaManager>()
+fun BasicPlayerControl(
+    shelfdroidMediaItemImpl: ShelfdroidMediaItemImpl,
+    playerState: MediaPlayerState,
+    onEvent: (PlayerEvent) -> Unit
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
         Box(modifier = Modifier.clip(CircleShape)
-            .clickable { mediaManager.seekBackward() }
+            .clickable { onEvent(PlayerEvent.SeekBack) }
             .size(48.dp)) {
             Icon(
                 modifier = Modifier.size(36.dp).align(Alignment.Center),
@@ -190,10 +201,14 @@ fun BasicPlayerControl(bookPlayerUiState: BookPlayerUiState) {
             )
         }
 
-        LibraryItemPlayIcon({ mediaManager.playBookUiState(bookPlayerUiState.toImpl()) }, bookPlayerUiState.id)
+        LibraryItemPlayIcon(
+            shelfdroidMediaItemImpl,
+            { onEvent(PlayerEvent.PlayBook) },
+            playerState
+        )
 
         Box(modifier = Modifier.clip(CircleShape)
-            .clickable { mediaManager.seekForward() }
+            .clickable { onEvent(PlayerEvent.SeekForward) }
             .size(48.dp)) {
             Icon(
                 modifier = Modifier.size(36.dp).align(Alignment.Center),
@@ -205,29 +220,22 @@ fun BasicPlayerControl(bookPlayerUiState: BookPlayerUiState) {
 }
 
 @Composable
-fun StepsSlider() {
-    val mediaManager = koinInject<MediaManager>()
-    var sliderPosition by remember { mutableStateOf(1f) }
-
+fun StepsSlider(speed: Float, onEvent: (PlayerEvent) -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Speed: ${sliderPosition}x")
+        Text(text = "Speed: ${speed}x")
         Spacer(modifier = Modifier.height(4.dp))
 
         Slider(
             modifier = Modifier
                 .semantics { contentDescription = "speed slider" }
                 .width(150.dp),
-            value = sliderPosition,
-            onValueChange = { sliderPosition = it },
+            value = speed,
+            onValueChange = { onEvent(PlayerEvent.ChangeSpeed(it)) },
             valueRange = 0.5f..2f,
-            onValueChangeFinished = {
-                mediaManager.changeSpeed(sliderPosition)
-            },
             steps = 5,
         )
-
     }
 }
