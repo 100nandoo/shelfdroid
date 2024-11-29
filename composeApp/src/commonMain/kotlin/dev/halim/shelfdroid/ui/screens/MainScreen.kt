@@ -8,20 +8,19 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.serialization.generateHashCode
 import dev.halim.shelfdroid.BottomBar
-import kotlin.reflect.KClass
+import dev.halim.shelfdroid.BottomNavScreen
 
 @Composable
 fun MainScreen(
     navController: NavHostController,
-    startDestination: MutableState<KClass<*>>
+    startDestination: MutableState<String>
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val selectedRoute = navBackStackEntry?.destination?.id ?: HomeRoute.serializer().generateHashCode()
+    val selectedRoute = navBackStackEntry?.destination?.route ?: Route.Home.title
     Scaffold(bottomBar = {
-        if (navBackStackEntry?.destination?.id == HomeRoute.serializer().generateHashCode() ||
-            navBackStackEntry?.destination?.id == SettingsRoute.serializer().generateHashCode()
+        if (navBackStackEntry?.destination?.route == BottomNavScreen.Home.route ||
+            navBackStackEntry?.destination?.route == BottomNavScreen.Settings.route
         ) {
             BottomBar(selectedRoute) {
                 navController.navigate(it.route) {

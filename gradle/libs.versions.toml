@@ -1,4 +1,5 @@
 [versions]
+app = "0.1 build 29-11-2024"
 agp = "8.7.2"
 android-compileSdk = "35"
 android-minSdk = "24"
@@ -11,16 +12,16 @@ androidx-datastore = "1.1.1"
 androidx-espresso-core = "3.6.1"
 androidx-lifecycle = "2.8.4"
 androidx-material = "1.12.0"
-androidx-media3 = "1.5.0-rc01"
+androidx-media3 = "1.5.0"
 androidx-test-junit = "1.2.1"
 compose-plugin = "1.7.1"
 junit = "4.13.2"
-kotlin = "2.0.21"
+kotlin = "2.1.0"
 
 coil3 = "3.0.0-rc02"
 coroutines = "1.9.0"
 koin = "4.0.0"
-ktor = "3.0.0"
+ktor = "3.0.1"
 sqlDelight = "2.0.2"
 store = "5.1.0-alpha05"
 
@@ -56,9 +57,9 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
-kotlinx-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 sqldelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqlDelight" }
 sqldelight-native = { module = "app.cash.sqldelight:native-driver", version.ref = "sqlDelight" }

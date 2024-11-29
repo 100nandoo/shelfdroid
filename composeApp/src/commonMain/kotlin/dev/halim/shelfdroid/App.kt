@@ -12,16 +12,13 @@ import coil3.compose.setSingletonImageLoaderFactory
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.theme.ShelfDroidTheme
-import dev.halim.shelfdroid.ui.screens.HomeRoute
-import dev.halim.shelfdroid.ui.screens.LoginRoute
 import dev.halim.shelfdroid.ui.screens.MainScreen
-import dev.halim.shelfdroid.ui.screens.SplashRoute
+import dev.halim.shelfdroid.ui.screens.Route
 import kotlinx.coroutines.flow.firstOrNull
 import org.koin.compose.KoinContext
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
-import kotlin.reflect.KClass
 
 
 @Composable
@@ -43,10 +40,10 @@ fun App() {
 }
 
 @Composable
-private fun setupInitialState(): MutableState<KClass<*>> {
+private fun setupInitialState(): MutableState<String> {
     val dataStoreManager: DataStoreManager = koinInject()
 
-    val startDestination: MutableState<KClass<*>> = remember { mutableStateOf(SplashRoute::class) }
+    val startDestination = remember { mutableStateOf(Route.Splash.title) }
 
     LaunchedEffect(Unit) {
         val token = dataStoreManager.token.firstOrNull()
@@ -57,14 +54,14 @@ private fun setupInitialState(): MutableState<KClass<*>> {
         }
 
         startDestination.value = if (token.isNullOrBlank().not()) {
-            HomeRoute::class
+            Route.Home.title
         } else {
-            LoginRoute::class
+            Route.Login.title
         }
     }
 
     return startDestination
 }
 
-val version = "0.1 26-11-2024 b4d4b5"
+val version = "0.1 build 29-11-2024"
 val app_name = "Shelfdroid"

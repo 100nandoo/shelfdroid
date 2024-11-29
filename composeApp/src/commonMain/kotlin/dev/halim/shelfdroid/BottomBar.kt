@@ -11,22 +11,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.serialization.generateHashCode
-import dev.halim.shelfdroid.ui.screens.HomeRoute
-import dev.halim.shelfdroid.ui.screens.SettingsRoute
+import dev.halim.shelfdroid.ui.screens.Route
 
-sealed class BottomNavScreen(val id: Int, val route: Any, val title: String, val icon: ImageVector) {
+sealed class BottomNavScreen(val route: String, val title: String, val icon: ImageVector) {
     data object Settings : BottomNavScreen(
-        SettingsRoute.serializer().generateHashCode(),
-        SettingsRoute,
-        "Settings",
+        Route.Settings.title,
+        Route.Settings.title,
         Icons.Outlined.Settings
     )
 
     data object Home : BottomNavScreen(
-        HomeRoute.serializer().generateHashCode(),
-        HomeRoute,
-        "Home",
+        Route.Home.title,
+        Route.Home.title,
         Icons.Outlined.Home
     )
 }
@@ -38,11 +34,11 @@ val BOTTOM_NAV_SCREEN = listOf(
 
 
 @Composable
-fun BottomBar(selectedRoute: Int, navigateBottomNavScreen: (BottomNavScreen) -> Unit) {
+fun BottomBar(selectedRoute: String, navigateBottomNavScreen: (BottomNavScreen) -> Unit) {
     NavigationBar(modifier = Modifier.fillMaxWidth()) {
         BOTTOM_NAV_SCREEN.forEach { destination ->
             NavigationBarItem(
-                selected = selectedRoute == destination.id,
+                selected = selectedRoute == destination.route,
                 onClick = { navigateBottomNavScreen(destination) },
                 label = { Text(text = destination.title) },
                 icon = {

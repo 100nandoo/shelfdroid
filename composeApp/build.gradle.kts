@@ -62,9 +62,9 @@ kotlin {
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.json)
 
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.serialization)
 
             implementation(libs.sqldelight.coroutines)
 
@@ -98,7 +98,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = libs.versions.app.get()
     }
     packaging {
         resources {
