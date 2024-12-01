@@ -32,6 +32,7 @@ kotlin {
             implementation(libs.androidx.media3.common)
             implementation(libs.androidx.media3.exoplayer)
             implementation(libs.androidx.media3.session)
+            implementation(libs.androidx.splashscreen)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
 
