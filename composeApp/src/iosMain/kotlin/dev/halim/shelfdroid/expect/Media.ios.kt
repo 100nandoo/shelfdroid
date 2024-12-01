@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.expect
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.time.Duration
@@ -30,6 +31,12 @@ actual class MediaManager actual constructor(
     }
 
     actual fun setSleepTimer(duration: Duration) {
+    }
+
+    actual val currentPosition: Flow<Long>
+        get() = TODO("Not yet implemented")
+
+    actual fun pause() {
     }
 }
 

@@ -39,27 +39,41 @@ class PlayerViewModel(
 
     fun onEvent(event: PlayerEvent) {
         when (event) {
-            is PlayerEvent.ProgressChanged -> {
-                val result = initProgress(event.progress)
-                _playerProgressUiState.update {
-                    result
-                }
+            is PlayerEvent.ProgressChangedFinish -> {
+                val result = updateCurrentTime(event.progress)
                 val positionMs = (result.currentTime * 1000).toLong()
                 mediaManager.seekTo(positionMs)
+                mediaManager.playBookUiState(_uiState.value.bookPlayerUiState.toImpl())
             }
-
+            is PlayerEvent.ProgressChanged -> {
+                mediaManager.pause()
+                _playerProgressUiState.update { updateCurrentTime(event.progress) }
+            }
             is PlayerEvent.AddBookmark -> TODO()
             is PlayerEvent.SetSleepTimer -> {
+                viewModelScope.launch {
+                    playerState.collect { playerState ->
+                        _advanceUiState.update { it.copy(sleepTimeLeft = playerState.sleepTimeLeft) }
+                    }
+                }
                 mediaManager.setSleepTimer(event.duration)
+                _advanceUiState.update { it.copy(sleepTimeLeft = event.duration) }
             }
+
             is PlayerEvent.ChangeSpeed -> {
                 _advanceUiState.update { it.copy(speed = event.speed) }
                 mediaManager.changeSpeed(event.speed)
             }
+
             is PlayerEvent.VolumeChanged -> TODO()
-            PlayerEvent.SeekBack, PlayerEvent.SeekForward -> {
-                handleSeekEvent(event)
+            PlayerEvent.SeekBack -> {
+                mediaManager.seekBackward()
             }
+
+            PlayerEvent.SeekForward -> {
+                mediaManager.seekForward()
+            }
+
             is PlayerEvent.PlayBook -> {
                 mediaManager.playBookUiState(_uiState.value.bookPlayerUiState.toImpl())
             }
@@ -76,20 +90,19 @@ class PlayerViewModel(
                 )
             }
             _playerProgressUiState.update {
-                initProgress()
+                initProgressUiState()
             }
-
             mediaManager.playerState.collect {
                 if (it.item?.id == id) {
-                    it.currentPosition.collect { position ->
-                        _playerProgressUiState.emit(initProgress(position))
+                    mediaManager.currentPosition.collect { position ->
+                        _playerProgressUiState.emit(initProgressUiState(position))
                     }
                 }
             }
         }
     }
 
-    private fun initProgress(progress: Float): PlayerProgressUiState {
+    private fun updateCurrentTime(progress: Float): PlayerProgressUiState {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
         val currentChapter = bookPlayerUiState.currentChapter
         val totalTime = currentChapter.end - currentChapter.start
@@ -97,29 +110,13 @@ class PlayerViewModel(
         return PlayerProgressUiState(currentTime, totalTime, progress)
     }
 
-    private fun initProgress(position: Long = 0): PlayerProgressUiState {
+    private fun initProgressUiState(position: Long = 0): PlayerProgressUiState {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
         val currentChapter = bookPlayerUiState.currentChapter
         val currentTime = if (position == 0L) bookPlayerUiState.seekTime / 1000 else position / 1000
         val totalTime = currentChapter.end - currentChapter.start
         val progress = (currentTime / totalTime).toFloat()
         return PlayerProgressUiState(currentTime.toDouble(), totalTime, progress)
-    }
-
-    private fun handleSeekEvent(event: PlayerEvent) {
-        val delta = if (event is PlayerEvent.SeekBack) {
-            mediaManager.seekBackward()
-            -10
-        } else {
-            mediaManager.seekForward()
-            10
-        }
-        _playerProgressUiState.update {
-            val currentTime = (it.currentTime + delta).coerceIn(0.0, it.totalTime)
-            val progress = (currentTime / it.totalTime).toFloat()
-            it.copy(currentTime = currentTime, progress = progress)
-        }
-
     }
 }
 
@@ -150,7 +147,7 @@ data class PlayerProgressUiState(
 
 data class AdvanceUiState(
     val speed: Float = 1f,
-    val timer: Long = 0
+    val sleepTimeLeft: Duration = Duration.ZERO
 )
 
 data class PlayerUiState(
@@ -171,6 +168,7 @@ sealed class PlayerEvent {
     data class SetSleepTimer(val duration: Duration) : PlayerEvent()
     data class VolumeChanged(val volume: Float) : PlayerEvent()
     data class AddBookmark(val currentTime: Double, val notes: String) : PlayerEvent()
+    data class ProgressChangedFinish(val progress: Float): PlayerEvent()
     data class ProgressChanged(val progress: Float) : PlayerEvent()
     data object PlayBook : PlayerEvent()
 }

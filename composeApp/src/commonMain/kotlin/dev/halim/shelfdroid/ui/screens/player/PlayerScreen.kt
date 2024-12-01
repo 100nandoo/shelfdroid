@@ -18,16 +18,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Replay10
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,10 +47,11 @@ import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import dev.halim.shelfdroid.ui.components.ItemCover
 import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
 import dev.halim.shelfdroid.utility.formatTime
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun PlayerScreen(paddingValues: PaddingValues, id: String) {
@@ -66,8 +72,8 @@ fun PlayerScreen(paddingValues: PaddingValues, id: String) {
             bookPlayerUiState.cover,
             bookPlayerUiState.currentChapter.title,
             bookPlayerUiState.author,
-            advanceUiState.speed,
-            onEvent = { event -> viewModel.onEvent(event) }
+            advanceUiState,
+            onEvent = { event -> viewModel.onEvent(event) },
         )
     }
 }
@@ -81,8 +87,8 @@ fun PlayerScreenContent(
     imageUrl: String = "",
     title: String = "Chapter 26",
     authorName: String = "Adam",
-    speed: Float = 1f,
-    onEvent: (PlayerEvent) -> Unit = {}
+    advanceUiState: AdvanceUiState = AdvanceUiState(),
+    onEvent: (PlayerEvent) -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -100,14 +106,14 @@ fun PlayerScreenContent(
         BasicPlayerControl(uiState.toImpl(), playerState, onEvent)
         Spacer(modifier = Modifier.height(16.dp))
 
-        AdvancedPlayerControl(speed, onEvent)
+        AdvancedPlayerControl(advanceUiState, paddingValues, onEvent)
     }
 }
 
 @Composable
 fun PlayerProgress(
     uiState: PlayerProgressUiState,
-    onEvent: (PlayerEvent) -> Unit
+    onEvent: (PlayerEvent) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -128,6 +134,7 @@ fun PlayerProgress(
         value = uiState.progress,
         onValueChange = { onEvent(PlayerEvent.ProgressChanged(it)) },
         modifier = Modifier.fillMaxWidth(),
+        onValueChangeFinished = { onEvent(PlayerEvent.ProgressChangedFinish(uiState.progress)) },
         colors = SliderDefaults.colors(
             thumbColor = MaterialTheme.colorScheme.primary,
             activeTrackColor = MaterialTheme.colorScheme.primary
@@ -162,20 +169,58 @@ fun BasicPlayerContent(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedPlayerControl(
-    speed: Float,
+    uiState: AdvanceUiState,
+    paddingValues: PaddingValues,
     onEvent: (PlayerEvent) -> Unit,
 ) {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
-        StepsSlider(speed, onEvent)
+        StepsSlider(uiState.speed, onEvent)
 
-        TextButton(onClick = { onEvent(PlayerEvent.SetSleepTimer(10.seconds)) }) {
-            Text(text = "Sleep Timer")
+        val sleepText = if (uiState.sleepTimeLeft > ZERO) {
+            "${uiState.sleepTimeLeft.inWholeMinutes}m"
+        } else {
+            "Sleep Timer"
+        }
+        Text(sleepText, modifier = Modifier.clickable {
+            scope.launch { sheetState.show() }
+        })
+
+        SleepTimerBottomSheet(sheetState, paddingValues, onEvent)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SleepTimerBottomSheet(sheetState: SheetState, paddingValues: PaddingValues, onEvent: (PlayerEvent) -> Unit) {
+    val scope = rememberCoroutineScope()
+
+    val sleepTimerOptions = listOf(
+        "5m" to 5, "10m" to 10, "15m" to 15, "30m" to 30, "45m" to 45, "60m" to 60
+    )
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            modifier = Modifier.padding(paddingValues),
+            sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
+        ) {
+            Column {
+                sleepTimerOptions.forEach { (label, duration) ->
+                    TextButton({
+                        onEvent(PlayerEvent.SetSleepTimer(duration.minutes))
+                        scope.launch { sheetState.hide() }
+                    }) {
+                        Text(label)
+                    }
+                }
+            }
         }
     }
 }
