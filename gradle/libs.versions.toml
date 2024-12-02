@@ -1,5 +1,6 @@
 [versions]
-app = "0.1 build 29-11-2024"
+code = "1"
+name = "0.1 build 29-11-2024"
 agp = "8.7.2"
 android-compileSdk = "35"
 android-minSdk = "24"

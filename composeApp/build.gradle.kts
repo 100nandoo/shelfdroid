@@ -10,10 +10,31 @@ plugins {
     alias(libs.plugins.sqldelight)
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 kotlin {
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.get().compilerOptions {
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
+        }
+    }
+
+    compilerOptions {
+        languageVersion
+    }
+
     androidTarget {
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -83,14 +104,21 @@ android {
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     signingConfigs {
-        val keystorePropertiesFile = rootProject.file("keystore.properties")
-        val properties = Properties()
-        properties.load(FileInputStream(keystorePropertiesFile))
         create("release") {
-            keyAlias = properties.getProperty("keyAlias")
-            keyPassword = properties.getProperty("keyPassword")
-            storeFile = rootProject.file(properties.getProperty("storeFile"))
-            storePassword = properties.getProperty("storePassword")
+            if (project.hasProperty("isReleaseBuild")) {
+                val keystorePropertiesFile = rootProject.file("keystore.properties")
+                if (keystorePropertiesFile.exists()) {
+                    val properties = Properties()
+                    properties.load(FileInputStream(keystorePropertiesFile))
+
+                    keyAlias = properties.getProperty("keyAlias")
+                    keyPassword = properties.getProperty("keyPassword")
+                    storeFile = rootProject.file(properties.getProperty("storeFile"))
+                    storePassword = properties.getProperty("storePassword")
+                } else {
+                    throw GradleException("Keystore properties file not found: $keystorePropertiesFile")
+                }
+            }
         }
     }
 
@@ -98,8 +126,8 @@ android {
         applicationId = "dev.halim.shelfdroid"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = libs.versions.app.get()
+        versionCode = libs.versions.code.get().toInt()
+        versionName = libs.versions.name.get()
     }
     packaging {
         resources {
@@ -114,13 +142,13 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            project.ext.set("isReleaseBuild", true)
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
+//    compileOptions {
+//        sourceCompatibility = JavaVersion.VERSION_21
+//        targetCompatibility = JavaVersion.VERSION_21
+//    }
 }
 
 dependencies {
