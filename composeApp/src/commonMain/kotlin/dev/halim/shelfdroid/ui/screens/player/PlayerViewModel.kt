@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.MediaPlayerState
+import dev.halim.shelfdroid.expect.PlaybackState
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.repo.PlayerRepository
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
@@ -45,16 +46,20 @@ class PlayerViewModel(
                 mediaManager.seekTo(positionMs)
                 mediaManager.playBookUiState(_uiState.value.bookPlayerUiState.toImpl())
             }
+
             is PlayerEvent.ProgressChanged -> {
                 mediaManager.pause()
                 _playerProgressUiState.update { updateCurrentTime(event.progress) }
             }
+
             PlayerEvent.PreviousChapter -> {
                 changeChapter(true)
             }
+
             PlayerEvent.NextChapter -> {
                 changeChapter(false)
             }
+
             is PlayerEvent.AddBookmark -> TODO()
             is PlayerEvent.SetSleepTimer -> {
                 viewModelScope.launch {
@@ -86,6 +91,21 @@ class PlayerViewModel(
         }
     }
 
+    private fun collectFlows() {
+        viewModelScope.launch {
+            mediaManager.playerState.collect {
+                if(it.playbackState == PlaybackState.Ended){
+                    changeChapter(false)
+                }
+                if (it.item?.id == id) {
+                    mediaManager.currentPosition.collect { position ->
+                        _playerProgressUiState.emit(initProgressUiState(position))
+                    }
+                }
+            }
+        }
+    }
+
     private fun initUiState() {
         viewModelScope.launch {
             val result = playerRepository.getPlayerModel(id)
@@ -98,13 +118,7 @@ class PlayerViewModel(
             _playerProgressUiState.update {
                 initProgressUiState()
             }
-            mediaManager.playerState.collect {
-                if (it.item?.id == id) {
-                    mediaManager.currentPosition.collect { position ->
-                        _playerProgressUiState.emit(initProgressUiState(position))
-                    }
-                }
-            }
+            collectFlows()
         }
     }
 
