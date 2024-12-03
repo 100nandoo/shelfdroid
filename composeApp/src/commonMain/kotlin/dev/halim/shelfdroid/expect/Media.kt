@@ -18,6 +18,7 @@ expect class MediaManager(
     val playerState: StateFlow<MediaPlayerState>
     val currentPosition: Flow<Long>
     fun playBookUiState(item: ShelfdroidMediaItemImpl)
+    fun changeChapter(item: ShelfdroidMediaItemImpl)
     fun pause()
     fun seekForward()
     fun seekBackward()

@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.ui.screens.player
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,15 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Replay10
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -35,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -44,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.expect.MediaPlayerState
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import dev.halim.shelfdroid.ui.components.BasicControlButton
 import dev.halim.shelfdroid.ui.components.ItemCover
 import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
 import dev.halim.shelfdroid.utility.formatTime
@@ -236,15 +234,17 @@ fun BasicPlayerControl(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Box(modifier = Modifier.clip(CircleShape)
-            .clickable { onEvent(PlayerEvent.SeekBack) }
-            .size(48.dp)) {
-            Icon(
-                modifier = Modifier.size(36.dp).align(Alignment.Center),
-                imageVector = Icons.Default.Replay10,
-                contentDescription = "Seek Back 10s"
-            )
-        }
+        BasicControlButton(
+            icon = Icons.Default.SkipPrevious,
+            contentDescription = "Previous Chapter",
+            onClick = { onEvent(PlayerEvent.PreviousChapter) }
+        )
+
+        BasicControlButton(
+            icon = Icons.Default.Replay10,
+            contentDescription = "Seek Back 10s",
+            onClick = { onEvent(PlayerEvent.SeekBack) }
+        )
 
         LibraryItemPlayIcon(
             shelfdroidMediaItemImpl,
@@ -252,15 +252,18 @@ fun BasicPlayerControl(
             playerState
         )
 
-        Box(modifier = Modifier.clip(CircleShape)
-            .clickable { onEvent(PlayerEvent.SeekForward) }
-            .size(48.dp)) {
-            Icon(
-                modifier = Modifier.size(36.dp).align(Alignment.Center),
-                imageVector = Icons.Default.Forward10,
-                contentDescription = "Seek Forward 10s"
-            )
-        }
+        BasicControlButton(
+            icon = Icons.Default.Forward10,
+            contentDescription = "Seek Forward 10s",
+            onClick = { onEvent(PlayerEvent.SeekForward) }
+        )
+
+        BasicControlButton(
+            icon = Icons.Default.SkipNext,
+            contentDescription = "Next Chapter",
+            onClick = { onEvent(PlayerEvent.NextChapter) }
+        )
+
     }
 }
 

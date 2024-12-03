@@ -38,6 +38,9 @@ actual class MediaManager actual constructor(
 
     actual fun pause() {
     }
+
+    actual fun changeChapter(item: ShelfdroidMediaItemImpl) {
+    }
 }
 
 actual class PlatformMediaItem {

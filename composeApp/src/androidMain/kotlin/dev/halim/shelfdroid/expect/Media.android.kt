@@ -71,6 +71,14 @@ actual class MediaManager actual constructor(
         }
     }
 
+    actual fun changeChapter(item: ShelfdroidMediaItemImpl) {
+        pause()
+        changeItem(item)
+        play()
+        sessionEventPlay(item)
+        dataStoreEventChangeMediaItem(item)
+    }
+
     actual fun seekTo(positionMs: Long) {
         player.seekTo(positionMs)
     }
@@ -201,6 +209,7 @@ actual class MediaManager actual constructor(
     private fun play() {
         player.play()
     }
+
 }
 
 fun ShelfdroidMediaItemImpl.toMediaItem(): MediaItem {

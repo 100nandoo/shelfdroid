@@ -49,6 +49,12 @@ class PlayerViewModel(
                 mediaManager.pause()
                 _playerProgressUiState.update { updateCurrentTime(event.progress) }
             }
+            PlayerEvent.PreviousChapter -> {
+                changeChapter(true)
+            }
+            PlayerEvent.NextChapter -> {
+                changeChapter(false)
+            }
             is PlayerEvent.AddBookmark -> TODO()
             is PlayerEvent.SetSleepTimer -> {
                 viewModelScope.launch {
@@ -118,6 +124,21 @@ class PlayerViewModel(
         val progress = (currentTime / totalTime).toFloat()
         return PlayerProgressUiState(currentTime.toDouble(), totalTime, progress)
     }
+
+    private fun changeChapter(isPrevious: Boolean) {
+        val bookPlayerUiState = _uiState.value.bookPlayerUiState
+        val currentIndex = bookPlayerUiState.chapters.indexOfFirst { it.id == bookPlayerUiState.currentChapter.id }
+        val newIndex = currentIndex + if (isPrevious) -1 else 1
+
+        if (newIndex in bookPlayerUiState.chapters.indices) {
+            val updatedChapter = bookPlayerUiState.chapters[newIndex]
+            val updatedBookPlayerUiState = BookPlayerUiState(bookPlayerUiState, updatedChapter)
+            mediaManager.changeChapter(updatedBookPlayerUiState.toImpl())
+            _uiState.update {
+                it.copy(bookPlayerUiState = updatedBookPlayerUiState)
+            }
+        }
+    }
 }
 
 class BookPlayerUiState(
@@ -136,6 +157,23 @@ class BookPlayerUiState(
     override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
         id, author, title, cover, url, seekTime,
         startTime, endTime
+    )
+
+    constructor(
+        existing: BookPlayerUiState,
+        currentChapter: BookChapter = existing.currentChapter,
+    ) : this(
+        id = existing.id,
+        author = existing.author,
+        title = existing.title,
+        cover = existing.cover,
+        url = existing.url,
+        seekTime = 0,
+        startTime = currentChapter.start.toLong() * 1000,
+        endTime = currentChapter.end.toLong() * 1000,
+        progress = existing.progress,
+        chapters = existing.chapters,
+        currentChapter = currentChapter
     )
 }
 
@@ -164,11 +202,13 @@ sealed class PlayerState {
 sealed class PlayerEvent {
     data object SeekBack : PlayerEvent()
     data object SeekForward : PlayerEvent()
+    data object PreviousChapter : PlayerEvent()
+    data object NextChapter : PlayerEvent()
     data class ChangeSpeed(val speed: Float) : PlayerEvent()
     data class SetSleepTimer(val duration: Duration) : PlayerEvent()
     data class VolumeChanged(val volume: Float) : PlayerEvent()
     data class AddBookmark(val currentTime: Double, val notes: String) : PlayerEvent()
-    data class ProgressChangedFinish(val progress: Float): PlayerEvent()
+    data class ProgressChangedFinish(val progress: Float) : PlayerEvent()
     data class ProgressChanged(val progress: Float) : PlayerEvent()
     data object PlayBook : PlayerEvent()
 }
