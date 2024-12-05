@@ -12,6 +12,7 @@ import shelfdroid.composeapp.generated.resources.inter_light
 import shelfdroid.composeapp.generated.resources.inter_medium
 import shelfdroid.composeapp.generated.resources.inter_regular
 import shelfdroid.composeapp.generated.resources.inter_semibold
+import shelfdroid.composeapp.generated.resources.jetbrains_mono
 
 
 @Composable
@@ -25,6 +26,9 @@ fun InterFontFamily() = FontFamily(
 
 @Composable
 fun DmSerifTextFontFamily() = FontFamily(Font(Res.font.dm_serif_text_regular))
+
+@Composable
+fun JetbrainsMonoFontFamily() = FontFamily(Font(Res.font.jetbrains_mono))
 
 @Composable
 fun InterTypography() = Typography().run {

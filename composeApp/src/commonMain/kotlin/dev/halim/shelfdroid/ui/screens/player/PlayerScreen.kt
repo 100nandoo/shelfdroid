@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.ui.screens.player
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,9 +14,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.SkipNext
@@ -41,17 +47,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.expect.MediaPlayerState
+import dev.halim.shelfdroid.theme.JetbrainsMonoFontFamily
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
-import dev.halim.shelfdroid.ui.components.BasicControlButton
+import dev.halim.shelfdroid.ui.components.IconButton
 import dev.halim.shelfdroid.ui.components.ItemCover
 import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
 import dev.halim.shelfdroid.utility.formatTime
@@ -115,39 +121,11 @@ fun PlayerScreenContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         AdvancedPlayerControl(advanceUiState, paddingValues, onEvent)
-    }
-}
+        Spacer(modifier = Modifier.height(16.dp))
 
-@Composable
-fun PlayerProgress(
-    uiState: PlayerProgressUiState,
-    onEvent: (PlayerEvent) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = formatTime(uiState.currentTime.toLong()),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-        Text(
-            text = formatTime(uiState.totalTime.toLong()),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
+        BookmarkAndChapter(uiState, paddingValues, onEvent)
+        Spacer(modifier = Modifier.height(16.dp))
     }
-    Slider(
-        value = uiState.progress,
-        onValueChange = { onEvent(PlayerEvent.ProgressChanged(it)) },
-        modifier = Modifier.fillMaxWidth(),
-        onValueChangeFinished = { onEvent(PlayerEvent.ProgressChangedFinish(uiState.progress)) },
-        colors = SliderDefaults.colors(
-            thumbColor = MaterialTheme.colorScheme.primary,
-            activeTrackColor = MaterialTheme.colorScheme.primary
-        )
-    )
 }
 
 @Composable
@@ -175,6 +153,83 @@ fun BasicPlayerContent(
         textAlign = TextAlign.Center
     )
 
+}
+
+@Composable
+fun PlayerProgress(
+    uiState: PlayerProgressUiState,
+    onEvent: (PlayerEvent) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = formatTime(uiState.currentTime.toLong()),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = formatTime(uiState.totalTime.toLong()),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+    Slider(
+        value = uiState.progress,
+        onValueChange = { onEvent(PlayerEvent.ProgressChanged(it)) },
+        modifier = Modifier.fillMaxWidth(),
+        onValueChangeFinished = { onEvent(PlayerEvent.ProgressChangedFinish(uiState.progress)) },
+        colors = SliderDefaults.colors(
+            thumbColor = MaterialTheme.colorScheme.primary,
+            activeTrackColor = MaterialTheme.colorScheme.primary
+        )
+    )
+}
+
+
+@Composable
+fun BasicPlayerControl(
+    shelfdroidMediaItemImpl: ShelfdroidMediaItemImpl,
+    playerState: MediaPlayerState,
+    onEvent: (PlayerEvent) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        IconButton(
+            icon = Icons.Default.SkipPrevious,
+            contentDescription = "Previous Chapter",
+            onClick = { onEvent(PlayerEvent.PreviousChapter) }
+        )
+
+        IconButton(
+            icon = Icons.Default.Replay10,
+            contentDescription = "Seek Back 10s",
+            onClick = { onEvent(PlayerEvent.SeekBack) }
+        )
+
+        LibraryItemPlayIcon(
+            shelfdroidMediaItemImpl,
+            { onEvent(PlayerEvent.PlayBook) },
+            playerState
+        )
+
+        IconButton(
+            icon = Icons.Default.Forward10,
+            contentDescription = "Seek Forward 10s",
+            onClick = { onEvent(PlayerEvent.SeekForward) }
+        )
+
+        IconButton(
+            icon = Icons.Default.SkipNext,
+            contentDescription = "Next Chapter",
+            onClick = { onEvent(PlayerEvent.NextChapter) }
+        )
+
+    }
 }
 
 @Composable
@@ -236,9 +291,11 @@ fun SleepTimer(
                 .size(48.dp)
         ) {
             if (uiState.sleepTimeLeft > ZERO) {
-                Text("${uiState.sleepTimeLeft.inWholeMinutes}m", modifier = Modifier.align(Alignment.Center),
+                Text(
+                    "${uiState.sleepTimeLeft.inWholeMinutes}m", modifier = Modifier.align(Alignment.Center),
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    fontWeight = FontWeight.Bold)
+                    fontWeight = FontWeight.Bold
+                )
             } else {
                 Icon(
                     modifier = Modifier
@@ -253,7 +310,6 @@ fun SleepTimer(
         }
         SleepTimerBottomSheet(sheetState, paddingValues, onEvent)
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -283,46 +339,100 @@ fun SleepTimerBottomSheet(sheetState: SheetState, paddingValues: PaddingValues, 
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BasicPlayerControl(
-    shelfdroidMediaItemImpl: ShelfdroidMediaItemImpl,
-    playerState: MediaPlayerState,
-    onEvent: (PlayerEvent) -> Unit
-) {
+fun BookmarkAndChapter(uiState: BookPlayerUiState, paddingValues: PaddingValues, onEvent: (PlayerEvent) -> Unit) {
+    val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val bookmarkSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
     Row(
-        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
-        BasicControlButton(
-            icon = Icons.Default.SkipPrevious,
-            contentDescription = "Previous Chapter",
-            onClick = { onEvent(PlayerEvent.PreviousChapter) }
+        IconButton(
+            icon = Icons.Default.Bookmark,
+            contentDescription = "bookmarks",
+            onClick = { scope.launch { bookmarkSheetState.show() } }
         )
-
-        BasicControlButton(
-            icon = Icons.Default.Replay10,
-            contentDescription = "Seek Back 10s",
-            onClick = { onEvent(PlayerEvent.SeekBack) }
+        IconButton(
+            icon = Icons.AutoMirrored.Filled.List,
+            contentDescription = "chapters",
+            onClick = { scope.launch { chapterSheetState.show() } }
         )
+    }
+    ChapterBottomSheet(uiState, chapterSheetState, paddingValues, onEvent)
+    BookmarkBottomSheet(uiState, bookmarkSheetState, paddingValues, onEvent)
 
-        LibraryItemPlayIcon(
-            shelfdroidMediaItemImpl,
-            { onEvent(PlayerEvent.PlayBook) },
-            playerState
-        )
+}
 
-        BasicControlButton(
-            icon = Icons.Default.Forward10,
-            contentDescription = "Seek Forward 10s",
-            onClick = { onEvent(PlayerEvent.SeekForward) }
-        )
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChapterBottomSheet(
+    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent:
+        (PlayerEvent) -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    val currentChapter = uiState.currentChapter
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            modifier = Modifier.padding(paddingValues),
+            sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
+        ) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                itemsIndexed(uiState.chapters, key = { _, it -> it.id }) { index, bookChapter ->
+                    val startTime = formatTime(bookChapter.start.toLong(), true)
+                    val endTime = formatTime(bookChapter.end.toLong(), true)
+                    val selected = bookChapter.id == currentChapter.id
+                    val background =
+                        if (selected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme
+                            .surfaceContainerLow
 
-        BasicControlButton(
-            icon = Icons.Default.SkipNext,
-            contentDescription = "Next Chapter",
-            onClick = { onEvent(PlayerEvent.NextChapter) }
-        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(background)
+                            .selectable(selected) {
+                                onEvent(PlayerEvent.JumpToChapter(index))
+                                scope.launch { sheetState.hide() }
+                            }
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            bookChapter.title,
+                            style = MaterialTheme.typography.titleLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            "$startTime - $endTime",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontFamily = JetbrainsMonoFontFamily()
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BookmarkBottomSheet(
+    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent:
+        (PlayerEvent) -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            modifier = Modifier.padding(paddingValues),
+            sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
+        ) {
+            Text("Bookmarks will be shown here", style = MaterialTheme.typography.titleMedium)
+        }
     }
 }

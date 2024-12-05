@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun BasicControlButton(
+fun IconButton(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     contentDescription: String,

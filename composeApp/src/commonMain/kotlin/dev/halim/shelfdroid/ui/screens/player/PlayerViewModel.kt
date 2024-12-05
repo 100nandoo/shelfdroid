@@ -59,7 +59,9 @@ class PlayerViewModel(
             PlayerEvent.NextChapter -> {
                 changeChapter(false)
             }
-
+            is PlayerEvent.JumpToChapter -> {
+                jumpToChapter(event.target)
+            }
             is PlayerEvent.AddBookmark -> TODO()
             is PlayerEvent.SetSleepTimer -> {
                 viewModelScope.launch {
@@ -88,13 +90,14 @@ class PlayerViewModel(
             is PlayerEvent.PlayBook -> {
                 mediaManager.playBookUiState(_uiState.value.bookPlayerUiState.toImpl())
             }
+
         }
     }
 
     private fun collectFlows() {
         viewModelScope.launch {
             mediaManager.playerState.collect {
-                if(it.playbackState == PlaybackState.Ended){
+                if (it.playbackState == PlaybackState.Ended) {
                     changeChapter(false)
                 }
                 if (it.item?.id == id) {
@@ -147,6 +150,18 @@ class PlayerViewModel(
         if (newIndex in bookPlayerUiState.chapters.indices) {
             val updatedChapter = bookPlayerUiState.chapters[newIndex]
             val updatedBookPlayerUiState = BookPlayerUiState(bookPlayerUiState, updatedChapter)
+            mediaManager.changeChapter(updatedBookPlayerUiState.toImpl())
+            _uiState.update {
+                it.copy(bookPlayerUiState = updatedBookPlayerUiState)
+            }
+        }
+    }
+
+    private fun jumpToChapter(target: Int) {
+        val bookPlayerUiState = _uiState.value.bookPlayerUiState
+        if (target in bookPlayerUiState.chapters.indices) {
+            val targetChapter = bookPlayerUiState.chapters[target]
+            val updatedBookPlayerUiState = BookPlayerUiState(bookPlayerUiState, targetChapter)
             mediaManager.changeChapter(updatedBookPlayerUiState.toImpl())
             _uiState.update {
                 it.copy(bookPlayerUiState = updatedBookPlayerUiState)
@@ -218,6 +233,7 @@ sealed class PlayerEvent {
     data object SeekForward : PlayerEvent()
     data object PreviousChapter : PlayerEvent()
     data object NextChapter : PlayerEvent()
+    data class JumpToChapter(val target: Int) : PlayerEvent()
     data class ChangeSpeed(val speed: Float) : PlayerEvent()
     data class SetSleepTimer(val duration: Duration) : PlayerEvent()
     data class VolumeChanged(val volume: Float) : PlayerEvent()

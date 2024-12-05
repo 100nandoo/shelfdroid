@@ -63,5 +63,5 @@ private fun setupInitialState(): MutableState<String> {
     return startDestination
 }
 
-val version = "0.1 build 29-11-2024"
+val version = "0.1.0 build 05-12-2024"
 val app_name = "Shelfdroid"
