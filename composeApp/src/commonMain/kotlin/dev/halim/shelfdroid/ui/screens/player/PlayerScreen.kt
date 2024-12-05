@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.ui.screens.player
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,14 +11,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -33,9 +38,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -167,33 +177,83 @@ fun BasicPlayerContent(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedPlayerControl(
     uiState: AdvanceUiState,
     paddingValues: PaddingValues,
     onEvent: (PlayerEvent) -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
     Row(
-        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
     ) {
-        StepsSlider(uiState.speed, onEvent)
+        SpeedSlider(uiState.speed, onEvent)
 
-        val sleepText = if (uiState.sleepTimeLeft > ZERO) {
-            "${uiState.sleepTimeLeft.inWholeMinutes}m"
-        } else {
-            "Sleep Timer"
+        SleepTimer(uiState, paddingValues, onEvent)
+    }
+}
+
+@Composable
+fun SpeedSlider(speed: Float, onEvent: (PlayerEvent) -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(text = "Speed: ${speed}x")
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Slider(
+            modifier = Modifier
+                .semantics { contentDescription = "speed slider" }
+                .width(150.dp),
+            value = speed,
+            onValueChange = { onEvent(PlayerEvent.ChangeSpeed(it)) },
+            valueRange = 0.5f..2f,
+            steps = 5,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SleepTimer(
+    uiState: AdvanceUiState,
+    paddingValues: PaddingValues,
+    onEvent: (PlayerEvent) -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("Sleep Timer")
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable { scope.launch { sheetState.show() } }
+                .size(48.dp)
+        ) {
+            if (uiState.sleepTimeLeft > ZERO) {
+                Text("${uiState.sleepTimeLeft.inWholeMinutes}m", modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    fontWeight = FontWeight.Bold)
+            } else {
+                Icon(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .align(Alignment.Center),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    imageVector = Icons.Default.Timer,
+                    contentDescription = "timer"
+                )
+
+            }
         }
-        Text(sleepText, modifier = Modifier.clickable {
-            scope.launch { sheetState.show() }
-        })
-
         SleepTimerBottomSheet(sheetState, paddingValues, onEvent)
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -211,7 +271,7 @@ fun SleepTimerBottomSheet(sheetState: SheetState, paddingValues: PaddingValues, 
         ) {
             Column {
                 sleepTimerOptions.forEach { (label, duration) ->
-                    TextButton({
+                    TextButton(shape = RectangleShape, modifier = Modifier.fillMaxWidth(), onClick = {
                         onEvent(PlayerEvent.SetSleepTimer(duration.minutes))
                         scope.launch { sheetState.hide() }
                     }) {
@@ -264,26 +324,5 @@ fun BasicPlayerControl(
             onClick = { onEvent(PlayerEvent.NextChapter) }
         )
 
-    }
-}
-
-@Composable
-fun StepsSlider(speed: Float, onEvent: (PlayerEvent) -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Speed: ${speed}x")
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Slider(
-            modifier = Modifier
-                .semantics { contentDescription = "speed slider" }
-                .width(150.dp),
-            value = speed,
-            onValueChange = { onEvent(PlayerEvent.ChangeSpeed(it)) },
-            valueRange = 0.5f..2f,
-            steps = 5,
-        )
     }
 }

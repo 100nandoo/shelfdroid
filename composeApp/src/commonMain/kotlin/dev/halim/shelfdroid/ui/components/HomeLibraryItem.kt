@@ -69,8 +69,8 @@ fun HomeBook(
                         progress = { float },
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.tertiaryContainer,
-                        trackColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
+                        trackColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        drawStopIndicator = {})
                 } else {
                     Box(modifier = Modifier.padding(bottom = 4.dp))
                 }
@@ -152,6 +152,7 @@ fun LibraryItemPlayIcon(
         PlaybackState.Playing -> {
             if (isCurrentMediaItem) Icons.Default.Pause else Icons.Default.PlayArrow
         }
+
         PlaybackState.Pause -> Icons.Default.PlayArrow
         else -> Icons.Default.PlayArrow
     }
