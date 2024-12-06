@@ -10,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.setSingletonImageLoaderFactory
 import dev.halim.shelfdroid.datastore.DataStoreManager
-import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.ui.screens.MainScreen
 import dev.halim.shelfdroid.ui.screens.Route
@@ -48,9 +47,18 @@ private fun setupInitialState(): MutableState<String> {
     LaunchedEffect(Unit) {
         val token = dataStoreManager.token.firstOrNull()
         val baseUrl = dataStoreManager.baseUrl.firstOrNull()
+        val userId = dataStoreManager.userId.firstOrNull()
 
         if (!baseUrl.isNullOrBlank()) {
-            Api.baseUrl = baseUrl
+            Holder.baseUrl = baseUrl
+        }
+
+        if (token != null) {
+            Holder.token = token
+        }
+
+        if (userId != null) {
+            Holder.userId = userId
         }
 
         startDestination.value = if (token.isNullOrBlank().not()) {
@@ -65,3 +73,10 @@ private fun setupInitialState(): MutableState<String> {
 
 val version = "0.1.0 build 05-12-2024"
 val app_name = "Shelfdroid"
+
+object Holder {
+    var token = ""
+    var baseUrl = ""
+    var userId = ""
+    var deviceId = ""
+}

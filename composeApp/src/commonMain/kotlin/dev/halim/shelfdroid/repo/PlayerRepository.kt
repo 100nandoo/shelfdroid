@@ -1,9 +1,9 @@
 package dev.halim.shelfdroid.repo
 
+import dev.halim.shelfdroid.Holder
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.store.ItemKey
-import dev.halim.shelfdroid.store.ProgressKey
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.store.asSingle
 import dev.halim.shelfdroid.store.cached
@@ -29,14 +29,16 @@ class PlayerRepository(private val storeManager: StoreManager, private val api: 
     }
 
     suspend fun getPlayerModel(itemId: String): BookPlayerUiState {
-        val progressEntity = storeManager.progressStore.freshOrCached(ProgressKey.Single(itemId)).asSingle().data
+        val userId = Holder.userId
+        val user = storeManager.userStore.freshOrCached(userId)
+        val progressEntity = user.mediaProgress.firstOrNull { it.libraryItemId == itemId }
         val itemEntity = storeManager.itemStore.cached(ItemKey.Single(itemId)).asSingle().data
 
         val cover = itemEntity.cover ?: ""
         val author = itemEntity.author ?: ""
         val title = itemEntity.title
-        val progress = progressEntity.progress.toFloat()
-        val currentTime = progressEntity.currentTime.toFloat()
+        val progress = progressEntity?.progress ?: 0f
+        val currentTime = progressEntity?.currentTime ?: 0f
         val chapters = itemEntity.chapters
         val currentChapter = getCurrentChapter(currentTime, chapters)
         val startTime = (currentChapter.start * 1000).toLong()

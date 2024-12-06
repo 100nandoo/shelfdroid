@@ -4,7 +4,6 @@ import dev.halim.shelfdroid.db.Database
 import dev.halim.shelfdroid.db.ItemEntity
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LibraryItem
-import dev.halim.shelfdroid.network.MediaProgress
 import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.network.libraryitem.Podcast
 import dev.halim.shelfdroid.store.ItemExtensions.toEntity
@@ -16,8 +15,8 @@ import org.mobilenativefoundation.store.store5.StoreBuilder
 
 
 sealed class ItemNetwork {
-    data class Single(val item: LibraryItem, val mediaProgress: MediaProgress?) : ItemNetwork()
-    data class Collection(val items: List<LibraryItem>, val mediaProgresses: List<MediaProgress>) :
+    data class Single(val item: LibraryItem) : ItemNetwork()
+    data class Collection(val items: List<LibraryItem>) :
         ItemNetwork()
 }
 
@@ -66,15 +65,12 @@ class ItemStoreFactory(
                     val ids = key.itemIds
                     val items = api.batchLibraryItems(ids).getOrNull()?.libraryItems
                         ?: error(itemError(key.itemIds.joinToString("\n")))
-                    val mediaProgresses = api.me().getOrNull()?.mediaProgress ?: emptyList()
-                    ItemNetwork.Collection(items, mediaProgresses)
+                    ItemNetwork.Collection(items)
                 }
 
                 is ItemKey.Single -> {
                     val item = api.libraryItem(key.itemId).getOrNull() ?: error(itemError(key.itemId))
-                    val mediaProgress = api.me().getOrNull()?.mediaProgress
-                        ?.firstOrNull { it.libraryItemId == key.itemId }
-                    ItemNetwork.Single(item, mediaProgress)
+                    ItemNetwork.Single(item)
                 }
             }
             result

@@ -22,14 +22,14 @@ inline fun <reified T> StoreOutput<T>.asSingle(): StoreOutput.Single<T> {
 class StoreManager(api: Api, database: Database, private val io: CoroutineScope) {
     val libraryStore: LibraryStore = LibraryStoreFactory(api, database).create()
     val itemStore: ItemStore = ItemStoreFactory(api, database).create()
-    val progressStore: ProgressStore = ProgressStoreFactory(api, database).create()
+    val userStore: UserStore = UserStoreFactory(api, database).create()
 
     @OptIn(ExperimentalStoreApi::class)
     fun clear() {
         io.launch {
             libraryStore.clear()
             itemStore.clear()
-            progressStore.clear()
+            userStore.clear()
         }
     }
 }

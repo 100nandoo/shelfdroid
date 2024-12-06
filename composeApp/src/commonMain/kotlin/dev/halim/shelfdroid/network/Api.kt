@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.network
 
+import dev.halim.shelfdroid.Holder
 import dev.halim.shelfdroid.app_name
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.expect.deviceName
@@ -27,7 +28,6 @@ import kotlinx.coroutines.launch
 
 class Api(private val client: HttpClient, private val dataStoreManager: DataStoreManager) {
     companion object {
-        var baseUrl = ""
         const val LOGIN_PATH = "/login"
         const val LOGOUT_PATH = "/logout"
         const val LIBRARIES_PATH = "/api/libraries"
@@ -58,40 +58,40 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
     }
 
     suspend fun login(loginRequest: LoginRequest): Result<LoginResponse> {
-        return makeRequest("$baseUrl$LOGIN_PATH", HttpMethod.Post, loginRequest)
+        return makeRequest("${Holder.baseUrl}$LOGIN_PATH", HttpMethod.Post, loginRequest)
     }
 
     suspend fun logout(): Result<LogoutResponse> {
-        return makeRequest("$baseUrl$LOGOUT_PATH", HttpMethod.Post)
+        return makeRequest("${Holder.baseUrl}$LOGOUT_PATH", HttpMethod.Post)
     }
 
     suspend fun library(id: String): Result<LibraryResponse> {
-        return makeRequest("$baseUrl$LIBRARIES_PATH/$id", HttpMethod.Get)
+        return makeRequest("${Holder.baseUrl}$LIBRARIES_PATH/$id", HttpMethod.Get)
     }
 
     suspend fun libraries(): Result<LibrariesResponse> {
-        return makeRequest("$baseUrl$LIBRARIES_PATH", HttpMethod.Get)
+        return makeRequest("${Holder.baseUrl}$LIBRARIES_PATH", HttpMethod.Get)
     }
 
     suspend fun libraryItems(libraryId: String): Result<LibraryItemsResponse> {
-        return makeRequest("$baseUrl/api/libraries/$libraryId/items", HttpMethod.Get)
+        return makeRequest("${Holder.baseUrl}/api/libraries/$libraryId/items", HttpMethod.Get)
     }
 
     suspend fun me(): Result<User> {
-        return makeRequest("$baseUrl$ME_PATH", HttpMethod.Get)
+        return makeRequest("${Holder.baseUrl}$ME_PATH", HttpMethod.Get)
     }
 
     suspend fun libraryItem(id: String): Result<LibraryItem> {
         val path = LIBRARY_ITEM.replace("%s", id)
         return makeRequest(
-            "$baseUrl$path",
+            "${Holder.baseUrl}$path",
             HttpMethod.Get
         )
     }
 
     suspend fun batchLibraryItems(libraryItemIds: List<String>): Result<BatchLibraryItemsResponse> {
         return makeRequest(
-            "$baseUrl$BATCH_LIBRARY_ITEMS",
+            "${Holder.baseUrl}$BATCH_LIBRARY_ITEMS",
             HttpMethod.Post,
             BatchLibraryItemsRequest(libraryItemIds)
         )
@@ -100,7 +100,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
     suspend fun playBook(itemId: String): Result<PlayBookResponse> {
         val path = PLAY_BOOK_PATH.replace("%s", itemId)
         return makeRequest(
-            "$baseUrl$path",
+            "${Holder.baseUrl}$path",
             HttpMethod.Post,
             PlayBookRequest(deviceInfoRequest, false, false, supportedMimeType, app_name)
         )
@@ -108,15 +108,15 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
 
     suspend fun syncSession(id: String, syncSessionRequest: SyncSessionRequest): Result<Unit> {
         val path = SYNC_PROGRESS_PATH.replace("%s", id)
-        return makeRequest("$baseUrl$path", HttpMethod.Post, syncSessionRequest)
+        return makeRequest("${Holder.baseUrl}$path", HttpMethod.Post, syncSessionRequest)
     }
 
     fun generateItemCoverUrl(itemId: String): String {
-        return "$baseUrl/api/items/$itemId/cover?token=$token"
+        return "${Holder.baseUrl}/api/items/$itemId/cover?token=$token"
     }
 
     fun generateItemStreamUrl(itemId: String, ino: String): String {
-        return "$baseUrl/api/items/$itemId/file/$ino?token=$token"
+        return "${Holder.baseUrl}/api/items/$itemId/file/$ino?token=$token"
     }
 
     private suspend inline fun <reified T> makeRequest(

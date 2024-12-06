@@ -1,0 +1,39 @@
+import dev.halim.shelfdroid.network.AudioBookmark;
+import dev.halim.shelfdroid.network.MediaProgress;
+import kotlin.collections.List;
+
+CREATE TABLE UserEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    username TEXT NOT NULL,
+    mediaProgress TEXT AS List<MediaProgress> NOT NULL,
+    bookmarks TEXT AS List<AudioBookmark> NOT NULL
+);
+
+
+upsert:
+INSERT OR REPLACE INTO UserEntity (id, username, mediaProgress, bookmarks)
+VALUES (?, ?, ?, ?);
+
+selectById:
+SELECT *
+FROM UserEntity
+WHERE id = ?;
+
+selectAll:
+SELECT *
+FROM UserEntity;
+
+updateById:
+UPDATE UserEntity
+SET
+    username = ?,
+    mediaProgress = ?,
+    bookmarks = ?
+WHERE id = ?;
+
+removeAll:
+DELETE FROM UserEntity;
+
+removeById:
+DELETE FROM UserEntity
+WHERE id = ?;

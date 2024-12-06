@@ -2,9 +2,11 @@ package dev.halim.shelfdroid.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.halim.shelfdroid.Holder
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LoginRequest
+import dev.halim.shelfdroid.network.LoginResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -32,17 +34,23 @@ class LoginViewModel(
     }
 
     private suspend fun login() {
-        Api.baseUrl = _uiState.value.server
+        Holder.baseUrl = _uiState.value.server
         val request = LoginRequest(_uiState.value.username, _uiState.value.password)
         val result = api.login(request)
         result.onSuccess { response ->
-            Api.baseUrl = _uiState.value.server
             dataStoreManager.setBaseUrl(_uiState.value.server)
             dataStoreManager.setToken(response.user.token)
+            dataStoreManager.setUserId(response.user.id)
             dataStoreManager.generateDeviceId()
+            updateHolder(response)
             _uiState.update { it.copy(loginState = LoginState.Success) }
         }
         result.onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
+    }
+
+    private fun updateHolder(response: LoginResponse){
+        Holder.token = response.user.token
+        Holder.userId = response.user.id
     }
 }
 

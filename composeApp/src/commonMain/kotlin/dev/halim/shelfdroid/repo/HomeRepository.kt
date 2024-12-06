@@ -1,12 +1,13 @@
 package dev.halim.shelfdroid.repo
 
+import dev.halim.shelfdroid.Holder
 import dev.halim.shelfdroid.db.ItemEntity
-import dev.halim.shelfdroid.db.ProgressEntity
+import dev.halim.shelfdroid.db.UserEntity
 import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.network.MediaProgress
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.store.ItemKey
 import dev.halim.shelfdroid.store.LibraryKey
-import dev.halim.shelfdroid.store.ProgressKey
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.store.asCollection
 import dev.halim.shelfdroid.store.asSingle
@@ -49,33 +50,30 @@ class HomeRepository(private val storeManager: StoreManager, private val api: Ap
         val result =
             if (fresh) storeManager.itemStore.freshOrCached(itemKey)
             else storeManager.itemStore.cached(itemKey)
-        val progresses = getMediaProgresses(fresh)
+        val user = getUser(fresh)
+        val progresses = user?.mediaProgress
         return result.asCollection().data.map { item ->
-            if (item.mediaType == "book"){
-
-            } else {
-
-            }
-            toUiState(item, progresses.firstOrNull {
-                item.id == it.itemId
-            })
+            val itemProgress = progresses?.firstOrNull { item.id == it.libraryItemId }
+            toUiState(item, itemProgress)
         }
     }
 
-    private suspend fun getMediaProgresses(fresh: Boolean): List<ProgressEntity> {
-        val result =
-            if (fresh) storeManager.progressStore.freshOrCached(ProgressKey.All) else
-                storeManager.progressStore.cached(ProgressKey.All)
-        return result.asCollection().data
+    private suspend fun getUser(fresh: Boolean): UserEntity {
+        val userId = Holder.userId
+        return if (fresh) {
+            storeManager.userStore.freshOrCached(userId)
+        } else {
+            storeManager.userStore.cached(userId)
+        }
     }
 
-    private fun toUiState(item: ItemEntity, progressEntity: ProgressEntity?): ShelfdroidMediaItem {
+    private fun toUiState(item: ItemEntity, mediaProgress: MediaProgress?): ShelfdroidMediaItem {
         return if (item.mediaType == "book") {
             val cover = item.cover ?: ""
             val author = item.author ?: ""
             val title = item.title
-            val progress = progressEntity?.progress?.toFloat() ?: 0f
-            val currentTime = progressEntity?.currentTime?.toFloat() ?: 0f
+            val progress = mediaProgress?.progress ?: 0f
+            val currentTime = mediaProgress?.currentTime ?: 0f
             val chapters = item.chapters
             val currentChapter = getCurrentChapter(currentTime, chapters)
             val startTime = (currentChapter.start * 1000).toLong()

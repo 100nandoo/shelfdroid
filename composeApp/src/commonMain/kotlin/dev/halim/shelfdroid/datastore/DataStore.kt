@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import dev.halim.shelfdroid.Holder
 import dev.halim.shelfdroid.expect.PlatformContext
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +36,7 @@ class DataStoreManager(
     private object Keys {
         val BASE_URL = stringPreferencesKey("base_url")
         val TOKEN = stringPreferencesKey("token")
+        val USER_ID = stringPreferencesKey("user_id")
         val DEVICE_ID = stringPreferencesKey("device_id")
         val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
         val CURRENT_POSITION = longPreferencesKey("current_position")
@@ -110,7 +112,10 @@ class DataStoreManager(
 
 
     val baseUrl: Flow<String> = readString(Keys.BASE_URL)
-    suspend fun setBaseUrl(value: String) = writeString(Keys.BASE_URL, value)
+    suspend fun setBaseUrl(value: String) {
+        Holder.baseUrl = value
+        writeString(Keys.BASE_URL, value)
+    }
 
     val deviceId: Flow<String> = readString(Keys.DEVICE_ID)
     val deviceIdBlocking: String = runBlocking { dataStore.data.firstOrNull()?.get(Keys.DEVICE_ID) ?: "" }
@@ -119,14 +124,24 @@ class DataStoreManager(
     suspend fun generateDeviceId() {
         val uuid = Uuid.random().toString()
         if (readString(Keys.DEVICE_ID).first().isBlank()) {
+            Holder.deviceId = uuid
             writeString(Keys.DEVICE_ID, uuid)
         }
     }
 
     val token: Flow<String> = readString(Keys.TOKEN)
-    suspend fun setToken(value: String) = writeString(Keys.TOKEN, value)
+    suspend fun setToken(value: String) {
+        Holder.token = value
+        writeString(Keys.TOKEN, value)
+    }
     val tokenBlocking: String? = runBlocking {
         dataStore.data.firstOrNull()?.get(Keys.TOKEN)
+    }
+
+    val userId: Flow<String> = readString(Keys.USER_ID)
+    suspend fun setUserId(value: String) {
+        Holder.userId = value
+        writeString(Keys.USER_ID, value)
     }
 
     val isDarkMode: Flow<Boolean> = readBoolean(Keys.IS_DARK_MODE, true)
