@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -72,7 +73,9 @@ fun PlayerScreen(paddingValues: PaddingValues, id: String) {
     val viewModel: PlayerViewModel = koinViewModel(parameters = { parametersOf(id) })
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(PlayerUiState())
-    val progressUiState by viewModel.playerProgressUiState.collectAsStateWithLifecycle(PlayerProgressUiState())
+    val progressUiState by viewModel.playerProgressUiState.collectAsStateWithLifecycle(
+        PlayerProgressUiState()
+    )
     val advanceUiState by viewModel.advanceUiState.collectAsStateWithLifecycle(AdvanceUiState())
     val playerState by viewModel.playerState.collectAsStateWithLifecycle()
 
@@ -423,16 +426,38 @@ fun ChapterBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookmarkBottomSheet(
-    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent:
-        (PlayerEvent) -> Unit
-) {
+    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent: (PlayerEvent) -> Unit) {
     val scope = rememberCoroutineScope()
     if (sheetState.isVisible) {
         ModalBottomSheet(
             modifier = Modifier.padding(paddingValues),
             sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
         ) {
-            Text("Bookmarks will be shown here", style = MaterialTheme.typography.titleMedium)
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp),) {
+                items(uiState.bookmarks) { audioBookmark ->
+                    val time = formatTime(audioBookmark.time.toLong())
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            audioBookmark.title,
+                            style = MaterialTheme.typography.titleLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            time,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontFamily = JetbrainsMonoFontFamily()
+                        )
+                    }
+                }
+            }
         }
     }
 }

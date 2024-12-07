@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.MediaPlayerState
 import dev.halim.shelfdroid.expect.PlaybackState
+import dev.halim.shelfdroid.network.AudioBookmark
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.repo.PlayerRepository
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
@@ -182,6 +183,7 @@ class BookPlayerUiState(
     val progress: Float = 0f,
     val chapters: List<BookChapter> = emptyList(),
     val currentChapter: BookChapter = BookChapter(),
+    val bookmarks: List<AudioBookmark> = emptyList()
 ) : ShelfdroidMediaItem() {
     override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
         id, author, title, cover, url, seekTime,

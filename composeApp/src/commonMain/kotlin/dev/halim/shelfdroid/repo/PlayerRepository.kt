@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.repo
 
 import dev.halim.shelfdroid.Holder
 import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.network.AudioBookmark
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.store.ItemKey
 import dev.halim.shelfdroid.store.StoreManager
@@ -15,6 +16,9 @@ class PlayerRepository(private val storeManager: StoreManager, private val api: 
     private inline fun getCurrentChapter(currentTime: Float, chapters: List<BookChapter>): BookChapter {
         return (chapters.find { currentTime >= it.start && currentTime <= it.end } ?: chapters.first())
     }
+
+    private inline fun getBookmarks(itemId: String, bookmarks: List<AudioBookmark>): List<AudioBookmark> =
+        bookmarks.filter { it.libraryItemId == itemId }
 
     private inline fun urlAndSeekTime(
         id: String,
@@ -45,11 +49,11 @@ class PlayerRepository(private val storeManager: StoreManager, private val api: 
         val endTime = (currentChapter.end * 1000).toLong()
 
         val (url, seekTime) = urlAndSeekTime(itemId, itemEntity.inoId, currentTime, startTime, api)
-
+        val bookmarks = getBookmarks(itemId, user.bookmarks)
         return BookPlayerUiState(
             id = itemId, author = author, title = title,
             cover = cover, url = url, seekTime = seekTime, startTime = startTime, endTime = endTime,
-            progress = progress, chapters = chapters, currentChapter = currentChapter
+            progress = progress, chapters = chapters, currentChapter = currentChapter, bookmarks = bookmarks
         )
     }
 }
