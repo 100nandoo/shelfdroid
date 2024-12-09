@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,12 +57,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.expect.MediaPlayerState
+import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.theme.JetbrainsMonoFontFamily
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import dev.halim.shelfdroid.ui.components.IconButton
 import dev.halim.shelfdroid.ui.components.ItemCover
 import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
 import dev.halim.shelfdroid.utility.formatTime
+import dev.halim.shelfdroid.utility.sleepTimerMinute
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -295,7 +299,8 @@ fun SleepTimer(
         ) {
             if (uiState.sleepTimeLeft > ZERO) {
                 Text(
-                    "${uiState.sleepTimeLeft.inWholeMinutes}m", modifier = Modifier.align(Alignment.Center),
+                    sleepTimerMinute(uiState.sleepTimeLeft),
+                    modifier = Modifier.align(Alignment.Center),
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     fontWeight = FontWeight.Bold
                 )
@@ -374,49 +379,22 @@ fun ChapterBottomSheet(
     uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent:
         (PlayerEvent) -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     val currentChapter = uiState.currentChapter
+    val currentIndex = maxOf(uiState.chapters.indexOf(currentChapter), 0)
+
+    val scope = rememberCoroutineScope()
+    val state = rememberLazyListState(initialFirstVisibleItemIndex = currentIndex)
     if (sheetState.isVisible) {
         ModalBottomSheet(
             modifier = Modifier.padding(paddingValues),
             sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
         ) {
             LazyColumn(
+                state = state,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                itemsIndexed(uiState.chapters, key = { _, it -> it.id }) { index, bookChapter ->
-                    val startTime = formatTime(bookChapter.start.toLong(), true)
-                    val endTime = formatTime(bookChapter.end.toLong(), true)
-                    val selected = bookChapter.id == currentChapter.id
-                    val background =
-                        if (selected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme
-                            .surfaceContainerLow
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(background)
-                            .selectable(selected) {
-                                onEvent(PlayerEvent.JumpToChapter(index))
-                                scope.launch { sheetState.hide() }
-                            }
-                            .padding(horizontal = 16.dp)
-                    ) {
-                        Text(
-                            bookChapter.title,
-                            style = MaterialTheme.typography.titleLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            "$startTime - $endTime",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontFamily = JetbrainsMonoFontFamily()
-                        )
-                    }
+                itemsIndexed(uiState.chapters, key = { _, chapter -> chapter.id }) { index, bookChapter ->
+                    ChapterRow(bookChapter, currentChapter, onEvent, index, scope, sheetState)
                 }
             }
         }
@@ -425,15 +403,60 @@ fun ChapterBottomSheet(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun ChapterRow(
+    bookChapter: BookChapter,
+    currentChapter: BookChapter,
+    onEvent: (PlayerEvent) -> Unit,
+    index: Int,
+    scope: CoroutineScope,
+    sheetState: SheetState
+) {
+    val startTime = formatTime(bookChapter.start.toLong(), true)
+    val endTime = formatTime(bookChapter.end.toLong(), true)
+    val selected = bookChapter.id == currentChapter.id
+    val background =
+        if (selected) MaterialTheme.colorScheme.surfaceVariant
+        else MaterialTheme.colorScheme.surfaceContainerLow
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(background)
+            .selectable(selected) {
+                onEvent(PlayerEvent.JumpToChapter(index))
+                scope.launch { sheetState.hide() }
+            }
+            .padding(horizontal = 16.dp)
+    ) {
+        Text(
+            bookChapter.title,
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            "$startTime - $endTime",
+            style = MaterialTheme.typography.labelMedium,
+            fontFamily = JetbrainsMonoFontFamily()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun BookmarkBottomSheet(
-    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent: (PlayerEvent) -> Unit) {
+    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent: (PlayerEvent) -> Unit
+) {
     val scope = rememberCoroutineScope()
     if (sheetState.isVisible) {
         ModalBottomSheet(
             modifier = Modifier.padding(paddingValues),
             sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
         ) {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp),) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(uiState.bookmarks) { audioBookmark ->
                     val time = formatTime(audioBookmark.time.toLong())
                     Row(

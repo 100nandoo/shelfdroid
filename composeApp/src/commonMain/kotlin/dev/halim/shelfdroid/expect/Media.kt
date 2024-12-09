@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.expect
 
 import dev.halim.shelfdroid.datastore.DataStoreManager
+import dev.halim.shelfdroid.player.SessionManager
+import dev.halim.shelfdroid.player.Timer
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -12,13 +14,12 @@ expect class PlatformMediaItem {
 }
 
 expect class MediaManager(
-    player: PlatformPlayer, dataStoreManager: DataStoreManager,
-    sessionManager: SessionManager, main: CoroutineScope
-) {
+    player: PlatformPlayer, dataStoreManager: DataStoreManager, sessionManager: SessionManager, timer: Timer) {
     val playerState: StateFlow<MediaPlayerState>
     val currentPosition: Flow<Long>
     fun playBookUiState(item: ShelfdroidMediaItemImpl)
     fun changeChapter(item: ShelfdroidMediaItemImpl)
+    fun play()
     fun pause()
     fun seekForward()
     fun seekBackward()

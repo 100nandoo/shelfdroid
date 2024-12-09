@@ -8,27 +8,25 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import dev.halim.shelfdroid.datastore.DataStoreEvent
 import dev.halim.shelfdroid.datastore.DataStoreManager
+import dev.halim.shelfdroid.player.SessionEvent
+import dev.halim.shelfdroid.player.SessionManager
+import dev.halim.shelfdroid.player.Timer
+import dev.halim.shelfdroid.player.TimerEvent
+import dev.halim.shelfdroid.player.TimerEventReturn
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 actual class MediaManager actual constructor(
     private val player: PlatformPlayer,
     private val dataStoreManager: DataStoreManager,
     private val sessionManager: SessionManager,
-    private val main: CoroutineScope
+    private val timer: Timer,
 ) {
     private val _playerState = MutableStateFlow(
         MediaPlayerState(
@@ -40,18 +38,16 @@ actual class MediaManager actual constructor(
     actual val playerState = _playerState.asStateFlow()
 
     actual val currentPosition: Flow<Long> = flow {
-        while (player.isPlaying){
+        while (player.isPlaying) {
             delay(1000)
             emit(player.currentPosition)
         }
     }
 
-    private var timeListened: Long = 0L
     private val seekIncrement = 10_000
 
     init {
         setupPlayerListeners()
-        timeCounter()
     }
 
     actual fun playBookUiState(item: ShelfdroidMediaItemImpl) {
@@ -59,8 +55,7 @@ actual class MediaManager actual constructor(
             pause()
             changeItem(item)
             play()
-            player.seekTo(item.seekTime)
-            sessionEventPlay(item)
+            seekTo(item.seekTime)
             dataStoreEventChangeMediaItem(item)
         } else {
             if (_playerState.value.isPlaying) {
@@ -75,51 +70,40 @@ actual class MediaManager actual constructor(
         pause()
         changeItem(item)
         play()
-        sessionEventPlay(item)
         dataStoreEventChangeMediaItem(item)
+    }
+
+    actual fun play() {
+        player.play()
+        timerEventStartTimer()
+        sessionEventPlay()
+    }
+
+    actual fun pause() {
+        player.pause()
+        val timeListened = timerEventStop()
+        sessionEventPause(timeListened)
+        dataStoreEventUpdateCurrentPosition()
+    }
+
+    actual fun seekForward() {
+        seekTo(player.currentPosition + seekIncrement)
+    }
+
+    actual fun seekBackward() {
+        seekTo(player.currentPosition - seekIncrement)
     }
 
     actual fun seekTo(positionMs: Long) {
         player.seekTo(positionMs)
     }
 
-    actual fun seekForward() {
-        player.seekTo(player.currentPosition + seekIncrement)
-    }
-
-    actual fun seekBackward() {
-        player.seekTo(player.currentPosition - seekIncrement)
-    }
-
     actual fun changeSpeed(speed: Float) {
         player.setPlaybackSpeed(speed)
     }
 
-    private var sleepJob: Job? = null
-    actual fun setSleepTimer(duration: Duration) {
-        sleepJob?.cancel()
-        sleepJob = main.launch {
-            val totalMinutes = duration.inWholeMinutes
-            for (minute in 1..totalMinutes) {
-                delay(1.minutes)
-                val timeLeft = duration - minute.minutes
-                _playerState.update { it.copy(sleepTimeLeft = timeLeft) }
-            }
-            pause()
-        }
-    }
-
-    private var timeCounterJob: Job? = null
-    private fun timeCounter() {
-        timeCounterJob = main.launch {
-            while (coroutineContext.isActive) {
-                if (player.currentPosition > 0 && player.isPlaying) {
-                    timeListened += 1
-
-                }
-                delay(1.toDuration(DurationUnit.SECONDS))
-            }
-        }
+    actual fun setSleepTimer(duration: Duration){
+        timerEventStartSleepTimer(duration)
     }
 
     private fun mapPlayerState(isPlaying: Boolean, playbackState: Int): PlaybackState {
@@ -174,15 +158,31 @@ actual class MediaManager actual constructor(
         })
     }
 
-    private fun sessionEventPlay(shelfdroidMediaItem: ShelfdroidMediaItemImpl) {
-        sessionManager.onEvent(SessionEvent.Play(shelfdroidMediaItem))
+    private fun sessionEventPlay() {
+        _playerState.value.item?.id?.let { itemId -> sessionManager.onEvent(SessionEvent.Play(itemId)) }
     }
 
-    private fun sessionEventPause() {
+    private fun sessionEventPause(timeListened: Long) {
         val time = (player.currentPosition + (player.currentMediaItem
             ?.clippingConfiguration?.startPositionMs ?: 0L)) / 1000
         sessionManager.onEvent(SessionEvent.Pause(time, timeListened))
-        timeListened = 0
+    }
+
+    private fun timerEventStartTimer() {
+        timer.onEvent(TimerEvent.StartTimeListened)
+    }
+
+    private fun timerEventStop(): Long {
+        return timer.onEventReturned(TimerEventReturn.StopTimeListened)
+    }
+
+    private fun timerEventStartSleepTimer(duration: Duration) {
+        timer.onEvent(
+            TimerEvent.StartSleepTimer(
+                duration,
+                { timeLeft -> _playerState.update { it.copy(sleepTimeLeft = timeLeft) } },
+                { pause() })
+        )
     }
 
     private fun dataStoreEventChangeMediaItem(shelfdroidMediaItem: ShelfdroidMediaItemImpl) {
@@ -199,17 +199,6 @@ actual class MediaManager actual constructor(
         player.setMediaItem(mediaItem)
         player.prepare()
     }
-
-    actual fun pause() {
-        player.pause()
-        sessionEventPause()
-        dataStoreEventUpdateCurrentPosition()
-    }
-
-    private fun play() {
-        player.play()
-    }
-
 }
 
 fun ShelfdroidMediaItemImpl.toMediaItem(): MediaItem {

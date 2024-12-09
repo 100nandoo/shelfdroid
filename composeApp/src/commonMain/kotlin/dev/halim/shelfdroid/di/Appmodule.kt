@@ -14,13 +14,14 @@ import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.db.DatabaseAdapter
 import dev.halim.shelfdroid.expect.MediaManager
-import dev.halim.shelfdroid.expect.SessionManager
 import dev.halim.shelfdroid.network.Api
+import dev.halim.shelfdroid.player.SessionManager
+import dev.halim.shelfdroid.player.Timer
 import dev.halim.shelfdroid.repo.HomeRepository
+import dev.halim.shelfdroid.repo.PlayerRepository
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
-import dev.halim.shelfdroid.repo.PlayerRepository
 import dev.halim.shelfdroid.ui.screens.player.PlayerViewModel
 import dev.halim.shelfdroid.ui.screens.settings.SettingsViewModel
 import io.ktor.client.HttpClient
@@ -64,17 +65,11 @@ val appModule = module {
         CoroutineScope(Dispatchers.Default)
     }
     singleOf(::Api)
-    single<DataStoreManager>{ DataStoreManager(get(), get(), get(named(ComponentName.IO)))}
+    single<DataStoreManager> { DataStoreManager(get(), get(), get(named(ComponentName.IO))) }
     single<DataStore<Preferences>> { createDataStore(get()) }
     singleOf(::SessionManager)
-    single<MediaManager> {
-        MediaManager(
-            get(),
-            get(),
-            get(),
-            get(named(ComponentName.MAIN))
-        )
-    }
+    singleOf(::MediaManager)
+
     single {
         Json {
             ignoreUnknownKeys = true
@@ -109,6 +104,7 @@ val appModule = module {
     single<CoroutineScope>(named(ComponentName.MAIN)) { CoroutineScope(Dispatchers.Main + SupervisorJob()) }
 
     factory { StoreManager(get(), get(), get(named(ComponentName.IO))) }
+    single<Timer> { Timer(get(named(ComponentName.MAIN))) }
     singleOf(::DatabaseAdapter)
     singleOf(::PlayerRepository)
     singleOf(::HomeRepository)

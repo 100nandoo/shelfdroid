@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.expect
+package dev.halim.shelfdroid.player
 
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.SyncSessionRequest
@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 
 sealed class SessionEvent {
     data class ChangeItem(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : SessionEvent()
-    data class Play(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : SessionEvent()
+    data class Play(val itemId: String) : SessionEvent()
     data class Pause(val currentPosition: Long, val timeListened: Long) : SessionEvent()
 }
 
@@ -26,7 +26,7 @@ class SessionManager(
             is SessionEvent.Play -> {
                 io.launch {
                     sessionInitialized.await()
-                    startSession(event.shelfdroidMediaItem.id)
+                    startSession(event.itemId)
                 }
             }
             is SessionEvent.Pause -> {
@@ -34,7 +34,6 @@ class SessionManager(
                     syncSession(event.currentPosition, event.timeListened)
                 }
             }
-
         }
     }
 

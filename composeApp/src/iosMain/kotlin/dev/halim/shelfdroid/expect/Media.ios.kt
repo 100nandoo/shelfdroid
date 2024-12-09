@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.expect
 
 import dev.halim.shelfdroid.datastore.DataStoreManager
+import dev.halim.shelfdroid.player.SessionManager
+import dev.halim.shelfdroid.player.Timer
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +12,7 @@ import kotlin.time.Duration
 
 actual class MediaManager actual constructor(
     player: PlatformPlayer, dataStoreManager: DataStoreManager,
-    sessionManager: SessionManager, main: CoroutineScope
+    sessionManager: SessionManager, timer: Timer
 ) {
     private val _playerState = MutableStateFlow(MediaPlayerState())
     actual val playerState = _playerState.asStateFlow()
@@ -40,6 +42,9 @@ actual class MediaManager actual constructor(
     }
 
     actual fun changeChapter(item: ShelfdroidMediaItemImpl) {
+    }
+
+    actual fun play() {
     }
 }
 
