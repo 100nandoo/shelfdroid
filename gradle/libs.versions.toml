@@ -1,6 +1,6 @@
 [versions]
-code = "3"
-name = "v0.1.0"
+code = "4"
+name = "0.1.1"
 agp = "8.7.2"
 android-compileSdk = "35"
 android-minSdk = "24"
