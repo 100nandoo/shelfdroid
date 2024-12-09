@@ -1,3 +1,9 @@
+## 0.1.1 (2024-12-09)
+
+### Fix
+
+- **android.yaml**: fix trigger action when tag is push
+
 ## 0.1.0 (2024-12-09)
 
 ### Feat
