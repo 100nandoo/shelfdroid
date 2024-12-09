@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.MediaPlayerState
-import dev.halim.shelfdroid.expect.PlaybackState
 import dev.halim.shelfdroid.network.AudioBookmark
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.repo.PlayerRepository
@@ -63,6 +62,18 @@ class PlayerViewModel(
 
             is PlayerEvent.JumpToChapter -> {
                 jumpToChapter(event.target)
+            }
+
+            is PlayerEvent.JumpToBookmark -> {
+                val bookmark = _uiState.value.bookPlayerUiState.bookmarks[event.index]
+                val index = _uiState.value.bookPlayerUiState.chapters.indexOfFirst { chapter ->
+                    bookmark.time >= chapter.start && bookmark.time <= chapter.end
+                }
+                val chapter = _uiState.value.bookPlayerUiState.chapters[index]
+                val seekTime = (bookmark.time - chapter.start).toLong() * 1000
+                if (index >= 0) {
+                    jumpToChapter(index, seekTime)
+                }
             }
 
             is PlayerEvent.AddBookmark -> TODO()
@@ -157,11 +168,11 @@ class PlayerViewModel(
         }
     }
 
-    private fun jumpToChapter(target: Int) {
+    private fun jumpToChapter(target: Int, seekTime: Long = 0) {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
         if (target in bookPlayerUiState.chapters.indices) {
             val targetChapter = bookPlayerUiState.chapters[target]
-            val updatedBookPlayerUiState = BookPlayerUiState(bookPlayerUiState, targetChapter)
+            val updatedBookPlayerUiState = BookPlayerUiState(bookPlayerUiState, targetChapter, seekTime)
             mediaManager.changeChapter(updatedBookPlayerUiState.toImpl())
             _uiState.update {
                 it.copy(bookPlayerUiState = updatedBookPlayerUiState)
@@ -192,18 +203,20 @@ class BookPlayerUiState(
     constructor(
         existing: BookPlayerUiState,
         currentChapter: BookChapter = existing.currentChapter,
+        seekTime: Long = 0
     ) : this(
         id = existing.id,
         author = existing.author,
         title = existing.title,
         cover = existing.cover,
         url = existing.url,
-        seekTime = 0,
+        seekTime = seekTime,
         startTime = currentChapter.start.toLong() * 1000,
         endTime = currentChapter.end.toLong() * 1000,
-        progress = existing.progress,
         currentChapter = currentChapter,
-        chapters = existing.chapters
+        chapters = existing.chapters,
+        progress = existing.progress,
+        bookmarks = existing.bookmarks
     )
 }
 
@@ -238,6 +251,7 @@ sealed class PlayerEvent {
     data class ChangeSpeed(val speed: Float) : PlayerEvent()
     data class SetSleepTimer(val duration: Duration) : PlayerEvent()
     data class VolumeChanged(val volume: Float) : PlayerEvent()
+    data class JumpToBookmark(val index: Int) : PlayerEvent()
     data class AddBookmark(val currentTime: Double, val notes: String) : PlayerEvent()
     data class ProgressChangedFinish(val progress: Float) : PlayerEvent()
     data class ProgressChanged(val progress: Float) : PlayerEvent()

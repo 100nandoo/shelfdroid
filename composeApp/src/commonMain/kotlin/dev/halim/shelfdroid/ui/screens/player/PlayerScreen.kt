@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
@@ -437,6 +436,7 @@ private fun ChapterRow(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             "$startTime - $endTime",
             style = MaterialTheme.typography.labelMedium,
@@ -457,7 +457,7 @@ fun BookmarkBottomSheet(
             sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
         ) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(uiState.bookmarks) { audioBookmark ->
+                itemsIndexed(uiState.bookmarks) { index, audioBookmark ->
                     val time = formatTime(audioBookmark.time.toLong())
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -465,6 +465,10 @@ fun BookmarkBottomSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
+                            .clickable {
+                                onEvent(PlayerEvent.JumpToBookmark(index))
+                                scope.launch { sheetState.hide() }
+                            }
                     ) {
                         Text(
                             audioBookmark.title,
@@ -473,6 +477,9 @@ fun BookmarkBottomSheet(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f)
                         )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
                         Text(
                             time,
                             style = MaterialTheme.typography.labelMedium,

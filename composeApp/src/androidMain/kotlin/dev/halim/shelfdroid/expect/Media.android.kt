@@ -78,6 +78,7 @@ actual class MediaManager actual constructor(
         pause()
         changeItem(item)
         play()
+        seekTo(item.seekTime)
         dataStoreEventChangeMediaItem(item)
     }
 
