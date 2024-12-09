@@ -68,7 +68,7 @@ val appModule = module {
     single<DataStoreManager> { DataStoreManager(get(), get(), get(named(ComponentName.IO))) }
     single<DataStore<Preferences>> { createDataStore(get()) }
     singleOf(::SessionManager)
-    singleOf(::MediaManager)
+    single<MediaManager> { MediaManager(get(), get(), get(), get(), get(named(ComponentName.MAIN)))}
 
     single {
         Json {

@@ -50,7 +50,7 @@ class DataStoreManager(
                 io.launch {
                     val mediaItem = event.shelfdroidMediaItem
                     writeSerializable(
-                        ::ShelfdroidMediaItemImpl.name,
+                        "ShelfdroidMediaItemImpl",
                         mediaItem,
                         ShelfdroidMediaItemImpl.serializer()
                     )

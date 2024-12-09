@@ -60,9 +60,11 @@ class PlayerViewModel(
             PlayerEvent.NextChapter -> {
                 changeChapter(false)
             }
+
             is PlayerEvent.JumpToChapter -> {
                 jumpToChapter(event.target)
             }
+
             is PlayerEvent.AddBookmark -> TODO()
             is PlayerEvent.SetSleepTimer -> {
                 viewModelScope.launch {
@@ -98,9 +100,6 @@ class PlayerViewModel(
     private fun collectFlows() {
         viewModelScope.launch {
             mediaManager.playerState.collect {
-                if (it.playbackState == PlaybackState.Ended) {
-                    changeChapter(false)
-                }
                 if (it.item?.id == id) {
                     mediaManager.currentPosition.collect { position ->
                         _playerProgressUiState.emit(initProgressUiState(position))
@@ -180,14 +179,14 @@ class BookPlayerUiState(
     override val seekTime: Long = 0L,
     override val startTime: Long = 0L,
     override val endTime: Long = 0L,
+    override val currentChapter: BookChapter = BookChapter(),
+    override val chapters: List<BookChapter> = emptyList(),
     val progress: Float = 0f,
-    val chapters: List<BookChapter> = emptyList(),
-    val currentChapter: BookChapter = BookChapter(),
     val bookmarks: List<AudioBookmark> = emptyList()
 ) : ShelfdroidMediaItem() {
     override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
         id, author, title, cover, url, seekTime,
-        startTime, endTime
+        startTime, endTime, currentChapter, chapters
     )
 
     constructor(
@@ -203,8 +202,8 @@ class BookPlayerUiState(
         startTime = currentChapter.start.toLong() * 1000,
         endTime = currentChapter.end.toLong() * 1000,
         progress = existing.progress,
-        chapters = existing.chapters,
-        currentChapter = currentChapter
+        currentChapter = currentChapter,
+        chapters = existing.chapters
     )
 }
 

@@ -174,7 +174,7 @@ private fun handlePlaybackResumption(
     val settableFuture = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
     println("handlePlaybackResumption")
     val shelfdroidMediaItem = dataStoreManager.readSerializableBlocking(
-        ::ShelfdroidMediaItemImpl.name,
+        "ShelfdroidMediaItemImpl",
         ShelfdroidMediaItemImpl.serializer()
     )
     val mediaItems = mutableListOf<MediaItem>()

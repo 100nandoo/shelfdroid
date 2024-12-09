@@ -12,7 +12,8 @@ import kotlin.time.Duration
 
 actual class MediaManager actual constructor(
     player: PlatformPlayer, dataStoreManager: DataStoreManager,
-    sessionManager: SessionManager, timer: Timer
+    sessionManager: SessionManager, timer: Timer,
+    private val main: CoroutineScope
 ) {
     private val _playerState = MutableStateFlow(MediaPlayerState())
     actual val playerState = _playerState.asStateFlow()
@@ -46,10 +47,6 @@ actual class MediaManager actual constructor(
 
     actual fun play() {
     }
-}
-
-actual class PlatformMediaItem {
-    actual val id: String = ""
 }
 
 actual interface PlatformPlayer {

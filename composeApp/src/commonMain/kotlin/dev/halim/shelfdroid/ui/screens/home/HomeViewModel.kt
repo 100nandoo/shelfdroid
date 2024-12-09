@@ -109,12 +109,13 @@ data class BookUiState(
     override val seekTime: Long = 0L,
     override val startTime: Long = 0L,
     override val endTime: Long = 0L,
+    override val currentChapter: BookChapter = BookChapter(),
+    override val chapters: List<BookChapter> = emptyList(),
     val progress: Float = 0f,
-    val chapters: List<BookChapter> = emptyList()
 ) : ShelfdroidMediaItem() {
     override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
         id, author, title, cover, url, seekTime,
-        startTime, endTime
+        startTime, endTime, currentChapter, chapters
     )
 }
 
@@ -127,11 +128,13 @@ data class PodcastUiState(
     override val seekTime: Long = 0L,
     override val startTime: Long,
     override val endTime: Long,
+    override val currentChapter: BookChapter = BookChapter(),
+    override val chapters: List<BookChapter> = emptyList(),
     val episodeCount: Int,
 ) : ShelfdroidMediaItem() {
     override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
         id, author, title, cover, url, seekTime,
-        startTime, endTime
+        startTime, endTime, currentChapter, chapters
     )
 }
 

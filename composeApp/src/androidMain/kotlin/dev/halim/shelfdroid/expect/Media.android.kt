@@ -14,12 +14,14 @@ import dev.halim.shelfdroid.player.Timer
 import dev.halim.shelfdroid.player.TimerEvent
 import dev.halim.shelfdroid.player.TimerEventReturn
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
 actual class MediaManager actual constructor(
@@ -27,12 +29,13 @@ actual class MediaManager actual constructor(
     private val dataStoreManager: DataStoreManager,
     private val sessionManager: SessionManager,
     private val timer: Timer,
+    private val main: CoroutineScope
 ) {
     private val _playerState = MutableStateFlow(
         MediaPlayerState(
             isPlaying = player.isPlaying,
             playbackState = mapPlayerState(player.isPlaying, player.playbackState),
-            item = player.currentMediaItem?.let { PlatformMediaItem(it) },
+            item = null,
         )
     )
     actual val playerState = _playerState.asStateFlow()
@@ -48,6 +51,7 @@ actual class MediaManager actual constructor(
 
     init {
         setupPlayerListeners()
+        playerStatePlayingListener()
     }
 
     actual fun playBookUiState(item: ShelfdroidMediaItemImpl) {
@@ -67,6 +71,10 @@ actual class MediaManager actual constructor(
     }
 
     actual fun changeChapter(item: ShelfdroidMediaItemImpl) {
+        val timeListened = timerEventStop()
+        sessionEventPause(timeListened)
+        dataStoreEventUpdateCurrentPosition()
+
         pause()
         changeItem(item)
         play()
@@ -75,15 +83,10 @@ actual class MediaManager actual constructor(
 
     actual fun play() {
         player.play()
-        timerEventStartTimer()
-        sessionEventPlay()
     }
 
     actual fun pause() {
         player.pause()
-        val timeListened = timerEventStop()
-        sessionEventPause(timeListened)
-        dataStoreEventUpdateCurrentPosition()
     }
 
     actual fun seekForward() {
@@ -122,10 +125,39 @@ actual class MediaManager actual constructor(
             }
 
             Player.STATE_ENDED -> {
+                playerStateEndedListener()
                 PlaybackState.Ended
             }
 
             else -> _playerState.value.playbackState
+        }
+    }
+
+    private fun playerStatePlayingListener(){
+        main.launch {
+            _playerState.collect { state ->
+                if(state.playbackState == PlaybackState.Playing){
+                    timerEventStartTimer()
+                    sessionEventPlay()
+                } else if (state.playbackState == PlaybackState.Pause || state.playbackState == PlaybackState.Ended){
+                    val timeListened = timerEventStop()
+                    sessionEventPause(timeListened)
+                    dataStoreEventUpdateCurrentPosition()
+                }
+            }
+        }
+    }
+
+    private fun playerStateEndedListener(){
+        println("playerStateEnded is called")
+        val currentItem = _playerState.value.item
+        currentItem?.let { item ->
+            val currentChapterIndex = item.chapters.indexOfFirst { item.currentChapter.id == it.id }
+            val newChapterIndex = currentChapterIndex + 1
+            if (currentChapterIndex > 0 && newChapterIndex in item.chapters.indices){
+                println("playerStateEnded is called with new index = $newChapterIndex")
+                changeChapter(ShelfdroidMediaItemImpl(item, newChapterIndex))
+            }
         }
     }
 
@@ -139,11 +171,6 @@ actual class MediaManager actual constructor(
             override fun onPlayerError(error: PlaybackException) {
                 println("player error: ${error.errorCodeName}")
                 super.onPlayerError(error)
-            }
-
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                _playerState
-                    .update { it.copy(item = mediaItem?.let { PlatformMediaItem(it) }) }
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -196,6 +223,7 @@ actual class MediaManager actual constructor(
 
     private fun changeItem(item: ShelfdroidMediaItemImpl) {
         val mediaItem = item.toMediaItem()
+        _playerState.update { it.copy(item = item) }
         player.setMediaItem(mediaItem)
         player.prepare()
     }
@@ -219,10 +247,6 @@ fun ShelfdroidMediaItemImpl.toMediaItem(): MediaItem {
         )
         .build()
     return mediaItem
-}
-
-actual class PlatformMediaItem(mediaItem: MediaItem) {
-    actual val id: String = mediaItem.mediaId
 }
 
 actual typealias PlatformPlayer = Player

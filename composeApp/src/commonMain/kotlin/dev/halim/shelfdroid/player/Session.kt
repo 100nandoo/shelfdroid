@@ -25,7 +25,9 @@ class SessionManager(
             is SessionEvent.ChangeItem -> Unit
             is SessionEvent.Play -> {
                 io.launch {
-                    sessionInitialized.await()
+                    if (sessionId.isNotEmpty()){
+                        sessionInitialized.await()
+                    }
                     startSession(event.itemId)
                 }
             }
