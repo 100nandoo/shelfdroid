@@ -28,9 +28,9 @@ class HomeViewModel(
         .onStart { apis(fresh = true) }
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
 
-    private val _navState = MutableStateFlow(Pair(false, ""))
+    private val _navState = MutableStateFlow(NavUiState())
     val navState = _navState
-        .stateIn(viewModelScope, SharingStarted.Lazily, Pair(false, ""))
+        .stateIn(viewModelScope, SharingStarted.Lazily, NavUiState())
 
     val playerState = mediaManager.playerState
         .stateIn(viewModelScope, SharingStarted.Lazily, MediaPlayerState())
@@ -39,8 +39,10 @@ class HomeViewModel(
         when (event) {
             is HomeEvent.RefreshLibrary -> currentLibraryItems(event.page, true)
             is HomeEvent.ChangeLibrary -> currentLibraryItems(event.page, false)
-            is HomeEvent.NavigateToPlayer -> {
-                navigateToPlayer(event.bookUiState.id)
+            is HomeEvent.Navigate -> {
+                viewModelScope.launch {
+                    _navState.update { _navState.value.copy(id = event.id, isBook = event.isBook, isNavigate = true) }
+                }
             }
 
             is HomeEvent.PlayBook -> {
@@ -49,14 +51,8 @@ class HomeViewModel(
         }
     }
 
-    private fun navigateToPlayer(itemId: String) {
-        viewModelScope.launch {
-            _navState.update { _navState.value.copy(true, itemId) }
-        }
-    }
-
     fun resetNavigationState() {
-        _navState.update { it.copy(first = false) }
+        _navState.update { it.copy(isNavigate = false) }
     }
 
     private val handler = CoroutineExceptionHandler { _, exception ->
@@ -143,6 +139,12 @@ data class LibraryUiState(
     val name: String = "",
 )
 
+data class NavUiState(
+    val id: String = "",
+    val isBook: Boolean = true,
+    val isNavigate: Boolean = false
+)
+
 sealed class HomeState {
     data object Loading : HomeState()
     data object Success : HomeState()
@@ -152,6 +154,6 @@ sealed class HomeState {
 sealed class HomeEvent {
     data class ChangeLibrary(val page: Int) : HomeEvent()
     data class RefreshLibrary(val page: Int) : HomeEvent()
-    data class NavigateToPlayer(val bookUiState: BookUiState) : HomeEvent()
+    data class Navigate(val id: String, val isBook: Boolean) : HomeEvent()
     data class PlayBook(val mediaItemImpl: ShelfdroidMediaItemImpl) : HomeEvent()
 }

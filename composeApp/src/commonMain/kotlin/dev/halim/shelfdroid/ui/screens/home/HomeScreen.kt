@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -46,7 +47,7 @@ import dev.halim.shelfdroid.ui.generic.GenericMessageScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (String) -> Unit) {
+fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (String) -> Unit, onPodcastClicked: (String) -> Unit) {
     val viewModel = koinViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val libraryCount = uiState.librariesUiState.size
@@ -67,10 +68,15 @@ fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (String) -> Unit) {
     }
 
     LaunchedEffect(Unit) {
-        viewModel.navState.collect { (isNavigate, id) ->
-            if (isNavigate) {
-                onBookClicked(id)
+        viewModel.navState.collect { navUiState ->
+            if (navUiState.isNavigate) {
+                if (navUiState.isBook) {
+                    onBookClicked(navUiState.id)
+                } else {
+                    onPodcastClicked(navUiState.id)
+                }
                 viewModel.resetNavigationState()
+
             }
         }
     }
@@ -121,10 +127,8 @@ fun HomeScreenContent(
                 modifier = Modifier.weight(1f),
                 list = uiState.libraryItemsUiState[page],
                 playerState = playerState,
-                onEvent = onEvent
-            )
-            LibraryHeader(
-                name = uiState.librariesUiState[page].name,
+                onEvent = onEvent,
+                headerName = uiState.librariesUiState[page].name,
                 onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) }
             )
             if (loadingIndicatorAlpha.value > 0f) {
@@ -174,6 +178,8 @@ fun LibraryContent(
     list: List<ShelfdroidMediaItem>?,
     playerState: MediaPlayerState,
     onEvent: (HomeEvent) -> Unit,
+    headerName: String,
+    onRefresh: () -> Unit,
 ) {
     if (list?.isNotEmpty() == true) {
         val gridState = rememberLazyGridState(
@@ -184,10 +190,18 @@ fun LibraryContent(
             columns = GridCells.Adaptive(minSize = 160.dp),
             modifier = modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(horizontal = 16.dp),
             reverseLayout = true,
             verticalArrangement = Arrangement.Bottom
         ) {
+            item(span = {
+                GridItemSpan(maxLineSpan)
+            }) {
+                LibraryHeader(
+                    name = headerName,
+                    onRefresh = onRefresh
+                )
+            }
             items(
                 items = list,
                 key = { it.id }

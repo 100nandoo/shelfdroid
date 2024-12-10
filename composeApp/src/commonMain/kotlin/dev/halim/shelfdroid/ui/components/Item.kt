@@ -48,7 +48,7 @@ fun HomeBook(
 ) {
     Card(
         modifier = modifier.padding(4.dp),
-        onClick = { if (uiState is BookUiState) onEvent(HomeEvent.NavigateToPlayer(uiState)) },
+        onClick = { onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState)) },
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

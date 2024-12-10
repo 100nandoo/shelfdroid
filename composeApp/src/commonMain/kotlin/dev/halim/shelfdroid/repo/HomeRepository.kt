@@ -51,9 +51,9 @@ class HomeRepository(private val storeManager: StoreManager, private val api: Ap
             if (fresh) storeManager.itemStore.freshOrCached(itemKey)
             else storeManager.itemStore.cached(itemKey)
         val user = getUser(fresh)
-        val progresses = user?.mediaProgress
+        val progresses = user.mediaProgress
         return result.asCollection().data.map { item ->
-            val itemProgress = progresses?.firstOrNull { item.id == it.libraryItemId }
+            val itemProgress = progresses.firstOrNull { item.id == it.libraryItemId }
             toUiState(item, itemProgress)
         }
     }

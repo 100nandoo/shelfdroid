@@ -20,10 +20,6 @@ import dev.halim.shelfdroid.player.Timer
 import dev.halim.shelfdroid.repo.HomeRepository
 import dev.halim.shelfdroid.repo.PlayerRepository
 import dev.halim.shelfdroid.store.StoreManager
-import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
-import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
-import dev.halim.shelfdroid.ui.screens.player.PlayerViewModel
-import dev.halim.shelfdroid.ui.screens.settings.SettingsViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
@@ -35,8 +31,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import org.koin.core.module.dsl.singleOf
-import org.koin.core.module.dsl.viewModel
-import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -46,14 +40,6 @@ object ComponentName {
 }
 
 val appModule = module {
-    viewModelOf(::LoginViewModel)
-    viewModelOf(::SettingsViewModel)
-    viewModelOf(::HomeViewModel)
-    viewModelOf(::PlayerViewModel)
-    viewModel { (id: String) ->
-        PlayerViewModel(get(), get(), id)
-    }
-
     single {
         HttpClient {
             install(ContentNegotiation) {
@@ -68,7 +54,7 @@ val appModule = module {
     single<DataStoreManager> { DataStoreManager(get(), get(), get(named(ComponentName.IO))) }
     single<DataStore<Preferences>> { createDataStore(get()) }
     singleOf(::SessionManager)
-    single<MediaManager> { MediaManager(get(), get(), get(), get(), get(named(ComponentName.MAIN)))}
+    single<MediaManager> { MediaManager(get(), get(), get(), get(), get(named(ComponentName.MAIN))) }
 
     single {
         Json {
