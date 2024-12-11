@@ -13,7 +13,7 @@ class Database(databaseDriverFactory: DatabaseDriverFactory, adapter: DatabaseAd
     private val database = ShelfdroidDb(
         databaseDriverFactory.createDriver(),
         LibraryEntityAdapter = LibraryEntity.Adapter(adapter.listOfStringsAdapter),
-        ItemEntityAdapter = ItemEntity.Adapter(adapter.listOfBookChaptersAdapter),
+        ItemEntityAdapter = ItemEntity.Adapter(adapter.listOfBookChaptersAdapter, adapter.listOfEpisodesAdapter),
         UserEntityAdapter = UserEntity.Adapter(adapter.listOfMediaProgressAdapter, adapter.listOfAudioBookmarkAdapter)
     )
     val libraryDao = LibraryDao(database.libraryQueries)

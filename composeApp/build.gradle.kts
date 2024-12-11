@@ -87,6 +87,7 @@ kotlin {
             implementation(libs.ktor.serialization.json)
 
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.datetime)
 
             implementation(libs.sqldelight.coroutines)
 

@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.db
 
 import app.cash.sqldelight.ColumnAdapter
+import dev.halim.shelfdroid.db.model.Episode
 import dev.halim.shelfdroid.network.AudioBookmark
 import dev.halim.shelfdroid.network.MediaProgress
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
@@ -29,6 +30,18 @@ class DatabaseAdapter(private val json: Json) {
 
         override fun encode(value: List<BookChapter>): String = json.encodeToString(value)
     }
+
+    val listOfEpisodesAdapter = object : ColumnAdapter<List<Episode>, String> {
+        override fun decode(databaseValue: String): List<Episode> =
+            if (databaseValue.isBlank()) {
+                listOf()
+            } else {
+                json.decodeFromString<List<Episode>>(databaseValue)
+            }
+
+        override fun encode(value: List<Episode>): String = json.encodeToString(value)
+    }
+
 
     val listOfMediaProgressAdapter = object : ColumnAdapter<List<MediaProgress>, String> {
         override fun decode(databaseValue: String): List<MediaProgress> =

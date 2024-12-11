@@ -18,8 +18,10 @@ class ItemDao(private val itemQuery: ItemQueries) {
             itemEntity.author,
             itemEntity.title,
             itemEntity.cover,
+            itemEntity.description,
             itemEntity.mediaType,
             itemEntity.chapters,
+            itemEntity.episodes
         )
     }
 

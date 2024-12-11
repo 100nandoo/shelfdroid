@@ -83,6 +83,8 @@ data class PodcastEpisode(
     val pubDate: String? = null,
     @SerialName("audioFile")
     val audioFile: AudioFile = AudioFile(),
+    @SerialName("audioTrack")
+    val audioTrack: AudioTrack = AudioTrack(),
     @SerialName("publishedAt")
     val publishedAt: Long? = null,
     @SerialName("addedAt")

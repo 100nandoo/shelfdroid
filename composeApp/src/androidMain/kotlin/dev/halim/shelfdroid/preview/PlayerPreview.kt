@@ -2,9 +2,7 @@ package dev.halim.shelfdroid.preview
 
 import ShelfDroidPreview
 import androidx.compose.runtime.Composable
-import dev.halim.shelfdroid.di.appModule
-import dev.halim.shelfdroid.di.viewModelModule
-import dev.halim.shelfdroid.expect.targetModule
+import dev.halim.shelfdroid.di.allModules
 import dev.halim.shelfdroid.ui.screens.player.BookPlayerUiState
 import dev.halim.shelfdroid.ui.screens.player.PlayerScreenContent
 import org.koin.compose.KoinApplication
@@ -13,7 +11,7 @@ import org.koin.compose.KoinApplication
 @Composable
 fun PlayerContentPreview() {
     KoinApplication(application = {
-        modules(targetModule, appModule, viewModelModule)
+        modules(allModules)
     }) {
         ShelfDroidPreview { paddingValues ->
             PlayerScreenContent(paddingValues = paddingValues, BookPlayerUiState("1", "Sun Ra", "The Art of Peace"))

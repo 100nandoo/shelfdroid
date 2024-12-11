@@ -14,12 +14,19 @@ import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.db.DatabaseAdapter
 import dev.halim.shelfdroid.expect.MediaManager
+import dev.halim.shelfdroid.expect.targetModule
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.player.SessionManager
 import dev.halim.shelfdroid.player.Timer
 import dev.halim.shelfdroid.repo.HomeRepository
 import dev.halim.shelfdroid.repo.PlayerRepository
+import dev.halim.shelfdroid.repo.PodcastRepository
 import dev.halim.shelfdroid.store.StoreManager
+import dev.halim.shelfdroid.ui.screens.detail.PodcastViewModel
+import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
+import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
+import dev.halim.shelfdroid.ui.screens.player.PlayerViewModel
+import dev.halim.shelfdroid.ui.screens.settings.SettingsViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
@@ -31,6 +38,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -39,7 +48,8 @@ object ComponentName {
     const val MAIN = "main"
 }
 
-val appModule = module {
+
+private val appModule = module {
     single {
         HttpClient {
             install(ContentNegotiation) {
@@ -92,6 +102,27 @@ val appModule = module {
     factory { StoreManager(get(), get(), get(named(ComponentName.IO))) }
     single<Timer> { Timer(get(named(ComponentName.MAIN))) }
     singleOf(::DatabaseAdapter)
+
+}
+
+private val viewModelModule = module {
+    viewModelOf(::LoginViewModel)
+    viewModelOf(::SettingsViewModel)
+    viewModelOf(::HomeViewModel)
+    viewModelOf(::PlayerViewModel)
+    viewModel { (id: String) ->
+        PlayerViewModel(get(), get(), id)
+    }
+    viewModel { (id: String) ->
+        PodcastViewModel(get(), id)
+    }
+
+}
+
+private val repositoryModule = module {
     singleOf(::PlayerRepository)
     singleOf(::HomeRepository)
+    singleOf(::PodcastRepository)
 }
+
+val allModules = listOf(targetModule, appModule, repositoryModule, viewModelModule)

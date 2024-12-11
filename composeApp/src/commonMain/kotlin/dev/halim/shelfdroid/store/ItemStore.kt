@@ -2,10 +2,12 @@ package dev.halim.shelfdroid.store
 
 import dev.halim.shelfdroid.db.Database
 import dev.halim.shelfdroid.db.ItemEntity
+import dev.halim.shelfdroid.db.model.Episode
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.LibraryItem
 import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.network.libraryitem.Podcast
+import dev.halim.shelfdroid.network.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.store.ItemExtensions.toEntity
 import kotlinx.coroutines.flow.map
 import org.mobilenativefoundation.store.store5.Fetcher
@@ -26,25 +28,54 @@ sealed class ItemKey {
 }
 
 object ItemExtensions {
+    fun PodcastEpisode.toEpisode(): Episode {
+        return Episode(
+            id = id,
+            ino = audioFile.ino,
+            title = title,
+            description = description ?: "",
+            subtitle = subtitle ?: "",
+            publishedAt = publishedAt ?: 0L,
+            seekTime = 0L,
+            progress = 0f
+        )
+    }
+
+
     fun LibraryItem.toEntity(api: Api): ItemEntity {
         return when (media) {
             is Book -> {
                 val cover = api.generateItemCoverUrl(id)
                 val inoId = media.audioFiles.first().ino
                 val author = media.metadata.authors.joinToString { it.name }
+                val description = media.metadata.description
                 val title = media.metadata.title ?: ""
                 val chapters = media.chapters
-                ItemEntity(this.id, inoId, libraryId, author, title, cover, mediaType, chapters)
+                ItemEntity(
+                    this.id,
+                    inoId,
+                    libraryId,
+                    author,
+                    title,
+                    cover,
+                    description,
+                    mediaType,
+                    chapters,
+                    emptyList()
+                )
             }
 
             is Podcast -> {
                 val author = media.metadata.author
                 val title = media.metadata.title ?: ""
+                val description = media.metadata.description
                 val cover = api.generateItemCoverUrl(id)
-                ItemEntity(this.id, "", libraryId, author, title, cover, mediaType, emptyList())
+                val episodes = media.episodes.map { it.toEpisode() }
+                ItemEntity(this.id, "", libraryId, author, title, cover, description, mediaType, emptyList(), episodes)
             }
         }
     }
+
 }
 
 typealias ItemOutput = StoreOutput<ItemEntity>
