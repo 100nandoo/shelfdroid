@@ -1,3 +1,10 @@
+## 0.2.0 (2024-12-11)
+
+### Feat
+
+- **PodcastScreen**: podcast detail and episode list
+- **PodcastScreen**: skeleton for Podcast detail screen
+
 ## 0.1.1 (2024-12-09)
 
 ### Fix
