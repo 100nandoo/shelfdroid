@@ -13,7 +13,9 @@ import dev.halim.shelfdroid.player.SessionManager
 import dev.halim.shelfdroid.player.Timer
 import dev.halim.shelfdroid.player.TimerEvent
 import dev.halim.shelfdroid.player.TimerEventReturn
-import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import dev.halim.shelfdroid.ui.MediaItemBook
+import dev.halim.shelfdroid.ui.MediaItemPodcast
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -35,7 +37,7 @@ actual class MediaManager actual constructor(
         MediaPlayerState(
             isPlaying = player.isPlaying,
             playbackState = mapPlayerState(player.isPlaying, player.playbackState),
-            item = null,
+            book = null,
         )
     )
     actual val playerState = _playerState.asStateFlow()
@@ -54,10 +56,10 @@ actual class MediaManager actual constructor(
         playerStatePlayingListener()
     }
 
-    actual fun playBookUiState(item: ShelfdroidMediaItemImpl) {
-        if (_playerState.value.item?.id != item.id) {
+    actual fun playBook(item: MediaItemBook) {
+        if (_playerState.value.itemId != item.id) {
             pause()
-            changeItem(item)
+            changeBook(item)
             play()
             seekTo(item.seekTime)
             dataStoreEventChangeMediaItem(item)
@@ -70,16 +72,32 @@ actual class MediaManager actual constructor(
         }
     }
 
-    actual fun changeChapter(item: ShelfdroidMediaItemImpl) {
+    actual fun changeChapter(item: MediaItemBook) {
         val timeListened = timerEventStop()
         sessionEventPause(timeListened)
         dataStoreEventUpdateCurrentPosition()
 
         pause()
-        changeItem(item)
+        changeBook(item)
         play()
         seekTo(item.seekTime)
         dataStoreEventChangeMediaItem(item)
+    }
+
+    actual fun playPodcast(item: MediaItemPodcast) {
+        if (_playerState.value.itemId != item.id) {
+            pause()
+            changePodcast(item)
+            play()
+            seekTo(item.seekTime)
+            dataStoreEventChangeMediaItem(item)
+        } else {
+            if (_playerState.value.isPlaying) {
+                pause()
+            } else {
+                play()
+            }
+        }
     }
 
     actual fun play() {
@@ -106,7 +124,7 @@ actual class MediaManager actual constructor(
         player.setPlaybackSpeed(speed)
     }
 
-    actual fun setSleepTimer(duration: Duration){
+    actual fun setSleepTimer(duration: Duration) {
         timerEventStartSleepTimer(duration)
     }
 
@@ -134,13 +152,13 @@ actual class MediaManager actual constructor(
         }
     }
 
-    private fun playerStatePlayingListener(){
+    private fun playerStatePlayingListener() {
         main.launch {
             _playerState.collect { state ->
-                if(state.playbackState == PlaybackState.Playing){
+                if (state.playbackState == PlaybackState.Playing) {
                     timerEventStartTimer()
                     sessionEventPlay()
-                } else if (state.playbackState == PlaybackState.Pause || state.playbackState == PlaybackState.Ended){
+                } else if (state.playbackState == PlaybackState.Pause || state.playbackState == PlaybackState.Ended) {
                     val timeListened = timerEventStop()
                     sessionEventPause(timeListened)
                     dataStoreEventUpdateCurrentPosition()
@@ -149,15 +167,15 @@ actual class MediaManager actual constructor(
         }
     }
 
-    private fun playerStateEndedListener(){
+    private fun playerStateEndedListener() {
         println("playerStateEnded is called")
-        val currentItem = _playerState.value.item
+        val currentItem = _playerState.value.book
         currentItem?.let { item ->
             val currentChapterIndex = item.chapters.indexOfFirst { item.currentChapter.id == it.id }
             val newChapterIndex = currentChapterIndex + 1
-            if (currentChapterIndex > 0 && newChapterIndex in item.chapters.indices){
+            if (currentChapterIndex > 0 && newChapterIndex in item.chapters.indices) {
                 println("playerStateEnded is called with new index = $newChapterIndex")
-                changeChapter(ShelfdroidMediaItemImpl(item, newChapterIndex))
+                changeChapter(MediaItemBook(item, newChapterIndex))
             }
         }
     }
@@ -187,7 +205,15 @@ actual class MediaManager actual constructor(
     }
 
     private fun sessionEventPlay() {
-        _playerState.value.item?.id?.let { itemId -> sessionManager.onEvent(SessionEvent.Play(itemId)) }
+        if (_playerState.value.podcast == null) {
+            _playerState.value.itemId?.let { itemId -> sessionManager.onEvent(SessionEvent.PlayBook(itemId)) }
+        } else {
+            _playerState.value.itemId?.let { itemId ->
+                _playerState.value.podcast?.let { podcast ->
+                    sessionManager.onEvent(SessionEvent.PlayPodcast(podcast.libraryItemId, itemId))
+                }
+            }
+        }
     }
 
     private fun sessionEventPause(timeListened: Long) {
@@ -213,7 +239,7 @@ actual class MediaManager actual constructor(
         )
     }
 
-    private fun dataStoreEventChangeMediaItem(shelfdroidMediaItem: ShelfdroidMediaItemImpl) {
+    private fun dataStoreEventChangeMediaItem(shelfdroidMediaItem: ShelfdroidMediaItem) {
         dataStoreManager.onEvent(DataStoreEvent.MediaItemChanged(shelfdroidMediaItem))
     }
 
@@ -222,15 +248,36 @@ actual class MediaManager actual constructor(
         dataStoreManager.onEvent(DataStoreEvent.UpdateCurrentPosition(currentPosition))
     }
 
-    private fun changeItem(item: ShelfdroidMediaItemImpl) {
+    private fun changeBook(item: MediaItemBook) {
         val mediaItem = item.toMediaItem()
-        _playerState.update { it.copy(item = item) }
+        _playerState.update { it.copy(book = item, itemId = item.id, podcast = null) }
+        player.setMediaItem(mediaItem)
+        player.prepare()
+    }
+
+    private fun changePodcast(item: MediaItemPodcast) {
+        val mediaItem = item.toMediaItem()
+        _playerState.update { it.copy(podcast = item, itemId = item.id, book = null) }
         player.setMediaItem(mediaItem)
         player.prepare()
     }
 }
 
-fun ShelfdroidMediaItemImpl.toMediaItem(): MediaItem {
+fun MediaItemPodcast.toMediaItem(): MediaItem {
+    val metadata = MediaMetadata.Builder()
+        .setTitle(this.title)
+        .setArtist(this.author)
+        .setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST)
+        .build()
+    val mediaItem = MediaItem.Builder()
+        .setUri(this.url)
+        .setMediaId(this.id)
+        .setMediaMetadata(metadata)
+        .build()
+    return mediaItem
+}
+
+fun MediaItemBook.toMediaItem(): MediaItem {
     val metadata = MediaMetadata.Builder()
         .setTitle(this.title)
         .setArtist(this.author)

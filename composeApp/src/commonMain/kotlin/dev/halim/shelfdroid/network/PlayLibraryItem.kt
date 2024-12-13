@@ -12,7 +12,7 @@ data class DeviceInfoRequest(
 )
 
 @Serializable
-data class PlayBookRequest(
+data class PlayLibraryItemRequest(
     val deviceInfo: DeviceInfoRequest,
     val forceDirectPlay: Boolean,
     val forceTranscode: Boolean,
@@ -21,7 +21,7 @@ data class PlayBookRequest(
 )
 
 @Serializable
-data class PlayBookResponse(
+data class PlayLibraryItemResponse(
     @SerialName("id")
     val id: String = "",
     @SerialName("userId")

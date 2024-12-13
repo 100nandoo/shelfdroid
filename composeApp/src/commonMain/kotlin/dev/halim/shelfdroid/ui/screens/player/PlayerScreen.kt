@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Bookmark
@@ -46,22 +45,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.expect.MediaPlayerState
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.theme.JetbrainsMonoFontFamily
-import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.components.IconButton
-import dev.halim.shelfdroid.ui.components.ItemCover
-import dev.halim.shelfdroid.ui.components.LibraryItemPlayIcon
+import dev.halim.shelfdroid.ui.components.ItemBasicContent
+import dev.halim.shelfdroid.ui.components.ItemPlayIcon
 import dev.halim.shelfdroid.utility.formatTime
 import dev.halim.shelfdroid.utility.sleepTimerMinute
 import kotlinx.coroutines.CoroutineScope
@@ -117,13 +114,13 @@ fun PlayerScreenContent(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        BasicPlayerContent(imageUrl, title, authorName)
+        ItemBasicContent(imageUrl, title, authorName)
         Spacer(modifier = Modifier.height(16.dp))
 
         PlayerProgress(progressUiState, onEvent)
         Spacer(modifier = Modifier.height(16.dp))
 
-        BasicPlayerControl(uiState.toImpl(), playerState, onEvent)
+        BasicPlayerControl(uiState, playerState, onEvent)
         Spacer(modifier = Modifier.height(16.dp))
 
         AdvancedPlayerControl(advanceUiState, paddingValues, onEvent)
@@ -134,32 +131,7 @@ fun PlayerScreenContent(
     }
 }
 
-@Composable
-fun BasicPlayerContent(
-    url: String,
-    title: String,
-    authorName: String,
-) {
-    ItemCover(url, RoundedCornerShape(8.dp))
 
-    Spacer(modifier = Modifier.height(16.dp))
-
-    Text(
-        text = title,
-        style = MaterialTheme.typography.headlineLarge,
-        textAlign = TextAlign.Center
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Text(
-        text = authorName,
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.Gray,
-        textAlign = TextAlign.Center
-    )
-
-}
 
 @Composable
 fun PlayerProgress(
@@ -196,7 +168,7 @@ fun PlayerProgress(
 
 @Composable
 fun BasicPlayerControl(
-    shelfdroidMediaItemImpl: ShelfdroidMediaItemImpl,
+    shelfdroidMediaItemImpl: ShelfdroidMediaItem,
     playerState: MediaPlayerState,
     onEvent: (PlayerEvent) -> Unit
 ) {
@@ -217,7 +189,7 @@ fun BasicPlayerControl(
             onClick = { onEvent(PlayerEvent.SeekBack) }
         )
 
-        LibraryItemPlayIcon(
+        ItemPlayIcon(
             shelfdroidMediaItemImpl,
             { onEvent(PlayerEvent.PlayBook) },
             playerState

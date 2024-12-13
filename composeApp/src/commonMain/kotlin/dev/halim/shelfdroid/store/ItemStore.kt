@@ -31,6 +31,7 @@ object ItemExtensions {
     fun PodcastEpisode.toEpisode(): Episode {
         return Episode(
             id = id,
+            libraryItemId = libraryItemId,
             ino = audioFile.ino,
             title = title,
             description = description ?: "",

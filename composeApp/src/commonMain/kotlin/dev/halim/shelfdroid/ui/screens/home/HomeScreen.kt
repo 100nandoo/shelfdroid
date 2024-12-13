@@ -41,8 +41,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.expect.MediaPlayerState
+import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
-import dev.halim.shelfdroid.ui.components.HomeBook
+import dev.halim.shelfdroid.ui.components.HomeItem
 import dev.halim.shelfdroid.ui.generic.GenericMessageScreen
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -206,7 +207,7 @@ fun LibraryContent(
                 items = list,
                 key = { it.id }
             ) { libraryItem ->
-                HomeBook(
+                HomeItem(
                     uiState = libraryItem,
                     modifier = Modifier,
                     playerState = playerState,
@@ -215,5 +216,4 @@ fun LibraryContent(
             }
         }
     }
-
 }

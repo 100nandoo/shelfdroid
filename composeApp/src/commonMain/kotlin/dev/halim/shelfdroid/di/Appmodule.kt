@@ -114,7 +114,7 @@ private val viewModelModule = module {
         PlayerViewModel(get(), get(), id)
     }
     viewModel { (id: String) ->
-        PodcastViewModel(get(), id)
+        PodcastViewModel(get(),get(), id)
     }
 
 }

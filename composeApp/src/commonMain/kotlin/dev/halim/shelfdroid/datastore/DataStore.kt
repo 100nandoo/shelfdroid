@@ -8,7 +8,10 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.halim.shelfdroid.Holder
 import dev.halim.shelfdroid.expect.PlatformContext
-import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import dev.halim.shelfdroid.ui.MediaItemType
+import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
+import dev.halim.shelfdroid.ui.MediaItemBook
+import dev.halim.shelfdroid.ui.MediaItemPodcast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -26,8 +30,8 @@ expect fun createDataStore(platformContext: PlatformContext): DataStore<Preferen
 internal const val dataStoreFileName = "shelfdroid.preferences_pb"
 
 sealed class DataStoreEvent {
-    data class MediaItemChanged(val shelfdroidMediaItem: ShelfdroidMediaItemImpl) : DataStoreEvent()
-    data class UpdateCurrentPosition(val value: Long): DataStoreEvent()
+    data class MediaItemChanged(val item: ShelfdroidMediaItem) : DataStoreEvent()
+    data class UpdateCurrentPosition(val value: Long) : DataStoreEvent()
 }
 
 class DataStoreManager(
@@ -40,6 +44,8 @@ class DataStoreManager(
         val DEVICE_ID = stringPreferencesKey("device_id")
         val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
         val CURRENT_POSITION = longPreferencesKey("current_position")
+        val CURRENT_ITEM = stringPreferencesKey("current_item")
+        val CURRENT_ITEM_TYPE = stringPreferencesKey("current_item_type")
 
         fun <T> serializedKey(name: String) = stringPreferencesKey("serialized_$name")
     }
@@ -48,12 +54,12 @@ class DataStoreManager(
         when (event) {
             is DataStoreEvent.MediaItemChanged -> {
                 io.launch {
-                    val mediaItem = event.shelfdroidMediaItem
-                    writeSerializable(
-                        "ShelfdroidMediaItemImpl",
-                        mediaItem,
-                        ShelfdroidMediaItemImpl.serializer()
-                    )
+                    val mediaItem = event.item
+                    if (mediaItem is MediaItemPodcast) {
+                        writeItemPodcast(mediaItem)
+                    } else if (mediaItem is MediaItemBook) {
+                        writeItemBook(mediaItem)
+                    }
                     setCurrentPosition(mediaItem.seekTime)
                 }
             }
@@ -108,6 +114,35 @@ class DataStoreManager(
         writeString(Keys.serializedKey<T>(name), jsonString)
     }
 
+    suspend fun writeItemBook(value: MediaItemBook) {
+        setCurrentItemType(value.type.name)
+        val jsonString = json.encodeToString(value)
+        writeString(Keys.CURRENT_ITEM, jsonString)
+    }
+
+    suspend fun writeItemPodcast(value: MediaItemPodcast) {
+        setCurrentItemType(value.type.name)
+        val jsonString = json.encodeToString(value)
+        writeString(Keys.CURRENT_ITEM, jsonString)
+    }
+
+    fun getCurrentItemBlocking(): ShelfdroidMediaItem {
+        return runBlocking {
+            val jsonString = readString(Keys.CURRENT_ITEM).first()
+            if (currentItemType.first() == MediaItemType.Podcast.name) {
+                json.decodeFromString<MediaItemPodcast>(jsonString)
+            } else if (currentItemType.first() == MediaItemType.Book.name) {
+                json.decodeFromString<MediaItemBook>(jsonString)
+            }
+            json.decodeFromString<ShelfdroidMediaItem>(jsonString)
+        }
+    }
+
+    val currentItemType: Flow<String> = readString(Keys.CURRENT_ITEM_TYPE)
+    suspend fun setCurrentItemType(value: String) {
+        writeString(Keys.CURRENT_ITEM_TYPE, value)
+    }
+
     suspend fun clear() = dataStore.edit { it.clear() }
 
 
@@ -134,6 +169,7 @@ class DataStoreManager(
         Holder.token = value
         writeString(Keys.TOKEN, value)
     }
+
     val tokenBlocking: String? = runBlocking {
         dataStore.data.firstOrNull()?.get(Keys.TOKEN)
     }

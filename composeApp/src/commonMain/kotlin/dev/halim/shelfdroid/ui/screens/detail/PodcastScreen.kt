@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,8 +22,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.db.model.Episode
-import dev.halim.shelfdroid.ui.screens.player.BasicPlayerContent
+import dev.halim.shelfdroid.expect.MediaPlayerState
+import dev.halim.shelfdroid.ui.components.ItemBasicContent
+import dev.halim.shelfdroid.ui.components.ItemPlayIcon
+import dev.halim.shelfdroid.ui.components.ItemPlayIconSize
+import dev.halim.shelfdroid.ui.components.ItemProgressIndicator
 import dev.halim.shelfdroid.utility.toPercent
 import dev.halim.shelfdroid.utility.toReadableDate
 import org.koin.compose.viewmodel.koinViewModel
@@ -33,9 +36,12 @@ import org.koin.core.parameter.parametersOf
 fun PodcastScreen(paddingValues: PaddingValues, id: String) {
     val viewModel: PodcastViewModel = koinViewModel(parameters = { parametersOf(id) })
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
+    val playerState by viewModel.playerState.collectAsStateWithLifecycle()
+
     if (uiState.state == PodcastState.Success) {
         PodcastDetailContent(
-            paddingValues, uiState.cover, uiState.title, uiState.author, uiState.description,
+            paddingValues, playerState, { event -> viewModel.onEvent(event) }, uiState.cover, uiState.title,
+            uiState.author, uiState.description,
             uiState.episodes
         )
     }
@@ -44,11 +50,13 @@ fun PodcastScreen(paddingValues: PaddingValues, id: String) {
 @Composable
 fun PodcastDetailContent(
     paddingValues: PaddingValues = PaddingValues(),
+    playerState: MediaPlayerState = MediaPlayerState(),
+    onEvent: (PodcastEvent) -> Unit,
     imageUrl: String = "",
     title: String = "Chapter 26",
     authorName: String = "Adam",
     description: String = "This is very cool podcast",
-    episodes: List<Episode> = emptyList()
+    episodes: List<EpisodeUiState> = emptyList()
 ) {
     LazyColumn(
         modifier = Modifier
@@ -59,7 +67,7 @@ fun PodcastDetailContent(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(episodes) { episode ->
-            EpisodeItem(episode)
+            EpisodeItem(episode, playerState, onEvent)
         }
         item {
             Text(
@@ -72,50 +80,53 @@ fun PodcastDetailContent(
             Text(description)
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                BasicPlayerContent(imageUrl, title, authorName)
+                ItemBasicContent(imageUrl, title, authorName)
             }
         }
     }
 }
 
 @Composable
-fun EpisodeItem(episode: Episode) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+fun EpisodeItem(episode: EpisodeUiState, playerState: MediaPlayerState, onEvent: (PodcastEvent) -> Unit = {}) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = episode.title,
-            style = MaterialTheme.typography.bodyLarge,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Row {
+        ItemPlayIcon(episode, { onEvent(PodcastEvent.Play(episode)) }, playerState, ItemPlayIconSize.Small)
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+        ) {
             Text(
-                text = episode.progress.toPercent(),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
+                text = episode.title,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = episode.publishedAt.toReadableDate(),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row {
+                Text(
+                    text = episode.progress.toPercent(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = episode.publishedAt.toReadableDate(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            ItemProgressIndicator(Modifier.fillMaxWidth(), episode.progress)
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        LinearProgressIndicator(
-            progress = { episode.progress },
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.tertiaryContainer,
-            trackColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            drawStopIndicator = {})
 
     }
 }

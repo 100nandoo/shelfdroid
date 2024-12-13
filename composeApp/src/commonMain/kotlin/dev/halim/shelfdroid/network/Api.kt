@@ -36,6 +36,7 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         const val ME_PATH = "/api/me"
         const val SYNC_PROGRESS_PATH = "/api/session/%s/sync"
         const val PLAY_BOOK_PATH = "/api/items/%s/play"
+        const val PLAY_PODCAST_PATH = "/api/items/%1s/play/%2s"
     }
 
     init {
@@ -97,14 +98,24 @@ class Api(private val client: HttpClient, private val dataStoreManager: DataStor
         )
     }
 
-    suspend fun playBook(itemId: String): Result<PlayBookResponse> {
+    suspend fun playBook(itemId: String): Result<PlayLibraryItemResponse> {
         val path = PLAY_BOOK_PATH.replace("%s", itemId)
         return makeRequest(
             "${Holder.baseUrl}$path",
             HttpMethod.Post,
-            PlayBookRequest(deviceInfoRequest, false, false, supportedMimeType, app_name)
+            PlayLibraryItemRequest(deviceInfoRequest, false, false, supportedMimeType, app_name)
         )
     }
+
+    suspend fun playPodcast(itemId: String, episodeId: String): Result<PlayLibraryItemResponse> {
+        val path = PLAY_PODCAST_PATH.replace("%1s", itemId).replace("%2s", episodeId)
+        return makeRequest(
+            "${Holder.baseUrl}$path",
+            HttpMethod.Post,
+            PlayLibraryItemRequest(deviceInfoRequest, false, false, supportedMimeType, app_name)
+        )
+    }
+
 
     suspend fun syncSession(id: String, syncSessionRequest: SyncSessionRequest): Result<Unit> {
         val path = SYNC_PROGRESS_PATH.replace("%s", id)

@@ -3,7 +3,8 @@ package dev.halim.shelfdroid.expect
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.player.SessionManager
 import dev.halim.shelfdroid.player.Timer
-import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import dev.halim.shelfdroid.ui.MediaItemBook
+import dev.halim.shelfdroid.ui.MediaItemPodcast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +15,9 @@ expect class MediaManager(
     main: CoroutineScope) {
     val playerState: StateFlow<MediaPlayerState>
     val currentPosition: Flow<Long>
-    fun playBookUiState(item: ShelfdroidMediaItemImpl)
-    fun changeChapter(item: ShelfdroidMediaItemImpl)
+    fun playBook(item: MediaItemBook)
+    fun changeChapter(item: MediaItemBook)
+    fun playPodcast(item: MediaItemPodcast)
     fun play()
     fun pause()
     fun seekForward()
@@ -28,7 +30,9 @@ expect class MediaManager(
 data class MediaPlayerState(
     val isPlaying: Boolean = false,
     val playbackState: PlaybackState = PlaybackState.Idle,
-    val item: ShelfdroidMediaItemImpl? = null,
+    val itemId: String? = null,
+    val book: MediaItemBook? = null,
+    val podcast: MediaItemPodcast? = null,
     val sleepTimeLeft: Duration = Duration.ZERO
 )
 

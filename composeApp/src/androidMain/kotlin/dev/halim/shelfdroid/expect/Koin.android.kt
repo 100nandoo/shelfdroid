@@ -32,7 +32,8 @@ import dev.halim.shelfdroid.R
 import dev.halim.shelfdroid.datastore.DataStoreManager
 import dev.halim.shelfdroid.db.AndroidDatabaseDriverFactory
 import dev.halim.shelfdroid.db.Database
-import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import dev.halim.shelfdroid.ui.MediaItemBook
+import dev.halim.shelfdroid.ui.MediaItemPodcast
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -173,12 +174,13 @@ private fun handlePlaybackResumption(
 ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
     val settableFuture = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
     println("handlePlaybackResumption")
-    val shelfdroidMediaItem = dataStoreManager.readSerializableBlocking(
-        "ShelfdroidMediaItemImpl",
-        ShelfdroidMediaItemImpl.serializer()
-    )
+    val currentItem = dataStoreManager.getCurrentItemBlocking()
     val mediaItems = mutableListOf<MediaItem>()
-    shelfdroidMediaItem?.toMediaItem()?.let { mediaItems.add(it) }
+    if (currentItem is MediaItemPodcast) {
+        currentItem.toMediaItem().let { mediaItems.add(it) }
+    } else if (currentItem is MediaItemBook) {
+        currentItem.toMediaItem().let { mediaItems.add(it) }
+    }
 
     val startPosition = dataStoreManager.currentPositionBlocking
     val mediaItemsWithPosition = MediaSession.MediaItemsWithStartPosition(mediaItems, 0, startPosition)

@@ -7,8 +7,9 @@ import dev.halim.shelfdroid.expect.MediaPlayerState
 import dev.halim.shelfdroid.network.AudioBookmark
 import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.repo.PlayerRepository
+import dev.halim.shelfdroid.ui.MediaItemType
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
-import dev.halim.shelfdroid.ui.ShelfdroidMediaItemImpl
+import dev.halim.shelfdroid.ui.MediaItemBook
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -44,7 +45,7 @@ class PlayerViewModel(
                 val result = updateCurrentTime(event.progress)
                 val positionMs = (result.currentTime * 1000).toLong()
                 mediaManager.seekTo(positionMs)
-                mediaManager.playBookUiState(_uiState.value.bookPlayerUiState.toImpl())
+                mediaManager.playBook(_uiState.value.bookPlayerUiState.toMediaItemBook())
             }
 
             is PlayerEvent.ProgressChanged -> {
@@ -102,7 +103,7 @@ class PlayerViewModel(
             }
 
             is PlayerEvent.PlayBook -> {
-                mediaManager.playBookUiState(_uiState.value.bookPlayerUiState.toImpl())
+                mediaManager.playBook(_uiState.value.bookPlayerUiState.toMediaItemBook())
             }
 
         }
@@ -111,7 +112,7 @@ class PlayerViewModel(
     private fun collectFlows() {
         viewModelScope.launch {
             mediaManager.playerState.collect {
-                if (it.item?.id == id) {
+                if (it.itemId == id) {
                     mediaManager.currentPosition.collect { position ->
                         _playerProgressUiState.emit(initProgressUiState(position))
                     }
@@ -161,7 +162,7 @@ class PlayerViewModel(
         if (newIndex in bookPlayerUiState.chapters.indices) {
             val updatedChapter = bookPlayerUiState.chapters[newIndex]
             val updatedBookPlayerUiState = BookPlayerUiState(bookPlayerUiState, updatedChapter)
-            mediaManager.changeChapter(updatedBookPlayerUiState.toImpl())
+            mediaManager.changeChapter(updatedBookPlayerUiState.toMediaItemBook())
             _uiState.update {
                 it.copy(bookPlayerUiState = updatedBookPlayerUiState)
             }
@@ -173,7 +174,7 @@ class PlayerViewModel(
         if (target in bookPlayerUiState.chapters.indices) {
             val targetChapter = bookPlayerUiState.chapters[target]
             val updatedBookPlayerUiState = BookPlayerUiState(bookPlayerUiState, targetChapter, seekTime)
-            mediaManager.changeChapter(updatedBookPlayerUiState.toImpl())
+            mediaManager.changeChapter(updatedBookPlayerUiState.toMediaItemBook())
             _uiState.update {
                 it.copy(bookPlayerUiState = updatedBookPlayerUiState)
             }
@@ -188,17 +189,30 @@ class BookPlayerUiState(
     override val cover: String = "",
     override val url: String = "",
     override val seekTime: Long = 0L,
-    override val startTime: Long = 0L,
-    override val endTime: Long = 0L,
-    override val currentChapter: BookChapter = BookChapter(),
-    override val chapters: List<BookChapter> = emptyList(),
+    override val type: MediaItemType = MediaItemType.Book,
+    val startTime: Long = 0L,
+    val endTime: Long = 0L,
+    val currentChapter: BookChapter = BookChapter(),
+    val chapters: List<BookChapter> = emptyList(),
     val progress: Float = 0f,
-    val bookmarks: List<AudioBookmark> = emptyList()
+    val bookmarks: List<AudioBookmark> = emptyList(),
 ) : ShelfdroidMediaItem() {
-    override fun toImpl(): ShelfdroidMediaItemImpl = ShelfdroidMediaItemImpl(
-        id, author, title, cover, url, seekTime,
-        startTime, endTime, currentChapter, chapters
-    )
+
+    fun toMediaItemBook(): MediaItemBook {
+        return MediaItemBook(
+            id = id,
+            author = author,
+            title = title,
+            cover = cover,
+            url = url,
+            seekTime = seekTime,
+            type = type,
+            startTime = startTime,
+            endTime = endTime,
+            currentChapter = currentChapter,
+            chapters = chapters,
+        )
+    }
 
     constructor(
         existing: BookPlayerUiState,
