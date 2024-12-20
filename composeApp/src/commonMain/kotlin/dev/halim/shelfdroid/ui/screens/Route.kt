@@ -6,7 +6,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import dev.halim.shelfdroid.ui.screens.detail.PodcastScreen
+import dev.halim.shelfdroid.ui.screens.episode.EpisodeScreen
+import dev.halim.shelfdroid.ui.screens.podcast.PodcastScreen
 import dev.halim.shelfdroid.ui.screens.home.HomeScreen
 import dev.halim.shelfdroid.ui.screens.login.LoginScreen
 import dev.halim.shelfdroid.ui.screens.player.PlayerScreen
@@ -18,7 +19,8 @@ enum class Route(val title: String) {
     Splash(title = "splash"),
     Settings(title = "settings"),
     Player(title = "player"),
-    Podcast(title = "podcast")
+    Podcast(title = "podcast"),
+    Episode(title = "episode")
 }
 
 fun NavGraphBuilder.declareComposeScreen(
@@ -65,9 +67,23 @@ fun NavGraphBuilder.declareComposeScreen(
         "${Route.Podcast.title}/{id}",
         arguments = listOf(navArgument("id") { type = NavType.StringType }),
     ) { backStackEntry ->
-        val id = backStackEntry.arguments?.getString("id")
-        id?.let {
-            PodcastScreen(paddingValues, id)
+        val podcastId = backStackEntry.arguments?.getString("id")
+        podcastId?.let {
+            PodcastScreen(paddingValues, podcastId, { id -> navController.navigate("${Route.Episode.title}/$podcastId/$id") })
         }
     }
+
+    composable(
+        "${Route.Episode.title}/{id}/{episodeId}",
+        arguments = listOf(navArgument("id") { type = NavType.StringType }, navArgument("episodeId") { type = NavType.StringType }),
+    ) { backStackEntry ->
+        val id = backStackEntry.arguments?.getString("id")
+        val episodeId = backStackEntry.arguments?.getString("episodeId")
+        id?.let {
+            episodeId?.let {
+                EpisodeScreen(paddingValues, id, episodeId)
+            }
+        }
+    }
+
 }

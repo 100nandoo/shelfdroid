@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.expect.MediaPlayerState
-import dev.halim.shelfdroid.network.libraryitem.Book
 import dev.halim.shelfdroid.ui.ShelfdroidMediaItem
 import dev.halim.shelfdroid.ui.components.HomeItem
 import dev.halim.shelfdroid.ui.generic.GenericMessageScreen
@@ -117,7 +116,6 @@ fun HomeScreenContent(
     } else if (uiState.homeState is HomeState.Failure) {
         GenericMessageScreen(uiState.homeState.errorMessage ?: "")
     }
-
 
     HorizontalPager(
         modifier = Modifier.padding(bottom = bottomPadding),

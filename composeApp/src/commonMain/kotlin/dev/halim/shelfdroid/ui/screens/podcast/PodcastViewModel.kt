@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.ui.screens.detail
+package dev.halim.shelfdroid.ui.screens.podcast
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -35,7 +35,6 @@ class PodcastViewModel(
         }
     }
 
-
     fun onEvent(event: PodcastEvent) {
         when (event) {
             is PodcastEvent.Play -> mediaManager.playPodcast(event.episodeUiState.toMediaItemPodcast())
@@ -61,16 +60,17 @@ data class PodcastUiState(
 
 @Serializable
 data class EpisodeUiState(
-    override val id: String,
-    override val author: String,
-    override val title: String,
-    override val cover: String,
-    override val url: String,
-    override val seekTime: Long,
+    override val id: String = "",
+    override val author: String = "",
+    override val title: String = "",
+    override val cover: String = "",
+    override val url: String = "",
+    override val seekTime: Long = 0L,
     override val type: MediaItemType = MediaItemType.Podcast,
-    val libraryItemId: String,
-    val publishedAt: Long,
-    val progress: Float,
+    val libraryItemId: String = "",
+    val description: String = "",
+    val publishedAt: Long = 0L,
+    val progress: Float = 0f,
 ) : ShelfdroidMediaItem() {
     fun toMediaItemPodcast(): MediaItemPodcast {
         return MediaItemPodcast(

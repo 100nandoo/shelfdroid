@@ -15,14 +15,17 @@ import dev.halim.shelfdroid.datastore.createDataStore
 import dev.halim.shelfdroid.db.DatabaseAdapter
 import dev.halim.shelfdroid.expect.MediaManager
 import dev.halim.shelfdroid.expect.targetModule
+import dev.halim.shelfdroid.mapper.Mapper
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.player.SessionManager
 import dev.halim.shelfdroid.player.Timer
+import dev.halim.shelfdroid.repo.EpisodeRepository
 import dev.halim.shelfdroid.repo.HomeRepository
 import dev.halim.shelfdroid.repo.PlayerRepository
 import dev.halim.shelfdroid.repo.PodcastRepository
 import dev.halim.shelfdroid.store.StoreManager
-import dev.halim.shelfdroid.ui.screens.detail.PodcastViewModel
+import dev.halim.shelfdroid.ui.screens.episode.EpisodeViewModel
+import dev.halim.shelfdroid.ui.screens.podcast.PodcastViewModel
 import dev.halim.shelfdroid.ui.screens.home.HomeViewModel
 import dev.halim.shelfdroid.ui.screens.login.LoginViewModel
 import dev.halim.shelfdroid.ui.screens.player.PlayerViewModel
@@ -102,7 +105,7 @@ private val appModule = module {
     factory { StoreManager(get(), get(), get(named(ComponentName.IO))) }
     single<Timer> { Timer(get(named(ComponentName.MAIN))) }
     singleOf(::DatabaseAdapter)
-
+    singleOf(::Mapper)
 }
 
 private val viewModelModule = module {
@@ -116,13 +119,17 @@ private val viewModelModule = module {
     viewModel { (id: String) ->
         PodcastViewModel(get(),get(), id)
     }
-
+    viewModel { (id: String, episodeId: String) ->
+        EpisodeViewModel(get(), id, episodeId)
+    }
 }
 
 private val repositoryModule = module {
     singleOf(::PlayerRepository)
     singleOf(::HomeRepository)
     singleOf(::PodcastRepository)
+    singleOf(::EpisodeRepository)
 }
+
 
 val allModules = listOf(targetModule, appModule, repositoryModule, viewModelModule)

@@ -1,5 +1,6 @@
-package dev.halim.shelfdroid.ui.screens.detail
+package dev.halim.shelfdroid.ui.screens.podcast
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,7 +34,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
-fun PodcastScreen(paddingValues: PaddingValues, id: String) {
+fun PodcastScreen(paddingValues: PaddingValues, id: String,
+                  onEpisodeClicked: (String) -> Unit) {
     val viewModel: PodcastViewModel = koinViewModel(parameters = { parametersOf(id) })
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
     val playerState by viewModel.playerState.collectAsStateWithLifecycle()
@@ -42,7 +44,7 @@ fun PodcastScreen(paddingValues: PaddingValues, id: String) {
         PodcastDetailContent(
             paddingValues, playerState, { event -> viewModel.onEvent(event) }, uiState.cover, uiState.title,
             uiState.author, uiState.description,
-            uiState.episodes
+            uiState.episodes, onEpisodeClicked
         )
     }
 }
@@ -56,7 +58,8 @@ fun PodcastDetailContent(
     title: String = "Chapter 26",
     authorName: String = "Adam",
     description: String = "This is very cool podcast",
-    episodes: List<EpisodeUiState> = emptyList()
+    episodes: List<EpisodeUiState> = emptyList(),
+    onEpisodeClicked: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -67,7 +70,7 @@ fun PodcastDetailContent(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(episodes) { episode ->
-            EpisodeItem(episode, playerState, onEvent)
+            EpisodeItem(episode, playerState, onEvent, onEpisodeClicked)
         }
         item {
             Text(
@@ -87,7 +90,12 @@ fun PodcastDetailContent(
 }
 
 @Composable
-fun EpisodeItem(episode: EpisodeUiState, playerState: MediaPlayerState, onEvent: (PodcastEvent) -> Unit = {}) {
+fun EpisodeItem(
+    episode: EpisodeUiState,
+    playerState: MediaPlayerState,
+    onEvent: (PodcastEvent) -> Unit = {},
+    onEpisodeClicked: (String) -> Unit
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -98,6 +106,7 @@ fun EpisodeItem(episode: EpisodeUiState, playerState: MediaPlayerState, onEvent:
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable { onEpisodeClicked(episode.id) }
                 .padding(vertical = 8.dp),
         ) {
             Text(
