@@ -1,5 +1,8 @@
 package dev.halim.shelfdroid.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -18,21 +21,28 @@ fun MainScreen(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val selectedRoute = navBackStackEntry?.destination?.route ?: Route.Home.title
-    Scaffold(bottomBar = {
-        if (navBackStackEntry?.destination?.route == BottomNavScreen.Home.route ||
-            navBackStackEntry?.destination?.route == BottomNavScreen.Settings.route
-        ) {
-            BottomBar(selectedRoute) {
-                navController.navigate(it.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+
+    Scaffold(
+        bottomBar = {
+            val routesWithBottomBar = listOf(BottomNavScreen.Home.route, BottomNavScreen.Settings.route)
+            val isBottomBarVisible = navBackStackEntry?.destination?.route in routesWithBottomBar
+
+            AnimatedVisibility(
+                isBottomBarVisible,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                BottomBar(selectedRoute) {
+                    navController.navigate(it.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
                 }
             }
-        }
-    },
+        },
     ) { paddingValues ->
         NavHost(
             navController = navController,

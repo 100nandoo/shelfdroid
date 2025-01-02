@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.ui.screens.home
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -81,12 +79,12 @@ fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (String) -> Unit, on
         }
     }
 
-    val loadingIndicatorAlpha = remember { Animatable(0f) }
+    var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.homeState) {
-        when (uiState.homeState) {
-            is HomeState.Loading -> loadingIndicatorAlpha.animateTo(1f)
-            else -> loadingIndicatorAlpha.animateTo(0f)
+        isLoading = when (uiState.homeState) {
+            is HomeState.Loading -> true
+            else -> false
         }
     }
 
@@ -97,7 +95,7 @@ fun HomeScreen(paddingValues: PaddingValues, onBookClicked: (String) -> Unit, on
         uiState,
         playerState,
         { homeEvent -> viewModel.onEvent(homeEvent) },
-        loadingIndicatorAlpha
+        isLoading
     )
 }
 
@@ -109,7 +107,7 @@ fun HomeScreenContent(
     uiState: HomeUiState = HomeUiState(),
     playerState: MediaPlayerState,
     onEvent: (HomeEvent) -> Unit = {},
-    loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
+    isLoading: Boolean = false
 ) {
     if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
         GenericMessageScreen("No libraries available.")
@@ -130,14 +128,8 @@ fun HomeScreenContent(
                 headerName = uiState.librariesUiState[page].name,
                 onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) }
             )
-            if (loadingIndicatorAlpha.value > 0f) {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            alpha = loadingIndicatorAlpha.value
-                        }
-                )
+            AnimatedVisibility(isLoading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
     }
