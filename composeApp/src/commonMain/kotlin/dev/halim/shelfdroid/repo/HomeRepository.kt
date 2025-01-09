@@ -74,7 +74,7 @@ class HomeRepository(private val storeManager: StoreManager, private val api: Ap
             val currentChapter =
                 if (chapters.isNotEmpty()) repoHelper.getCurrentChapter(currentTime, chapters) else null
             val startTime = (currentChapter?.start?.times(1000))?.toLong() ?: 0
-            val endTime = (currentChapter?.end?.times(1000))?.toLong() ?: item.duration.toLong()
+            val endTime = (currentChapter?.end?.times(1000))?.toLong() ?: (item.duration * 1000).toLong()
 
             val (url, seekTime) = urlAndSeekTime(item.id, item.inoId, currentTime, startTime, api)
 

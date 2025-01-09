@@ -43,7 +43,7 @@ class PlayerRepository(private val storeManager: StoreManager, private val api: 
         val currentChapter =
             if (chapters.isNotEmpty()) repoHelper.getCurrentChapter(currentTime, chapters) else null
         val startTime =  (currentChapter?.start?.times(1000))?.toLong() ?: 0
-        val endTime = (currentChapter?.end?.times(1000))?.toLong() ?: itemEntity.duration.toLong()
+        val endTime = (currentChapter?.end?.times(1000))?.toLong() ?: (itemEntity.duration * 1000).toLong()
 
         val (url, seekTime) = urlAndSeekTime(itemId, itemEntity.inoId, currentTime, startTime, api)
         val bookmarks = getBookmarks(itemId, user.bookmarks)

@@ -139,22 +139,32 @@ class PlayerViewModel(
 
     private fun updateCurrentTime(progress: Float): PlayerProgressUiState {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
-        val currentChapter = bookPlayerUiState.currentChapter ?: return PlayerProgressUiState(progress *
-                bookPlayerUiState.endTime.toDouble(), bookPlayerUiState.endTime.toDouble(),
-            progress)
-        val totalTime = currentChapter.end - currentChapter.start
-        val currentTime = progress * totalTime
-        return PlayerProgressUiState(currentTime, totalTime, progress)
+        return if (bookPlayerUiState.currentChapter != null){
+            val currentChapter = bookPlayerUiState.currentChapter
+            val totalTime = currentChapter.end - currentChapter.start
+            val currentTime = progress * totalTime
+             PlayerProgressUiState(currentTime, totalTime, progress)
+        } else {
+            val totalTime = (bookPlayerUiState.endTime / 1000).toDouble()
+            val currentTime = progress * totalTime
+            PlayerProgressUiState(currentTime, totalTime, progress)
+        }
     }
 
     private fun initProgressUiState(position: Long = 0): PlayerProgressUiState {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
         val currentTime = if (position == 0L) bookPlayerUiState.seekTime / 1000 else position / 1000
-        val currentChapter = bookPlayerUiState.currentChapter ?: return PlayerProgressUiState(currentTime.toDouble(), bookPlayerUiState.endTime.toDouble(),
-            (currentTime / bookPlayerUiState.endTime.toDouble()).toFloat())
-        val totalTime = currentChapter.end - currentChapter.start
-        val progress = (currentTime / totalTime).toFloat()
-        return PlayerProgressUiState(currentTime.toDouble(), totalTime, progress)
+        return if (bookPlayerUiState.currentChapter != null){
+            val currentChapter = bookPlayerUiState.currentChapter
+            val totalTime = currentChapter.end - currentChapter.start
+            val progress = (currentTime / totalTime).toFloat()
+             PlayerProgressUiState(currentTime.toDouble(), totalTime, progress)
+        } else {
+            val totalTime = (bookPlayerUiState.endTime / 1000).toDouble()
+            val progress = (currentTime / totalTime).toFloat()
+            PlayerProgressUiState(currentTime.toDouble(), totalTime, progress)
+        }
+
     }
 
     private fun changeChapter(isPrevious: Boolean) {
