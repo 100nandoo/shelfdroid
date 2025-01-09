@@ -87,9 +87,10 @@ fun PlayerScreen(paddingValues: PaddingValues, id: String) {
             progressUiState,
             playerState,
             bookPlayerUiState.cover,
-            bookPlayerUiState.currentChapter.title,
+            bookPlayerUiState.currentChapter?.title ?: bookPlayerUiState.title,
             bookPlayerUiState.author,
             advanceUiState,
+            bookPlayerUiState.chapters.isNotEmpty(),
             onEvent = { event -> viewModel.onEvent(event) },
         )
     }
@@ -105,6 +106,7 @@ fun PlayerScreenContent(
     title: String = "Chapter 26",
     authorName: String = "Adam",
     advanceUiState: AdvanceUiState = AdvanceUiState(),
+    isChapterExist: Boolean = true,
     onEvent: (PlayerEvent) -> Unit = {},
 ) {
     Column(
@@ -120,7 +122,7 @@ fun PlayerScreenContent(
         PlayerProgress(progressUiState, onEvent)
         Spacer(modifier = Modifier.height(16.dp))
 
-        BasicPlayerControl(uiState, playerState, onEvent)
+        BasicPlayerControl(uiState, playerState, isChapterExist, onEvent)
         Spacer(modifier = Modifier.height(16.dp))
 
         AdvancedPlayerControl(advanceUiState, paddingValues, onEvent)
@@ -130,7 +132,6 @@ fun PlayerScreenContent(
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
 
 
 @Composable
@@ -170,6 +171,7 @@ fun PlayerProgress(
 fun BasicPlayerControl(
     shelfdroidMediaItemImpl: ShelfdroidMediaItem,
     playerState: MediaPlayerState,
+    isChapterExist: Boolean,
     onEvent: (PlayerEvent) -> Unit
 ) {
     Row(
@@ -204,6 +206,7 @@ fun BasicPlayerControl(
         IconButton(
             icon = Icons.Default.SkipNext,
             contentDescription = "Next Chapter",
+            enable = isChapterExist,
             onClick = { onEvent(PlayerEvent.NextChapter) }
         )
 
@@ -324,6 +327,7 @@ fun BookmarkAndChapter(uiState: BookPlayerUiState, paddingValues: PaddingValues,
     val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val bookmarkSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
+    val isChapterExist = uiState.currentChapter != null
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth()
@@ -336,12 +340,12 @@ fun BookmarkAndChapter(uiState: BookPlayerUiState, paddingValues: PaddingValues,
         IconButton(
             icon = Icons.AutoMirrored.Filled.List,
             contentDescription = "chapters",
+            enable = isChapterExist,
             onClick = { scope.launch { chapterSheetState.show() } }
         )
     }
-    ChapterBottomSheet(uiState, chapterSheetState, paddingValues, onEvent)
     BookmarkBottomSheet(uiState, bookmarkSheetState, paddingValues, onEvent)
-
+    ChapterBottomSheet(uiState, chapterSheetState, paddingValues, onEvent)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -351,21 +355,23 @@ fun ChapterBottomSheet(
         (PlayerEvent) -> Unit
 ) {
     val currentChapter = uiState.currentChapter
-    val currentIndex = maxOf(uiState.chapters.indexOf(currentChapter), 0)
+    if (currentChapter != null) {
+        val currentIndex = maxOf(uiState.chapters.indexOf(currentChapter), 0)
 
-    val scope = rememberCoroutineScope()
-    val state = rememberLazyListState(initialFirstVisibleItemIndex = currentIndex)
-    if (sheetState.isVisible) {
-        ModalBottomSheet(
-            modifier = Modifier.padding(paddingValues),
-            sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
-        ) {
-            LazyColumn(
-                state = state,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+        val scope = rememberCoroutineScope()
+        val state = rememberLazyListState(initialFirstVisibleItemIndex = currentIndex)
+        if (sheetState.isVisible) {
+            ModalBottomSheet(
+                modifier = Modifier.padding(paddingValues),
+                sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
             ) {
-                itemsIndexed(uiState.chapters, key = { _, chapter -> chapter.id }) { index, bookChapter ->
-                    ChapterRow(bookChapter, currentChapter, onEvent, index, scope, sheetState)
+                LazyColumn(
+                    state = state,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    itemsIndexed(uiState.chapters, key = { _, chapter -> chapter.id }) { index, bookChapter ->
+                        ChapterRow(bookChapter, currentChapter, onEvent, index, scope, sheetState)
+                    }
                 }
             }
         }

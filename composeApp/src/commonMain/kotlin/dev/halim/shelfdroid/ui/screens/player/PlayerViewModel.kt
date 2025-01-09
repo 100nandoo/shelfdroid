@@ -139,7 +139,9 @@ class PlayerViewModel(
 
     private fun updateCurrentTime(progress: Float): PlayerProgressUiState {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
-        val currentChapter = bookPlayerUiState.currentChapter
+        val currentChapter = bookPlayerUiState.currentChapter ?: return PlayerProgressUiState(progress *
+                bookPlayerUiState.endTime.toDouble(), bookPlayerUiState.endTime.toDouble(),
+            progress)
         val totalTime = currentChapter.end - currentChapter.start
         val currentTime = progress * totalTime
         return PlayerProgressUiState(currentTime, totalTime, progress)
@@ -147,8 +149,9 @@ class PlayerViewModel(
 
     private fun initProgressUiState(position: Long = 0): PlayerProgressUiState {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
-        val currentChapter = bookPlayerUiState.currentChapter
         val currentTime = if (position == 0L) bookPlayerUiState.seekTime / 1000 else position / 1000
+        val currentChapter = bookPlayerUiState.currentChapter ?: return PlayerProgressUiState(currentTime.toDouble(), bookPlayerUiState.endTime.toDouble(),
+            (currentTime / bookPlayerUiState.endTime.toDouble()).toFloat())
         val totalTime = currentChapter.end - currentChapter.start
         val progress = (currentTime / totalTime).toFloat()
         return PlayerProgressUiState(currentTime.toDouble(), totalTime, progress)
@@ -156,7 +159,7 @@ class PlayerViewModel(
 
     private fun changeChapter(isPrevious: Boolean) {
         val bookPlayerUiState = _uiState.value.bookPlayerUiState
-        val currentIndex = bookPlayerUiState.chapters.indexOfFirst { it.id == bookPlayerUiState.currentChapter.id }
+        val currentIndex = bookPlayerUiState.chapters.indexOfFirst { it.id == bookPlayerUiState.currentChapter?.id }
         val newIndex = currentIndex + if (isPrevious) -1 else 1
 
         if (newIndex in bookPlayerUiState.chapters.indices) {
@@ -192,7 +195,7 @@ class BookPlayerUiState(
     override val type: MediaItemType = MediaItemType.Book,
     val startTime: Long = 0L,
     val endTime: Long = 0L,
-    val currentChapter: BookChapter = BookChapter(),
+    val currentChapter: BookChapter? = BookChapter(),
     val chapters: List<BookChapter> = emptyList(),
     val progress: Float = 0f,
     val bookmarks: List<AudioBookmark> = emptyList(),
@@ -216,7 +219,7 @@ class BookPlayerUiState(
 
     constructor(
         existing: BookPlayerUiState,
-        currentChapter: BookChapter = existing.currentChapter,
+        currentChapter: BookChapter? = existing.currentChapter,
         seekTime: Long = 0
     ) : this(
         id = existing.id,
@@ -225,8 +228,8 @@ class BookPlayerUiState(
         cover = existing.cover,
         url = existing.url,
         seekTime = seekTime,
-        startTime = currentChapter.start.toLong() * 1000,
-        endTime = currentChapter.end.toLong() * 1000,
+        startTime = currentChapter?.start?.toLong()?.times(1000) ?: 0,
+        endTime = currentChapter?.end?.toLong()?.times(1000) ?: 0,
         currentChapter = currentChapter,
         chapters = existing.chapters,
         progress = existing.progress,

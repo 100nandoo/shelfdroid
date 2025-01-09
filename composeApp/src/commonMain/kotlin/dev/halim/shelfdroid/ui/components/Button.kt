@@ -18,19 +18,21 @@ fun IconButton(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     contentDescription: String,
+    enable: Boolean = true,
     onClick: () -> Unit
 ) {
     Box(
         modifier = modifier
             .clip(CircleShape)
-            .clickable(onClick = onClick)
+            .then(if (enable) Modifier.clickable(onClick = onClick) else Modifier)
             .size(48.dp)
     ) {
         Icon(
             modifier = Modifier
                 .size(36.dp)
                 .align(Alignment.Center),
-            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            tint = if (enable) MaterialTheme.colorScheme.onSecondaryContainer
+            else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f),
             imageVector = icon,
             contentDescription = contentDescription
         )

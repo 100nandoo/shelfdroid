@@ -24,7 +24,8 @@ WIP
     git clone https://github.com/yourusername/shelfdroid.git
     ```
 2. Open the project in Android Studio.
-3. Build and run the app on your device.
+3. run `./gradlew generateCommonMainShelfdroidDbInterface` to create entity for sqldelight
+4. Build and run the app on your device.
 
 ## Roadmap
 - [ ] **Stream Audiobooks**: Access your Audiobookshelf library and stream your audiobooks on the go.

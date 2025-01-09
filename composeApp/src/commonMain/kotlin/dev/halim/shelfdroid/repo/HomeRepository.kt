@@ -5,7 +5,6 @@ import dev.halim.shelfdroid.db.ItemEntity
 import dev.halim.shelfdroid.db.UserEntity
 import dev.halim.shelfdroid.network.Api
 import dev.halim.shelfdroid.network.MediaProgress
-import dev.halim.shelfdroid.network.libraryitem.BookChapter
 import dev.halim.shelfdroid.store.ItemKey
 import dev.halim.shelfdroid.store.LibraryKey
 import dev.halim.shelfdroid.store.StoreManager
@@ -19,10 +18,7 @@ import dev.halim.shelfdroid.ui.screens.home.LibraryUiState
 import dev.halim.shelfdroid.ui.screens.home.PodcastUiState
 import kotlin.math.roundToLong
 
-class HomeRepository(private val storeManager: StoreManager, private val api: Api) {
-    private inline fun getCurrentChapter(currentTime: Float, chapters: List<BookChapter>): BookChapter {
-        return (chapters.find { currentTime >= it.start && currentTime <= it.end } ?: chapters.first())
-    }
+class HomeRepository(private val storeManager: StoreManager, private val api: Api, private val repoHelper: RepoHelper) {
 
     private inline fun urlAndSeekTime(
         id: String,
@@ -75,9 +71,10 @@ class HomeRepository(private val storeManager: StoreManager, private val api: Ap
             val progress = mediaProgress?.progress ?: 0f
             val currentTime = mediaProgress?.currentTime ?: 0f
             val chapters = item.chapters
-            val currentChapter = getCurrentChapter(currentTime, chapters)
-            val startTime = (currentChapter.start * 1000).toLong()
-            val endTime = (currentChapter.end * 1000).toLong()
+            val currentChapter =
+                if (chapters.isNotEmpty()) repoHelper.getCurrentChapter(currentTime, chapters) else null
+            val startTime = (currentChapter?.start?.times(1000))?.toLong() ?: 0
+            val endTime = (currentChapter?.end?.times(1000))?.toLong() ?: item.duration.toLong()
 
             val (url, seekTime) = urlAndSeekTime(item.id, item.inoId, currentTime, startTime, api)
 

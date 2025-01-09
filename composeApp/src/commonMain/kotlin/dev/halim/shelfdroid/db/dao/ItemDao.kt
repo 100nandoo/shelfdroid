@@ -21,7 +21,8 @@ class ItemDao(private val itemQuery: ItemQueries) {
             itemEntity.description,
             itemEntity.mediaType,
             itemEntity.chapters,
-            itemEntity.episodes
+            itemEntity.episodes,
+            itemEntity.duration
         )
     }
 

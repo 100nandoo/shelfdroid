@@ -168,13 +168,12 @@ actual class MediaManager actual constructor(
     }
 
     private fun playerStateEndedListener() {
-        println("playerStateEnded is called")
         val currentItem = _playerState.value.book
+        if (currentItem?.chapters.isNullOrEmpty()) return
         currentItem?.let { item ->
-            val currentChapterIndex = item.chapters.indexOfFirst { item.currentChapter.id == it.id }
+            val currentChapterIndex = item.chapters.indexOfFirst { item.currentChapter?.id == it.id }
             val newChapterIndex = currentChapterIndex + 1
             if (currentChapterIndex > 0 && newChapterIndex in item.chapters.indices) {
-                println("playerStateEnded is called with new index = $newChapterIndex")
                 changeChapter(MediaItemBook(item, newChapterIndex))
             }
         }

@@ -23,6 +23,7 @@ import dev.halim.shelfdroid.repo.EpisodeRepository
 import dev.halim.shelfdroid.repo.HomeRepository
 import dev.halim.shelfdroid.repo.PlayerRepository
 import dev.halim.shelfdroid.repo.PodcastRepository
+import dev.halim.shelfdroid.repo.RepoHelper
 import dev.halim.shelfdroid.store.StoreManager
 import dev.halim.shelfdroid.ui.screens.episode.EpisodeViewModel
 import dev.halim.shelfdroid.ui.screens.podcast.PodcastViewModel
@@ -125,6 +126,7 @@ private val viewModelModule = module {
 }
 
 private val repositoryModule = module {
+    singleOf(::RepoHelper)
     singleOf(::PlayerRepository)
     singleOf(::HomeRepository)
     singleOf(::PodcastRepository)

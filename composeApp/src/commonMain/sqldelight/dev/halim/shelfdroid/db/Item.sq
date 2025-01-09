@@ -13,12 +13,14 @@ CREATE TABLE ItemEntity (
     mediaType TEXT NOT NULL,
     chapters TEXT AS List<BookChapter> NOT NULL,
     episodes TEXT AS List<Episode> NOT NULL,
+    duration REAL NOT NULL,
     FOREIGN KEY (libraryId) REFERENCES LibraryEntity(id) ON DELETE CASCADE
 );
 
 upsert:
-INSERT OR REPLACE INTO ItemEntity (id, inoId, libraryId, author, title, cover, description, mediaType, chapters, episodes)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO ItemEntity (id, inoId, libraryId, author, title, cover, description, mediaType, chapters,
+episodes, duration)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectById:
 SELECT *
@@ -45,7 +47,8 @@ SET
     description = ?,
     mediaType = ?,
     chapters = ?,
-    episodes = ?
+    episodes = ?,
+    duration = ?
 WHERE id = ?;
 
 removeAll:

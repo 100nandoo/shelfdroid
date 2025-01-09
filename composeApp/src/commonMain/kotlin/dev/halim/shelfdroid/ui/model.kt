@@ -14,7 +14,7 @@ data class MediaItemBook(
     override val type: MediaItemType = MediaItemType.Book,
     val startTime: Long = 0,
     val endTime: Long = 0,
-    val currentChapter: BookChapter = BookChapter(),
+    val currentChapter: BookChapter? = BookChapter(),
     val chapters: List<BookChapter> = emptyList()
 ) : ShelfdroidMediaItem() {
     constructor(item: MediaItemBook, newChapterIndex: Int) : this(

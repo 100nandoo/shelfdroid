@@ -62,7 +62,8 @@ object ItemExtensions {
                     description,
                     mediaType,
                     chapters,
-                    emptyList()
+                    emptyList(),
+                    media.audioFiles.firstOrNull()?.duration ?: 0.0
                 )
             }
 
@@ -72,7 +73,8 @@ object ItemExtensions {
                 val description = media.metadata.description
                 val cover = api.generateItemCoverUrl(id)
                 val episodes = media.episodes.map { it.toEpisode() }
-                ItemEntity(this.id, "", libraryId, author, title, cover, description, mediaType, emptyList(), episodes)
+                ItemEntity(this.id, "", libraryId, author, title, cover, description, mediaType, emptyList(),
+                    episodes, 0.0)
             }
         }
     }
