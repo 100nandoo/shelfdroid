@@ -1,3 +1,6 @@
+import java.util.Properties
+import org.apache.tools.ant.taskdefs.condition.Os
+
 @Suppress("DSL_SCOPE_VIOLATION") // Remove when fixed https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
     alias(libs.plugins.android.application)
@@ -11,6 +14,25 @@ plugins {
 android {
     namespace = "dev.halim.shelfdroid"
     compileSdk = 35
+
+    signingConfigs {
+        val keystorePropertiesFile = if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            file("..\\..\\signing\\keystore.properties")
+        } else {
+            file("../../signing/keystore.properties")
+        }
+
+        val properties = Properties().apply {
+            load(keystorePropertiesFile.inputStream())
+        }
+
+        create("release") {
+            storePassword = properties.getProperty("storePassword")
+            keyPassword = properties.getProperty("keyPassword")
+            keyAlias = properties.getProperty("keyAlias")
+            storeFile = rootProject.file(properties.getProperty("storeFile"))
+        }
+    }
 
     defaultConfig {
         applicationId = "dev.halim.shelfdroid"
@@ -30,9 +52,15 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
+            isDebuggable = true
+        }
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
