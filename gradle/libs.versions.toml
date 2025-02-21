@@ -14,7 +14,7 @@ coroutines = "1.10.1"
 hilt = "2.55"
 junit = "4.13.2"
 kotlin = "2.1.0"
-ksp = "2.1.0-1.0.29"
+ksp = "2.1.10-1.0.30"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
