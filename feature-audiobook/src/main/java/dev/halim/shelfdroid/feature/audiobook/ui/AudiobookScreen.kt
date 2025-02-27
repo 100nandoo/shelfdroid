@@ -25,9 +25,11 @@ import dev.halim.shelfdroid.feature.audiobook.ui.AudiobookUiState.Success
 @Composable
 fun AudiobookScreen(modifier: Modifier = Modifier, viewModel: AudiobookViewModel = hiltViewModel()) {
     val items by viewModel.uiState.collectAsStateWithLifecycle()
+    val baseUrl by viewModel.baseUrl.collectAsStateWithLifecycle()
     if (items is Success) {
         AudiobookScreen(
             items = (items as Success).data,
+            baseUrl = baseUrl,
             onSave = { name -> viewModel.addAudiobook(name) },
             modifier = modifier
         )
@@ -37,6 +39,7 @@ fun AudiobookScreen(modifier: Modifier = Modifier, viewModel: AudiobookViewModel
 @Composable
 internal fun AudiobookScreen(
     items: List<String>,
+    baseUrl: String,
     onSave: (name: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -57,6 +60,7 @@ internal fun AudiobookScreen(
                 Text("Save")
             }
         }
+        Text("Base Url: $baseUrl")
         items.forEach {
             Text("Saved item: $it")
         }
@@ -69,7 +73,7 @@ internal fun AudiobookScreen(
 @Composable
 private fun DefaultPreview() {
     MyApplicationTheme {
-        AudiobookScreen(listOf("Compose", "Room", "Kotlin"), onSave = {})
+        AudiobookScreen(listOf("Compose", "Room", "Kotlin"),  "base url",onSave = {})
     }
 }
 
@@ -77,6 +81,6 @@ private fun DefaultPreview() {
 @Composable
 private fun PortraitPreview() {
     MyApplicationTheme {
-        AudiobookScreen(listOf("Compose", "Room", "Kotlin"), onSave = {})
+        AudiobookScreen(listOf("Compose", "Room", "Kotlin"), "base url", onSave = {})
     }
 }
