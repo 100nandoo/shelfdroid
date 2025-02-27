@@ -12,8 +12,8 @@ plugins {
 }
 
 android {
-    namespace = "dev.halim.shelfdroid"
-    compileSdk = 35
+    namespace = libs.versions.namespace.get()
+    compileSdk = libs.versions.targetSdk.get().toInt()
 
     signingConfigs {
         val keystorePropertiesFile = if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -35,11 +35,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.halim.shelfdroid"
-        minSdk = 21
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        applicationId = libs.versions.namespace.get()
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = libs.versions.versionCode.get().toInt()
+        versionName = libs.versions.versionName.get()
 
         vectorDrawables {
             useSupportLibrary = true

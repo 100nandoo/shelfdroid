@@ -1,4 +1,10 @@
 [versions]
+namespace = "dev.halim.shelfdroid"
+versionCode = "1"
+versionName = "0.1"
+minSdk = "24"
+targetSdk = "35"
+
 androidGradlePlugin = "8.8.2"
 androidxActivity = "1.10.1"
 androidxComposeBom = "2025.02.00"

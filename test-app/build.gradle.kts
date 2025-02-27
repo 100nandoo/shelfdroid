@@ -6,13 +6,12 @@ plugins {
 }
 
 android {
-    namespace = "dev.halim.shelfdroid.test.navigation"
-    compileSdk = 35
+    namespace = "${libs.versions.namespace.get()}.test.navigation"
+    compileSdk = libs.versions.targetSdk.get().toInt()
     targetProjectPath = ":app"
 
     defaultConfig {
-        minSdk = 21
-        targetSdk = 35
+        minSdk = libs.versions.minSdk.get().toInt()
 
         testInstrumentationRunner = "dev.halim.shelfdroid.core.testing.HiltTestRunner"
     }

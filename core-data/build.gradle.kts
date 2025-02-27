@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.halim.shelfdroid.core.data"
-    compileSdk = 35
+    namespace = "${libs.versions.namespace.get()}.core.data"
+    compileSdk = libs.versions.targetSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
 
         testInstrumentationRunner = "dev.halim.shelfdroid.core.testing.HiltTestRunner"
         consumerProguardFiles("consumer-rules.pro")

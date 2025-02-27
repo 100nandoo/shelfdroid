@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.halim.shelfdroid.core.ui"
-    compileSdk = 35
+    namespace = "${libs.versions.namespace.get()}.core.ui"
+    compileSdk = libs.versions.targetSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
