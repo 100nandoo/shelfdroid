@@ -89,8 +89,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-ui"))
-    implementation(project(":feature-audiobook"))
+    implementation(project(libs.versions.coreUi.get()))
 
     // Core Android dependencies
     implementation(libs.androidx.core.ktx)

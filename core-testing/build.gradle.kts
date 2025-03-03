@@ -33,7 +33,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.test.runner)
     implementation(libs.hilt.android.testing)
 }

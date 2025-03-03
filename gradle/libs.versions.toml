@@ -5,6 +5,15 @@ versionName = "0.1"
 minSdk = "24"
 targetSdk = "35"
 
+# Modules
+app = ":app"
+coreData = ":core-data"
+coreDatabase = ":core-database"
+coreDatastore = ":core-datastore"
+coreTesting = ":core-testing"
+coreUi = ":core-ui"
+testApp = ":test-app"
+
 androidGradlePlugin = "8.8.2"
 androidxActivity = "1.10.1"
 androidxComposeBom = "2025.02.00"

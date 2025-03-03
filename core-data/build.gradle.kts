@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core-database"))
+    implementation(project(libs.versions.coreDatabase.get()))
 
     // Arch Components
     implementation(libs.hilt.android)

@@ -34,10 +34,9 @@ android {
 }
 
 dependencies {
-    implementation(project(":app"))
-    implementation(project(":core-data"))
-    implementation(project(":core-testing"))
-    implementation(project(":feature-audiobook"))
+    implementation(project(libs.versions.app.get()))
+    implementation(project(libs.versions.coreData.get()))
+    implementation(project(libs.versions.coreTesting.get()))
 
     // Testing
     implementation(libs.androidx.test.core)
