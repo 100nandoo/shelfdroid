@@ -1,21 +1,20 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.core.network.ApiService
+import dev.halim.core.network.LoginRequest
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
-//import dev.halim.shelfdroid.network.Api
-//import dev.halim.shelfdroid.network.LoginRequest
-//import dev.halim.shelfdroid.network.LoginResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-//    private val api: Api,
+    private val api: ApiService,
     private val dataStoreManager: DataStoreManager,
 ) : ViewModel() {
 
@@ -36,19 +35,20 @@ class LoginViewModel @Inject constructor(
     }
 
     private suspend fun login() {
-//        val request = LoginRequest(_uiState.value.username, _uiState.value.password)
-//        val result = api.login(request)
-//        result.onSuccess { response ->
-//            viewModelScope.launch {
-//                dataStoreManager.updateBaseUrl(_uiState.value.server)
-//                dataStoreManager.updateToken(response.user.token)
-//                dataStoreManager.updateUserId(response.user.id)
-//                dataStoreManager.generateDeviceId()
-//            }
-//
-//            _uiState.update { it.copy(loginState = LoginState.Success) }
-//        }
-//        result.onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
+        DataStoreManager.Companion.BASE_URL = _uiState.value.server
+        val request = LoginRequest(_uiState.value.username, _uiState.value.password)
+        val result = api.login(request)
+        result.onSuccess { response ->
+            viewModelScope.launch {
+                DataStoreManager.Companion.BASE_URL = _uiState.value.server
+                dataStoreManager.updateToken(response.user.token)
+                dataStoreManager.updateUserId(response.user.id)
+                dataStoreManager.generateDeviceId()
+            }
+
+            _uiState.update { it.copy(loginState = LoginState.Success) }
+        }
+        result.onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
     }
 }
 

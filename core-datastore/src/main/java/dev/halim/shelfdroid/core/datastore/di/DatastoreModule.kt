@@ -21,7 +21,7 @@ object DatastoreModule {
 
     @Singleton
     @Provides
-    fun bindsDatastore(
+    fun providesDatastore(
         @ApplicationContext appContext: Context
     ): DataStore<Preferences> {
         return PreferenceDataStoreFactory.create(
@@ -31,7 +31,7 @@ object DatastoreModule {
 
     @Singleton
     @Provides
-    fun bindsDatastoreManager(
+    fun providesDatastoreManager(
         dataStore: DataStore<Preferences>
     ): DataStoreManager {
         return DataStoreManager(dataStore)

@@ -13,7 +13,6 @@ import kotlin.uuid.Uuid
 
 
 private object Keys {
-    val BASE_URL = stringPreferencesKey("base_url")
     val TOKEN = stringPreferencesKey("token")
     val DARK_MODE = booleanPreferencesKey("dark_mode")
     val DEVICE_ID = stringPreferencesKey("device_id")
@@ -28,8 +27,9 @@ private suspend fun <T> DataStore<Preferences>.updatePreference(key: Preferences
 }
 
 class DataStoreManager(private val dataStore: DataStore<Preferences>) {
-    val baseUrl: Flow<String> = dataStore.preferenceFlow(Keys.BASE_URL, "dummy base url")
-    suspend fun updateBaseUrl(baseUrl: String) = dataStore.updatePreference(Keys.BASE_URL, baseUrl)
+    companion object {
+        var BASE_URL = ""
+    }
 
     val token: Flow<String> = dataStore.preferenceFlow(Keys.TOKEN, "")
     suspend fun updateToken(token: String) = dataStore.updatePreference(Keys.TOKEN, token)

@@ -78,7 +78,7 @@ private fun LoginScreenContent(
                     value = uiState.server,
                     onValueChange = { updateUiState(uiState.copy(server = it)) },
                     label = "Server Address",
-                    placeholder = "https://audio.bookshelf.com",
+                    placeholder = "audio.bookshelf.org",
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
                     modifier = Modifier.focusRequester(server),
                     onNext = { focusManager.moveFocus(FocusDirection.Next) }
