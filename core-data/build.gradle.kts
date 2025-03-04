@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -35,7 +36,11 @@ android {
 
 dependencies {
     implementation(project(libs.versions.coreDatabase.get()))
+    implementation(project(libs.versions.coreDatastore.get()))
+    implementation(project(libs.versions.coreNetwork.get()))
 
+    implementation(libs.kotlinx.serialization)
+    
     // Arch Components
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)

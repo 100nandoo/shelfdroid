@@ -21,9 +21,7 @@ object DatastoreModule {
 
     @Singleton
     @Provides
-    fun providesDatastore(
-        @ApplicationContext appContext: Context
-    ): DataStore<Preferences> {
+    fun providesDatastore(@ApplicationContext appContext: Context): DataStore<Preferences> {
         return PreferenceDataStoreFactory.create(
             produceFile = { appContext.preferencesDataStoreFile(NAME) }
         )
@@ -31,9 +29,7 @@ object DatastoreModule {
 
     @Singleton
     @Provides
-    fun providesDatastoreManager(
-        dataStore: DataStore<Preferences>
-    ): DataStoreManager {
+    fun providesDatastoreManager(dataStore: DataStore<Preferences>): DataStoreManager {
         return DataStoreManager(dataStore)
     }
 }

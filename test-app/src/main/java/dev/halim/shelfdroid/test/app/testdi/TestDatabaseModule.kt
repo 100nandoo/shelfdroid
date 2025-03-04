@@ -7,13 +7,13 @@ import dagger.Module
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import dev.halim.shelfdroid.core.data.AudiobookRepository
-import dev.halim.shelfdroid.core.data.di.DataModule
+import dev.halim.shelfdroid.core.data.di.DataExampleModule
 import dev.halim.shelfdroid.core.data.di.FakeAudiobookRepository
 
 @Module
 @TestInstallIn(
     components = [SingletonComponent::class],
-    replaces = [DataModule::class]
+    replaces = [DataExampleModule::class]
 )
 interface FakeDataModule {
 

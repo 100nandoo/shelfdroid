@@ -35,8 +35,7 @@ android {
 }
 
 dependencies {
-    implementation(project(libs.versions.coreDatastore.get()))
-    implementation(project(libs.versions.coreNetwork.get()))
+    implementation(project(libs.versions.coreData.get()))
 
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)

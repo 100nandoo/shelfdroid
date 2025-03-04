@@ -3,9 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.core.network.ApiService
-import dev.halim.core.network.LoginRequest
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.data.LoginRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -14,8 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val api: ApiService,
-    private val dataStoreManager: DataStoreManager,
+    private val loginRepository: LoginRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -35,19 +32,8 @@ class LoginViewModel @Inject constructor(
     }
 
     private suspend fun login() {
-        DataStoreManager.Companion.BASE_URL = _uiState.value.server
-        val request = LoginRequest(_uiState.value.username, _uiState.value.password)
-        val result = api.login(request)
-        result.onSuccess { response ->
-            viewModelScope.launch {
-                DataStoreManager.Companion.BASE_URL = _uiState.value.server
-                dataStoreManager.updateToken(response.user.token)
-                dataStoreManager.updateUserId(response.user.id)
-                dataStoreManager.generateDeviceId()
-            }
-
-            _uiState.update { it.copy(loginState = LoginState.Success) }
-        }
+        val result = loginRepository.login(_uiState.value.server, _uiState.value.username, _uiState.value.password)
+        result.onSuccess { _uiState.update { it.copy(loginState = LoginState.Success) } }
         result.onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
     }
 }

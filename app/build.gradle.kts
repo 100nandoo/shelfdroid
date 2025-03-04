@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
 }
 
@@ -90,6 +91,8 @@ android {
 
 dependencies {
     implementation(project(libs.versions.coreUi.get()))
+
+    implementation(libs.kotlinx.serialization)
 
     // Core Android dependencies
     implementation(libs.androidx.core.ktx)
