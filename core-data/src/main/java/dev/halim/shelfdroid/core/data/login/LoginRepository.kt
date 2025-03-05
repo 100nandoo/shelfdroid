@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data
+package dev.halim.shelfdroid.core.data.login
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.LoginRequest
@@ -14,7 +14,7 @@ class LoginRepository @Inject constructor(
         val request = LoginRequest(username, password)
         val result = api.login(request)
         result.onSuccess { response ->
-                DataStoreManager.BASE_URL = server
+                dataStoreManager.updateBaseUrl(server)
                 dataStoreManager.updateToken(response.user.token)
                 dataStoreManager.updateUserId(response.user.id)
                 dataStoreManager.generateDeviceId()

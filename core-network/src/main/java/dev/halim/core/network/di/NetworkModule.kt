@@ -8,6 +8,12 @@ import dagger.hilt.components.SingletonComponent
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.interceptor.HostSelectionInterceptor
 import dev.halim.core.network.result.ResultCallAdapterFactory
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -28,9 +34,9 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun providesOkHttpClient(): OkHttpClient {
+    fun providesOkHttpClient(dataStoreManager: DataStoreManager): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(HostSelectionInterceptor())
+            .addInterceptor(HostSelectionInterceptor(dataStoreManager))
             .build()
     }
 
@@ -41,7 +47,7 @@ object NetworkModule {
         okHttpClient: OkHttpClient
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://www.audiobookshelf.org/")
+            .baseUrl("https://www.audiobookshelf.org")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(MediaType.get("application/json")))
             .addCallAdapterFactory(ResultCallAdapterFactory())

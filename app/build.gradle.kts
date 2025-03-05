@@ -91,6 +91,7 @@ android {
 
 dependencies {
     implementation(project(libs.versions.coreUi.get()))
+    implementation(project(libs.versions.coreData.get()))
 
     implementation(libs.kotlinx.serialization)
 

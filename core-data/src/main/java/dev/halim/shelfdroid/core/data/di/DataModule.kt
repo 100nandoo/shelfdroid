@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.flowOf
 import dev.halim.shelfdroid.core.data.AudiobookRepository
 import dev.halim.shelfdroid.core.data.DefaultAudiobookRepository
 import dev.halim.shelfdroid.core.data.home.HomeRepository
+import dev.halim.shelfdroid.core.data.navigation.NavigationRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,6 +25,12 @@ object DataModule {
     @Provides
     fun providesHomeRepository(api: ApiService, dataStoreManager: DataStoreManager): HomeRepository {
         return HomeRepository(api, dataStoreManager)
+    }
+
+    @Singleton
+    @Provides
+    fun providesNavigationRepository(dataStoreManager: DataStoreManager): NavigationRepository {
+        return NavigationRepository(dataStoreManager)
     }
 }
 
