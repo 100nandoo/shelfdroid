@@ -1,16 +1,17 @@
 package dev.halim.core.network.di
 
 
+import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.interceptor.HostSelectionInterceptor
-import dev.halim.core.network.result.ResultCallAdapterFactory
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -49,8 +50,8 @@ object NetworkModule {
         return Retrofit.Builder()
             .baseUrl("https://www.audiobookshelf.org")
             .client(okHttpClient)
-            .addConverterFactory(json.asConverterFactory(MediaType.get("application/json")))
-            .addCallAdapterFactory(ResultCallAdapterFactory())
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .addCallAdapterFactory(ResultCallAdapterFactory.create())
             .build()
     }
 

@@ -36,6 +36,7 @@ ksp = "2.1.10-1.0.31"
 
 coil = "3.1.0"
 retrofit = "2.11.0"
+retrofit-result = "1.0.13"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
@@ -74,6 +75,7 @@ coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "
 
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
+retrofit-result = { module = "com.github.skydoves:retrofit-adapters-result", version.ref = "retrofit-result" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

@@ -20,7 +20,7 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
         var request = chain.request()
         val host: String = DataStoreManager.BASE_URL
 
-        val newUrl = request.url().newBuilder()
+        val newUrl = request.url.newBuilder()
             .host(host)
             .build()
 

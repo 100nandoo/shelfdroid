@@ -39,6 +39,7 @@ dependencies {
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.kotlinx.serialization)
+    implementation(libs.retrofit.result)
     // hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
