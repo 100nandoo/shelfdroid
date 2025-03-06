@@ -56,6 +56,10 @@ Contributions are welcome! If you'd like to contribute, please follow these step
     ```
 5. Open a Pull Request.
 
+## 📖 Documentation
+
+For more details on using and extending this project, check out the [Documentation](DOCS.md).
+
 ---
 
 ## 🙌 Acknowledgements
