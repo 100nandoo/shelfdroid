@@ -45,11 +45,7 @@ class HomeRepository @Inject constructor(
         return api.me()
     }
 
-    private fun calculateStartEndTime(
-        book: Book,
-        mediaProgress: MediaProgress?,
-        currentTime: Float
-    ): Pair<Long, Long> {
+    private fun calculateStartEndTime(book: Book, currentTime: Float): Pair<Long, Long> {
         val chapters = book.chapters
         val startTime: Long
         val endTime: Long
@@ -81,23 +77,23 @@ class HomeRepository @Inject constructor(
         return url to seekTime
     }
 
-    fun generateItemCoverUrl(baseUrl: String, token: String, itemId: String): String {
-        return "$baseUrl/api/items/$itemId/cover?token=$token"
+    fun generateItemCoverUrl(baseUrl: String, itemId: String): String {
+        return "https://$baseUrl/api/items/$itemId/cover"
     }
 
     fun generateItemStreamUrl(baseUrl: String, token: String, itemId: String, ino: String): String {
-        return "$baseUrl/api/items/$itemId/file/$ino?token=$token"
+        return "https://$baseUrl/api/items/$itemId/file/$ino?token=$token"
     }
 
     private fun toUiState(item: LibraryItem, mediaProgress: MediaProgress?): ShelfdroidMediaItem {
         val media = item.media
         return if (media is Book) {
-            val cover = generateItemCoverUrl(DataStoreManager.BASE_URL, token, item.id)
+            val cover = generateItemCoverUrl(DataStoreManager.BASE_URL, item.id)
             val author = media.metadata.authors.joinToString { it.name }
             val title = media.metadata.title ?: ""
             val progress = mediaProgress?.progress ?: 0f
             val currentTime = mediaProgress?.currentTime ?: 0f
-            val (startTime, endTime) = calculateStartEndTime(media, mediaProgress, currentTime)
+            val (startTime, endTime) = calculateStartEndTime(media, currentTime)
             val (url, seekTime) = urlAndSeekTime(item.id, media.audioFiles.first().ino, currentTime, startTime, api)
 
             BookUiState(
@@ -107,7 +103,7 @@ class HomeRepository @Inject constructor(
             )
         } else {
             media as Podcast
-            val cover = generateItemCoverUrl(DataStoreManager.BASE_URL, token, item.id)
+            val cover = generateItemCoverUrl(DataStoreManager.BASE_URL, item.id)
             val author = media.metadata.author ?: ""
             val title = media.metadata.title ?: ""
             PodcastUiState(

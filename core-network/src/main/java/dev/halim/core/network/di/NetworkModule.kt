@@ -9,11 +9,6 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.interceptor.HostSelectionInterceptor
 import dev.halim.core.network.result.ResultCallAdapterFactory
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.lastOrNull
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -29,7 +24,12 @@ object NetworkModule {
     @Provides
     fun providesJson(
     ): Json {
-        return Json { ignoreUnknownKeys = true }
+        return Json {
+            coerceInputValues = true
+            ignoreUnknownKeys = true
+            isLenient = true
+            prettyPrint = true
+        }
     }
 
     @Singleton

@@ -60,4 +60,8 @@ dependencies {
     // Hilt Dependency Injection
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+
+    // Coil
+    implementation(libs.coil)
+    implementation(libs.coil.okhttp)
 }

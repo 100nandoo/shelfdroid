@@ -119,4 +119,8 @@ dependencies {
 
     // Tooling
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Coil
+    implementation(libs.coil)
+    implementation(libs.coil.okhttp)
 }

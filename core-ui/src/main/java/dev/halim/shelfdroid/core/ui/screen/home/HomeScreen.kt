@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
+import HomeItem
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.layout.Arrangement
@@ -181,11 +182,11 @@ fun LibraryContent(
                 items = list,
                 key = { it.id }
             ) { libraryItem ->
-//                HomeBook(
-//                    uiState = libraryItem,
-//                    modifier = Modifier,
-//                    onEvent,
-//                )
+                HomeItem(
+                    uiState = libraryItem,
+                    modifier = Modifier,
+                    onEvent,
+                )
             }
         }
     }
