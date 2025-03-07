@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import dev.halim.shelfdroid.core.data.AudiobookRepository
 import dev.halim.shelfdroid.core.data.DefaultAudiobookRepository
+import dev.halim.shelfdroid.core.data.UserPrefs
 import dev.halim.shelfdroid.core.data.home.HomeRepository
-import dev.halim.shelfdroid.core.data.navigation.NavigationRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,14 +25,22 @@ import javax.inject.Singleton
 object DataModule {
     @Singleton
     @Provides
-    fun providesHomeRepository(api: ApiService, dataStoreManager: DataStoreManager): HomeRepository {
-        return HomeRepository(api, dataStoreManager)
+    fun providesHomeRepository(api: ApiService, userPrefs: UserPrefs): HomeRepository {
+        return HomeRepository(api, userPrefs)
     }
 
     @Singleton
     @Provides
-    fun providesNavigationRepository(dataStoreManager: DataStoreManager): NavigationRepository {
-        return NavigationRepository(dataStoreManager)
+    fun providesUserPrefs(dataStoreManager: DataStoreManager): UserPrefs {
+        return runBlocking {
+            UserPrefs(
+                dataStoreManager = dataStoreManager,
+                token = dataStoreManager.token.first(),
+                baseUrl = dataStoreManager.baseUrl.first(),
+                deviceId = dataStoreManager.deviceId.first(),
+                darkMode = dataStoreManager.darkMode.first()
+            )
+        }
     }
 }
 

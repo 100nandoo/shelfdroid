@@ -9,17 +9,15 @@ import dev.halim.core.network.response.User
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.shelfdroid.core.data.UserPrefs
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import kotlin.math.roundToLong
 
 class HomeRepository @Inject constructor(
     private val api: ApiService,
-    private val dataStoreManager: DataStoreManager
+    private val userPrefs: UserPrefs
 ) {
-    private val token = runBlocking { dataStoreManager.token.first() }
 
     suspend fun getLibraries(): List<LibraryUiState> {
         val result = api.libraries()
@@ -61,27 +59,26 @@ class HomeRepository @Inject constructor(
         return startTime to endTime
     }
 
-    private inline fun getCurrentChapter(currentTime: Float, chapters: List<BookChapter>): BookChapter {
+    private fun getCurrentChapter(currentTime: Float, chapters: List<BookChapter>): BookChapter {
         return (chapters.find { currentTime >= it.start && currentTime <= it.end } ?: chapters.first())
     }
 
-    private inline fun urlAndSeekTime(
+    private fun urlAndSeekTime(
         id: String,
         inoId: String,
         currentTime: Float,
         startTime: Long,
-        api: ApiService
     ): Pair<String, Long> {
-        val url = generateItemStreamUrl(DataStoreManager.BASE_URL, token, id, inoId)
+        val url = generateItemStreamUrl(DataStoreManager.BASE_URL, userPrefs.token, id, inoId)
         val seekTime = (currentTime * 1000).roundToLong() - startTime
         return url to seekTime
     }
 
-    fun generateItemCoverUrl(baseUrl: String, itemId: String): String {
+    private fun generateItemCoverUrl(baseUrl: String, itemId: String): String {
         return "https://$baseUrl/api/items/$itemId/cover"
     }
 
-    fun generateItemStreamUrl(baseUrl: String, token: String, itemId: String, ino: String): String {
+    private fun generateItemStreamUrl(baseUrl: String, token: String, itemId: String, ino: String): String {
         return "https://$baseUrl/api/items/$itemId/file/$ino?token=$token"
     }
 
@@ -94,7 +91,7 @@ class HomeRepository @Inject constructor(
             val progress = mediaProgress?.progress ?: 0f
             val currentTime = mediaProgress?.currentTime ?: 0f
             val (startTime, endTime) = calculateStartEndTime(media, currentTime)
-            val (url, seekTime) = urlAndSeekTime(item.id, media.audioFiles.first().ino, currentTime, startTime, api)
+            val (url, seekTime) = urlAndSeekTime(item.id, media.audioFiles.first().ino, currentTime, startTime)
 
             BookUiState(
                 id = item.id, author = author, title = title,

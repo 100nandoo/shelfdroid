@@ -10,7 +10,6 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.interceptor.HostSelectionInterceptor
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

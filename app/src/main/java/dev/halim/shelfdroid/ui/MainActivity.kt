@@ -8,20 +8,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
-import dev.halim.shelfdroid.core.ui.MyApplicationTheme
+import dev.halim.shelfdroid.core.data.UserPrefs
+import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var userPrefs: UserPrefs
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyApplicationTheme {
+            ShelfDroidTheme(userPrefs.darkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainNavigation()
+                    MainNavigation(userPrefs)
                 }
             }
         }

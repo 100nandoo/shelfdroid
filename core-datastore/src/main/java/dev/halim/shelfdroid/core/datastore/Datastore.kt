@@ -51,4 +51,5 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
 
     val darkMode: Flow<Boolean> = dataStore.preferenceFlow(Keys.DARK_MODE, true)
     suspend fun updateDarkMode(darkMode: Boolean) = dataStore.updatePreference(Keys.DARK_MODE, darkMode)
+
 }
