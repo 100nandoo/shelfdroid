@@ -32,7 +32,7 @@ hilt = "2.55"
 junit = "4.13.2"
 kotlin = "2.1.10"
 kotlinSerialization = "1.8.0"
-ksp = "2.1.10-1.0.31"
+ksp = "2.1.20-1.0.31"
 
 coil = "3.1.0"
 retrofit = "2.11.0"
