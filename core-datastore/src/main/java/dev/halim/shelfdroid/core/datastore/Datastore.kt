@@ -53,5 +53,4 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
     suspend fun updateDarkMode(darkMode: Boolean) = dataStore.updatePreference(Keys.DARK_MODE, darkMode)
 
     suspend fun clear() = dataStore.edit { it.clear() }
-
 }

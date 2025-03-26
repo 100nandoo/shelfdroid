@@ -28,12 +28,8 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.theme.darkScheme
 import dev.halim.shelfdroid.core.ui.theme.lightScheme
 
-@ShelfDroidPreview
-@Composable
-fun ColorSchemePreview() {
-    ShelfDroidPreview { ColorSchemeScreen() }
-}
 
+@ShelfDroidPreview
 @Composable
 fun ColorSchemeScreen() {
     val isSystemInDarkTheme = isSystemInDarkTheme()

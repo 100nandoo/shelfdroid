@@ -48,7 +48,7 @@ import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), onBookClicked: (String) -> Unit) {
+fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), onBookClicked: (String) -> Unit, onSettingsClicked: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     val libraryCount = uiState.librariesUiState.size
 
@@ -85,7 +85,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), onBookClicked: (Strin
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* do something */ },
+                onClick = { onSettingsClicked() },
             ) {
                 Icon(Icons.Filled.Settings, contentDescription = "Settings")
             }

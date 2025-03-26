@@ -47,6 +47,9 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
 
+    // datastore
+    implementation(libs.androidx.datastore)
+
     // Local tests: jUnit, coroutines, Android runner
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

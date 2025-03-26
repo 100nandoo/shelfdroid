@@ -6,11 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.core.data.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -24,12 +28,14 @@ class MainActivity : ComponentActivity() {
 
         installSplashScreen()
         setContent {
-            ShelfDroidTheme(darkTheme = settingsRepository.darkMode()) {
+            val isDarkMode by settingsRepository.darkMode.collectAsState(true)
+            val token by settingsRepository.token.collectAsState(runBlocking { settingsRepository.token.first() })
+            ShelfDroidTheme(darkTheme = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainNavigation(settingsRepository.isLoggedIn())
+                    MainNavigation(token.isBlank().not())
                 }
             }
         }

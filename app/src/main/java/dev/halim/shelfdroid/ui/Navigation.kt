@@ -30,7 +30,19 @@ fun MainNavigation(isLoggedIn: Boolean) {
                 navController.navigate(Home) { popUpTo(Login) { inclusive = true } }
             })
         }
-        composable<Home> { HomeScreen {} }
-        composable<Settings> { SettingsScreen(version = version) {} }
+        composable<Home> {
+            HomeScreen(
+                onSettingsClicked = { navController.navigate(Settings) },
+                onBookClicked = {})
+        }
+        composable<Settings> {
+            SettingsScreen(
+                version = version,
+                onLogoutSuccess = {
+                    navController.navigate(Login) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                })
+        }
     }
 }
