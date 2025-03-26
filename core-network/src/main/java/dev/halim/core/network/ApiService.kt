@@ -6,6 +6,7 @@ import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.LoginResponse
+import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.User
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -15,6 +16,9 @@ import retrofit2.http.Path
 interface ApiService {
     @POST("login")
     suspend fun login(@Body request: LoginRequest): Result<LoginResponse>
+
+    @POST("logout")
+    suspend fun logout(): Result<LogoutResponse>
 
     @GET("api/libraries")
     suspend fun libraries(): Result<LibrariesResponse>

@@ -9,15 +9,21 @@ import dev.halim.core.network.response.User
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
-import dev.halim.shelfdroid.core.data.UserPrefs
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.math.roundToLong
 
 class HomeRepository @Inject constructor(
     private val api: ApiService,
-    private val userPrefs: UserPrefs
+    private val dataStoreManager: DataStoreManager
 ) {
+
+    private suspend fun getToken(): String = withContext(Dispatchers.IO) {
+        dataStoreManager.token.first()
+    }
 
     suspend fun getLibraries(): List<LibraryUiState> {
         val result = api.libraries()
@@ -55,7 +61,7 @@ class HomeRepository @Inject constructor(
             startTime = (currentChapter.start * 1000).toLong()
             endTime = (currentChapter.end * 1000).toLong()
         }
-        
+
         return startTime to endTime
     }
 
@@ -63,13 +69,13 @@ class HomeRepository @Inject constructor(
         return (chapters.find { currentTime >= it.start && currentTime <= it.end } ?: chapters.first())
     }
 
-    private fun urlAndSeekTime(
+    private suspend fun urlAndSeekTime(
         id: String,
         inoId: String,
         currentTime: Float,
         startTime: Long,
     ): Pair<String, Long> {
-        val url = generateItemStreamUrl(DataStoreManager.BASE_URL, userPrefs.token, id, inoId)
+        val url = generateItemStreamUrl(DataStoreManager.BASE_URL, getToken(), id, inoId)
         val seekTime = (currentTime * 1000).roundToLong() - startTime
         return url to seekTime
     }
@@ -82,7 +88,7 @@ class HomeRepository @Inject constructor(
         return "https://$baseUrl/api/items/$itemId/file/$ino?token=$token"
     }
 
-    private fun toUiState(item: LibraryItem, mediaProgress: MediaProgress?): ShelfdroidMediaItem {
+    private suspend fun toUiState(item: LibraryItem, mediaProgress: MediaProgress?): ShelfdroidMediaItem {
         val media = item.media
         return if (media is Book) {
             val cover = generateItemCoverUrl(DataStoreManager.BASE_URL, item.id)

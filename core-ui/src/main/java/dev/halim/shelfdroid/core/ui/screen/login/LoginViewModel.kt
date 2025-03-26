@@ -32,9 +32,11 @@ class LoginViewModel @Inject constructor(
     }
 
     private suspend fun login() {
-        val result = loginRepository.login(_uiState.value.server, _uiState.value.username, _uiState.value.password)
-        result.onSuccess { _uiState.update { it.copy(loginState = LoginState.Success) } }
-        result.onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
+        loginRepository.login(_uiState.value.server, _uiState.value.username, _uiState.value.password)
+            .apply {
+                onSuccess { _uiState.update { it.copy(loginState = LoginState.Success) } }
+                onFailure { error -> _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) } }
+            }
     }
 }
 

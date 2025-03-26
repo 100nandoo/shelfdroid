@@ -17,3 +17,5 @@ class ShelfDroid : Application(), SingletonImageLoader.Factory {
         return imageLoader
     }
 }
+
+val version = BuildConfig.VERSION_NAME

@@ -19,10 +19,14 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,8 +48,7 @@ import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), onBookClicked: (String) ->
-Unit) {
+fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), onBookClicked: (String) -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     val libraryCount = uiState.librariesUiState.size
 
@@ -79,17 +82,29 @@ Unit) {
         }
     }
 
-    HomeScreenContent(
-        libraryCount,
-        pagerState,
-        uiState,
-        { homeEvent -> viewModel.onEvent(homeEvent) },
-        loadingIndicatorAlpha
-    )
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { /* do something */ },
+            ) {
+                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+            }
+        }
+    ) { paddingValues ->
+        HomeScreenContent(
+            Modifier.padding(paddingValues),
+            libraryCount,
+            pagerState,
+            uiState,
+            { homeEvent -> viewModel.onEvent(homeEvent) },
+            loadingIndicatorAlpha
+        )
+    }
 }
 
 @Composable
 fun HomeScreenContent(
+    modifier: Modifier,
     libraryCount: Int = 1,
     pagerState: PagerState = rememberPagerState { 1 },
     uiState: HomeUiState = HomeUiState(),
@@ -108,7 +123,7 @@ fun HomeScreenContent(
     HorizontalPager(
         state = pagerState,
     ) { page ->
-        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+        Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
             LibraryContent(
                 modifier = Modifier.weight(1f),
                 list = uiState.libraryItemsUiState[page],
