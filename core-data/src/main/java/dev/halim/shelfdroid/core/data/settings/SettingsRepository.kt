@@ -10,6 +10,7 @@ class SettingsRepository @Inject constructor(
 ) {
 
     val darkMode = dataStoreManager.darkMode
+    val dynamicTheme = dataStoreManager.dynamicTheme
     val token = dataStoreManager.token
 
     suspend fun logout(): Result<Unit> {
@@ -25,4 +26,9 @@ class SettingsRepository @Inject constructor(
     suspend fun updateDarkMode(enabled: Boolean) {
         dataStoreManager.updateDarkMode(enabled)
     }
+
+    suspend fun updateDynamicTheme(enabled: Boolean) {
+        dataStoreManager.updateDynamicTheme(enabled)
+    }
+
 }

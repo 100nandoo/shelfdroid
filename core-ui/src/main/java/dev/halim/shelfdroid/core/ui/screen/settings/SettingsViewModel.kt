@@ -25,6 +25,11 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update { it.copy(isDarkMode = isDarkMode) }
             }
         }
+        viewModelScope.launch {
+            repository.dynamicTheme.collect { isDynamic ->
+                _uiState.update { it.copy(isDynamicTheme = isDynamic) }
+            }
+        }
     }
 
     fun onEvent(event: SettingsEvent) {
@@ -33,9 +38,15 @@ class SettingsViewModel @Inject constructor(
                 logout()
             }
 
-            is SettingsEvent.SwitchToggle -> {
+            is SettingsEvent.SwitchDarkTheme -> {
                 viewModelScope.launch {
                     repository.updateDarkMode(event.isDarkMode)
+                }
+            }
+
+            is SettingsEvent.SwitchDynamicTheme -> {
+                viewModelScope.launch {
+                    repository.updateDynamicTheme(event.isDynamic)
                 }
             }
         }
@@ -52,7 +63,8 @@ class SettingsViewModel @Inject constructor(
 
 data class SettingsUiState(
     val settingsState: SettingsState = SettingsState.NotLoggedOut,
-    val isDarkMode: Boolean = false
+    val isDarkMode: Boolean = true,
+    val isDynamicTheme: Boolean = false
 )
 
 sealed class SettingsState {
@@ -64,5 +76,6 @@ sealed class SettingsState {
 
 sealed class SettingsEvent {
     data object LogoutButtonPressed : SettingsEvent()
-    data class SwitchToggle(val isDarkMode: Boolean) : SettingsEvent()
+    data class SwitchDarkTheme(val isDarkMode: Boolean) : SettingsEvent()
+    data class SwitchDynamicTheme(val isDynamic: Boolean) : SettingsEvent()
 }

@@ -50,8 +50,14 @@ fun SettingsScreenContent(
         SettingsSwitchItem(
             title = "Dark Mode",
             checked = uiState.isDarkMode,
-            onCheckedChange = { onEvent(SettingsEvent.SwitchToggle(it)) },
+            onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
             contentDescription = "Dark Mode"
+        )
+        SettingsSwitchItem(
+            title = "Dynamic Theme",
+            checked = uiState.isDynamicTheme,
+            onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
+            contentDescription = "Dynamic Theme"
         )
 
         Spacer(modifier = Modifier.height(16.dp))

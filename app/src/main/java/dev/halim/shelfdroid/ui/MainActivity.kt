@@ -29,8 +29,9 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         setContent {
             val isDarkMode by settingsRepository.darkMode.collectAsState(true)
+            val isDynamic by settingsRepository.dynamicTheme.collectAsState(false)
             val token by settingsRepository.token.collectAsState(runBlocking { settingsRepository.token.first() })
-            ShelfDroidTheme(darkTheme = isDarkMode) {
+            ShelfDroidTheme(darkTheme = isDarkMode, dynamicColor = isDynamic) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

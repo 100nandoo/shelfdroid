@@ -16,6 +16,7 @@ private object Keys {
     val BASE_URL = stringPreferencesKey("base_url")
     val TOKEN = stringPreferencesKey("token")
     val DARK_MODE = booleanPreferencesKey("dark_mode")
+    val DYNAMIC_THEME = booleanPreferencesKey("dynamic_theme")
     val DEVICE_ID = stringPreferencesKey("device_id")
     val USER_ID = stringPreferencesKey("user_id")
 }
@@ -51,6 +52,9 @@ class DataStoreManager(private val dataStore: DataStore<Preferences>) {
 
     val darkMode: Flow<Boolean> = dataStore.preferenceFlow(Keys.DARK_MODE, true)
     suspend fun updateDarkMode(darkMode: Boolean) = dataStore.updatePreference(Keys.DARK_MODE, darkMode)
+
+    val dynamicTheme: Flow<Boolean> = dataStore.preferenceFlow(Keys.DYNAMIC_THEME, false)
+    suspend fun updateDynamicTheme(dynamicTheme: Boolean) = dataStore.updatePreference(Keys.DYNAMIC_THEME, dynamicTheme)
 
     suspend fun clear() = dataStore.edit { it.clear() }
 }
