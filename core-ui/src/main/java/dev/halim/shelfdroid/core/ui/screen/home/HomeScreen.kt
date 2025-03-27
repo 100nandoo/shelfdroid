@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import HomeItem
+import Item
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
@@ -56,6 +56,7 @@ import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onBookClicked: (String) -> Unit,
+    onPodcastClicked: (String) -> Unit,
     onSettingsClicked: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -75,9 +76,13 @@ fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.navState.collect { (isNavigate, id) ->
-            if (isNavigate) {
-                onBookClicked(id)
+        viewModel.navState.collect { navUiState ->
+            if (navUiState.isNavigate) {
+                if (navUiState.isBook) {
+                    onBookClicked(navUiState.id)
+                } else {
+                    onPodcastClicked(navUiState.id)
+                }
                 viewModel.resetNavigationState()
             }
         }
@@ -99,10 +104,7 @@ fun HomeScreen(
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
             ) {
-                FloatingActionButton(
-                    onClick = { onSettingsClicked() },
-
-                    ) {
+                FloatingActionButton(onClick = { onSettingsClicked() }) {
                     Icon(Icons.Filled.Settings, contentDescription = "Settings")
                 }
             }
@@ -225,7 +227,7 @@ fun LibraryContent(
                 items = list,
                 key = { it.id }
             ) { libraryItem ->
-                HomeItem(
+                Item(
                     uiState = libraryItem,
                     modifier = Modifier,
                     onEvent,

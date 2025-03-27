@@ -15,7 +15,6 @@ data class LoginResponse(
     val source: String = ""
 )
 
-
 @Serializable
 data class User(
     @SerialName("id")

@@ -26,32 +26,26 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
         .onStart { apis() }
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
 
-    private val _navState = MutableStateFlow(Pair(false, ""))
+    private val _navState = MutableStateFlow(NavUiState())
     val navState = _navState
-        .stateIn(viewModelScope, SharingStarted.Lazily, Pair(false, ""))
+        .stateIn(viewModelScope, SharingStarted.Lazily, NavUiState())
 
 
     fun onEvent(event: HomeEvent) {
         when (event) {
             is HomeEvent.RefreshLibrary -> currentLibraryItems(event.page)
             is HomeEvent.ChangeLibrary -> currentLibraryItems(event.page)
-            is HomeEvent.NavigateToPlayer -> {
-                navigateToPlayer(event.bookUiState.id)
+            is HomeEvent.Navigate -> {
+                viewModelScope.launch {
+                    _navState.update { _navState.value.copy(id = event.id, isBook = event.isBook, isNavigate = true) }
+                }
             }
-
-            is HomeEvent.PlayBook -> {
-            }
-        }
-    }
-
-    private fun navigateToPlayer(itemId: String) {
-        viewModelScope.launch {
-            _navState.update { _navState.value.copy(true, itemId) }
+            is HomeEvent.PlayBook -> {}
         }
     }
 
     fun resetNavigationState() {
-        _navState.update { it.copy(first = false) }
+        _navState.update { it.copy(isNavigate = false) }
     }
 
     private val handler = CoroutineExceptionHandler { _, exception ->
@@ -88,9 +82,15 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
     }
 }
 
+data class NavUiState(
+    val id: String = "",
+    val isBook: Boolean = true,
+    val isNavigate: Boolean = false
+)
+
 sealed class HomeEvent {
     data class ChangeLibrary(val page: Int) : HomeEvent()
     data class RefreshLibrary(val page: Int) : HomeEvent()
-    data class NavigateToPlayer(val bookUiState: BookUiState) : HomeEvent()
+    data class Navigate(val id: String, val isBook: Boolean) : HomeEvent()
     data class PlayBook(val mediaItem: ShelfdroidMediaItem) : HomeEvent()
 }

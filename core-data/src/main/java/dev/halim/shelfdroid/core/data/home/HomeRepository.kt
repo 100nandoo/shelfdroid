@@ -9,6 +9,7 @@ import dev.halim.core.network.response.User
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -18,7 +19,8 @@ import kotlin.math.roundToLong
 
 class HomeRepository @Inject constructor(
     private val api: ApiService,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    private val helper: Helper
 ) {
 
     private suspend fun getToken(): String = withContext(Dispatchers.IO) {
@@ -75,23 +77,15 @@ class HomeRepository @Inject constructor(
         currentTime: Float,
         startTime: Long,
     ): Pair<String, Long> {
-        val url = generateItemStreamUrl(DataStoreManager.BASE_URL, getToken(), id, inoId)
+        val url = helper.generateItemStreamUrl(getToken(), id, inoId)
         val seekTime = (currentTime * 1000).roundToLong() - startTime
         return url to seekTime
-    }
-
-    private fun generateItemCoverUrl(baseUrl: String, itemId: String): String {
-        return "https://$baseUrl/api/items/$itemId/cover"
-    }
-
-    private fun generateItemStreamUrl(baseUrl: String, token: String, itemId: String, ino: String): String {
-        return "https://$baseUrl/api/items/$itemId/file/$ino?token=$token"
     }
 
     private suspend fun toUiState(item: LibraryItem, mediaProgress: MediaProgress?): ShelfdroidMediaItem {
         val media = item.media
         return if (media is Book) {
-            val cover = generateItemCoverUrl(DataStoreManager.BASE_URL, item.id)
+            val cover = helper.generateItemCoverUrl(item.id)
             val author = media.metadata.authors.joinToString { it.name }
             val title = media.metadata.title ?: ""
             val progress = mediaProgress?.progress ?: 0f
@@ -106,7 +100,7 @@ class HomeRepository @Inject constructor(
             )
         } else {
             media as Podcast
-            val cover = generateItemCoverUrl(DataStoreManager.BASE_URL, item.id)
+            val cover = helper.generateItemCoverUrl(item.id)
             val author = media.metadata.author ?: ""
             val title = media.metadata.title ?: ""
             PodcastUiState(

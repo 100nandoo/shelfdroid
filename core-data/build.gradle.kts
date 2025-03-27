@@ -46,6 +46,7 @@ dependencies {
     kapt(libs.hilt.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.datetime)
 
     // datastore
     implementation(libs.androidx.datastore)

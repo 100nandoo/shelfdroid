@@ -1,8 +1,10 @@
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -17,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,7 +30,7 @@ import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.screen.home.HomeEvent
 
 @Composable
-fun HomeItem(
+fun Item(
     uiState: ShelfdroidMediaItem,
     modifier: Modifier = Modifier,
     onEvent: (HomeEvent) -> Unit = {},
@@ -35,7 +38,7 @@ fun HomeItem(
     Card(
         modifier = modifier.padding(4.dp),
         onClick = {
-//            onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState))
+            onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState))
         },
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -119,4 +122,30 @@ fun ItemCover(coverUrl: String, shape: Shape = RoundedCornerShape(8.dp, 8.dp)) {
         )
     }
 
+}
+
+@Composable
+fun ItemDetail(
+    url: String,
+    title: String,
+    authorName: String,
+) {
+    ItemCover(url, RoundedCornerShape(8.dp))
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Text(
+        text = title,
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center
+    )
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+        text = authorName,
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.Gray,
+        textAlign = TextAlign.Center
+    )
 }
