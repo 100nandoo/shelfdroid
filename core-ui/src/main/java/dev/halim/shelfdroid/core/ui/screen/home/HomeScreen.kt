@@ -1,8 +1,13 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import HomeItem
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -32,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,12 +53,17 @@ import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), onBookClicked: (String) -> Unit, onSettingsClicked: () -> Unit) {
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel(),
+    onBookClicked: (String) -> Unit,
+    onSettingsClicked: () -> Unit
+) {
     val uiState by viewModel.uiState.collectAsState()
     val libraryCount = uiState.librariesUiState.size
 
     val pagerState = rememberPagerState(pageCount = { libraryCount })
-    var lastPage by remember { mutableStateOf(pagerState.currentPage) }
+    var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
+    var isGridScrolling by remember { mutableStateOf(false) }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
@@ -84,10 +94,17 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), onBookClicked: (Strin
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onSettingsClicked() },
+            AnimatedVisibility(
+                visible = !pagerState.isScrollInProgress && !isGridScrolling,
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
             ) {
-                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                FloatingActionButton(
+                    onClick = { onSettingsClicked() },
+
+                    ) {
+                    Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                }
             }
         }
     ) { paddingValues ->
@@ -97,7 +114,8 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), onBookClicked: (Strin
             pagerState,
             uiState,
             { homeEvent -> viewModel.onEvent(homeEvent) },
-            loadingIndicatorAlpha
+            loadingIndicatorAlpha,
+            onGridScrollStateChanged = { isScrolling -> isGridScrolling = isScrolling }
         )
     }
 }
@@ -109,7 +127,8 @@ fun HomeScreenContent(
     pagerState: PagerState = rememberPagerState { 1 },
     uiState: HomeUiState = HomeUiState(),
     onEvent: (HomeEvent) -> Unit = {},
-    loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
+    loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) },
+    onGridScrollStateChanged: (Boolean) -> Unit = {}
 ) {
     if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
         GenericMessageScreen("No libraries available.")
@@ -127,7 +146,8 @@ fun HomeScreenContent(
             LibraryContent(
                 modifier = Modifier.weight(1f),
                 list = uiState.libraryItemsUiState[page],
-                onEvent = onEvent
+                onEvent = onEvent,
+                onScrollStateChanged = onGridScrollStateChanged
             )
             LibraryHeader(
                 name = uiState.librariesUiState[page].name,
@@ -179,11 +199,19 @@ fun LibraryContent(
     modifier: Modifier = Modifier,
     list: List<ShelfdroidMediaItem>?,
     onEvent: (HomeEvent) -> Unit,
+    onScrollStateChanged: (Boolean) -> Unit = {}
 ) {
     if (list?.isNotEmpty() == true) {
         val gridState = rememberLazyGridState(
             initialFirstVisibleItemIndex = 0
         )
+
+        LaunchedEffect(gridState) {
+            snapshotFlow { gridState.isScrollInProgress }.collect { isScrolling ->
+                onScrollStateChanged(isScrolling)
+            }
+        }
+
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Adaptive(minSize = 160.dp),
