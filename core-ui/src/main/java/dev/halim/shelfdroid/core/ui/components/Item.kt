@@ -130,8 +130,8 @@ fun ItemDetail(
     title: String,
     authorName: String,
 ) {
+    Spacer(modifier = Modifier.height(16.dp))
     ItemCover(url, RoundedCornerShape(8.dp))
-
     Spacer(modifier = Modifier.height(16.dp))
 
     Text(

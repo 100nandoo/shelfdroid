@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -28,7 +29,7 @@ private suspend fun <T> DataStore<Preferences>.updatePreference(key: Preferences
     edit { preferences -> preferences[key] = value }
 }
 
-class DataStoreManager(private val dataStore: DataStore<Preferences>) {
+class DataStoreManager @Inject constructor(private val dataStore: DataStore<Preferences>) {
     companion object {
         var BASE_URL = "www.audiobookshelf.org"
     }

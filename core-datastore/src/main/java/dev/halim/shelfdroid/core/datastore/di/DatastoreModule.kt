@@ -10,7 +10,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Singleton
 
 private const val NAME = "settings"
@@ -25,11 +24,5 @@ object DatastoreModule {
         return PreferenceDataStoreFactory.create(
             produceFile = { appContext.preferencesDataStoreFile(NAME) }
         )
-    }
-
-    @Singleton
-    @Provides
-    fun providesDatastoreManager(dataStore: DataStore<Preferences>): DataStoreManager {
-        return DataStoreManager(dataStore)
     }
 }

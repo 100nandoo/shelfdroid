@@ -1,15 +1,18 @@
 package dev.halim.core.network.di
 
 
+import android.content.Context
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.interceptor.HostSelectionInterceptor
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import kotlinx.serialization.json.Json
+import okhttp3.Cache
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

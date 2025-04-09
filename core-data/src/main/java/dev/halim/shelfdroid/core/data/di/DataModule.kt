@@ -1,5 +1,3 @@
-
-
 package dev.halim.shelfdroid.core.data.di
 
 import dagger.Binds
