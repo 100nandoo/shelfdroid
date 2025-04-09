@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.data.podcast
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.Helper
 import javax.inject.Inject
 
@@ -16,7 +17,7 @@ class PodcastRepository @Inject constructor(private val api: ApiService, private
                 val author = media.metadata.author ?: ""
                 val description = media.metadata.description ?: ""
                 return PodcastUiState(
-                    state = PodcastState.Success, author = author,
+                    state = GenericState.Success, author = author,
                     title = media.metadata.title ?: "", cover = cover, description = description,
                     episodes = media.episodes.map {
                         Episode(it.title, it.publishedAt?.let { helper.toReadableDate(it) } ?: "", progress = 0.15f)
@@ -24,9 +25,9 @@ class PodcastRepository @Inject constructor(private val api: ApiService, private
                 )
             }
 
-            return PodcastUiState(state = PodcastState.Failure("Failed to parse podcast media"))
+            return PodcastUiState(state = GenericState.Failure("Failed to parse podcast media"))
         }
-        return PodcastUiState(state = PodcastState.Failure("Failed to fetch podcast"))
+        return PodcastUiState(state = GenericState.Failure("Failed to fetch podcast"))
     }
 
 }

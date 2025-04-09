@@ -65,4 +65,7 @@ dependencies {
     // Coil
     implementation(libs.coil)
     implementation(libs.coil.okhttp)
+
+    // HTML Converter
+    implementation(libs.html.converter)
 }

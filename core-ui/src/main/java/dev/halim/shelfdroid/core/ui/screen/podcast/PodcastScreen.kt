@@ -24,15 +24,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.podcast.Episode
-import dev.halim.shelfdroid.core.data.podcast.PodcastState
 import dev.halim.shelfdroid.core.data.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.utils.toPercent
 
 @Composable
 fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
-    if (uiState.state == PodcastState.Success) {
+    if (uiState.state == GenericState.Success) {
         PodcastScreenContent(
             uiState.cover, uiState.title, uiState.author, uiState.description,
             uiState.episodes

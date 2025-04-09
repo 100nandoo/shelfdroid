@@ -20,7 +20,9 @@ class Book(
     @SerialName("chapters")
     val chapters: List<BookChapter> = listOf(),
     @SerialName("ebookFile")
-    val ebookFile: EbookFile? = EbookFile()
+    val ebookFile: EbookFile? = EbookFile(),
+    @SerialName("duration")
+    val duration: Double? = 0.0
 ) : Media()
 
 @Serializable

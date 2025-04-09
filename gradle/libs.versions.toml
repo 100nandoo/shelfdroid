@@ -36,7 +36,9 @@ kotlin = "2.1.20"
 kotlinSerialization = "1.8.1"
 ksp = "2.1.20-1.0.32"
 
+# 3rd party
 coil = "3.1.0"
+html-converter = "1.0.3"
 retrofit = "2.11.0"
 retrofit-result = "1.0.13"
 
@@ -75,8 +77,12 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 
+## 3rd party
+
 coil = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+
+html-converter = { module = "be.digitalia.compose.htmlconverter:htmlconverter", version.ref = "html-converter"}
 
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }

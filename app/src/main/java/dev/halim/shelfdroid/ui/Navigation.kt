@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
+import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.version
 import kotlinx.serialization.Serializable
@@ -23,6 +24,10 @@ object Settings
 @Serializable
 data class Podcast(val id: String)
 
+@Serializable
+data class Book(val id: String)
+
+
 @Composable
 fun MainNavigation(isLoggedIn: Boolean) {
     val navController = rememberNavController()
@@ -37,13 +42,17 @@ fun MainNavigation(isLoggedIn: Boolean) {
         composable<Home> {
             HomeScreen(
                 onSettingsClicked = { navController.navigate(Settings) },
-                onPodcastClicked = { id -> navController.navigate(Podcast(id))},
-                onBookClicked = {}
-                )
+                onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
+                onBookClicked = { id -> navController.navigate(Book(id)) }
+            )
         }
         composable<Podcast> {
             PodcastScreen()
         }
+        composable<Book> {
+            BookScreen()
+        }
+
         composable<Settings> {
             SettingsScreen(
                 version = version,

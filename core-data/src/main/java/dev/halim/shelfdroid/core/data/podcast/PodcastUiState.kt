@@ -1,13 +1,9 @@
 package dev.halim.shelfdroid.core.data.podcast
 
-sealed class PodcastState {
-    data object Loading : PodcastState()
-    data object Success : PodcastState()
-    data class Failure(val errorMessage: String?) : PodcastState()
-}
+import dev.halim.shelfdroid.core.data.GenericState
 
 data class PodcastUiState(
-    val state: PodcastState = PodcastState.Loading,
+    val state: GenericState = GenericState.Loading,
     val author: String = "",
     val title: String = "",
     val cover: String = "",

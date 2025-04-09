@@ -34,7 +34,9 @@ data class BookMetadata(
     @SerialName("language")
     val language: String? = "",
     @SerialName("explicit")
-    val explicit: Boolean = false
+    val explicit: Boolean = false,
+    @SerialName("descriptionPlain")
+    val descriptionPlain: String? = "",
 )
 
 @Serializable

@@ -129,6 +129,7 @@ fun ItemDetail(
     url: String,
     title: String,
     authorName: String,
+    subtitle: String = "",
 ) {
     Spacer(modifier = Modifier.height(16.dp))
     ItemCover(url, RoundedCornerShape(8.dp))
@@ -140,6 +141,14 @@ fun ItemDetail(
         textAlign = TextAlign.Center
     )
 
+    if (subtitle.isNotEmpty()) {
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
     Spacer(modifier = Modifier.height(8.dp))
 
     Text(

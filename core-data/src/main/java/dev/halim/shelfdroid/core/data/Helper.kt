@@ -22,4 +22,16 @@ class Helper @Inject constructor() {
         return "${dateTime.dayOfMonth} ${dateTime.month.name.lowercase().capitalize(Locale.getDefault())} ${dateTime.year}"
     }
 
+    fun formatDuration(seconds: Double): String {
+        val totalSeconds = seconds.toLong()
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        
+        return when {
+            hours > 0 && minutes > 0 -> "$hours hours $minutes minutes"
+            hours > 0 -> "$hours hours"
+            minutes > 0 -> "$minutes minutes"
+            else -> ""
+        }
+    }
 }
