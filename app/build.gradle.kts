@@ -23,15 +23,17 @@ android {
             file("../../signing/keystore.properties")
         }
 
-        val properties = Properties().apply {
-            load(keystorePropertiesFile.inputStream())
-        }
+        if (keystorePropertiesFile.exists()) {
+            val properties = Properties().apply {
+                load(keystorePropertiesFile.inputStream())
+            }
 
-        create("release") {
-            storePassword = properties.getProperty("storePassword")
-            keyPassword = properties.getProperty("keyPassword")
-            keyAlias = properties.getProperty("keyAlias")
-            storeFile = rootProject.file(properties.getProperty("storeFile"))
+            create("release") {
+                storePassword = properties.getProperty("storePassword")
+                keyPassword = properties.getProperty("keyPassword")
+                keyAlias = properties.getProperty("keyAlias")
+                storeFile = rootProject.file(properties.getProperty("storeFile"))
+            }
         }
     }
 
@@ -61,7 +63,9 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            if (signingConfigs.names.contains("release")) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             ndk {
                 debugSymbolLevel = "full"
             }
