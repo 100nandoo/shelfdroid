@@ -9,7 +9,6 @@ import androidx.compose.ui.tooling.preview.Preview
     name = "Dark",
     group = "Dark",
     showBackground = true,
-    showSystemUi = true,
     uiMode = UI_MODE_NIGHT_YES,
     fontScale = 1f
 )
@@ -17,7 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
     name = "Light",
     group = "Light",
     showBackground = true,
-    showSystemUi = true,
     uiMode = UI_MODE_NIGHT_NO,
     fontScale = 1f
 )

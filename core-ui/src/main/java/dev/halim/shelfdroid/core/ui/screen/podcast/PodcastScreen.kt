@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.podcast.Episode
 import dev.halim.shelfdroid.core.data.podcast.PodcastUiState
+import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.utils.toPercent
 
 @Composable
@@ -43,11 +44,11 @@ fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
 
 @Composable
 fun PodcastScreenContent(
-    imageUrl: String = "",
-    title: String = "Chapter 26",
-    authorName: String = "Adam",
-    description: String = "This is very cool podcast",
-    episodes: List<Episode> = emptyList()
+    imageUrl: String = Defaults.IMAGE_URL,
+    title: String = Defaults.TITLE,
+    authorName: String = Defaults.AUTHOR_NAME,
+    description: String = Defaults.DESCRIPTION,
+    episodes: List<Episode> = Defaults.EPISODES
 ) {
     LazyColumn(
         modifier = Modifier

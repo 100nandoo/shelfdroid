@@ -36,7 +36,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel(), version: Stri
 @Composable
 fun SettingsScreenContent(
     uiState: SettingsUiState = SettingsUiState(),
-    version: String,
+    version: String = "0.2",
     onEvent: (SettingsEvent) -> Unit = {},
     onLogoutSuccess: () -> Unit = {}
 ) {

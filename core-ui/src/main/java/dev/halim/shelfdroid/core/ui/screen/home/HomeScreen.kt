@@ -124,7 +124,7 @@ fun HomeScreen(
 
 @Composable
 fun HomeScreenContent(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     libraryCount: Int = 1,
     pagerState: PagerState = rememberPagerState { 1 },
     uiState: HomeUiState = HomeUiState(),

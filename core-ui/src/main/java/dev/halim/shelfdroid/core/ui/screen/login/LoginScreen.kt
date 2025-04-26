@@ -62,11 +62,11 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), onLoginSuccess: () 
 }
 
 @Composable
-private fun LoginScreenContent(
-    uiState: LoginUiState,
-    onEvent: (LoginEvent) -> Unit,
-    updateUiState: (LoginUiState) -> Unit,
-    snackbarHostState: SnackbarHostState
+fun LoginScreenContent(
+    uiState: LoginUiState = LoginUiState(),
+    onEvent: (LoginEvent) -> Unit = {},
+    updateUiState: (LoginUiState) -> Unit = {},
+    snackbarHostState: SnackbarHostState = SnackbarHostState()
 ) {
     val focusManager = LocalFocusManager.current
     val (server, username, password) = remember { FocusRequester.createRefs() }

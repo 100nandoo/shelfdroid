@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
+import dev.halim.shelfdroid.core.ui.preview.Defaults
 
 @Composable
 fun BookScreen(viewModel: BookViewModel = hiltViewModel()) {
@@ -42,17 +43,17 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel()) {
 
 @Composable
 fun BookScreenContent(
-    cover: String = "",
-    title: String = "The Fellowship of the Ring",
-    author: String = "J. R. R. Tolkien",
-    description: String = "This is very cool book",
-    subtitle: String = "Lord of the Rings, Book 1",
-    duration: String = "",
-    narrator: String = "",
-    publishYear: String = "",
-    publisher: String = "",
-    genres: String = "",
-    language: String = "",
+    cover: String = Defaults.BOOK_COVER,
+    title: String = Defaults.BOOK_TITLE,
+    author: String = Defaults.BOOK_AUTHOR,
+    description: String = Defaults.BOOK_DESCRIPTION,
+    subtitle: String = Defaults.BOOK_SUBTITLE,
+    duration: String = Defaults.BOOK_DURATION,
+    narrator: String = Defaults.BOOK_NARRATOR,
+    publishYear: String = Defaults.BOOK_PUBLISH_YEAR,
+    publisher: String = Defaults.BOOK_PUBLISHER,
+    genres: String = Defaults.BOOK_GENRES,
+    language: String = Defaults.BOOK_LANGUAGE,
 ) {
     LazyColumn(
         modifier = Modifier
