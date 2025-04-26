@@ -218,8 +218,7 @@ fun LibraryContent(
             state = gridState,
             columns = GridCells.Adaptive(minSize = 160.dp),
             modifier = modifier
-                .fillMaxSize()
-                .padding(8.dp),
+                .fillMaxSize(),
             reverseLayout = true,
             verticalArrangement = Arrangement.Bottom
         ) {

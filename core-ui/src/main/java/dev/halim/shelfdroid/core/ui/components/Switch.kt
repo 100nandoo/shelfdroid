@@ -20,6 +20,7 @@ fun SettingsSwitchItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     contentDescription: String,
+    enabled: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -30,9 +31,11 @@ fun SettingsSwitchItem(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         )
         Switch(
+            enabled = enabled,
             modifier = Modifier.semantics { this.contentDescription = contentDescription },
             checked = checked,
             onCheckedChange = onCheckedChange

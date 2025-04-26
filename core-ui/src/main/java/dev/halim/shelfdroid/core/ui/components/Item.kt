@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,23 +44,25 @@ fun Item(
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(contentAlignment = Alignment.Center) {
+            Box(
+                contentAlignment = Alignment.BottomCenter,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 ItemCover(uiState.cover)
-            }
-            if (uiState is BookUiState) {
-                if (uiState.progress > 0.0) {
+                if (uiState is BookUiState && uiState.progress > 0.0) {
                     val float = uiState.progress
                     LinearProgressIndicator(
                         progress = { float },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp),
+                        strokeCap = StrokeCap.Square,
                         color = MaterialTheme.colorScheme.tertiaryContainer,
-                        trackColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                        drawStopIndicator = {})
-                } else {
-                    Box(modifier = Modifier.padding(bottom = 4.dp))
+                        trackColor = Color.Transparent,
+                        drawStopIndicator = {}
+                    )
                 }
             }
-
             Text(
                 text = uiState.title,
                 style = MaterialTheme.typography.titleMedium,

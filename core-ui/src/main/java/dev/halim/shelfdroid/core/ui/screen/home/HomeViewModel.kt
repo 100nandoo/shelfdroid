@@ -3,7 +3,6 @@ package dev.halim.shelfdroid.core.ui.screen.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.home.BookUiState
 import dev.halim.shelfdroid.core.data.home.HomeRepository
 import dev.halim.shelfdroid.core.data.home.HomeState
 import dev.halim.shelfdroid.core.data.home.HomeUiState
@@ -33,8 +32,8 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
 
     fun onEvent(event: HomeEvent) {
         when (event) {
-            is HomeEvent.RefreshLibrary -> currentLibraryItems(event.page)
-            is HomeEvent.ChangeLibrary -> currentLibraryItems(event.page)
+            is HomeEvent.RefreshLibrary -> prefetchLibraryItems(event.page)
+            is HomeEvent.ChangeLibrary -> prefetchLibraryItems(event.page)
             is HomeEvent.Navigate -> {
                 viewModelScope.launch {
                     _navState.update { _navState.value.copy(id = event.id, isBook = event.isBook, isNavigate = true) }
@@ -52,30 +51,48 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
         _uiState.update { it.copy(homeState = HomeState.Failure(exception.message)) }
     }
 
-    private fun apis(page: Int = 0) {
+    private fun apis() {
         _uiState.update { it.copy(homeState = HomeState.Loading) }
         viewModelScope.launch(handler) {
             val libraries = homeRepository.getLibraries()
-            val libraryItems = homeRepository.getLibraryItems(libraries[page].id)
             _uiState.update {
                 it.copy(
                     homeState = HomeState.Success,
                     librariesUiState = libraries,
-                    libraryItemsUiState = mapOf(page to libraryItems)
                 )
             }
+            prefetchLibraryItems(0)
+        }
+    }
+    
+    private fun prefetchLibraryItems(page: Int){
+        val currentState = _uiState.value
+        val libraries = currentState.librariesUiState
+        val loadedItems = currentState.libraryItemsUiState
+
+        // Prefetch current page if not loaded
+        if (page < libraries.size && !loadedItems.containsKey(page)) {
+            fetchLibraryItems(page)
+        }
+
+        // Prefetch next page if not loaded
+        val nextPage = page + 1
+        if (nextPage < libraries.size && !loadedItems.containsKey(nextPage)) {
+            fetchLibraryItems(nextPage)
         }
     }
 
-    private fun currentLibraryItems(page: Int) {
+    private fun fetchLibraryItems(page: Int) {
         _uiState.update { it.copy(homeState = HomeState.Loading) }
         val id = _uiState.value.librariesUiState[page].id
         viewModelScope.launch(handler) {
             val libraryItems = homeRepository.getLibraryItems(id)
-            _uiState.update {
-                it.copy(
+            _uiState.update { currentState ->
+                val updatedMap = currentState.libraryItemsUiState.toMutableMap()
+                updatedMap[page] = libraryItems
+                currentState.copy(
                     homeState = HomeState.Success,
-                    libraryItemsUiState = mapOf(page to libraryItems)
+                    libraryItemsUiState = updatedMap
                 )
             }
         }

@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.settings
 
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -58,7 +59,8 @@ fun SettingsScreenContent(
             title = "Dynamic Theme",
             checked = uiState.isDynamicTheme,
             onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
-            contentDescription = "Dynamic Theme"
+            contentDescription = "Dynamic Theme",
+            enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
