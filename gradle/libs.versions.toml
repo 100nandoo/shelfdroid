@@ -38,7 +38,7 @@ ksp = "2.1.20-2.0.0"
 
 # 3rd party
 coil = "3.1.0"
-html-converter = "1.0.3"
+html-converter = "1.0.4"
 retrofit = "2.11.0"
 retrofit-result = "1.0.13"
 
