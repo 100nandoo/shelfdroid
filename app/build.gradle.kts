@@ -123,6 +123,7 @@ dependencies {
     implementation(composeBom)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.icon.extended)
     implementation(libs.androidx.compose.material3)
 
     // Tooling

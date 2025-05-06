@@ -45,13 +45,13 @@ fun SettingsBody(
 fun ExpandShrinkText(text: String, maxLines: Int = 3) {
     val expandedState = remember { mutableStateOf(false) }
     Column {
-        Text(
-            text = remember(text) { htmlToAnnotatedString(text) },
-            maxLines = if (expandedState.value) Int.MAX_VALUE else maxLines,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.clickable { expandedState.value = !expandedState.value }
-        )
         if (text.isNotEmpty()) {
+            Text(
+                text = remember(text) { htmlToAnnotatedString(text) },
+                maxLines = if (expandedState.value) Int.MAX_VALUE else maxLines,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.clickable { expandedState.value = !expandedState.value }
+            )
             Text(
                 text = if (expandedState.value) "Show less" else "Show more",
                 style = MaterialTheme.typography.bodySmall,

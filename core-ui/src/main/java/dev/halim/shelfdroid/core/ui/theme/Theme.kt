@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.core.ui.theme
 
 import android.app.Activity
 import android.os.Build
-import android.view.WindowInsets
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -15,8 +14,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 
 val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -269,8 +266,6 @@ fun ShelfDroidTheme(
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                 window.decorView.setOnApplyWindowInsetsListener { view, windowInsets ->
-                    val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
-                    view.updatePadding(insets.left, 16, insets.right, insets.bottom)
                     view.setBackgroundColor(colorScheme.surface.toArgb())
                     windowInsets
                 }

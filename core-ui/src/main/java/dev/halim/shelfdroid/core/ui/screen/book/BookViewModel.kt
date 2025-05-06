@@ -21,7 +21,7 @@ class BookViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val id: String = checkNotNull(savedStateHandle.get<String>("id"))
+    val id: String = checkNotNull(savedStateHandle.get<String>("id"))
 
     private val _uiState = MutableStateFlow(BookUiState())
     val uiState: StateFlow<BookUiState> = _uiState

@@ -1,21 +1,22 @@
-package dev.halim.shelfdroid.core.ui.screen.book
+package dev.halim.shelfdroid.core.ui.screen.player
 
 import androidx.compose.runtime.Composable
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
+
 @ShelfDroidPreview
 @Composable
-fun BookScreenContentPreview() {
+fun PlayerScreenContentPreview() {
     PreviewWrapper(dynamicColor = false) {
-        BookScreenContent(onPlayClicked = {})
+        PlayerScreenContent()
     }
 }
 
 @ShelfDroidPreview
 @Composable
-fun BookScreenContentDynamicPreview() {
+fun PlayerScreenContentDynamicPreview() {
     PreviewWrapper(dynamicColor = true) {
-        BookScreenContent(onPlayClicked = {})
+        PlayerScreenContent()
     }
 }

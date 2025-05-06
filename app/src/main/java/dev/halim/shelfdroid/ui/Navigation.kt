@@ -8,6 +8,7 @@ import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
+import dev.halim.shelfdroid.core.ui.screen.player.PlayerScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.version
 import kotlinx.serialization.Serializable
@@ -26,6 +27,9 @@ data class Podcast(val id: String)
 
 @Serializable
 data class Book(val id: String)
+
+@Serializable
+data class Player(val id: String)
 
 
 @Composable
@@ -50,7 +54,11 @@ fun MainNavigation(isLoggedIn: Boolean) {
             PodcastScreen()
         }
         composable<Book> {
-            BookScreen()
+            BookScreen(onPlayClicked = { id -> navController.navigate(Player(id)) })
+        }
+
+        composable<Player> {
+            PlayerScreen()
         }
 
         composable<Settings> {

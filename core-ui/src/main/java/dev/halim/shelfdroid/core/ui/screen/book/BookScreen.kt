@@ -4,10 +4,17 @@ import ItemDetail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +29,7 @@ import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 
 @Composable
-fun BookScreen(viewModel: BookViewModel = hiltViewModel()) {
+fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (String) -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     if (uiState.state == GenericState.Success) {
         BookScreenContent(
@@ -36,7 +43,8 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel()) {
             publishYear = uiState.publishYear,
             publisher = uiState.publisher,
             genres = uiState.genres,
-            language = uiState.language
+            language = uiState.language,
+            onPlayClicked = { onPlayClicked(viewModel.id) }
         )
     }
 }
@@ -46,14 +54,15 @@ fun BookScreenContent(
     cover: String = Defaults.BOOK_COVER,
     title: String = Defaults.BOOK_TITLE,
     author: String = Defaults.BOOK_AUTHOR,
-    description: String = Defaults.BOOK_DESCRIPTION,
-    subtitle: String = Defaults.BOOK_SUBTITLE,
+    description: String = "",
+    subtitle: String = "",
     duration: String = Defaults.BOOK_DURATION,
     narrator: String = Defaults.BOOK_NARRATOR,
     publishYear: String = Defaults.BOOK_PUBLISH_YEAR,
     publisher: String = Defaults.BOOK_PUBLISHER,
     genres: String = Defaults.BOOK_GENRES,
     language: String = Defaults.BOOK_LANGUAGE,
+    onPlayClicked: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier
@@ -61,9 +70,23 @@ fun BookScreenContent(
             .systemBarsPadding()
             .padding(horizontal = 16.dp),
         reverseLayout = true,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom)
     ) {
         item {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { onPlayClicked() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.PlayArrow,
+                    contentDescription = "Play",
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text("Play")
+            }
             ExpandShrinkText(description)
             BookDetail(duration, narrator, publishYear, publisher, genres, language)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
