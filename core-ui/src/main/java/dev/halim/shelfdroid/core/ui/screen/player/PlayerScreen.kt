@@ -68,13 +68,14 @@ fun PlayerScreenContent(
     ) {
         BasicPlayerContent(imageUrl, title, authorName)
 
-        AdvancedPlayerControl()
 
         BookmarkAndChapter()
 
         PlayerProgress()
 
         BasicPlayerControl()
+
+        AdvancedPlayerControl()
 
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -138,12 +139,12 @@ fun PlayerProgress(
 
 
 @Composable
-fun BasicPlayerControl(
-) {
+fun BasicPlayerControl(modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
     ) {
         IconButton(
             icon = Icons.Default.SkipPrevious,
@@ -238,14 +239,14 @@ fun SleepTimer(
 //                    fontWeight = FontWeight.Bold
 //                )
 //            } else {
-                Icon(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .align(Alignment.Center),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    imageVector = Icons.Default.Timer,
-                    contentDescription = "timer"
-                )
+            Icon(
+                modifier = Modifier
+                    .size(36.dp)
+                    .align(Alignment.Center),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                imageVector = Icons.Default.Timer,
+                contentDescription = "timer"
+            )
 
 //            }
         }

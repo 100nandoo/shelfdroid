@@ -67,7 +67,6 @@ fun BookScreenContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .systemBarsPadding()
             .padding(horizontal = 16.dp),
         reverseLayout = true,
         verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom)

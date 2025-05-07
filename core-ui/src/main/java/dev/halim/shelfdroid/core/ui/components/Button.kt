@@ -28,7 +28,7 @@ fun IconButton(
             .size(size.dp)
     ) {
         Icon(
-            modifier = Modifier
+            modifier = modifier
                 .size((size - 8).dp)
                 .align(Alignment.Center),
             tint = MaterialTheme.colorScheme.onSecondaryContainer,
