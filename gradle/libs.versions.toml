@@ -37,7 +37,7 @@ kotlinSerialization = "1.8.1"
 ksp = "2.1.20-2.0.1"
 
 # 3rd party
-coil = "3.1.0"
+coil = "3.2.0"
 html-converter = "1.0.4"
 retrofit = "2.11.0"
 retrofit-result = "1.0.13"
