@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.LinearProgressIndicator
@@ -32,90 +31,83 @@ import dev.halim.shelfdroid.core.utils.toPercent
 
 @Composable
 fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
-    if (uiState.state == GenericState.Success) {
-        PodcastScreenContent(
-            uiState.cover, uiState.title, uiState.author, uiState.description,
-            uiState.episodes
-        )
-    }
-
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
+  if (uiState.state == GenericState.Success) {
+    PodcastScreenContent(
+      uiState.cover,
+      uiState.title,
+      uiState.author,
+      uiState.description,
+      uiState.episodes,
+    )
+  }
 }
 
 @Composable
 fun PodcastScreenContent(
-    imageUrl: String = Defaults.IMAGE_URL,
-    title: String = Defaults.TITLE,
-    authorName: String = Defaults.AUTHOR_NAME,
-    description: String = Defaults.DESCRIPTION,
-    episodes: List<Episode> = Defaults.EPISODES
+  imageUrl: String = Defaults.IMAGE_URL,
+  title: String = Defaults.TITLE,
+  authorName: String = Defaults.AUTHOR_NAME,
+  description: String = Defaults.DESCRIPTION,
+  episodes: List<Episode> = Defaults.EPISODES,
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        reverseLayout = true,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(episodes) { episode ->
-            EpisodeItem(episode)
-        }
-        item {
+  LazyColumn(
+    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+    reverseLayout = true,
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    items(episodes) { episode -> EpisodeItem(episode) }
+    item {
+      Text(
+        text = "Episodes",
+        style = MaterialTheme.typography.headlineMedium,
+        textAlign = TextAlign.Left,
+      )
+      Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Episodes",
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Left
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+      Text(description)
 
-            Text(description)
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                ItemDetail(imageUrl, title, authorName)
-            }
-        }
+      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        ItemDetail(imageUrl, title, authorName)
+      }
     }
+  }
 }
 
 @Composable
 fun EpisodeItem(episode: Episode) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-    ) {
-        Text(
-            text = episode.title,
-            style = MaterialTheme.typography.bodyLarge,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Row {
-            Text(
-                text = episode.progress.toPercent(),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = episode.publishedAt,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        LinearProgressIndicator(
-            progress = { episode.progress },
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.tertiaryContainer,
-            trackColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            drawStopIndicator = {})
-
+  Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Text(
+      text = episode.title,
+      style = MaterialTheme.typography.bodyLarge,
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+    Row {
+      Text(
+        text = episode.progress.toPercent(),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.labelMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      Spacer(modifier = Modifier.weight(1f))
+      Text(
+        text = episode.publishedAt,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.labelMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
     }
+    Spacer(modifier = Modifier.height(4.dp))
+    LinearProgressIndicator(
+      progress = { episode.progress },
+      modifier = Modifier.fillMaxWidth(),
+      color = MaterialTheme.colorScheme.tertiaryContainer,
+      trackColor = MaterialTheme.colorScheme.onTertiaryContainer,
+      drawStopIndicator = {},
+    )
+  }
 }

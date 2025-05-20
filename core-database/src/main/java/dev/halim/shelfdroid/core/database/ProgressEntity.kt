@@ -9,20 +9,19 @@ import androidx.room.Query
 
 @Entity
 data class ProgressEntity(
-    @PrimaryKey val id: String,
-    val libraryItemId: String = "",
-    val episodeId: String? = null,
-    val mediaItemType: String = "",
-    val progress: Float,
-    val duration: Float,
-    val currentTime: Float,
+  @PrimaryKey val id: String,
+  val libraryItemId: String = "",
+  val episodeId: String? = null,
+  val mediaItemType: String = "",
+  val progress: Float,
+  val duration: Float,
+  val currentTime: Float,
 )
 
 @Dao
 interface ProgressDao {
-    @Query("SELECT * FROM progressentity")
-    fun all(): List<ProgressEntity>
+  @Query("SELECT * FROM progressentity") fun all(): List<ProgressEntity>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(vararg entities: ProgressEntity)
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insert(vararg entities: ProgressEntity)
 }

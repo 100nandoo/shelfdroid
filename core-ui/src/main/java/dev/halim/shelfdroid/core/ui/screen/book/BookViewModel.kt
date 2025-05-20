@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.book.BookRepository
 import dev.halim.shelfdroid.core.data.book.BookUiState
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,24 +14,22 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
-class BookViewModel @Inject constructor(
-    private val repository: BookRepository,
-    savedStateHandle: SavedStateHandle
-) : ViewModel() {
+class BookViewModel
+@Inject
+constructor(private val repository: BookRepository, savedStateHandle: SavedStateHandle) :
+  ViewModel() {
 
-    val id: String = checkNotNull(savedStateHandle.get<String>("id"))
+  val id: String = checkNotNull(savedStateHandle.get<String>("id"))
 
-    private val _uiState = MutableStateFlow(BookUiState())
-    val uiState: StateFlow<BookUiState> = _uiState
-        .onStart { initUiState() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), BookUiState())
+  private val _uiState = MutableStateFlow(BookUiState())
+  val uiState: StateFlow<BookUiState> =
+    _uiState
+      .onStart { initUiState() }
+      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), BookUiState())
 
-    private fun initUiState() {
-        viewModelScope.launch {
-            _uiState.update { repository.item(id) }
-        }
-    }
+  private fun initUiState() {
+    viewModelScope.launch { _uiState.update { repository.item(id) } }
+  }
 }

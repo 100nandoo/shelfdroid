@@ -6,15 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 
-
 @Composable
-fun PreviewWrapper(
-    dynamicColor: Boolean = false,
-    content: @Composable () -> Unit = {}
-) {
-    ShelfDroidTheme(dynamicColor = dynamicColor) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-        ) { content() }
-    }
+fun PreviewWrapper(dynamicColor: Boolean = false, content: @Composable () -> Unit = {}) {
+  ShelfDroidTheme(dynamicColor = dynamicColor) {
+    Surface(modifier = Modifier.fillMaxSize()) { content() }
+  }
 }

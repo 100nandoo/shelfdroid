@@ -16,29 +16,29 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SettingsSwitchItem(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    contentDescription: String,
-    enabled: Boolean = true
+  title: String,
+  checked: Boolean,
+  onCheckedChange: (Boolean) -> Unit,
+  contentDescription: String,
+  enabled: Boolean = true,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        )
-        Switch(
-            enabled = enabled,
-            modifier = Modifier.semantics { this.contentDescription = contentDescription },
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
-    }
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text = title,
+      style = MaterialTheme.typography.bodyLarge,
+      color =
+        if (enabled) MaterialTheme.colorScheme.onSurface
+        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+    )
+    Switch(
+      enabled = enabled,
+      modifier = Modifier.semantics { this.contentDescription = contentDescription },
+      checked = checked,
+      onCheckedChange = onCheckedChange,
+    )
+  }
 }

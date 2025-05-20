@@ -10,12 +10,11 @@ import javax.inject.Inject
 @HiltAndroidApp
 class ShelfDroid : Application(), SingletonImageLoader.Factory {
 
-    @Inject
-    lateinit var imageLoader: ImageLoader
+  @Inject lateinit var imageLoader: ImageLoader
 
-    override fun newImageLoader(context: PlatformContext): ImageLoader {
-        return imageLoader
-    }
+  override fun newImageLoader(context: PlatformContext): ImageLoader {
+    return imageLoader
+  }
 }
 
 val version = BuildConfig.VERSION_NAME

@@ -7,15 +7,11 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @ShelfDroidPreview
 @Composable
 fun BookScreenContentPreview() {
-    PreviewWrapper(dynamicColor = false) {
-        BookScreenContent(onPlayClicked = {})
-    }
+  PreviewWrapper(dynamicColor = false) { BookScreenContent(onPlayClicked = {}) }
 }
 
 @ShelfDroidPreview
 @Composable
 fun BookScreenContentDynamicPreview() {
-    PreviewWrapper(dynamicColor = true) {
-        BookScreenContent(onPlayClicked = {})
-    }
+  PreviewWrapper(dynamicColor = true) { BookScreenContent(onPlayClicked = {}) }
 }

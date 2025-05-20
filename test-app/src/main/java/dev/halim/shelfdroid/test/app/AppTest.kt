@@ -12,15 +12,13 @@ import org.junit.Test
 @HiltAndroidTest
 class AppTest {
 
-    @get:Rule(order = 0)
-    var hiltRule = HiltAndroidRule(this)
+  @get:Rule(order = 0) var hiltRule = HiltAndroidRule(this)
 
-    @get:Rule(order = 1)
-    val composeTestRule = createAndroidComposeRule<MainActivity>()
+  @get:Rule(order = 1) val composeTestRule = createAndroidComposeRule<MainActivity>()
 
-    @Test
-    fun test1() {
-        // TODO: Add navigation tests
-        composeTestRule.onNodeWithText(fakeAudiobooks.first(), substring = true).assertExists()
-    }
+  @Test
+  fun test1() {
+    // TODO: Add navigation tests
+    composeTestRule.onNodeWithText(fakeAudiobooks.first(), substring = true).assertExists()
+  }
 }

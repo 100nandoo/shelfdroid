@@ -20,27 +20,23 @@ import dev.halim.shelfdroid.core.ui.screen.player.BasicPlayerControl
 
 @Composable
 fun MiniPlayer() {
-    val insets = WindowInsets.systemGestures.asPaddingValues()
-    val gestureNavBottomInset = insets.calculateBottomPadding()
+  val insets = WindowInsets.systemGestures.asPaddingValues()
+  val gestureNavBottomInset = insets.calculateBottomPadding()
 
-    BasicPlayerControl(
-        Modifier
-            .dropShadow(RectangleShape)
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .padding(bottom = gestureNavBottomInset)
-    )
+  BasicPlayerControl(
+    Modifier.dropShadow(RectangleShape)
+      .background(MaterialTheme.colorScheme.secondaryContainer)
+      .padding(bottom = gestureNavBottomInset)
+  )
 }
 
 @ShelfDroidPreview
 @Composable
 fun MiniPlayerPreview() {
-    PreviewWrapper(dynamicColor = false) {
-        Column(verticalArrangement = Arrangement.Bottom){
-            Box(Modifier.weight(1f))
-            Box(Modifier.padding(16.dp)){
-                MiniPlayer()
-            }
-        }
+  PreviewWrapper(dynamicColor = false) {
+    Column(verticalArrangement = Arrangement.Bottom) {
+      Box(Modifier.weight(1f))
+      Box(Modifier.padding(16.dp)) { MiniPlayer() }
     }
+  }
 }
-

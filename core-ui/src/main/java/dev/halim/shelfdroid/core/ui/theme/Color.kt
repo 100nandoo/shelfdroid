@@ -1,4 +1,5 @@
 package dev.halim.shelfdroid.core.ui.theme
+
 import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFF82542F)
@@ -216,10 +217,3 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF1F1B17)
 val surfaceContainerDarkHighContrast = Color(0xFF241F1B)
 val surfaceContainerHighDarkHighContrast = Color(0xFF2E2925)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF393430)
-
-
-
-
-
-
-

@@ -50,265 +50,227 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PlayerScreen() {
-    PlayerScreenContent()
+  PlayerScreenContent()
 }
 
 @Composable
 fun PlayerScreenContent(
-    imageUrl: String = "",
-    title: String = "Chapter 26",
-    authorName: String = "Adam",
+  imageUrl: String = "",
+  title: String = "Chapter 26",
+  authorName: String = "Adam",
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom)
-    ) {
-        BasicPlayerContent(imageUrl, title, authorName)
+  Column(
+    modifier = Modifier.fillMaxSize().padding(16.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom),
+  ) {
+    BasicPlayerContent(imageUrl, title, authorName)
 
+    BookmarkAndChapter()
 
-        BookmarkAndChapter()
+    PlayerProgress()
 
-        PlayerProgress()
+    BasicPlayerControl()
 
-        BasicPlayerControl()
-
-        AdvancedPlayerControl()
-
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
-@Composable
-fun BasicPlayerContent(
-    url: String,
-    title: String,
-    authorName: String,
-) {
-    ItemCover(url, RoundedCornerShape(8.dp))
+    AdvancedPlayerControl()
 
     Spacer(modifier = Modifier.height(16.dp))
-
-    Text(
-        text = title,
-        style = MaterialTheme.typography.headlineLarge,
-        textAlign = TextAlign.Center
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Text(
-        text = authorName,
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.Gray,
-        textAlign = TextAlign.Center
-    )
+  }
 }
 
 @Composable
-fun PlayerProgress(
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = "01:11",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = "03:33",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-    Slider(
-        value = 0.3f,
-        onValueChange = { },
-        modifier = Modifier.fillMaxWidth(),
-        onValueChangeFinished = { },
-        colors = SliderDefaults.colors(
-            thumbColor = MaterialTheme.colorScheme.primary,
-            activeTrackColor = MaterialTheme.colorScheme.primary
-        )
-    )
+fun BasicPlayerContent(url: String, title: String, authorName: String) {
+  ItemCover(url, RoundedCornerShape(8.dp))
+
+  Spacer(modifier = Modifier.height(16.dp))
+
+  Text(text = title, style = MaterialTheme.typography.headlineLarge, textAlign = TextAlign.Center)
+
+  Spacer(modifier = Modifier.height(8.dp))
+
+  Text(
+    text = authorName,
+    style = MaterialTheme.typography.bodyMedium,
+    color = Color.Gray,
+    textAlign = TextAlign.Center,
+  )
 }
 
+@Composable
+fun PlayerProgress() {
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Text(
+      text = "01:11",
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      text = "03:33",
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+  }
+  Slider(
+    value = 0.3f,
+    onValueChange = {},
+    modifier = Modifier.fillMaxWidth(),
+    onValueChangeFinished = {},
+    colors =
+      SliderDefaults.colors(
+        thumbColor = MaterialTheme.colorScheme.primary,
+        activeTrackColor = MaterialTheme.colorScheme.primary,
+      ),
+  )
+}
 
 @Composable
 fun BasicPlayerControl(modifier: Modifier = Modifier) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        IconButton(
-            icon = Icons.Default.SkipPrevious,
-            contentDescription = "Previous Chapter",
-            onClick = { }
-        )
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceEvenly,
+    modifier = modifier.fillMaxWidth(),
+  ) {
+    IconButton(
+      icon = Icons.Default.SkipPrevious,
+      contentDescription = "Previous Chapter",
+      onClick = {},
+    )
 
-        IconButton(
-            icon = Icons.Default.Replay10,
-            contentDescription = "Seek Back 10s",
-            onClick = { }
-        )
+    IconButton(icon = Icons.Default.Replay10, contentDescription = "Seek Back 10s", onClick = {})
 
-        IconButton(
-            icon = Icons.Default.PlayArrow,
-            contentDescription = "Play Pause",
-            size = 72,
-            onClick = { }
-        )
+    IconButton(
+      icon = Icons.Default.PlayArrow,
+      contentDescription = "Play Pause",
+      size = 72,
+      onClick = {},
+    )
 
-        IconButton(
-            icon = Icons.Default.Forward10,
-            contentDescription = "Seek Forward 10s",
-            onClick = { }
-        )
+    IconButton(
+      icon = Icons.Default.Forward10,
+      contentDescription = "Seek Forward 10s",
+      onClick = {},
+    )
 
-        IconButton(
-            icon = Icons.Default.SkipNext,
-            contentDescription = "Next Chapter",
-            onClick = { }
-        )
-
-    }
+    IconButton(icon = Icons.Default.SkipNext, contentDescription = "Next Chapter", onClick = {})
+  }
 }
 
 @Composable
 fun AdvancedPlayerControl() {
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        SpeedSlider(1.0f)
+  Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+    SpeedSlider(1.0f)
 
-        SleepTimer()
-    }
+    SleepTimer()
+  }
 }
 
 @Composable
 fun SpeedSlider(speed: Float) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(text = "Speed: ${speed}x")
-        Spacer(modifier = Modifier.height(4.dp))
+  Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Text(text = "Speed: ${speed}x")
+    Spacer(modifier = Modifier.height(4.dp))
 
-        Slider(
-            modifier = Modifier
-                .semantics { contentDescription = "speed slider" }
-                .width(150.dp),
-            value = speed,
-            onValueChange = { },
-            valueRange = 0.5f..2f,
-            steps = 5,
-        )
-    }
+    Slider(
+      modifier = Modifier.semantics { contentDescription = "speed slider" }.width(150.dp),
+      value = speed,
+      onValueChange = {},
+      valueRange = 0.5f..2f,
+      steps = 5,
+    )
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SleepTimer(
-) {
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+fun SleepTimer() {
+  val sheetState = rememberModalBottomSheetState()
+  val scope = rememberCoroutineScope()
+  Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Text("Sleep Timer")
+
+    Spacer(modifier = Modifier.height(4.dp))
+
+    Box(
+      modifier =
+        Modifier.clip(CircleShape).clickable { scope.launch { sheetState.show() } }.size(48.dp)
     ) {
-        Text("Sleep Timer")
+      //            if (uiState.sleepTimeLeft > ZERO) {
+      //                Text(
+      //                    sleepTimerMinute(uiState.sleepTimeLeft),
+      //                    modifier = Modifier.align(Alignment.Center),
+      //                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+      //                    fontWeight = FontWeight.Bold
+      //                )
+      //            } else {
+      Icon(
+        modifier = Modifier.size(36.dp).align(Alignment.Center),
+        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        imageVector = Icons.Default.Timer,
+        contentDescription = "timer",
+      )
 
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Box(
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable { scope.launch { sheetState.show() } }
-                .size(48.dp)
-        ) {
-//            if (uiState.sleepTimeLeft > ZERO) {
-//                Text(
-//                    sleepTimerMinute(uiState.sleepTimeLeft),
-//                    modifier = Modifier.align(Alignment.Center),
-//                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-//                    fontWeight = FontWeight.Bold
-//                )
-//            } else {
-            Icon(
-                modifier = Modifier
-                    .size(36.dp)
-                    .align(Alignment.Center),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                imageVector = Icons.Default.Timer,
-                contentDescription = "timer"
-            )
-
-//            }
-        }
-        SleepTimerBottomSheet(sheetState)
+      //            }
     }
+    SleepTimerBottomSheet(sheetState)
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SleepTimerBottomSheet(sheetState: SheetState) {
-    val scope = rememberCoroutineScope()
+  val scope = rememberCoroutineScope()
 
-    val sleepTimerOptions = listOf(
-        "5m" to 5, "10m" to 10, "15m" to 15, "30m" to 30, "45m" to 45, "60m" to 60
-    )
-    if (sheetState.isVisible) {
-        ModalBottomSheet(
-            sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
-        ) {
-            Column {
-                sleepTimerOptions.forEach { (label, duration) ->
-                    TextButton(shape = RectangleShape, modifier = Modifier.fillMaxWidth(), onClick = {
-//                        onEvent(PlayerEvent.SetSleepTimer(duration.minutes))
-                        scope.launch { sheetState.hide() }
-                    }) {
-                        Text(label)
-                    }
-                }
-            }
+  val sleepTimerOptions =
+    listOf("5m" to 5, "10m" to 10, "15m" to 15, "30m" to 30, "45m" to 45, "60m" to 60)
+  if (sheetState.isVisible) {
+    ModalBottomSheet(
+      sheetState = sheetState,
+      onDismissRequest = { scope.launch { sheetState.hide() } },
+    ) {
+      Column {
+        sleepTimerOptions.forEach { (label, duration) ->
+          TextButton(
+            shape = RectangleShape,
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+              //                        onEvent(PlayerEvent.SetSleepTimer(duration.minutes))
+              scope.launch { sheetState.hide() }
+            },
+          ) {
+            Text(label)
+          }
         }
+      }
     }
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookmarkAndChapter() {
-    val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val bookmarkSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        IconButton(
-            icon = Icons.Default.Bookmarks,
-            contentDescription = "bookmarks",
-            onClick = { scope.launch { bookmarkSheetState.show() } }
-        )
-        IconButton(
-            icon = Icons.AutoMirrored.Filled.List,
-            contentDescription = "chapters",
-            onClick = { scope.launch { chapterSheetState.show() } }
-        )
-    }
-//    ChapterBottomSheet(chapterSheetState)
-//    BookmarkBottomSheet(bookmarkSheetState)
+  val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  val bookmarkSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  val scope = rememberCoroutineScope()
+  Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+    IconButton(
+      icon = Icons.Default.Bookmarks,
+      contentDescription = "bookmarks",
+      onClick = { scope.launch { bookmarkSheetState.show() } },
+    )
+    IconButton(
+      icon = Icons.AutoMirrored.Filled.List,
+      contentDescription = "chapters",
+      onClick = { scope.launch { chapterSheetState.show() } },
+    )
+  }
+  //    ChapterBottomSheet(chapterSheetState)
+  //    BookmarkBottomSheet(bookmarkSheetState)
 
 }
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun ChapterBottomSheet(
+// @OptIn(ExperimentalMaterial3Api::class)
+// @Composable
+// fun ChapterBottomSheet(
 //    sheetState: SheetState) {
 //    val scope = rememberCoroutineScope()
 //    val state = rememberLazyListState(initialFirstVisibleItemIndex = 0)
@@ -320,21 +282,22 @@ fun BookmarkAndChapter() {
 //                state = state,
 //                verticalArrangement = Arrangement.spacedBy(8.dp),
 //            ) {
-//                itemsIndexed(uiState.chapters, key = { _, chapter -> chapter.id }) { index, bookChapter ->
+//                itemsIndexed(uiState.chapters, key = { _, chapter -> chapter.id }) { index,
+// bookChapter ->
 //                    ChapterRow(index, scope, sheetState)
 //                }
 //            }
 //        }
 //    }
-//}
+// }
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//private fun ChapterRow(
+// @OptIn(ExperimentalMaterial3Api::class)
+// @Composable
+// private fun ChapterRow(
 //    index: Int,
 //    scope: CoroutineScope,
 //    sheetState: SheetState
-//) {
+// ) {
 //    val startTime = formatTime(bookChapter.start.toLong(), true)
 //    val endTime = formatTime(bookChapter.end.toLong(), true)
 //    val selected = bookChapter.id == currentChapter.id
@@ -368,13 +331,14 @@ fun BookmarkAndChapter() {
 //            fontFamily = JetbrainsMonoFontFamily()
 //        )
 //    }
-//}
+// }
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun BookmarkBottomSheet(
-//    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent: (PlayerEvent) -> Unit
-//) {
+// @OptIn(ExperimentalMaterial3Api::class)
+// @Composable
+// fun BookmarkBottomSheet(
+//    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent:
+// (PlayerEvent) -> Unit
+// ) {
 //    val scope = rememberCoroutineScope()
 //    if (sheetState.isVisible) {
 //        ModalBottomSheet(
@@ -415,4 +379,4 @@ fun BookmarkAndChapter() {
 //            }
 //        }
 //    }
-//}
+// }

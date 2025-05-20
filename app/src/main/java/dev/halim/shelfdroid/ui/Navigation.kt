@@ -25,92 +25,78 @@ import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.version
 import kotlinx.serialization.Serializable
 
-@Serializable
-object Login
+@Serializable object Login
 
-@Serializable
-object Home
+@Serializable object Home
 
-@Serializable
-object Settings
+@Serializable object Settings
 
-@Serializable
-data class Podcast(val id: String)
+@Serializable data class Podcast(val id: String)
 
-@Serializable
-data class Book(val id: String)
+@Serializable data class Book(val id: String)
 
-@Serializable
-data class Player(val id: String)
-
+@Serializable data class Player(val id: String)
 
 @Composable
 fun MainNavigation(isLoggedIn: Boolean) {
-    val navController = rememberNavController()
+  val navController = rememberNavController()
 
-    val startDestination = if (isLoggedIn) Home else Login
+  val startDestination = if (isLoggedIn) Home else Login
 
-    var showMiniPlayer by remember { mutableStateOf(false) }
+  var showMiniPlayer by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        NavHostContainer(
-            navController = navController,
-            startDestination = startDestination,
-            onShowMiniPlayer = { showMiniPlayer = true }
-        )
+  Column(
+    modifier = Modifier.fillMaxSize().statusBarsPadding(),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    NavHostContainer(
+      navController = navController,
+      startDestination = startDestination,
+      onShowMiniPlayer = { showMiniPlayer = true },
+    )
 
-        MiniPlayerHandler(navController = navController, showMiniPlayer = showMiniPlayer)
-    }
+    MiniPlayerHandler(navController = navController, showMiniPlayer = showMiniPlayer)
+  }
 }
 
 @Composable
 private fun ColumnScope.NavHostContainer(
-    navController: NavHostController,
-    startDestination: Any,
-    onShowMiniPlayer: () -> Unit
+  navController: NavHostController,
+  startDestination: Any,
+  onShowMiniPlayer: () -> Unit,
 ) {
-    Box(modifier = Modifier.weight(1f)) {
-        NavHost(navController = navController, startDestination = startDestination) {
-            composable<Login> {
-                LoginScreen(onLoginSuccess = {
-                    navController.navigate(Home) { popUpTo(Login) { inclusive = true } }
-                })
-            }
-            composable<Home> {
-                HomeScreen(
-                    onSettingsClicked = { navController.navigate(Settings) },
-                    onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
-                    onBookClicked = { id -> navController.navigate(Book(id)) }
-                )
-            }
-            composable<Podcast> {
-                PodcastScreen()
-            }
-            composable<Book> {
-                BookScreen(onPlayClicked = { id ->
-                    navController.navigate(Player(id))
-                    onShowMiniPlayer()
-                })
-            }
+  Box(modifier = Modifier.weight(1f)) {
+    NavHost(navController = navController, startDestination = startDestination) {
+      composable<Login> {
+        LoginScreen(
+          onLoginSuccess = { navController.navigate(Home) { popUpTo(Login) { inclusive = true } } }
+        )
+      }
+      composable<Home> {
+        HomeScreen(
+          onSettingsClicked = { navController.navigate(Settings) },
+          onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
+          onBookClicked = { id -> navController.navigate(Book(id)) },
+        )
+      }
+      composable<Podcast> { PodcastScreen() }
+      composable<Book> {
+        BookScreen(
+          onPlayClicked = { id ->
+            navController.navigate(Player(id))
+            onShowMiniPlayer()
+          }
+        )
+      }
 
-            composable<Player> {
-                PlayerScreen()
-            }
+      composable<Player> { PlayerScreen() }
 
-            composable<Settings> {
-                SettingsScreen(
-                    version = version,
-                    onLogoutSuccess = {
-                        navController.navigate(Login) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    })
-            }
-        }
+      composable<Settings> {
+        SettingsScreen(
+          version = version,
+          onLogoutSuccess = { navController.navigate(Login) { popUpTo(0) { inclusive = true } } },
+        )
+      }
     }
+  }
 }

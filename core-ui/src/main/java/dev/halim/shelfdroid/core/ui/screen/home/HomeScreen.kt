@@ -54,185 +54,158 @@ import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel(),
-    onBookClicked: (String) -> Unit,
-    onPodcastClicked: (String) -> Unit,
-    onSettingsClicked: () -> Unit
+  viewModel: HomeViewModel = hiltViewModel(),
+  onBookClicked: (String) -> Unit,
+  onPodcastClicked: (String) -> Unit,
+  onSettingsClicked: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val libraryCount = uiState.librariesUiState.size
+  val uiState by viewModel.uiState.collectAsState()
+  val libraryCount = uiState.librariesUiState.size
 
-    val pagerState = rememberPagerState(pageCount = { libraryCount })
-    var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
-    var isGridScrolling by remember { mutableStateOf(false) }
+  val pagerState = rememberPagerState(pageCount = { libraryCount })
+  var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
+  var isGridScrolling by remember { mutableStateOf(false) }
 
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            if (page != lastPage) {
-                viewModel.onEvent(HomeEvent.ChangeLibrary(page))
-                lastPage = page
-            }
+  LaunchedEffect(pagerState) {
+    snapshotFlow { pagerState.currentPage }
+      .collect { page ->
+        if (page != lastPage) {
+          viewModel.onEvent(HomeEvent.ChangeLibrary(page))
+          lastPage = page
         }
-    }
+      }
+  }
 
-    LaunchedEffect(Unit) {
-        viewModel.navState.collect { navUiState ->
-            if (navUiState.isNavigate) {
-                if (navUiState.isBook) {
-                    onBookClicked(navUiState.id)
-                } else {
-                    onPodcastClicked(navUiState.id)
-                }
-                viewModel.resetNavigationState()
-            }
+  LaunchedEffect(Unit) {
+    viewModel.navState.collect { navUiState ->
+      if (navUiState.isNavigate) {
+        if (navUiState.isBook) {
+          onBookClicked(navUiState.id)
+        } else {
+          onPodcastClicked(navUiState.id)
         }
+        viewModel.resetNavigationState()
+      }
     }
+  }
 
-    val loadingIndicatorAlpha = remember { Animatable(0f) }
+  val loadingIndicatorAlpha = remember { Animatable(0f) }
 
-    LaunchedEffect(uiState.homeState) {
-        when (uiState.homeState) {
-            is HomeState.Loading -> loadingIndicatorAlpha.animateTo(1f)
-            else -> loadingIndicatorAlpha.animateTo(0f)
+  LaunchedEffect(uiState.homeState) {
+    when (uiState.homeState) {
+      is HomeState.Loading -> loadingIndicatorAlpha.animateTo(1f)
+      else -> loadingIndicatorAlpha.animateTo(0f)
+    }
+  }
+
+  Scaffold(
+    floatingActionButton = {
+      AnimatedVisibility(
+        visible = !pagerState.isScrollInProgress && !isGridScrolling,
+        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+      ) {
+        FloatingActionButton(onClick = { onSettingsClicked() }) {
+          Icon(Icons.Filled.Settings, contentDescription = "Settings")
         }
+      }
     }
-
-    Scaffold(
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = !pagerState.isScrollInProgress && !isGridScrolling,
-                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-            ) {
-                FloatingActionButton(onClick = { onSettingsClicked() }) {
-                    Icon(Icons.Filled.Settings, contentDescription = "Settings")
-                }
-            }
-        }
-    ) { paddingValues ->
-        HomeScreenContent(
-            Modifier.padding(paddingValues),
-            libraryCount,
-            pagerState,
-            uiState,
-            { homeEvent -> viewModel.onEvent(homeEvent) },
-            loadingIndicatorAlpha,
-            onGridScrollStateChanged = { isScrolling -> isGridScrolling = isScrolling }
-        )
-    }
+  ) { paddingValues ->
+    HomeScreenContent(
+      Modifier.padding(paddingValues),
+      libraryCount,
+      pagerState,
+      uiState,
+      { homeEvent -> viewModel.onEvent(homeEvent) },
+      loadingIndicatorAlpha,
+      onGridScrollStateChanged = { isScrolling -> isGridScrolling = isScrolling },
+    )
+  }
 }
 
 @Composable
 fun HomeScreenContent(
-    modifier: Modifier = Modifier,
-    libraryCount: Int = 1,
-    pagerState: PagerState = rememberPagerState { 1 },
-    uiState: HomeUiState = HomeUiState(),
-    onEvent: (HomeEvent) -> Unit = {},
-    loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) },
-    onGridScrollStateChanged: (Boolean) -> Unit = {}
+  modifier: Modifier = Modifier,
+  libraryCount: Int = 1,
+  pagerState: PagerState = rememberPagerState { 1 },
+  uiState: HomeUiState = HomeUiState(),
+  onEvent: (HomeEvent) -> Unit = {},
+  loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) },
+  onGridScrollStateChanged: (Boolean) -> Unit = {},
 ) {
-    if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
-        GenericMessageScreen("No libraries available.")
-    } else {
-        val homeState = uiState.homeState
-        if (homeState is HomeState.Failure) {
-            GenericMessageScreen(homeState.errorMessage ?: "")
-        }
+  if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
+    GenericMessageScreen("No libraries available.")
+  } else {
+    val homeState = uiState.homeState
+    if (homeState is HomeState.Failure) {
+      GenericMessageScreen(homeState.errorMessage ?: "")
     }
+  }
 
-    HorizontalPager(
-        state = pagerState,
-    ) { page ->
-        Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-            LibraryContent(
-                modifier = Modifier.weight(1f),
-                list = uiState.libraryItemsUiState[page],
-                onEvent = onEvent,
-                onScrollStateChanged = onGridScrollStateChanged
-            )
-            LibraryHeader(
-                name = uiState.librariesUiState[page].name,
-                onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) }
-            )
-            if (loadingIndicatorAlpha.value > 0f) {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            alpha = loadingIndicatorAlpha.value
-                        }
-                )
-            }
-        }
+  HorizontalPager(state = pagerState) { page ->
+    Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+      LibraryContent(
+        modifier = Modifier.weight(1f),
+        list = uiState.libraryItemsUiState[page],
+        onEvent = onEvent,
+        onScrollStateChanged = onGridScrollStateChanged,
+      )
+      LibraryHeader(
+        name = uiState.librariesUiState[page].name,
+        onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
+      )
+      if (loadingIndicatorAlpha.value > 0f) {
+        LinearProgressIndicator(
+          modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = loadingIndicatorAlpha.value }
+        )
+      }
     }
+  }
 }
 
 @Composable
-fun LibraryHeader(
-    name: String,
-    onRefresh: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center
-        )
-        IconButton(onClick = onRefresh) {
-            Icon(
-                imageVector = Icons.Filled.Refresh,
-                contentDescription = "refresh",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
+fun LibraryHeader(name: String, onRefresh: () -> Unit) {
+  Row(
+    modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Center,
+  ) {
+    Text(text = name, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+    IconButton(onClick = onRefresh) {
+      Icon(
+        imageVector = Icons.Filled.Refresh,
+        contentDescription = "refresh",
+        tint = MaterialTheme.colorScheme.primary,
+      )
     }
+  }
 }
 
 @Composable
 fun LibraryContent(
-    modifier: Modifier = Modifier,
-    list: List<ShelfdroidMediaItem>?,
-    onEvent: (HomeEvent) -> Unit,
-    onScrollStateChanged: (Boolean) -> Unit = {}
+  modifier: Modifier = Modifier,
+  list: List<ShelfdroidMediaItem>?,
+  onEvent: (HomeEvent) -> Unit,
+  onScrollStateChanged: (Boolean) -> Unit = {},
 ) {
-    if (list?.isNotEmpty() == true) {
-        val gridState = rememberLazyGridState(
-            initialFirstVisibleItemIndex = 0
-        )
+  if (list?.isNotEmpty() == true) {
+    val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
 
-        LaunchedEffect(gridState) {
-            snapshotFlow { gridState.isScrollInProgress }.collect { isScrolling ->
-                onScrollStateChanged(isScrolling)
-            }
-        }
-
-        LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Adaptive(minSize = 160.dp),
-            modifier = modifier
-                .fillMaxSize(),
-            reverseLayout = true,
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            items(
-                items = list,
-                key = { it.id }
-            ) { libraryItem ->
-                Item(
-                    uiState = libraryItem,
-                    modifier = Modifier,
-                    onEvent,
-                )
-            }
-        }
+    LaunchedEffect(gridState) {
+      snapshotFlow { gridState.isScrollInProgress }
+        .collect { isScrolling -> onScrollStateChanged(isScrolling) }
     }
 
+    LazyVerticalGrid(
+      state = gridState,
+      columns = GridCells.Adaptive(minSize = 160.dp),
+      modifier = modifier.fillMaxSize(),
+      reverseLayout = true,
+      verticalArrangement = Arrangement.Bottom,
+    ) {
+      items(items = list, key = { it.id }) { libraryItem ->
+        Item(uiState = libraryItem, modifier = Modifier, onEvent)
+      }
+    }
+  }
 }

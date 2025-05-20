@@ -7,17 +7,13 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentPreview() {
-    PreviewWrapper(dynamicColor = false) {
-        SettingsScreenContent()
-    }
+  PreviewWrapper(dynamicColor = false) { SettingsScreenContent() }
 }
 
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentDynamicPreview() {
-    val isDynamicTheme = true
-    val uiState = SettingsUiState(isDynamicTheme = isDynamicTheme)
-    PreviewWrapper(dynamicColor = isDynamicTheme) {
-        SettingsScreenContent(uiState)
-    }
+  val isDynamicTheme = true
+  val uiState = SettingsUiState(isDynamicTheme = isDynamicTheme)
+  PreviewWrapper(dynamicColor = isDynamicTheme) { SettingsScreenContent(uiState) }
 }

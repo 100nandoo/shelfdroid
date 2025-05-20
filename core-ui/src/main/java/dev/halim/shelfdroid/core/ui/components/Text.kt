@@ -16,50 +16,42 @@ import be.digitalia.compose.htmlconverter.htmlToAnnotatedString
 
 @Composable
 fun SettingsLabel(
-    text: String,
-    modifier: Modifier = Modifier,
-    style: TextStyle = MaterialTheme.typography.labelLarge,
+  text: String,
+  modifier: Modifier = Modifier,
+  style: TextStyle = MaterialTheme.typography.labelLarge,
 ) {
-    Text(
-        text = text,
-        style = style,
-        color = MaterialTheme.colorScheme.tertiary,
-        modifier = modifier
-    )
+  Text(text = text, style = style, color = MaterialTheme.colorScheme.tertiary, modifier = modifier)
 }
 
 @Composable
 fun SettingsBody(
-    text: String,
-    modifier: Modifier = Modifier,
-    style: TextStyle = MaterialTheme.typography.bodyLarge,
+  text: String,
+  modifier: Modifier = Modifier,
+  style: TextStyle = MaterialTheme.typography.bodyLarge,
 ) {
-    Text(
-        text = text,
-        style = style,
-        modifier = modifier
-    )
+  Text(text = text, style = style, modifier = modifier)
 }
 
 @Composable
 fun ExpandShrinkText(text: String, maxLines: Int = 3) {
-    val expandedState = remember { mutableStateOf(false) }
-    Column {
-        if (text.isNotEmpty()) {
-            Text(
-                text = remember(text) { htmlToAnnotatedString(text) },
-                maxLines = if (expandedState.value) Int.MAX_VALUE else maxLines,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.clickable { expandedState.value = !expandedState.value }
-            )
-            Text(
-                text = if (expandedState.value) "Show less" else "Show more",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .padding(top = 4.dp, bottom = 16.dp)
-                    .clickable { expandedState.value = !expandedState.value }
-            )
-        }
+  val expandedState = remember { mutableStateOf(false) }
+  Column {
+    if (text.isNotEmpty()) {
+      Text(
+        text = remember(text) { htmlToAnnotatedString(text) },
+        maxLines = if (expandedState.value) Int.MAX_VALUE else maxLines,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.clickable { expandedState.value = !expandedState.value },
+      )
+      Text(
+        text = if (expandedState.value) "Show less" else "Show more",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier =
+          Modifier.padding(top = 4.dp, bottom = 16.dp).clickable {
+            expandedState.value = !expandedState.value
+          },
+      )
     }
+  }
 }

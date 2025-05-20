@@ -15,25 +15,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun IconButton(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    contentDescription: String,
-    size: Int = 48,
-    onClick: () -> Unit
+  modifier: Modifier = Modifier,
+  icon: ImageVector,
+  contentDescription: String,
+  size: Int = 48,
+  onClick: () -> Unit,
 ) {
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .clickable(onClick = onClick)
-            .size(size.dp)
-    ) {
-        Icon(
-            modifier = modifier
-                .size((size - 8).dp)
-                .align(Alignment.Center),
-            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-            imageVector = icon,
-            contentDescription = contentDescription
-        )
-    }
+  Box(modifier = modifier.clip(CircleShape).clickable(onClick = onClick).size(size.dp)) {
+    Icon(
+      modifier = modifier.size((size - 8).dp).align(Alignment.Center),
+      tint = MaterialTheme.colorScheme.onSecondaryContainer,
+      imageVector = icon,
+      contentDescription = contentDescription,
+    )
+  }
 }

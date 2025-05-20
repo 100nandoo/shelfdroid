@@ -28,104 +28,93 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.theme.darkScheme
 import dev.halim.shelfdroid.core.ui.theme.lightScheme
 
-
 @ShelfDroidPreview
 @Composable
 fun ColorSchemeScreen() {
-    val isSystemInDarkTheme = isSystemInDarkTheme()
+  val isSystemInDarkTheme = isSystemInDarkTheme()
 
-    val colorScheme: ColorScheme = if (isSystemInDarkTheme) darkScheme else lightScheme
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = colorScheme.background
+  val colorScheme: ColorScheme = if (isSystemInDarkTheme) darkScheme else lightScheme
+  Surface(modifier = Modifier.fillMaxSize(), color = colorScheme.background) {
+    LazyVerticalGrid(
+      columns = GridCells.Fixed(2),
+      modifier = Modifier.padding(8.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            item(span = { GridItemSpan(2) }) {
-                Text(
-                    text = "Light Color Scheme Preview",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onBackground
-                )
-            }
+      item(span = { GridItemSpan(2) }) {
+        Text(
+          text = "Light Color Scheme Preview",
+          style = MaterialTheme.typography.headlineSmall,
+          fontWeight = FontWeight.Bold,
+          color = colorScheme.onBackground,
+        )
+      }
 
-            val colorPairs = listOf(
-                "primary" to colorScheme.primary,
-                "onPrimary" to colorScheme.onPrimary,
-                "primaryContainer" to colorScheme.primaryContainer,
-                "onPrimaryContainer" to colorScheme.onPrimaryContainer,
-                "inversePrimary" to colorScheme.inversePrimary,
-                "secondary" to colorScheme.secondary,
-                "onSecondary" to colorScheme.onSecondary,
-                "secondaryContainer" to colorScheme.secondaryContainer,
-                "onSecondaryContainer" to colorScheme.onSecondaryContainer,
-                "tertiary" to colorScheme.tertiary,
-                "onTertiary" to colorScheme.onTertiary,
-                "tertiaryContainer" to colorScheme.tertiaryContainer,
-                "onTertiaryContainer" to colorScheme.onTertiaryContainer,
-                "background" to colorScheme.background,
-                "onBackground" to colorScheme.onBackground,
-                "surface" to colorScheme.surface,
-                "onSurface" to colorScheme.onSurface,
-                "surfaceVariant" to colorScheme.surfaceVariant,
-                "onSurfaceVariant" to colorScheme.onSurfaceVariant,
-                "surfaceTint" to colorScheme.surfaceTint,
-                "inverseSurface" to colorScheme.inverseSurface,
-                "inverseOnSurface" to colorScheme.inverseOnSurface,
-                "error" to colorScheme.error,
-                "onError" to colorScheme.onError,
-                "errorContainer" to colorScheme.errorContainer,
-                "onErrorContainer" to colorScheme.onErrorContainer,
-                "outline" to colorScheme.outline,
-                "outlineVariant" to colorScheme.outlineVariant,
-                "scrim" to colorScheme.scrim,
-                "surfaceBright" to colorScheme.surfaceBright,
-                "surfaceContainer" to colorScheme.surfaceContainer,
-                "surfaceContainerHigh" to colorScheme.surfaceContainerHigh,
-                "surfaceContainerHighest" to colorScheme.surfaceContainerHighest,
-                "surfaceContainerLow" to colorScheme.surfaceContainerLow,
-                "surfaceContainerLowest" to colorScheme.surfaceContainerLowest,
-                "surfaceDim" to colorScheme.surfaceDim
-            )
+      val colorPairs =
+        listOf(
+          "primary" to colorScheme.primary,
+          "onPrimary" to colorScheme.onPrimary,
+          "primaryContainer" to colorScheme.primaryContainer,
+          "onPrimaryContainer" to colorScheme.onPrimaryContainer,
+          "inversePrimary" to colorScheme.inversePrimary,
+          "secondary" to colorScheme.secondary,
+          "onSecondary" to colorScheme.onSecondary,
+          "secondaryContainer" to colorScheme.secondaryContainer,
+          "onSecondaryContainer" to colorScheme.onSecondaryContainer,
+          "tertiary" to colorScheme.tertiary,
+          "onTertiary" to colorScheme.onTertiary,
+          "tertiaryContainer" to colorScheme.tertiaryContainer,
+          "onTertiaryContainer" to colorScheme.onTertiaryContainer,
+          "background" to colorScheme.background,
+          "onBackground" to colorScheme.onBackground,
+          "surface" to colorScheme.surface,
+          "onSurface" to colorScheme.onSurface,
+          "surfaceVariant" to colorScheme.surfaceVariant,
+          "onSurfaceVariant" to colorScheme.onSurfaceVariant,
+          "surfaceTint" to colorScheme.surfaceTint,
+          "inverseSurface" to colorScheme.inverseSurface,
+          "inverseOnSurface" to colorScheme.inverseOnSurface,
+          "error" to colorScheme.error,
+          "onError" to colorScheme.onError,
+          "errorContainer" to colorScheme.errorContainer,
+          "onErrorContainer" to colorScheme.onErrorContainer,
+          "outline" to colorScheme.outline,
+          "outlineVariant" to colorScheme.outlineVariant,
+          "scrim" to colorScheme.scrim,
+          "surfaceBright" to colorScheme.surfaceBright,
+          "surfaceContainer" to colorScheme.surfaceContainer,
+          "surfaceContainerHigh" to colorScheme.surfaceContainerHigh,
+          "surfaceContainerHighest" to colorScheme.surfaceContainerHighest,
+          "surfaceContainerLow" to colorScheme.surfaceContainerLow,
+          "surfaceContainerLowest" to colorScheme.surfaceContainerLowest,
+          "surfaceDim" to colorScheme.surfaceDim,
+        )
 
-            items(colorPairs) { (name, color) ->
-                ColorItem(
-                    name = name,
-                    color = color,
-                    isDarkMode = isSystemInDarkTheme
-                )
-            }
-        }
+      items(colorPairs) { (name, color) ->
+        ColorItem(name = name, color = color, isDarkMode = isSystemInDarkTheme)
+      }
     }
+  }
 }
 
 @Composable
 private fun ColorItem(
-    name: String,
-    color: Color,
-    isDarkMode: Boolean,
-    modifier: Modifier = Modifier
+  name: String,
+  color: Color,
+  isDarkMode: Boolean,
+  modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(36.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(color),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            color = if (isDarkMode) Color.White else Color.Black,
-            textAlign = TextAlign.Center
-        )
-    }
+  Box(
+    modifier =
+      modifier.fillMaxWidth().height(36.dp).clip(RoundedCornerShape(8.dp)).background(color),
+    contentAlignment = Alignment.Center,
+  ) {
+    Text(
+      text = name,
+      style = MaterialTheme.typography.bodySmall,
+      fontWeight = FontWeight.Medium,
+      color = if (isDarkMode) Color.White else Color.Black,
+      textAlign = TextAlign.Center,
+    )
+  }
 }
-

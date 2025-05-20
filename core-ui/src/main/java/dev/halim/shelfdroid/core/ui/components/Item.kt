@@ -32,132 +32,107 @@ import dev.halim.shelfdroid.core.ui.screen.home.HomeEvent
 
 @Composable
 fun Item(
-    uiState: ShelfdroidMediaItem,
-    modifier: Modifier = Modifier,
-    onEvent: (HomeEvent) -> Unit = {},
+  uiState: ShelfdroidMediaItem,
+  modifier: Modifier = Modifier,
+  onEvent: (HomeEvent) -> Unit = {},
 ) {
-    Card(
-        modifier = modifier.padding(4.dp),
-        onClick = {
-            onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState))
-        },
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                contentAlignment = Alignment.BottomCenter,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                ItemCover(uiState.cover)
-                if (uiState is BookUiState && uiState.progress > 0.0) {
-                    val float = uiState.progress
-                    LinearProgressIndicator(
-                        progress = { float },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(12.dp),
-                        strokeCap = StrokeCap.Square,
-                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                        trackColor = Color.Transparent,
-                        drawStopIndicator = {}
-                    )
-                }
-            }
-            Text(
-                text = uiState.title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .padding(top = 8.dp)
-            )
-
-            Text(
-                text = uiState.author,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .padding(top = 4.dp, bottom = 8.dp)
-            )
+  Card(
+    modifier = modifier.padding(4.dp),
+    onClick = { onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState)) },
+    shape = RoundedCornerShape(8.dp),
+  ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
+        ItemCover(uiState.cover)
+        if (uiState is BookUiState && uiState.progress > 0.0) {
+          val float = uiState.progress
+          LinearProgressIndicator(
+            progress = { float },
+            modifier = Modifier.fillMaxWidth().height(12.dp),
+            strokeCap = StrokeCap.Square,
+            color = MaterialTheme.colorScheme.tertiaryContainer,
+            trackColor = Color.Transparent,
+            drawStopIndicator = {},
+          )
         }
+      }
+      Text(
+        text = uiState.title,
+        style = MaterialTheme.typography.titleMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(horizontal = 8.dp).padding(top = 8.dp),
+      )
+
+      Text(
+        text = uiState.author,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(horizontal = 8.dp).padding(top = 4.dp, bottom = 8.dp),
+      )
     }
+  }
 }
 
 @Composable
 fun ItemCover(coverUrl: String, shape: Shape = RoundedCornerShape(8.dp, 8.dp)) {
-    var imageLoadFailed by remember { mutableStateOf(false) }
-    if (imageLoadFailed) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .background(
-                    MaterialTheme.colorScheme.secondaryContainer,
-                    shape = shape
-                ),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = "No cover",
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                textAlign = TextAlign.Center
-            )
-        }
-
-    } else {
-        AsyncImage(
-            model = coverUrl,
-            contentDescription = "Library item cover image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(shape)
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .aspectRatio(1f),
-            onError = { imageLoadFailed = true }
-        )
+  var imageLoadFailed by remember { mutableStateOf(false) }
+  if (imageLoadFailed) {
+    Box(
+      modifier =
+        Modifier.fillMaxWidth()
+          .aspectRatio(1f)
+          .background(MaterialTheme.colorScheme.secondaryContainer, shape = shape),
+      contentAlignment = Alignment.TopCenter,
+    ) {
+      Text(
+        modifier = Modifier.padding(top = 8.dp),
+        text = "No cover",
+        color = MaterialTheme.colorScheme.onSecondaryContainer,
+        textAlign = TextAlign.Center,
+      )
     }
-
+  } else {
+    AsyncImage(
+      model = coverUrl,
+      contentDescription = "Library item cover image",
+      modifier =
+        Modifier.fillMaxWidth()
+          .clip(shape)
+          .background(MaterialTheme.colorScheme.secondaryContainer)
+          .aspectRatio(1f),
+      onError = { imageLoadFailed = true },
+    )
+  }
 }
 
 @Composable
-fun ItemDetail(
-    url: String,
-    title: String,
-    authorName: String,
-    subtitle: String = "",
-) {
-    Spacer(modifier = Modifier.height(16.dp))
-    ItemCover(url, RoundedCornerShape(8.dp))
-    Spacer(modifier = Modifier.height(16.dp))
+fun ItemDetail(url: String, title: String, authorName: String, subtitle: String = "") {
+  Spacer(modifier = Modifier.height(16.dp))
+  ItemCover(url, RoundedCornerShape(8.dp))
+  Spacer(modifier = Modifier.height(16.dp))
 
+  Text(text = title, style = MaterialTheme.typography.headlineLarge, textAlign = TextAlign.Center)
+
+  if (subtitle.isNotEmpty()) {
     Text(
-        text = title,
-        style = MaterialTheme.typography.headlineLarge,
-        textAlign = TextAlign.Center
+      text = subtitle,
+      style = MaterialTheme.typography.titleMedium,
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+  }
+  Spacer(modifier = Modifier.height(8.dp))
 
-    if (subtitle.isNotEmpty()) {
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Text(
-        text = authorName,
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.Gray,
-        textAlign = TextAlign.Center
-    )
+  Text(
+    text = authorName,
+    style = MaterialTheme.typography.bodyMedium,
+    color = Color.Gray,
+    textAlign = TextAlign.Center,
+  )
 }

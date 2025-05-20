@@ -18,11 +18,11 @@ private const val NAME = "settings"
 @InstallIn(SingletonComponent::class)
 object DatastoreModule {
 
-    @Singleton
-    @Provides
-    fun providesDatastore(@ApplicationContext appContext: Context): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.create(
-            produceFile = { appContext.preferencesDataStoreFile(NAME) }
-        )
-    }
+  @Singleton
+  @Provides
+  fun providesDatastore(@ApplicationContext appContext: Context): DataStore<Preferences> {
+    return PreferenceDataStoreFactory.create(
+      produceFile = { appContext.preferencesDataStoreFile(NAME) }
+    )
+  }
 }

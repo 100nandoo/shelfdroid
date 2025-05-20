@@ -8,18 +8,14 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Entity
-data class Audiobook(
-    val name: String
-) {
-    @PrimaryKey(autoGenerate = true)
-    var uid: Int = 0
+data class Audiobook(val name: String) {
+  @PrimaryKey(autoGenerate = true) var uid: Int = 0
 }
 
 @Dao
 interface AudiobookDao {
-    @Query("SELECT * FROM audiobook ORDER BY uid DESC LIMIT 10")
-    fun getAudiobooks(): Flow<List<Audiobook>>
+  @Query("SELECT * FROM audiobook ORDER BY uid DESC LIMIT 10")
+  fun getAudiobooks(): Flow<List<Audiobook>>
 
-    @Insert
-    suspend fun insertAudiobook(item: Audiobook)
+  @Insert suspend fun insertAudiobook(item: Audiobook)
 }

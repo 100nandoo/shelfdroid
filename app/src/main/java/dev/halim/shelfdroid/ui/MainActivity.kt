@@ -13,32 +13,29 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.core.data.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
+import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
+  @Inject lateinit var settingsRepository: SettingsRepository
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
 
-        installSplashScreen()
-        setContent {
-            val isDarkMode by settingsRepository.darkMode.collectAsState(true)
-            val isDynamic by settingsRepository.dynamicTheme.collectAsState(false)
-            val token by settingsRepository.token.collectAsState(runBlocking { settingsRepository.token.first() })
-            ShelfDroidTheme(darkTheme = isDarkMode, dynamicColor = isDynamic) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainNavigation(token.isBlank().not())
-                }
-            }
+    installSplashScreen()
+    setContent {
+      val isDarkMode by settingsRepository.darkMode.collectAsState(true)
+      val isDynamic by settingsRepository.dynamicTheme.collectAsState(false)
+      val token by
+        settingsRepository.token.collectAsState(runBlocking { settingsRepository.token.first() })
+      ShelfDroidTheme(darkTheme = isDarkMode, dynamicColor = isDynamic) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+          MainNavigation(token.isBlank().not())
         }
+      }
     }
+  }
 }

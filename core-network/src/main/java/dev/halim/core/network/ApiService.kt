@@ -16,27 +16,25 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-    @POST("login")
-    suspend fun login(@Body request: LoginRequest): Result<LoginResponse>
+  @POST("login") suspend fun login(@Body request: LoginRequest): Result<LoginResponse>
 
-    @POST("logout")
-    suspend fun logout(): Result<LogoutResponse>
+  @POST("logout") suspend fun logout(): Result<LogoutResponse>
 
-    @GET("api/libraries")
-    suspend fun libraries(): Result<LibrariesResponse>
+  @GET("api/libraries") suspend fun libraries(): Result<LibrariesResponse>
 
-    @GET("/api/libraries/{libraryId}/items")
-    suspend fun libraryItems(@Path("libraryId") libraryId: String): Result<LibraryItemsResponse>
+  @GET("/api/libraries/{libraryId}/items")
+  suspend fun libraryItems(@Path("libraryId") libraryId: String): Result<LibraryItemsResponse>
 
-    @GET("/api/items/{itemId}")
-    suspend fun item(
-        @Path("itemId") itemId: String,
-        @Query("expanded") expanded: Int = 1
-    ): Result<LibraryItem>
+  @GET("/api/items/{itemId}")
+  suspend fun item(
+    @Path("itemId") itemId: String,
+    @Query("expanded") expanded: Int = 1,
+  ): Result<LibraryItem>
 
-    @POST("api/items/batch/get")
-    suspend fun batchLibraryItems(@Body request: BatchLibraryItemsRequest): Result<BatchLibraryItemsResponse>
+  @POST("api/items/batch/get")
+  suspend fun batchLibraryItems(
+    @Body request: BatchLibraryItemsRequest
+  ): Result<BatchLibraryItemsResponse>
 
-    @GET("/api/me")
-    suspend fun me(): Result<User>
+  @GET("/api/me") suspend fun me(): Result<User>
 }

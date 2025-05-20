@@ -7,15 +7,11 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentPreview() {
-    PreviewWrapper(dynamicColor = false) {
-        PodcastScreenContent()
-    }
+  PreviewWrapper(dynamicColor = false) { PodcastScreenContent() }
 }
 
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentDynamicPreview() {
-    PreviewWrapper(dynamicColor = true) {
-        PodcastScreenContent()
-    }
+  PreviewWrapper(dynamicColor = true) { PodcastScreenContent() }
 }
