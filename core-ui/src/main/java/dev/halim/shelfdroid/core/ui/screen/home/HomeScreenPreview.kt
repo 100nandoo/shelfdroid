@@ -1,5 +1,10 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package dev.halim.shelfdroid.core.ui.screen.home
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
 import dev.halim.shelfdroid.core.data.home.BookUiState
 import dev.halim.shelfdroid.core.data.home.HomeState
@@ -58,11 +63,31 @@ private val previewHomeUiState =
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentPreview() {
-  PreviewWrapper(dynamicColor = false) { HomeScreenContent(uiState = previewHomeUiState) }
+  PreviewWrapper(dynamicColor = false) {
+    SharedTransitionLayout {
+      AnimatedContent(targetState = Unit) { animatedContentScope ->
+        HomeScreenContent(
+          uiState = previewHomeUiState,
+          sharedTransitionScope = this@SharedTransitionLayout,
+          animatedContentScope = this@AnimatedContent,
+        )
+      }
+    }
+  }
 }
 
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentDynamicPreview() {
-  PreviewWrapper(dynamicColor = true) { HomeScreenContent(uiState = previewHomeUiState) }
+  PreviewWrapper(dynamicColor = true) {
+    SharedTransitionLayout {
+      AnimatedContent(targetState = Unit) { animatedContentScope ->
+        HomeScreenContent(
+          uiState = previewHomeUiState,
+          sharedTransitionScope = this@SharedTransitionLayout,
+          animatedContentScope = this@AnimatedContent,
+        )
+      }
+    }
+  }
 }

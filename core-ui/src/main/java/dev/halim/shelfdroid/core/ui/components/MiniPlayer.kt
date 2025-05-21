@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.ui.components
 
-import ItemCover
+import ItemCoverNoAnimation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,7 +51,7 @@ fun MiniPlayer(id: String, onClicked: (String) -> Unit) {
   ) {
     LinearProgressIndicator(progress = { 0.5f }, Modifier.fillMaxWidth(), drawStopIndicator = {})
     Row(verticalAlignment = Alignment.CenterVertically) {
-      ItemCover(
+      ItemCoverNoAnimation(
         Modifier.fillMaxHeight().padding(8.dp),
         background = MaterialTheme.colorScheme.primaryContainer,
         textColor = MaterialTheme.colorScheme.onPrimaryContainer,

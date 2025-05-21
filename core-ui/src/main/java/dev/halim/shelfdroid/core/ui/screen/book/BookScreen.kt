@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package dev.halim.shelfdroid.core.ui.screen.book
 
 import ItemDetail
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,10 +33,18 @@ import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 
 @Composable
-fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (String) -> Unit) {
+fun BookScreen(
+  viewModel: BookViewModel = hiltViewModel(),
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
+  onPlayClicked: (String) -> Unit,
+) {
   val uiState by viewModel.uiState.collectAsState()
   if (uiState.state == GenericState.Success) {
     BookScreenContent(
+      sharedTransitionScope = sharedTransitionScope,
+      animatedContentScope = animatedContentScope,
+      id = viewModel.id,
       cover = uiState.cover,
       title = uiState.title,
       author = uiState.author,
@@ -50,6 +63,9 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (Strin
 
 @Composable
 fun BookScreenContent(
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
+  id: String = Defaults.BOOK_ID,
   cover: String = Defaults.BOOK_COVER,
   title: String = Defaults.BOOK_TITLE,
   author: String = Defaults.BOOK_AUTHOR,
@@ -84,7 +100,15 @@ fun BookScreenContent(
       ExpandShrinkText(description)
       BookDetail(duration, narrator, publishYear, publisher, genres, language)
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ItemDetail(cover, title, author, subtitle = subtitle)
+        ItemDetail(
+          sharedTransitionScope,
+          animatedContentScope,
+          id,
+          cover,
+          title,
+          author,
+          subtitle = subtitle,
+        )
       }
     }
   }

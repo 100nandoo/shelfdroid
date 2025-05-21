@@ -1,7 +1,12 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import Item
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.fadeIn
@@ -54,6 +59,8 @@ import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
 fun HomeScreen(
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
   viewModel: HomeViewModel = hiltViewModel(),
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
@@ -113,6 +120,8 @@ fun HomeScreen(
   ) { paddingValues ->
     HomeScreenContent(
       Modifier.padding(paddingValues),
+      sharedTransitionScope,
+      animatedContentScope,
       libraryCount,
       pagerState,
       uiState,
@@ -126,6 +135,8 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
   modifier: Modifier = Modifier,
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
   libraryCount: Int = 1,
   pagerState: PagerState = rememberPagerState { 1 },
   uiState: HomeUiState = HomeUiState(),
@@ -146,6 +157,8 @@ fun HomeScreenContent(
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
       LibraryContent(
         modifier = Modifier.weight(1f),
+        sharedTransitionScope = sharedTransitionScope,
+        animatedContentScope = animatedContentScope,
         list = uiState.libraryItemsUiState[page],
         onEvent = onEvent,
         onScrollStateChanged = onGridScrollStateChanged,
@@ -184,6 +197,8 @@ fun LibraryHeader(name: String, onRefresh: () -> Unit) {
 @Composable
 fun LibraryContent(
   modifier: Modifier = Modifier,
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
   list: List<ShelfdroidMediaItem>?,
   onEvent: (HomeEvent) -> Unit,
   onScrollStateChanged: (Boolean) -> Unit = {},
@@ -204,7 +219,13 @@ fun LibraryContent(
       verticalArrangement = Arrangement.Bottom,
     ) {
       items(items = list, key = { it.id }) { libraryItem ->
-        Item(uiState = libraryItem, modifier = Modifier, onEvent)
+        Item(
+          modifier = Modifier,
+          uiState = libraryItem,
+          sharedTransitionScope = sharedTransitionScope,
+          animatedContentScope = animatedContentScope,
+          onEvent = onEvent,
+        )
       }
     }
   }

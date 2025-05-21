@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.player
 
-import ItemCover
+import ItemCoverNoAnimation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -80,7 +80,7 @@ fun PlayerScreenContent(
 
 @Composable
 fun BasicPlayerContent(url: String, title: String, authorName: String) {
-  ItemCover(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(32.dp))
+  ItemCoverNoAnimation(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(32.dp))
 
   Spacer(modifier = Modifier.height(16.dp))
 

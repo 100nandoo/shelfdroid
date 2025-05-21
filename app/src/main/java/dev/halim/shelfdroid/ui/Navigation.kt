@@ -1,5 +1,10 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package dev.halim.shelfdroid.ui
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -39,22 +44,25 @@ import kotlinx.serialization.Serializable
 
 @Composable
 fun MainNavigation(isLoggedIn: Boolean) {
-  val navController = rememberNavController()
+  SharedTransitionLayout {
+    val navController = rememberNavController()
 
-  val startDestination = if (isLoggedIn) Home else Login
+    val startDestination = if (isLoggedIn) Home else Login
 
-  var miniPlayerState by remember { mutableStateOf(MiniPlayerState(false, "")) }
+    var miniPlayerState by remember { mutableStateOf(MiniPlayerState(false, "")) }
 
-  Column(
-    modifier = Modifier.fillMaxSize().statusBarsPadding(),
-    horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    NavHostContainer(
-      navController = navController,
-      startDestination = startDestination,
-      onShowMiniPlayer = { id -> miniPlayerState = miniPlayerState.copy(isPlaying = true, id = id) },
-    )
-    MiniPlayerHandler(navController = navController, state = miniPlayerState)
+    Column(
+      modifier = Modifier.fillMaxSize().statusBarsPadding(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      NavHostContainer(
+        navController = navController,
+        startDestination = startDestination,
+        this@SharedTransitionLayout,
+        onShowMiniPlayer = { id -> miniPlayerState = MiniPlayerState(true, id) },
+      )
+      MiniPlayerHandler(navController = navController, state = miniPlayerState)
+    }
   }
 }
 
@@ -62,6 +70,7 @@ fun MainNavigation(isLoggedIn: Boolean) {
 private fun ColumnScope.NavHostContainer(
   navController: NavHostController,
   startDestination: Any,
+  sharedTransitionScope: SharedTransitionScope,
   onShowMiniPlayer: (id: String) -> Unit,
 ) {
   Box(modifier = Modifier.weight(1f)) {
@@ -73,13 +82,26 @@ private fun ColumnScope.NavHostContainer(
       }
       composable<Home> {
         HomeScreen(
+          sharedTransitionScope,
+          this@composable,
           onSettingsClicked = { navController.navigate(Settings) },
           onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
           onBookClicked = { id -> navController.navigate(Book(id)) },
         )
       }
-      composable<Podcast> { PodcastScreen() }
-      composable<Book> { BookScreen(onPlayClicked = { id -> onShowMiniPlayer(id) }) }
+      composable<Podcast> {
+        PodcastScreen(
+          sharedTransitionScope = sharedTransitionScope,
+          animatedContentScope = this@composable,
+        )
+      }
+      composable<Book> {
+        BookScreen(
+          sharedTransitionScope = sharedTransitionScope,
+          animatedContentScope = this@composable,
+          onPlayClicked = { id -> onShowMiniPlayer(id) },
+        )
+      }
 
       composable<Player> { PlayerScreen() }
 

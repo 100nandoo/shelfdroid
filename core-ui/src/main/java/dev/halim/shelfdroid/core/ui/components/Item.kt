@@ -1,3 +1,8 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,49 +39,70 @@ import dev.halim.shelfdroid.core.ui.screen.home.HomeEvent
 
 @Composable
 fun Item(
-  uiState: ShelfdroidMediaItem,
   modifier: Modifier = Modifier,
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
+  uiState: ShelfdroidMediaItem,
   onEvent: (HomeEvent) -> Unit = {},
 ) {
-  Card(
-    modifier = modifier.padding(4.dp),
-    onClick = { onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState)) },
-    shape = RoundedCornerShape(8.dp),
-  ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-      Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
-        ItemCover(Modifier.fillMaxWidth(), coverUrl = uiState.cover)
-        if (uiState is BookUiState && uiState.progress > 0.0) {
-          val float = uiState.progress
-          LinearProgressIndicator(
-            progress = { float },
-            modifier = Modifier.fillMaxWidth().height(12.dp),
-            strokeCap = StrokeCap.Square,
-            color = MaterialTheme.colorScheme.tertiaryContainer,
-            trackColor = Color.Transparent,
-            drawStopIndicator = {},
+  with(sharedTransitionScope) {
+    Card(
+      modifier = modifier.padding(4.dp),
+      onClick = { onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState)) },
+      shape = RoundedCornerShape(8.dp),
+    ) {
+      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
+          ItemCover(
+            Modifier.fillMaxWidth(),
+            sharedTransitionScope = sharedTransitionScope,
+            animatedContentScope = animatedContentScope,
+            coverUrl = uiState.cover,
           )
+          if (uiState is BookUiState && uiState.progress > 0.0) {
+            val float = uiState.progress
+            LinearProgressIndicator(
+              progress = { float },
+              modifier = Modifier.fillMaxWidth().height(12.dp),
+              strokeCap = StrokeCap.Square,
+              color = MaterialTheme.colorScheme.tertiaryContainer,
+              trackColor = Color.Transparent,
+              drawStopIndicator = {},
+            )
+          }
         }
-      }
-      Text(
-        text = uiState.title,
-        style = MaterialTheme.typography.titleMedium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(horizontal = 8.dp).padding(top = 8.dp),
-      )
+        Text(
+          text = uiState.title,
+          style = MaterialTheme.typography.titleMedium,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.onSurface,
+          modifier =
+            Modifier.sharedBounds(
+                rememberSharedContentState(key = "${uiState.id}${uiState.title}"),
+                animatedVisibilityScope = animatedContentScope,
+              )
+              .padding(horizontal = 8.dp)
+              .padding(top = 8.dp),
+        )
 
-      Text(
-        text = uiState.author,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(horizontal = 8.dp).padding(top = 4.dp, bottom = 8.dp),
-      )
+        Text(
+          text = uiState.author,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          textAlign = TextAlign.Center,
+          modifier =
+            Modifier.sharedBounds(
+                rememberSharedContentState(key = "${uiState.id}${uiState.author}"),
+                animatedVisibilityScope = animatedContentScope,
+              )
+              .padding(horizontal = 8.dp)
+              .padding(top = 4.dp, bottom = 8.dp),
+        )
+      }
     }
   }
 }
@@ -84,11 +110,56 @@ fun Item(
 @Composable
 fun ItemCover(
   modifier: Modifier = Modifier,
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
   background: Color = MaterialTheme.colorScheme.secondaryContainer,
   textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
   fontSize: TextUnit = 14.sp,
   coverUrl: String,
   shape: Shape = RoundedCornerShape(8.dp, 8.dp),
+) {
+  var imageLoadFailed by remember { mutableStateOf(false) }
+  with(sharedTransitionScope) {
+    if (imageLoadFailed) {
+      Box(
+        modifier = modifier.aspectRatio(1f).background(background, shape = shape),
+        contentAlignment = Alignment.Center,
+      ) {
+        Text(
+          text = "No cover",
+          fontSize = fontSize,
+          color = textColor,
+          textAlign = TextAlign.Center,
+        )
+      }
+    } else {
+      AsyncImage(
+        modifier =
+          modifier
+            .sharedElement(
+              sharedTransitionScope.rememberSharedContentState(key = "cover_${coverUrl}"),
+              animatedVisibilityScope = animatedContentScope,
+              clipInOverlayDuringTransition = OverlayClip(shape),
+            )
+            .clip(shape)
+            .background(background)
+            .aspectRatio(1f),
+        model = coverUrl,
+        contentDescription = "Library item cover image",
+        onError = { imageLoadFailed = true },
+      )
+    }
+  }
+}
+
+@Composable
+fun ItemCoverNoAnimation(
+  modifier: Modifier = Modifier,
+  background: Color = MaterialTheme.colorScheme.secondaryContainer,
+  textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+  fontSize: TextUnit = 14.sp,
+  coverUrl: String,
+  shape: Shape = RoundedCornerShape(8.dp),
 ) {
   var imageLoadFailed by remember { mutableStateOf(false) }
   if (imageLoadFailed) {
@@ -100,36 +171,66 @@ fun ItemCover(
     }
   } else {
     AsyncImage(
+      modifier = modifier.clip(shape).background(background).aspectRatio(1f),
       model = coverUrl,
       contentDescription = "Library item cover image",
-      modifier = modifier.clip(shape).background(background).aspectRatio(1f),
       onError = { imageLoadFailed = true },
     )
   }
 }
 
 @Composable
-fun ItemDetail(url: String, title: String, authorName: String, subtitle: String = "") {
-  Spacer(modifier = Modifier.height(16.dp))
-  ItemCover(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(32.dp))
-  Spacer(modifier = Modifier.height(16.dp))
+fun ItemDetail(
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
+  id: String,
+  url: String,
+  title: String,
+  authorName: String,
+  subtitle: String = "",
+) {
+  with(sharedTransitionScope) {
+    Spacer(modifier = Modifier.height(16.dp))
+    ItemCover(
+      Modifier.fillMaxWidth(),
+      sharedTransitionScope = sharedTransitionScope,
+      animatedContentScope = animatedContentScope,
+      coverUrl = url,
+      shape = RoundedCornerShape(8.dp),
+    )
+    Spacer(modifier = Modifier.height(16.dp))
 
-  Text(text = title, style = MaterialTheme.typography.headlineLarge, textAlign = TextAlign.Center)
-
-  if (subtitle.isNotEmpty()) {
     Text(
-      text = subtitle,
-      style = MaterialTheme.typography.titleMedium,
+      modifier =
+        Modifier.sharedBounds(
+          rememberSharedContentState(key = "$id$title"),
+          animatedVisibilityScope = animatedContentScope,
+        ),
+      text = title,
+      style = MaterialTheme.typography.headlineLarge,
       textAlign = TextAlign.Center,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+    if (subtitle.isNotEmpty()) {
+      Text(
+        text = subtitle,
+        style = MaterialTheme.typography.titleMedium,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+      modifier =
+        Modifier.sharedBounds(
+          rememberSharedContentState(key = "$id$authorName"),
+          animatedVisibilityScope = animatedContentScope,
+        ),
+      text = authorName,
+      style = MaterialTheme.typography.bodyMedium,
+      color = Color.Gray,
+      textAlign = TextAlign.Center,
     )
   }
-  Spacer(modifier = Modifier.height(8.dp))
-
-  Text(
-    text = authorName,
-    style = MaterialTheme.typography.bodyMedium,
-    color = Color.Gray,
-    textAlign = TextAlign.Center,
-  )
 }

@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
 import ItemDetail
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,10 +35,17 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.utils.toPercent
 
 @Composable
-fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
+fun PodcastScreen(
+  viewModel: PodcastViewModel = hiltViewModel(),
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
   if (uiState.state == GenericState.Success) {
     PodcastScreenContent(
+      sharedTransitionScope,
+      animatedContentScope,
+      viewModel.id,
       uiState.cover,
       uiState.title,
       uiState.author,
@@ -45,6 +57,9 @@ fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
 
 @Composable
 fun PodcastScreenContent(
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
+  id: String = Defaults.BOOK_ID,
   imageUrl: String = Defaults.IMAGE_URL,
   title: String = Defaults.TITLE,
   authorName: String = Defaults.AUTHOR_NAME,
@@ -68,7 +83,7 @@ fun PodcastScreenContent(
       Text(description)
 
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ItemDetail(imageUrl, title, authorName)
+        ItemDetail(sharedTransitionScope, animatedContentScope, id, imageUrl, title, authorName)
       }
     }
   }

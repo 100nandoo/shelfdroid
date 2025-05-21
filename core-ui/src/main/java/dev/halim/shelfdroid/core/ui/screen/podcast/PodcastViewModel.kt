@@ -20,7 +20,7 @@ class PodcastViewModel
 @Inject
 constructor(private val podcastRepository: PodcastRepository, savedStateHandle: SavedStateHandle) :
   ViewModel() {
-  private val id: String = checkNotNull(savedStateHandle.get<String>("id"))
+  val id: String = checkNotNull(savedStateHandle.get<String>("id"))
 
   private val _uiState = MutableStateFlow(PodcastUiState())
   val uiState: StateFlow<PodcastUiState> =
