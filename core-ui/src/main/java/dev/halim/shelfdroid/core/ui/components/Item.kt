@@ -24,7 +24,9 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import dev.halim.shelfdroid.core.data.home.BookUiState
 import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
@@ -43,7 +45,7 @@ fun Item(
   ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
       Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
-        ItemCover(uiState.cover)
+        ItemCover(Modifier.fillMaxWidth(), coverUrl = uiState.cover)
         if (uiState is BookUiState && uiState.progress > 0.0) {
           val float = uiState.progress
           LinearProgressIndicator(
@@ -80,32 +82,27 @@ fun Item(
 }
 
 @Composable
-fun ItemCover(coverUrl: String, shape: Shape = RoundedCornerShape(8.dp, 8.dp)) {
+fun ItemCover(
+  modifier: Modifier = Modifier,
+  background: Color = MaterialTheme.colorScheme.secondaryContainer,
+  textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+  fontSize: TextUnit = 14.sp,
+  coverUrl: String,
+  shape: Shape = RoundedCornerShape(8.dp, 8.dp),
+) {
   var imageLoadFailed by remember { mutableStateOf(false) }
   if (imageLoadFailed) {
     Box(
-      modifier =
-        Modifier.fillMaxWidth()
-          .aspectRatio(1f)
-          .background(MaterialTheme.colorScheme.secondaryContainer, shape = shape),
-      contentAlignment = Alignment.TopCenter,
+      modifier = modifier.aspectRatio(1f).background(background, shape = shape),
+      contentAlignment = Alignment.Center,
     ) {
-      Text(
-        modifier = Modifier.padding(top = 8.dp),
-        text = "No cover",
-        color = MaterialTheme.colorScheme.onSecondaryContainer,
-        textAlign = TextAlign.Center,
-      )
+      Text(text = "No cover", fontSize = fontSize, color = textColor, textAlign = TextAlign.Center)
     }
   } else {
     AsyncImage(
       model = coverUrl,
       contentDescription = "Library item cover image",
-      modifier =
-        Modifier.fillMaxWidth()
-          .clip(shape)
-          .background(MaterialTheme.colorScheme.secondaryContainer)
-          .aspectRatio(1f),
+      modifier = modifier.clip(shape).background(background).aspectRatio(1f),
       onError = { imageLoadFailed = true },
     )
   }
@@ -114,7 +111,7 @@ fun ItemCover(coverUrl: String, shape: Shape = RoundedCornerShape(8.dp, 8.dp)) {
 @Composable
 fun ItemDetail(url: String, title: String, authorName: String, subtitle: String = "") {
   Spacer(modifier = Modifier.height(16.dp))
-  ItemCover(url, RoundedCornerShape(8.dp))
+  ItemCover(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(32.dp))
   Spacer(modifier = Modifier.height(16.dp))
 
   Text(text = title, style = MaterialTheme.typography.headlineLarge, textAlign = TextAlign.Center)

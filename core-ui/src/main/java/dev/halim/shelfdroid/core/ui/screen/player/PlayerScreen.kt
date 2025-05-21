@@ -80,7 +80,7 @@ fun PlayerScreenContent(
 
 @Composable
 fun BasicPlayerContent(url: String, title: String, authorName: String) {
-  ItemCover(url, RoundedCornerShape(8.dp))
+  ItemCover(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(32.dp))
 
   Spacer(modifier = Modifier.height(16.dp))
 

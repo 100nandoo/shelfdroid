@@ -43,7 +43,7 @@ fun MainNavigation(isLoggedIn: Boolean) {
 
   val startDestination = if (isLoggedIn) Home else Login
 
-  var showMiniPlayer by remember { mutableStateOf(false) }
+  var miniPlayerState by remember { mutableStateOf(MiniPlayerState(false, "")) }
 
   Column(
     modifier = Modifier.fillMaxSize().statusBarsPadding(),
@@ -52,10 +52,9 @@ fun MainNavigation(isLoggedIn: Boolean) {
     NavHostContainer(
       navController = navController,
       startDestination = startDestination,
-      onShowMiniPlayer = { showMiniPlayer = true },
+      onShowMiniPlayer = { id -> miniPlayerState = miniPlayerState.copy(isPlaying = true, id = id) },
     )
-
-    MiniPlayerHandler(navController = navController, showMiniPlayer = showMiniPlayer)
+    MiniPlayerHandler(navController = navController, state = miniPlayerState)
   }
 }
 
@@ -63,7 +62,7 @@ fun MainNavigation(isLoggedIn: Boolean) {
 private fun ColumnScope.NavHostContainer(
   navController: NavHostController,
   startDestination: Any,
-  onShowMiniPlayer: () -> Unit,
+  onShowMiniPlayer: (id: String) -> Unit,
 ) {
   Box(modifier = Modifier.weight(1f)) {
     NavHost(navController = navController, startDestination = startDestination) {
@@ -80,14 +79,7 @@ private fun ColumnScope.NavHostContainer(
         )
       }
       composable<Podcast> { PodcastScreen() }
-      composable<Book> {
-        BookScreen(
-          onPlayClicked = { id ->
-            navController.navigate(Player(id))
-            onShowMiniPlayer()
-          }
-        )
-      }
+      composable<Book> { BookScreen(onPlayClicked = { id -> onShowMiniPlayer(id) }) }
 
       composable<Player> { PlayerScreen() }
 

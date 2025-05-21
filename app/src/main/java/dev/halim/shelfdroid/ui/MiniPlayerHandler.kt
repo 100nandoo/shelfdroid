@@ -1,12 +1,15 @@
 package dev.halim.shelfdroid.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.halim.shelfdroid.core.ui.components.MiniPlayer
 
+data class MiniPlayerState(val isPlaying: Boolean, val id: String)
+
 @Composable
-fun MiniPlayerHandler(navController: NavHostController, showMiniPlayer: Boolean) {
+fun MiniPlayerHandler(navController: NavHostController, state: MiniPlayerState) {
   val currentBackStackEntry = navController.currentBackStackEntryAsState()
 
   val currentDestination = currentBackStackEntry.value?.destination?.route
@@ -16,9 +19,9 @@ fun MiniPlayerHandler(navController: NavHostController, showMiniPlayer: Boolean)
 
   val showOnCurrentScreen = isHomeScreen || isBookScreen || isPodcastScreen
 
-  val shouldShowMiniPlayer = showMiniPlayer && showOnCurrentScreen
+  val shouldShowMiniPlayer = state.isPlaying && showOnCurrentScreen
 
-  if (shouldShowMiniPlayer) {
-    MiniPlayer()
+  AnimatedVisibility(shouldShowMiniPlayer) {
+    MiniPlayer(state.id, { navController.navigate(Player(state.id)) })
   }
 }

@@ -21,7 +21,8 @@ interface built specifically for Android.
 
 ## 🎨 Code Style & Formatting
 
-This project uses [ktfmt](https://github.com/facebook/ktfmt) for Kotlin code formatting, applying Google’s Kotlin style guide.
+This project uses [ktfmt](https://github.com/facebook/ktfmt) for Kotlin code formatting, applying Google’s Kotlin style
+guide.
 
 To format all Kotlin files in the project, run:
 
