@@ -66,11 +66,7 @@ fun PodcastScreenContentPreview() {
   PreviewWrapper(dynamicColor = false) {
     SharedTransitionLayout {
       AnimatedContent(targetState = Unit) { animatedContentScope ->
-        HomeScreenContent(
-          uiState = previewHomeUiState,
-          sharedTransitionScope = this@SharedTransitionLayout,
-          animatedContentScope = this@AnimatedContent,
-        )
+        HomeScreenContent(uiState = previewHomeUiState)
       }
     }
   }
@@ -82,11 +78,7 @@ fun PodcastScreenContentDynamicPreview() {
   PreviewWrapper(dynamicColor = true) {
     SharedTransitionLayout {
       AnimatedContent(targetState = Unit) { animatedContentScope ->
-        HomeScreenContent(
-          uiState = previewHomeUiState,
-          sharedTransitionScope = this@SharedTransitionLayout,
-          animatedContentScope = this@AnimatedContent,
-        )
+        HomeScreenContent(uiState = previewHomeUiState)
       }
     }
   }

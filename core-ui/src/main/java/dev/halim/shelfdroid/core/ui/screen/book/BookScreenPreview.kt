@@ -6,6 +6,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
+import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -15,11 +18,12 @@ fun BookScreenContentPreview() {
   PreviewWrapper(dynamicColor = false) {
     SharedTransitionLayout {
       AnimatedContent(targetState = Unit) { animatedContentScope ->
-        BookScreenContent(
-          sharedTransitionScope = this@SharedTransitionLayout,
-          animatedContentScope = this@AnimatedContent,
-          onPlayClicked = {},
-        )
+        CompositionLocalProvider(
+          LocalSharedTransitionScope provides this@SharedTransitionLayout,
+          LocalAnimatedContentScope provides this@AnimatedContent,
+        ) {
+          BookScreenContent(onPlayClicked = {})
+        }
       }
     }
   }
@@ -31,11 +35,12 @@ fun BookScreenContentDynamicPreview() {
   PreviewWrapper(dynamicColor = true) {
     SharedTransitionLayout {
       AnimatedContent(targetState = Unit) { animatedContentScope ->
-        BookScreenContent(
-          sharedTransitionScope = this@SharedTransitionLayout,
-          animatedContentScope = this@AnimatedContent,
-          onPlayClicked = {},
-        )
+        CompositionLocalProvider(
+          LocalSharedTransitionScope provides this@SharedTransitionLayout,
+          LocalAnimatedContentScope provides this@AnimatedContent,
+        ) {
+          BookScreenContent(onPlayClicked = {})
+        }
       }
     }
   }

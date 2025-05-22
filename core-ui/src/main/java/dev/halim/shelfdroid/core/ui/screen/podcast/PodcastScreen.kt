@@ -20,6 +20,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +32,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.podcast.Episode
 import dev.halim.shelfdroid.core.data.podcast.PodcastUiState
+import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
+import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.utils.toPercent
 
@@ -42,23 +47,25 @@ fun PodcastScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
   if (uiState.state == GenericState.Success) {
-    PodcastScreenContent(
-      sharedTransitionScope,
-      animatedContentScope,
-      viewModel.id,
-      uiState.cover,
-      uiState.title,
-      uiState.author,
-      uiState.description,
-      uiState.episodes,
-    )
+
+    CompositionLocalProvider(
+      LocalSharedTransitionScope provides sharedTransitionScope,
+      LocalAnimatedContentScope provides animatedContentScope,
+    ) {
+      PodcastScreenContent(
+        viewModel.id,
+        uiState.cover,
+        uiState.title,
+        uiState.author,
+        uiState.description,
+        uiState.episodes,
+      )
+    }
   }
 }
 
 @Composable
 fun PodcastScreenContent(
-  sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
   id: String = Defaults.BOOK_ID,
   imageUrl: String = Defaults.IMAGE_URL,
   title: String = Defaults.TITLE,
@@ -66,24 +73,34 @@ fun PodcastScreenContent(
   description: String = Defaults.DESCRIPTION,
   episodes: List<Episode> = Defaults.EPISODES,
 ) {
-  LazyColumn(
-    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-    reverseLayout = true,
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    items(episodes) { episode -> EpisodeItem(episode) }
-    item {
-      Text(
-        text = "Episodes",
-        style = MaterialTheme.typography.headlineMedium,
-        textAlign = TextAlign.Left,
-      )
-      Spacer(modifier = Modifier.height(16.dp))
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
 
-      Text(description)
+  with(sharedTransitionScope) {
+    with(animatedContentScope) {
+      LazyColumn(
+        modifier =
+          Modifier.mySharedBound(Animations.containerKey(id))
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        reverseLayout = true,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        items(episodes) { episode -> EpisodeItem(episode) }
+        item {
+          Text(
+            text = "Episodes",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Left,
+          )
+          Spacer(modifier = Modifier.height(16.dp))
 
-      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ItemDetail(sharedTransitionScope, animatedContentScope, id, imageUrl, title, authorName)
+          Text(description)
+
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            ItemDetail(id, imageUrl, title, authorName)
+          }
+        }
       }
     }
   }

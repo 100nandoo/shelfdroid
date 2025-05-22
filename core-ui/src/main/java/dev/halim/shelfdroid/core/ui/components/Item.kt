@@ -1,8 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,73 +33,66 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import dev.halim.shelfdroid.core.data.home.BookUiState
 import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
+import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
+import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.screen.home.HomeEvent
 
 @Composable
-fun Item(
-  modifier: Modifier = Modifier,
-  sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
-  uiState: ShelfdroidMediaItem,
-  onEvent: (HomeEvent) -> Unit = {},
-) {
-  with(sharedTransitionScope) {
-    Card(
-      modifier = modifier.padding(4.dp),
-      onClick = { onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState)) },
-      shape = RoundedCornerShape(8.dp),
-    ) {
-      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
-          ItemCover(
-            Modifier.fillMaxWidth(),
-            sharedTransitionScope = sharedTransitionScope,
-            animatedContentScope = animatedContentScope,
-            coverUrl = uiState.cover,
-          )
-          if (uiState is BookUiState && uiState.progress > 0.0) {
-            val float = uiState.progress
-            LinearProgressIndicator(
-              progress = { float },
-              modifier = Modifier.fillMaxWidth().height(12.dp),
-              strokeCap = StrokeCap.Square,
-              color = MaterialTheme.colorScheme.tertiaryContainer,
-              trackColor = Color.Transparent,
-              drawStopIndicator = {},
-            )
-          }
-        }
-        Text(
-          text = uiState.title,
-          style = MaterialTheme.typography.titleMedium,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          textAlign = TextAlign.Center,
-          color = MaterialTheme.colorScheme.onSurface,
-          modifier =
-            Modifier.sharedBounds(
-                rememberSharedContentState(key = "${uiState.id}${uiState.title}"),
-                animatedVisibilityScope = animatedContentScope,
-              )
-              .padding(horizontal = 8.dp)
-              .padding(top = 8.dp),
-        )
+fun Item(uiState: ShelfdroidMediaItem, onEvent: (HomeEvent) -> Unit = {}) {
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
 
-        Text(
-          text = uiState.author,
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          textAlign = TextAlign.Center,
-          modifier =
-            Modifier.sharedBounds(
-                rememberSharedContentState(key = "${uiState.id}${uiState.author}"),
-                animatedVisibilityScope = animatedContentScope,
+  with(sharedTransitionScope) {
+    with(animatedContentScope) {
+      Card(
+        modifier = Modifier.mySharedBound(Animations.containerKey(uiState.id)).padding(4.dp),
+        onClick = { onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState)) },
+        shape = RoundedCornerShape(8.dp),
+      ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+          Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
+            ItemCover(Modifier.fillMaxWidth(), coverUrl = uiState.cover)
+            if (uiState is BookUiState && uiState.progress > 0.0) {
+              val float = uiState.progress
+              LinearProgressIndicator(
+                progress = { float },
+                modifier = Modifier.fillMaxWidth().height(12.dp),
+                strokeCap = StrokeCap.Square,
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                trackColor = Color.Transparent,
+                drawStopIndicator = {},
               )
-              .padding(horizontal = 8.dp)
-              .padding(top = 4.dp, bottom = 8.dp),
-        )
+            }
+          }
+          Text(
+            text = uiState.title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier =
+              Modifier.mySharedBound(Animations.titleKey(uiState.id, uiState.title))
+                .padding(horizontal = 8.dp)
+                .padding(top = 8.dp),
+          )
+
+          Text(
+            text = uiState.author,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier =
+              Modifier.mySharedBound(Animations.authorKey(uiState.id, uiState.author))
+                .padding(horizontal = 8.dp)
+                .padding(top = 4.dp, bottom = 8.dp),
+          )
+        }
       }
     }
   }
@@ -110,43 +101,27 @@ fun Item(
 @Composable
 fun ItemCover(
   modifier: Modifier = Modifier,
-  sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
   background: Color = MaterialTheme.colorScheme.secondaryContainer,
   textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
   fontSize: TextUnit = 14.sp,
   coverUrl: String,
   shape: Shape = RoundedCornerShape(8.dp, 8.dp),
 ) {
-  var imageLoadFailed by remember { mutableStateOf(false) }
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
+
   with(sharedTransitionScope) {
-    if (imageLoadFailed) {
-      Box(
-        modifier = modifier.aspectRatio(1f).background(background, shape = shape),
-        contentAlignment = Alignment.Center,
-      ) {
-        Text(
-          text = "No cover",
-          fontSize = fontSize,
-          color = textColor,
-          textAlign = TextAlign.Center,
-        )
-      }
-    } else {
-      AsyncImage(
-        modifier =
-          modifier
-            .sharedElement(
-              sharedTransitionScope.rememberSharedContentState(key = "cover_${coverUrl}"),
-              animatedVisibilityScope = animatedContentScope,
-              clipInOverlayDuringTransition = OverlayClip(shape),
-            )
-            .clip(shape)
-            .background(background)
-            .aspectRatio(1f),
-        model = coverUrl,
-        contentDescription = "Library item cover image",
-        onError = { imageLoadFailed = true },
+    with(animatedContentScope) {
+      val animatedModifier =
+        modifier.mySharedElement(Animations.coverKey(coverUrl), OverlayClip(shape))
+
+      ItemCoverNoAnimation(
+        modifier = animatedModifier,
+        background = background,
+        textColor = textColor,
+        fontSize = fontSize,
+        coverUrl = coverUrl,
+        shape = shape,
       )
     }
   }
@@ -180,57 +155,40 @@ fun ItemCoverNoAnimation(
 }
 
 @Composable
-fun ItemDetail(
-  sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
-  id: String,
-  url: String,
-  title: String,
-  authorName: String,
-  subtitle: String = "",
-) {
+fun ItemDetail(id: String, url: String, title: String, authorName: String, subtitle: String = "") {
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
+
   with(sharedTransitionScope) {
-    Spacer(modifier = Modifier.height(16.dp))
-    ItemCover(
-      Modifier.fillMaxWidth(),
-      sharedTransitionScope = sharedTransitionScope,
-      animatedContentScope = animatedContentScope,
-      coverUrl = url,
-      shape = RoundedCornerShape(8.dp),
-    )
-    Spacer(modifier = Modifier.height(16.dp))
+    with(animatedContentScope) {
+      Spacer(modifier = Modifier.height(16.dp))
+      ItemCover(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(8.dp))
+      Spacer(modifier = Modifier.height(16.dp))
 
-    Text(
-      modifier =
-        Modifier.sharedBounds(
-          rememberSharedContentState(key = "$id$title"),
-          animatedVisibilityScope = animatedContentScope,
-        ),
-      text = title,
-      style = MaterialTheme.typography.headlineLarge,
-      textAlign = TextAlign.Center,
-    )
-
-    if (subtitle.isNotEmpty()) {
       Text(
-        text = subtitle,
-        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.mySharedBound(Animations.titleKey(id, title)),
+        text = title,
+        style = MaterialTheme.typography.headlineLarge,
         textAlign = TextAlign.Center,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+
+      if (subtitle.isNotEmpty()) {
+        Text(
+          text = subtitle,
+          style = MaterialTheme.typography.titleMedium,
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      Spacer(modifier = Modifier.height(8.dp))
+
+      Text(
+        modifier = Modifier.mySharedBound(Animations.authorKey(id, authorName)),
+        text = authorName,
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.Gray,
+        textAlign = TextAlign.Center,
       )
     }
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Text(
-      modifier =
-        Modifier.sharedBounds(
-          rememberSharedContentState(key = "$id$authorName"),
-          animatedVisibilityScope = animatedContentScope,
-        ),
-      text = authorName,
-      style = MaterialTheme.typography.bodyMedium,
-      color = Color.Gray,
-      textAlign = TextAlign.Center,
-    )
   }
 }

@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,7 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
+import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
+import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 
 @Composable
@@ -39,32 +44,34 @@ fun BookScreen(
   animatedContentScope: AnimatedContentScope,
   onPlayClicked: (String) -> Unit,
 ) {
-  val uiState by viewModel.uiState.collectAsState()
-  if (uiState.state == GenericState.Success) {
-    BookScreenContent(
-      sharedTransitionScope = sharedTransitionScope,
-      animatedContentScope = animatedContentScope,
-      id = viewModel.id,
-      cover = uiState.cover,
-      title = uiState.title,
-      author = uiState.author,
-      description = uiState.description,
-      subtitle = uiState.subtitle,
-      duration = uiState.duration,
-      narrator = uiState.narrator,
-      publishYear = uiState.publishYear,
-      publisher = uiState.publisher,
-      genres = uiState.genres,
-      language = uiState.language,
-      onPlayClicked = { onPlayClicked(viewModel.id) },
-    )
+
+  CompositionLocalProvider(
+    LocalSharedTransitionScope provides sharedTransitionScope,
+    LocalAnimatedContentScope provides animatedContentScope,
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    if (uiState.state == GenericState.Success) {
+      BookScreenContent(
+        id = viewModel.id,
+        cover = uiState.cover,
+        title = uiState.title,
+        author = uiState.author,
+        description = uiState.description,
+        subtitle = uiState.subtitle,
+        duration = uiState.duration,
+        narrator = uiState.narrator,
+        publishYear = uiState.publishYear,
+        publisher = uiState.publisher,
+        genres = uiState.genres,
+        language = uiState.language,
+        onPlayClicked = { onPlayClicked(viewModel.id) },
+      )
+    }
   }
 }
 
 @Composable
 fun BookScreenContent(
-  sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
   id: String = Defaults.BOOK_ID,
   cover: String = Defaults.BOOK_COVER,
   title: String = Defaults.BOOK_TITLE,
@@ -79,36 +86,38 @@ fun BookScreenContent(
   language: String = Defaults.BOOK_LANGUAGE,
   onPlayClicked: () -> Unit,
 ) {
-  LazyColumn(
-    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-    reverseLayout = true,
-    verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom),
-  ) {
-    item {
-      Spacer(modifier = Modifier.height(16.dp))
-      Button(
-        onClick = { onPlayClicked() },
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
+
+  with(sharedTransitionScope) {
+    with(animatedContentScope) {
+      LazyColumn(
+        modifier =
+          Modifier.mySharedBound(Animations.containerKey(id))
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        reverseLayout = true,
+        verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom),
       ) {
-        Icon(
-          imageVector = Icons.Filled.PlayArrow,
-          contentDescription = "Play",
-          modifier = Modifier.padding(end = 8.dp),
-        )
-        Text("Play")
-      }
-      ExpandShrinkText(description)
-      BookDetail(duration, narrator, publishYear, publisher, genres, language)
-      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ItemDetail(
-          sharedTransitionScope,
-          animatedContentScope,
-          id,
-          cover,
-          title,
-          author,
-          subtitle = subtitle,
-        )
+        item {
+          Spacer(modifier = Modifier.height(16.dp))
+          Button(
+            onClick = { onPlayClicked() },
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.PlayArrow,
+              contentDescription = "Play",
+              modifier = Modifier.padding(end = 8.dp),
+            )
+            Text("Play")
+          }
+          ExpandShrinkText(description)
+          BookDetail(duration, narrator, publishYear, publisher, genres, language)
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            ItemDetail(id, cover, title, author, subtitle = subtitle)
+          }
+        }
       }
     }
   }
