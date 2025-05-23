@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -38,10 +39,11 @@ fun ExpandShrinkText(text: String, maxLines: Int = 3) {
   Column {
     if (text.isNotEmpty()) {
       Text(
+        modifier =
+          Modifier.animateContentSize().clickable { expandedState.value = !expandedState.value },
         text = remember(text) { htmlToAnnotatedString(text) },
         maxLines = if (expandedState.value) Int.MAX_VALUE else maxLines,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.clickable { expandedState.value = !expandedState.value },
       )
       Text(
         text = if (expandedState.value) "Show less" else "Show more",
