@@ -14,11 +14,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import dev.halim.shelfdroid.core.ui.components.miniplayer.MiniPlayerHandler
+import dev.halim.shelfdroid.core.ui.components.player.small.PlayerHandler
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
-import dev.halim.shelfdroid.core.ui.screen.player.PlayerScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.version
@@ -34,8 +33,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class Book(val id: String)
 
-@Serializable data class Player(val id: String)
-
 @Composable
 fun MainNavigation(isLoggedIn: Boolean) {
   SharedTransitionLayout {
@@ -43,13 +40,13 @@ fun MainNavigation(isLoggedIn: Boolean) {
 
     val startDestination = if (isLoggedIn) Home else Login
 
-    MiniPlayerHandler(navController) { paddingValues, onShowMiniPlayer ->
+    PlayerHandler(navController) { paddingValues, onShowSmallPlayer ->
       NavHostContainer(
         paddingValues = paddingValues,
         navController = navController,
         startDestination = startDestination,
         this@SharedTransitionLayout,
-        onShowMiniPlayer = onShowMiniPlayer,
+        onShowSmallPlayer = onShowSmallPlayer,
       )
     }
   }
@@ -61,7 +58,7 @@ private fun NavHostContainer(
   navController: NavHostController,
   startDestination: Any,
   sharedTransitionScope: SharedTransitionScope,
-  onShowMiniPlayer: (id: String) -> Unit,
+  onShowSmallPlayer: (id: String) -> Unit,
 ) {
   Box(modifier = Modifier.padding(paddingValues)) {
     NavHost(navController = navController, startDestination = startDestination) {
@@ -89,11 +86,9 @@ private fun NavHostContainer(
         BookScreen(
           sharedTransitionScope = sharedTransitionScope,
           animatedContentScope = this@composable,
-          onPlayClicked = { id -> onShowMiniPlayer(id) },
+          onPlayClicked = { id -> onShowSmallPlayer(id) },
         )
       }
-
-      composable<Player> { PlayerScreen() }
 
       composable<Settings> {
         SettingsScreen(

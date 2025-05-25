@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package dev.halim.shelfdroid.core.ui.components.miniplayer
+package dev.halim.shelfdroid.core.ui.components.player.small
 
 import ItemCoverNoAnimation
 import androidx.compose.animation.core.animateDpAsState
@@ -26,6 +26,7 @@ import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -35,17 +36,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.halim.shelfdroid.core.extensions.dropShadow
 import dev.halim.shelfdroid.core.ui.components.IconButton
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.components.player.big.BigPlayer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MiniPlayer(
+fun SmallPlayer(
   scaffoldState: BottomSheetScaffoldState,
   id: String,
   onClicked: (String) -> Unit,
@@ -60,7 +62,12 @@ fun MiniPlayer(
     sheetDragHandle = {},
     sheetShape = RectangleShape,
     sheetContent = {
-      MiniPlayerSheet(id = id, onClicked = onClicked, bottomInset = gestureNavBottomInset)
+      BigPlayer(
+        id = id,
+        onClicked = onClicked,
+        bottomInset = gestureNavBottomInset,
+        isExpanded = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded,
+      )
     },
   ) { paddingValues ->
     val padding by
@@ -74,41 +81,28 @@ fun MiniPlayer(
 }
 
 @Composable
-private fun MiniPlayerSheet(
-  id: String,
-  onClicked: (String) -> Unit,
-  bottomInset: androidx.compose.ui.unit.Dp,
-) {
+fun SmallPlayerContent(id: String, onClicked: (String) -> Unit, bottomInset: Dp) {
   Column(
-    Modifier.fillMaxWidth()
-      .height(120.dp)
-      .clickable { onClicked(id) }
-      .dropShadow(RectangleShape)
-      .padding(bottom = bottomInset)
+    Modifier.fillMaxWidth().height(120.dp).clickable { onClicked(id) }.padding(bottom = bottomInset)
   ) {
     LinearProgressIndicator(progress = { 0.5f }, Modifier.fillMaxWidth(), drawStopIndicator = {})
-    MiniPlayerContent()
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      ItemCoverNoAnimation(
+        Modifier.fillMaxHeight().padding(8.dp),
+        coverUrl = "",
+        fontSize = 10.sp,
+        shape = RoundedCornerShape(4.dp),
+      )
+
+      SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true))
+
+      SmallPlayerControls()
+    }
   }
 }
 
 @Composable
-private fun MiniPlayerContent() {
-  Row(verticalAlignment = Alignment.CenterVertically) {
-    ItemCoverNoAnimation(
-      Modifier.fillMaxHeight().padding(8.dp),
-      coverUrl = "",
-      fontSize = 10.sp,
-      shape = RoundedCornerShape(4.dp),
-    )
-
-    MiniPlayerInfo(Modifier.padding(8.dp).weight(1f, true))
-
-    MiniPlayerControls()
-  }
-}
-
-@Composable
-private fun MiniPlayerInfo(modifier: Modifier = Modifier) {
+private fun SmallPlayerInfo(modifier: Modifier = Modifier) {
   Column(modifier, verticalArrangement = Arrangement.Center) {
     Text(
       text = Defaults.BOOK_TITLE,
@@ -128,7 +122,7 @@ private fun MiniPlayerInfo(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun MiniPlayerControls() {
+private fun SmallPlayerControls() {
   IconButton(icon = Icons.Default.Replay10, contentDescription = "Seek Back 10s", onClick = {})
 
   IconButton(
@@ -148,8 +142,8 @@ private fun MiniPlayerControls() {
 
 @ShelfDroidPreview
 @Composable
-fun BottomSheetMiniPlayerPreview() {
+fun SmallPlayerPreview() {
   PreviewWrapper(dynamicColor = false) {
-    MiniPlayer(rememberBottomSheetScaffoldState(), id = "", onClicked = {}, content = {})
+    SmallPlayer(rememberBottomSheetScaffoldState(), id = "", onClicked = {}, content = {})
   }
 }

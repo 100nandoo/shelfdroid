@@ -1,6 +1,7 @@
-package dev.halim.shelfdroid.core.ui.screen.player
+package dev.halim.shelfdroid.core.ui.components.player.big
 
 import ItemCoverNoAnimation
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,17 +45,30 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.components.IconButton
+import dev.halim.shelfdroid.core.ui.components.player.small.SmallPlayerContent
 import kotlinx.coroutines.launch
 
 @Composable
-fun PlayerScreen() {
-  PlayerScreenContent()
+fun BigPlayer(
+  id: String = "",
+  onClicked: (String) -> Unit = {},
+  bottomInset: Dp = 0.dp,
+  isExpanded: Boolean = false,
+) {
+  Column {
+    AnimatedVisibility(!isExpanded) {
+      SmallPlayerContent(id, onClicked = onClicked, bottomInset = bottomInset)
+    }
+
+    BigPlayerContent()
+  }
 }
 
 @Composable
-fun PlayerScreenContent(
+fun BigPlayerContent(
   imageUrl: String = "",
   title: String = "Chapter 26",
   authorName: String = "Adam",

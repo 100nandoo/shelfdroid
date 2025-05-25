@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.screen.player
+package dev.halim.shelfdroid.core.ui.components.player.big
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

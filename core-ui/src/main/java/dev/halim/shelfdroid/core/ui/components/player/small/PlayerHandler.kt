@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package dev.halim.shelfdroid.core.ui.components.miniplayer
+package dev.halim.shelfdroid.core.ui.components.player.small
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,7 +19,7 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-enum class MiniPlayerState {
+enum class SmallPlayerState {
   Hidden,
   TempHidden,
   Expanded,
@@ -27,9 +27,9 @@ enum class MiniPlayerState {
 }
 
 @Composable
-fun MiniPlayerHandler(
+fun PlayerHandler(
   navController: NavHostController,
-  content: @Composable (PaddingValues, onShowMiniPlayer: (String) -> Unit) -> Unit,
+  content: @Composable (PaddingValues, onShowSmallPlayer: (String) -> Unit) -> Unit,
 ) {
   val bottomSheetState =
     rememberStandardBottomSheetState(initialValue = SheetValue.Hidden, skipHiddenState = false)
@@ -37,7 +37,7 @@ fun MiniPlayerHandler(
   val coroutineScope = rememberCoroutineScope()
 
   var currentId by remember { mutableStateOf("") }
-  val miniPlayerState = remember { mutableStateOf(MiniPlayerState.Hidden) }
+  val smallPlayerState = remember { mutableStateOf(SmallPlayerState.Hidden) }
 
   LaunchedEffect(navController) {
     navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -49,12 +49,12 @@ fun MiniPlayerHandler(
 
       when {
         !isVisibleRoute &&
-          miniPlayerState.value in
-            setOf(MiniPlayerState.Expanded, MiniPlayerState.PartiallyExpanded) ->
-          miniPlayerState.value = MiniPlayerState.TempHidden
+          smallPlayerState.value in
+            setOf(SmallPlayerState.Expanded, SmallPlayerState.PartiallyExpanded) ->
+          smallPlayerState.value = SmallPlayerState.TempHidden
 
-        isVisibleRoute && miniPlayerState.value == MiniPlayerState.TempHidden ->
-          miniPlayerState.value = MiniPlayerState.PartiallyExpanded
+        isVisibleRoute && smallPlayerState.value == SmallPlayerState.TempHidden ->
+          smallPlayerState.value = SmallPlayerState.PartiallyExpanded
       }
     }
   }
@@ -63,37 +63,40 @@ fun MiniPlayerHandler(
     snapshotFlow { bottomSheetState.currentValue }
       .distinctUntilChanged()
       .collect { sheetValue ->
-        miniPlayerState.value =
+        smallPlayerState.value =
           when (sheetValue) {
             SheetValue.Hidden ->
-              if (miniPlayerState.value == MiniPlayerState.TempHidden) MiniPlayerState.TempHidden
-              else MiniPlayerState.Hidden
+              if (smallPlayerState.value == SmallPlayerState.TempHidden) SmallPlayerState.TempHidden
+              else SmallPlayerState.Hidden
 
-            SheetValue.PartiallyExpanded -> MiniPlayerState.PartiallyExpanded
-            SheetValue.Expanded -> MiniPlayerState.Expanded
+            SheetValue.PartiallyExpanded -> SmallPlayerState.PartiallyExpanded
+            SheetValue.Expanded -> SmallPlayerState.Expanded
           }
       }
   }
 
   LaunchedEffect(Unit) {
-    snapshotFlow { miniPlayerState.value }
+    snapshotFlow { smallPlayerState.value }
       .distinctUntilChanged()
       .collect { state ->
         coroutineScope.launch {
           when (state) {
-            MiniPlayerState.Hidden,
-            MiniPlayerState.TempHidden -> scaffoldState.bottomSheetState.hide()
-            MiniPlayerState.PartiallyExpanded -> scaffoldState.bottomSheetState.partialExpand()
-            MiniPlayerState.Expanded -> scaffoldState.bottomSheetState.expand()
+            SmallPlayerState.Hidden,
+            SmallPlayerState.TempHidden -> scaffoldState.bottomSheetState.hide()
+            SmallPlayerState.PartiallyExpanded -> scaffoldState.bottomSheetState.partialExpand()
+            SmallPlayerState.Expanded -> scaffoldState.bottomSheetState.expand()
           }
         }
       }
   }
 
-  val onShowMiniPlayer: (String) -> Unit = { id ->
+  val onShowSmallPlayer: (String) -> Unit = { id ->
     currentId = id
-    miniPlayerState.value = MiniPlayerState.PartiallyExpanded
+    smallPlayerState.value = SmallPlayerState.PartiallyExpanded
   }
 
-  MiniPlayer(scaffoldState, currentId, {}) { padding -> content(padding, onShowMiniPlayer) }
+  SmallPlayer(scaffoldState, currentId, { smallPlayerState.value = SmallPlayerState.Expanded }) {
+    padding ->
+    content(padding, onShowSmallPlayer)
+  }
 }
