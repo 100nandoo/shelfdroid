@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class)
 
 package dev.halim.shelfdroid.ui
 
@@ -8,23 +8,13 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import dev.halim.shelfdroid.core.ui.components.MiniPlayer
+import dev.halim.shelfdroid.core.ui.components.miniplayer.MiniPlayerHandler
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
@@ -32,7 +22,6 @@ import dev.halim.shelfdroid.core.ui.screen.player.PlayerScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.version
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable object Login
@@ -54,56 +43,15 @@ fun MainNavigation(isLoggedIn: Boolean) {
 
     val startDestination = if (isLoggedIn) Home else Login
 
-    var currentId by remember { mutableStateOf("") }
-
-    val scaffoldState =
-      rememberBottomSheetScaffoldState(
-        bottomSheetState =
-          rememberStandardBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            skipHiddenState = false,
-          )
+    MiniPlayerHandler(navController) { paddingValues, onShowMiniPlayer ->
+      NavHostContainer(
+        paddingValues = paddingValues,
+        navController = navController,
+        startDestination = startDestination,
+        this@SharedTransitionLayout,
+        onShowMiniPlayer = onShowMiniPlayer,
       )
-
-    val scope = rememberCoroutineScope()
-
-    fun updateMiniPlayerVisibility(route: String?, isShow: Boolean) {
-      val isHomeScreen = route?.contains("Home") == true
-      val isBookScreen = route?.contains("Book") == true
-      val isPodcastScreen = route?.contains("Podcast") == true
-      val showOnCurrentScreen = isHomeScreen || isBookScreen || isPodcastScreen
-      if (showOnCurrentScreen && isShow) {
-        scope.launch { scaffoldState.bottomSheetState.show() }
-      } else {
-        scope.launch { scaffoldState.bottomSheetState.hide() }
-      }
     }
-
-    LaunchedEffect(navController) {
-      navController.addOnDestinationChangedListener { _, destination, _ ->
-        updateMiniPlayerVisibility(destination.route, scaffoldState.bottomSheetState.isVisible)
-      }
-    }
-
-    MiniPlayer(
-      scaffoldState,
-      currentId,
-      { navController.navigate(Player(currentId)) },
-      { paddingValues ->
-        NavHostContainer(
-          paddingValues = paddingValues,
-          navController = navController,
-          startDestination = startDestination,
-          this@SharedTransitionLayout,
-          onShowMiniPlayer = { id ->
-            val currentBackStackEntry = navController.currentBackStackEntry
-            val currentDestination = currentBackStackEntry?.destination?.route
-            updateMiniPlayerVisibility(currentDestination, true)
-            currentId = id
-          },
-        )
-      },
-    )
   }
 }
 

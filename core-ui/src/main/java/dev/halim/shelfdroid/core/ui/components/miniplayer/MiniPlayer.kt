@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package dev.halim.shelfdroid.core.ui.components
+package dev.halim.shelfdroid.core.ui.components.miniplayer
 
 import ItemCoverNoAnimation
 import androidx.compose.animation.core.animateDpAsState
@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.halim.shelfdroid.core.extensions.dropShadow
+import dev.halim.shelfdroid.core.ui.components.IconButton
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
