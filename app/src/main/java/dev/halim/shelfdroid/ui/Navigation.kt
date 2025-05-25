@@ -2,19 +2,28 @@
 
 package dev.halim.shelfdroid.ui
 
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import dev.halim.shelfdroid.core.ui.components.player.small.PlayerHandler
+import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
+import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.components.player.PlayerHandler
+import dev.halim.shelfdroid.core.ui.components.player.SmallPlayerState
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
@@ -40,27 +49,34 @@ fun MainNavigation(isLoggedIn: Boolean) {
 
     val startDestination = if (isLoggedIn) Home else Login
 
-    PlayerHandler(navController) { paddingValues, onShowSmallPlayer ->
+    var currentId by remember { mutableStateOf("") }
+
+    val smallPlayerState = remember { mutableStateOf(SmallPlayerState.Hidden) }
+
+    val onShowSmallPlayer: (String) -> Unit = { id ->
+      currentId = id
+      smallPlayerState.value = SmallPlayerState.PartiallyExpanded
+    }
+    Column {
       NavHostContainer(
-        paddingValues = paddingValues,
         navController = navController,
         startDestination = startDestination,
         this@SharedTransitionLayout,
         onShowSmallPlayer = onShowSmallPlayer,
       )
+      PlayerHandler(navController, this@SharedTransitionLayout, smallPlayerState, currentId)
     }
   }
 }
 
 @Composable
-private fun NavHostContainer(
-  paddingValues: PaddingValues,
+private fun ColumnScope.NavHostContainer(
   navController: NavHostController,
   startDestination: Any,
   sharedTransitionScope: SharedTransitionScope,
   onShowSmallPlayer: (id: String) -> Unit,
 ) {
-  Box(modifier = Modifier.padding(paddingValues)) {
+  Box(modifier = Modifier.weight(1f)) {
     NavHost(navController = navController, startDestination = startDestination) {
       composable<Login> {
         LoginScreen(
@@ -68,26 +84,21 @@ private fun NavHostContainer(
         )
       }
       composable<Home> {
-        HomeScreen(
-          sharedTransitionScope,
-          this@composable,
-          onSettingsClicked = { navController.navigate(Settings) },
-          onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
-          onBookClicked = { id -> navController.navigate(Book(id)) },
-        )
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          HomeScreen(
+            onSettingsClicked = { navController.navigate(Settings) },
+            onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
+            onBookClicked = { id -> navController.navigate(Book(id)) },
+          )
+        }
       }
       composable<Podcast> {
-        PodcastScreen(
-          sharedTransitionScope = sharedTransitionScope,
-          animatedContentScope = this@composable,
-        )
+        SharedScreenWrapper(sharedTransitionScope, this@composable) { PodcastScreen() }
       }
       composable<Book> {
-        BookScreen(
-          sharedTransitionScope = sharedTransitionScope,
-          animatedContentScope = this@composable,
-          onPlayClicked = { id -> onShowSmallPlayer(id) },
-        )
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          BookScreen(onPlayClicked = { id -> onShowSmallPlayer(id) })
+        }
       }
 
       composable<Settings> {
@@ -97,5 +108,19 @@ private fun NavHostContainer(
         )
       }
     }
+  }
+}
+
+@Composable
+private fun SharedScreenWrapper(
+  sharedTransitionScope: SharedTransitionScope,
+  animatedContentScope: AnimatedContentScope,
+  content: @Composable () -> Unit,
+) {
+  CompositionLocalProvider(
+    LocalSharedTransitionScope provides sharedTransitionScope,
+    LocalAnimatedContentScope provides animatedContentScope,
+  ) {
+    content()
   }
 }

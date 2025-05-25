@@ -3,9 +3,7 @@
 package dev.halim.shelfdroid.core.ui.screen.book
 
 import ItemDetail
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,35 +35,25 @@ import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 
 @Composable
-fun BookScreen(
-  viewModel: BookViewModel = hiltViewModel(),
-  sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
-  onPlayClicked: (String) -> Unit,
-) {
+fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (String) -> Unit) {
 
-  CompositionLocalProvider(
-    LocalSharedTransitionScope provides sharedTransitionScope,
-    LocalAnimatedContentScope provides animatedContentScope,
-  ) {
-    val uiState by viewModel.uiState.collectAsState()
-    if (uiState.state == GenericState.Success) {
-      BookScreenContent(
-        id = viewModel.id,
-        cover = uiState.cover,
-        title = uiState.title,
-        author = uiState.author,
-        description = uiState.description,
-        subtitle = uiState.subtitle,
-        duration = uiState.duration,
-        narrator = uiState.narrator,
-        publishYear = uiState.publishYear,
-        publisher = uiState.publisher,
-        genres = uiState.genres,
-        language = uiState.language,
-        onPlayClicked = { onPlayClicked(viewModel.id) },
-      )
-    }
+  val uiState by viewModel.uiState.collectAsState()
+  if (uiState.state == GenericState.Success) {
+    BookScreenContent(
+      id = viewModel.id,
+      cover = uiState.cover,
+      title = uiState.title,
+      author = uiState.author,
+      description = uiState.description,
+      subtitle = uiState.subtitle,
+      duration = uiState.duration,
+      narrator = uiState.narrator,
+      publishYear = uiState.publishYear,
+      publisher = uiState.publisher,
+      genres = uiState.genres,
+      language = uiState.language,
+      onPlayClicked = { onPlayClicked(viewModel.id) },
+    )
   }
 }
 

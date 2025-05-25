@@ -1,18 +1,26 @@
-package dev.halim.shelfdroid.core.ui.components.player.big
+@file:OptIn(ExperimentalSharedTransitionApi::class)
 
-import ItemCoverNoAnimation
-import androidx.compose.animation.AnimatedVisibility
+package dev.halim.shelfdroid.core.ui.components.player
+
+import ItemCover
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,136 +44,245 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
+import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.IconButton
-import dev.halim.shelfdroid.core.ui.components.player.small.SmallPlayerContent
+import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.preview.Defaults
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @Composable
 fun BigPlayer(
+  sharedTransitionScope: SharedTransitionScope,
   id: String = "",
   onClicked: (String) -> Unit = {},
-  bottomInset: Dp = 0.dp,
-  isExpanded: Boolean = false,
+  state: MutableState<SmallPlayerState>,
 ) {
-  Column {
-    AnimatedVisibility(!isExpanded) {
-      SmallPlayerContent(id, onClicked = onClicked, bottomInset = bottomInset)
-    }
+  val insets = WindowInsets.systemGestures.asPaddingValues()
+  val gestureNavBottomInset = insets.calculateBottomPadding()
 
-    BigPlayerContent()
+  AnimatedContent(targetState = state.value, label = "PlayerTransition") { targetState ->
+    CompositionLocalProvider(
+      LocalSharedTransitionScope provides sharedTransitionScope,
+      LocalAnimatedContentScope provides this@AnimatedContent,
+    ) {
+      val onSwipeUp = {
+        when (targetState) {
+          SmallPlayerState.Hidden,
+          SmallPlayerState.TempHidden,
+          SmallPlayerState.Expanded -> {}
+          SmallPlayerState.PartiallyExpanded -> state.value = SmallPlayerState.Expanded
+        }
+      }
+      val onSwipeDown = {
+        when (targetState) {
+          SmallPlayerState.Hidden,
+          SmallPlayerState.TempHidden -> {}
+          SmallPlayerState.PartiallyExpanded -> {
+            state.value = SmallPlayerState.Hidden
+          }
+          SmallPlayerState.Expanded -> state.value = SmallPlayerState.PartiallyExpanded
+        }
+      }
+      Column {
+        when (targetState) {
+          SmallPlayerState.PartiallyExpanded -> {
+            SmallPlayerContent(
+              id,
+              onClicked = onClicked,
+              bottomInset = gestureNavBottomInset,
+              onSwipeUp = onSwipeUp,
+              onSwipeDown = onSwipeDown,
+            )
+          }
+          SmallPlayerState.Hidden,
+          SmallPlayerState.TempHidden -> {}
+          SmallPlayerState.Expanded -> {
+            BigPlayerContent(id, onSwipeUp = onSwipeUp, onSwipeDown = onSwipeDown)
+          }
+        }
+      }
+    }
   }
 }
 
 @Composable
 fun BigPlayerContent(
+  id: String = "",
   imageUrl: String = "",
-  title: String = "Chapter 26",
-  authorName: String = "Adam",
+  title: String = Defaults.BOOK_TITLE,
+  authorName: String = Defaults.BOOK_AUTHOR,
+  onSwipeUp: () -> Unit = {},
+  onSwipeDown: () -> Unit = {},
 ) {
-  Column(
-    modifier = Modifier.fillMaxSize().padding(16.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom),
-  ) {
-    BasicPlayerContent(imageUrl, title, authorName)
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
 
-    BookmarkAndChapter()
+  with(sharedTransitionScope) {
+    with(animatedContentScope) {
+      Column(
+        modifier =
+          Modifier.mySharedBound(Animations.Companion.Player.containerKey(id))
+            .fillMaxSize()
+            .pointerInput(Unit) {
+              detectVerticalDragGestures { _, dragAmount ->
+                if (dragAmount < 0) {
+                  onSwipeUp()
+                } else {
+                  onSwipeDown()
+                }
+              }
+            }
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom),
+      ) {
+        BasicPlayerContent(imageUrl, title, authorName)
 
-    PlayerProgress()
+        BookmarkAndChapter()
 
-    BasicPlayerControl()
+        PlayerProgress(id)
 
-    AdvancedPlayerControl()
+        BasicPlayerControl(id)
 
-    Spacer(modifier = Modifier.height(16.dp))
+        AdvancedPlayerControl()
+
+        Spacer(modifier = Modifier.height(16.dp))
+      }
+    }
   }
+}
+
+enum class DragAnchors {
+  Start,
+  End,
 }
 
 @Composable
 fun BasicPlayerContent(url: String, title: String, authorName: String) {
-  ItemCoverNoAnimation(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(32.dp))
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
 
-  Spacer(modifier = Modifier.height(16.dp))
+  with(sharedTransitionScope) {
+    with(animatedContentScope) {
+      ItemCover(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(32.dp))
 
-  Text(text = title, style = MaterialTheme.typography.headlineLarge, textAlign = TextAlign.Center)
+      Spacer(modifier = Modifier.height(16.dp))
 
-  Spacer(modifier = Modifier.height(8.dp))
+      Text(
+        modifier = Modifier.mySharedBound("title_$title"),
+        text = title,
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = TextAlign.Center,
+      )
 
-  Text(
-    text = authorName,
-    style = MaterialTheme.typography.bodyMedium,
-    color = Color.Gray,
-    textAlign = TextAlign.Center,
-  )
-}
+      Spacer(modifier = Modifier.height(8.dp))
 
-@Composable
-fun PlayerProgress() {
-  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-    Text(
-      text = "01:11",
-      style = MaterialTheme.typography.bodySmall,
-      color = MaterialTheme.colorScheme.onSurface,
-    )
-    Text(
-      text = "03:33",
-      style = MaterialTheme.typography.bodySmall,
-      color = MaterialTheme.colorScheme.onSurface,
-    )
+      Text(
+        modifier = Modifier.mySharedBound(Animations.Companion.Player.authorKey(authorName)),
+        text = authorName,
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.Gray,
+        textAlign = TextAlign.Center,
+      )
+    }
   }
-  Slider(
-    value = 0.3f,
-    onValueChange = {},
-    modifier = Modifier.fillMaxWidth(),
-    onValueChangeFinished = {},
-    colors =
-      SliderDefaults.colors(
-        thumbColor = MaterialTheme.colorScheme.primary,
-        activeTrackColor = MaterialTheme.colorScheme.primary,
-      ),
-  )
 }
 
 @Composable
-fun BasicPlayerControl(modifier: Modifier = Modifier) {
-  Row(
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.SpaceEvenly,
-    modifier = modifier.fillMaxWidth(),
-  ) {
-    IconButton(
-      icon = Icons.Default.SkipPrevious,
-      contentDescription = "Previous Chapter",
-      onClick = {},
-    )
+fun PlayerProgress(id: String = "") {
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
 
-    IconButton(icon = Icons.Default.Replay10, contentDescription = "Seek Back 10s", onClick = {})
+  with(sharedTransitionScope) {
+    with(animatedContentScope) {
+      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(
+          text = "01:11",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+          text = "03:33",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurface,
+        )
+      }
+      Slider(
+        value = 0.3f,
+        onValueChange = {},
+        modifier =
+          Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
+        onValueChangeFinished = {},
+        colors =
+          SliderDefaults.colors(
+            thumbColor = MaterialTheme.colorScheme.primary,
+            activeTrackColor = MaterialTheme.colorScheme.primary,
+          ),
+      )
+    }
+  }
+}
 
-    IconButton(
-      icon = Icons.Default.PlayArrow,
-      contentDescription = "Play Pause",
-      size = 72,
-      onClick = {},
-    )
+@Composable
+fun BasicPlayerControl(id: String = "") {
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
 
-    IconButton(
-      icon = Icons.Default.Forward10,
-      contentDescription = "Seek Forward 10s",
-      onClick = {},
-    )
+  with(sharedTransitionScope) {
+    with(animatedContentScope) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        IconButton(
+          icon = Icons.Default.SkipPrevious,
+          contentDescription = "Previous Chapter",
+          onClick = {},
+        )
 
-    IconButton(icon = Icons.Default.SkipNext, contentDescription = "Next Chapter", onClick = {})
+        IconButton(
+          modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
+          icon = Icons.Default.Replay10,
+          contentDescription = "Seek Back 10s",
+          onClick = {},
+        )
+
+        IconButton(
+          modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
+          icon = Icons.Default.PlayArrow,
+          contentDescription = "Play Pause",
+          size = 72,
+          onClick = {},
+        )
+
+        IconButton(
+          modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
+          icon = Icons.Default.Forward10,
+          contentDescription = "Seek Forward 10s",
+          onClick = {},
+        )
+
+        IconButton(icon = Icons.Default.SkipNext, contentDescription = "Next Chapter", onClick = {})
+      }
+    }
   }
 }
 
@@ -394,3 +511,15 @@ fun BookmarkAndChapter() {
 //        }
 //    }
 // }
+
+@ShelfDroidPreview
+@Composable
+fun BigPlayerContentPreview() {
+  PreviewWrapper(dynamicColor = false) { BigPlayerContent() }
+}
+
+@ShelfDroidPreview
+@Composable
+fun BigPlayerContentDynamicPreview() {
+  PreviewWrapper(dynamicColor = true) { BigPlayerContent() }
+}

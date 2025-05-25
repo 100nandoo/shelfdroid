@@ -23,7 +23,7 @@ fun IconButton(
 ) {
   Box(modifier = modifier.clip(CircleShape).clickable(onClick = onClick).size(size.dp)) {
     Icon(
-      modifier = modifier.size((size - 8).dp).align(Alignment.Center),
+      modifier = Modifier.size(size.dp).align(Alignment.Center).then(modifier),
       tint = MaterialTheme.colorScheme.onSecondaryContainer,
       imageVector = icon,
       contentDescription = contentDescription,

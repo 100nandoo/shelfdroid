@@ -3,9 +3,7 @@
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
 import ItemDetail
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +18,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,27 +37,18 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.utils.toPercent
 
 @Composable
-fun PodcastScreen(
-  viewModel: PodcastViewModel = hiltViewModel(),
-  sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
-) {
+fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
   if (uiState.state == GenericState.Success) {
 
-    CompositionLocalProvider(
-      LocalSharedTransitionScope provides sharedTransitionScope,
-      LocalAnimatedContentScope provides animatedContentScope,
-    ) {
-      PodcastScreenContent(
-        viewModel.id,
-        uiState.cover,
-        uiState.title,
-        uiState.author,
-        uiState.description,
-        uiState.episodes,
-      )
-    }
+    PodcastScreenContent(
+      viewModel.id,
+      uiState.cover,
+      uiState.title,
+      uiState.author,
+      uiState.description,
+      uiState.episodes,
+    )
   }
 }
 

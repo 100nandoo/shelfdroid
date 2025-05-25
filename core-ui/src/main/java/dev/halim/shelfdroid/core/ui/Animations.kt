@@ -21,6 +21,20 @@ class Animations @Inject constructor() {
     fun authorKey(id: String, author: String) = "${id}_author_$author"
 
     fun coverKey(id: String) = "cover_$id"
+
+    object Player {
+      fun containerKey(id: String) = "player_container_$id"
+
+      fun progressKey(id: String) = "player_progress_$id"
+
+      fun authorKey(author: String) = "player_author_$author"
+
+      fun playKey(id: String) = "player_play_$id"
+
+      fun seekBackKey(id: String) = "player_seek_back_$id"
+
+      fun seekForwardKey(id: String) = "player_seek_forward_$id"
+    }
   }
 }
 

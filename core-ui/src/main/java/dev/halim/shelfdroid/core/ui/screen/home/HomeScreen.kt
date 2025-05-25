@@ -1,12 +1,7 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
-
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import Item
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.fadeIn
@@ -38,7 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,14 +50,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.data.home.HomeState
 import dev.halim.shelfdroid.core.data.home.HomeUiState
 import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
-import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
 fun HomeScreen(
-  sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
   viewModel: HomeViewModel = hiltViewModel(),
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
@@ -108,33 +98,28 @@ fun HomeScreen(
     }
   }
 
-  CompositionLocalProvider(
-    LocalSharedTransitionScope provides sharedTransitionScope,
-    LocalAnimatedContentScope provides animatedContentScope,
-  ) {
-    Scaffold(
-      floatingActionButton = {
-        AnimatedVisibility(
-          visible = !pagerState.isScrollInProgress && !isGridScrolling,
-          enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-          exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-        ) {
-          FloatingActionButton(onClick = { onSettingsClicked() }) {
-            Icon(Icons.Filled.Settings, contentDescription = "Settings")
-          }
+  Scaffold(
+    floatingActionButton = {
+      AnimatedVisibility(
+        visible = !pagerState.isScrollInProgress && !isGridScrolling,
+        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+      ) {
+        FloatingActionButton(onClick = { onSettingsClicked() }) {
+          Icon(Icons.Filled.Settings, contentDescription = "Settings")
         }
       }
-    ) { paddingValues ->
-      HomeScreenContent(
-        Modifier.padding(paddingValues),
-        libraryCount,
-        pagerState,
-        uiState,
-        { homeEvent -> viewModel.onEvent(homeEvent) },
-        loadingIndicatorAlpha,
-        onGridScrollStateChanged = { isScrolling -> isGridScrolling = isScrolling },
-      )
     }
+  ) { paddingValues ->
+    HomeScreenContent(
+      Modifier.padding(paddingValues),
+      libraryCount,
+      pagerState,
+      uiState,
+      { homeEvent -> viewModel.onEvent(homeEvent) },
+      loadingIndicatorAlpha,
+      onGridScrollStateChanged = { isScrolling -> isGridScrolling = isScrolling },
+    )
   }
 }
 
