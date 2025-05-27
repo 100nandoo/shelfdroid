@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
-import dev.halim.shelfdroid.core.ui.components.IconButton
+import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 
@@ -125,14 +125,14 @@ private fun SmallPlayerControls(id: String = "") {
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      IconButton(
+      MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
         icon = Icons.Default.Replay10,
         contentDescription = "Seek Back 10s",
         onClick = {},
       )
 
-      IconButton(
+      MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
         icon = Icons.Default.PlayArrow,
         contentDescription = "Play Pause",
@@ -140,7 +140,7 @@ private fun SmallPlayerControls(id: String = "") {
         onClick = {},
       )
 
-      IconButton(
+      MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
         icon = Icons.Default.Forward10,
         contentDescription = "Seek Forward 10s",

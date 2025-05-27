@@ -60,7 +60,7 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
-import dev.halim.shelfdroid.core.ui.components.IconButton
+import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -252,20 +252,20 @@ fun BasicPlayerControl(id: String = "") {
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier.fillMaxWidth(),
       ) {
-        IconButton(
+        MyIconButton(
           icon = Icons.Default.SkipPrevious,
           contentDescription = "Previous Chapter",
           onClick = {},
         )
 
-        IconButton(
+        MyIconButton(
           modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
           icon = Icons.Default.Replay10,
           contentDescription = "Seek Back 10s",
           onClick = {},
         )
 
-        IconButton(
+        MyIconButton(
           modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
           icon = Icons.Default.PlayArrow,
           contentDescription = "Play Pause",
@@ -273,14 +273,18 @@ fun BasicPlayerControl(id: String = "") {
           onClick = {},
         )
 
-        IconButton(
+        MyIconButton(
           modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
           icon = Icons.Default.Forward10,
           contentDescription = "Seek Forward 10s",
           onClick = {},
         )
 
-        IconButton(icon = Icons.Default.SkipNext, contentDescription = "Next Chapter", onClick = {})
+        MyIconButton(
+          icon = Icons.Default.SkipNext,
+          contentDescription = "Next Chapter",
+          onClick = {},
+        )
       }
     }
   }
@@ -383,12 +387,12 @@ fun BookmarkAndChapter() {
   val bookmarkSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val scope = rememberCoroutineScope()
   Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-    IconButton(
+    MyIconButton(
       icon = Icons.Default.Bookmarks,
       contentDescription = "bookmarks",
       onClick = { scope.launch { bookmarkSheetState.show() } },
     )
-    IconButton(
+    MyIconButton(
       icon = Icons.AutoMirrored.Filled.List,
       contentDescription = "chapters",
       onClick = { scope.launch { chapterSheetState.show() } },

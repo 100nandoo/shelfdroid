@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.login
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,8 +15,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,9 +38,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), onLoginSuccess: () -> Unit) {
+fun LoginScreen(
+  paddingValues: PaddingValues,
+  snackbarHostState: SnackbarHostState = SnackbarHostState(),
+  viewModel: LoginViewModel = hiltViewModel(),
+  onLoginSuccess: () -> Unit,
+) {
   val uiState by viewModel.uiState.collectAsState()
-  val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
 
   LaunchedEffect(uiState.loginState) {
@@ -56,82 +59,82 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), onLoginSuccess: () 
     }
   }
 
-  LoginScreenContent(uiState, viewModel::onEvent, viewModel::updateUiState, snackbarHostState)
+  LoginScreenContent(uiState, paddingValues, viewModel::onEvent, viewModel::updateUiState)
 }
 
 @Composable
 fun LoginScreenContent(
   uiState: LoginUiState = LoginUiState(),
+  paddingValues: PaddingValues = PaddingValues(),
   onEvent: (LoginEvent) -> Unit = {},
   updateUiState: (LoginUiState) -> Unit = {},
-  snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) {
   val focusManager = LocalFocusManager.current
   val (server, username, password) = remember { FocusRequester.createRefs() }
 
   LaunchedEffect(Unit) { server.requestFocus() }
 
-  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { scaffoldPadding ->
-    Box(modifier = Modifier.fillMaxSize().padding(scaffoldPadding).imePadding()) {
-      Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom,
+  Box(
+    modifier = Modifier.fillMaxSize().padding(paddingValues).padding(bottom = 48.dp).imePadding()
+  ) {
+    Column(
+      modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Bottom,
+    ) {
+      if (uiState.loginState is LoginState.Loading) {
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+      }
+
+      LoginTextField(
+        value = uiState.server,
+        onValueChange = { updateUiState(uiState.copy(server = it)) },
+        label = "Server Address",
+        placeholder = "audio.bookshelf.org",
+        keyboardOptions =
+          KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+        modifier = Modifier.focusRequester(server),
+        onNext = { focusManager.moveFocus(FocusDirection.Next) },
+      )
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      LoginTextField(
+        value = uiState.username,
+        onValueChange = { updateUiState(uiState.copy(username = it)) },
+        label = "Username",
+        keyboardOptions =
+          KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+        modifier = Modifier.focusRequester(username),
+        onNext = { focusManager.moveFocus(FocusDirection.Next) },
+      )
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      LoginTextField(
+        value = uiState.password,
+        onValueChange = { updateUiState(uiState.copy(password = it)) },
+        label = "Password",
+        keyboardOptions =
+          KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+        visualTransformation = PasswordVisualTransformation(),
+        modifier = Modifier.focusRequester(password),
+        onDone = {
+          focusManager.clearFocus()
+          onEvent(LoginEvent.LoginButtonPressed)
+        },
+      )
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      Button(
+        onClick = {
+          focusManager.clearFocus()
+          onEvent(LoginEvent.LoginButtonPressed)
+        },
+        modifier = Modifier.fillMaxWidth(),
       ) {
-        if (uiState.loginState is LoginState.Loading) {
-          LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
-
-        LoginTextField(
-          value = uiState.server,
-          onValueChange = { updateUiState(uiState.copy(server = it)) },
-          label = "Server Address",
-          placeholder = "audio.bookshelf.org",
-          keyboardOptions =
-            KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
-          modifier = Modifier.focusRequester(server),
-          onNext = { focusManager.moveFocus(FocusDirection.Next) },
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LoginTextField(
-          value = uiState.username,
-          onValueChange = { updateUiState(uiState.copy(username = it)) },
-          label = "Username",
-          keyboardOptions =
-            KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-          modifier = Modifier.focusRequester(username),
-          onNext = { focusManager.moveFocus(FocusDirection.Next) },
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LoginTextField(
-          value = uiState.password,
-          onValueChange = { updateUiState(uiState.copy(password = it)) },
-          label = "Password",
-          keyboardOptions =
-            KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-          visualTransformation = PasswordVisualTransformation(),
-          modifier = Modifier.focusRequester(password),
-          onDone = {
-            focusManager.clearFocus()
-            onEvent(LoginEvent.LoginButtonPressed)
-          },
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-          onClick = {
-            focusManager.clearFocus()
-            onEvent(LoginEvent.LoginButtonPressed)
-          },
-          modifier = Modifier.fillMaxWidth(),
-        ) {
-          Text("Login")
-        }
+        Text("Login")
       }
     }
   }

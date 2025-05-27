@@ -6,9 +6,14 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -16,6 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -63,6 +70,7 @@ fun MainNavigation(isLoggedIn: Boolean) {
         startDestination = startDestination,
         this@SharedTransitionLayout,
         onShowSmallPlayer = onShowSmallPlayer,
+        smallPlayerState = smallPlayerState.value,
       )
       PlayerHandler(navController, this@SharedTransitionLayout, smallPlayerState, currentId)
     }
@@ -75,12 +83,32 @@ private fun ColumnScope.NavHostContainer(
   startDestination: Any,
   sharedTransitionScope: SharedTransitionScope,
   onShowSmallPlayer: (id: String) -> Unit,
+  smallPlayerState: SmallPlayerState,
 ) {
-  Box(modifier = Modifier.weight(1f)) {
-    NavHost(navController = navController, startDestination = startDestination) {
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  Scaffold(modifier = Modifier.weight(1f), snackbarHost = { SnackbarHost(snackbarHostState) }) {
+    paddingValues ->
+    val bottom =
+      if (smallPlayerState == SmallPlayerState.PartiallyExpanded) 0.dp
+      else paddingValues.calculateBottomPadding()
+
+    NavHost(
+      modifier =
+        Modifier.padding(
+          start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
+          top = paddingValues.calculateTopPadding(),
+          end = paddingValues.calculateEndPadding(LocalLayoutDirection.current),
+          bottom = bottom,
+        ),
+      navController = navController,
+      startDestination = startDestination,
+    ) {
       composable<Login> {
         LoginScreen(
-          onLoginSuccess = { navController.navigate(Home) { popUpTo(Login) { inclusive = true } } }
+          onLoginSuccess = { navController.navigate(Home) { popUpTo(Login) { inclusive = true } } },
+          paddingValues = paddingValues,
+          snackbarHostState = snackbarHostState,
         )
       }
       composable<Home> {
@@ -89,6 +117,7 @@ private fun ColumnScope.NavHostContainer(
             onSettingsClicked = { navController.navigate(Settings) },
             onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
             onBookClicked = { id -> navController.navigate(Book(id)) },
+            smallPlayerState = smallPlayerState,
           )
         }
       }

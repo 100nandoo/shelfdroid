@@ -1,14 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import Item
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -25,19 +22,16 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -50,6 +44,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.data.home.HomeState
 import dev.halim.shelfdroid.core.data.home.HomeUiState
 import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
+import dev.halim.shelfdroid.core.ui.components.MyIconButton
+import dev.halim.shelfdroid.core.ui.components.player.SmallPlayerState
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
@@ -58,13 +54,13 @@ fun HomeScreen(
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
+  smallPlayerState: SmallPlayerState,
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val libraryCount = uiState.librariesUiState.size
 
   val pagerState = rememberPagerState(pageCount = { libraryCount })
   var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
-  var isGridScrolling by remember { mutableStateOf(false) }
 
   LaunchedEffect(pagerState) {
     snapshotFlow { pagerState.currentPage }
@@ -98,29 +94,15 @@ fun HomeScreen(
     }
   }
 
-  Scaffold(
-    floatingActionButton = {
-      AnimatedVisibility(
-        visible = !pagerState.isScrollInProgress && !isGridScrolling,
-        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-      ) {
-        FloatingActionButton(onClick = { onSettingsClicked() }) {
-          Icon(Icons.Filled.Settings, contentDescription = "Settings")
-        }
-      }
-    }
-  ) { paddingValues ->
-    HomeScreenContent(
-      Modifier.padding(paddingValues),
-      libraryCount,
-      pagerState,
-      uiState,
-      { homeEvent -> viewModel.onEvent(homeEvent) },
-      loadingIndicatorAlpha,
-      onGridScrollStateChanged = { isScrolling -> isGridScrolling = isScrolling },
-    )
-  }
+  HomeScreenContent(
+    Modifier,
+    libraryCount,
+    pagerState,
+    uiState,
+    { homeEvent -> viewModel.onEvent(homeEvent) },
+    loadingIndicatorAlpha,
+    onSettingsClicked,
+  )
 }
 
 @Composable
@@ -131,7 +113,7 @@ fun HomeScreenContent(
   uiState: HomeUiState = HomeUiState(),
   onEvent: (HomeEvent) -> Unit = {},
   loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) },
-  onGridScrollStateChanged: (Boolean) -> Unit = {},
+  onSettingsClicked: () -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
     GenericMessageScreen("No libraries available.")
@@ -148,11 +130,9 @@ fun HomeScreenContent(
         modifier = Modifier.weight(1f),
         list = uiState.libraryItemsUiState[page],
         onEvent = onEvent,
-        onScrollStateChanged = onGridScrollStateChanged,
-      )
-      LibraryHeader(
         name = uiState.librariesUiState[page].name,
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
+        onSettingsClicked = onSettingsClicked,
       )
       if (loadingIndicatorAlpha.value > 0f) {
         LinearProgressIndicator(
@@ -164,20 +144,28 @@ fun HomeScreenContent(
 }
 
 @Composable
-fun LibraryHeader(name: String, onRefresh: () -> Unit) {
-  Row(
-    modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Center,
-  ) {
-    Text(text = name, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
-    IconButton(onClick = onRefresh) {
-      Icon(
-        imageVector = Icons.Filled.Refresh,
-        contentDescription = "refresh",
-        tint = MaterialTheme.colorScheme.primary,
-      )
+fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> Unit) {
+  Box(modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp)) {
+    Row(
+      modifier = Modifier.align(Alignment.Center),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(text = name, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+      IconButton(onClick = onRefresh) {
+        Icon(
+          imageVector = Icons.Filled.Refresh,
+          contentDescription = "refresh",
+          tint = MaterialTheme.colorScheme.primary,
+        )
+      }
     }
+    MyIconButton(
+      icon = Icons.Default.Settings,
+      contentDescription = "Settings",
+      onClick = onSettingsClicked,
+      size = 32,
+      modifier = Modifier.align(Alignment.CenterEnd),
+    )
   }
 }
 
@@ -186,7 +174,10 @@ fun LibraryContent(
   modifier: Modifier = Modifier,
   list: List<ShelfdroidMediaItem>?,
   onEvent: (HomeEvent) -> Unit,
+  name: String,
   onScrollStateChanged: (Boolean) -> Unit = {},
+  onRefresh: () -> Unit,
+  onSettingsClicked: () -> Unit,
 ) {
   if (list?.isNotEmpty() == true) {
     val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
@@ -203,6 +194,9 @@ fun LibraryContent(
       reverseLayout = true,
       verticalArrangement = Arrangement.Bottom,
     ) {
+      item(span = { GridItemSpan(maxLineSpan) }) {
+        LibraryHeader(name = name, onRefresh = onRefresh, onSettingsClicked = onSettingsClicked)
+      }
       items(items = list, key = { it.id }) { libraryItem ->
         Item(uiState = libraryItem, onEvent = onEvent)
       }
