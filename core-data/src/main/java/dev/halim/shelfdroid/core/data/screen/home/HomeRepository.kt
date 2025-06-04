@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
-import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.Progress
@@ -20,23 +20,20 @@ import kotlinx.serialization.json.Json
 class HomeRepository
 @Inject
 constructor(
-  private val api: ApiService,
   private val json: Json,
   private val dataStoreManager: DataStoreManager,
   private val helper: Helper,
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
+  private val libraryRepo: LibraryRepo,
 ) {
 
   private suspend fun getToken(): String =
     withContext(Dispatchers.IO) { dataStoreManager.token.first() }
 
   suspend fun getLibraries(): List<LibraryUiState> {
-    val result = api.libraries()
-    result.onSuccess { response ->
-      return response.libraries.map { LibraryUiState(it.id, it.name) }
-    }
-    return emptyList()
+    val result = libraryRepo.entities()
+    return result.map { LibraryUiState(it.id, it.name) }
   }
 
   suspend fun getLibraryItems(libraryId: String): List<ShelfdroidMediaItem> {

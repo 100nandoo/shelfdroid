@@ -12,7 +12,7 @@ class ProgressRepo
 constructor(private val api: ApiService, private val progressQueries: ProgressQueries) {
 
   fun saveAndConvert(user: User): List<Progress> {
-    val entities = user.mediaProgress.map { it.toEntity() }
+    val entities = user.mediaProgress.map { toEntity(it) }
     entities.forEach { progress -> progressQueries.insert(progress) }
     return entities
   }
@@ -25,16 +25,15 @@ constructor(private val api: ApiService, private val progressQueries: ProgressQu
       progressQueries.all().executeAsList()
     }
   }
-}
 
-fun MediaProgress.toEntity(): Progress {
-  return Progress(
-    id = this.id,
-    libraryItemId = this.libraryItemId,
-    episodeId = this.episodeId,
-    mediaItemType = this.mediaItemType,
-    progress = this.progress.toDouble(),
-    duration = this.duration.toDouble(),
-    currentTime = this.currentTime.toDouble(),
-  )
+  fun toEntity(mediaProgress: MediaProgress): Progress =
+    Progress(
+      id = mediaProgress.id,
+      libraryItemId = mediaProgress.libraryItemId,
+      episodeId = mediaProgress.episodeId,
+      mediaItemType = mediaProgress.mediaItemType,
+      progress = mediaProgress.progress.toDouble(),
+      duration = mediaProgress.duration.toDouble(),
+      currentTime = mediaProgress.currentTime.toDouble(),
+    )
 }

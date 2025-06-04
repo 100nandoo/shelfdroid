@@ -1,0 +1,11 @@
+CREATE TABLE LibraryEntity(
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL DEFAULT ''
+);
+
+all:
+SELECT * FROM LibraryEntity;
+
+insert:
+INSERT OR REPLACE INTO LibraryEntity(id, name)
+VALUES ?;
