@@ -6,11 +6,11 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
-import dev.halim.shelfdroid.core.data.home.BookUiState
-import dev.halim.shelfdroid.core.data.home.HomeState
-import dev.halim.shelfdroid.core.data.home.HomeUiState
-import dev.halim.shelfdroid.core.data.home.LibraryUiState
-import dev.halim.shelfdroid.core.data.home.PodcastUiState
+import dev.halim.shelfdroid.core.data.screen.home.BookUiState
+import dev.halim.shelfdroid.core.data.screen.home.HomeState
+import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
+import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
+import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview

@@ -1,5 +1,5 @@
-import org.apache.tools.ant.taskdefs.condition.Os
 import java.util.Properties
+import org.apache.tools.ant.taskdefs.condition.Os
 
 @Suppress(
   "DSL_SCOPE_VIOLATION"

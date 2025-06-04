@@ -3,7 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.login.LoginRepository
+import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

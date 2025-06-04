@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.podcast
+package dev.halim.shelfdroid.core.data.screen.podcast
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.libraryitem.Podcast

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.home
+package dev.halim.shelfdroid.core.data.screen.home
 
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable

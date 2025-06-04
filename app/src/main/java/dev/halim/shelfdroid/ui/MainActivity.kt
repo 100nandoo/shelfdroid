@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
-import dev.halim.shelfdroid.core.data.settings.SettingsRepository
+import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first

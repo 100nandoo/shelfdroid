@@ -41,9 +41,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.halim.shelfdroid.core.data.home.HomeState
-import dev.halim.shelfdroid.core.data.home.HomeUiState
-import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
+import dev.halim.shelfdroid.core.data.screen.home.HomeState
+import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
+import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.components.player.SmallPlayerState
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen

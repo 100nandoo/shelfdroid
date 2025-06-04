@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.settings
+package dev.halim.shelfdroid.core.data.screen.settings
 
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.datastore.DataStoreManager

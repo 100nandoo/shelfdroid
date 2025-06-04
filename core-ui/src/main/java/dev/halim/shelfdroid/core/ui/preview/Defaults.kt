@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.ui.preview
 
-import dev.halim.shelfdroid.core.data.podcast.Episode
+import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 
 object Defaults {
   const val IMAGE_URL = ""

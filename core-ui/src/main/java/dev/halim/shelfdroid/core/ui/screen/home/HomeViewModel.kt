@@ -3,10 +3,10 @@ package dev.halim.shelfdroid.core.ui.screen.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.home.HomeRepository
-import dev.halim.shelfdroid.core.data.home.HomeState
-import dev.halim.shelfdroid.core.data.home.HomeUiState
-import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
+import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
+import dev.halim.shelfdroid.core.data.screen.home.HomeState
+import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
+import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow

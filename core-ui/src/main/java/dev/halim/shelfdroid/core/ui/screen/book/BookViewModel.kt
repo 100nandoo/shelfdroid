@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.book.BookRepository
-import dev.halim.shelfdroid.core.data.book.BookUiState
+import dev.halim.shelfdroid.core.data.screen.book.BookRepository
+import dev.halim.shelfdroid.core.data.screen.book.BookUiState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

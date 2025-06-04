@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data
+package dev.halim.shelfdroid.core.data.response
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.MediaProgress

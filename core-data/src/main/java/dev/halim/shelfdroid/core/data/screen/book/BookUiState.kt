@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.book
+package dev.halim.shelfdroid.core.data.screen.book
 
 import dev.halim.shelfdroid.core.data.GenericState
 

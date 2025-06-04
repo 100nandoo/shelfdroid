@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.home
+package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BatchLibraryItemsRequest
@@ -7,14 +7,14 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.Helper
-import dev.halim.shelfdroid.core.data.ProgressRepo
+import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.database.Progress
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import javax.inject.Inject
+import kotlin.math.roundToLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import kotlin.math.roundToLong
 
 class HomeRepository
 @Inject
