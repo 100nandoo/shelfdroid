@@ -6,34 +6,28 @@ import dev.halim.core.network.response.User
 import dev.halim.shelfdroid.core.database.Progress
 import dev.halim.shelfdroid.core.database.ProgressQueries
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 
 class ProgressRepo
 @Inject
 constructor(private val api: ApiService, private val progressQueries: ProgressQueries) {
 
-  fun saveMediaProgress(user: User) {
-    val entitiesNew = user.mediaProgress.map { it.toEntityNew() }
-    entitiesNew.forEach { progress -> progressQueries.insert(progress) }
+  fun saveAndConvert(user: User): List<Progress> {
+    val entities = user.mediaProgress.map { it.toEntity() }
+    entities.forEach { progress -> progressQueries.insert(progress) }
+    return entities
   }
 
-  fun entities(): Flow<List<Progress>> =
-    flow {
-        emit(progressQueries.all().executeAsList())
-
-        val response = api.me()
-        response.onSuccess { user ->
-          saveMediaProgress(user)
-          emit(progressQueries.all().executeAsList())
-        }
-      }
-      .flowOn(Dispatchers.IO)
+  suspend fun entities(): List<Progress> {
+    val response = api.me().getOrNull()
+    return if (response != null) {
+      saveAndConvert(response)
+    } else {
+      progressQueries.all().executeAsList()
+    }
+  }
 }
 
-fun MediaProgress.toEntityNew(): Progress {
+fun MediaProgress.toEntity(): Progress {
   return Progress(
     id = this.id,
     libraryItemId = this.libraryItemId,

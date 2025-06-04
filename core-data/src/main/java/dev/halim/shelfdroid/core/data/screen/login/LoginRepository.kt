@@ -21,7 +21,7 @@ constructor(
     val result = api.login(request)
     result.onSuccess { response ->
       updateDataStoreManager(server, response)
-      progressRepo.saveMediaProgress(response.user)
+      progressRepo.saveAndConvert(response.user)
       return Result.success(Unit)
     }
     result.onFailure { error ->

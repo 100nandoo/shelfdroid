@@ -1,13 +1,13 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.request.BatchLibraryItemsRequest
-import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.Progress
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
@@ -15,13 +15,16 @@ import kotlin.math.roundToLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 
 class HomeRepository
 @Inject
 constructor(
   private val api: ApiService,
+  private val json: Json,
   private val dataStoreManager: DataStoreManager,
   private val helper: Helper,
+  private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
 ) {
 
@@ -37,16 +40,13 @@ constructor(
   }
 
   suspend fun getLibraryItems(libraryId: String): List<ShelfdroidMediaItem> {
-    val ids = api.libraryItems(libraryId).getOrNull()?.results?.map { it.id } ?: emptyList()
-    val result =
-      api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()?.libraryItems ?: emptyList()
-    val progresses = progressRepo.entities().first()
-    val resultWithProgress =
-      result.map { item ->
-        val progress = progresses.firstOrNull { it.libraryItemId == item.id }
-        toUiState(item, progress)
-      }
-    return resultWithProgress
+    val ids = libraryItemRepo.idsByLibraryId(libraryId)
+    val progresses = progressRepo.entities()
+    val libraryItems = libraryItemRepo.entities(libraryId, ids)
+    return libraryItems.map { item ->
+      val progress = progresses.firstOrNull { it.libraryItemId == item.id }
+      toUiState(item, progress)
+    }
   }
 
   private fun calculateStartEndTime(book: Book, currentTime: Float): Pair<Long, Long> {
@@ -80,12 +80,9 @@ constructor(
     return url to seekTime
   }
 
-  private suspend fun toUiState(item: LibraryItem, progress: Progress?): ShelfdroidMediaItem {
-    val media = item.media
-    return if (media is Book) {
-      val cover = helper.generateItemCoverUrl(item.id)
-      val author = media.metadata.authors.joinToString { it.name }
-      val title = media.metadata.title ?: ""
+  private suspend fun toUiState(item: LibraryItemEntity, progress: Progress?): ShelfdroidMediaItem {
+    return if (item.isBook == 1L) {
+      val media = json.decodeFromString<Book>(item.media)
       val progressValue = progress?.progress?.toFloat() ?: 0f
       val currentTime = progress?.currentTime?.toFloat() ?: 0f
       val (startTime, endTime) = calculateStartEndTime(media, currentTime)
@@ -94,9 +91,9 @@ constructor(
 
       BookUiState(
         id = item.id,
-        author = author,
-        title = title,
-        cover = cover,
+        author = item.author,
+        title = item.title,
+        cover = item.cover,
         url = url,
         seekTime = seekTime,
         startTime = startTime,
@@ -104,15 +101,12 @@ constructor(
         progress = progressValue,
       )
     } else {
-      media as Podcast
-      val cover = helper.generateItemCoverUrl(item.id)
-      val author = media.metadata.author ?: ""
-      val title = media.metadata.title ?: ""
+      val media = json.decodeFromString<Podcast>(item.media)
       PodcastUiState(
         id = item.id,
-        author = author,
-        title = title,
-        cover = cover,
+        author = item.author,
+        title = item.title,
+        cover = item.cover,
         url = "",
         seekTime = 0,
         startTime = 0,

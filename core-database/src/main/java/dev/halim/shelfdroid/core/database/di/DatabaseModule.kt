@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dev.halim.shelfdroid.core.database.LibraryItemEntityQueries
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.ProgressQueries
 import javax.inject.Singleton
@@ -31,5 +32,11 @@ class DatabaseModule {
   @Singleton
   fun provideProgressQueries(myDatabase: MyDatabase): ProgressQueries {
     return myDatabase.progressQueries
+  }
+
+  @Provides
+  @Singleton
+  fun provideLibraryItemEntityQueries(myDatabase: MyDatabase): LibraryItemEntityQueries {
+    return myDatabase.libraryItemEntityQueries
   }
 }
