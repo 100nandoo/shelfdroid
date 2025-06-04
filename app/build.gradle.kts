@@ -1,5 +1,5 @@
-import java.util.Properties
 import org.apache.tools.ant.taskdefs.condition.Os
+import java.util.Properties
 
 @Suppress(
   "DSL_SCOPE_VIOLATION"
@@ -8,7 +8,6 @@ plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.hilt.gradle)
-  alias(libs.plugins.ksp)
   alias(libs.plugins.kotlin.kapt)
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.compose.compiler)
@@ -46,9 +45,6 @@ android {
     versionName = libs.versions.versionName.get()
 
     vectorDrawables { useSupportLibrary = true }
-
-    // Enable room auto-migrations
-    ksp { arg("room.schemaLocation", "$projectDir/schemas") }
   }
 
   buildTypes {

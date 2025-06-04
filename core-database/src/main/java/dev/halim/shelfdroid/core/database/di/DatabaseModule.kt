@@ -1,15 +1,15 @@
 package dev.halim.shelfdroid.core.database.di
 
 import android.content.Context
-import androidx.room.Room
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.halim.shelfdroid.core.database.AppDatabase
-import dev.halim.shelfdroid.core.database.AudiobookDao
-import dev.halim.shelfdroid.core.database.ProgressDao
+import dev.halim.shelfdroid.core.database.MyDatabase
+import dev.halim.shelfdroid.core.database.ProgressQueries
 import javax.inject.Singleton
 
 @Module
@@ -17,17 +17,19 @@ import javax.inject.Singleton
 class DatabaseModule {
   @Provides
   @Singleton
-  fun provideAppDatabase(@ApplicationContext appContext: Context): AppDatabase {
-    return Room.databaseBuilder(appContext, AppDatabase::class.java, "Audiobook").build()
+  fun provideSqlDriver(@ApplicationContext appContext: Context): SqlDriver {
+    return AndroidSqliteDriver(MyDatabase.Schema, appContext, "shelfdroid.db")
   }
 
   @Provides
-  fun provideAudiobookDao(appDatabase: AppDatabase): AudiobookDao {
-    return appDatabase.audiobookDao()
+  @Singleton
+  fun provideSqlDelightAppDatabase(driver: SqlDriver): MyDatabase {
+    return MyDatabase(driver)
   }
 
   @Provides
-  fun provideProgressDao(appDatabase: AppDatabase): ProgressDao {
-    return appDatabase.progressDao()
+  @Singleton
+  fun provideProgressQueries(myDatabase: MyDatabase): ProgressQueries {
+    return myDatabase.progressQueries
   }
 }

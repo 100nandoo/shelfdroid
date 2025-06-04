@@ -8,13 +8,13 @@ import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.ProgressRepo
-import dev.halim.shelfdroid.core.database.ProgressEntity
+import dev.halim.shelfdroid.core.database.Progress
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
-import javax.inject.Inject
-import kotlin.math.roundToLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
+import kotlin.math.roundToLong
 
 class HomeRepository
 @Inject
@@ -80,17 +80,14 @@ constructor(
     return url to seekTime
   }
 
-  private suspend fun toUiState(
-    item: LibraryItem,
-    progressEntity: ProgressEntity?,
-  ): ShelfdroidMediaItem {
+  private suspend fun toUiState(item: LibraryItem, progress: Progress?): ShelfdroidMediaItem {
     val media = item.media
     return if (media is Book) {
       val cover = helper.generateItemCoverUrl(item.id)
       val author = media.metadata.authors.joinToString { it.name }
       val title = media.metadata.title ?: ""
-      val progress = progressEntity?.progress ?: 0f
-      val currentTime = progressEntity?.currentTime ?: 0f
+      val progressValue = progress?.progress?.toFloat() ?: 0f
+      val currentTime = progress?.currentTime?.toFloat() ?: 0f
       val (startTime, endTime) = calculateStartEndTime(media, currentTime)
       val (url, seekTime) =
         urlAndSeekTime(item.id, media.audioFiles.first().ino, currentTime, startTime)
@@ -104,7 +101,7 @@ constructor(
         seekTime = seekTime,
         startTime = startTime,
         endTime = endTime,
-        progress = progress,
+        progress = progressValue,
       )
     } else {
       media as Podcast

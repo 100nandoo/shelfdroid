@@ -56,9 +56,9 @@ fun Item(uiState: ShelfdroidMediaItem, onEvent: (HomeEvent) -> Unit = {}) {
           Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
             ItemCover(Modifier.fillMaxWidth(), coverUrl = uiState.cover)
             if (uiState is BookUiState && uiState.progress > 0.0) {
-              val float = uiState.progress
+              val progress = uiState.progress
               LinearProgressIndicator(
-                progress = { float },
+                progress = { progress },
                 modifier = Modifier.fillMaxWidth().height(12.dp),
                 strokeCap = StrokeCap.Square,
                 color = MaterialTheme.colorScheme.tertiaryContainer,

@@ -51,6 +51,9 @@ dependencies {
   // datastore
   implementation(libs.androidx.datastore)
 
+  // sqldelight
+  implementation(libs.sqldelight.coroutines)
+
   // Local tests: jUnit, coroutines, Android runner
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)

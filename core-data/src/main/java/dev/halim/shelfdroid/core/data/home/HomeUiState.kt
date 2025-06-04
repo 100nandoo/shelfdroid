@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.home
 
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
 
 data class LibraryUiState(val id: String = "", val name: String = "")
@@ -21,6 +22,7 @@ abstract class ShelfdroidMediaItem {
   abstract val endTime: Long
 }
 
+@OptIn(InternalSerializationApi::class)
 @Serializable
 data class BookUiState(
   override val id: String = "",

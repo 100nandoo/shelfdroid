@@ -1,0 +1,16 @@
+CREATE TABLE Progress(
+  id TEXT PRIMARY KEY NOT NULL,
+  libraryItemId TEXT NOT NULL DEFAULT '',
+  episodeId TEXT,
+  mediaItemType TEXT NOT NULL DEFAULT '',
+  progress REAL NOT NULL,
+  duration REAL NOT NULL,
+  currentTime REAL NOT NULL
+);
+
+all:
+SELECT * FROM Progress;
+
+insert:
+INSERT OR REPLACE INTO Progress(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime)
+VALUES ?;
