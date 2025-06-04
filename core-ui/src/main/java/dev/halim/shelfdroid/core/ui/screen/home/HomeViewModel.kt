@@ -7,6 +7,7 @@ import dev.halim.shelfdroid.core.data.home.HomeRepository
 import dev.halim.shelfdroid.core.data.home.HomeState
 import dev.halim.shelfdroid.core.data.home.HomeUiState
 import dev.halim.shelfdroid.core.data.home.ShelfdroidMediaItem
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +16,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val homeRepository: HomeRepository) : ViewModel() {

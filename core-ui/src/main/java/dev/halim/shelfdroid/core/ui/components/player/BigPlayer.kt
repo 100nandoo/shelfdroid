@@ -3,6 +3,7 @@
 package dev.halim.shelfdroid.core.ui.components.player
 
 import ItemCover
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -13,14 +14,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -71,11 +69,13 @@ import kotlinx.coroutines.launch
 fun BigPlayer(
   sharedTransitionScope: SharedTransitionScope,
   id: String = "",
-  onClicked: (String) -> Unit = {},
   state: MutableState<SmallPlayerState>,
 ) {
-  val insets = WindowInsets.systemGestures.asPaddingValues()
-  val gestureNavBottomInset = insets.calculateBottomPadding()
+  BackHandler {
+    if (state.value == SmallPlayerState.Expanded) {
+      state.value = SmallPlayerState.PartiallyExpanded
+    }
+  }
 
   AnimatedContent(targetState = state.value, label = "PlayerTransition") { targetState ->
     CompositionLocalProvider(
@@ -105,8 +105,7 @@ fun BigPlayer(
           SmallPlayerState.PartiallyExpanded -> {
             SmallPlayerContent(
               id,
-              onClicked = onClicked,
-              bottomInset = gestureNavBottomInset,
+              onClicked = { state.value = SmallPlayerState.Expanded },
               onSwipeUp = onSwipeUp,
               onSwipeDown = onSwipeDown,
             )
@@ -167,11 +166,6 @@ fun BigPlayerContent(
       }
     }
   }
-}
-
-enum class DragAnchors {
-  Start,
-  End,
 }
 
 @Composable

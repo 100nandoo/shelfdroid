@@ -43,5 +43,5 @@ fun PlayerHandler(
     }
   }
 
-  BigPlayer(sharedTransitionScope, id = id, onClicked = {}, state = smallPlayerState)
+  BigPlayer(sharedTransitionScope, id = id, state = smallPlayerState)
 }

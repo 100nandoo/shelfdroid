@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.halim.shelfdroid.core.ui.Animations
@@ -41,7 +41,6 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 fun SmallPlayerContent(
   id: String,
   onClicked: (String) -> Unit,
-  bottomInset: Dp,
   onSwipeUp: () -> Unit,
   onSwipeDown: () -> Unit,
 ) {
@@ -64,7 +63,7 @@ fun SmallPlayerContent(
             }
           }
           .clickable { onClicked(id) }
-          .padding(bottom = bottomInset)
+          .navigationBarsPadding()
       ) {
         LinearProgressIndicator(
           progress = { 0.5f },
