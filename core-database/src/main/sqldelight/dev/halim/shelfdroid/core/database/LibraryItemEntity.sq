@@ -1,12 +1,14 @@
 CREATE TABLE LibraryItemEntity (
   id TEXT PRIMARY KEY NOT NULL,
   libraryId TEXT NOT NULL,
-  inoId TEXT NOT NULL DEFAULT '',
   author TEXT NOT NULL DEFAULT '',
   title TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
   cover TEXT NOT NULL DEFAULT '',
+  media TEXT NOT NULL DEFAULT '',
   isBook INTEGER NOT NULL DEFAULT 1,
-  media TEXT NOT NULL DEFAULT ''
+  inoId TEXT NOT NULL DEFAULT '',
+  duration TEXT NOT NULL DEFAULT ''
 );
 
 all:
@@ -17,8 +19,14 @@ SELECT *
 FROM LibraryItemEntity
 WHERE libraryId = :libraryId;
 
+byId:
+SELECT *
+FROM LibraryItemEntity
+WHERE id = :id;
+
 insert:
-INSERT OR REPLACE INTO LibraryItemEntity(id, libraryId, inoId, author,title, cover, isBook, media)
+INSERT OR REPLACE INTO LibraryItemEntity(id, libraryId, author, title, description, cover, media, isBook, inoId,
+duration)
 VALUES ?;
 
 idsByLibraryId:

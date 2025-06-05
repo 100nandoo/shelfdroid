@@ -1,4 +1,4 @@
-CREATE TABLE Progress(
+CREATE TABLE ProgressEntity(
   id TEXT PRIMARY KEY NOT NULL,
   libraryItemId TEXT NOT NULL DEFAULT '',
   episodeId TEXT,
@@ -9,8 +9,8 @@ CREATE TABLE Progress(
 );
 
 all:
-SELECT * FROM Progress;
+SELECT * FROM ProgressEntity;
 
 insert:
-INSERT OR REPLACE INTO Progress(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime)
+INSERT OR REPLACE INTO ProgressEntity(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime)
 VALUES ?;

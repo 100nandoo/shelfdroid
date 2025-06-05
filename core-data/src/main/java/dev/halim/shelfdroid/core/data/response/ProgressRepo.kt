@@ -3,31 +3,31 @@ package dev.halim.shelfdroid.core.data.response
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.MediaProgress
 import dev.halim.core.network.response.User
-import dev.halim.shelfdroid.core.database.Progress
-import dev.halim.shelfdroid.core.database.ProgressQueries
+import dev.halim.shelfdroid.core.database.ProgressEntity
+import dev.halim.shelfdroid.core.database.ProgressEntityQueries
 import javax.inject.Inject
 
 class ProgressRepo
 @Inject
-constructor(private val api: ApiService, private val progressQueries: ProgressQueries) {
+constructor(private val api: ApiService, private val queries: ProgressEntityQueries) {
 
-  fun saveAndConvert(user: User): List<Progress> {
+  fun saveAndConvert(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map { toEntity(it) }
-    entities.forEach { progress -> progressQueries.insert(progress) }
+    entities.forEach { progress -> queries.insert(progress) }
     return entities
   }
 
-  suspend fun entities(): List<Progress> {
+  suspend fun entities(): List<ProgressEntity> {
     val response = api.me().getOrNull()
     return if (response != null) {
       saveAndConvert(response)
     } else {
-      progressQueries.all().executeAsList()
+      queries.all().executeAsList()
     }
   }
 
-  fun toEntity(mediaProgress: MediaProgress): Progress =
-    Progress(
+  private fun toEntity(mediaProgress: MediaProgress): ProgressEntity =
+    ProgressEntity(
       id = mediaProgress.id,
       libraryItemId = mediaProgress.libraryItemId,
       episodeId = mediaProgress.episodeId,

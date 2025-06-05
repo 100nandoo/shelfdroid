@@ -8,7 +8,7 @@ import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
-import dev.halim.shelfdroid.core.database.Progress
+import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlin.math.roundToLong
@@ -77,7 +77,10 @@ constructor(
     return url to seekTime
   }
 
-  private suspend fun toUiState(item: LibraryItemEntity, progress: Progress?): ShelfdroidMediaItem {
+  private suspend fun toUiState(
+    item: LibraryItemEntity,
+    progress: ProgressEntity?,
+  ): ShelfdroidMediaItem {
     return if (item.isBook == 1L) {
       val media = json.decodeFromString<Book>(item.media)
       val progressValue = progress?.progress?.toFloat() ?: 0f

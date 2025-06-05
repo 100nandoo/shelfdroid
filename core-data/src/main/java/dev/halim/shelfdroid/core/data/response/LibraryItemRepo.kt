@@ -21,13 +21,8 @@ constructor(
   private val json: Json,
 ) {
 
-  fun saveAndConvert(
-    libraryId: String,
-    response: BatchLibraryItemsResponse,
-  ): List<LibraryItemEntity> {
-    val entities = response.libraryItems.map { toEntity(it, libraryId) }
-    entities.forEach { entity -> queries.insert(entity) }
-    return entities
+  fun byId(id: String): LibraryItemEntity? {
+    return queries.byId(id).executeAsOneOrNull()
   }
 
   suspend fun idsByLibraryId(libraryId: String): List<String> {
@@ -46,7 +41,16 @@ constructor(
     }
   }
 
-  fun toEntity(item: LibraryItem, libraryId: String): LibraryItemEntity {
+  private fun saveAndConvert(
+    libraryId: String,
+    response: BatchLibraryItemsResponse,
+  ): List<LibraryItemEntity> {
+    val entities = response.libraryItems.map { toEntity(it, libraryId) }
+    entities.forEach { entity -> queries.insert(entity) }
+    return entities
+  }
+
+  private fun toEntity(item: LibraryItem, libraryId: String): LibraryItemEntity {
     val media = item.media
     return if (media is Book) {
       LibraryItemEntity(
@@ -54,8 +58,10 @@ constructor(
         libraryId = libraryId,
         inoId = media.audioFiles.first().ino,
         title = media.metadata.title ?: "",
+        description = media.metadata.description ?: "",
         author = media.metadata.authors.joinToString { it.name },
         cover = helper.generateItemCoverUrl(item.id),
+        duration = helper.formatDuration(media.duration ?: 0.0),
         isBook = 1,
         media = json.encodeToString(media),
       )
@@ -66,8 +72,10 @@ constructor(
         libraryId = libraryId,
         inoId = "",
         title = media.metadata.title ?: "",
+        description = media.metadata.description ?: "",
         author = media.metadata.author ?: "",
         cover = helper.generateItemCoverUrl(item.id),
+        duration = "",
         isBook = 0,
         media = json.encodeToString(media),
       )
