@@ -16,21 +16,22 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.components.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.components.player.PlayerHandler
-import dev.halim.shelfdroid.core.ui.components.player.SmallPlayerState
+import dev.halim.shelfdroid.core.ui.components.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
@@ -53,26 +54,15 @@ import kotlinx.serialization.Serializable
 fun MainNavigation(isLoggedIn: Boolean) {
   SharedTransitionLayout {
     val navController = rememberNavController()
-
     val startDestination = if (isLoggedIn) Home else Login
 
-    var currentId by remember { mutableStateOf("") }
-
-    val smallPlayerState = remember { mutableStateOf(SmallPlayerState.Hidden) }
-
-    val onShowSmallPlayer: (String) -> Unit = { id ->
-      currentId = id
-      smallPlayerState.value = SmallPlayerState.PartiallyExpanded
-    }
     Column {
       NavHostContainer(
         navController = navController,
         startDestination = startDestination,
         this@SharedTransitionLayout,
-        onShowSmallPlayer = onShowSmallPlayer,
-        smallPlayerState = smallPlayerState.value,
       )
-      PlayerHandler(navController, this@SharedTransitionLayout, smallPlayerState, currentId)
+      PlayerHandler(navController, this@SharedTransitionLayout)
     }
   }
 }
@@ -82,15 +72,17 @@ private fun ColumnScope.NavHostContainer(
   navController: NavHostController,
   startDestination: Any,
   sharedTransitionScope: SharedTransitionScope,
-  onShowSmallPlayer: (id: String) -> Unit,
-  smallPlayerState: SmallPlayerState,
 ) {
+  val playerViewModel: PlayerViewModel = hiltViewModel()
+
   val snackbarHostState = remember { SnackbarHostState() }
 
   Scaffold(modifier = Modifier.weight(1f), snackbarHost = { SnackbarHost(snackbarHostState) }) {
     paddingValues ->
+    val playerUiState = playerViewModel.uiState.collectAsState()
+
     val bottom =
-      if (smallPlayerState == SmallPlayerState.PartiallyExpanded) 0.dp
+      if (playerUiState.value.state == PlayerState.Small) 0.dp
       else paddingValues.calculateBottomPadding()
 
     NavHost(
@@ -117,7 +109,6 @@ private fun ColumnScope.NavHostContainer(
             onSettingsClicked = { navController.navigate(Settings) },
             onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
             onBookClicked = { id -> navController.navigate(Book(id)) },
-            smallPlayerState = smallPlayerState,
           )
         }
       }
@@ -126,7 +117,7 @@ private fun ColumnScope.NavHostContainer(
       }
       composable<Book> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
-          BookScreen(onPlayClicked = { id -> onShowSmallPlayer(id) })
+          BookScreen(onPlayClicked = { id -> playerViewModel.onEvent(PlayerEvent.Play(id)) })
         }
       }
 

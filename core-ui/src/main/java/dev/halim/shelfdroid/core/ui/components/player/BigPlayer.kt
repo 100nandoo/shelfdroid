@@ -43,7 +43,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,6 +55,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -68,53 +70,52 @@ import kotlinx.coroutines.launch
 @Composable
 fun BigPlayer(
   sharedTransitionScope: SharedTransitionScope,
-  id: String = "",
-  state: MutableState<SmallPlayerState>,
+  viewModel: PlayerViewModel = hiltViewModel(),
 ) {
+  val uiState = viewModel.uiState.collectAsState()
   BackHandler {
-    if (state.value == SmallPlayerState.Expanded) {
-      state.value = SmallPlayerState.PartiallyExpanded
+    if (uiState.value.state == PlayerState.Big) {
+      viewModel.onEvent(PlayerEvent.Small)
     }
   }
 
-  AnimatedContent(targetState = state.value, label = "PlayerTransition") { targetState ->
+  AnimatedContent(targetState = uiState.value.state, label = "PlayerTransition") { targetState ->
     CompositionLocalProvider(
       LocalSharedTransitionScope provides sharedTransitionScope,
       LocalAnimatedContentScope provides this@AnimatedContent,
     ) {
       val onSwipeUp = {
         when (targetState) {
-          SmallPlayerState.Hidden,
-          SmallPlayerState.TempHidden,
-          SmallPlayerState.Expanded -> {}
-          SmallPlayerState.PartiallyExpanded -> state.value = SmallPlayerState.Expanded
+          PlayerState.Hidden,
+          PlayerState.TempHidden,
+          PlayerState.Big -> {}
+          PlayerState.Small -> viewModel.onEvent(PlayerEvent.Big)
         }
       }
       val onSwipeDown = {
         when (targetState) {
-          SmallPlayerState.Hidden,
-          SmallPlayerState.TempHidden -> {}
-          SmallPlayerState.PartiallyExpanded -> {
-            state.value = SmallPlayerState.Hidden
+          PlayerState.Small -> {
+            viewModel.onEvent(PlayerEvent.Hidden)
           }
-          SmallPlayerState.Expanded -> state.value = SmallPlayerState.PartiallyExpanded
+          PlayerState.Big -> viewModel.onEvent(PlayerEvent.Small)
+          PlayerState.Hidden,
+          PlayerState.TempHidden -> {}
         }
       }
       Column {
         when (targetState) {
-          SmallPlayerState.PartiallyExpanded -> {
+          PlayerState.Small -> {
             SmallPlayerContent(
-              id,
-              onClicked = { state.value = SmallPlayerState.Expanded },
+              onClicked = { viewModel.onEvent(PlayerEvent.Big) },
               onSwipeUp = onSwipeUp,
               onSwipeDown = onSwipeDown,
             )
           }
-          SmallPlayerState.Hidden,
-          SmallPlayerState.TempHidden -> {}
-          SmallPlayerState.Expanded -> {
-            BigPlayerContent(id, onSwipeUp = onSwipeUp, onSwipeDown = onSwipeDown)
+          PlayerState.Big -> {
+            BigPlayerContent(viewModel, onSwipeUp = onSwipeUp, onSwipeDown = onSwipeDown)
           }
+          PlayerState.Hidden,
+          PlayerState.TempHidden -> {}
         }
       }
     }
@@ -123,13 +124,14 @@ fun BigPlayer(
 
 @Composable
 fun BigPlayerContent(
-  id: String = "",
+  viewModel: PlayerViewModel,
   imageUrl: String = "",
   title: String = Defaults.BOOK_TITLE,
   authorName: String = Defaults.BOOK_AUTHOR,
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
 ) {
+  val uiState = viewModel.uiState.collectAsState()
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -137,7 +139,7 @@ fun BigPlayerContent(
     with(animatedContentScope) {
       Column(
         modifier =
-          Modifier.mySharedBound(Animations.Companion.Player.containerKey(id))
+          Modifier.mySharedBound(Animations.Companion.Player.containerKey(uiState.value.id))
             .fillMaxSize()
             .pointerInput(Unit) {
               detectVerticalDragGestures { _, dragAmount ->
@@ -156,9 +158,9 @@ fun BigPlayerContent(
 
         BookmarkAndChapter()
 
-        PlayerProgress(id)
+        PlayerProgress(uiState.value.id)
 
-        BasicPlayerControl(id)
+        BasicPlayerControl(uiState.value.id)
 
         AdvancedPlayerControl()
 
@@ -513,11 +515,11 @@ fun BookmarkAndChapter() {
 @ShelfDroidPreview
 @Composable
 fun BigPlayerContentPreview() {
-  PreviewWrapper(dynamicColor = false) { BigPlayerContent() }
+  PreviewWrapper(dynamicColor = false) { BigPlayerContent(hiltViewModel()) }
 }
 
 @ShelfDroidPreview
 @Composable
 fun BigPlayerContentDynamicPreview() {
-  PreviewWrapper(dynamicColor = true) { BigPlayerContent() }
+  PreviewWrapper(dynamicColor = true) { BigPlayerContent(hiltViewModel()) }
 }

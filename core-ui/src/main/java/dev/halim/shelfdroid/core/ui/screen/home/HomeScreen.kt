@@ -45,7 +45,6 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
-import dev.halim.shelfdroid.core.ui.components.player.SmallPlayerState
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
@@ -54,7 +53,6 @@ fun HomeScreen(
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
-  smallPlayerState: SmallPlayerState,
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val libraryCount = uiState.librariesUiState.size

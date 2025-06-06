@@ -23,6 +23,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -39,11 +41,12 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 
 @Composable
 fun SmallPlayerContent(
-  id: String,
   onClicked: (String) -> Unit,
   onSwipeUp: () -> Unit,
   onSwipeDown: () -> Unit,
 ) {
+  val viewModel: PlayerViewModel = hiltViewModel()
+  val uiState = viewModel.uiState.collectAsState()
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -51,7 +54,7 @@ fun SmallPlayerContent(
     with(animatedContentScope) {
       Column(
         Modifier.fillMaxWidth()
-          .mySharedBound(Animations.Companion.Player.containerKey(id))
+          .mySharedBound(Animations.Companion.Player.containerKey(uiState.value.id))
           .height(120.dp)
           .pointerInput(Unit) {
             detectVerticalDragGestures { _, dragAmount ->
@@ -62,12 +65,13 @@ fun SmallPlayerContent(
               }
             }
           }
-          .clickable { onClicked(id) }
+          .clickable { onClicked(uiState.value.id) }
           .navigationBarsPadding()
       ) {
         LinearProgressIndicator(
           progress = { 0.5f },
-          Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
+          Modifier.mySharedBound(Animations.Companion.Player.progressKey(uiState.value.id))
+            .fillMaxWidth(),
           drawStopIndicator = {},
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -80,7 +84,7 @@ fun SmallPlayerContent(
 
           SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true))
 
-          SmallPlayerControls(id)
+          SmallPlayerControls(uiState.value.id)
         }
       }
     }

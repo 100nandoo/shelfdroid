@@ -6,23 +6,19 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-
-enum class SmallPlayerState {
-  Hidden,
-  TempHidden,
-  Expanded,
-  PartiallyExpanded,
-}
+import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 
 @Composable
 fun PlayerHandler(
   navController: NavHostController,
   sharedTransitionScope: SharedTransitionScope,
-  smallPlayerState: MutableState<SmallPlayerState>,
-  id: String,
+  viewModel: PlayerViewModel = hiltViewModel(),
 ) {
+  val uiState = viewModel.uiState.collectAsState()
+
   LaunchedEffect(navController) {
     navController.addOnDestinationChangedListener { _, destination, _ ->
       val route = destination.route
@@ -32,16 +28,13 @@ fun PlayerHandler(
           route?.contains("Podcast") == true
 
       when {
-        !isVisibleRoute &&
-          smallPlayerState.value in
-            setOf(SmallPlayerState.Expanded, SmallPlayerState.PartiallyExpanded) ->
-          smallPlayerState.value = SmallPlayerState.TempHidden
-
-        isVisibleRoute && smallPlayerState.value == SmallPlayerState.TempHidden ->
-          smallPlayerState.value = SmallPlayerState.PartiallyExpanded
+        !isVisibleRoute && uiState.value.state in setOf(PlayerState.Big, PlayerState.Small) ->
+          viewModel.onEvent(PlayerEvent.TempHidden)
+        isVisibleRoute && uiState.value.state == PlayerState.TempHidden ->
+          viewModel.onEvent(PlayerEvent.Small)
       }
     }
   }
 
-  BigPlayer(sharedTransitionScope, id = id, state = smallPlayerState)
+  BigPlayer(sharedTransitionScope)
 }
