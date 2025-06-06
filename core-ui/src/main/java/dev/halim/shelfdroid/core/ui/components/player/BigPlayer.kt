@@ -62,8 +62,8 @@ import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
-import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
@@ -86,7 +86,7 @@ fun BigPlayer(
     ) {
       val onSwipeUp = {
         when (targetState) {
-          PlayerState.Hidden,
+          is PlayerState.Hidden,
           PlayerState.TempHidden,
           PlayerState.Big -> {}
           PlayerState.Small -> viewModel.onEvent(PlayerEvent.Big)
@@ -98,7 +98,7 @@ fun BigPlayer(
             viewModel.onEvent(PlayerEvent.Hidden)
           }
           PlayerState.Big -> viewModel.onEvent(PlayerEvent.Small)
-          PlayerState.Hidden,
+          is PlayerState.Hidden,
           PlayerState.TempHidden -> {}
         }
       }
@@ -106,15 +106,28 @@ fun BigPlayer(
         when (targetState) {
           PlayerState.Small -> {
             SmallPlayerContent(
+              id = uiState.value.id,
+              author = uiState.value.author,
+              title = uiState.value.title,
+              cover = uiState.value.cover,
+              progress = uiState.value.progress,
               onClicked = { viewModel.onEvent(PlayerEvent.Big) },
               onSwipeUp = onSwipeUp,
               onSwipeDown = onSwipeDown,
             )
           }
           PlayerState.Big -> {
-            BigPlayerContent(viewModel, onSwipeUp = onSwipeUp, onSwipeDown = onSwipeDown)
+            BigPlayerContent(
+              id = uiState.value.id,
+              author = uiState.value.author,
+              title = uiState.value.title,
+              cover = uiState.value.cover,
+              progress = uiState.value.progress,
+              onSwipeUp = onSwipeUp,
+              onSwipeDown = onSwipeDown,
+            )
           }
-          PlayerState.Hidden,
+          is PlayerState.Hidden,
           PlayerState.TempHidden -> {}
         }
       }
@@ -124,14 +137,14 @@ fun BigPlayer(
 
 @Composable
 fun BigPlayerContent(
-  viewModel: PlayerViewModel,
-  imageUrl: String = "",
+  id: String = "",
+  author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
-  authorName: String = Defaults.BOOK_AUTHOR,
+  cover: String = "",
+  progress: Float = 0f,
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
 ) {
-  val uiState = viewModel.uiState.collectAsState()
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -139,7 +152,7 @@ fun BigPlayerContent(
     with(animatedContentScope) {
       Column(
         modifier =
-          Modifier.mySharedBound(Animations.Companion.Player.containerKey(uiState.value.id))
+          Modifier.mySharedBound(Animations.Companion.Player.containerKey(id))
             .fillMaxSize()
             .pointerInput(Unit) {
               detectVerticalDragGestures { _, dragAmount ->
@@ -154,13 +167,13 @@ fun BigPlayerContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom),
       ) {
-        BasicPlayerContent(imageUrl, title, authorName)
+        BasicPlayerContent(id, author, title, cover)
 
         BookmarkAndChapter()
 
-        PlayerProgress(uiState.value.id)
+        PlayerProgress(id, progress)
 
-        BasicPlayerControl(uiState.value.id)
+        BasicPlayerControl(id)
 
         AdvancedPlayerControl()
 
@@ -171,28 +184,31 @@ fun BigPlayerContent(
 }
 
 @Composable
-fun BasicPlayerContent(url: String, title: String, authorName: String) {
+fun BasicPlayerContent(id: String, author: String, title: String, cover: String) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      ItemCover(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(32.dp))
+      ItemCover(
+        Modifier.fillMaxWidth(),
+        cover = cover,
+        animationKey = Animations.Companion.Player.coverKey(id),
+        shape = RoundedCornerShape(32.dp),
+      )
 
       Spacer(modifier = Modifier.height(16.dp))
 
       Text(
-        modifier = Modifier.mySharedBound("title_$title"),
+        modifier = Modifier.mySharedBound(Animations.Companion.Player.titleKey(title)),
         text = title,
         style = MaterialTheme.typography.headlineLarge,
         textAlign = TextAlign.Center,
       )
 
-      Spacer(modifier = Modifier.height(8.dp))
-
       Text(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.authorKey(authorName)),
-        text = authorName,
+        modifier = Modifier.mySharedBound(Animations.Companion.Player.authorKey(author)),
+        text = author,
         style = MaterialTheme.typography.bodyMedium,
         color = Color.Gray,
         textAlign = TextAlign.Center,
@@ -202,7 +218,7 @@ fun BasicPlayerContent(url: String, title: String, authorName: String) {
 }
 
 @Composable
-fun PlayerProgress(id: String = "") {
+fun PlayerProgress(id: String = "", progress: Float = 0f) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -221,7 +237,7 @@ fun PlayerProgress(id: String = "") {
         )
       }
       Slider(
-        value = 0.3f,
+        value = progress,
         onValueChange = {},
         modifier =
           Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
@@ -515,11 +531,11 @@ fun BookmarkAndChapter() {
 @ShelfDroidPreview
 @Composable
 fun BigPlayerContentPreview() {
-  PreviewWrapper(dynamicColor = false) { BigPlayerContent(hiltViewModel()) }
+  AnimatedPreviewWrapper(dynamicColor = false) { BigPlayerContent() }
 }
 
 @ShelfDroidPreview
 @Composable
 fun BigPlayerContentDynamicPreview() {
-  PreviewWrapper(dynamicColor = true) { BigPlayerContent(hiltViewModel()) }
+  AnimatedPreviewWrapper(dynamicColor = true) { BigPlayerContent() }
 }

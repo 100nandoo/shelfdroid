@@ -11,6 +11,10 @@ class ProgressRepo
 @Inject
 constructor(private val api: ApiService, private val queries: ProgressEntityQueries) {
 
+  fun byLibraryItemId(id: String): ProgressEntity? {
+    return queries.byLibraryItemId(id).executeAsOneOrNull()
+  }
+
   fun saveAndConvert(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map { toEntity(it) }
     entities.forEach { progress -> queries.insert(progress) }

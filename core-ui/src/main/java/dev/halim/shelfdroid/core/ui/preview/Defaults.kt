@@ -25,9 +25,10 @@ object Defaults {
 
   // Book defaults
   const val BOOK_ID = "1234567890"
-  const val BOOK_COVER = ""
-  const val BOOK_TITLE = "The Fellowship of the Ring"
   const val BOOK_AUTHOR = "J. R. R. Tolkien"
+  const val BOOK_TITLE = "The Fellowship of the Ring"
+  const val BOOK_COVER = ""
+  const val PROGRESS: Float = 0.5f
   const val BOOK_DESCRIPTION =
     """
         In a quiet village in the Shire, a young hobbit named Frodo Baggins inherits a Ring of great power.

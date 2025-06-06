@@ -7,6 +7,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,7 +24,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -31,22 +31,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun SmallPlayerContent(
+  id: String = Defaults.BOOK_ID,
+  author: String = Defaults.BOOK_AUTHOR,
+  title: String = Defaults.BOOK_TITLE,
+  cover: String = Defaults.BOOK_COVER,
+  progress: Float = Defaults.PROGRESS,
   onClicked: (String) -> Unit,
   onSwipeUp: () -> Unit,
   onSwipeDown: () -> Unit,
 ) {
-  val viewModel: PlayerViewModel = hiltViewModel()
-  val uiState = viewModel.uiState.collectAsState()
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -54,7 +58,7 @@ fun SmallPlayerContent(
     with(animatedContentScope) {
       Column(
         Modifier.fillMaxWidth()
-          .mySharedBound(Animations.Companion.Player.containerKey(uiState.value.id))
+          .mySharedBound(Animations.Companion.Player.containerKey(id))
           .height(120.dp)
           .pointerInput(Unit) {
             detectVerticalDragGestures { _, dragAmount ->
@@ -65,26 +69,26 @@ fun SmallPlayerContent(
               }
             }
           }
-          .clickable { onClicked(uiState.value.id) }
+          .clickable { onClicked(id) }
           .navigationBarsPadding()
       ) {
         LinearProgressIndicator(
-          progress = { 0.5f },
-          Modifier.mySharedBound(Animations.Companion.Player.progressKey(uiState.value.id))
-            .fillMaxWidth(),
+          progress = { progress },
+          Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
           drawStopIndicator = {},
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
           ItemCover(
             Modifier.fillMaxHeight().padding(8.dp),
-            coverUrl = "",
+            cover = cover,
+            animationKey = Animations.Companion.Player.coverKey(id),
             fontSize = 10.sp,
             shape = RoundedCornerShape(4.dp),
           )
 
-          SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true))
+          SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true), author, title)
 
-          SmallPlayerControls(uiState.value.id)
+          SmallPlayerControls(id)
         }
       }
     }
@@ -92,7 +96,11 @@ fun SmallPlayerContent(
 }
 
 @Composable
-private fun SmallPlayerInfo(modifier: Modifier = Modifier) {
+private fun SmallPlayerInfo(
+  modifier: Modifier = Modifier,
+  author: String = "",
+  title: String = "",
+) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -100,8 +108,8 @@ private fun SmallPlayerInfo(modifier: Modifier = Modifier) {
     with(animatedContentScope) {
       Column(modifier, verticalArrangement = Arrangement.Center) {
         Text(
-          modifier = Modifier.mySharedBound("title_${Defaults.BOOK_TITLE}"),
-          text = Defaults.BOOK_TITLE,
+          modifier = Modifier.mySharedBound(Animations.Companion.Player.titleKey(title)),
+          text = title,
           style = MaterialTheme.typography.titleLarge,
           textAlign = TextAlign.Start,
           overflow = TextOverflow.Ellipsis,
@@ -110,7 +118,7 @@ private fun SmallPlayerInfo(modifier: Modifier = Modifier) {
         Text(
           modifier =
             Modifier.mySharedBound(Animations.Companion.Player.authorKey(Defaults.BOOK_AUTHOR)),
-          text = Defaults.BOOK_AUTHOR,
+          text = author,
           style = MaterialTheme.typography.bodyLarge,
           textAlign = TextAlign.Center,
           overflow = TextOverflow.Ellipsis,
@@ -149,6 +157,28 @@ private fun SmallPlayerControls(id: String = "") {
         contentDescription = "Seek Forward 10s",
         onClick = {},
       )
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun SmallPlayerContentPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    Column {
+      Box(modifier = Modifier.weight(1f))
+      SmallPlayerContent(onClicked = {}, onSwipeUp = {}, onSwipeDown = {})
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun SmallPlayerContentDynamicPreview() {
+  AnimatedPreviewWrapper(dynamicColor = true) {
+    Column {
+      Box(modifier = Modifier.weight(1f))
+      SmallPlayerContent(onClicked = {}, onSwipeUp = {}, onSwipeDown = {})
     }
   }
 }

@@ -25,6 +25,10 @@ class Animations @Inject constructor() {
     object Player {
       fun containerKey(id: String) = "player_container_$id"
 
+      fun titleKey(title: String) = "player_title_$title"
+
+      fun coverKey(id: String) = "player_cover_$id"
+
       fun progressKey(id: String) = "player_progress_$id"
 
       fun authorKey(author: String) = "player_author_$author"

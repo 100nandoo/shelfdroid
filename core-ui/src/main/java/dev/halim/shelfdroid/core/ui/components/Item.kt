@@ -54,7 +54,7 @@ fun Item(uiState: ShelfdroidMediaItem, onEvent: (HomeEvent) -> Unit = {}) {
       ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
           Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
-            ItemCover(Modifier.fillMaxWidth(), coverUrl = uiState.cover)
+            ItemCover(Modifier.fillMaxWidth(), cover = uiState.cover)
             if (uiState is BookUiState && uiState.progress > 0.0) {
               val progress = uiState.progress
               LinearProgressIndicator(
@@ -104,7 +104,8 @@ fun ItemCover(
   background: Color = MaterialTheme.colorScheme.secondaryContainer,
   textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
   fontSize: TextUnit = 14.sp,
-  coverUrl: String,
+  cover: String,
+  animationKey: String = Animations.coverKey(cover),
   shape: Shape = RoundedCornerShape(8.dp, 8.dp),
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -112,15 +113,14 @@ fun ItemCover(
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      val animatedModifier =
-        modifier.mySharedElement(Animations.coverKey(coverUrl), OverlayClip(shape))
+      val animatedModifier = modifier.mySharedElement(animationKey, OverlayClip(shape))
 
       ItemCoverNoAnimation(
         modifier = animatedModifier,
         background = background,
         textColor = textColor,
         fontSize = fontSize,
-        coverUrl = coverUrl,
+        coverUrl = cover,
         shape = shape,
       )
     }
@@ -162,7 +162,7 @@ fun ItemDetail(id: String, url: String, title: String, authorName: String, subti
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Spacer(modifier = Modifier.height(16.dp))
-      ItemCover(Modifier.fillMaxWidth(), coverUrl = url, shape = RoundedCornerShape(8.dp))
+      ItemCover(Modifier.fillMaxWidth(), cover = url, shape = RoundedCornerShape(8.dp))
       Spacer(modifier = Modifier.height(16.dp))
 
       Text(

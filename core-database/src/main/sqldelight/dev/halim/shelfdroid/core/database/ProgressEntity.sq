@@ -11,6 +11,11 @@ CREATE TABLE ProgressEntity(
 all:
 SELECT * FROM ProgressEntity;
 
+byLibraryItemId:
+SELECT *
+FROM ProgressEntity
+WHERE libraryItemId = :id;
+
 insert:
 INSERT OR REPLACE INTO ProgressEntity(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime)
 VALUES ?;
