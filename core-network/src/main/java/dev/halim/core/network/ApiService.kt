@@ -2,6 +2,7 @@ package dev.halim.core.network
 
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.LoginRequest
+import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
@@ -9,6 +10,7 @@ import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.User
+import dev.halim.core.network.response.play.PlayResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -37,4 +39,7 @@ interface ApiService {
   ): Result<BatchLibraryItemsResponse>
 
   @GET("/api/me") suspend fun me(): Result<User>
+
+  @POST("api/items/{itemId}/play")
+  suspend fun play(@Path("itemId") itemId: String, @Body request: PlayRequest): Result<PlayResponse>
 }

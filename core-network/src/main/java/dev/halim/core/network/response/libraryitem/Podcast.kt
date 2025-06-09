@@ -18,23 +18,6 @@ class Podcast(
 ) : Media()
 
 @Serializable
-data class PodcastMetadata(
-  @SerialName("title") val title: String? = "",
-  @SerialName("author") val author: String? = "",
-  @SerialName("description") val description: String? = "",
-  @SerialName("releaseDate") val releaseDate: String? = "",
-  @SerialName("genres") val genres: List<String> = listOf(),
-  @SerialName("feedUrl") val feedUrl: String? = "",
-  @SerialName("imageUrl") val imageUrl: String? = "",
-  @SerialName("itunesPageUrl") val itunesPageUrl: String? = "",
-  @SerialName("itunesId") val itunesId: Int? = 0,
-  @SerialName("itunesArtistId") val itunesArtistId: Int? = 0,
-  @SerialName("explicit") val explicit: Boolean = false,
-  @SerialName("language") val language: String? = "",
-  @SerialName("type") val type: String? = "",
-)
-
-@Serializable
 data class PodcastEpisode(
   @SerialName("libraryItemId") val libraryItemId: String = "",
   @SerialName("id") val id: String = "",

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(private val playerRepository: PlayerRepository) :
@@ -23,7 +24,11 @@ class PlayerViewModel @Inject constructor(private val playerRepository: PlayerRe
 
   fun onEvent(event: PlayerEvent) {
     when (event) {
-      is PlayerEvent.Play -> _uiState.update { playerRepository.item(event.id) }
+      is PlayerEvent.Play ->
+        _uiState.update {
+          viewModelScope.launch { playerRepository.play(event.id) }
+          playerRepository.item(event.id)
+        }
       PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }
       PlayerEvent.Big -> _uiState.update { it.copy(state = PlayerState.Big) }
       PlayerEvent.TempHidden -> _uiState.update { it.copy(state = PlayerState.TempHidden) }
