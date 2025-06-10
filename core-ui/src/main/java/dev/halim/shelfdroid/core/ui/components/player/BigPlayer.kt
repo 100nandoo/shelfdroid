@@ -73,10 +73,8 @@ fun BigPlayer(
   viewModel: PlayerViewModel = hiltViewModel(),
 ) {
   val uiState = viewModel.uiState.collectAsState()
-  BackHandler {
-    if (uiState.value.state == PlayerState.Big) {
-      viewModel.onEvent(PlayerEvent.Small)
-    }
+  BackHandler(enabled = uiState.value.state == PlayerState.Big) {
+    viewModel.onEvent(PlayerEvent.Small)
   }
 
   AnimatedContent(targetState = uiState.value.state, label = "PlayerTransition") { targetState ->

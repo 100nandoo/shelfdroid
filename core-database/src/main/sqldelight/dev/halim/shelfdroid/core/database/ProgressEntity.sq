@@ -8,6 +8,10 @@ CREATE TABLE ProgressEntity(
   currentTime REAL NOT NULL
 );
 
+insert:
+INSERT OR REPLACE INTO ProgressEntity(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime)
+VALUES ?;
+
 all:
 SELECT * FROM ProgressEntity;
 
@@ -16,6 +20,23 @@ SELECT *
 FROM ProgressEntity
 WHERE libraryItemId = :id;
 
-insert:
-INSERT OR REPLACE INTO ProgressEntity(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime)
-VALUES ?;
+bookById:
+SELECT *
+FROM ProgressEntity
+WHERE libraryItemId = :libraryItemId;
+
+episodeById:
+SELECT *
+FROM ProgressEntity
+WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
+
+deleteBookById:
+DELETE FROM ProgressEntity
+WHERE libraryItemId = :libraryItemId;
+
+deleteEpisodeById:
+DELETE FROM ProgressEntity
+WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
+
+deleteAll:
+DELETE FROM ProgressEntity;

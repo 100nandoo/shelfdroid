@@ -1,8 +1,7 @@
 # TODO
 
 - [ ] Book Screen
-  - [ ] chapters
-  - [ ] audio tracks
-  - [ ] Library files
-  - [ ] Buttons
+    - [ ] Progress
+- [ ] Podcast Screen
+    - [ ] Play Button
 - [ ] Player Screen

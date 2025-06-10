@@ -5,11 +5,16 @@ import dev.halim.core.network.response.MediaProgress
 import dev.halim.core.network.response.User
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.core.database.ProgressEntityQueries
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class ProgressRepo
 @Inject
 constructor(private val api: ApiService, private val queries: ProgressEntityQueries) {
+
+  private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
   fun byLibraryItemId(id: String): ProgressEntity? {
     return queries.byLibraryItemId(id).executeAsOneOrNull()
@@ -17,7 +22,19 @@ constructor(private val api: ApiService, private val queries: ProgressEntityQuer
 
   fun saveAndConvert(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map { toEntity(it) }
-    entities.forEach { progress -> queries.insert(progress) }
+
+    repositoryScope.launch {
+      queries.transaction {
+        entities.forEach { progress ->
+          if (progress.mediaItemType == "book") {
+            queries.deleteBookById(progress.libraryItemId)
+          } else {
+            queries.deleteEpisodeById(progress.episodeId)
+          }
+          queries.insert(progress)
+        }
+      }
+    }
     return entities
   }
 
