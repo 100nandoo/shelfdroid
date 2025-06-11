@@ -34,4 +34,11 @@ class Helper @Inject constructor() {
       else -> ""
     }
   }
+
+  fun calculateRemaining(duration: Double, progress: Float): String {
+    val clampedProgress = progress.coerceIn(0.0f, 1.0f)
+    val remainingPercentage = 1.0f - clampedProgress
+    val remaining = duration * remainingPercentage
+    return formatDuration(remaining)
+  }
 }

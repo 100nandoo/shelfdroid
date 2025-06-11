@@ -9,10 +9,12 @@ data class BookUiState(
   val title: String = "",
   val subtitle: String = "",
   val duration: String = "",
+  val remaining: String = "",
   val cover: String = "",
   val description: String = "",
   val publishYear: String = "",
   val publisher: String = "",
   val genres: String = "",
   val language: String = "",
+  val progress: Float = 0f,
 )

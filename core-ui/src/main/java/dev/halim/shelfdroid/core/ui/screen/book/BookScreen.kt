@@ -5,6 +5,7 @@ package dev.halim.shelfdroid.core.ui.screen.book
 import ItemDetail
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
@@ -47,6 +51,7 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (Strin
       description = uiState.description,
       subtitle = uiState.subtitle,
       duration = uiState.duration,
+      remaining = uiState.remaining,
       narrator = uiState.narrator,
       publishYear = uiState.publishYear,
       publisher = uiState.publisher,
@@ -66,11 +71,13 @@ fun BookScreenContent(
   description: String = "",
   subtitle: String = "",
   duration: String = Defaults.BOOK_DURATION,
+  remaining: String = Defaults.BOOK_REMAINING,
   narrator: String = Defaults.BOOK_NARRATOR,
   publishYear: String = Defaults.BOOK_PUBLISH_YEAR,
   publisher: String = Defaults.BOOK_PUBLISHER,
   genres: String = Defaults.BOOK_GENRES,
   language: String = Defaults.BOOK_LANGUAGE,
+  progress: Float = Defaults.PROGRESS,
   onPlayClicked: () -> Unit,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -99,6 +106,7 @@ fun BookScreenContent(
             )
             Text("Play")
           }
+          ProgressRow(progress, remaining)
           ExpandShrinkText(description)
           BookDetail(duration, narrator, publishYear, publisher, genres, language)
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -142,6 +150,43 @@ private fun BookDetailRow(label: String, value: String) {
         modifier = Modifier.weight(1f, fill = true),
       )
       Text(text = value, modifier = Modifier.weight(4f, fill = true))
+    }
+  }
+}
+
+@Composable
+fun ProgressRow(progress: Float, remaining: String) {
+  Card(
+    modifier = Modifier.fillMaxWidth(),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+  ) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(modifier = Modifier.weight(1f).padding(4.dp), contentAlignment = Alignment.Center) {
+        Text(
+          text = "$progress%",
+          textAlign = TextAlign.Center,
+          style = MaterialTheme.typography.headlineMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      Column(modifier = Modifier.weight(2f).padding(8.dp)) {
+        Text(
+          text = remaining,
+          textAlign = TextAlign.Center,
+          style = MaterialTheme.typography.titleMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+          text = "remaining",
+          textAlign = TextAlign.Center,
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
     }
   }
 }

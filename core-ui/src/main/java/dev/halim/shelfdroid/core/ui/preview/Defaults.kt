@@ -38,7 +38,8 @@ object Defaults {
         Their path is fraught with danger, testing their courage and friendship against the growing darkness threatening Middle-earth.
     """
   const val BOOK_SUBTITLE = "Lord of the Rings, Book 1"
-  const val BOOK_DURATION = "10h 20m"
+  const val BOOK_DURATION = "10 hour 20 minutes"
+  const val BOOK_REMAINING = "2 hours 45 minutes"
   const val BOOK_NARRATOR = "Andy Serkis"
   const val BOOK_PUBLISH_YEAR = "2021"
   const val BOOK_PUBLISHER = "Tolkien Publishing"

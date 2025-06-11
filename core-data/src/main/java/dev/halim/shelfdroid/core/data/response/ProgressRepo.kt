@@ -5,10 +5,10 @@ import dev.halim.core.network.response.MediaProgress
 import dev.halim.core.network.response.User
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.core.database.ProgressEntityQueries
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 class ProgressRepo
 @Inject
@@ -18,6 +18,10 @@ constructor(private val api: ApiService, private val queries: ProgressEntityQuer
 
   fun byLibraryItemId(id: String): ProgressEntity? {
     return queries.byLibraryItemId(id).executeAsOneOrNull()
+  }
+
+  fun bookById(id: String): ProgressEntity? {
+    return queries.bookById(id).executeAsOneOrNull()
   }
 
   fun saveAndConvert(user: User): List<ProgressEntity> {
