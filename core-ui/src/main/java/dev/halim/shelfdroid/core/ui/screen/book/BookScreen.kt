@@ -57,6 +57,7 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (Strin
       publisher = uiState.publisher,
       genres = uiState.genres,
       language = uiState.language,
+      progress = uiState.progress,
       onPlayClicked = { onPlayClicked(viewModel.id) },
     )
   }
@@ -77,7 +78,7 @@ fun BookScreenContent(
   publisher: String = Defaults.BOOK_PUBLISHER,
   genres: String = Defaults.BOOK_GENRES,
   language: String = Defaults.BOOK_LANGUAGE,
-  progress: Float = Defaults.PROGRESS,
+  progress: String = Defaults.PROGRESS_PERCENT,
   onPlayClicked: () -> Unit,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -155,7 +156,7 @@ private fun BookDetailRow(label: String, value: String) {
 }
 
 @Composable
-fun ProgressRow(progress: Float, remaining: String) {
+fun ProgressRow(progress: String, remaining: String) {
   Card(
     modifier = Modifier.fillMaxWidth(),
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),

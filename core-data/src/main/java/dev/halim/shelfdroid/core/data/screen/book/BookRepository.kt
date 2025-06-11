@@ -5,6 +5,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import java.util.Locale
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 
@@ -30,6 +31,7 @@ constructor(
       val language = media.metadata.language ?: ""
 
       val progress = progressEntity?.progress?.toFloat() ?: 0f
+      val formattedProgress = String.format(Locale.getDefault(), "%.0f", progress * 100)
       val remaining = helper.calculateRemaining(media.duration ?: 0.0, progress)
       BookUiState(
         state = GenericState.Success,
@@ -45,7 +47,7 @@ constructor(
         publisher = publisher,
         genres = genres,
         language = language,
-        progress = progress,
+        progress = formattedProgress,
       )
     } else {
       BookUiState(state = GenericState.Failure("Failed to fetch book"))

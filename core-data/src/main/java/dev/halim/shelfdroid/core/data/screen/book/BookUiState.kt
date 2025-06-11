@@ -16,5 +16,5 @@ data class BookUiState(
   val publisher: String = "",
   val genres: String = "",
   val language: String = "",
-  val progress: Float = 0f,
+  val progress: String = "",
 )

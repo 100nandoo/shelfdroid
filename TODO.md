@@ -1,7 +1,7 @@
 # TODO
 
 - [ ] Book Screen
-    - [ ] Progress
+    - [x] Progress
 - [ ] Podcast Screen
     - [ ] Play Button
 - [ ] Player Screen
