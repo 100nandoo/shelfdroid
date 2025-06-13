@@ -1,7 +1,6 @@
 # TODO
 
-- [ ] Book Screen
-    - [x] Progress
 - [ ] Podcast Screen
-    - [ ] Play Button
-- [ ] Player Screen
+    - [ ] Download Function
+- [ ] Episode Detail Screen
+- [ ] Media 3 integration

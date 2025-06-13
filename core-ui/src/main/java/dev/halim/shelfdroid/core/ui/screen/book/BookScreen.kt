@@ -3,9 +3,10 @@
 package dev.halim.shelfdroid.core.ui.screen.book
 
 import ItemDetail
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,17 +18,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
@@ -37,6 +36,8 @@ import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.Defaults
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (String) -> Unit) {
@@ -108,7 +109,7 @@ fun BookScreenContent(
             Text("Play")
           }
           ProgressRow(progress, remaining)
-          ExpandShrinkText(description)
+          ExpandShrinkText(text = description)
           BookDetail(duration, narrator, publishYear, publisher, genres, language)
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             ItemDetail(id, cover, title, author, subtitle = subtitle)
@@ -148,45 +149,42 @@ private fun BookDetailRow(label: String, value: String) {
       Text(
         text = "$label: ",
         style = MaterialTheme.typography.labelSmall,
-        modifier = Modifier.weight(1f, fill = true),
+        modifier = Modifier.weight(1f),
       )
-      Text(text = value, modifier = Modifier.weight(4f, fill = true))
+      Text(text = value, modifier = Modifier.weight(4f))
     }
   }
 }
 
+@ShelfDroidPreview
 @Composable
-fun ProgressRow(progress: String, remaining: String) {
-  Card(
-    modifier = Modifier.fillMaxWidth(),
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-  ) {
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Box(modifier = Modifier.weight(1f).padding(4.dp), contentAlignment = Alignment.Center) {
-        Text(
-          text = "$progress%",
-          textAlign = TextAlign.Center,
-          style = MaterialTheme.typography.headlineMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+fun BookScreenContentPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    SharedTransitionLayout {
+      AnimatedContent(targetState = Unit) { animatedContentScope ->
+        CompositionLocalProvider(
+          LocalSharedTransitionScope provides this@SharedTransitionLayout,
+          LocalAnimatedContentScope provides this@AnimatedContent,
+        ) {
+          BookScreenContent(onPlayClicked = {})
+        }
       }
-      Column(modifier = Modifier.weight(2f).padding(8.dp)) {
-        Text(
-          text = remaining,
-          textAlign = TextAlign.Center,
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-          text = "remaining",
-          textAlign = TextAlign.Center,
-          style = MaterialTheme.typography.labelMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun BookScreenContentDynamicPreview() {
+  PreviewWrapper(dynamicColor = true) {
+    SharedTransitionLayout {
+      AnimatedContent(targetState = Unit) { animatedContentScope ->
+        CompositionLocalProvider(
+          LocalSharedTransitionScope provides this@SharedTransitionLayout,
+          LocalAnimatedContentScope provides this@AnimatedContent,
+        ) {
+          BookScreenContent(onPlayClicked = {})
+        }
       }
     }
   }

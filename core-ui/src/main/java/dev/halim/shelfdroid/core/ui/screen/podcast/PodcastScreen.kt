@@ -3,26 +3,24 @@
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
 import ItemDetail
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,9 +30,11 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.Defaults
-import dev.halim.shelfdroid.core.utils.toPercent
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
@@ -67,25 +67,26 @@ fun PodcastScreenContent(
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       LazyColumn(
-        modifier =
-          Modifier.mySharedBound(Animations.containerKey(id))
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize(),
         reverseLayout = true,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
       ) {
+        item { Spacer(modifier = Modifier.height(12.dp)) }
         items(episodes) { episode -> EpisodeItem(episode) }
         item {
           Text(
+            modifier = Modifier.padding(horizontal = 16.dp),
             text = "Episodes",
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Left,
           )
           Spacer(modifier = Modifier.height(16.dp))
 
-          Text(description)
+          ExpandShrinkText(Modifier.padding(horizontal = 16.dp), description)
 
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+          Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 16.dp),
+          ) {
             ItemDetail(id, imageUrl, title, authorName)
           }
         }
@@ -94,40 +95,36 @@ fun PodcastScreenContent(
   }
 }
 
+@ShelfDroidPreview
 @Composable
-fun EpisodeItem(episode: Episode) {
-  Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-    Text(
-      text = episode.title,
-      style = MaterialTheme.typography.bodyLarge,
-      maxLines = 2,
-      overflow = TextOverflow.Ellipsis,
-    )
-    Spacer(modifier = Modifier.height(4.dp))
-    Row {
-      Text(
-        text = episode.progress.toPercent(),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        style = MaterialTheme.typography.labelMedium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-      )
-      Spacer(modifier = Modifier.weight(1f))
-      Text(
-        text = episode.publishedAt,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        style = MaterialTheme.typography.labelMedium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-      )
+fun PodcastScreenContentPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    SharedTransitionLayout {
+      AnimatedContent(targetState = Unit) { animatedContentScope ->
+        CompositionLocalProvider(
+          LocalSharedTransitionScope provides this@SharedTransitionLayout,
+          LocalAnimatedContentScope provides this@AnimatedContent,
+        ) {
+          PodcastScreenContent()
+        }
+      }
     }
-    Spacer(modifier = Modifier.height(4.dp))
-    LinearProgressIndicator(
-      progress = { episode.progress },
-      modifier = Modifier.fillMaxWidth(),
-      color = MaterialTheme.colorScheme.tertiaryContainer,
-      trackColor = MaterialTheme.colorScheme.onTertiaryContainer,
-      drawStopIndicator = {},
-    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun PodcastScreenContentDynamicPreview() {
+  PreviewWrapper(dynamicColor = true) {
+    SharedTransitionLayout {
+      AnimatedContent(targetState = Unit) { animatedContentScope ->
+        CompositionLocalProvider(
+          LocalSharedTransitionScope provides this@SharedTransitionLayout,
+          LocalAnimatedContentScope provides this@AnimatedContent,
+        ) {
+          PodcastScreenContent()
+        }
+      }
+    }
   }
 }

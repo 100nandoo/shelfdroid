@@ -34,9 +34,9 @@ fun SettingsBody(
 }
 
 @Composable
-fun ExpandShrinkText(text: String, maxLines: Int = 3) {
+fun ExpandShrinkText(modifier: Modifier = Modifier, text: String, maxLines: Int = 3) {
   val expandedState = remember { mutableStateOf(false) }
-  Column {
+  Column(modifier = modifier) {
     if (text.isNotEmpty()) {
       Text(
         modifier =

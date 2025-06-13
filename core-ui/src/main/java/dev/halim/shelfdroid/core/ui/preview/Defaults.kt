@@ -16,11 +16,20 @@ object Defaults {
 
   val EPISODES =
     listOf(
-      Episode("Episode 1: The Beginning", "2023-01-15", 0.75f),
-      Episode("Episode 2: Rising Action", "2023-01-22", 0.5f),
-      Episode("Episode 3: The Climax", "2023-01-29", 0.2f),
-      Episode("Episode 4: Falling Action", "2023-02-05", 0.0f),
-      Episode("Episode 5: Resolution", "2023-02-12", 1.0f),
+      Episode("Episode 1: The Beginning", "10 January 2024", 0.75f),
+      Episode("Episode 2: Rising Action", "30 May 2024", 0.5f),
+      Episode("Episode 3: The Climax", "10 October 2024", 0.2f),
+      Episode(
+        "Episode 4: Android 15, Credential Manager, Android Studio Narwhal, Compose for TV, Enhancing  Safety " +
+          "and Security",
+        "25 April 2025",
+        0.0f,
+      ),
+      Episode(
+        "Episode 5: Google I/O, Gemini, and Jetpack Compose 1.8 and more!",
+        "8 May 2025",
+        1.0f,
+      ),
     )
 
   // Book defaults
@@ -29,7 +38,7 @@ object Defaults {
   const val BOOK_TITLE = "The Fellowship of the Ring"
   const val BOOK_COVER = ""
   const val PROGRESS: Float = 0.5f
-  const val PROGRESS_PERCENT: String = "0.12%"
+  const val PROGRESS_PERCENT: String = "12"
   const val BOOK_DESCRIPTION =
     """
         In a quiet village in the Shire, a young hobbit named Frodo Baggins inherits a Ring of great power.
