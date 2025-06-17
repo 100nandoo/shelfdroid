@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,7 +29,7 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun EpisodeItem(episode: Episode) {
+fun EpisodeItem(episode: Episode, onEvent: (PodcastEvent) -> Unit) {
   Column(modifier = Modifier.fillMaxWidth()) {
     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
     Text(
@@ -48,13 +50,21 @@ fun EpisodeItem(episode: Episode) {
           overflow = TextOverflow.Ellipsis,
         )
         Spacer(modifier = Modifier.weight(1f))
-        LinearProgressIndicator(
-          modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
-          progress = { episode.progress },
-          drawStopIndicator = {},
-        )
+        AnimatedVisibility(episode.isFinished.not()) {
+          LinearProgressIndicator(
+            modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
+            progress = { episode.progress },
+            drawStopIndicator = {},
+          )
+        }
       }
-      FilledTonalIconButton(onClick = {}) {
+      val checkButtonColors =
+        if (episode.isFinished) IconButtonDefaults.filledIconButtonColors()
+        else IconButtonDefaults.filledTonalIconButtonColors()
+      FilledTonalIconButton(
+        onClick = { onEvent(PodcastEvent.ToggleIsFinished(episode)) },
+        colors = checkButtonColors,
+      ) {
         Icon(Icons.Default.Check, contentDescription = "Mark as Finished")
       }
       FilledTonalIconButton(onClick = {}, enabled = false) {
@@ -73,7 +83,7 @@ fun EpisodeItemPreview() {
   AnimatedPreviewWrapper(dynamicColor = false) {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
-      Defaults.EPISODES.forEach { episode -> item { EpisodeItem(episode) } }
+      Defaults.EPISODES.forEach { episode -> item { EpisodeItem(episode, {}) } }
     }
   }
 }
@@ -84,7 +94,7 @@ fun EpisodeItemDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
-      Defaults.EPISODES.forEach { episode -> item { EpisodeItem(episode) } }
+      Defaults.EPISODES.forEach { episode -> item { EpisodeItem(episode, {}) } }
     }
   }
 }

@@ -5,11 +5,12 @@ CREATE TABLE ProgressEntity(
   mediaItemType TEXT NOT NULL DEFAULT '',
   progress REAL NOT NULL,
   duration REAL NOT NULL,
-  currentTime REAL NOT NULL
+  currentTime REAL NOT NULL,
+  isFinished INTEGER NOT NULL DEFAULT 0
 );
 
 insert:
-INSERT OR REPLACE INTO ProgressEntity(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime)
+INSERT OR REPLACE INTO ProgressEntity(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime, isFinished)
 VALUES ?;
 
 all:
@@ -40,3 +41,8 @@ WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
 
 deleteAll:
 DELETE FROM ProgressEntity;
+
+toggleIsFinishedByEpisodeId:
+UPDATE ProgressEntity
+SET isFinished = CASE WHEN isFinished = 1 THEN 0 ELSE 1 END
+WHERE episodeId = :episodeId AND episodeId IS NOT NULL;

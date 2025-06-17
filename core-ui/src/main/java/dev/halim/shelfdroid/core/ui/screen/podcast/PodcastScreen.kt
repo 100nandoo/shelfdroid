@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -38,28 +37,26 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
-  val uiState by viewModel.uiState.collectAsStateWithLifecycle(PodcastUiState())
-  if (uiState.state == GenericState.Success) {
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    PodcastScreenContent(
-      viewModel.id,
-      uiState.cover,
-      uiState.title,
-      uiState.author,
-      uiState.description,
-      uiState.episodes,
-    )
+  if (uiState.state == GenericState.Success) {
+    PodcastScreenContent(uiState = uiState, id = viewModel.id, onEvent = viewModel::onEvent)
   }
 }
 
 @Composable
 fun PodcastScreenContent(
+  uiState: PodcastUiState =
+    PodcastUiState(
+      state = GenericState.Success,
+      title = Defaults.TITLE,
+      author = Defaults.AUTHOR_NAME,
+      cover = Defaults.IMAGE_URL,
+      description = Defaults.DESCRIPTION,
+      episodes = Defaults.EPISODES,
+    ),
   id: String = Defaults.BOOK_ID,
-  imageUrl: String = Defaults.IMAGE_URL,
-  title: String = Defaults.TITLE,
-  authorName: String = Defaults.AUTHOR_NAME,
-  description: String = Defaults.DESCRIPTION,
-  episodes: List<Episode> = Defaults.EPISODES,
+  onEvent: (PodcastEvent) -> Unit = {},
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -71,7 +68,7 @@ fun PodcastScreenContent(
         reverseLayout = true,
       ) {
         item { Spacer(modifier = Modifier.height(12.dp)) }
-        items(episodes) { episode -> EpisodeItem(episode) }
+        items(uiState.episodes) { episode -> EpisodeItem(episode, onEvent) }
         item {
           Text(
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -81,13 +78,13 @@ fun PodcastScreenContent(
           )
           Spacer(modifier = Modifier.height(16.dp))
 
-          ExpandShrinkText(Modifier.padding(horizontal = 16.dp), description)
+          ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
 
           Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(horizontal = 16.dp),
           ) {
-            ItemDetail(id, imageUrl, title, authorName)
+            ItemDetail(id, uiState.cover, uiState.title, uiState.author)
           }
         }
       }

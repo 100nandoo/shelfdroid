@@ -8,32 +8,29 @@ import dev.halim.shelfdroid.core.database.ProgressEntityQueries
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class ProgressRepo
 @Inject
 constructor(private val api: ApiService, private val queries: ProgressEntityQueries) {
 
-  private val repositoryScope = CoroutineScope(Dispatchers.IO)
+  private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-  fun byLibraryItemId(id: String): ProgressEntity? {
-    return queries.byLibraryItemId(id).executeAsOneOrNull()
-  }
+  fun byLibraryItemId(id: String): ProgressEntity? =
+    queries.byLibraryItemId(id).executeAsOneOrNull()
 
-  fun bookById(id: String): ProgressEntity? {
-    return queries.bookById(id).executeAsOneOrNull()
-  }
+  fun bookById(id: String): ProgressEntity? = queries.bookById(id).executeAsOneOrNull()
 
   fun saveAndConvert(user: User): List<ProgressEntity> {
-    val entities = user.mediaProgress.map { toEntity(it) }
+    val entities = user.mediaProgress.map(::toEntity)
 
     repositoryScope.launch {
       queries.transaction {
         entities.forEach { progress ->
-          if (progress.mediaItemType == "book") {
-            queries.deleteBookById(progress.libraryItemId)
-          } else {
-            queries.deleteEpisodeById(progress.episodeId)
+          when (progress.mediaItemType) {
+            "book" -> queries.deleteBookById(progress.libraryItemId)
+            else -> queries.deleteEpisodeById(progress.episodeId)
           }
           queries.insert(progress)
         }
@@ -43,13 +40,11 @@ constructor(private val api: ApiService, private val queries: ProgressEntityQuer
   }
 
   suspend fun entities(): List<ProgressEntity> {
-    val response = api.me().getOrNull()
-    return if (response != null) {
-      saveAndConvert(response)
-    } else {
-      queries.all().executeAsList()
-    }
+    return api.me().getOrNull()?.let { saveAndConvert(it) } ?: queries.all().executeAsList()
   }
+
+  fun updateMediaById(episodeId: String): Boolean =
+    queries.toggleIsFinishedByEpisodeId(episodeId).value == 1L
 
   private fun toEntity(mediaProgress: MediaProgress): ProgressEntity =
     ProgressEntity(
@@ -60,5 +55,6 @@ constructor(private val api: ApiService, private val queries: ProgressEntityQuer
       progress = mediaProgress.progress.toDouble(),
       duration = mediaProgress.duration.toDouble(),
       currentTime = mediaProgress.currentTime.toDouble(),
+      isFinished = if (mediaProgress.isFinished) 1 else 0,
     )
 }

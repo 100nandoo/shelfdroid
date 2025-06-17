@@ -3,6 +3,7 @@ package dev.halim.core.network
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
+import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
@@ -13,6 +14,7 @@ import dev.halim.core.network.response.User
 import dev.halim.core.network.response.play.PlayResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -22,11 +24,13 @@ interface ApiService {
 
   @POST("logout") suspend fun logout(): Result<LogoutResponse>
 
+  //  libraries
   @GET("api/libraries") suspend fun libraries(): Result<LibrariesResponse>
 
   @GET("/api/libraries/{libraryId}/items")
   suspend fun libraryItems(@Path("libraryId") libraryId: String): Result<LibraryItemsResponse>
 
+  //  items
   @GET("/api/items/{itemId}")
   suspend fun item(
     @Path("itemId") itemId: String,
@@ -38,8 +42,22 @@ interface ApiService {
     @Body request: BatchLibraryItemsRequest
   ): Result<BatchLibraryItemsResponse>
 
-  @GET("/api/me") suspend fun me(): Result<User>
-
   @POST("api/items/{itemId}/play")
   suspend fun play(@Path("itemId") itemId: String, @Body request: PlayRequest): Result<PlayResponse>
+
+  //  me
+  @GET("/api/me") suspend fun me(): Result<User>
+
+  @PATCH("/api/me/progress/{itemId}")
+  suspend fun patchBookProgress(
+    @Path("itemId") itemId: String,
+    @Body request: ProgressRequest,
+  ): Result<Unit>
+
+  @PATCH("/api/me/progress/{itemId}/{episodeId}")
+  suspend fun patchPodcastProgress(
+    @Path("itemId") itemId: String,
+    @Path("episodeId") episodeId: String,
+    @Body request: ProgressRequest,
+  ): Result<Unit>
 }

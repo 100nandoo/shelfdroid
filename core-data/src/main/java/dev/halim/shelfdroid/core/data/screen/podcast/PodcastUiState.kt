@@ -11,4 +11,10 @@ data class PodcastUiState(
   val episodes: List<Episode> = emptyList(),
 )
 
-data class Episode(val title: String = "", val publishedAt: String = "", val progress: Float = 0f)
+data class Episode(
+  val id: String = "",
+  val title: String = "",
+  val publishedAt: String = "",
+  val progress: Float = 0f,
+  val isFinished: Boolean = false,
+)
