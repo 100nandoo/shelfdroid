@@ -10,9 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import be.digitalia.compose.htmlconverter.HtmlStyle
 import be.digitalia.compose.htmlconverter.htmlToAnnotatedString
 
 @Composable
@@ -34,14 +38,28 @@ fun SettingsBody(
 }
 
 @Composable
-fun ExpandShrinkText(modifier: Modifier = Modifier, text: String, maxLines: Int = 3) {
-  val expandedState = remember { mutableStateOf(false) }
+fun ExpandShrinkText(
+  modifier: Modifier = Modifier,
+  text: String,
+  maxLines: Int = 3,
+  expanded: Boolean = false,
+) {
+  val expandedState = remember { mutableStateOf(expanded) }
+  val textLinkColor = MaterialTheme.colorScheme.primary
+
+  val htmlStyle = remember {
+    HtmlStyle(
+      TextLinkStyles(
+        style = SpanStyle(textDecoration = TextDecoration.Underline, color = textLinkColor)
+      )
+    )
+  }
   Column(modifier = modifier) {
     if (text.isNotEmpty()) {
       Text(
         modifier =
           Modifier.animateContentSize().clickable { expandedState.value = !expandedState.value },
-        text = remember(text) { htmlToAnnotatedString(text) },
+        text = remember(text) { htmlToAnnotatedString(text, style = htmlStyle) },
         maxLines = if (expandedState.value) Int.MAX_VALUE else maxLines,
         overflow = TextOverflow.Ellipsis,
       )

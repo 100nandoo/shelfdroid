@@ -29,7 +29,7 @@ WHERE libraryItemId = :libraryItemId;
 episodeById:
 SELECT *
 FROM ProgressEntity
-WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
+WHERE episodeId = :episodeId;
 
 deleteBookById:
 DELETE FROM ProgressEntity

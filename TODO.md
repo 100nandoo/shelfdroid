@@ -1,6 +1,11 @@
 # TODO
 
-- [ ] Podcast Screen
-    - [ ] Download Function
-- [ ] Episode Detail Screen
+## High Priority
+
+- [ ] Episode Screen Play Button
+- [ ] Play Podcast click handler
 - [ ] Media 3 integration
+
+### Low Priority
+
+- [ ] Download Function

@@ -33,6 +33,7 @@ import dev.halim.shelfdroid.core.ui.components.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.components.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.components.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
+import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
@@ -49,6 +50,8 @@ import kotlinx.serialization.Serializable
 @Serializable data class Podcast(val id: String)
 
 @Serializable data class Book(val id: String)
+
+@Serializable data class Episode(val itemId: String, val episodeId: String)
 
 @Composable
 fun MainNavigation(isLoggedIn: Boolean) {
@@ -113,12 +116,22 @@ private fun ColumnScope.NavHostContainer(
         }
       }
       composable<Podcast> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) { PodcastScreen() }
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          PodcastScreen(
+            onEpisodeClicked = { itemId, episodeId ->
+              navController.navigate(Episode(itemId, episodeId))
+            }
+          )
+        }
       }
       composable<Book> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
           BookScreen(onPlayClicked = { id -> playerViewModel.onEvent(PlayerEvent.Play(id)) })
         }
+      }
+
+      composable<Episode> {
+        SharedScreenWrapper(sharedTransitionScope, this@composable) { EpisodeScreen() }
       }
 
       composable<Settings> {

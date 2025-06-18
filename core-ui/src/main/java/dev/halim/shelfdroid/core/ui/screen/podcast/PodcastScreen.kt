@@ -36,11 +36,19 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun PodcastScreen(viewModel: PodcastViewModel = hiltViewModel()) {
+fun PodcastScreen(
+  viewModel: PodcastViewModel = hiltViewModel(),
+  onEpisodeClicked: (String, String) -> Unit,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
   if (uiState.state == GenericState.Success) {
-    PodcastScreenContent(uiState = uiState, id = viewModel.id, onEvent = viewModel::onEvent)
+    PodcastScreenContent(
+      uiState = uiState,
+      id = viewModel.id,
+      onEvent = viewModel::onEvent,
+      onEpisodeClicked = onEpisodeClicked,
+    )
   }
 }
 
@@ -57,6 +65,7 @@ fun PodcastScreenContent(
     ),
   id: String = Defaults.BOOK_ID,
   onEvent: (PodcastEvent) -> Unit = {},
+  onEpisodeClicked: (String, String) -> Unit = { _, _ -> },
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -68,7 +77,7 @@ fun PodcastScreenContent(
         reverseLayout = true,
       ) {
         item { Spacer(modifier = Modifier.height(12.dp)) }
-        items(uiState.episodes) { episode -> EpisodeItem(episode, onEvent) }
+        items(uiState.episodes) { episode -> EpisodeItem(id, episode, onEvent, onEpisodeClicked) }
         item {
           Text(
             modifier = Modifier.padding(horizontal = 16.dp),

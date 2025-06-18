@@ -22,6 +22,8 @@ constructor(private val api: ApiService, private val queries: ProgressEntityQuer
 
   fun bookById(id: String): ProgressEntity? = queries.bookById(id).executeAsOneOrNull()
 
+  fun episodeById(id: String): ProgressEntity? = queries.episodeById(id).executeAsOneOrNull()
+
   fun saveAndConvert(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map(::toEntity)
 

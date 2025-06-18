@@ -22,6 +22,13 @@ class Animations @Inject constructor() {
 
     fun coverKey(id: String) = "cover_$id"
 
+    // between podcast and episode
+    object Episode {
+      fun titleKey(id: String, title: String) = "${id}_episode_$title"
+
+      fun containerKey(id: String) = "container_$id"
+    }
+
     object Player {
       fun containerKey(id: String) = "player_container_$id"
 

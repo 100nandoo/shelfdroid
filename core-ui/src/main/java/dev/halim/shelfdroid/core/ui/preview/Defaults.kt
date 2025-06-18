@@ -36,7 +36,7 @@ object Defaults {
       ),
     )
 
-  // Book defaults
+  // Book
   const val BOOK_ID = "1234567890"
   const val BOOK_AUTHOR = "J. R. R. Tolkien"
   const val BOOK_TITLE = "The Fellowship of the Ring"
@@ -59,4 +59,12 @@ object Defaults {
   const val BOOK_PUBLISHER = "Tolkien Publishing"
   const val BOOK_GENRES = "Fantasy, Adventure"
   const val BOOK_LANGUAGE = "English"
+
+  // Episode
+  const val EPISODE_ID = "223344"
+  const val EPISODE_TITLE =
+    "Episode 4: Android 15, Credential Manager, Android Studio Narwhal, Compose for TV, Enhancing  Safety and Security"
+  const val EPISODE_PODCAST = "Now in Android"
+  const val EPISODE_DESCRIPTION =
+    """<p>Welcome to Now in Android, your ongoing guide to what's new and notable in the world of Android development. In this episode, Dan Galpin covers part one of the biggest announcements from Google I/O 2025. From Material Design’s latest evolution, to building with on-device and cloud AI, to updates for wearables, automotive, XR, and more.</p> <p>Stay tuned for part 2, where Dan covers Android Jetpack, Jetpack Compose, and Android Studio. </p> <p>Resources:</p> <p>Google I/O '25 Developer Keynote → <a href="https://goo.gle/4keiQ3b">https://goo.gle/4keiQ3b</a> </p> <p>16 things to know for Android developers at Google I/O 2025 → <a href="https://goo.gle/43Sx5Fe">https://goo.gle/43Sx5Fe</a> </p> <p>Start building with Material 3 Expressive → <a href="https://goo.gle/4dCUvlj">https://goo.gle/4dCUvlj</a> </p> <p>What’s new in Wear OS 6 → <a href="https://goo.gle/3FvI6TF">https://goo.gle/3FvI6TF</a> </p> <p>New in-car app experiences → <a href="https://goo.gle/3Zzh0li">https://goo.gle/3Zzh0li</a> </p> <p>Engage users on Google TV with excellent TV apps → <a href="https://goo.gle/4mR5M5Q">https://goo.gle/4mR5M5Q</a> </p> <p>Build adaptive Android apps that shine across form factors → <a href="https://goo.gle/4jqMOQA">https://goo.gle/4jqMOQA</a> </p> <p>On-device GenAI APIs as part of ML Kit help you easily build with Gemini Nano → </p> <p><a href="https://goo.gle/4dAUXQV">https://goo.gle/4dAUXQV</a> </p> <p>Updates to the Android XR SDK: Introducing Developer Preview 2 → <a href="https://goo.gle/4dz28ck">https://goo.gle/4dz28ck</a> </p> <p> </p>"""
 }
