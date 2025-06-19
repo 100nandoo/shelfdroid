@@ -20,7 +20,7 @@ import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 
 object PlaySerializer : KSerializer<PlayResponse> {
-  override val descriptor: SerialDescriptor = buildClassSerialDescriptor("LibraryItem")
+  override val descriptor: SerialDescriptor = buildClassSerialDescriptor("PlayResponse")
 
   override fun deserialize(decoder: Decoder): PlayResponse {
     require(decoder is JsonDecoder)

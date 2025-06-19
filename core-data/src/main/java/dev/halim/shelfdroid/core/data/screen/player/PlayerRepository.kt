@@ -60,7 +60,7 @@ constructor(
     val deviceInfo = DeviceInfo("ShelfDroid", generateNanoId())
     val request =
       PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
-    val result = apiService.playBook(id, request)
+    val result = runCatching { apiService.playBook(id, request) }
     return result.isSuccess
   }
 
@@ -68,7 +68,7 @@ constructor(
     val deviceInfo = DeviceInfo("ShelfDroid", generateNanoId())
     val request =
       PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
-    val result = apiService.playPodcast(itemId, episodeId, request)
+    val result = runCatching { apiService.playPodcast(itemId, episodeId, request) }
     return result.isSuccess
   }
 
