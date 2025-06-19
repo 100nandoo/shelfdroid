@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -107,22 +107,22 @@ private fun SmallPlayerInfo(
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Column(modifier, verticalArrangement = Arrangement.Center) {
-        Text(
+        AutoSizeText(
           modifier = Modifier.mySharedBound(Animations.Companion.Player.titleKey(title)),
           text = title,
-          style = MaterialTheme.typography.titleLarge,
+          style = MaterialTheme.typography.titleMedium,
           textAlign = TextAlign.Start,
-          overflow = TextOverflow.Ellipsis,
-          maxLines = 1,
+          maxLines = 2,
         )
-        Text(
+        AutoSizeText(
           modifier =
             Modifier.mySharedBound(Animations.Companion.Player.authorKey(Defaults.BOOK_AUTHOR)),
           text = author,
-          style = MaterialTheme.typography.bodyLarge,
-          textAlign = TextAlign.Center,
+          style = MaterialTheme.typography.bodySmall,
+          textAlign = TextAlign.Start,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
           overflow = TextOverflow.Ellipsis,
-          maxLines = 1,
+          maxLines = 2,
         )
       }
     }
@@ -139,6 +139,7 @@ private fun SmallPlayerControls(id: String = "") {
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
         icon = Icons.Default.Replay10,
+        size = 32,
         contentDescription = "Seek Back 10s",
         onClick = {},
       )
@@ -147,7 +148,7 @@ private fun SmallPlayerControls(id: String = "") {
         modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
         icon = Icons.Default.PlayArrow,
         contentDescription = "Play Pause",
-        size = 72,
+        size = 40,
         onClick = {},
       )
 
@@ -155,6 +156,7 @@ private fun SmallPlayerControls(id: String = "") {
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
         icon = Icons.Default.Forward10,
         contentDescription = "Seek Forward 10s",
+        size = 32,
         onClick = {},
       )
     }

@@ -4,15 +4,22 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -74,4 +81,26 @@ fun ExpandShrinkText(
       )
     }
   }
+}
+
+@Composable
+fun AutoSizeText(
+  modifier: Modifier = Modifier,
+  text: String,
+  maxLines: Int = 2,
+  textAlign: TextAlign = TextAlign.Unspecified,
+  style: TextStyle = LocalTextStyle.current,
+  overflow: TextOverflow = TextOverflow.Ellipsis,
+  color: Color = Color.Unspecified,
+) {
+  val textColor = color.takeOrElse { style.color.takeOrElse { LocalContentColor.current } }
+
+  BasicText(
+    text = text,
+    modifier = modifier,
+    autoSize = TextAutoSize.StepBased(maxFontSize = style.fontSize),
+    maxLines = maxLines,
+    overflow = overflow,
+    style = style.merge(color = textColor, textAlign = textAlign),
+  )
 }

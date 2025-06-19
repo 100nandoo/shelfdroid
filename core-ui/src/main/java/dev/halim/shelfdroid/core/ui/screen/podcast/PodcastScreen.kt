@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +40,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 fun PodcastScreen(
   viewModel: PodcastViewModel = hiltViewModel(),
   onEpisodeClicked: (String, String) -> Unit,
+  onPlayClicked: (String, String) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -48,6 +50,7 @@ fun PodcastScreen(
       id = viewModel.id,
       onEvent = viewModel::onEvent,
       onEpisodeClicked = onEpisodeClicked,
+      onPlayClicked = onPlayClicked,
     )
   }
 }
@@ -66,6 +69,7 @@ fun PodcastScreenContent(
   id: String = Defaults.BOOK_ID,
   onEvent: (PodcastEvent) -> Unit = {},
   onEpisodeClicked: (String, String) -> Unit = { _, _ -> },
+  onPlayClicked: (String, String) -> Unit = { _, _ -> },
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -77,7 +81,10 @@ fun PodcastScreenContent(
         reverseLayout = true,
       ) {
         item { Spacer(modifier = Modifier.height(12.dp)) }
-        items(uiState.episodes) { episode -> EpisodeItem(id, episode, onEvent, onEpisodeClicked) }
+        items(uiState.episodes) { episode ->
+          EpisodeItem(id, episode, onEvent, onEpisodeClicked, onPlayClicked)
+          HorizontalDivider()
+        }
         item {
           Text(
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -111,7 +118,7 @@ fun PodcastScreenContentPreview() {
           LocalSharedTransitionScope provides this@SharedTransitionLayout,
           LocalAnimatedContentScope provides this@AnimatedContent,
         ) {
-          PodcastScreenContent()
+          PodcastScreenContent(onPlayClicked = { _, _ -> })
         }
       }
     }
@@ -128,7 +135,7 @@ fun PodcastScreenContentDynamicPreview() {
           LocalSharedTransitionScope provides this@SharedTransitionLayout,
           LocalAnimatedContentScope provides this@AnimatedContent,
         ) {
-          PodcastScreenContent()
+          PodcastScreenContent(onPlayClicked = { _, _ -> })
         }
       }
     }

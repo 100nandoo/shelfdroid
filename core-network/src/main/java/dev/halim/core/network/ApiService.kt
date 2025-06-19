@@ -43,7 +43,17 @@ interface ApiService {
   ): Result<BatchLibraryItemsResponse>
 
   @POST("api/items/{itemId}/play")
-  suspend fun play(@Path("itemId") itemId: String, @Body request: PlayRequest): Result<PlayResponse>
+  suspend fun playBook(
+    @Path("itemId") itemId: String,
+    @Body request: PlayRequest,
+  ): Result<PlayResponse>
+
+  @POST("api/items/{itemId}/play/{episodeId}")
+  suspend fun playPodcast(
+    @Path("itemId") itemId: String,
+    @Path("episodeId") episodeId: String,
+    @Body request: PlayRequest,
+  ): Result<PlayResponse>
 
   //  me
   @GET("/api/me") suspend fun me(): Result<User>

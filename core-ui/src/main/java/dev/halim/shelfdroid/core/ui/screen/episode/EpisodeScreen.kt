@@ -27,13 +27,17 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
+import dev.halim.shelfdroid.core.ui.components.PlayButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun EpisodeScreen(viewModel: EpisodeViewModel = hiltViewModel()) {
+fun EpisodeScreen(
+  viewModel: EpisodeViewModel = hiltViewModel(),
+  onPlayClicked: (String, String) -> Unit,
+) {
 
   val uiState by viewModel.uiState.collectAsState()
   if (uiState.state == GenericState.Success) {
@@ -43,6 +47,7 @@ fun EpisodeScreen(viewModel: EpisodeViewModel = hiltViewModel()) {
       title = uiState.title,
       podcast = uiState.podcast,
       description = uiState.description,
+      onPlayClicked = { onPlayClicked(viewModel.itemId, viewModel.episodeId) },
     )
   }
 }
@@ -54,6 +59,7 @@ fun EpisodeScreenContent(
   title: String = Defaults.EPISODE_TITLE,
   podcast: String = Defaults.EPISODE_PODCAST,
   description: String = Defaults.EPISODE_DESCRIPTION,
+  onPlayClicked: () -> Unit = {},
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -81,6 +87,7 @@ fun EpisodeScreenContent(
           textAlign = TextAlign.Center,
         )
         ExpandShrinkText(text = description, maxLines = 3, expanded = true)
+        PlayButton { onPlayClicked() }
       }
     }
   }

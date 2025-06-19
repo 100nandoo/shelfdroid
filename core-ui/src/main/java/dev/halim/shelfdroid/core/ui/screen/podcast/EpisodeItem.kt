@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
@@ -42,6 +41,7 @@ fun EpisodeItem(
   episode: Episode,
   onEvent: (PodcastEvent) -> Unit,
   onEpisodeClicked: (String, String) -> Unit,
+  onPlayClicked: (String, String) -> Unit,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -53,8 +53,8 @@ fun EpisodeItem(
           Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episode.id))
             .fillMaxWidth()
             .clickable { onEpisodeClicked(itemId, episode.id) }
+            .padding(vertical = 8.dp)
       ) {
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
         Text(
           text = episode.title,
           style = MaterialTheme.typography.bodyLarge,
@@ -95,7 +95,7 @@ fun EpisodeItem(
           FilledTonalIconButton(onClick = {}, enabled = false) {
             Icon(Icons.Default.Download, contentDescription = "Download")
           }
-          FilledTonalIconButton(onClick = {}) {
+          FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.id) }) {
             Icon(Icons.Default.PlayArrow, contentDescription = "Play Pause")
           }
         }
@@ -110,7 +110,9 @@ fun EpisodeItemPreview() {
   AnimatedPreviewWrapper(dynamicColor = false) {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
-      Defaults.EPISODES.forEach { episode -> item { EpisodeItem("", episode, {}, { _, _ -> }) } }
+      Defaults.EPISODES.forEach { episode ->
+        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }) }
+      }
     }
   }
 }
@@ -121,7 +123,9 @@ fun EpisodeItemDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
-      Defaults.EPISODES.forEach { episode -> item { EpisodeItem("", episode, {}, { _, _ -> }) } }
+      Defaults.EPISODES.forEach { episode ->
+        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }) }
+      }
     }
   }
 }

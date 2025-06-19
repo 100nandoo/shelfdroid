@@ -24,13 +24,24 @@ class PlayerViewModel @Inject constructor(private val playerRepository: PlayerRe
 
   fun onEvent(event: PlayerEvent) {
     when (event) {
-      is PlayerEvent.Play ->
-        _uiState.update {
-          viewModelScope.launch { playerRepository.play(event.id) }
-          playerRepository.item(event.id)
+      is PlayerEvent.PlayBook -> {
+        viewModelScope.launch {
+          val success = playerRepository.playBook(event.id)
+          if (success) {
+            _uiState.update { playerRepository.book(event.id) }
+          }
         }
-      PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }
+      }
+      is PlayerEvent.PlayPodcast -> {
+        viewModelScope.launch {
+          val success = playerRepository.playPodcast(event.itemId, event.episodeId)
+          if (success) {
+            _uiState.update { playerRepository.podcast(event.itemId, event.episodeId) }
+          }
+        }
+      }
       PlayerEvent.Big -> _uiState.update { it.copy(state = PlayerState.Big) }
+      PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }
       PlayerEvent.TempHidden -> _uiState.update { it.copy(state = PlayerState.TempHidden) }
       PlayerEvent.Hidden -> _uiState.update { it.copy(state = PlayerState.Hidden()) }
     }
@@ -38,7 +49,9 @@ class PlayerViewModel @Inject constructor(private val playerRepository: PlayerRe
 }
 
 sealed class PlayerEvent {
-  class Play(val id: String) : PlayerEvent()
+  class PlayBook(val id: String) : PlayerEvent()
+
+  class PlayPodcast(val itemId: String, val episodeId: String) : PlayerEvent()
 
   data object Big : PlayerEvent()
 

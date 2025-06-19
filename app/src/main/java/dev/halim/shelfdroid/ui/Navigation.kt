@@ -120,18 +120,27 @@ private fun ColumnScope.NavHostContainer(
           PodcastScreen(
             onEpisodeClicked = { itemId, episodeId ->
               navController.navigate(Episode(itemId, episodeId))
-            }
+            },
+            onPlayClicked = { itemId, episodeId ->
+              playerViewModel.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId))
+            },
           )
         }
       }
       composable<Book> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
-          BookScreen(onPlayClicked = { id -> playerViewModel.onEvent(PlayerEvent.Play(id)) })
+          BookScreen(onPlayClicked = { id -> playerViewModel.onEvent(PlayerEvent.PlayBook(id)) })
         }
       }
 
       composable<Episode> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) { EpisodeScreen() }
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          EpisodeScreen(
+            onPlayClicked = { itemId, episodeId ->
+              playerViewModel.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId))
+            }
+          )
+        }
       }
 
       composable<Settings> {

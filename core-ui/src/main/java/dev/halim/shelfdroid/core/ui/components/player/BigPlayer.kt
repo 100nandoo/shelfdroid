@@ -48,7 +48,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
@@ -60,6 +59,7 @@ import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -73,9 +73,6 @@ fun BigPlayer(
   viewModel: PlayerViewModel = hiltViewModel(),
 ) {
   val uiState = viewModel.uiState.collectAsState()
-  BackHandler(enabled = uiState.value.state == PlayerState.Big) {
-    viewModel.onEvent(PlayerEvent.Small)
-  }
 
   AnimatedContent(targetState = uiState.value.state, label = "PlayerTransition") { targetState ->
     CompositionLocalProvider(
@@ -115,6 +112,7 @@ fun BigPlayer(
             )
           }
           PlayerState.Big -> {
+            BackHandler(enabled = true) { viewModel.onEvent(PlayerEvent.Small) }
             BigPlayerContent(
               id = uiState.value.id,
               author = uiState.value.author,
@@ -196,19 +194,19 @@ fun BasicPlayerContent(id: String, author: String, title: String, cover: String)
       )
 
       Spacer(modifier = Modifier.height(16.dp))
-
-      Text(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.titleKey(title)),
+      AutoSizeText(
+        Modifier.fillMaxWidth().mySharedBound(Animations.Companion.Player.titleKey(title)),
         text = title,
-        style = MaterialTheme.typography.headlineLarge,
+        maxLines = 2,
         textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.titleLarge,
       )
 
       Text(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.authorKey(author)),
         text = author,
         style = MaterialTheme.typography.bodyMedium,
-        color = Color.Gray,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
       )
     }
