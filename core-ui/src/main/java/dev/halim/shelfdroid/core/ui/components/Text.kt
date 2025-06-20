@@ -16,15 +16,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import be.digitalia.compose.htmlconverter.HtmlStyle
-import be.digitalia.compose.htmlconverter.htmlToAnnotatedString
 
 @Composable
 fun SettingsLabel(
@@ -54,19 +54,16 @@ fun ExpandShrinkText(
   val expandedState = remember { mutableStateOf(expanded) }
   val textLinkColor = MaterialTheme.colorScheme.primary
 
-  val htmlStyle = remember {
-    HtmlStyle(
-      TextLinkStyles(
-        style = SpanStyle(textDecoration = TextDecoration.Underline, color = textLinkColor)
-      )
-    )
+  val linkStyles = remember {
+    TextLinkStyles(SpanStyle(textDecoration = TextDecoration.Underline, color = textLinkColor))
   }
+
   Column(modifier = modifier) {
     if (text.isNotEmpty()) {
       Text(
         modifier =
           Modifier.animateContentSize().clickable { expandedState.value = !expandedState.value },
-        text = remember(text) { htmlToAnnotatedString(text, style = htmlStyle) },
+        text = remember(text) { AnnotatedString.fromHtml(text, linkStyles = linkStyles) },
         maxLines = if (expandedState.value) Int.MAX_VALUE else maxLines,
         overflow = TextOverflow.Ellipsis,
       )
@@ -92,7 +89,7 @@ fun AutoSizeText(
   style: TextStyle = LocalTextStyle.current,
   overflow: TextOverflow = TextOverflow.Ellipsis,
   color: Color = Color.Unspecified,
-) {
+) { 
   val textColor = color.takeOrElse { style.color.takeOrElse { LocalContentColor.current } }
 
   BasicText(

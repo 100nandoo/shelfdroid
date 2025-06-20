@@ -37,7 +37,6 @@ sqldelight = "2.1.0"
 
 # 3rd party
 coil = "3.2.0"
-html-converter = "1.0.4"
 retrofit = "3.0.0"
 retrofit-result = "1.0.13"
 
@@ -78,8 +77,6 @@ kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-
 
 coil = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
-
-html-converter = { module = "be.digitalia.compose.htmlconverter:htmlconverter", version.ref = "html-converter" }
 
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
