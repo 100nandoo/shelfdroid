@@ -89,7 +89,7 @@ fun AutoSizeText(
   style: TextStyle = LocalTextStyle.current,
   overflow: TextOverflow = TextOverflow.Ellipsis,
   color: Color = Color.Unspecified,
-) { 
+) {
   val textColor = color.takeOrElse { style.color.takeOrElse { LocalContentColor.current } }
 
   BasicText(

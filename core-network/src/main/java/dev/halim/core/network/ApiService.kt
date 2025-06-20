@@ -4,6 +4,7 @@ import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.ProgressRequest
+import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
@@ -66,5 +67,13 @@ interface ApiService {
     @Path("itemId") itemId: String,
     @Path("episodeId") episodeId: String,
     @Body request: ProgressRequest,
+  ): Result<Unit>
+
+  // session
+
+  @POST("/api/session/{sessionId}/sync")
+  suspend fun syncSession(
+    @Path("sessionId") sessionId: String,
+    @Body request: SyncSessionRequest,
   ): Result<Unit>
 }
