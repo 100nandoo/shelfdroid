@@ -22,8 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Bookmarks
-import androidx.compose.material.icons.filled.Forward10
-import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Timer
@@ -60,13 +58,14 @@ import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
+import dev.halim.shelfdroid.core.ui.preview.FakePlayer
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun BigPlayerContent(
-  player: Player = ExoPlayer.Builder(LocalContext.current).build(),
+  player: Player = FakePlayer(),
   id: String = "",
   author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
@@ -203,21 +202,9 @@ fun BasicPlayerControl(
           contentDescription = "Previous Chapter",
           onClick = {},
         )
-        MyIconButton(
-          modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
-          icon = Icons.Default.Replay10,
-          contentDescription = "Seek Back 10s",
-          onClick = {},
-        )
-
+        SeekBackButton(player, id)
         PlayPauseButton(player, id, 72)
-
-        MyIconButton(
-          modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
-          icon = Icons.Default.Forward10,
-          contentDescription = "Seek Forward 10s",
-          onClick = {},
-        )
+        SeekForwardButton(player, id)
 
         MyIconButton(
           icon = Icons.Default.SkipNext,

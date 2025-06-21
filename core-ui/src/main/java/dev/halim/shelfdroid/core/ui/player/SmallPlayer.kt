@@ -16,37 +16,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Forward10
-import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
-import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
+import dev.halim.shelfdroid.core.ui.preview.FakePlayer
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun SmallPlayerContent(
-  player: Player = ExoPlayer.Builder(LocalContext.current).build(),
+  player: Player = FakePlayer(),
   id: String = Defaults.BOOK_ID,
   author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
@@ -142,23 +137,9 @@ private fun SmallPlayerControls(player: Player, id: String = "") {
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      MyIconButton(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
-        icon = Icons.Default.Replay10,
-        size = 32,
-        contentDescription = "Seek Back 10s",
-        onClick = {},
-      )
-
-      PlayPauseButton(player, id, 40)
-
-      MyIconButton(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
-        icon = Icons.Default.Forward10,
-        contentDescription = "Seek Forward 10s",
-        size = 32,
-        onClick = {},
-      )
+      SeekBackButton(player, id, 40)
+      PlayPauseButton(player, id)
+      SeekForwardButton(player, id, 40)
     }
   }
 }
