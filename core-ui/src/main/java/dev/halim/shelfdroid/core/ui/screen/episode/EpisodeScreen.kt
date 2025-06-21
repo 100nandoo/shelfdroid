@@ -2,9 +2,7 @@
 
 package dev.halim.shelfdroid.core.ui.screen.episode
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -29,8 +26,8 @@ import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
-import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
@@ -96,33 +93,11 @@ fun EpisodeScreenContent(
 @ShelfDroidPreview
 @Composable
 fun EpisodeScreenContentPreview() {
-  PreviewWrapper(dynamicColor = false) {
-    SharedTransitionLayout {
-      AnimatedContent(targetState = Unit) { _ ->
-        CompositionLocalProvider(
-          LocalSharedTransitionScope provides this@SharedTransitionLayout,
-          LocalAnimatedContentScope provides this@AnimatedContent,
-        ) {
-          EpisodeScreenContent()
-        }
-      }
-    }
-  }
+  AnimatedPreviewWrapper(dynamicColor = false) { EpisodeScreenContent() }
 }
 
 @ShelfDroidPreview
 @Composable
 fun EpisodeScreenContentDynamicPreview() {
-  PreviewWrapper(dynamicColor = true) {
-    SharedTransitionLayout {
-      AnimatedContent(targetState = Unit) { _ ->
-        CompositionLocalProvider(
-          LocalSharedTransitionScope provides this@SharedTransitionLayout,
-          LocalAnimatedContentScope provides this@AnimatedContent,
-        ) {
-          EpisodeScreenContent()
-        }
-      }
-    }
-  }
+  AnimatedPreviewWrapper(dynamicColor = true) { EpisodeScreenContent() }
 }

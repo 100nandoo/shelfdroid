@@ -3,9 +3,7 @@
 package dev.halim.shelfdroid.core.ui.screen.book
 
 import ItemDetail
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,8 +28,8 @@ import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
-import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
@@ -145,33 +142,11 @@ private fun BookDetailRow(label: String, value: String) {
 @ShelfDroidPreview
 @Composable
 fun BookScreenContentPreview() {
-  PreviewWrapper(dynamicColor = false) {
-    SharedTransitionLayout {
-      AnimatedContent(targetState = Unit) { animatedContentScope ->
-        CompositionLocalProvider(
-          LocalSharedTransitionScope provides this@SharedTransitionLayout,
-          LocalAnimatedContentScope provides this@AnimatedContent,
-        ) {
-          BookScreenContent(onPlayClicked = {})
-        }
-      }
-    }
-  }
+  AnimatedPreviewWrapper(dynamicColor = false) { BookScreenContent(onPlayClicked = {}) }
 }
 
 @ShelfDroidPreview
 @Composable
 fun BookScreenContentDynamicPreview() {
-  PreviewWrapper(dynamicColor = true) {
-    SharedTransitionLayout {
-      AnimatedContent(targetState = Unit) { animatedContentScope ->
-        CompositionLocalProvider(
-          LocalSharedTransitionScope provides this@SharedTransitionLayout,
-          LocalAnimatedContentScope provides this@AnimatedContent,
-        ) {
-          BookScreenContent(onPlayClicked = {})
-        }
-      }
-    }
-  }
+  AnimatedPreviewWrapper(dynamicColor = true) { BookScreenContent(onPlayClicked = {}) }
 }

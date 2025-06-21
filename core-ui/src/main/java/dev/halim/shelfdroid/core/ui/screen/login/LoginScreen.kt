@@ -27,6 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component3
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -35,6 +38,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @Composable
@@ -163,4 +168,19 @@ private fun LoginTextField(
     keyboardActions =
       KeyboardActions(onNext = onNext?.let { { it() } }, onDone = onDone?.let { { it() } }),
   )
+}
+
+@ShelfDroidPreview
+@Composable
+fun PodcastScreenContentPreview() {
+  val loginUiState =
+    LoginUiState(server = "audiobookshelf.org", username = "admin", password = "123456")
+  PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
+}
+
+@ShelfDroidPreview
+@Composable
+fun PodcastScreenContentDynamicPreview() {
+  val loginUiState = LoginUiState(loginState = LoginState.Failure("Wrong credentials"))
+  PreviewWrapper(dynamicColor = true) { LoginScreenContent(loginUiState) }
 }

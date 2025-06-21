@@ -19,6 +19,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.ui.components.SettingsBody
 import dev.halim.shelfdroid.core.ui.components.SettingsLabel
 import dev.halim.shelfdroid.core.ui.components.SettingsSwitchItem
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun SettingsScreen(
@@ -82,4 +84,18 @@ fun SettingsScreenContent(
       onLogoutSuccess()
     }
   }
+}
+
+@ShelfDroidPreview
+@Composable
+fun PodcastScreenContentPreview() {
+  PreviewWrapper(dynamicColor = false) { SettingsScreenContent() }
+}
+
+@ShelfDroidPreview
+@Composable
+fun PodcastScreenContentDynamicPreview() {
+  val isDynamicTheme = true
+  val uiState = SettingsUiState(isDynamicTheme = isDynamicTheme)
+  PreviewWrapper(dynamicColor = isDynamicTheme) { SettingsScreenContent(uiState) }
 }

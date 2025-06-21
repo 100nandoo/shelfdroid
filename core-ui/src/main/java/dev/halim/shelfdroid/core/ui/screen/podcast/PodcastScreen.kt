@@ -3,9 +3,7 @@
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
 import ItemDetail
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +15,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,8 +29,8 @@ import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
-import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
@@ -111,33 +108,11 @@ fun PodcastScreenContent(
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentPreview() {
-  PreviewWrapper(dynamicColor = false) {
-    SharedTransitionLayout {
-      AnimatedContent(targetState = Unit) { animatedContentScope ->
-        CompositionLocalProvider(
-          LocalSharedTransitionScope provides this@SharedTransitionLayout,
-          LocalAnimatedContentScope provides this@AnimatedContent,
-        ) {
-          PodcastScreenContent(onPlayClicked = { _, _ -> })
-        }
-      }
-    }
-  }
+  AnimatedPreviewWrapper(dynamicColor = false) { PodcastScreenContent(onPlayClicked = { _, _ -> }) }
 }
 
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentDynamicPreview() {
-  PreviewWrapper(dynamicColor = true) {
-    SharedTransitionLayout {
-      AnimatedContent(targetState = Unit) { animatedContentScope ->
-        CompositionLocalProvider(
-          LocalSharedTransitionScope provides this@SharedTransitionLayout,
-          LocalAnimatedContentScope provides this@AnimatedContent,
-        ) {
-          PodcastScreenContent(onPlayClicked = { _, _ -> })
-        }
-      }
-    }
-  }
+  AnimatedPreviewWrapper(dynamicColor = true) { PodcastScreenContent(onPlayClicked = { _, _ -> }) }
 }

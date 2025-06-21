@@ -17,8 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
@@ -46,10 +46,20 @@ fun MyIconButton(
   }
 }
 
+@Composable
+private fun SampleMyIconButton() {
+  MyIconButton(
+    size = 48,
+    icon = Icons.Filled.PlayArrow,
+    contentDescription = "Play Icon Button",
+    onClick = {},
+  )
+}
+
 @ShelfDroidPreview
 @Composable
 fun MyIconButtonPreview() {
-  MyIconButton(icon = Icons.Filled.PlayArrow, contentDescription = "Play Icon Button", onClick = {})
+  PreviewWrapper(content = { SampleMyIconButton() })
 }
 
 @Composable
@@ -67,8 +77,8 @@ fun PlayButton(modifier: Modifier = Modifier, onPlayClicked: () -> Unit) {
   }
 }
 
-@Preview
+@ShelfDroidPreview
 @Composable
 fun PlayButtonPreview() {
-  PlayButton(onPlayClicked = {})
+  PreviewWrapper(content = { PlayButton(onPlayClicked = {}) })
 }

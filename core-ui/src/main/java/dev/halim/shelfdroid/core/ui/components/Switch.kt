@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun SettingsSwitchItem(
@@ -41,4 +44,37 @@ fun SettingsSwitchItem(
       onCheckedChange = onCheckedChange,
     )
   }
+}
+
+@Composable
+private fun SampleSettingsSwitchItems() {
+  Column {
+    SettingsSwitchItem(
+      title = "Dark Mode",
+      checked = true,
+      onCheckedChange = {},
+      contentDescription = "Toggle Dark Mode",
+      enabled = true,
+    )
+    SettingsSwitchItem(
+      title = "Dynamic Theme",
+      checked = false,
+      onCheckedChange = {},
+      contentDescription = "Toggle Dynamic Theme",
+      enabled = true,
+    )
+    SettingsSwitchItem(
+      title = "List View",
+      checked = false,
+      onCheckedChange = {},
+      contentDescription = "Toggle List View",
+      enabled = false,
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun SettingsSwitchItemPreview() {
+  PreviewWrapper(content = { SampleSettingsSwitchItems() })
 }
