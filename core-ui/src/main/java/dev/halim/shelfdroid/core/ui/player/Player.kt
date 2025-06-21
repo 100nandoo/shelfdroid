@@ -7,7 +7,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Pause
@@ -18,7 +17,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -98,7 +96,7 @@ fun Player(
 
 @UnstableApi
 @Composable
-fun PlayPauseButton(player: Player, id: String, size: Int) {
+fun PlayPauseButton(player: Player, id: String, size: Int = 48) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
   with(sharedTransitionScope) {
@@ -107,7 +105,7 @@ fun PlayPauseButton(player: Player, id: String, size: Int) {
       val icon = if (playPauseState.showPlay) Icons.Default.PlayArrow else Icons.Default.Pause
       val contentDescription = if (playPauseState.showPlay) "Play" else "Pause"
       MyIconButton(
-        modifier = Modifier.size(size.dp).mySharedBound(Animations.Companion.Player.playKey(id)),
+        modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
         icon = icon,
         contentDescription = contentDescription,
         onClick = playPauseState::onClick,
@@ -126,8 +124,7 @@ fun SeekBackButton(player: Player, id: String, size: Int = 48) {
     with(animatedContentScope) {
       val state = rememberSeekBackButtonState(player)
       MyIconButton(
-        modifier =
-          Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
+        modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
         icon = Icons.Default.Replay10,
         contentDescription = "Seek Back",
         size = size,
@@ -147,8 +144,7 @@ fun SeekForwardButton(player: Player, id: String, size: Int = 48) {
     with(animatedContentScope) {
       val state = rememberSeekForwardButtonState(player)
       MyIconButton(
-        modifier =
-          Modifier.size(size.dp).mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
+        modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
         icon = Icons.Default.Forward10,
         contentDescription = "Seek Forward",
         size = size,

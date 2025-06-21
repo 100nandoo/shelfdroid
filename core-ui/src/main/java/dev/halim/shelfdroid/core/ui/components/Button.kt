@@ -37,7 +37,7 @@ fun MyIconButton(
       onClick = onClick,
     ) {
       Icon(
-        modifier = Modifier.size(size.dp).then(modifier),
+        modifier = Modifier.size(size.dp),
         tint = MaterialTheme.colorScheme.onSecondaryContainer,
         imageVector = icon,
         contentDescription = contentDescription,

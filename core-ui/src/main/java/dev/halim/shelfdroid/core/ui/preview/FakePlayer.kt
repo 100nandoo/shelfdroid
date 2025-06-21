@@ -112,7 +112,8 @@ class FakePlayer : Player {
 
   override fun getCurrentCues(): CueGroup = EMPTY_TIME_ZERO
 
-  override fun getDeviceInfo(): DeviceInfo = DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_LOCAL).build()
+  override fun getDeviceInfo(): DeviceInfo =
+    DeviceInfo.Builder(DeviceInfo.PLAYBACK_TYPE_LOCAL).build()
 
   override fun getDeviceVolume(): Int = 0
 
