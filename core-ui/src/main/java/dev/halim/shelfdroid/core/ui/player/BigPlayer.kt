@@ -1,12 +1,9 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 
-package dev.halim.shelfdroid.core.ui.components.player
+package dev.halim.shelfdroid.core.ui.player
 
 import ItemCover
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Forward10
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -42,20 +38,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import dev.halim.shelfdroid.core.data.screen.player.PlayerState
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -67,72 +63,10 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
-@Composable
-fun BigPlayer(
-  sharedTransitionScope: SharedTransitionScope,
-  viewModel: PlayerViewModel = hiltViewModel(),
-) {
-  val uiState = viewModel.uiState.collectAsState()
-
-  AnimatedContent(targetState = uiState.value.state, label = "PlayerTransition") { targetState ->
-    CompositionLocalProvider(
-      LocalSharedTransitionScope provides sharedTransitionScope,
-      LocalAnimatedContentScope provides this@AnimatedContent,
-    ) {
-      val onSwipeUp = {
-        when (targetState) {
-          is PlayerState.Hidden,
-          PlayerState.TempHidden,
-          PlayerState.Big -> {}
-          PlayerState.Small -> viewModel.onEvent(PlayerEvent.Big)
-        }
-      }
-      val onSwipeDown = {
-        when (targetState) {
-          PlayerState.Small -> {
-            viewModel.onEvent(PlayerEvent.Hidden)
-          }
-          PlayerState.Big -> viewModel.onEvent(PlayerEvent.Small)
-          is PlayerState.Hidden,
-          PlayerState.TempHidden -> {}
-        }
-      }
-      Column {
-        when (targetState) {
-          PlayerState.Small -> {
-            SmallPlayerContent(
-              id = uiState.value.id,
-              author = uiState.value.author,
-              title = uiState.value.title,
-              cover = uiState.value.cover,
-              progress = uiState.value.progress,
-              onClicked = { viewModel.onEvent(PlayerEvent.Big) },
-              onSwipeUp = onSwipeUp,
-              onSwipeDown = onSwipeDown,
-            )
-          }
-          PlayerState.Big -> {
-            BackHandler(enabled = true) { viewModel.onEvent(PlayerEvent.Small) }
-            BigPlayerContent(
-              id = uiState.value.id,
-              author = uiState.value.author,
-              title = uiState.value.title,
-              cover = uiState.value.cover,
-              progress = uiState.value.progress,
-              onSwipeUp = onSwipeUp,
-              onSwipeDown = onSwipeDown,
-            )
-          }
-          is PlayerState.Hidden,
-          PlayerState.TempHidden -> {}
-        }
-      }
-    }
-  }
-}
-
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun BigPlayerContent(
+  player: Player = ExoPlayer.Builder(LocalContext.current).build(),
   id: String = "",
   author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
@@ -169,7 +103,7 @@ fun BigPlayerContent(
 
         PlayerProgress(id, progress)
 
-        BasicPlayerControl(id)
+        BasicPlayerControl(player, id)
 
         AdvancedPlayerControl()
 
@@ -248,8 +182,12 @@ fun PlayerProgress(id: String = "", progress: Float = 0f) {
   }
 }
 
+@UnstableApi
 @Composable
-fun BasicPlayerControl(id: String = "") {
+fun BasicPlayerControl(
+  player: Player = ExoPlayer.Builder(LocalContext.current).build(),
+  id: String = "",
+) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -265,7 +203,6 @@ fun BasicPlayerControl(id: String = "") {
           contentDescription = "Previous Chapter",
           onClick = {},
         )
-
         MyIconButton(
           modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
           icon = Icons.Default.Replay10,
@@ -273,13 +210,7 @@ fun BasicPlayerControl(id: String = "") {
           onClick = {},
         )
 
-        MyIconButton(
-          modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
-          icon = Icons.Default.PlayArrow,
-          contentDescription = "Play Pause",
-          size = 72,
-          onClick = {},
-        )
+        PlayPauseButton(player, id, 72)
 
         MyIconButton(
           modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),

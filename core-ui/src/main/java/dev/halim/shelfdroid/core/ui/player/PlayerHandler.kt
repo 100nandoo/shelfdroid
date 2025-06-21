@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 
-package dev.halim.shelfdroid.core.ui.components.player
+package dev.halim.shelfdroid.core.ui.player
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -36,5 +36,5 @@ fun PlayerHandler(
     }
   }
 
-  BigPlayer(sharedTransitionScope)
+  Player(sharedTransitionScope)
 }

@@ -16,6 +16,9 @@ class Helper @Inject constructor() {
     return "https://${DataStoreManager.BASE_URL}/api/items/$itemId/file/$ino?token=$token"
   }
 
+  fun generateContentUrl(token: String, url: String): String =
+    "https://${DataStoreManager.BASE_URL}$url?token=$token"
+
   fun toReadableDate(long: Long): String {
     val instant = Instant.fromEpochMilliseconds(long)
     val dateTime = instant.toLocalDateTime(TimeZone.UTC)

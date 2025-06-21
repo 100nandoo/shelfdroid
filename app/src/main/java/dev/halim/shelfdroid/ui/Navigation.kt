@@ -29,9 +29,9 @@ import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
-import dev.halim.shelfdroid.core.ui.components.player.PlayerEvent
-import dev.halim.shelfdroid.core.ui.components.player.PlayerHandler
-import dev.halim.shelfdroid.core.ui.components.player.PlayerViewModel
+import dev.halim.shelfdroid.core.ui.player.PlayerEvent
+import dev.halim.shelfdroid.core.ui.player.PlayerHandler
+import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen

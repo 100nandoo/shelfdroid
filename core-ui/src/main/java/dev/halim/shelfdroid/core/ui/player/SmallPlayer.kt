@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 
-package dev.halim.shelfdroid.core.ui.components.player
+package dev.halim.shelfdroid.core.ui.player
 
 import ItemCover
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forward10
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -26,10 +25,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -40,8 +43,10 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun SmallPlayerContent(
+  player: Player = ExoPlayer.Builder(LocalContext.current).build(),
   id: String = Defaults.BOOK_ID,
   author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
@@ -88,7 +93,7 @@ fun SmallPlayerContent(
 
           SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true), author, title)
 
-          SmallPlayerControls(id)
+          SmallPlayerControls(player, id)
         }
       }
     }
@@ -129,8 +134,9 @@ private fun SmallPlayerInfo(
   }
 }
 
+@UnstableApi
 @Composable
-private fun SmallPlayerControls(id: String = "") {
+private fun SmallPlayerControls(player: Player, id: String = "") {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -144,13 +150,7 @@ private fun SmallPlayerControls(id: String = "") {
         onClick = {},
       )
 
-      MyIconButton(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
-        icon = Icons.Default.PlayArrow,
-        contentDescription = "Play Pause",
-        size = 40,
-        onClick = {},
-      )
+      PlayPauseButton(player, id, 40)
 
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),

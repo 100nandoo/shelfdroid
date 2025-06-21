@@ -59,6 +59,7 @@ dependencies {
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.compose.ui.text)
   implementation(libs.androidx.compose.ui.tooling.preview)
+
   // Tooling
   debugImplementation(libs.androidx.compose.ui.tooling)
 
@@ -69,4 +70,8 @@ dependencies {
   // Coil
   implementation(libs.coil)
   implementation(libs.coil.okhttp)
+
+  // Media3
+  implementation(libs.androidx.media3.compose.ui)
+  implementation(libs.androidx.media3.exoplayer)
 }
