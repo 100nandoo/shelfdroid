@@ -82,6 +82,8 @@ fun Player(
               title = uiState.value.title,
               cover = uiState.value.cover,
               progress = uiState.value.progress,
+              chapters = uiState.value.playerChapters,
+              currentChapter = uiState.value.currentChapter,
               onSwipeUp = onSwipeUp,
               onSwipeDown = onSwipeDown,
             )
@@ -107,6 +109,7 @@ fun PlayPauseButton(player: Player, id: String, size: Int = 48) {
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
         icon = icon,
+        size = size,
         contentDescription = contentDescription,
         onClick = playPauseState::onClick,
         enabled = playPauseState.isEnabled,
@@ -126,8 +129,8 @@ fun SeekBackButton(player: Player, id: String, size: Int = 48) {
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
         icon = Icons.Default.Replay10,
-        contentDescription = "Seek Back",
         size = size,
+        contentDescription = "Seek Back",
         onClick = state::onClick,
         enabled = state.isEnabled,
       )
@@ -146,8 +149,8 @@ fun SeekForwardButton(player: Player, id: String, size: Int = 48) {
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
         icon = Icons.Default.Forward10,
-        contentDescription = "Seek Forward",
         size = size,
+        contentDescription = "Seek Forward",
         onClick = state::onClick,
         enabled = state.isEnabled,
       )

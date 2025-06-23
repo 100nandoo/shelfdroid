@@ -4,12 +4,10 @@ import Item
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -22,8 +20,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -149,26 +145,24 @@ fun HomeScreenContent(
 
 @Composable
 fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> Unit) {
-  Box(modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp)) {
-    Row(
-      modifier = Modifier.align(Alignment.Center),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(text = name, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
-      IconButton(onClick = onRefresh) {
-        Icon(
-          imageVector = Icons.Filled.Refresh,
-          contentDescription = "refresh",
-          tint = MaterialTheme.colorScheme.primary,
-        )
-      }
-    }
+  Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+    MyIconButton(
+      icon = Icons.Filled.Refresh,
+      contentDescription = "Refresh",
+      onClick = onRefresh,
+      size = 28,
+    )
+    Text(
+      text = name,
+      Modifier.padding(horizontal = 8.dp).weight(1f),
+      style = MaterialTheme.typography.titleLarge,
+      textAlign = TextAlign.Start,
+    )
     MyIconButton(
       icon = Icons.Default.Settings,
       contentDescription = "Settings",
       onClick = onSettingsClicked,
       size = 32,
-      modifier = Modifier.align(Alignment.CenterEnd),
     )
   }
 }

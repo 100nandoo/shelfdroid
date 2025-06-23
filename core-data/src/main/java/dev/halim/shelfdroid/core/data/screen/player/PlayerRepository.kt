@@ -4,6 +4,8 @@ import android.util.Base64
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.DeviceInfo
 import dev.halim.core.network.request.PlayRequest
+import dev.halim.core.network.response.libraryitem.Book
+import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.data.Helper
@@ -75,14 +77,19 @@ constructor(
     val result = libraryItemRepo.byId(id)
     val progress = progressRepo.byLibraryItemId(id)
     return if (result != null) {
+      val media = Json.decodeFromString<Book>(result.media)
+      val chapters = media.chapters.map { toPlayerChapter(it) }
+      val chapter = findCurrentPlayerChapter(chapters, progress?.currentTime ?: 0.0)
       PlayerUiState(
         state = PlayerState.Small,
         id = result.id,
         author = result.author,
-        title = result.title,
+        title = chapter?.title ?: result.title,
         cover = result.cover,
         progress = progress?.progress?.toFloat() ?: 0f,
         currentTime = progress?.currentTime ?: 0.0,
+        playerChapters = chapters,
+        currentChapter = chapter,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -114,6 +121,17 @@ constructor(
       ?: playerTracks.first()
   }
 
+  fun findCurrentPlayerChapter(
+    playerChapters: List<PlayerChapter>,
+    currentTime: Double,
+  ): PlayerChapter? {
+    // Find the last chapter that starts at or before the current time
+    if (playerChapters.isEmpty()) return null
+    return playerChapters
+      .sortedBy { it.startTimeSeconds }
+      .lastOrNull { it.startTimeSeconds <= currentTime } ?: playerChapters.first()
+  }
+
   private suspend fun getToken(): String =
     withContext(Dispatchers.IO) { dataStoreManager.token.first() }
 
@@ -121,6 +139,16 @@ constructor(
     val url = helper.generateContentUrl(getToken(), audioTrack.contentUrl)
     return PlayerTrack(url, audioTrack.startOffset)
   }
+
+  private fun toPlayerChapter(bookChapter: BookChapter): PlayerChapter =
+    PlayerChapter(
+      bookChapter.id,
+      bookChapter.start,
+      bookChapter.end,
+      helper.formatChapterTime(bookChapter.start, true),
+      helper.formatChapterTime(bookChapter.end, true),
+      bookChapter.title,
+    )
 
   private fun generateNanoId(): String {
     val uuid = UUID.randomUUID()
@@ -152,8 +180,19 @@ data class PlayerUiState(
   val cover: String = "",
   val progress: Float = 0f,
   val currentTime: Double = 0.0,
-  val currentTrack: PlayerTrack = PlayerTrack(),
   val playerTracks: List<PlayerTrack> = emptyList(),
+  val currentTrack: PlayerTrack = PlayerTrack(),
+  val playerChapters: List<PlayerChapter> = emptyList(),
+  val currentChapter: PlayerChapter? = PlayerChapter(),
 )
 
 data class PlayerTrack(val url: String = "", val startOffset: Double = 0.0)
+
+data class PlayerChapter(
+  val id: Int = 0,
+  val startTimeSeconds: Double = 0.0,
+  val endTimeSeconds: Double = 0.0,
+  val startFormattedTime: String = "",
+  val endFormattedTime: String = "",
+  val title: String = "",
+)

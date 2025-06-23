@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 
 package dev.halim.shelfdroid.core.ui.player
 
@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -71,6 +72,8 @@ fun BigPlayerContent(
   title: String = Defaults.BOOK_TITLE,
   cover: String = "",
   progress: Float = 0f,
+  chapters: List<PlayerChapter> = emptyList(),
+  currentChapter: PlayerChapter? = PlayerChapter(),
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
 ) {
@@ -98,7 +101,7 @@ fun BigPlayerContent(
       ) {
         BasicPlayerContent(id, author, title, cover)
 
-        BookmarkAndChapter()
+        BookmarkAndChapter(chapters, currentChapter)
 
         PlayerProgress(id, progress)
 
@@ -308,7 +311,7 @@ fun SleepTimerBottomSheet(sheetState: SheetState) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookmarkAndChapter() {
+fun BookmarkAndChapter(chapters: List<PlayerChapter>, currentChapter: PlayerChapter?) {
   val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val bookmarkSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val scope = rememberCoroutineScope()
@@ -318,81 +321,18 @@ fun BookmarkAndChapter() {
       contentDescription = "bookmarks",
       onClick = { scope.launch { bookmarkSheetState.show() } },
     )
+
     MyIconButton(
       icon = Icons.AutoMirrored.Filled.List,
       contentDescription = "chapters",
+      enabled = chapters.isNotEmpty(),
       onClick = { scope.launch { chapterSheetState.show() } },
     )
   }
-  //    ChapterBottomSheet(chapterSheetState)
+  ChapterBottomSheet(chapterSheetState, chapters, currentChapter)
   //    BookmarkBottomSheet(bookmarkSheetState)
 
 }
-
-// @OptIn(ExperimentalMaterial3Api::class)
-// @Composable
-// fun ChapterBottomSheet(
-//    sheetState: SheetState) {
-//    val scope = rememberCoroutineScope()
-//    val state = rememberLazyListState(initialFirstVisibleItemIndex = 0)
-//    if (sheetState.isVisible) {
-//        ModalBottomSheet(
-//            sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
-//        ) {
-//            LazyColumn(
-//                state = state,
-//                verticalArrangement = Arrangement.spacedBy(8.dp),
-//            ) {
-//                itemsIndexed(uiState.chapters, key = { _, chapter -> chapter.id }) { index,
-// bookChapter ->
-//                    ChapterRow(index, scope, sheetState)
-//                }
-//            }
-//        }
-//    }
-// }
-
-// @OptIn(ExperimentalMaterial3Api::class)
-// @Composable
-// private fun ChapterRow(
-//    index: Int,
-//    scope: CoroutineScope,
-//    sheetState: SheetState
-// ) {
-//    val startTime = formatTime(bookChapter.start.toLong(), true)
-//    val endTime = formatTime(bookChapter.end.toLong(), true)
-//    val selected = bookChapter.id == currentChapter.id
-//    val background =
-//        if (selected) MaterialTheme.colorScheme.surfaceVariant
-//        else MaterialTheme.colorScheme.surfaceContainerLow
-//
-//    Row(
-//        verticalAlignment = Alignment.CenterVertically,
-//        horizontalArrangement = Arrangement.SpaceBetween,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .background(background)
-//            .selectable(selected) {
-//                onEvent(PlayerEvent.JumpToChapter(index))
-//                scope.launch { sheetState.hide() }
-//            }
-//            .padding(horizontal = 16.dp)
-//    ) {
-//        Text(
-//            bookChapter.title,
-//            style = MaterialTheme.typography.titleLarge,
-//            maxLines = 1,
-//            overflow = TextOverflow.Ellipsis,
-//            modifier = Modifier.weight(1f)
-//        )
-//        Spacer(modifier = Modifier.width(8.dp))
-//        Text(
-//            "$startTime - $endTime",
-//            style = MaterialTheme.typography.labelMedium,
-//            fontFamily = JetbrainsMonoFontFamily()
-//        )
-//    }
-// }
 
 // @OptIn(ExperimentalMaterial3Api::class)
 // @Composable
