@@ -144,7 +144,18 @@ constructor(
         currentTime = currentTime,
       )
     } else {
-      PlayerUiState(state = PlayerState.Hidden(Error("Failed to change chapter")))
+      uiState.copy(state = PlayerState.Hidden(Error("Failed to change chapter")))
+    }
+  }
+
+  fun previousNextChapter(uiState: PlayerUiState, isPrevious: Boolean = true): PlayerUiState {
+    val direction = if (isPrevious) -1 else +1
+    val label = if (isPrevious) "previous" else "next"
+    val targetChapter = uiState.playerChapters.indexOf(uiState.currentChapter) + direction
+    return if (targetChapter in uiState.playerChapters.indices) {
+      changeChapter(uiState, targetChapter)
+    } else {
+      uiState.copy(state = PlayerState.Hidden(Error("No $label chapter available")))
     }
   }
 

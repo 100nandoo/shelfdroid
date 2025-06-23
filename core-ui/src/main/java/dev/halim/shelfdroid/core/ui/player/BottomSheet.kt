@@ -52,7 +52,7 @@ fun ChapterBottomSheet(
       sheetState = sheetState,
       onDismissRequest = { scope.launch { sheetState.hide() } },
     ) {
-      LazyColumn(state = state, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      LazyColumn(state = state) {
         itemsIndexed(chapters, key = { _, chapter -> chapter.id }) { index, playerChapter ->
           ChapterRow(index, scope, sheetState, playerChapter, currentChapter, onEvent)
         }
@@ -86,7 +86,7 @@ private fun ChapterRow(
           onEvent(PlayerEvent.ChangeChapter(index))
           scope.launch { sheetState.hide() }
         }
-        .padding(horizontal = 16.dp),
+        .padding(horizontal = 16.dp, vertical = 8.dp),
   ) {
     Text(
       playerChapter.title,

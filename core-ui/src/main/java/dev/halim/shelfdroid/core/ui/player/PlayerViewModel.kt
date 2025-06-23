@@ -53,6 +53,14 @@ constructor(
         _uiState.update { playerRepository.changeChapter(_uiState.value, event.target) }
         playContent()
       }
+      PlayerEvent.PreviousChapter -> {
+        _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
+        playContent()
+      }
+      PlayerEvent.NextChapter -> {
+        _uiState.update { playerRepository.previousNextChapter(_uiState.value, false) }
+        playContent()
+      }
       PlayerEvent.Big -> _uiState.update { it.copy(state = PlayerState.Big) }
       PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }
       PlayerEvent.TempHidden -> _uiState.update { it.copy(state = PlayerState.TempHidden) }
@@ -78,6 +86,10 @@ sealed class PlayerEvent {
   class PlayPodcast(val itemId: String, val episodeId: String) : PlayerEvent()
 
   class ChangeChapter(val target: Int) : PlayerEvent()
+
+  data object PreviousChapter : PlayerEvent()
+
+  data object NextChapter : PlayerEvent()
 
   data object Big : PlayerEvent()
 

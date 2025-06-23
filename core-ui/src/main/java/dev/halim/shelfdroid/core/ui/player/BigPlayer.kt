@@ -106,7 +106,7 @@ fun BigPlayerContent(
 
         PlayerProgress(id, progress)
 
-        BasicPlayerControl(player, id)
+        BasicPlayerControl(player, id, onEvent)
 
         AdvancedPlayerControl()
 
@@ -190,6 +190,7 @@ fun PlayerProgress(id: String = "", progress: Float = 0f) {
 fun BasicPlayerControl(
   player: Player = ExoPlayer.Builder(LocalContext.current).build(),
   id: String = "",
+  onEvent: (PlayerEvent) -> Unit,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -204,7 +205,7 @@ fun BasicPlayerControl(
         MyIconButton(
           icon = Icons.Default.SkipPrevious,
           contentDescription = "Previous Chapter",
-          onClick = {},
+          onClick = { onEvent(PlayerEvent.PreviousChapter) },
         )
         SeekBackButton(player, id)
         PlayPauseButton(player, id, 72)
@@ -213,7 +214,7 @@ fun BasicPlayerControl(
         MyIconButton(
           icon = Icons.Default.SkipNext,
           contentDescription = "Next Chapter",
-          onClick = {},
+          onClick = { onEvent(PlayerEvent.NextChapter) },
         )
       }
     }
