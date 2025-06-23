@@ -86,6 +86,7 @@ fun Player(
               currentChapter = uiState.value.currentChapter,
               onSwipeUp = onSwipeUp,
               onSwipeDown = onSwipeDown,
+              onEvent = { event -> viewModel.onEvent(event) },
             )
           }
           is PlayerState.Hidden,

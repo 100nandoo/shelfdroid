@@ -40,6 +40,7 @@ fun ChapterBottomSheet(
   sheetState: SheetState,
   chapters: List<PlayerChapter>,
   currentChapter: PlayerChapter?,
+  onEvent: (PlayerEvent) -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
   val state =
@@ -53,7 +54,7 @@ fun ChapterBottomSheet(
     ) {
       LazyColumn(state = state, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         itemsIndexed(chapters, key = { _, chapter -> chapter.id }) { index, playerChapter ->
-          ChapterRow(index, scope, sheetState, playerChapter, currentChapter)
+          ChapterRow(index, scope, sheetState, playerChapter, currentChapter, onEvent)
         }
       }
     }
@@ -68,6 +69,7 @@ private fun ChapterRow(
   sheetState: SheetState,
   playerChapter: PlayerChapter,
   currentChapter: PlayerChapter?,
+  onEvent: (PlayerEvent) -> Unit = {},
 ) {
   val selected = playerChapter.id == currentChapter?.id
   val background =
@@ -81,7 +83,7 @@ private fun ChapterRow(
       Modifier.fillMaxWidth()
         .background(background)
         .selectable(selected) {
-          //          onEvent(PlayerEvent.JumpToChapter(index))
+          onEvent(PlayerEvent.ChangeChapter(index))
           scope.launch { sheetState.hide() }
         }
         .padding(horizontal = 16.dp),

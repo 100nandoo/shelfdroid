@@ -132,6 +132,32 @@ constructor(
       .lastOrNull { it.startTimeSeconds <= currentTime } ?: playerChapters.first()
   }
 
+  fun changeChapter(uiState: PlayerUiState, target: Int): PlayerUiState {
+    val chapters = uiState.playerChapters
+    return if (target in chapters.indices) {
+      val targetChapter = chapters[target]
+      val targetTrack = findTrackFromChapter(uiState, targetChapter)
+      val currentTime = targetChapter.startTimeSeconds
+      uiState.copy(
+        currentChapter = targetChapter,
+        currentTrack = targetTrack,
+        currentTime = currentTime,
+      )
+    } else {
+      PlayerUiState(state = PlayerState.Hidden(Error("Failed to change chapter")))
+    }
+  }
+
+  private fun findTrackFromChapter(uiState: PlayerUiState, chapter: PlayerChapter): PlayerTrack {
+    val tracks = uiState.playerTracks
+    return if (tracks.size == 1) {
+      return tracks.first()
+    } else {
+      val track = tracks.lastOrNull { it.startOffset <= chapter.startTimeSeconds } ?: tracks.first()
+      track
+    }
+  }
+
   private suspend fun getToken(): String =
     withContext(Dispatchers.IO) { dataStoreManager.token.first() }
 

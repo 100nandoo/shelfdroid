@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
+import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,10 +49,14 @@ constructor(
           playContent()
         }
       }
+      is PlayerEvent.ChangeChapter -> {
+        _uiState.update { playerRepository.changeChapter(_uiState.value, event.target) }
+        playContent()
+      }
       PlayerEvent.Big -> _uiState.update { it.copy(state = PlayerState.Big) }
       PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }
       PlayerEvent.TempHidden -> _uiState.update { it.copy(state = PlayerState.TempHidden) }
-      PlayerEvent.Hidden -> _uiState.update { it.copy(state = PlayerState.Hidden()) }
+      PlayerEvent.Hidden -> _uiState.update { it.copy(state = Hidden()) }
     }
   }
 
@@ -71,6 +76,8 @@ sealed class PlayerEvent {
   class PlayBook(val id: String) : PlayerEvent()
 
   class PlayPodcast(val itemId: String, val episodeId: String) : PlayerEvent()
+
+  class ChangeChapter(val target: Int) : PlayerEvent()
 
   data object Big : PlayerEvent()
 

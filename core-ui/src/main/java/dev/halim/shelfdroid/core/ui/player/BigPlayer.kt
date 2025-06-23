@@ -76,6 +76,7 @@ fun BigPlayerContent(
   currentChapter: PlayerChapter? = PlayerChapter(),
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
+  onEvent: (PlayerEvent) -> Unit = {},
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -101,7 +102,7 @@ fun BigPlayerContent(
       ) {
         BasicPlayerContent(id, author, title, cover)
 
-        BookmarkAndChapter(chapters, currentChapter)
+        BookmarkAndChapter(chapters, currentChapter, onEvent)
 
         PlayerProgress(id, progress)
 
@@ -311,7 +312,11 @@ fun SleepTimerBottomSheet(sheetState: SheetState) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookmarkAndChapter(chapters: List<PlayerChapter>, currentChapter: PlayerChapter?) {
+fun BookmarkAndChapter(
+  chapters: List<PlayerChapter>,
+  currentChapter: PlayerChapter?,
+  onEvent: (PlayerEvent) -> Unit,
+) {
   val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val bookmarkSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val scope = rememberCoroutineScope()
@@ -329,7 +334,7 @@ fun BookmarkAndChapter(chapters: List<PlayerChapter>, currentChapter: PlayerChap
       onClick = { scope.launch { chapterSheetState.show() } },
     )
   }
-  ChapterBottomSheet(chapterSheetState, chapters, currentChapter)
+  ChapterBottomSheet(chapterSheetState, chapters, currentChapter, onEvent)
   //    BookmarkBottomSheet(bookmarkSheetState)
 
 }
