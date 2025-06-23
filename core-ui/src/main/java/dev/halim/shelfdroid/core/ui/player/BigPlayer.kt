@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -106,7 +107,7 @@ fun BigPlayerContent(
 
         PlayerProgress(id, progress)
 
-        BasicPlayerControl(player, id, onEvent)
+        BasicPlayerControl(player, id, currentChapter, onEvent)
 
         AdvancedPlayerControl()
 
@@ -190,6 +191,7 @@ fun PlayerProgress(id: String = "", progress: Float = 0f) {
 fun BasicPlayerControl(
   player: Player = ExoPlayer.Builder(LocalContext.current).build(),
   id: String = "",
+  currentChapter: PlayerChapter? = PlayerChapter(),
   onEvent: (PlayerEvent) -> Unit,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -206,6 +208,8 @@ fun BasicPlayerControl(
           icon = Icons.Default.SkipPrevious,
           contentDescription = "Previous Chapter",
           onClick = { onEvent(PlayerEvent.PreviousChapter) },
+          enabled =
+            currentChapter?.chapterPosition != ChapterPosition.First && currentChapter != null,
         )
         SeekBackButton(player, id)
         PlayPauseButton(player, id, 72)
@@ -215,6 +219,8 @@ fun BasicPlayerControl(
           icon = Icons.Default.SkipNext,
           contentDescription = "Next Chapter",
           onClick = { onEvent(PlayerEvent.NextChapter) },
+          enabled =
+            currentChapter?.chapterPosition != ChapterPosition.Last && currentChapter != null,
         )
       }
     }

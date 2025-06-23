@@ -78,7 +78,10 @@ constructor(
     val progress = progressRepo.byLibraryItemId(id)
     return if (result != null) {
       val media = Json.decodeFromString<Book>(result.media)
-      val chapters = media.chapters.map { toPlayerChapter(it) }
+      val chapters =
+        media.chapters.mapIndexed { i, bookChapter ->
+          toPlayerChapter(i, bookChapter, media.chapters.size)
+        }
       val chapter = findCurrentPlayerChapter(chapters, progress?.currentTime ?: 0.0)
       PlayerUiState(
         state = PlayerState.Small,
@@ -115,13 +118,16 @@ constructor(
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
 
-  fun findCurrentPlayerTrack(playerTracks: List<PlayerTrack>, currentTime: Double): PlayerTrack {
+  private fun findCurrentPlayerTrack(
+    playerTracks: List<PlayerTrack>,
+    currentTime: Double,
+  ): PlayerTrack {
     // Find the last track that starts at or before the current time
     return playerTracks.sortedBy { it.startOffset }.lastOrNull { it.startOffset <= currentTime }
       ?: playerTracks.first()
   }
 
-  fun findCurrentPlayerChapter(
+  private fun findCurrentPlayerChapter(
     playerChapters: List<PlayerChapter>,
     currentTime: Double,
   ): PlayerChapter? {
@@ -139,6 +145,7 @@ constructor(
       val targetTrack = findTrackFromChapter(uiState, targetChapter)
       val currentTime = targetChapter.startTimeSeconds
       uiState.copy(
+        title = targetChapter.title,
         currentChapter = targetChapter,
         currentTrack = targetTrack,
         currentTime = currentTime,
@@ -177,15 +184,27 @@ constructor(
     return PlayerTrack(url, audioTrack.startOffset)
   }
 
-  private fun toPlayerChapter(bookChapter: BookChapter): PlayerChapter =
-    PlayerChapter(
+  private fun toPlayerChapter(
+    index: Int,
+    bookChapter: BookChapter,
+    totalChapters: Int,
+  ): PlayerChapter {
+    val position =
+      when (index) {
+        0 -> ChapterPosition.First
+        totalChapters - 1 -> ChapterPosition.Last
+        else -> ChapterPosition.Middle
+      }
+    return PlayerChapter(
       bookChapter.id,
       bookChapter.start,
       bookChapter.end,
       helper.formatChapterTime(bookChapter.start, true),
       helper.formatChapterTime(bookChapter.end, true),
       bookChapter.title,
+      position,
     )
+  }
 
   private fun generateNanoId(): String {
     val uuid = UUID.randomUUID()
@@ -232,4 +251,11 @@ data class PlayerChapter(
   val startFormattedTime: String = "",
   val endFormattedTime: String = "",
   val title: String = "",
+  val chapterPosition: ChapterPosition = ChapterPosition.First,
 )
+
+enum class ChapterPosition {
+  First,
+  Last,
+  Middle,
+}
