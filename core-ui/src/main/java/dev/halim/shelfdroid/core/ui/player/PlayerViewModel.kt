@@ -1,13 +1,11 @@
 package dev.halim.shelfdroid.core.ui.player
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
@@ -23,17 +21,13 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class PlayerViewModel
 @Inject
-constructor(
-  private val playerRepository: PlayerRepository,
-  @ApplicationContext private val context: Context,
-) : ViewModel() {
+constructor(private val playerRepository: PlayerRepository, val player: Lazy<ExoPlayer>) :
+  ViewModel() {
 
   private val _uiState = MutableStateFlow(PlayerUiState())
 
   val uiState: StateFlow<PlayerUiState> =
     _uiState.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), PlayerUiState())
-
-  val player: Player by lazy { ExoPlayer.Builder(context).build() }
 
   fun onEvent(event: PlayerEvent) {
     when (event) {
@@ -69,7 +63,7 @@ constructor(
   }
 
   private fun playContent() {
-    player.apply {
+    player.get().apply {
       setMediaItem(MediaItem.fromUri(_uiState.value.currentTrack.url))
       val positionMs =
         (_uiState.value.currentTime - _uiState.value.currentTrack.startOffset).toLong() * 1000

@@ -34,7 +34,6 @@ fun Player(
   viewModel: PlayerViewModel = hiltViewModel(),
 ) {
   val uiState = viewModel.uiState.collectAsState()
-  val player = remember { viewModel.player }
   AnimatedContent(targetState = uiState.value.state, label = "PlayerTransition") { targetState ->
     CompositionLocalProvider(
       LocalSharedTransitionScope provides sharedTransitionScope,
@@ -61,6 +60,7 @@ fun Player(
       Column {
         when (targetState) {
           PlayerState.Small -> {
+            val player = remember { viewModel.player.get() }
             SmallPlayerContent(
               player = player,
               id = uiState.value.id,
@@ -74,6 +74,7 @@ fun Player(
             )
           }
           PlayerState.Big -> {
+            val player = remember { viewModel.player.get() }
             BackHandler(enabled = true) { viewModel.onEvent(PlayerEvent.Small) }
             BigPlayerContent(
               player = player,

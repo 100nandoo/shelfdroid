@@ -42,14 +42,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.ui.Animations
@@ -189,7 +187,7 @@ fun PlayerProgress(id: String = "", progress: Float = 0f) {
 @UnstableApi
 @Composable
 fun BasicPlayerControl(
-  player: Player = ExoPlayer.Builder(LocalContext.current).build(),
+  player: Player = FakePlayer(),
   id: String = "",
   currentChapter: PlayerChapter? = PlayerChapter(),
   onEvent: (PlayerEvent) -> Unit,
