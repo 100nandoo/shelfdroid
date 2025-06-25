@@ -31,6 +31,7 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -68,6 +69,8 @@ fun EpisodeItem(
         Row(modifier = Modifier.padding(horizontal = 16.dp)) {
           Column(modifier = Modifier.weight(1f).height(40.dp)) {
             Text(
+              modifier =
+                Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episode.id)),
               text = episode.publishedAt,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               style = MaterialTheme.typography.labelMedium,

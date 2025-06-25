@@ -27,6 +27,10 @@ class Animations @Inject constructor() {
       fun titleKey(id: String, title: String) = "${id}_episode_$title"
 
       fun containerKey(id: String) = "container_$id"
+
+      fun coverKey(id: String) = "episode_cover_$id"
+
+      fun publishedAtKey(id: String) = "episode_published_at_$id"
     }
 
     object Player {
@@ -70,4 +74,12 @@ fun Modifier.mySharedElement(id: String, overlayClip: OverlayClip) =
     rememberSharedContentState(key = id),
     animatedVisibilityScope = this@AnimatedContentScope,
     clipInOverlayDuringTransition = overlayClip,
+  )
+
+context(SharedTransitionScope, AnimatedContentScope)
+@Composable
+fun Modifier.mySharedElement(id: String) =
+  this.sharedElement(
+    rememberSharedContentState(key = id),
+    animatedVisibilityScope = this@AnimatedContentScope,
   )

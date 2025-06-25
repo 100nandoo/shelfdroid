@@ -162,7 +162,12 @@ fun ItemDetail(id: String, url: String, title: String, authorName: String, subti
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Spacer(modifier = Modifier.height(16.dp))
-      ItemCover(Modifier.fillMaxWidth(), cover = url, shape = RoundedCornerShape(8.dp))
+      ItemCover(
+        Modifier.fillMaxWidth(),
+        cover = url,
+        shape = RoundedCornerShape(8.dp),
+        animationKey = Animations.Companion.Episode.coverKey(id),
+      )
       Spacer(modifier = Modifier.height(16.dp))
 
       Text(

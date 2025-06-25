@@ -11,6 +11,8 @@
 ### Low Priority
 
 - [ ] Download Function
+- [ ] Settings
+    - [ ] Episode screen, default expand/shrink description state
 
 ## Done
 

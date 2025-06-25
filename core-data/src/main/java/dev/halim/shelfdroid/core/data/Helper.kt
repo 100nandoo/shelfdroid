@@ -21,8 +21,9 @@ class Helper @Inject constructor() {
 
   fun toReadableDate(long: Long): String {
     val instant = Instant.fromEpochMilliseconds(long)
-    val dateTime = instant.toLocalDateTime(TimeZone.UTC)
-    return "${dateTime.dayOfMonth} ${dateTime.month.name.lowercase().capitalize(Locale.getDefault())} ${dateTime.year}"
+    val dateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+    return "${dateTime.dayOfMonth} ${dateTime.month.name.lowercase()
+      .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${dateTime.year}"
   }
 
   fun formatDuration(seconds: Double): String {

@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.data.screen.episode
 
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import java.util.Locale
@@ -10,7 +11,11 @@ import kotlinx.serialization.json.Json
 
 class EpisodeRepository
 @Inject
-constructor(private val libraryItemRepo: LibraryItemRepo, private val progressRepo: ProgressRepo) {
+constructor(
+  private val libraryItemRepo: LibraryItemRepo,
+  private val progressRepo: ProgressRepo,
+  private val helper: Helper,
+) {
   fun item(itemId: String, episodeId: String): EpisodeUiState {
     val result = libraryItemRepo.byId(itemId)
     val progressEntity = progressRepo.episodeById(episodeId)
@@ -26,11 +31,13 @@ constructor(private val libraryItemRepo: LibraryItemRepo, private val progressRe
 
       val progress = progressEntity?.progress?.toFloat() ?: 0f
       val formattedProgress = String.format(Locale.getDefault(), "%.0f", progress * 100)
+      val publishedAt = episode.publishedAt?.let { helper.toReadableDate(it) } ?: ""
 
       EpisodeUiState(
         state = GenericState.Success,
         title = episode.title,
-        podcast = result.author,
+        podcast = result.title,
+        publishedAt = publishedAt,
         cover = result.cover,
         description = description,
         progress = formattedProgress,
