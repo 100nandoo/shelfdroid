@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.core.ui.di
 
 import android.content.Context
-import androidx.media3.exoplayer.ExoPlayer
 import coil3.ImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
@@ -42,11 +41,5 @@ object UiModule {
       .crossfade(true)
       .logger(DebugLogger())
       .build()
-  }
-
-  @Singleton
-  @Provides
-  fun providesPlayer(@ApplicationContext context: Context): ExoPlayer {
-    return ExoPlayer.Builder(context).build()
   }
 }

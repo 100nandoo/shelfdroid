@@ -14,9 +14,11 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -27,6 +29,7 @@ import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.screen.MainActivity
 
 @Composable
 fun Player(
@@ -61,6 +64,12 @@ fun Player(
         when (targetState) {
           PlayerState.Small -> {
             val player = remember { viewModel.player.get() }
+            val context = LocalContext.current
+            LaunchedEffect(context) {
+              if (context is MainActivity) {
+                context.initMediaController()
+              }
+            }
             SmallPlayerContent(
               player = player,
               id = uiState.value.id,

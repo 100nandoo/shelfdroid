@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
+import com.google.common.util.concurrent.ListenableFuture
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
@@ -21,8 +23,11 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class PlayerViewModel
 @Inject
-constructor(private val playerRepository: PlayerRepository, val player: Lazy<ExoPlayer>) :
-  ViewModel() {
+constructor(
+  private val playerRepository: PlayerRepository,
+  val player: Lazy<ExoPlayer>,
+  val mediaControllerFuture: Lazy<ListenableFuture<MediaController>>,
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow(PlayerUiState())
 

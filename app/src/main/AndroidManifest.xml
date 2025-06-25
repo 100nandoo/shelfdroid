@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
         android:name=".ShelfDroid"
@@ -18,7 +20,7 @@
         android:theme="@style/Theme.ShelfDroid"
         tools:targetApi="35">
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".core.ui.screen.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.ShelfDroid.MySplash"
             android:windowSoftInputMode="adjustResize">
@@ -28,6 +30,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".core.ui.media3.PlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

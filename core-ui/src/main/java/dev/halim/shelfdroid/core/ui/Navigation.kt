@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 
-package dev.halim.shelfdroid.ui
+package dev.halim.shelfdroid.core.ui
 
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -27,8 +27,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
-import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
@@ -38,7 +36,6 @@ import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
-import dev.halim.shelfdroid.version
 import kotlinx.serialization.Serializable
 
 @Serializable object Login
@@ -145,8 +142,7 @@ private fun ColumnScope.NavHostContainer(
 
       composable<Settings> {
         SettingsScreen(
-          version = version,
-          onLogoutSuccess = { navController.navigate(Login) { popUpTo(0) { inclusive = true } } },
+          onLogoutSuccess = { navController.navigate(Login) { popUpTo(0) { inclusive = true } } }
         )
       }
     }

@@ -3,8 +3,10 @@
 ) // Remove when fixed https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
   alias(libs.plugins.android.library)
+  alias(libs.plugins.hilt.gradle)
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.kapt)
+  alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.compose.compiler)
 }
 
@@ -44,13 +46,18 @@ dependencies {
   implementation(composeBom)
   androidTestImplementation(composeBom)
 
+  implementation(libs.kotlinx.coroutines.guava)
+  implementation(libs.kotlinx.serialization)
+
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)
+  implementation(libs.androidx.core.splashscreen)
 
   // Arch Components
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.hilt.navigation.compose)
 
   // Compose
@@ -74,4 +81,5 @@ dependencies {
   // Media3
   implementation(libs.androidx.media3.compose.ui)
   implementation(libs.androidx.media3.exoplayer)
+  implementation(libs.androidx.media3.session)
 }

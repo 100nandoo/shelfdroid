@@ -5,7 +5,7 @@ import androidx.compose.ui.test.onNodeWithText
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dev.halim.shelfdroid.core.data.di.fakeAudiobooks
-import dev.halim.shelfdroid.ui.MainActivity
+import dev.halim.shelfdroid.core.ui.screen.MainActivity
 import org.junit.Rule
 import org.junit.Test
 
@@ -14,7 +14,8 @@ class AppTest {
 
   @get:Rule(order = 0) var hiltRule = HiltAndroidRule(this)
 
-  @get:Rule(order = 1) val composeTestRule = createAndroidComposeRule<MainActivity>()
+  @get:Rule(order = 1)
+  val composeTestRule = createAndroidComposeRule<dev.halim.shelfdroid.core.ui.screen.MainActivity>()
 
   @Test
   fun test1() {

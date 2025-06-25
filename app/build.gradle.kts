@@ -9,7 +9,6 @@ plugins {
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.hilt.gradle)
   alias(libs.plugins.kotlin.kapt)
-  alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.compose.compiler)
 }
 
@@ -85,11 +84,8 @@ dependencies {
   implementation(project(libs.versions.coreUi.get()))
   implementation(project(libs.versions.coreData.get()))
 
-  implementation(libs.kotlinx.serialization)
-
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)
-  implementation(libs.androidx.core.splashscreen)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity.compose)
 
@@ -100,8 +96,6 @@ dependencies {
   // Arch Components
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
-  implementation(libs.androidx.navigation.compose)
-  implementation(libs.androidx.hilt.navigation.compose)
 
   // Compose
   val composeBom = platform(libs.androidx.compose.bom)
