@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Media Notification on click open episode or book screen with big player on top
 - [ ] Media Notification with custom icon
 - [ ] Media Notification with custom commands
 - [ ] Save device id to local storage
@@ -25,3 +24,5 @@
 - [x] Play Podcast click handler
 - [x] Media 3 integration
 - [x] ExoPlayer media notification
+- [x] Set media item properly
+- [x] Media Notification on click open episode or book screen with big player on top

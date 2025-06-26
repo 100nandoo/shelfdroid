@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 
-package dev.halim.shelfdroid.core.ui
+package dev.halim.shelfdroid.core.ui.navigation
 
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -16,6 +16,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -27,6 +28,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
+import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
+import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
@@ -51,16 +54,24 @@ import kotlinx.serialization.Serializable
 @Serializable data class Episode(val itemId: String, val episodeId: String)
 
 @Composable
-fun MainNavigation(isLoggedIn: Boolean) {
+fun MainNavigation(
+  isLoggedIn: Boolean,
+  viewModel: PlayerViewModel = hiltViewModel(),
+  pendingMediaId: String? = null,
+  onMediaIdHandled: () -> Unit = {},
+) {
   SharedTransitionLayout {
     val navController = rememberNavController()
     val startDestination = if (isLoggedIn) Home else Login
 
+    LaunchedEffect(pendingMediaId) {
+      handlePendingMediaId(pendingMediaId, isLoggedIn, navController, onMediaIdHandled, viewModel)
+    }
     Column {
       NavHostContainer(
         navController = navController,
         startDestination = startDestination,
-        this@SharedTransitionLayout,
+        sharedTransitionScope = this@SharedTransitionLayout,
       )
       PlayerHandler(navController, this@SharedTransitionLayout)
     }

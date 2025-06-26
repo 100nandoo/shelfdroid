@@ -2,10 +2,7 @@ package dev.halim.shelfdroid.core.ui.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaController
-import com.google.common.util.concurrent.ListenableFuture
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
@@ -24,9 +21,9 @@ import kotlinx.coroutines.launch
 class PlayerViewModel
 @Inject
 constructor(
-  private val playerRepository: PlayerRepository,
   val player: Lazy<ExoPlayer>,
-  val mediaControllerFuture: Lazy<ListenableFuture<MediaController>>,
+  private val playerRepository: PlayerRepository,
+  private val mediaItemManager: MediaItemManager,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(PlayerUiState())
@@ -69,7 +66,8 @@ constructor(
 
   private fun playContent() {
     player.get().apply {
-      setMediaItem(MediaItem.fromUri(_uiState.value.currentTrack.url))
+      val mediaItem = mediaItemManager.toMediaItem(_uiState.value)
+      setMediaItem(mediaItem)
       val positionMs =
         (_uiState.value.currentTime - _uiState.value.currentTrack.startOffset).toLong() * 1000
       seekTo(positionMs)

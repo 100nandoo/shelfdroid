@@ -1,15 +1,19 @@
 package dev.halim.shelfdroid.core.ui.media3
 
+import android.app.PendingIntent
 import android.content.Intent
 import android.os.Process
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import dev.halim.shelfdroid.core.ui.screen.MainActivity
+import dev.halim.shelfdroid.core.ui.screen.MainActivity.Companion.EXTRA_MEDIA_ID
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -25,9 +29,46 @@ class PlaybackService : MediaLibraryService() {
   override fun onCreate() {
     Log.d("media3", "PlaybackService onCreate called")
     super.onCreate()
+
     mediaLibrarySession =
       MediaLibrarySession.Builder(this, player.get(), object : MediaLibrarySession.Callback {})
         .build()
+
+    setupPlayerListener()
+  }
+
+  @OptIn(UnstableApi::class)
+  private fun setupPlayerListener() {
+    player
+      .get()
+      .addListener(
+        object : Player.Listener {
+          override fun onIsPlayingChanged(isPlaying: Boolean) {
+            super.onIsPlayingChanged(isPlaying)
+            if (isPlaying) {
+              player.get().currentMediaItem?.mediaId?.let {
+                val intent = createIntent(it)
+                Log.d("media3", "onIsPlayingChanged: $it")
+                mediaLibrarySession.setSessionActivity(intent)
+              }
+            }
+          }
+        }
+      )
+  }
+
+  fun createIntent(mediaId: String): PendingIntent {
+    val intent = Intent(this, MainActivity::class.java)
+    intent.apply {
+      putExtra(EXTRA_MEDIA_ID, mediaId)
+      flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+    }
+    return PendingIntent.getActivity(
+      this,
+      0,
+      intent,
+      PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
   }
 
   override fun onDestroy() {

@@ -25,7 +25,8 @@ fun PlayerHandler(
       val isVisibleRoute =
         route?.contains("Home") == true ||
           route?.contains("Book") == true ||
-          route?.contains("Podcast") == true
+          route?.contains("Podcast") == true ||
+          route?.contains("Episode") == true
 
       when {
         !isVisibleRoute && uiState.value.state in setOf(PlayerState.Big, PlayerState.Small) ->

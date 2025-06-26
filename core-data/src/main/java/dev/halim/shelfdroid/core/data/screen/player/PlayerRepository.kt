@@ -110,6 +110,7 @@ constructor(
       PlayerUiState(
         state = PlayerState.Small,
         id = result.id,
+        episodeId = episode.id,
         author = result.author,
         title = episode.title,
         cover = result.cover,
@@ -231,6 +232,7 @@ sealed class PlayerState {
 data class PlayerUiState(
   val state: PlayerState = PlayerState.Hidden(),
   val id: String = "",
+  val episodeId: String = "",
   val author: String = "",
   val title: String = "",
   val cover: String = "",
