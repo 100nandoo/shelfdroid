@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 @Suppress(
   "DSL_SCOPE_VIOLATION"
 ) // Remove when fixed https://youtrack.jetbrains.com/issue/KTIJ-19369
@@ -31,7 +33,7 @@ android {
     targetCompatibility = JavaVersion.VERSION_17
   }
 
-  kotlinOptions { jvmTarget = "17" }
+  kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 }
 
 sqldelight {

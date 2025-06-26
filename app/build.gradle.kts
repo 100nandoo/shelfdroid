@@ -1,5 +1,6 @@
 import java.util.Properties
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 @Suppress(
   "DSL_SCOPE_VIOLATION"
@@ -67,7 +68,12 @@ android {
     targetCompatibility = JavaVersion.VERSION_17
   }
 
-  kotlinOptions { jvmTarget = "17" }
+  kotlin {
+    compilerOptions {
+      jvmTarget.set(JvmTarget.JVM_17)
+      freeCompilerArgs.add("-Xcontext-receivers")
+    }
+  }
 
   buildFeatures {
     compose = true
@@ -78,6 +84,8 @@ android {
   }
 
   packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
+
+  lint { disable += listOf("Instantiatable") }
 }
 
 dependencies {
