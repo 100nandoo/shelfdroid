@@ -9,7 +9,6 @@ import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
-import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.Module
@@ -57,18 +56,6 @@ object PlayerModule {
       .build()
 
     return player
-  }
-
-  @OptIn(UnstableApi::class)
-  @Singleton
-  @Provides
-  fun provideMediaSession(
-    @ApplicationContext context: Context,
-    player: ExoPlayer,
-  ): MediaLibrarySession {
-
-    return MediaLibrarySession.Builder(context, player, object : MediaLibrarySession.Callback {})
-      .build()
   }
 
   @Singleton

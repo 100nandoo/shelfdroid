@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.core.ui.media3
 
 import android.content.Intent
+import android.os.Process
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -21,6 +23,7 @@ class PlaybackService : MediaLibraryService() {
   }
 
   override fun onCreate() {
+    Log.d("media3", "PlaybackService onCreate called")
     super.onCreate()
     mediaLibrarySession =
       MediaLibrarySession.Builder(this, player.get(), object : MediaLibrarySession.Callback {})
@@ -31,6 +34,8 @@ class PlaybackService : MediaLibraryService() {
     mediaLibrarySession.release()
     player.get().apply { clearMediaItems() }
     stopForeground(STOP_FOREGROUND_REMOVE)
+    stopSelf()
+    Process.killProcess(Process.myPid())
     super.onDestroy()
   }
 

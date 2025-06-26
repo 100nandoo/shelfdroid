@@ -3,7 +3,8 @@ package dev.halim.shelfdroid.core.data
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.util.Locale
 import javax.inject.Inject
-import kotlinx.datetime.Instant
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -19,10 +20,11 @@ class Helper @Inject constructor() {
   fun generateContentUrl(token: String, url: String): String =
     "https://${DataStoreManager.BASE_URL}$url?token=$token"
 
+  @OptIn(ExperimentalTime::class)
   fun toReadableDate(long: Long): String {
     val instant = Instant.fromEpochMilliseconds(long)
     val dateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-    return "${dateTime.dayOfMonth} ${dateTime.month.name.lowercase()
+    return "${dateTime.day} ${dateTime.month.name.lowercase()
       .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${dateTime.year}"
   }
 
