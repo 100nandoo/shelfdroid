@@ -111,6 +111,7 @@ object PlayerModule {
         return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
           .setAvailableSessionCommands(sessionCommands)
           .setCustomLayout(commandButtons)
+          .setMediaButtonPreferences(commandButtons)
           .build()
       }
 
