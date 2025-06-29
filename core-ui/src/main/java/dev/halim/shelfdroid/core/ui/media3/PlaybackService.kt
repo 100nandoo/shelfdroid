@@ -16,11 +16,14 @@ import dev.halim.shelfdroid.core.ui.screen.MainActivity
 import dev.halim.shelfdroid.core.ui.screen.MainActivity.Companion.EXTRA_MEDIA_ID
 import javax.inject.Inject
 
+@UnstableApi
 @AndroidEntryPoint
 class PlaybackService : MediaLibraryService() {
 
   private lateinit var mediaLibrarySession: MediaLibrarySession
   @Inject lateinit var player: Lazy<ExoPlayer>
+  @Inject lateinit var mediaNotificationProvider: Lazy<CustomMediaNotificationProvider>
+  @Inject lateinit var mediaLibrarySessionCallback: Lazy<MediaLibrarySession.Callback>
 
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession {
     return mediaLibrarySession
@@ -31,10 +34,10 @@ class PlaybackService : MediaLibraryService() {
     super.onCreate()
 
     mediaLibrarySession =
-      MediaLibrarySession.Builder(this, player.get(), object : MediaLibrarySession.Callback {})
-        .build()
+      MediaLibrarySession.Builder(this, player.get(), mediaLibrarySessionCallback.get()).build()
 
     setupPlayerListener()
+    setMediaNotificationProvider(mediaNotificationProvider.get())
   }
 
   @OptIn(UnstableApi::class)
@@ -57,7 +60,7 @@ class PlaybackService : MediaLibraryService() {
       )
   }
 
-  fun createIntent(mediaId: String): PendingIntent {
+  private fun createIntent(mediaId: String): PendingIntent {
     val intent = Intent(this, MainActivity::class.java)
     intent.apply {
       putExtra(EXTRA_MEDIA_ID, mediaId)

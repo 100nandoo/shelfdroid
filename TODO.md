@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Media Notification with custom icon
 - [ ] Media Notification with custom commands
 - [ ] Save device id to local storage
 - [ ] Find episode from podcast function
@@ -26,3 +25,4 @@
 - [x] ExoPlayer media notification
 - [x] Set media item properly
 - [x] Media Notification on click open episode or book screen with big player on top
+- [x] Media Notification with custom icon
