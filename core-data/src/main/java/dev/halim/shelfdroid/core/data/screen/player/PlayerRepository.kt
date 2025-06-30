@@ -44,8 +44,12 @@ constructor(
           val response = apiService.playBook(id, request)
           val playerTracks = response.audioTracks.map { toPlayerTrack(it) }
 
-          val currentTrack = findCurrentPlayerTrack(playerTracks, playerUiState.currentTime)
-          playerUiState.copy(playerTracks = playerTracks, currentTrack = currentTrack)
+          val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
+          playerUiState.copy(
+            playerTracks = playerTracks,
+            currentTrack = currentTrack,
+            currentTime = response.currentTime,
+          )
         }
         .getOrNull()
 
@@ -66,7 +70,7 @@ constructor(
           val response = apiService.playPodcast(itemId, episodeId, request)
           val playerTracks = response.audioTracks.map { toPlayerTrack(it) }
 
-          val currentTrack = findCurrentPlayerTrack(playerTracks, playerUiState.currentTime)
+          val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
           playerUiState.copy(playerTracks = playerTracks, currentTrack = currentTrack)
         }
         .getOrNull()
@@ -89,10 +93,13 @@ constructor(
         author = result.author,
         title = chapter?.title ?: result.title,
         cover = result.cover,
-        progress = progress?.progress?.toFloat() ?: 0f,
         currentTime = progress?.currentTime ?: 0.0,
         playerChapters = chapters,
         currentChapter = chapter,
+        playbackProgress =
+          PlaybackProgress(
+            duration = helper.formatChapterTime(chapter?.endTimeSeconds ?: 0.0, true)
+          ),
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -114,7 +121,6 @@ constructor(
         author = result.author,
         title = episode.title,
         cover = result.cover,
-        progress = progress?.progress?.toFloat() ?: 0f,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -144,7 +150,9 @@ constructor(
     return if (target in chapters.indices) {
       val targetChapter = chapters[target]
       val targetTrack = findTrackFromChapter(uiState, targetChapter)
-      val currentTime = targetChapter.startTimeSeconds
+      val currentTime =
+        if (uiState.playerTracks.size > 1) targetChapter.startTimeSeconds - targetTrack.startOffset
+        else targetChapter.startTimeSeconds
       uiState.copy(
         title = targetChapter.title,
         currentChapter = targetChapter,
@@ -182,7 +190,7 @@ constructor(
 
   private suspend fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
     val url = helper.generateContentUrl(getToken(), audioTrack.contentUrl)
-    return PlayerTrack(url, audioTrack.startOffset)
+    return PlayerTrack(url, audioTrack.duration, audioTrack.startOffset)
   }
 
   private fun toPlayerChapter(
@@ -204,6 +212,43 @@ constructor(
       helper.formatChapterTime(bookChapter.end, true),
       bookChapter.title,
       position,
+    )
+  }
+
+  fun toPlaybackProgress(raw: RawPlaybackProgress, uiState: PlayerUiState): PlaybackProgress {
+    val currentChapter = uiState.currentChapter
+    val currentTrack = uiState.currentTrack
+    val duration =
+      if (currentChapter != null) {
+        (currentChapter.endTimeSeconds - currentChapter.startTimeSeconds)
+      } else {
+        currentTrack.duration
+      }
+
+    val position =
+      if (currentChapter != null) {
+        if (uiState.playerTracks.size > 1) {
+          (((raw.position / 1000) + currentTrack.startOffset) - currentChapter.startTimeSeconds)
+            .toFloat()
+        } else {
+          ((raw.position / 1000) - currentChapter.startTimeSeconds).toFloat()
+        }
+      } else {
+        ((raw.position / 1000) - currentTrack.startOffset).toFloat()
+      }
+
+    val buffered = (raw.bufferedPosition / 1000)
+
+    val progress = if (duration > 0) position / duration.toFloat() else 0f
+    val bufferProgress = if (duration > 0) buffered / duration.toFloat() else 0f
+
+    val formattedPosition = helper.formatChapterTime(position.toDouble())
+    val formattedDuration = helper.formatChapterTime(duration)
+    return PlaybackProgress(
+      position = formattedPosition,
+      duration = formattedDuration,
+      bufferedPosition = bufferProgress,
+      progress = progress,
     )
   }
 
@@ -242,9 +287,14 @@ data class PlayerUiState(
   val currentTrack: PlayerTrack = PlayerTrack(),
   val playerChapters: List<PlayerChapter> = emptyList(),
   val currentChapter: PlayerChapter? = PlayerChapter(),
+  val playbackProgress: PlaybackProgress = PlaybackProgress(),
 )
 
-data class PlayerTrack(val url: String = "", val startOffset: Double = 0.0)
+data class PlayerTrack(
+  val url: String = "",
+  val duration: Double = 0.0,
+  val startOffset: Double = 0.0,
+)
 
 data class PlayerChapter(
   val id: Int = 0,
@@ -261,3 +311,16 @@ enum class ChapterPosition {
   Last,
   Middle,
 }
+
+data class RawPlaybackProgress(
+  val position: Long = 0,
+  val duration: Long = 0,
+  val bufferedPosition: Long = 0,
+)
+
+data class PlaybackProgress(
+  val position: String = "",
+  val duration: String = "",
+  val bufferedPosition: Float = 0f,
+  val progress: Float = 0f,
+)

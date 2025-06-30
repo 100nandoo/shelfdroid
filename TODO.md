@@ -2,6 +2,7 @@
 
 ## High Priority
 
+- [ ] Player, handle seek on progressbar
 - [ ] Save device id to local storage
 - [ ] Find episode from podcast function
 - [ ] Preview for all UI component
@@ -26,3 +27,5 @@
 - [x] Media Notification on click open episode or book screen with big player on top
 - [x] Media Notification with custom icon
 - [x] Media Notification with custom commands
+- [x] Player, show progressbar
+- [x] Player, show progressbar timing

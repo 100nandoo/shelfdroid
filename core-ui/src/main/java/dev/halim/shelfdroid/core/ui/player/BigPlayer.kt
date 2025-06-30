@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
+import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -70,7 +71,7 @@ fun BigPlayerContent(
   author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
   cover: String = "",
-  progress: Float = 0f,
+  progress: PlaybackProgress = PlaybackProgress(),
   chapters: List<PlayerChapter> = emptyList(),
   currentChapter: PlayerChapter? = PlayerChapter(),
   onSwipeUp: () -> Unit = {},
@@ -150,7 +151,7 @@ fun BasicPlayerContent(id: String, author: String, title: String, cover: String)
 }
 
 @Composable
-fun PlayerProgress(id: String = "", progress: Float = 0f) {
+fun PlayerProgress(id: String = "", progress: PlaybackProgress = PlaybackProgress()) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
@@ -158,18 +159,18 @@ fun PlayerProgress(id: String = "", progress: Float = 0f) {
     with(animatedContentScope) {
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(
-          text = "01:11",
+          text = progress.position,
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-          text = "03:33",
+          text = progress.duration,
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurface,
         )
       }
       Slider(
-        value = progress,
+        value = progress.progress,
         onValueChange = {},
         modifier =
           Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),

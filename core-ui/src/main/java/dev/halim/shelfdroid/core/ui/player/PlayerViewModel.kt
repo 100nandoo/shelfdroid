@@ -9,7 +9,9 @@ import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
+import dev.halim.shelfdroid.core.ui.media3.playbackProgressFlow
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -67,13 +69,25 @@ constructor(
   private fun playContent() {
     player.get().apply {
       val mediaItem = mediaItemManager.toMediaItem(_uiState.value)
-      setMediaItem(mediaItem)
-      val positionMs =
-        (_uiState.value.currentTime - _uiState.value.currentTrack.startOffset).toLong() * 1000
-      seekTo(positionMs)
+      val positionMs = _uiState.value.currentTime.toLong() * 1000
+      setMediaItem(mediaItem, positionMs)
       prepare()
       play()
+      collectPlaybackProgress()
     }
+  }
+
+  private var playbackProgressJob: Job? = null
+
+  private fun collectPlaybackProgress() {
+    playbackProgressJob?.cancel()
+    playbackProgressJob =
+      viewModelScope.launch {
+        player.get().playbackProgressFlow().collect { raw ->
+          val playbackProgress = playerRepository.toPlaybackProgress(raw, _uiState.value)
+          _uiState.update { it.copy(playbackProgress = playbackProgress) }
+        }
+      }
   }
 }
 
