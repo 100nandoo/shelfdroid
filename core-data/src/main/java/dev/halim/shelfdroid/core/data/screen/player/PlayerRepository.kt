@@ -5,19 +5,13 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.DeviceInfo
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.response.libraryitem.Book
-import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
-import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.nio.ByteBuffer
 import java.util.UUID
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 class PlayerRepository
@@ -25,9 +19,9 @@ class PlayerRepository
 constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
-  private val dataStoreManager: DataStoreManager,
   private val helper: Helper,
   private val apiService: ApiService,
+  private val mapper: PlayerMapper,
 ) {
 
   suspend fun playBook(id: String): PlayerUiState {
@@ -42,7 +36,7 @@ constructor(
             PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
 
           val response = apiService.playBook(id, request)
-          val playerTracks = response.audioTracks.map { toPlayerTrack(it) }
+          val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
 
           val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
           playerUiState.copy(
@@ -68,10 +62,14 @@ constructor(
             PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
 
           val response = apiService.playPodcast(itemId, episodeId, request)
-          val playerTracks = response.audioTracks.map { toPlayerTrack(it) }
+          val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
 
           val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
-          playerUiState.copy(playerTracks = playerTracks, currentTrack = currentTrack)
+          playerUiState.copy(
+            playerTracks = playerTracks,
+            currentTrack = currentTrack,
+            currentTime = response.currentTime,
+          )
         }
         .getOrNull()
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
@@ -84,7 +82,7 @@ constructor(
       val media = Json.decodeFromString<Book>(result.media)
       val chapters =
         media.chapters.mapIndexed { i, bookChapter ->
-          toPlayerChapter(i, bookChapter, media.chapters.size)
+          mapper.toPlayerChapter(i, bookChapter, media.chapters.size)
         }
       val chapter = findCurrentPlayerChapter(chapters, progress?.currentTime ?: 0.0)
       PlayerUiState(
@@ -106,7 +104,6 @@ constructor(
 
   private fun podcast(itemId: String, episodeId: String): PlayerUiState {
     val result = libraryItemRepo.byId(itemId)
-    val progress = progressRepo.episodeById(episodeId)
 
     return if (result != null && result.isBook == 0L) {
       val media = Json.decodeFromString<Podcast>(result.media)
@@ -175,6 +172,14 @@ constructor(
     }
   }
 
+  fun updatePlayback(uiState: PlayerUiState, raw: RawPlaybackProgress): PlayerUiState {
+    val isBook = uiState.episodeId.isBlank()
+    val playbackProgress =
+      if (isBook) mapper.toPlaybackProgressBook(uiState, raw)
+      else mapper.toPlaybackProgressPodcast(raw)
+    return uiState.copy(playbackProgress = playbackProgress)
+  }
+
   private fun findTrackFromChapter(uiState: PlayerUiState, chapter: PlayerChapter): PlayerTrack {
     val tracks = uiState.playerTracks
     return if (tracks.size == 1) {
@@ -183,73 +188,6 @@ constructor(
       val track = tracks.lastOrNull { it.startOffset <= chapter.startTimeSeconds } ?: tracks.first()
       track
     }
-  }
-
-  private suspend fun getToken(): String =
-    withContext(Dispatchers.IO) { dataStoreManager.token.first() }
-
-  private suspend fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
-    val url = helper.generateContentUrl(getToken(), audioTrack.contentUrl)
-    return PlayerTrack(url, audioTrack.duration, audioTrack.startOffset)
-  }
-
-  private fun toPlayerChapter(
-    index: Int,
-    bookChapter: BookChapter,
-    totalChapters: Int,
-  ): PlayerChapter {
-    val position =
-      when (index) {
-        0 -> ChapterPosition.First
-        totalChapters - 1 -> ChapterPosition.Last
-        else -> ChapterPosition.Middle
-      }
-    return PlayerChapter(
-      bookChapter.id,
-      bookChapter.start,
-      bookChapter.end,
-      helper.formatChapterTime(bookChapter.start, true),
-      helper.formatChapterTime(bookChapter.end, true),
-      bookChapter.title,
-      position,
-    )
-  }
-
-  fun toPlaybackProgress(raw: RawPlaybackProgress, uiState: PlayerUiState): PlaybackProgress {
-    val currentChapter = uiState.currentChapter
-    val currentTrack = uiState.currentTrack
-    val duration =
-      if (currentChapter != null) {
-        (currentChapter.endTimeSeconds - currentChapter.startTimeSeconds)
-      } else {
-        currentTrack.duration
-      }
-
-    val position =
-      if (currentChapter != null) {
-        if (uiState.playerTracks.size > 1) {
-          (((raw.position / 1000) + currentTrack.startOffset) - currentChapter.startTimeSeconds)
-            .toFloat()
-        } else {
-          ((raw.position / 1000) - currentChapter.startTimeSeconds).toFloat()
-        }
-      } else {
-        ((raw.position / 1000) - currentTrack.startOffset).toFloat()
-      }
-
-    val buffered = (raw.bufferedPosition / 1000)
-
-    val progress = if (duration > 0) position / duration.toFloat() else 0f
-    val bufferProgress = if (duration > 0) buffered / duration.toFloat() else 0f
-
-    val formattedPosition = helper.formatChapterTime(position.toDouble())
-    val formattedDuration = helper.formatChapterTime(duration)
-    return PlaybackProgress(
-      position = formattedPosition,
-      duration = formattedDuration,
-      bufferedPosition = bufferProgress,
-      progress = progress,
-    )
   }
 
   private fun generateNanoId(): String {

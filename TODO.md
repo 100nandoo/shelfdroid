@@ -2,6 +2,7 @@
 
 ## High Priority
 
+- [ ] Player, show progressbar timing for podcast
 - [ ] Player, handle seek on progressbar
 - [ ] Save device id to local storage
 - [ ] Find episode from podcast function

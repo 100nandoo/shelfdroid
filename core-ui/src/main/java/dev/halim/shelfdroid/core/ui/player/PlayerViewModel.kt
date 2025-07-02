@@ -84,8 +84,7 @@ constructor(
     playbackProgressJob =
       viewModelScope.launch {
         player.get().playbackProgressFlow().collect { raw ->
-          val playbackProgress = playerRepository.toPlaybackProgress(raw, _uiState.value)
-          _uiState.update { it.copy(playbackProgress = playbackProgress) }
+          _uiState.update { playerRepository.updatePlayback(_uiState.value, raw) }
         }
       }
   }
