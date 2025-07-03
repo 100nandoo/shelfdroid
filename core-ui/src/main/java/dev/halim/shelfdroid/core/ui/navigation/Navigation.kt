@@ -126,6 +126,7 @@ private fun ColumnScope.NavHostContainer(
       composable<Podcast> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
           PodcastScreen(
+            playerViewModel = playerViewModel,
             onEpisodeClicked = { itemId, episodeId ->
               navController.navigate(Episode(itemId, episodeId))
             },

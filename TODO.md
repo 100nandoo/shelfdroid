@@ -2,8 +2,7 @@
 
 ## High Priority
 
-- [ ] Player, show progressbar timing for podcast
-- [ ] Player, handle seek on progressbar
+- [ ] Handle play button state on book and episode screen
 - [ ] Save device id to local storage
 - [ ] Find episode from podcast function
 - [ ] Preview for all UI component
@@ -30,3 +29,5 @@
 - [x] Media Notification with custom commands
 - [x] Player, show progressbar
 - [x] Player, show progressbar timing
+- [x] Player, show progressbar timing for podcast
+- [x] Player, handle seek on progressbar

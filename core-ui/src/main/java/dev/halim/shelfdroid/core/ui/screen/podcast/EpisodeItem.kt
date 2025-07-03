@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -43,6 +45,8 @@ fun EpisodeItem(
   onEvent: (PodcastEvent) -> Unit,
   onEpisodeClicked: (String, String) -> Unit,
   onPlayClicked: (String, String) -> Unit,
+  isPlaying: Boolean,
+  playbackProgress: PlaybackProgress,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -78,10 +82,11 @@ fun EpisodeItem(
               overflow = TextOverflow.Ellipsis,
             )
             Spacer(modifier = Modifier.weight(1f))
-            AnimatedVisibility(episode.isFinished.not()) {
+            AnimatedVisibility(episode.isFinished.not() || isPlaying) {
+              val progress = if (isPlaying) playbackProgress.progress else episode.progress
               LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
-                progress = { episode.progress },
+                progress = { progress },
                 drawStopIndicator = {},
               )
             }
@@ -99,7 +104,9 @@ fun EpisodeItem(
             Icon(Icons.Default.Download, contentDescription = "Download")
           }
           FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.id) }) {
-            Icon(Icons.Default.PlayArrow, contentDescription = "Play Pause")
+            val icon = if (isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
+            val contentDescription = if (isPlaying.not()) "Play" else "Pause"
+            Icon(icon, contentDescription)
           }
         }
       }
@@ -114,7 +121,7 @@ fun EpisodeItemPreview() {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
-        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }) }
+        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }, false, PlaybackProgress()) }
       }
     }
   }
@@ -127,7 +134,7 @@ fun EpisodeItemDynamicPreview() {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
-        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }) }
+        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }, false, PlaybackProgress()) }
       }
     }
   }

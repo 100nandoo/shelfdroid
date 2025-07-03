@@ -2,9 +2,11 @@ package dev.halim.shelfdroid.core.ui.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.screen.player.ExoState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
@@ -43,8 +45,14 @@ constructor(
       }
       is PlayerEvent.PlayPodcast -> {
         viewModelScope.launch {
-          _uiState.update { playerRepository.playPodcast(event.itemId, event.episodeId) }
-          playContent()
+          when {
+            _uiState.value.episodeId != event.episodeId -> {
+              _uiState.update { playerRepository.playPodcast(event.itemId, event.episodeId) }
+              playContent()
+            }
+            player.get().isPlaying -> pause()
+            else -> resume()
+          }
         }
       }
       is PlayerEvent.ChangeChapter -> {
@@ -79,7 +87,16 @@ constructor(
       prepare()
       play()
       collectPlaybackProgress()
+      listenIsPlaying()
     }
+  }
+
+  private fun pause() {
+    player.get().pause()
+  }
+
+  private fun resume() {
+    player.get().play()
   }
 
   private fun seekTo() {
@@ -90,6 +107,25 @@ constructor(
   }
 
   private var playbackProgressJob: Job? = null
+  private var isPlayingJob: Job? = null
+
+  private fun listenIsPlaying() {
+    isPlayingJob?.cancel()
+    isPlayingJob =
+      viewModelScope.launch {
+        player
+          .get()
+          .addListener(
+            object : Player.Listener {
+              override fun onIsPlayingChanged(isPlaying: Boolean) {
+                super.onIsPlayingChanged(isPlaying)
+                val exoState = if (isPlaying) ExoState.Playing else ExoState.Pause
+                _uiState.update { it.copy(exoState = exoState) }
+              }
+            }
+          )
+      }
+  }
 
   private fun collectPlaybackProgress() {
     playbackProgressJob?.cancel()

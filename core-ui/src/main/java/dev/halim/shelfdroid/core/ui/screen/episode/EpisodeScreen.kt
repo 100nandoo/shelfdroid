@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,45 +71,46 @@ fun EpisodeScreenContent(
   val animatedContentScope = LocalAnimatedContentScope.current
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      Column(
+      LazyColumn(
         modifier =
           Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episodeId))
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState()),
+            .padding(horizontal = 16.dp),
+        reverseLayout = true,
         verticalArrangement = Arrangement.Bottom,
       ) {
-        Row(Modifier.height(IntrinsicSize.Max)) {
-          ItemCover(
-            Modifier.weight(1f).fillMaxHeight(),
-            cover = cover,
-            animationKey = Animations.Companion.Episode.coverKey(itemId),
-            fontSize = 10.sp,
-            shape = RoundedCornerShape(4.dp),
-          )
+        item { PlayButton { onPlayClicked() } }
+        item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
+        item {
+          Row(Modifier.height(IntrinsicSize.Max)) {
+            ItemCover(
+              Modifier.weight(1f).fillMaxHeight(),
+              cover = cover,
+              animationKey = Animations.Companion.Episode.coverKey(itemId),
+              fontSize = 10.sp,
+              shape = RoundedCornerShape(4.dp),
+            )
 
-          Column(
-            Modifier.weight(4f).padding(8.dp).fillMaxHeight(),
-            verticalArrangement = Arrangement.Center,
-          ) {
-            Text(
-              modifier =
-                Modifier.mySharedBound(Animations.Companion.Episode.titleKey(episodeId, title)),
-              text = title,
-              style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-              modifier =
-                Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episodeId)),
-              text = publishedAt,
-              style = MaterialTheme.typography.labelMedium,
-              textAlign = TextAlign.Start,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(
+              Modifier.weight(4f).padding(8.dp).fillMaxHeight(),
+              verticalArrangement = Arrangement.Center,
+            ) {
+              Text(
+                modifier =
+                  Modifier.mySharedBound(Animations.Companion.Episode.titleKey(episodeId, title)),
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+              )
+              Text(
+                modifier =
+                  Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episodeId)),
+                text = publishedAt,
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Start,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
           }
         }
-        ExpandShrinkText(text = description, maxLines = 3, expanded = false)
-        PlayButton { onPlayClicked() }
       }
     }
   }

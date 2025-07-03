@@ -186,6 +186,9 @@ constructor(
         if (chapterPosition >= currentChapter.endTimeSeconds) {
           val newUiState = previousNextChapter(uiState, false)
           return newUiState.copy(playbackProgress = playbackProgress)
+        } else if (chapterPosition <= currentChapter.startTimeSeconds) {
+          val newUiState = previousNextChapter(uiState, true)
+          return newUiState.copy(playbackProgress = playbackProgress)
         }
       }
     }
@@ -243,8 +246,15 @@ sealed class PlayerState {
   data object Small : PlayerState()
 }
 
+sealed class ExoState {
+  data object Playing : ExoState()
+
+  data object Pause : ExoState()
+}
+
 data class PlayerUiState(
   val state: PlayerState = PlayerState.Hidden(),
+  val exoState: ExoState = ExoState.Pause,
   val id: String = "",
   val episodeId: String = "",
   val author: String = "",
