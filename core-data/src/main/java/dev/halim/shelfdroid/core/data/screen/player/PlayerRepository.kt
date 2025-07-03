@@ -22,6 +22,7 @@ constructor(
   private val helper: Helper,
   private val apiService: ApiService,
   private val mapper: PlayerMapper,
+  private val finder: PlayerFinder,
 ) {
 
   suspend fun playBook(id: String): PlayerUiState {
@@ -172,12 +173,30 @@ constructor(
     }
   }
 
-  fun updatePlayback(uiState: PlayerUiState, raw: RawPlaybackProgress): PlayerUiState {
+  fun toPlayback(uiState: PlayerUiState, raw: RawPlaybackProgress): PlayerUiState {
     val isBook = uiState.episodeId.isBlank()
     val playbackProgress =
       if (isBook) mapper.toPlaybackProgressBook(uiState, raw)
       else mapper.toPlaybackProgressPodcast(raw)
     return uiState.copy(playbackProgress = playbackProgress)
+  }
+
+  fun seekTo(uiState: PlayerUiState, target: Float, rawDurationMs: Long): PlayerUiState {
+    val isBook = uiState.episodeId.isBlank()
+    val durationMs =
+      if (isBook) {
+        (finder.bookDuration(uiState) * 1000).toLong()
+      } else {
+        rawDurationMs
+      }
+    val positionMs = finder.bookRawPositionMs(uiState, target, durationMs)
+
+    val currentTime = (positionMs / 1000)
+    val raw = RawPlaybackProgress(positionMs, durationMs, 0)
+    val playbackProgress =
+      if (isBook) mapper.toPlaybackProgressBook(uiState, raw)
+      else mapper.toPlaybackProgressPodcast(raw)
+    return uiState.copy(playbackProgress = playbackProgress, currentTime = currentTime.toDouble())
   }
 
   private fun findTrackFromChapter(uiState: PlayerUiState, chapter: PlayerChapter): PlayerTrack {
@@ -219,7 +238,6 @@ data class PlayerUiState(
   val author: String = "",
   val title: String = "",
   val cover: String = "",
-  val progress: Float = 0f,
   val currentTime: Double = 0.0,
   val playerTracks: List<PlayerTrack> = emptyList(),
   val currentTrack: PlayerTrack = PlayerTrack(),
@@ -251,8 +269,8 @@ enum class ChapterPosition {
 }
 
 data class RawPlaybackProgress(
-  val position: Long = 0,
-  val duration: Long = 0,
+  val positionMs: Long = 0,
+  val durationMs: Long = 0,
   val bufferedPosition: Long = 0,
 )
 

@@ -104,7 +104,7 @@ fun BigPlayerContent(
 
         BookmarkAndChapter(chapters, currentChapter, onEvent)
 
-        PlayerProgress(id, progress)
+        PlayerProgress(id, progress, player, onEvent)
 
         BasicPlayerControl(player, id, currentChapter, onEvent)
 
@@ -150,11 +150,19 @@ fun BasicPlayerContent(id: String, author: String, title: String, cover: String)
   }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun PlayerProgress(id: String = "", progress: PlaybackProgress = PlaybackProgress()) {
+fun PlayerProgress(
+  id: String = "",
+  progress: PlaybackProgress = PlaybackProgress(),
+  player: Player,
+  onEvent: (PlayerEvent) -> Unit,
+) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
+  val state = rememberSeekSliderState(player)
 
+  val sliderValue = if (state.isDragging) state.target else progress.progress
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -170,11 +178,15 @@ fun PlayerProgress(id: String = "", progress: PlaybackProgress = PlaybackProgres
         )
       }
       Slider(
-        value = progress.progress,
-        onValueChange = {},
+        value = sliderValue,
+        onValueChange = state::onValueChange,
         modifier =
           Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
-        onValueChangeFinished = {},
+        onValueChangeFinished = {
+          state.onValueChangeFinished()
+          onEvent(PlayerEvent.SeekTo(state.target))
+        },
+        enabled = state.isEnabled,
         colors =
           SliderDefaults.colors(
             thumbColor = MaterialTheme.colorScheme.primary,

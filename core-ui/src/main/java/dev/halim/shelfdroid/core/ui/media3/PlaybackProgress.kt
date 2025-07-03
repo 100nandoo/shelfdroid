@@ -2,21 +2,51 @@ package dev.halim.shelfdroid.core.ui.media3
 
 import androidx.media3.common.Player
 import dev.halim.shelfdroid.core.data.screen.player.RawPlaybackProgress
-import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 
-fun Player.playbackProgressFlow(): Flow<RawPlaybackProgress> = flow {
-  while (true) {
-    emit(
-      RawPlaybackProgress(
-        position = currentPosition,
-        duration = duration,
-        bufferedPosition = bufferedPosition,
-      )
-    )
+fun Player.playbackProgressFlow(): Flow<RawPlaybackProgress> = callbackFlow {
+  var job: Job? = null
 
-    delay(1.seconds)
+  fun startPlayerTracking() {
+    job?.cancel()
+    job = launch {
+      while (true) {
+        trySend(
+          RawPlaybackProgress(
+            positionMs = currentPosition,
+            durationMs = duration,
+            bufferedPosition = bufferedPosition,
+          )
+        )
+        delay(500)
+      }
+    }
+  }
+
+  val listener =
+    object : Player.Listener {
+      override fun onIsPlayingChanged(isPlaying: Boolean) {
+        if (isPlaying) {
+          startPlayerTracking()
+        } else {
+          job?.cancel()
+        }
+      }
+    }
+
+  addListener(listener)
+
+  if (isPlaying) {
+    startPlayerTracking()
+  }
+
+  awaitClose {
+    removeListener(listener)
+    job?.cancel()
   }
 }

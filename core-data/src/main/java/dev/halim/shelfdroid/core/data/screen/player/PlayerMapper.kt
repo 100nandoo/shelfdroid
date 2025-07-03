@@ -11,7 +11,11 @@ import kotlinx.coroutines.withContext
 
 class PlayerMapper
 @Inject
-constructor(private val helper: Helper, private val dataStoreManager: DataStoreManager) {
+constructor(
+  private val helper: Helper,
+  private val dataStoreManager: DataStoreManager,
+  private val finder: PlayerFinder,
+) {
 
   private suspend fun getToken(): String =
     withContext(Dispatchers.IO) { dataStoreManager.token.first() }
@@ -40,8 +44,8 @@ constructor(private val helper: Helper, private val dataStoreManager: DataStoreM
   }
 
   fun toPlaybackProgressPodcast(raw: RawPlaybackProgress): PlaybackProgress {
-    val position = raw.position / 1000
-    val duration = (raw.duration / 1000).toFloat()
+    val position = raw.positionMs / 1000
+    val duration = (raw.durationMs / 1000).toFloat()
     val buffered = (raw.bufferedPosition / 1000)
     val formattedPosition = helper.formatChapterTime(position.toDouble())
     val formattedDuration = helper.formatChapterTime(duration.toDouble())
@@ -56,34 +60,16 @@ constructor(private val helper: Helper, private val dataStoreManager: DataStoreM
   }
 
   fun toPlaybackProgressBook(uiState: PlayerUiState, raw: RawPlaybackProgress): PlaybackProgress {
-    val currentChapter = uiState.currentChapter
-    val currentTrack = uiState.currentTrack
-    val duration =
-      if (currentChapter != null) {
-        (currentChapter.endTimeSeconds - currentChapter.startTimeSeconds)
-      } else {
-        currentTrack.duration
-      }
+    val duration = finder.bookDuration(uiState)
 
-    val position =
-      if (currentChapter != null) {
-        if (uiState.playerTracks.size > 1) {
-          (((raw.position / 1000) + currentTrack.startOffset) - currentChapter.startTimeSeconds)
-            .toFloat()
-        } else {
-          ((raw.position / 1000) - currentChapter.startTimeSeconds).toFloat()
-        }
-      } else {
-        ((raw.position / 1000) - currentTrack.startOffset).toFloat()
-      }
-
+    val position = finder.bookPosition(uiState, raw.positionMs)
     val buffered = (raw.bufferedPosition / 1000)
 
-    val formattedPosition = helper.formatChapterTime(position.toDouble())
+    val formattedPosition = helper.formatChapterTime(position)
     val formattedDuration = helper.formatChapterTime(duration)
     val formattedBuffered = if (duration > 0) buffered / duration.toFloat() else 0f
 
-    val progress = if (duration > 0) position / duration.toFloat() else 0f
+    val progress = if (duration > 0) (position / duration).toFloat() else 0f
 
     return PlaybackProgress(
       position = formattedPosition,

@@ -51,6 +51,11 @@ constructor(
         _uiState.update { playerRepository.changeChapter(_uiState.value, event.target) }
         playContent()
       }
+      is PlayerEvent.SeekTo -> {
+        val durationMs = player.get().duration
+        _uiState.update { playerRepository.seekTo(_uiState.value, event.target, durationMs) }
+        seekTo()
+      }
       PlayerEvent.PreviousChapter -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
         playContent()
@@ -77,6 +82,13 @@ constructor(
     }
   }
 
+  private fun seekTo() {
+    player.get().apply {
+      val positionMs = _uiState.value.currentTime.toLong() * 1000
+      seekTo(positionMs)
+    }
+  }
+
   private var playbackProgressJob: Job? = null
 
   private fun collectPlaybackProgress() {
@@ -84,7 +96,7 @@ constructor(
     playbackProgressJob =
       viewModelScope.launch {
         player.get().playbackProgressFlow().collect { raw ->
-          _uiState.update { playerRepository.updatePlayback(_uiState.value, raw) }
+          _uiState.update { playerRepository.toPlayback(_uiState.value, raw) }
         }
       }
   }
@@ -96,6 +108,8 @@ sealed class PlayerEvent {
   class PlayPodcast(val itemId: String, val episodeId: String) : PlayerEvent()
 
   class ChangeChapter(val target: Int) : PlayerEvent()
+
+  class SeekTo(val target: Float) : PlayerEvent()
 
   data object PreviousChapter : PlayerEvent()
 
