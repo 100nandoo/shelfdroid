@@ -178,6 +178,18 @@ constructor(
     val playbackProgress =
       if (isBook) mapper.toPlaybackProgressBook(uiState, raw)
       else mapper.toPlaybackProgressPodcast(raw)
+
+    if (isBook) {
+      val currentChapter = uiState.currentChapter
+      if (currentChapter != null) {
+        val chapterPosition = raw.positionMs / 1000
+        if (chapterPosition >= currentChapter.endTimeSeconds) {
+          val newUiState = previousNextChapter(uiState, false)
+          return newUiState.copy(playbackProgress = playbackProgress)
+        }
+      }
+    }
+
     return uiState.copy(playbackProgress = playbackProgress)
   }
 

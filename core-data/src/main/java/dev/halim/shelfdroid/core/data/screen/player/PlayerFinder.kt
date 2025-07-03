@@ -16,19 +16,20 @@ class PlayerFinder @Inject constructor() {
     return duration
   }
 
-  fun bookPosition(uiState: PlayerUiState, positionMs: Long): Double {
+  // Find chapter position (in second) based on raw position (in ms, from ExoPlayer)
+  fun bookChapterPosition(uiState: PlayerUiState, rawPositionMs: Long): Double {
     val currentChapter = uiState.currentChapter
     val currentTrack = uiState.currentTrack
     val position =
       if (currentChapter != null) {
         if (uiState.playerTracks.size > 1) {
-          (((positionMs / 1000) + currentTrack.startOffset) - currentChapter.startTimeSeconds)
+          (((rawPositionMs / 1000) + currentTrack.startOffset) - currentChapter.startTimeSeconds)
             .toFloat()
         } else {
-          ((positionMs / 1000) - currentChapter.startTimeSeconds).toFloat()
+          ((rawPositionMs / 1000) - currentChapter.startTimeSeconds).toFloat()
         }
       } else {
-        ((positionMs / 1000) - currentTrack.startOffset).toFloat()
+        ((rawPositionMs / 1000) - currentTrack.startOffset).toFloat()
       }
     return position.toDouble()
   }

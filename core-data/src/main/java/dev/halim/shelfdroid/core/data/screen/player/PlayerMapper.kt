@@ -62,7 +62,7 @@ constructor(
   fun toPlaybackProgressBook(uiState: PlayerUiState, raw: RawPlaybackProgress): PlaybackProgress {
     val duration = finder.bookDuration(uiState)
 
-    val position = finder.bookPosition(uiState, raw.positionMs)
+    val position = finder.bookChapterPosition(uiState, raw.positionMs)
     val buffered = (raw.bufferedPosition / 1000)
 
     val formattedPosition = helper.formatChapterTime(position)
