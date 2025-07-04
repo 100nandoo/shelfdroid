@@ -15,27 +15,34 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.player.ExoState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (String) -> Unit) {
+fun BookScreen(
+  viewModel: BookViewModel = hiltViewModel(),
+  playerViewModel: PlayerViewModel,
+  onPlayClicked: (String) -> Unit,
+) {
 
-  val uiState by viewModel.uiState.collectAsState()
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
   if (uiState.state == GenericState.Success) {
     BookScreenContent(
       id = viewModel.id,
@@ -52,6 +59,8 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), onPlayClicked: (Strin
       genres = uiState.genres,
       language = uiState.language,
       progress = uiState.progress,
+      currentItemId = playerUiState.id,
+      exoState = playerUiState.exoState,
       onPlayClicked = { onPlayClicked(viewModel.id) },
     )
   }
@@ -73,10 +82,14 @@ fun BookScreenContent(
   genres: String = Defaults.BOOK_GENRES,
   language: String = Defaults.BOOK_LANGUAGE,
   progress: String = Defaults.PROGRESS_PERCENT,
+  currentItemId: String = Defaults.BOOK_ID,
+  exoState: ExoState = ExoState.Pause,
   onPlayClicked: () -> Unit,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
+
+  val isPlaying = currentItemId == id && exoState == ExoState.Playing
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
@@ -90,7 +103,7 @@ fun BookScreenContent(
       ) {
         item {
           Spacer(modifier = Modifier.height(16.dp))
-          PlayButton { onPlayClicked() }
+          PlayButton(isPlaying = isPlaying) { onPlayClicked() }
           ProgressRow(progress, remaining)
           ExpandShrinkText(text = description)
           BookDetail(duration, narrator, publishYear, publisher, genres, language)

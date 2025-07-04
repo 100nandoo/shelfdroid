@@ -16,14 +16,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.player.ExoState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -31,6 +32,7 @@ import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
+import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -38,10 +40,15 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun EpisodeScreen(
   viewModel: EpisodeViewModel = hiltViewModel(),
+  playerViewModel: PlayerViewModel,
   onPlayClicked: (String, String) -> Unit,
 ) {
 
-  val uiState by viewModel.uiState.collectAsState()
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+  val isPlaying =
+    viewModel.episodeId == playerUiState.episodeId && playerUiState.exoState == ExoState.Playing
+
   if (uiState.state == GenericState.Success) {
     EpisodeScreenContent(
       itemId = viewModel.itemId,
@@ -51,6 +58,7 @@ fun EpisodeScreen(
       podcast = uiState.podcast,
       publishedAt = uiState.publishedAt,
       description = uiState.description,
+      isPlaying = isPlaying,
       onPlayClicked = { onPlayClicked(viewModel.itemId, viewModel.episodeId) },
     )
   }
@@ -65,6 +73,7 @@ fun EpisodeScreenContent(
   podcast: String = Defaults.EPISODE_PODCAST,
   publishedAt: String = Defaults.EPISODE_PUBLISHED_AT,
   description: String = Defaults.EPISODE_DESCRIPTION,
+  isPlaying: Boolean = false,
   onPlayClicked: () -> Unit = {},
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -78,7 +87,7 @@ fun EpisodeScreenContent(
         reverseLayout = true,
         verticalArrangement = Arrangement.Bottom,
       ) {
-        item { PlayButton { onPlayClicked() } }
+        item { PlayButton(isPlaying = isPlaying) { onPlayClicked() } }
         item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
         item {
           Row(Modifier.height(IntrinsicSize.Max)) {

@@ -61,8 +61,14 @@ constructor(
     when (event) {
       is PlayerEvent.PlayBook -> {
         viewModelScope.launch {
-          _uiState.update { playerRepository.playBook(event.id) }
-          playContent()
+          when {
+            _uiState.value.id != event.id -> {
+              _uiState.update { playerRepository.playBook(event.id) }
+              playContent()
+            }
+            player.get().isPlaying -> pause()
+            else -> resume()
+          }
         }
       }
       is PlayerEvent.PlayPodcast -> {

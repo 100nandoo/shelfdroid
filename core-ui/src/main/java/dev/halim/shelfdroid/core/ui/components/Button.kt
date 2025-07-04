@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -61,17 +62,23 @@ fun MyIconButtonPreview() {
 }
 
 @Composable
-fun PlayButton(modifier: Modifier = Modifier, onPlayClicked: () -> Unit) {
+fun PlayButton(
+  modifier: Modifier = Modifier,
+  isPlaying: Boolean = false,
+  onPlayClicked: () -> Unit,
+) {
+  val icon = if (isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
+  val contentDescription = if (isPlaying.not()) "Play" else "Pause"
   Button(
     onClick = { onPlayClicked() },
     modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
   ) {
     Icon(
-      imageVector = Icons.Filled.PlayArrow,
-      contentDescription = "Play",
+      imageVector = icon,
+      contentDescription = contentDescription,
       modifier = Modifier.padding(end = 8.dp),
     )
-    Text("Play")
+    Text(contentDescription)
   }
 }
 
