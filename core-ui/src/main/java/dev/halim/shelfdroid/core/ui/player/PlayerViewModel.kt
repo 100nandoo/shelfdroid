@@ -104,6 +104,7 @@ constructor(
       PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }
       PlayerEvent.TempHidden -> _uiState.update { it.copy(state = PlayerState.TempHidden) }
       PlayerEvent.Hidden -> _uiState.update { it.copy(state = Hidden()) }
+      PlayerEvent.Logout -> logout()
     }
   }
 
@@ -132,6 +133,21 @@ constructor(
       val positionMs = _uiState.value.currentTime.toLong() * 1000
       seekTo(positionMs)
     }
+  }
+
+  private fun clearAndStop() {
+    player.get().apply {
+      MediaIdHolder.reset()
+      stop()
+      clearMediaItems()
+      playbackProgressJob?.cancel()
+      isPlayingJob?.cancel()
+    }
+  }
+
+  private fun logout() {
+    _uiState.update { PlayerUiState() }
+    clearAndStop()
   }
 
   private var playbackProgressJob: Job? = null
@@ -178,6 +194,8 @@ sealed class PlayerEvent {
   data object PreviousChapter : PlayerEvent()
 
   data object NextChapter : PlayerEvent()
+
+  data object Logout : PlayerEvent()
 
   data object Big : PlayerEvent()
 

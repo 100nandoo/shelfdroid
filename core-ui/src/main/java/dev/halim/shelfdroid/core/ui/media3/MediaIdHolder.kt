@@ -9,4 +9,8 @@ object MediaIdHolder {
   fun setMediaId(mediaId: String) {
     mediaIdWrapper = MediaIdWrapper.fromMediaId(mediaId)
   }
+
+  fun reset() {
+    mediaIdWrapper = null
+  }
 }
