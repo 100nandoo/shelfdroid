@@ -76,7 +76,7 @@ constructor(
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
   }
 
-  private fun book(id: String): PlayerUiState {
+  fun book(id: String): PlayerUiState {
     val result = libraryItemRepo.byId(id)
     val progress = progressRepo.byLibraryItemId(id)
     return if (result != null) {
@@ -103,7 +103,7 @@ constructor(
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
 
-  private fun podcast(itemId: String, episodeId: String): PlayerUiState {
+  fun podcast(itemId: String, episodeId: String): PlayerUiState {
     val result = libraryItemRepo.byId(itemId)
 
     return if (result != null && result.isBook == 0L) {

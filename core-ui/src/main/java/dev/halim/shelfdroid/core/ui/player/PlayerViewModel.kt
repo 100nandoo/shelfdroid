@@ -11,6 +11,7 @@ import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
+import dev.halim.shelfdroid.core.ui.media3.MediaIdHolder
 import dev.halim.shelfdroid.core.ui.media3.playbackProgressFlow
 import javax.inject.Inject
 import kotlinx.coroutines.Job
@@ -31,6 +32,27 @@ constructor(
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(PlayerUiState())
+
+  init {
+    setupUiState()
+  }
+
+  // To retrieve the uiState when user press back on root of stack (activity is destroyed)
+  // but there is ongoing playback
+  private fun setupUiState() {
+    val mediaIdWrapper = MediaIdHolder.mediaIdWrapper
+    mediaIdWrapper?.let {
+      val itemId = it.itemId
+      val episodeId = it.episodeId
+      if (episodeId == null) {
+        _uiState.value = playerRepository.book(itemId)
+      } else {
+        _uiState.value = playerRepository.podcast(itemId, episodeId)
+      }
+      collectPlaybackProgress()
+      listenIsPlaying()
+    }
+  }
 
   val uiState: StateFlow<PlayerUiState> =
     _uiState.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), PlayerUiState())

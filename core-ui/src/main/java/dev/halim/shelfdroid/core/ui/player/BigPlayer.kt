@@ -187,6 +187,9 @@ fun PlayerProgress(
           onEvent(PlayerEvent.SeekTo(state.target))
         },
         enabled = state.isEnabled,
+        track = { sliderState ->
+          SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = {})
+        },
         colors =
           SliderDefaults.colors(
             thumbColor = MaterialTheme.colorScheme.primary,

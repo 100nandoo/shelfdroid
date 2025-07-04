@@ -50,6 +50,7 @@ class PlaybackService : MediaLibraryService() {
             super.onIsPlayingChanged(isPlaying)
             if (isPlaying) {
               player.get().currentMediaItem?.mediaId?.let {
+                MediaIdHolder.setMediaId(it)
                 val intent = createIntent(it)
                 Log.d("media3", "onIsPlayingChanged: $it")
                 mediaLibrarySession.setSessionActivity(intent)

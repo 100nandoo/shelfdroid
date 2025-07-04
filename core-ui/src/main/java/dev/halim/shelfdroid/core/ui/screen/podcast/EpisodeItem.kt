@@ -83,10 +83,15 @@ fun EpisodeItem(
             )
             Spacer(modifier = Modifier.weight(1f))
             AnimatedVisibility(episode.isFinished.not() || isPlaying) {
-              val progress = if (isPlaying) playbackProgress.progress else episode.progress
+              val currentProgress =
+                when {
+                  isPlaying -> playbackProgress.progress
+                  !episode.isFinished -> episode.progress
+                  else -> 0f
+                }
               LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
-                progress = { progress },
+                progress = { currentProgress },
                 drawStopIndicator = {},
               )
             }
