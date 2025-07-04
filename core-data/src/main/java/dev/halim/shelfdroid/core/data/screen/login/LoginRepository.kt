@@ -35,7 +35,6 @@ constructor(
       updateBaseUrl(server)
       updateToken(response.user.token)
       updateUserId(response.user.id)
-      generateDeviceId()
     }
   }
 }

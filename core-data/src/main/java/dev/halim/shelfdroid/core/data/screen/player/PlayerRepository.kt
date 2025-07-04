@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.data.screen.player
 
-import android.util.Base64
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.DeviceInfo
 import dev.halim.core.network.request.PlayRequest
@@ -9,9 +8,10 @@ import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import java.nio.ByteBuffer
-import java.util.UUID
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 class PlayerRepository
@@ -23,7 +23,11 @@ constructor(
   private val apiService: ApiService,
   private val mapper: PlayerMapper,
   private val finder: PlayerFinder,
+  private val dataStoreManager: DataStoreManager,
 ) {
+
+  private suspend fun getDeviceId(): String =
+    withContext(Dispatchers.IO) { dataStoreManager.getDeviceId() }
 
   suspend fun playBook(id: String): PlayerUiState {
     val playerUiState = book(id)
@@ -32,7 +36,7 @@ constructor(
     }
     val result =
       runCatching {
-          val deviceInfo = DeviceInfo("ShelfDroid", generateNanoId())
+          val deviceInfo = DeviceInfo("ShelfDroid", getDeviceId())
           val request =
             PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
 
@@ -58,7 +62,7 @@ constructor(
     }
     val result =
       runCatching {
-          val deviceInfo = DeviceInfo("ShelfDroid", generateNanoId())
+          val deviceInfo = DeviceInfo("ShelfDroid", getDeviceId())
           val request =
             PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
 
@@ -222,17 +226,6 @@ constructor(
       val track = tracks.lastOrNull { it.startOffset <= chapter.startTimeSeconds } ?: tracks.first()
       track
     }
-  }
-
-  private fun generateNanoId(): String {
-    val uuid = UUID.randomUUID()
-    val byteBuffer = ByteBuffer.wrap(ByteArray(16))
-    byteBuffer.putLong(uuid.mostSignificantBits)
-    byteBuffer.putLong(uuid.leastSignificantBits)
-    return Base64.encodeToString(
-      byteBuffer.array(),
-      Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP,
-    )
   }
 }
 

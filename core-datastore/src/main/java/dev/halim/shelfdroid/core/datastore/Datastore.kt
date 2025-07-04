@@ -1,13 +1,14 @@
 package dev.halim.shelfdroid.core.datastore
 
+import android.util.Base64
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import java.nio.ByteBuffer
+import java.util.UUID
 import javax.inject.Inject
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -43,12 +44,12 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
 
   suspend fun updateToken(token: String) = dataStore.updatePreference(Keys.TOKEN, token)
 
-  val deviceId: Flow<String> = dataStore.preferenceFlow(Keys.DEVICE_ID, "")
-
-  @OptIn(ExperimentalUuidApi::class)
-  suspend fun generateDeviceId() {
-    if (deviceId.first().isBlank()) {
-      dataStore.updatePreference(Keys.DEVICE_ID, Uuid.random().toString())
+  suspend fun getDeviceId(): String {
+    val currentDeviceId = dataStore.preferenceFlow(Keys.DEVICE_ID, "").first()
+    return currentDeviceId.ifEmpty {
+      val newDeviceId = generateDeviceId()
+      dataStore.updatePreference(Keys.DEVICE_ID, newDeviceId)
+      newDeviceId
     }
   }
 
@@ -66,5 +67,21 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   suspend fun updateDynamicTheme(dynamicTheme: Boolean) =
     dataStore.updatePreference(Keys.DYNAMIC_THEME, dynamicTheme)
 
-  suspend fun clear() = dataStore.edit { it.clear() }
+  private fun generateDeviceId(): String {
+    val uuid = UUID.randomUUID()
+    val byteBuffer = ByteBuffer.wrap(ByteArray(16))
+    byteBuffer.putLong(uuid.mostSignificantBits)
+    byteBuffer.putLong(uuid.leastSignificantBits)
+    return Base64.encodeToString(
+      byteBuffer.array(),
+      Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP,
+    )
+  }
+
+  suspend fun clear() =
+    dataStore.edit { preferences ->
+      val deviceId = preferences[Keys.DEVICE_ID]
+      preferences.clear()
+      deviceId?.let { preferences[Keys.DEVICE_ID] = it }
+    }
 }
