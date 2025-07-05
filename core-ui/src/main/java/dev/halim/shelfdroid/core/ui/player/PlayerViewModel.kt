@@ -3,9 +3,11 @@ package dev.halim.shelfdroid.core.ui.player
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
+import androidx.media3.common.listen
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
 import dev.halim.shelfdroid.core.data.screen.player.ExoState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
@@ -51,6 +53,7 @@ constructor(
       }
       collectPlaybackProgress()
       listenIsPlaying()
+      listenPlayer()
     }
   }
 
@@ -117,6 +120,7 @@ constructor(
       play()
       collectPlaybackProgress()
       listenIsPlaying()
+      listenPlayer()
     }
   }
 
@@ -152,6 +156,7 @@ constructor(
 
   private var playbackProgressJob: Job? = null
   private var isPlayingJob: Job? = null
+  private var listenPlayer: Job? = null
 
   private fun listenIsPlaying() {
     isPlayingJob?.cancel()
@@ -168,6 +173,27 @@ constructor(
               }
             }
           )
+      }
+  }
+
+  private fun listenPlayer() {
+    listenPlayer?.cancel()
+    listenPlayer =
+      viewModelScope.launch {
+        player.get().apply {
+          listen { event ->
+            if (this.playbackState == Player.STATE_ENDED) {
+              val start = _uiState.value.currentChapter?.startTimeSeconds ?: 0.0
+              val end = _uiState.value.currentChapter?.endTimeSeconds?.minus(start)?.toLong()
+              val isReachEndChapter = end == currentPosition / 1000
+              val isNotLastChapter =
+                _uiState.value.currentChapter?.chapterPosition != ChapterPosition.Last
+              if (isReachEndChapter && isNotLastChapter) {
+                onEvent(PlayerEvent.NextChapter)
+              }
+            }
+          }
+        }
       }
   }
 

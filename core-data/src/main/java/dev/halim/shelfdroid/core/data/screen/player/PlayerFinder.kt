@@ -23,10 +23,9 @@ class PlayerFinder @Inject constructor() {
     val position =
       if (currentChapter != null) {
         if (uiState.playerTracks.size > 1) {
-          (((rawPositionMs / 1000) + currentTrack.startOffset) - currentChapter.startTimeSeconds)
-            .toFloat()
+          ((rawPositionMs / 1000) + currentTrack.startOffset).toFloat()
         } else {
-          ((rawPositionMs / 1000) - currentChapter.startTimeSeconds).toFloat()
+          (rawPositionMs / 1000).toFloat()
         }
       } else {
         ((rawPositionMs / 1000) - currentTrack.startOffset).toFloat()
@@ -41,12 +40,11 @@ class PlayerFinder @Inject constructor() {
     val positionMs =
       if (isBook) {
         if (currentChapter != null) {
-          val currentChapterStartTimeMs = currentChapter.startTimeSeconds * 1000
           val currentTrackOffsetMs = currentTrack.startOffset * 1000
           if (uiState.playerTracks.size > 1) {
-            (target * chapterDurationMs - currentTrackOffsetMs + currentChapterStartTimeMs).toLong()
+            (target * chapterDurationMs - currentTrackOffsetMs).toLong()
           } else {
-            ((target * chapterDurationMs) + currentChapterStartTimeMs).toLong()
+            (target * chapterDurationMs).toLong()
           }
         } else {
           (target * chapterDurationMs).toLong()

@@ -16,6 +16,20 @@ class MediaItemManager @Inject constructor() {
     val mediaType =
       if (isBook) MediaMetadata.MEDIA_TYPE_AUDIO_BOOK else MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE
     val mediaId = mediaIdWrapper.toMediaId()
+
+    val currentChapter = uiState.currentChapter
+    val clippingConfiguration =
+      if (currentChapter != null && uiState.playerTracks.size == 1) {
+        val start = currentChapter.startTimeSeconds * 1000
+        val end = currentChapter.endTimeSeconds * 1000
+        MediaItem.ClippingConfiguration.Builder()
+          .setStartPositionMs(start.toLong())
+          .setEndPositionMs(end.toLong())
+          .build()
+      } else {
+        MediaItem.ClippingConfiguration.UNSET
+      }
+
     val mediaMetadata =
       MediaMetadata.Builder()
         .setTitle(uiState.title)
@@ -27,6 +41,7 @@ class MediaItemManager @Inject constructor() {
       .setUri(uiState.currentTrack.url)
       .setMediaId(mediaId)
       .setMediaMetadata(mediaMetadata)
+      .setClippingConfiguration(clippingConfiguration)
       .build()
   }
 }

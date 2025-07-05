@@ -44,10 +44,14 @@ constructor(
           val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
 
           val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
+          val currentChapter = playerUiState.currentChapter
+          val currentTime =
+            if (currentChapter != null) response.currentTime - currentChapter.startTimeSeconds
+            else response.currentTime
           playerUiState.copy(
             playerTracks = playerTracks,
             currentTrack = currentTrack,
-            currentTime = response.currentTime,
+            currentTime = currentTime,
           )
         }
         .getOrNull()
@@ -154,7 +158,7 @@ constructor(
       val targetTrack = findTrackFromChapter(uiState, targetChapter)
       val currentTime =
         if (uiState.playerTracks.size > 1) targetChapter.startTimeSeconds - targetTrack.startOffset
-        else targetChapter.startTimeSeconds
+        else 0.0
       uiState.copy(
         title = targetChapter.title,
         currentChapter = targetChapter,
@@ -182,20 +186,6 @@ constructor(
     val playbackProgress =
       if (isBook) mapper.toPlaybackProgressBook(uiState, raw)
       else mapper.toPlaybackProgressPodcast(raw)
-
-    if (isBook) {
-      val currentChapter = uiState.currentChapter
-      if (currentChapter != null) {
-        val chapterPosition = raw.positionMs / 1000
-        if (chapterPosition >= currentChapter.endTimeSeconds) {
-          val newUiState = previousNextChapter(uiState, false)
-          return newUiState.copy(playbackProgress = playbackProgress)
-        } else if (chapterPosition <= currentChapter.startTimeSeconds) {
-          val newUiState = previousNextChapter(uiState, true)
-          return newUiState.copy(playbackProgress = playbackProgress)
-        }
-      }
-    }
 
     return uiState.copy(playbackProgress = playbackProgress)
   }
