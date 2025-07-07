@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
+import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.ui.Animations
@@ -74,6 +75,10 @@ fun BigPlayerContent(
   progress: PlaybackProgress = PlaybackProgress(),
   chapters: List<PlayerChapter> = emptyList(),
   currentChapter: PlayerChapter? = PlayerChapter(),
+  multipleButtonState: MultipleButtonState = MultipleButtonState(),
+  onSeekBackClick: () -> Unit = {},
+  onSeekForwardClick: () -> Unit = {},
+  onPlayPauseClick: () -> Unit = {},
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
   onEvent: (PlayerEvent) -> Unit = {},
@@ -106,7 +111,15 @@ fun BigPlayerContent(
 
         PlayerProgress(id, progress, player, onEvent)
 
-        BasicPlayerControl(player, id, currentChapter, onEvent)
+        BasicPlayerControl(
+          multipleButtonState,
+          onSeekBackClick,
+          onSeekForwardClick,
+          onPlayPauseClick,
+          id,
+          currentChapter,
+          onEvent,
+        )
 
         AdvancedPlayerControl()
 
@@ -203,7 +216,10 @@ fun PlayerProgress(
 @UnstableApi
 @Composable
 fun BasicPlayerControl(
-  player: Player = FakePlayer(),
+  multipleButtonState: MultipleButtonState,
+  onSeekBackClick: () -> Unit,
+  onSeekForwardClick: () -> Unit,
+  onPlayPauseClick: () -> Unit,
   id: String = "",
   currentChapter: PlayerChapter? = PlayerChapter(),
   onEvent: (PlayerEvent) -> Unit,
@@ -225,9 +241,9 @@ fun BasicPlayerControl(
           enabled =
             currentChapter?.chapterPosition != ChapterPosition.First && currentChapter != null,
         )
-        SeekBackButton(player, id)
-        PlayPauseButton(player, id, 72)
-        SeekForwardButton(player, id)
+        SeekBackButton(onSeekBackClick, multipleButtonState, id)
+        PlayPauseButton(onPlayPauseClick, multipleButtonState, id, 72)
+        SeekForwardButton(onSeekForwardClick, multipleButtonState, id)
 
         MyIconButton(
           icon = Icons.Default.SkipNext,

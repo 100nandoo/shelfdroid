@@ -251,6 +251,7 @@ sealed class ExoState {
 data class PlayerUiState(
   val state: PlayerState = PlayerState.Hidden(),
   val exoState: ExoState = ExoState.Pause,
+  val multipleButtonState: MultipleButtonState = MultipleButtonState(),
   val id: String = "",
   val episodeId: String = "",
   val author: String = "",
@@ -298,4 +299,11 @@ data class PlaybackProgress(
   val duration: String = "",
   val bufferedPosition: Float = 0f,
   val progress: Float = 0f,
+)
+
+data class MultipleButtonState(
+  val seekBackEnabled: Boolean = false,
+  val seekForwardEnabled: Boolean = false,
+  val playPauseEnabled: Boolean = false,
+  val showPlay: Boolean = true,
 )

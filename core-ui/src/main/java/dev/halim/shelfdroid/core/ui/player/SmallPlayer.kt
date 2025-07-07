@@ -26,8 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -35,18 +35,20 @@ import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
-import dev.halim.shelfdroid.core.ui.preview.FakePlayer
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun SmallPlayerContent(
-  player: Player = FakePlayer(),
   id: String = Defaults.BOOK_ID,
   author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
   cover: String = Defaults.BOOK_COVER,
   progress: Float = Defaults.PROGRESS,
+  multipleButtonState: MultipleButtonState = MultipleButtonState(),
+  onSeekBackClick: () -> Unit = {},
+  onSeekForwardClick: () -> Unit = {},
+  onPlayPauseClick: () -> Unit = {},
   onClicked: (String) -> Unit,
   onSwipeUp: () -> Unit,
   onSwipeDown: () -> Unit,
@@ -88,7 +90,13 @@ fun SmallPlayerContent(
 
           SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true), author, title)
 
-          SmallPlayerControls(player, id)
+          SmallPlayerControls(
+            multipleButtonState,
+            onSeekBackClick,
+            onSeekForwardClick,
+            onPlayPauseClick,
+            id,
+          )
         }
       }
     }
@@ -131,15 +139,21 @@ private fun SmallPlayerInfo(
 
 @UnstableApi
 @Composable
-private fun SmallPlayerControls(player: Player, id: String = "") {
+private fun SmallPlayerControls(
+  multipleButtonState: MultipleButtonState,
+  onSeekBackClick: () -> Unit,
+  onSeekForwardClick: () -> Unit,
+  onPlayPauseClick: () -> Unit,
+  id: String = "",
+) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      SeekBackButton(player, id, 40)
-      PlayPauseButton(player, id)
-      SeekForwardButton(player, id, 40)
+      SeekBackButton(onSeekBackClick, multipleButtonState, id, 40)
+      PlayPauseButton(onPlayPauseClick, multipleButtonState, id)
+      SeekForwardButton(onSeekForwardClick, multipleButtonState, id, 40)
     }
   }
 }

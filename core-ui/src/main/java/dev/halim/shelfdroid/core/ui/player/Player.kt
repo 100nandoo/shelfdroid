@@ -20,9 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
+import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -63,7 +62,6 @@ fun Player(
       Column {
         when (targetState) {
           PlayerState.Small -> {
-            val player = remember { viewModel.player.get() }
             val context = LocalContext.current
             LaunchedEffect(context) {
               if (context is MainActivity) {
@@ -71,12 +69,15 @@ fun Player(
               }
             }
             SmallPlayerContent(
-              player = player,
               id = uiState.value.id,
               author = uiState.value.author,
               title = uiState.value.title,
               cover = uiState.value.cover,
               progress = uiState.value.playbackProgress.progress,
+              multipleButtonState = uiState.value.multipleButtonState,
+              onSeekBackClick = { viewModel.onEvent(PlayerEvent.SeekBack) },
+              onSeekForwardClick = { viewModel.onEvent(PlayerEvent.SeekForward) },
+              onPlayPauseClick = { viewModel.onEvent(PlayerEvent.PlayPause) },
               onClicked = { viewModel.onEvent(PlayerEvent.Big) },
               onSwipeUp = onSwipeUp,
               onSwipeDown = onSwipeDown,
@@ -94,6 +95,10 @@ fun Player(
               progress = uiState.value.playbackProgress,
               chapters = uiState.value.playerChapters,
               currentChapter = uiState.value.currentChapter,
+              multipleButtonState = uiState.value.multipleButtonState,
+              onSeekBackClick = { viewModel.onEvent(PlayerEvent.SeekBack) },
+              onSeekForwardClick = { viewModel.onEvent(PlayerEvent.SeekForward) },
+              onPlayPauseClick = { viewModel.onEvent(PlayerEvent.PlayPause) },
               onSwipeUp = onSwipeUp,
               onSwipeDown = onSwipeDown,
               onEvent = { event -> viewModel.onEvent(event) },
@@ -109,21 +114,25 @@ fun Player(
 
 @UnstableApi
 @Composable
-fun PlayPauseButton(player: Player, id: String, size: Int = 48) {
+fun PlayPauseButton(
+  onClick: () -> Unit,
+  multipleButtonState: MultipleButtonState,
+  id: String,
+  size: Int = 48,
+) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      val playPauseState = rememberPlayPauseButtonState(player)
-      val icon = if (playPauseState.showPlay) Icons.Default.PlayArrow else Icons.Default.Pause
-      val contentDescription = if (playPauseState.showPlay) "Play" else "Pause"
+      val icon = if (multipleButtonState.showPlay) Icons.Default.PlayArrow else Icons.Default.Pause
+      val contentDescription = if (multipleButtonState.showPlay) "Play" else "Pause"
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
         icon = icon,
         size = size,
         contentDescription = contentDescription,
-        onClick = playPauseState::onClick,
-        enabled = playPauseState.isEnabled,
+        onClick = { onClick() },
+        enabled = multipleButtonState.playPauseEnabled,
       )
     }
   }
@@ -131,19 +140,18 @@ fun PlayPauseButton(player: Player, id: String, size: Int = 48) {
 
 @UnstableApi
 @Composable
-fun SeekBackButton(player: Player, id: String, size: Int = 48) {
+fun SeekBackButton(onClick: () -> Unit, state: MultipleButtonState, id: String, size: Int = 48) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      val state = rememberSeekBackButtonState(player)
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
         icon = Icons.Default.Replay10,
         size = size,
         contentDescription = "Seek Back",
-        onClick = state::onClick,
-        enabled = state.isEnabled,
+        onClick = { onClick() },
+        enabled = state.seekBackEnabled,
       )
     }
   }
@@ -151,19 +159,18 @@ fun SeekBackButton(player: Player, id: String, size: Int = 48) {
 
 @UnstableApi
 @Composable
-fun SeekForwardButton(player: Player, id: String, size: Int = 48) {
+fun SeekForwardButton(onClick: () -> Unit, state: MultipleButtonState, id: String, size: Int = 48) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      val state = rememberSeekForwardButtonState(player)
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
         icon = Icons.Default.Forward10,
         size = size,
         contentDescription = "Seek Forward",
-        onClick = state::onClick,
-        enabled = state.isEnabled,
+        onClick = { onClick() },
+        enabled = state.seekForwardEnabled,
       )
     }
   }

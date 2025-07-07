@@ -1,6 +1,10 @@
 package dev.halim.shelfdroid.core.ui.media3
 
+import androidx.annotation.OptIn
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util.shouldEnablePlayPauseButton
+import androidx.media3.common.util.Util.shouldShowPlayButton
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.shelfdroid.core.data.screen.player.ExoState
@@ -20,29 +24,12 @@ import kotlinx.coroutines.launch
 class ServiceUiStateHolder
 @Inject
 constructor(
-  private val playerEventListener: PlayerEventListener,
+  private val playerEventListener: Lazy<PlayerEventListener>,
   private val player: Lazy<ExoPlayer>,
   private val playerRepository: PlayerRepository,
   private val mediaItemManager: MediaItemManager,
 ) {
   val uiState = MutableStateFlow(PlayerUiState())
-
-  private var playbackProgressJob: Job? = null
-  private var isPlayingJob: Job? = null
-  private var listenPlayer: Job? = null
-
-  private fun listenPlayer() {
-    listenPlayer?.cancel()
-    listenPlayer =
-      playerEventListener.listen(
-        player.get(),
-        uiState.value,
-        {
-          uiState.update { playerRepository.previousNextChapter(uiState.value, false) }
-          playContent()
-        },
-      )
-  }
 
   fun playContent() {
     player.get().apply {
@@ -55,6 +42,75 @@ constructor(
       listenIsPlaying()
       listenPlayer()
     }
+  }
+
+  private var playbackProgressJob: Job? = null
+  private var isPlayingJob: Job? = null
+  private var listenPlayer: Job? = null
+
+  private fun listenPlayer() {
+    listenPlayer?.cancel()
+    listenPlayer =
+      playerEventListener
+        .get()
+        .listen(
+          uiState.value,
+          changeChapterCallback(),
+          { events ->
+            handleSeekBackState(events)
+            handleSeekForwardState(events)
+            handlePlayPauseState(events)
+          },
+        )
+  }
+
+  private fun handleSeekBackState(events: Player.Events) {
+    with(player.get()) {
+      if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
+        val multipleButtonState =
+          uiState.value.multipleButtonState.copy(
+            seekBackEnabled = isCommandAvailable(Player.COMMAND_SEEK_BACK)
+          )
+        uiState.update { it.copy(multipleButtonState = multipleButtonState) }
+      }
+    }
+  }
+
+  private fun handleSeekForwardState(events: Player.Events) {
+    with(player.get()) {
+      if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
+        val multipleButtonState =
+          uiState.value.multipleButtonState.copy(
+            seekForwardEnabled = isCommandAvailable(Player.COMMAND_SEEK_FORWARD)
+          )
+        uiState.update { it.copy(multipleButtonState = multipleButtonState) }
+      }
+    }
+  }
+
+  @OptIn(UnstableApi::class)
+  private fun handlePlayPauseState(events: Player.Events) {
+    with(player.get()) {
+      if (
+        events.containsAny(
+          Player.EVENT_PLAYBACK_STATE_CHANGED,
+          Player.EVENT_PLAY_WHEN_READY_CHANGED,
+          Player.EVENT_AVAILABLE_COMMANDS_CHANGED,
+        )
+      ) {
+        val multipleButtonState =
+          uiState.value.multipleButtonState.copy(
+            playPauseEnabled = shouldEnablePlayPauseButton(this),
+            showPlay = shouldShowPlayButton(this),
+          )
+        uiState.update { it.copy(multipleButtonState = multipleButtonState) }
+      }
+    }
+  }
+
+  private fun changeChapterCallback() = {
+    uiState.update { playerRepository.previousNextChapter(uiState.value, false) }
+    playContent()
   }
 
   private fun collectPlaybackProgress() {

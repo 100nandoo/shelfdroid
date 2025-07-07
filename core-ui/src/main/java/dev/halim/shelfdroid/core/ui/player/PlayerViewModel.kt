@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.ui.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.Util.handlePlayPauseButtonAction
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,6 +63,9 @@ constructor(
         _uiState.update { playerRepository.changeChapter(_uiState.value, event.target) }
         serviceUiStateHolder.playContent()
       }
+      PlayerEvent.SeekBack -> player.get().seekBack()
+      PlayerEvent.SeekForward -> player.get().seekForward()
+      PlayerEvent.PlayPause -> handlePlayPauseButtonAction(player.get())
       is PlayerEvent.SeekTo -> {
         val durationMs = player.get().duration
         _uiState.update { playerRepository.seekTo(_uiState.value, event.target, durationMs) }
@@ -122,6 +126,12 @@ sealed class PlayerEvent {
   class ChangeChapter(val target: Int) : PlayerEvent()
 
   class SeekTo(val target: Float) : PlayerEvent()
+
+  data object SeekBack : PlayerEvent()
+
+  data object SeekForward : PlayerEvent()
+
+  data object PlayPause : PlayerEvent()
 
   data object PreviousChapter : PlayerEvent()
 
