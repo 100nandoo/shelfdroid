@@ -1,8 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen
 
-import android.app.ComponentCaller
-import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +43,8 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
 
     installSplashScreen()
+    handleExtra()
+    Log.d("MainActivity", "onCreate called")
 
     setContent {
       val isDarkMode by settingsRepository.darkMode.collectAsState(true)
@@ -69,12 +70,6 @@ class MainActivity : ComponentActivity() {
   override fun onDestroy() {
     super.onDestroy()
     mediaController?.release()
-  }
-
-  override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
-    super.onNewIntent(intent, caller)
-    setIntent(intent)
-    handleExtra()
   }
 
   private fun handleExtra() {

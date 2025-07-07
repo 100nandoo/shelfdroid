@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.player
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.DeviceInfo
 import dev.halim.core.network.request.PlayRequest
+import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.Helper
@@ -41,6 +42,7 @@ constructor(
             PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
 
           val response = apiService.playBook(id, request)
+          val sessionId = response.id
           val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
 
           val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
@@ -52,6 +54,7 @@ constructor(
             playerTracks = playerTracks,
             currentTrack = currentTrack,
             currentTime = currentTime,
+            sessionId = sessionId,
           )
         }
         .getOrNull()
@@ -71,6 +74,7 @@ constructor(
             PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
 
           val response = apiService.playPodcast(itemId, episodeId, request)
+          val sessionId = response.id
           val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
 
           val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
@@ -78,6 +82,7 @@ constructor(
             playerTracks = playerTracks,
             currentTrack = currentTrack,
             currentTime = response.currentTime,
+            sessionId = sessionId,
           )
         }
         .getOrNull()
@@ -217,6 +222,14 @@ constructor(
       track
     }
   }
+
+  suspend fun syncSession(sessionId: String, uiState: PlayerUiState): Boolean {
+    val currentTime = 0L
+    val timeListened = 0L
+    val request = SyncSessionRequest(currentTime, timeListened)
+    val response = apiService.syncSession(sessionId, request)
+    return response.isSuccess
+  }
 }
 
 sealed class PlayerState {
@@ -249,6 +262,7 @@ data class PlayerUiState(
   val playerChapters: List<PlayerChapter> = emptyList(),
   val currentChapter: PlayerChapter? = PlayerChapter(),
   val playbackProgress: PlaybackProgress = PlaybackProgress(),
+  val sessionId: String = "",
 )
 
 data class PlayerTrack(

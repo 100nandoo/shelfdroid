@@ -6,9 +6,7 @@ import androidx.media3.common.MediaMetadata
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import dev.halim.shelfdroid.core.ui.navigation.MediaIdWrapper
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class MediaItemManager @Inject constructor() {
   fun toMediaItem(uiState: PlayerUiState): MediaItem {
     val mediaIdWrapper = MediaIdWrapper(uiState.id, uiState.episodeId.takeIf { it.isNotBlank() })
@@ -19,7 +17,7 @@ class MediaItemManager @Inject constructor() {
 
     val currentChapter = uiState.currentChapter
     val clippingConfiguration =
-      if (currentChapter != null && uiState.playerTracks.size == 1) {
+      if (currentChapter != null && uiState.playerTracks.size == 1 && isBook) {
         val start = currentChapter.startTimeSeconds * 1000
         val end = currentChapter.endTimeSeconds * 1000
         MediaItem.ClippingConfiguration.Builder()
