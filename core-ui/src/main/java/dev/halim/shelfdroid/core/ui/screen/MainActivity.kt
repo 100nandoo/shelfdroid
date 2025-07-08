@@ -12,6 +12,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaController
@@ -52,7 +54,10 @@ class MainActivity : ComponentActivity() {
       val token by
         settingsRepository.token.collectAsState(runBlocking { settingsRepository.token.first() })
       ShelfDroidTheme(darkTheme = isDarkMode, dynamicColor = isDynamic) {
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Surface(
+          modifier = Modifier.fillMaxSize().semantics { testTagsAsResourceId = true },
+          color = MaterialTheme.colorScheme.background,
+        ) {
           MainNavigation(
             isLoggedIn = token.isBlank().not(),
             pendingMediaId = pendingMediaId,

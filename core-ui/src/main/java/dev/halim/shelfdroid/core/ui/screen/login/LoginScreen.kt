@@ -31,6 +31,7 @@ import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component3
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -98,7 +99,7 @@ fun LoginScreenContent(
         placeholder = "audio.bookshelf.org",
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
-        modifier = Modifier.focusRequester(server),
+        modifier = Modifier.focusRequester(server).testTag("server"),
         onNext = { focusManager.moveFocus(FocusDirection.Next) },
       )
 
@@ -110,7 +111,7 @@ fun LoginScreenContent(
         label = "Username",
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-        modifier = Modifier.focusRequester(username),
+        modifier = Modifier.testTag("username").focusRequester(username),
         onNext = { focusManager.moveFocus(FocusDirection.Next) },
       )
 
@@ -123,7 +124,7 @@ fun LoginScreenContent(
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
         visualTransformation = PasswordVisualTransformation(),
-        modifier = Modifier.focusRequester(password),
+        modifier = Modifier.testTag("password").focusRequester(password),
         onDone = {
           focusManager.clearFocus()
           onEvent(LoginEvent.LoginButtonPressed)
@@ -137,7 +138,7 @@ fun LoginScreenContent(
           focusManager.clearFocus()
           onEvent(LoginEvent.LoginButtonPressed)
         },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("login"),
       ) {
         Text("Login")
       }
@@ -147,13 +148,13 @@ fun LoginScreenContent(
 
 @Composable
 private fun LoginTextField(
+  modifier: Modifier = Modifier,
   value: String,
   onValueChange: (String) -> Unit,
   label: String,
   placeholder: String? = null,
   keyboardOptions: KeyboardOptions,
   visualTransformation: VisualTransformation = VisualTransformation.None,
-  modifier: Modifier = Modifier,
   onNext: (() -> Unit)? = null,
   onDone: (() -> Unit)? = null,
 ) {

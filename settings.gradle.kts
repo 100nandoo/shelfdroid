@@ -31,3 +31,5 @@ include(":core-testing")
 include(":core-ui")
 
 include(":test-app")
+
+include(":benchmark")

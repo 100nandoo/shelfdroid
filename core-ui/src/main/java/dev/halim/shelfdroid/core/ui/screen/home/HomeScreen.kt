@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import Item
+import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.layout.Arrangement
@@ -115,6 +116,7 @@ fun HomeScreenContent(
   loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) },
   onSettingsClicked: () -> Unit = {},
 ) {
+  ReportDrawnWhen { uiState.libraryItemsUiState.isNotEmpty() }
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
     GenericMessageScreen("No libraries available.")
   } else {
