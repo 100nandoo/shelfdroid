@@ -36,7 +36,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +51,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
 import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
@@ -60,14 +64,12 @@ import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
-import dev.halim.shelfdroid.core.ui.preview.FakePlayer
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun BigPlayerContent(
-  player: Player = FakePlayer(),
   id: String = "",
   author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
@@ -109,7 +111,7 @@ fun BigPlayerContent(
 
         BookmarkAndChapter(chapters, currentChapter, onEvent)
 
-        PlayerProgress(id, progress, player, onEvent)
+        PlayerProgress(id, progress, multipleButtonState, onEvent)
 
         BasicPlayerControl(
           multipleButtonState,
@@ -168,14 +170,16 @@ fun BasicPlayerContent(id: String, author: String, title: String, cover: String)
 fun PlayerProgress(
   id: String = "",
   progress: PlaybackProgress = PlaybackProgress(),
-  player: Player,
+  multipleButtonState: MultipleButtonState,
   onEvent: (PlayerEvent) -> Unit,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
-  val state = rememberSeekSliderState(player)
 
-  val sliderValue = if (state.isDragging) state.target else progress.progress
+  var isDragging by remember { mutableStateOf(false) }
+  var target by remember { mutableFloatStateOf(0f) }
+
+  val sliderValue = if (isDragging) target else progress.progress
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -192,14 +196,17 @@ fun PlayerProgress(
       }
       Slider(
         value = sliderValue,
-        onValueChange = state::onValueChange,
+        onValueChange = {
+          isDragging = true
+          target = it
+        },
         modifier =
           Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
         onValueChangeFinished = {
-          state.onValueChangeFinished()
-          onEvent(PlayerEvent.SeekTo(state.target))
+          isDragging = false
+          onEvent(PlayerEvent.SeekTo(target))
         },
-        enabled = state.isEnabled,
+        enabled = multipleButtonState.seekSliderEnabled,
         track = { sliderState ->
           SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = {})
         },

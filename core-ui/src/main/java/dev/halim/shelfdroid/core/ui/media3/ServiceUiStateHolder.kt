@@ -57,11 +57,24 @@ constructor(
           uiState.value,
           changeChapterCallback(),
           { events ->
+            handleSeekSliderState(events)
             handleSeekBackState(events)
             handleSeekForwardState(events)
             handlePlayPauseState(events)
           },
         )
+  }
+
+  private fun handleSeekSliderState(events: Player.Events) {
+    with(player.get()) {
+      if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
+        val multipleButtonState =
+          uiState.value.multipleButtonState.copy(
+            seekSliderEnabled = isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+          )
+        uiState.update { it.copy(multipleButtonState = multipleButtonState) }
+      }
+    }
   }
 
   private fun handleSeekBackState(events: Player.Events) {

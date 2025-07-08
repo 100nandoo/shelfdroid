@@ -31,3 +31,5 @@
 - [x] Player, handle seek on progressbar
 - [x] Handle play button state on book and episode screen
 - [x] Save device id to local storage
+- [x] Refactor slider to player ui state
+- [x] Change chapter order of chapter bottom sheet

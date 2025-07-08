@@ -306,4 +306,5 @@ data class MultipleButtonState(
   val seekForwardEnabled: Boolean = false,
   val playPauseEnabled: Boolean = false,
   val showPlay: Boolean = true,
+  val seekSliderEnabled: Boolean = false,
 )
