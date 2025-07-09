@@ -51,7 +51,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.UnstableApi
 import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
 import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
@@ -67,7 +66,6 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
-@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun BigPlayerContent(
   id: String = "",
@@ -165,7 +163,6 @@ fun BasicPlayerContent(id: String, author: String, title: String, cover: String)
   }
 }
 
-@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun PlayerProgress(
   id: String = "",
@@ -220,7 +217,6 @@ fun PlayerProgress(
   }
 }
 
-@UnstableApi
 @Composable
 fun BasicPlayerControl(
   multipleButtonState: MultipleButtonState,

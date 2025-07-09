@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.media3
+package dev.halim.shelfdroid.media.exoplayer
 
 import androidx.media3.common.Player
 import androidx.media3.common.listen

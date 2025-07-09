@@ -1,6 +1,7 @@
-package dev.halim.shelfdroid.core.ui.media3
+package dev.halim.shelfdroid.media.exoplayer
 
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import dev.halim.shelfdroid.core.data.screen.player.RawPlaybackProgress
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
@@ -9,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
-fun Player.playbackProgressFlow(): Flow<RawPlaybackProgress> = callbackFlow {
+fun ExoPlayer.playbackProgressFlow(): Flow<RawPlaybackProgress> = callbackFlow {
   var job: Job? = null
 
   fun startPlayerTracking() {

@@ -1,13 +1,12 @@
-package dev.halim.shelfdroid.core.ui.player
+package dev.halim.shelfdroid.media.mediaitem
 
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
-import dev.halim.shelfdroid.core.ui.navigation.MediaIdWrapper
 import javax.inject.Inject
 
-class MediaItemManager @Inject constructor() {
+class MediaItemMapper @Inject constructor() {
   fun toMediaItem(uiState: PlayerUiState): MediaItem {
     val mediaIdWrapper = MediaIdWrapper(uiState.id, uiState.episodeId.takeIf { it.isNotBlank() })
     val isBook = uiState.episodeId.isBlank()

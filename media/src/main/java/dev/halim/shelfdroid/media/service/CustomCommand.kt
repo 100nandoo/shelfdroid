@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.media3
+package dev.halim.shelfdroid.media.service
 
 import android.content.Context
 import android.os.Bundle
@@ -11,7 +11,7 @@ import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import com.google.common.collect.ImmutableList
-import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.media.R
 import javax.inject.Inject
 import javax.inject.Singleton
 

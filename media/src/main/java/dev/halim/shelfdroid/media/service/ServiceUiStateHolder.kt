@@ -1,16 +1,17 @@
-package dev.halim.shelfdroid.core.ui.media3
+package dev.halim.shelfdroid.media.service
 
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.common.util.Util.shouldEnablePlayPauseButton
-import androidx.media3.common.util.Util.shouldShowPlayButton
+import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.shelfdroid.core.data.screen.player.ExoState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
-import dev.halim.shelfdroid.core.ui.player.MediaItemManager
+import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
+import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
+import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -27,13 +28,13 @@ constructor(
   private val playerEventListener: Lazy<PlayerEventListener>,
   private val player: Lazy<ExoPlayer>,
   private val playerRepository: PlayerRepository,
-  private val mediaItemManager: MediaItemManager,
+  private val mediaItemMapper: MediaItemMapper,
 ) {
   val uiState = MutableStateFlow(PlayerUiState())
 
   fun playContent() {
     player.get().apply {
-      val mediaItem = mediaItemManager.toMediaItem(uiState.value)
+      val mediaItem = mediaItemMapper.toMediaItem(uiState.value)
       val positionMs = uiState.value.currentTime.toLong() * 1000
       setMediaItem(mediaItem, positionMs)
       prepare()
@@ -113,8 +114,8 @@ constructor(
       ) {
         val multipleButtonState =
           uiState.value.multipleButtonState.copy(
-            playPauseEnabled = shouldEnablePlayPauseButton(this),
-            showPlay = shouldShowPlayButton(this),
+            playPauseEnabled = Util.shouldEnablePlayPauseButton(this),
+            showPlay = Util.shouldShowPlayButton(this),
           )
         uiState.update { it.copy(multipleButtonState = multipleButtonState) }
       }

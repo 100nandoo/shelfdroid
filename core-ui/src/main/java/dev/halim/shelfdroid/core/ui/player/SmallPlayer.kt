@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.util.UnstableApi
 import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -37,7 +36,6 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
-@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun SmallPlayerContent(
   id: String = Defaults.BOOK_ID,
@@ -137,7 +135,6 @@ private fun SmallPlayerInfo(
   }
 }
 
-@UnstableApi
 @Composable
 private fun SmallPlayerControls(
   multipleButtonState: MultipleButtonState,

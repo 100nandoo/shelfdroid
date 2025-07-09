@@ -1,20 +1,18 @@
-package dev.halim.shelfdroid.core.ui.di
+package dev.halim.shelfdroid.media.di
 
-import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaController
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
-import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.Module
@@ -22,12 +20,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.halim.shelfdroid.core.ui.media3.CUSTOM_BACK
-import dev.halim.shelfdroid.core.ui.media3.CUSTOM_FORWARD
-import dev.halim.shelfdroid.core.ui.media3.CustomMediaNotificationProvider
-import dev.halim.shelfdroid.core.ui.media3.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
-import dev.halim.shelfdroid.core.ui.media3.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
-import dev.halim.shelfdroid.core.ui.media3.PlaybackService
+import dev.halim.shelfdroid.media.service.CUSTOM_BACK
+import dev.halim.shelfdroid.media.service.CUSTOM_FORWARD
+import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
+import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
+import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
 import javax.inject.Singleton
 
 @OptIn(UnstableApi::class)
@@ -38,6 +35,7 @@ object PlayerModule {
   @Singleton
   @Provides
   fun providesPlayer(@ApplicationContext context: Context): ExoPlayer {
+    Log.d("media3", "exoplayer instantiated")
     val audioAttributes =
       AudioAttributes.Builder()
         .setUsage(C.USAGE_MEDIA)
@@ -67,21 +65,6 @@ object PlayerModule {
       .build()
 
     return player
-  }
-
-  @Singleton
-  @Provides
-  fun provideSessionToken(@ApplicationContext context: Context): SessionToken {
-    return SessionToken(context, ComponentName(context, PlaybackService::class.java))
-  }
-
-  @Singleton
-  @Provides
-  fun provideMediaControllerFuture(
-    @ApplicationContext context: Context,
-    sessionToken: SessionToken,
-  ): ListenableFuture<MediaController> {
-    return MediaController.Builder(context, sessionToken).buildAsync()
   }
 
   @Singleton

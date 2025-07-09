@@ -18,6 +18,8 @@ rootProject.name = "Shelfdroid"
 
 include(":app")
 
+include(":core")
+
 include(":core-data")
 
 include(":core-database")
@@ -33,3 +35,5 @@ include(":core-ui")
 include(":test-app")
 
 include(":benchmark")
+
+include(":media")

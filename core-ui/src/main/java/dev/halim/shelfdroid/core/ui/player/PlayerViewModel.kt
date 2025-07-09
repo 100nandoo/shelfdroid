@@ -2,16 +2,15 @@ package dev.halim.shelfdroid.core.ui.player
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.Util.handlePlayPauseButtonAction
-import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.screen.player.ExoState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
-import dev.halim.shelfdroid.core.ui.media3.MediaIdHolder
-import dev.halim.shelfdroid.core.ui.media3.ServiceUiStateHolder
+import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
+import dev.halim.shelfdroid.media.service.ServiceUiStateHolder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +22,7 @@ import kotlinx.coroutines.launch
 class PlayerViewModel
 @Inject
 constructor(
-  val player: Lazy<ExoPlayer>,
+  private val playerManager: Lazy<ExoPlayerManager>,
   private val playerRepository: PlayerRepository,
   private val serviceUiStateHolder: ServiceUiStateHolder,
 ) : ViewModel() {
@@ -42,8 +41,8 @@ constructor(
               _uiState.update { playerRepository.playBook(event.id) }
               serviceUiStateHolder.playContent()
             }
-            player.get().isPlaying -> pause()
-            else -> resume()
+            _uiState.value.exoState == ExoState.Playing -> playerManager.get().pause()
+            else -> playerManager.get().resume()
           }
         }
       }
@@ -54,8 +53,8 @@ constructor(
               _uiState.update { playerRepository.playPodcast(event.itemId, event.episodeId) }
               serviceUiStateHolder.playContent()
             }
-            player.get().isPlaying -> pause()
-            else -> resume()
+            _uiState.value.exoState == ExoState.Playing -> playerManager.get().pause()
+            else -> playerManager.get().resume()
           }
         }
       }
@@ -63,13 +62,14 @@ constructor(
         _uiState.update { playerRepository.changeChapter(_uiState.value, event.target) }
         serviceUiStateHolder.playContent()
       }
-      PlayerEvent.SeekBack -> player.get().seekBack()
-      PlayerEvent.SeekForward -> player.get().seekForward()
-      PlayerEvent.PlayPause -> handlePlayPauseButtonAction(player.get())
+      PlayerEvent.SeekBack -> playerManager.get().seekBack()
+      PlayerEvent.SeekForward -> playerManager.get().seekForward()
+      PlayerEvent.PlayPause -> playerManager.get().playPause()
       is PlayerEvent.SeekTo -> {
-        val durationMs = player.get().duration
+        val durationMs = playerManager.get().rawDuration()
         _uiState.update { playerRepository.seekTo(_uiState.value, event.target, durationMs) }
-        seekTo()
+        val positionMs = _uiState.value.currentTime.toLong() * 1000
+        playerManager.get().seekTo(positionMs)
       }
       PlayerEvent.PreviousChapter -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
@@ -87,34 +87,9 @@ constructor(
     }
   }
 
-  private fun pause() {
-    player.get().pause()
-  }
-
-  private fun resume() {
-    player.get().play()
-  }
-
-  private fun seekTo() {
-    player.get().apply {
-      val positionMs = _uiState.value.currentTime.toLong() * 1000
-      seekTo(positionMs)
-    }
-  }
-
-  private fun clearAndStop() {
-    player.get().apply {
-      MediaIdHolder.reset()
-      stop()
-      clearMediaItems()
-      //      playbackProgressJob?.cancel()
-      //      isPlayingJob?.cancel()
-    }
-  }
-
   private fun logout() {
     _uiState.update { PlayerUiState() }
-    clearAndStop()
+    playerManager.get().clearAndStop()
   }
 }
 

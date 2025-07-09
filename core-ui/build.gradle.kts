@@ -45,12 +45,12 @@ android {
 
 dependencies {
   implementation(project(libs.versions.coreData.get()))
+  implementation(project(libs.versions.media.get()))
 
   val composeBom = platform(libs.androidx.compose.bom)
   implementation(composeBom)
   androidTestImplementation(composeBom)
 
-  implementation(libs.kotlinx.coroutines.guava)
   implementation(libs.kotlinx.serialization)
 
   // Core Android dependencies
@@ -81,9 +81,4 @@ dependencies {
   // Coil
   implementation(libs.coil)
   implementation(libs.coil.okhttp)
-
-  // Media3
-  implementation(libs.androidx.media3.compose.ui)
-  implementation(libs.androidx.media3.exoplayer)
-  implementation(libs.androidx.media3.session)
 }

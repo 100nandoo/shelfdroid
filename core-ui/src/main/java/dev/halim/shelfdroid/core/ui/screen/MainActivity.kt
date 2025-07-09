@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -16,17 +17,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.session.MediaController
-import com.google.common.util.concurrent.ListenableFuture
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.MainNavigation
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
+import dev.halim.shelfdroid.media.di.MediaControllerManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
@@ -37,8 +35,7 @@ class MainActivity : ComponentActivity() {
   }
 
   @Inject lateinit var settingsRepository: SettingsRepository
-  @Inject lateinit var mediaControllerFuture: Lazy<ListenableFuture<MediaController>>
-  var mediaController: MediaController? = null
+  @Inject lateinit var mediaControllerManager: Lazy<MediaControllerManager>
   private var pendingMediaId by mutableStateOf<String?>(null)
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,13 +65,19 @@ class MainActivity : ComponentActivity() {
     }
   }
 
+  override fun onNewIntent(intent: Intent?) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    handleExtra()
+  }
+
   fun initMediaController() {
-    lifecycleScope.launch { runCatching { mediaController = mediaControllerFuture.get().await() } }
+    mediaControllerManager.get().init(lifecycleScope)
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    mediaController?.release()
+    mediaControllerManager.get().release()
   }
 
   private fun handleExtra() {

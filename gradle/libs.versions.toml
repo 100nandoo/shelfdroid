@@ -13,6 +13,7 @@ coreDatastore = ":core-datastore"
 coreNetwork = ":core-network"
 coreTesting = ":core-testing"
 coreUi = ":core-ui"
+media = ":media"
 testApp = ":test-app"
 
 androidGradlePlugin = "8.11.0"

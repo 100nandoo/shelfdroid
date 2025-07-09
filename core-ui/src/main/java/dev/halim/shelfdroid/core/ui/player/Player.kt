@@ -19,7 +19,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.media3.common.util.UnstableApi
 import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.ui.Animations
@@ -109,7 +108,6 @@ fun Player(
   }
 }
 
-@UnstableApi
 @Composable
 fun PlayPauseButton(
   onClick: () -> Unit,
@@ -135,7 +133,6 @@ fun PlayPauseButton(
   }
 }
 
-@UnstableApi
 @Composable
 fun SeekBackButton(onClick: () -> Unit, state: MultipleButtonState, id: String, size: Int = 48) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -154,7 +151,6 @@ fun SeekBackButton(onClick: () -> Unit, state: MultipleButtonState, id: String, 
   }
 }
 
-@UnstableApi
 @Composable
 fun SeekForwardButton(onClick: () -> Unit, state: MultipleButtonState, id: String, size: Int = 48) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
