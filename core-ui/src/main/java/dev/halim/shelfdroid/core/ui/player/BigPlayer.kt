@@ -47,14 +47,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.data.screen.player.AdvancedControl
 import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
 import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
+import dev.halim.shelfdroid.core.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -73,12 +73,10 @@ fun BigPlayerContent(
   title: String = Defaults.BOOK_TITLE,
   cover: String = "",
   progress: PlaybackProgress = PlaybackProgress(),
+  advancedControl: AdvancedControl = AdvancedControl(),
   chapters: List<PlayerChapter> = emptyList(),
   currentChapter: PlayerChapter? = PlayerChapter(),
   multipleButtonState: MultipleButtonState = MultipleButtonState(),
-  onSeekBackClick: () -> Unit = {},
-  onSeekForwardClick: () -> Unit = {},
-  onPlayPauseClick: () -> Unit = {},
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
   onEvent: (PlayerEvent) -> Unit = {},
@@ -111,17 +109,9 @@ fun BigPlayerContent(
 
         PlayerProgress(id, progress, multipleButtonState, onEvent)
 
-        BasicPlayerControl(
-          multipleButtonState,
-          onSeekBackClick,
-          onSeekForwardClick,
-          onPlayPauseClick,
-          id,
-          currentChapter,
-          onEvent,
-        )
+        BasicPlayerControl(multipleButtonState, id, currentChapter, onEvent)
 
-        AdvancedPlayerControl()
+        AdvancedPlayerControl(advancedControl, onEvent)
 
         Spacer(modifier = Modifier.height(16.dp))
       }
@@ -220,9 +210,6 @@ fun PlayerProgress(
 @Composable
 fun BasicPlayerControl(
   multipleButtonState: MultipleButtonState,
-  onSeekBackClick: () -> Unit,
-  onSeekForwardClick: () -> Unit,
-  onPlayPauseClick: () -> Unit,
   id: String = "",
   currentChapter: PlayerChapter? = PlayerChapter(),
   onEvent: (PlayerEvent) -> Unit,
@@ -244,9 +231,9 @@ fun BasicPlayerControl(
           enabled =
             currentChapter?.chapterPosition != ChapterPosition.First && currentChapter != null,
         )
-        SeekBackButton(onSeekBackClick, multipleButtonState, id)
-        PlayPauseButton(onPlayPauseClick, multipleButtonState, id, 72)
-        SeekForwardButton(onSeekForwardClick, multipleButtonState, id)
+        SeekBackButton({ onEvent(PlayerEvent.SeekBack) }, multipleButtonState, id)
+        PlayPauseButton({ onEvent(PlayerEvent.PlayPause) }, multipleButtonState, id, 72)
+        SeekForwardButton({ onEvent(PlayerEvent.SeekForward) }, multipleButtonState, id)
 
         MyIconButton(
           icon = Icons.Default.SkipNext,
@@ -261,24 +248,29 @@ fun BasicPlayerControl(
 }
 
 @Composable
-fun AdvancedPlayerControl() {
+fun AdvancedPlayerControl(advancedControl: AdvancedControl, onEvent: (PlayerEvent) -> Unit) {
   Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-    SpeedSlider(1.0f)
+    SpeedSlider(advancedControl.speed, onEvent)
 
     SleepTimer()
   }
 }
 
 @Composable
-fun SpeedSlider(speed: Float) {
+fun SpeedSlider(speed: Float, onEvent: (PlayerEvent) -> Unit) {
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    Text(text = "Speed: ${speed}x")
+    var speed by remember { mutableFloatStateOf(speed) }
+
+    val speedText = remember(speed) { speed.toSpeedText() }
+
+    Text(text = "Speed: ${speedText}x")
     Spacer(modifier = Modifier.height(4.dp))
 
     Slider(
-      modifier = Modifier.semantics { contentDescription = "speed slider" }.width(150.dp),
+      modifier = Modifier.width(150.dp),
       value = speed,
-      onValueChange = {},
+      onValueChange = { speed = it },
+      onValueChangeFinished = { onEvent(PlayerEvent.ChangeSpeed(speed)) },
       valueRange = 0.5f..2f,
       steps = 5,
     )

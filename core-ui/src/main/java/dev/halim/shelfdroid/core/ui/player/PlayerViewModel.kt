@@ -71,6 +71,10 @@ constructor(
         val positionMs = _uiState.value.currentTime.toLong() * 1000
         playerManager.get().seekTo(positionMs)
       }
+      is PlayerEvent.ChangeSpeed -> {
+        _uiState.update { playerRepository.changeSpeed(_uiState.value, event.speed) }
+        playerManager.get().changeSpeed(event.speed)
+      }
       PlayerEvent.PreviousChapter -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
         serviceUiStateHolder.playContent()
@@ -101,6 +105,8 @@ sealed class PlayerEvent {
   class ChangeChapter(val target: Int) : PlayerEvent()
 
   class SeekTo(val target: Float) : PlayerEvent()
+
+  class ChangeSpeed(val speed: Float) : PlayerEvent()
 
   data object SeekBack : PlayerEvent()
 

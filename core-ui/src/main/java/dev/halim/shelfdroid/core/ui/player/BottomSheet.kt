@@ -22,7 +22,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -71,7 +74,10 @@ private fun ChapterRow(
   currentChapter: PlayerChapter?,
   onEvent: (PlayerEvent) -> Unit = {},
 ) {
-  val selected = playerChapter.id == currentChapter?.id
+  val currentOnEvent by rememberUpdatedState(onEvent)
+  val selected =
+    remember(playerChapter.id, currentChapter?.id) { playerChapter.id == currentChapter?.id }
+
   val background =
     if (selected) MaterialTheme.colorScheme.surfaceVariant
     else MaterialTheme.colorScheme.surfaceContainerLow
@@ -83,7 +89,7 @@ private fun ChapterRow(
       Modifier.fillMaxWidth()
         .background(background)
         .selectable(selected) {
-          onEvent(PlayerEvent.ChangeChapter(index))
+          currentOnEvent(PlayerEvent.ChangeChapter(index))
           scope.launch { sheetState.hide() }
         }
         .padding(horizontal = 16.dp, vertical = 8.dp),

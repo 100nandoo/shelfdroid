@@ -14,6 +14,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration
 
 class PlayerRepository
 @Inject
@@ -213,6 +214,11 @@ constructor(
     return uiState.copy(playbackProgress = playbackProgress, currentTime = currentTime.toDouble())
   }
 
+  fun changeSpeed(uiState: PlayerUiState, speed: Float): PlayerUiState {
+    val advancedControl = uiState.advancedControl.copy(speed = speed)
+    return uiState.copy(advancedControl = advancedControl)
+  }
+
   private fun findTrackFromChapter(uiState: PlayerUiState, chapter: PlayerChapter): PlayerTrack {
     val tracks = uiState.playerTracks
     return if (tracks.size == 1) {
@@ -263,6 +269,7 @@ data class PlayerUiState(
   val playerChapters: List<PlayerChapter> = emptyList(),
   val currentChapter: PlayerChapter? = PlayerChapter(),
   val playbackProgress: PlaybackProgress = PlaybackProgress(),
+  val advancedControl: AdvancedControl = AdvancedControl(),
   val sessionId: String = "",
 )
 
@@ -300,6 +307,8 @@ data class PlaybackProgress(
   val bufferedPosition: Float = 0f,
   val progress: Float = 0f,
 )
+
+data class AdvancedControl(val speed: Float = 1f, val sleepTimerLeft: Duration = Duration.ZERO)
 
 data class MultipleButtonState(
   val seekBackEnabled: Boolean = false,
