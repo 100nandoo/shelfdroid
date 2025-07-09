@@ -47,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.player.AdvancedControl
@@ -54,6 +55,7 @@ import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
 import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
+import dev.halim.shelfdroid.core.extensions.toSleepTimerText
 import dev.halim.shelfdroid.core.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -65,6 +67,8 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun BigPlayerContent(
@@ -251,8 +255,7 @@ fun BasicPlayerControl(
 fun AdvancedPlayerControl(advancedControl: AdvancedControl, onEvent: (PlayerEvent) -> Unit) {
   Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
     SpeedSlider(advancedControl.speed, onEvent)
-
-    SleepTimer()
+    SleepTimer(advancedControl.sleepTimerLeft, onEvent)
   }
 }
 
@@ -279,7 +282,7 @@ fun SpeedSlider(speed: Float, onEvent: (PlayerEvent) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SleepTimer() {
+fun SleepTimer(sleepTimeLeft: Duration, onEvent: (PlayerEvent) -> Unit) {
   val sheetState = rememberModalBottomSheetState()
   val scope = rememberCoroutineScope()
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -291,34 +294,33 @@ fun SleepTimer() {
       modifier =
         Modifier.clip(CircleShape).clickable { scope.launch { sheetState.show() } }.size(48.dp)
     ) {
-      //            if (uiState.sleepTimeLeft > ZERO) {
-      //                Text(
-      //                    sleepTimerMinute(uiState.sleepTimeLeft),
-      //                    modifier = Modifier.align(Alignment.Center),
-      //                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-      //                    fontWeight = FontWeight.Bold
-      //                )
-      //            } else {
-      Icon(
-        modifier = Modifier.size(36.dp).align(Alignment.Center),
-        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-        imageVector = Icons.Default.Timer,
-        contentDescription = "timer",
-      )
-
-      //            }
+      if (sleepTimeLeft.inWholeSeconds > 0) {
+        Text(
+          sleepTimeLeft.toSleepTimerText(),
+          modifier = Modifier.align(Alignment.Center),
+          color = MaterialTheme.colorScheme.onSecondaryContainer,
+          fontWeight = FontWeight.Bold,
+        )
+      } else {
+        Icon(
+          modifier = Modifier.size(36.dp).align(Alignment.Center),
+          tint = MaterialTheme.colorScheme.onSecondaryContainer,
+          imageVector = Icons.Default.Timer,
+          contentDescription = "timer",
+        )
+      }
     }
-    SleepTimerBottomSheet(sheetState)
+    SleepTimerBottomSheet(sheetState, onEvent)
   }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SleepTimerBottomSheet(sheetState: SheetState) {
+fun SleepTimerBottomSheet(sheetState: SheetState, onEvent: (PlayerEvent) -> Unit) {
   val scope = rememberCoroutineScope()
 
   val sleepTimerOptions =
-    listOf("5m" to 5, "10m" to 10, "15m" to 15, "30m" to 30, "45m" to 45, "60m" to 60)
+    listOf("60m" to 60, "45m" to 45, "30m" to 30, "15m" to 15, "10m" to 10, "5m" to 5, "1m" to 1)
   if (sheetState.isVisible) {
     ModalBottomSheet(
       sheetState = sheetState,
@@ -330,7 +332,7 @@ fun SleepTimerBottomSheet(sheetState: SheetState) {
             shape = RectangleShape,
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-              //                        onEvent(PlayerEvent.SetSleepTimer(duration.minutes))
+              onEvent(PlayerEvent.SleepTimer(duration.minutes))
               scope.launch { sheetState.hide() }
             },
           ) {

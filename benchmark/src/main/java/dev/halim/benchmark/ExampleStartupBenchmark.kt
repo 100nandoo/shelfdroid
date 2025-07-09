@@ -30,12 +30,10 @@ import org.junit.runner.RunWith
 class ExampleStartupBenchmark {
   @get:Rule val benchmarkRule = MacrobenchmarkRule()
 
-  /**
-   * ExampleStartupBenchmark_startup
-   * timeToFullDisplayMs min 705.8, median 729.5, max 778.3
-   * timeToInitialDisplayMs min 232.8, median 254.0, max 289.1
-   * Traces: Iteration 0 1 2 3 4
-   */
+  // ExampleStartupBenchmark_startup
+  // timeToFullDisplayMs min 705.8, median 729.5, max 778.3
+  // timeToInitialDisplayMs min 232.8, median 254.0, max 289.1
+  // Traces: Iteration 0 1 2 3 4
   @Test
   fun startup() {
     benchmarkLogin(isStartup = true, setupBlock = { login() }) {
@@ -45,13 +43,11 @@ class ExampleStartupBenchmark {
     }
   }
 
-  /**
-   * ExampleStartupBenchmark_frameTiming
-   * frameCount           min 38.0,   median 76.0,   max 82.0
-   * frameDurationCpuMs   P50   3.6,   P90  12.5,   P95  19.1,   P99  67.8
-   * frameOverrunMs       P50  -7.4,   P90   5.2,   P95  30.2,   P99  57.0
-   * Traces: Iteration 0 1 2 3 4
-   */
+  // ExampleStartupBenchmark_frameTiming
+  // frameCount           min 38.0,   median 76.0,   max 82.0
+  // frameDurationCpuMs   P50   3.6,   P90  12.5,   P95  19.1,   P99  67.8
+  // frameOverrunMs       P50  -7.4,   P90   5.2,   P95  30.2,   P99  57.0
+  // Traces: Iteration 0 1 2 3 4
   @Test
   fun frameTiming() {
     benchmarkLogin(isFrameTiming = true, setupBlock = { login() }) {

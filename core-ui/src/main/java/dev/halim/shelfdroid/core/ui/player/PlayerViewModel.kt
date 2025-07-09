@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration
 
 @HiltViewModel
 class PlayerViewModel
@@ -75,6 +76,10 @@ constructor(
         _uiState.update { playerRepository.changeSpeed(_uiState.value, event.speed) }
         playerManager.get().changeSpeed(event.speed)
       }
+      is PlayerEvent.SleepTimer -> {
+        serviceUiStateHolder.sleepTimer(event.duration)
+      }
+
       PlayerEvent.PreviousChapter -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
         serviceUiStateHolder.playContent()
@@ -107,6 +112,8 @@ sealed class PlayerEvent {
   class SeekTo(val target: Float) : PlayerEvent()
 
   class ChangeSpeed(val speed: Float) : PlayerEvent()
+
+  class SleepTimer(val duration: Duration) : PlayerEvent()
 
   data object SeekBack : PlayerEvent()
 
