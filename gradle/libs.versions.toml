@@ -15,7 +15,7 @@ coreTesting = ":core-testing"
 coreUi = ":core-ui"
 testApp = ":test-app"
 
-androidGradlePlugin = "8.11.0"
+androidGradlePlugin = "8.11.1"
 androidxActivity = "1.10.1"
 androidxComposeBom = "2025.06.01"
 androidxCore = "1.16.0"
