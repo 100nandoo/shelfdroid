@@ -1,0 +1,25 @@
+CREATE TABLE BookmarkEntity(
+  libraryItemId TEXT PRIMARY KEY NOT NULL,
+  title TEXT NOT NULL DEFAULT '',
+  time INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO BookmarkEntity(libraryItemId, title, time, createdAt)
+VALUES ?;
+
+all:
+SELECT * FROM BookmarkEntity;
+
+byLibraryItemId:
+SELECT *
+FROM BookmarkEntity
+WHERE libraryItemId = :libraryItemId;
+
+deleteByLibraryItemId:
+DELETE FROM BookmarkEntity
+WHERE libraryItemId = :libraryItemId;
+
+deleteAll:
+DELETE FROM BookmarkEntity;

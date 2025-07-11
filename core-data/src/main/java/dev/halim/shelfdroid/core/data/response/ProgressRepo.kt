@@ -1,20 +1,18 @@
 package dev.halim.shelfdroid.core.data.response
 
-import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.MediaProgress
 import dev.halim.core.network.response.User
+import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.ProgressEntity
-import dev.halim.shelfdroid.core.database.ProgressEntityQueries
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-class ProgressRepo
-@Inject
-constructor(private val api: ApiService, private val queries: ProgressEntityQueries) {
+class ProgressRepo @Inject constructor(db: MyDatabase) {
 
+  private val queries = db.progressEntityQueries
   private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
   fun byLibraryItemId(id: String): ProgressEntity? =
@@ -41,8 +39,8 @@ constructor(private val api: ApiService, private val queries: ProgressEntityQuer
     return entities
   }
 
-  suspend fun entities(): List<ProgressEntity> {
-    return api.me().getOrNull()?.let { saveAndConvert(it) } ?: queries.all().executeAsList()
+  fun entities(): List<ProgressEntity> {
+    return queries.all().executeAsList()
   }
 
   fun updateMediaById(episodeId: String): Boolean =

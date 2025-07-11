@@ -1,9 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
+import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
@@ -23,13 +25,28 @@ constructor(
   private val json: Json,
   private val dataStoreManager: DataStoreManager,
   private val helper: Helper,
+  private val api: ApiService,
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
+  private val bookmarkRepo: BookmarkRepo,
   private val libraryRepo: LibraryRepo,
 ) {
 
   private suspend fun getToken(): String =
     withContext(Dispatchers.IO) { dataStoreManager.token.first() }
+
+  suspend fun getUser(uiState: HomeUiState): HomeUiState {
+    val response = api.me()
+    val result = response.getOrNull()
+
+    return if (result != null) {
+      progressRepo.saveAndConvert(result)
+      bookmarkRepo.saveAndConvert(result)
+      uiState.copy(homeState = HomeState.Success)
+    } else {
+      uiState.copy(homeState = HomeState.Failure("Get User Failed"))
+    }
+  }
 
   suspend fun getLibraries(): List<LibraryUiState> {
     val result = libraryRepo.entities()

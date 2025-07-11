@@ -22,14 +22,17 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
 
   private val _uiState = MutableStateFlow(HomeUiState())
   val uiState: StateFlow<HomeUiState> =
-    _uiState.onStart { apis() }.stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
+    _uiState.onStart { onStartApis() }.stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
 
   private val _navState = MutableStateFlow(NavUiState())
   val navState = _navState.stateIn(viewModelScope, SharingStarted.Lazily, NavUiState())
 
   fun onEvent(event: HomeEvent) {
     when (event) {
-      is HomeEvent.RefreshLibrary -> fetchLibraryItems(event.page)
+      is HomeEvent.RefreshLibrary -> {
+        fetchLibraryItems(event.page)
+        fetchUser()
+      }
       is HomeEvent.ChangeLibrary -> prefetchLibraryItems(event.page)
       is HomeEvent.Navigate -> {
         viewModelScope.launch {
@@ -50,12 +53,13 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
     _uiState.update { it.copy(homeState = HomeState.Failure(exception.message)) }
   }
 
-  private fun apis() {
+  private fun onStartApis() {
     _uiState.update { it.copy(homeState = HomeState.Loading) }
     viewModelScope.launch(handler) {
       val libraries = homeRepository.getLibraries()
       _uiState.update { it.copy(homeState = HomeState.Success, librariesUiState = libraries) }
       prefetchLibraryItems(0)
+      fetchUser()
     }
   }
 
@@ -87,6 +91,11 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
         currentState.copy(homeState = HomeState.Success, libraryItemsUiState = updatedMap)
       }
     }
+  }
+
+  private fun fetchUser() {
+    _uiState.update { it.copy(homeState = HomeState.Loading) }
+    viewModelScope.launch { _uiState.update { homeRepository.getUser(_uiState.value) } }
   }
 }
 

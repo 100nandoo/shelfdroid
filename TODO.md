@@ -2,6 +2,7 @@
 
 ## High Priority
 
+- [ ] Bookmarks
 - [ ] Sync session
 - [ ] Preview for all UI component
 - [ ] List View

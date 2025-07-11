@@ -8,7 +8,7 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
-import dev.halim.shelfdroid.core.database.LibraryItemEntityQueries
+import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 
@@ -16,10 +16,12 @@ class LibraryItemRepo
 @Inject
 constructor(
   private val api: ApiService,
-  private val queries: LibraryItemEntityQueries,
+  db: MyDatabase,
   private val helper: Helper,
   private val json: Json,
 ) {
+
+  private val queries = db.libraryItemEntityQueries
 
   fun byId(id: String): LibraryItemEntity? {
     return queries.byId(id).executeAsOneOrNull()
