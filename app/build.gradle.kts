@@ -45,6 +45,7 @@ android {
     versionName = libs.versions.versionName.get()
 
     vectorDrawables { useSupportLibrary = true }
+    buildConfigField("String", "MEDIA3_VERSION", "\"${libs.versions.androidxMedia3.get()}\"")
   }
 
   buildTypes {
@@ -95,6 +96,7 @@ android {
 }
 
 dependencies {
+  implementation(project(libs.versions.core.get()))
   implementation(project(libs.versions.coreUi.get()))
   implementation(project(libs.versions.coreData.get()))
 

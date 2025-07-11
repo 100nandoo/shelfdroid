@@ -1,20 +1,16 @@
 package dev.halim.shelfdroid.core.data.screen.player
 
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.request.DeviceInfo
-import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import kotlin.time.Duration
+import kotlinx.serialization.json.Json
 
 class PlayerRepository
 @Inject
@@ -25,11 +21,8 @@ constructor(
   private val apiService: ApiService,
   private val mapper: PlayerMapper,
   private val finder: PlayerFinder,
-  private val dataStoreManager: DataStoreManager,
+  private val device: Device,
 ) {
-
-  private suspend fun getDeviceId(): String =
-    withContext(Dispatchers.IO) { dataStoreManager.getDeviceId() }
 
   suspend fun playBook(id: String): PlayerUiState {
     val playerUiState = book(id)
@@ -38,10 +31,7 @@ constructor(
     }
     val result =
       runCatching {
-          val deviceInfo = DeviceInfo("ShelfDroid", getDeviceId())
-          val request =
-            PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
-
+          val request = mapper.toPlayRequest(device)
           val response = apiService.playBook(id, request)
           val sessionId = response.id
           val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
@@ -70,10 +60,7 @@ constructor(
     }
     val result =
       runCatching {
-          val deviceInfo = DeviceInfo("ShelfDroid", getDeviceId())
-          val request =
-            PlayRequest(deviceInfo = deviceInfo, forceDirectPlay = true, forceTranscode = false)
-
+          val request = mapper.toPlayRequest(device)
           val response = apiService.playPodcast(itemId, episodeId, request)
           val sessionId = response.id
           val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }

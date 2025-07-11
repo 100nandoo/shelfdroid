@@ -12,12 +12,12 @@ import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.service.ServiceUiStateHolder
 import javax.inject.Inject
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration
 
 @HiltViewModel
 class PlayerViewModel

@@ -15,13 +15,13 @@ import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper
 import dev.halim.shelfdroid.media.timer.TimerManager
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration
 
 @Singleton
 class ServiceUiStateHolder

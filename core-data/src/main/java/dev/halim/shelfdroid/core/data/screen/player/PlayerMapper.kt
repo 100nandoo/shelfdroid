@@ -1,7 +1,10 @@
 package dev.halim.shelfdroid.core.data.screen.player
 
+import dev.halim.core.network.request.DeviceInfo
+import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.play.AudioTrack
+import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
@@ -15,10 +18,8 @@ constructor(
   private val helper: Helper,
   private val dataStoreManager: DataStoreManager,
   private val finder: PlayerFinder,
+  private val device: Device,
 ) {
-
-  private suspend fun getToken(): String =
-    withContext(Dispatchers.IO) { dataStoreManager.token.first() }
 
   suspend fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
     val url = helper.generateContentUrl(getToken(), audioTrack.contentUrl)
@@ -78,4 +79,30 @@ constructor(
       progress = progress,
     )
   }
+
+  suspend fun toPlayRequest(device: Device): PlayRequest {
+    val deviceInfo =
+      DeviceInfo(
+        deviceId = getDeviceId(),
+        manufacturer = device.manufacturer,
+        model = device.model,
+        osVersion = device.osVersion,
+        sdkVersion = device.sdkVersion,
+        clientName = device.clientName,
+        clientVersion = device.clientVersion,
+      )
+
+    return PlayRequest(
+      deviceInfo = deviceInfo,
+      mediaPlayer = device.mediaPlayer,
+      forceTranscode = true,
+      forceDirectPlay = true,
+    )
+  }
+
+  private suspend fun getDeviceId(): String =
+    withContext(Dispatchers.IO) { dataStoreManager.getDeviceId() }
+
+  private suspend fun getToken(): String =
+    withContext(Dispatchers.IO) { dataStoreManager.token.first() }
 }

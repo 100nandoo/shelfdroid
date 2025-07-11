@@ -37,6 +37,7 @@ android {
 }
 
 dependencies {
+  implementation(project(libs.versions.core.get()))
   implementation(project(libs.versions.coreDatabase.get()))
   implementation(project(libs.versions.coreDatastore.get()))
   implementation(project(libs.versions.coreNetwork.get()))
