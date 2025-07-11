@@ -91,6 +91,7 @@ fun Player(
               progress = uiState.value.playbackProgress,
               advancedControl = uiState.value.advancedControl,
               chapters = uiState.value.playerChapters,
+              bookmarks = uiState.value.playerBookmarks,
               currentChapter = uiState.value.currentChapter,
               multipleButtonState = uiState.value.multipleButtonState,
               onSwipeUp = onSwipeUp,

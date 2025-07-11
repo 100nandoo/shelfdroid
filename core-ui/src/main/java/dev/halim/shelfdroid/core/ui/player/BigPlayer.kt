@@ -54,6 +54,7 @@ import dev.halim.shelfdroid.core.data.screen.player.AdvancedControl
 import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
 import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
+import dev.halim.shelfdroid.core.data.screen.player.PlayerBookmark
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.extensions.toSleepTimerText
 import dev.halim.shelfdroid.core.extensions.toSpeedText
@@ -80,6 +81,7 @@ fun BigPlayerContent(
   advancedControl: AdvancedControl = AdvancedControl(),
   chapters: List<PlayerChapter> = emptyList(),
   currentChapter: PlayerChapter? = PlayerChapter(),
+  bookmarks: List<PlayerBookmark> = emptyList(),
   multipleButtonState: MultipleButtonState = MultipleButtonState(),
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
@@ -109,7 +111,7 @@ fun BigPlayerContent(
       ) {
         BasicPlayerContent(id, author, title, cover)
 
-        BookmarkAndChapter(chapters, currentChapter, onEvent)
+        BookmarkAndChapter(chapters, currentChapter, bookmarks, onEvent)
 
         PlayerProgress(id, progress, multipleButtonState, onEvent)
 
@@ -349,6 +351,7 @@ fun SleepTimerBottomSheet(sheetState: SheetState, onEvent: (PlayerEvent) -> Unit
 fun BookmarkAndChapter(
   chapters: List<PlayerChapter>,
   currentChapter: PlayerChapter?,
+  bookmarks: List<PlayerBookmark>,
   onEvent: (PlayerEvent) -> Unit,
 ) {
   val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -358,6 +361,7 @@ fun BookmarkAndChapter(
     MyIconButton(
       icon = Icons.Default.Bookmarks,
       contentDescription = "bookmarks",
+      enabled = bookmarks.isNotEmpty(),
       onClick = { scope.launch { bookmarkSheetState.show() } },
     )
 
@@ -369,57 +373,8 @@ fun BookmarkAndChapter(
     )
   }
   ChapterBottomSheet(chapterSheetState, chapters, currentChapter, onEvent)
-  //    BookmarkBottomSheet(bookmarkSheetState)
-
+  BookmarkBottomSheet(bookmarkSheetState, bookmarks, onEvent)
 }
-
-// @OptIn(ExperimentalMaterial3Api::class)
-// @Composable
-// fun BookmarkBottomSheet(
-//    uiState: BookPlayerUiState, sheetState: SheetState, paddingValues: PaddingValues, onEvent:
-// (PlayerEvent) -> Unit
-// ) {
-//    val scope = rememberCoroutineScope()
-//    if (sheetState.isVisible) {
-//        ModalBottomSheet(
-//            modifier = Modifier.padding(paddingValues),
-//            sheetState = sheetState, onDismissRequest = { scope.launch { sheetState.hide() } },
-//        ) {
-//            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-//                itemsIndexed(uiState.bookmarks) { index, audioBookmark ->
-//                    val time = formatTime(audioBookmark.time.toLong())
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.SpaceBetween,
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(horizontal = 16.dp)
-//                            .clickable {
-//                                onEvent(PlayerEvent.JumpToBookmark(index))
-//                                scope.launch { sheetState.hide() }
-//                            }
-//                    ) {
-//                        Text(
-//                            audioBookmark.title,
-//                            style = MaterialTheme.typography.titleLarge,
-//                            maxLines = 1,
-//                            overflow = TextOverflow.Ellipsis,
-//                            modifier = Modifier.weight(1f)
-//                        )
-//
-//                        Spacer(modifier = Modifier.width(8.dp))
-//
-//                        Text(
-//                            time,
-//                            style = MaterialTheme.typography.labelMedium,
-//                            fontFamily = JetbrainsMonoFontFamily()
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-// }
 
 @ShelfDroidPreview
 @Composable

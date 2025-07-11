@@ -3,6 +3,7 @@
 package dev.halim.shelfdroid.core.ui.player
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.data.screen.player.PlayerBookmark
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -58,6 +60,48 @@ fun ChapterBottomSheet(
       LazyColumn(state = state, reverseLayout = true) {
         itemsIndexed(chapters, key = { _, chapter -> chapter.id }) { index, playerChapter ->
           ChapterRow(index, scope, sheetState, playerChapter, currentChapter, onEvent)
+        }
+      }
+    }
+  }
+}
+
+@Composable
+fun BookmarkBottomSheet(
+  sheetState: SheetState,
+  bookmarks: List<PlayerBookmark>,
+  onEvent: (PlayerEvent) -> Unit,
+) {
+  val scope = rememberCoroutineScope()
+
+  if (sheetState.isVisible && bookmarks.isNotEmpty()) {
+    ModalBottomSheet(
+      sheetState = sheetState,
+      onDismissRequest = { scope.launch { sheetState.hide() } },
+    ) {
+      LazyColumn(reverseLayout = true) {
+        itemsIndexed(bookmarks) { index, bookmark ->
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier =
+              Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable {
+                //                onEvent(PlayerEvent.JumpToBookmark(index))
+                scope.launch { sheetState.hide() }
+              },
+          ) {
+            Text(
+              bookmark.title,
+              style = MaterialTheme.typography.bodyMedium,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              modifier = Modifier.weight(1f),
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(bookmark.readableTime, style = MaterialTheme.typography.labelMedium)
+          }
         }
       }
     }

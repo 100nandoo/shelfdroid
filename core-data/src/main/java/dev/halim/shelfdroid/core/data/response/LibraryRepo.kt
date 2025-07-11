@@ -7,11 +7,10 @@ import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
 
-class LibraryRepo
-@Inject
-constructor(private val api: ApiService, db: MyDatabase) {
+class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabase) {
 
   private val queries = db.libraryEntityQueries
+
   suspend fun entities(): List<LibraryEntity> {
     val response = api.libraries().getOrNull()
     return if (response != null) {

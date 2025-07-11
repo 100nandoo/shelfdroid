@@ -6,6 +6,7 @@ import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.database.BookmarkEntity
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -78,6 +79,11 @@ constructor(
       bufferedPosition = formattedBuffered,
       progress = progress,
     )
+  }
+
+  fun toPlayerBookmark(entity: BookmarkEntity): PlayerBookmark {
+    val readableTime = helper.formatChapterTime(entity.time.toDouble())
+    return PlayerBookmark(entity.title, readableTime, entity.time)
   }
 
   suspend fun toPlayRequest(device: Device): PlayRequest {

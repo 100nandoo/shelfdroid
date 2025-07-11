@@ -1,8 +1,9 @@
 CREATE TABLE BookmarkEntity(
-  libraryItemId TEXT PRIMARY KEY NOT NULL,
+  libraryItemId TEXT NOT NULL,
   title TEXT NOT NULL DEFAULT '',
   time INTEGER NOT NULL,
-  createdAt INTEGER NOT NULL
+  createdAt INTEGER NOT NULL,
+  UNIQUE(libraryItemId, time)
 );
 
 insert:

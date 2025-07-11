@@ -10,7 +10,8 @@ class BookmarkRepo @Inject constructor(db: MyDatabase) {
 
   private val queries = db.bookmarkEntityQueries
 
-  fun byLibraryItemId(libraryItemId: String) = queries.byLibraryItemId(libraryItemId)
+  fun byLibraryItemId(libraryItemId: String) =
+    queries.byLibraryItemId(libraryItemId).executeAsList()
 
   fun saveAndConvert(user: User): List<BookmarkEntity> {
     val entities = user.bookmarks.map { toEntity(it) }

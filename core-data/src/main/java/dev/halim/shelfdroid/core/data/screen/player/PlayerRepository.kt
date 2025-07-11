@@ -6,6 +6,7 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import javax.inject.Inject
@@ -17,6 +18,7 @@ class PlayerRepository
 constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
+  private val bookmarkRepo: BookmarkRepo,
   private val helper: Helper,
   private val apiService: ApiService,
   private val mapper: PlayerMapper,
@@ -80,6 +82,8 @@ constructor(
   fun book(id: String): PlayerUiState {
     val result = libraryItemRepo.byId(id)
     val progress = progressRepo.byLibraryItemId(id)
+    val bookmarks = bookmarkRepo.byLibraryItemId(id)
+    val playerBookmarks = bookmarks.map { mapper.toPlayerBookmark(it) }
     return if (result != null) {
       val media = Json.decodeFromString<Book>(result.media)
       val chapters =
@@ -96,6 +100,7 @@ constructor(
         currentTime = progress?.currentTime ?: 0.0,
         playerChapters = chapters,
         currentChapter = chapter,
+        playerBookmarks = playerBookmarks,
         playbackProgress =
           PlaybackProgress(
             duration = helper.formatChapterTime(chapter?.endTimeSeconds ?: 0.0, true)
@@ -106,7 +111,8 @@ constructor(
 
   fun podcast(itemId: String, episodeId: String): PlayerUiState {
     val result = libraryItemRepo.byId(itemId)
-
+    val bookmarks = bookmarkRepo.byLibraryItemId(itemId)
+    val playerBookmarks = bookmarks.map { mapper.toPlayerBookmark(it) }
     return if (result != null && result.isBook == 0L) {
       val media = Json.decodeFromString<Podcast>(result.media)
 
@@ -120,6 +126,7 @@ constructor(
         author = result.author,
         title = episode.title,
         cover = result.cover,
+        playerBookmarks = playerBookmarks,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -257,6 +264,7 @@ data class PlayerUiState(
   val currentChapter: PlayerChapter? = PlayerChapter(),
   val playbackProgress: PlaybackProgress = PlaybackProgress(),
   val advancedControl: AdvancedControl = AdvancedControl(),
+  val playerBookmarks: List<PlayerBookmark> = emptyList(),
   val sessionId: String = "",
 )
 
@@ -296,6 +304,12 @@ data class PlaybackProgress(
 )
 
 data class AdvancedControl(val speed: Float = 1f, val sleepTimerLeft: Duration = Duration.ZERO)
+
+data class PlayerBookmark(
+  val title: String = "",
+  val readableTime: String = "",
+  val time: Long = 0,
+)
 
 data class MultipleButtonState(
   val seekBackEnabled: Boolean = false,
