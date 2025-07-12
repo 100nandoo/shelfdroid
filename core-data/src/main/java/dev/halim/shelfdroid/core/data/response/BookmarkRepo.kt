@@ -19,6 +19,8 @@ class BookmarkRepo @Inject constructor(db: MyDatabase) {
     return entities
   }
 
+  fun delete(libraryItemId: String, time: Long) = queries.delete(libraryItemId, time)
+
   private fun toEntity(audioBookmark: AudioBookmark): BookmarkEntity =
     BookmarkEntity(
       libraryItemId = audioBookmark.libraryItemId,

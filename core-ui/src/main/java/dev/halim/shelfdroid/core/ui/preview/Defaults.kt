@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.preview
 
+import dev.halim.shelfdroid.core.data.screen.player.PlayerBookmark
 import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 
@@ -104,4 +105,7 @@ object Defaults {
         endFormattedTime = String.format("%02d:%02d", it * 5 / 60, it * 5 % 60),
       )
     }
+
+  val DEFAULT_PLAYER_BOOKMARK =
+    PlayerBookmark("A very long bookmark title that should be truncated", "01:23", 83)
 }

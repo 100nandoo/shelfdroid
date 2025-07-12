@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.player.ExoState
+import dev.halim.shelfdroid.core.data.screen.player.PlayerBookmark
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
@@ -79,7 +80,14 @@ constructor(
       is PlayerEvent.SleepTimer -> {
         serviceUiStateHolder.sleepTimer(event.duration)
       }
-
+      is PlayerEvent.CreateBookmark -> TODO()
+      is PlayerEvent.DeleteBookmark -> {
+        viewModelScope.launch {
+          _uiState.update { playerRepository.deleteBookmark(_uiState.value, event.bookmark) }
+        }
+      }
+      is PlayerEvent.GoToBookmark -> TODO()
+      is PlayerEvent.UpdateBookmark -> TODO()
       PlayerEvent.PreviousChapter -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
         serviceUiStateHolder.playContent()
@@ -114,6 +122,14 @@ sealed class PlayerEvent {
   class ChangeSpeed(val speed: Float) : PlayerEvent()
 
   class SleepTimer(val duration: Duration) : PlayerEvent()
+
+  class GoToBookmark(val time: Long) : PlayerEvent()
+
+  class CreateBookmark(val time: Long, val title: String) : PlayerEvent()
+
+  class UpdateBookmark(val time: Long, val title: String) : PlayerEvent()
+
+  class DeleteBookmark(val bookmark: PlayerBookmark) : PlayerEvent()
 
   data object SeekBack : PlayerEvent()
 

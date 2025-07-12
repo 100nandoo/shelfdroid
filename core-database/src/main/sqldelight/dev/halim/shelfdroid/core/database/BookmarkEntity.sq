@@ -18,9 +18,9 @@ SELECT *
 FROM BookmarkEntity
 WHERE libraryItemId = :libraryItemId;
 
-deleteByLibraryItemId:
+delete:
 DELETE FROM BookmarkEntity
-WHERE libraryItemId = :libraryItemId;
+WHERE libraryItemId = :libraryItemId AND time = :time;
 
 deleteAll:
 DELETE FROM BookmarkEntity;

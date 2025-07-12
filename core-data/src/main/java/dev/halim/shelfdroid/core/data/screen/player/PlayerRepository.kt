@@ -223,6 +223,16 @@ constructor(
     }
   }
 
+  suspend fun deleteBookmark(uiState: PlayerUiState, bookmark: PlayerBookmark): PlayerUiState {
+    val id = uiState.id
+    val result = apiService.deleteBookmark(uiState.id, bookmark.time.toInt()).getOrNull()
+    if (result == null) return uiState
+    bookmarkRepo.delete(id, bookmark.time)
+    val bookmarks = uiState.playerBookmarks.toMutableList()
+    bookmarks.remove(bookmark)
+    return uiState.copy(playerBookmarks = bookmarks)
+  }
+
   suspend fun syncSession(sessionId: String, uiState: PlayerUiState): Boolean {
     val currentTime = 0L
     val timeListened = 0L

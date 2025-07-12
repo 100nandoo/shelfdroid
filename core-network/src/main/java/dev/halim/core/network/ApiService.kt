@@ -1,10 +1,12 @@
 package dev.halim.core.network
 
 import dev.halim.core.network.request.BatchLibraryItemsRequest
+import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.request.SyncSessionRequest
+import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
@@ -14,6 +16,7 @@ import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.play.PlayResponse
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -68,6 +71,21 @@ interface ApiService {
     @Path("episodeId") episodeId: String,
     @Body request: ProgressRequest,
   ): Result<Unit>
+
+  @POST("/api/me/item/{itemId}/bookmark")
+  suspend fun createBookmark(
+    @Path("itemId") itemId: String,
+    @Body request: BookmarkRequest,
+  ): Result<AudioBookmark>
+
+  @PATCH("/api/me/item/{itemId}/bookmark")
+  suspend fun updateBookmark(
+    @Path("itemId") itemId: String,
+    @Body request: BookmarkRequest,
+  ): Result<AudioBookmark>
+
+  @DELETE("/api/me/item/{itemId}/bookmark/{time}")
+  suspend fun deleteBookmark(@Path("itemId") itemId: String, @Path("time") time: Int): Result<Unit>
 
   // session
 

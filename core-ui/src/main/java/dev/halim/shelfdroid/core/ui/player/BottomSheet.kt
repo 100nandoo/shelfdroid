@@ -14,7 +14,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.ModeEdit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -24,9 +29,11 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -81,34 +88,65 @@ fun BookmarkBottomSheet(
     ) {
       LazyColumn(reverseLayout = true) {
         itemsIndexed(bookmarks) { index, bookmark ->
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier =
-              Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable {
-                //                onEvent(PlayerEvent.JumpToBookmark(index))
-                scope.launch { sheetState.hide() }
-              },
-          ) {
-            Text(
-              bookmark.title,
-              style = MaterialTheme.typography.bodyMedium,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              modifier = Modifier.weight(1f),
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(bookmark.readableTime, style = MaterialTheme.typography.labelMedium)
-          }
+          BookmarkRow(scope, sheetState, bookmark, onEvent)
         }
       }
     }
   }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BookmarkRow(
+  scope: CoroutineScope,
+  sheetState: SheetState,
+  bookmark: PlayerBookmark,
+  onEvent: (PlayerEvent) -> Unit,
+) {
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween,
+    modifier =
+      Modifier.fillMaxWidth()
+        .clickable {
+          onEvent(PlayerEvent.GoToBookmark(bookmark.time))
+          scope.launch { sheetState.hide() }
+        }
+        .padding(horizontal = 16.dp, vertical = 8.dp),
+  ) {
+    Text(
+      bookmark.title,
+      style = MaterialTheme.typography.bodyLarge,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+      modifier = Modifier.weight(1f),
+    )
+
+    Spacer(modifier = Modifier.width(8.dp))
+
+    Text(bookmark.readableTime, style = MaterialTheme.typography.labelMedium)
+
+    Spacer(modifier = Modifier.width(8.dp))
+
+    var showDialog by remember { mutableStateOf(false) }
+
+    FilledTonalIconButton(onClick = { showDialog = true }) {
+      Icon(Icons.Default.DeleteOutline, contentDescription = "Delete bookmark")
+    }
+
+    FilledTonalIconButton(
+      onClick = { onEvent(PlayerEvent.UpdateBookmark(bookmark.time, bookmark.title)) }
+    ) {
+      Icon(Icons.Default.ModeEdit, contentDescription = "Edit bookmark")
+    }
+
+    DeleteDialog(
+      showDialog = showDialog,
+      onConfirm = { onEvent(PlayerEvent.DeleteBookmark(bookmark)) },
+      onDismiss = { showDialog = false },
+    )
+  }
+}
+
 @Composable
 private fun ChapterRow(
   index: Int,
@@ -165,6 +203,21 @@ private fun PreviewChapterRow() {
       sheetState = chapterSheetState,
       playerChapter = Defaults.DEFAULT_PLAYER_CHAPTER,
       currentChapter = Defaults.DEFAULT_PLAYER_CHAPTER_LIST[1],
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun PreviewBookmarkRow() {
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+  PreviewWrapper {
+    BookmarkRow(
+      scope = rememberCoroutineScope(),
+      sheetState = sheetState,
+      bookmark = Defaults.DEFAULT_PLAYER_BOOKMARK,
+      onEvent = {},
     )
   }
 }
