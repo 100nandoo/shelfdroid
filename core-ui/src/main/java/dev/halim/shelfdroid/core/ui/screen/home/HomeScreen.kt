@@ -28,10 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -61,17 +58,6 @@ fun HomeScreen(
   val libraryCount = uiState.librariesUiState.size
 
   val pagerState = rememberPagerState(pageCount = { libraryCount })
-  var lastPage by remember { mutableIntStateOf(pagerState.currentPage) }
-
-  LaunchedEffect(pagerState) {
-    snapshotFlow { pagerState.currentPage }
-      .collect { page ->
-        if (page != lastPage) {
-          viewModel.onEvent(HomeEvent.ChangeLibrary(page))
-          lastPage = page
-        }
-      }
-  }
 
   LaunchedEffect(Unit) {
     viewModel.navState.collect { navUiState ->
@@ -175,21 +161,15 @@ fun LibraryContent(
   list: List<ShelfdroidMediaItem>?,
   onEvent: (HomeEvent) -> Unit,
   name: String,
-  onScrollStateChanged: (Boolean) -> Unit = {},
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
 ) {
   if (list?.isNotEmpty() == true) {
     val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
 
-    LaunchedEffect(gridState) {
-      snapshotFlow { gridState.isScrollInProgress }
-        .collect { isScrolling -> onScrollStateChanged(isScrolling) }
-    }
-
     LazyVerticalGrid(
       state = gridState,
-      columns = GridCells.Adaptive(minSize = 160.dp),
+      columns = GridCells.Fixed(2),
       modifier = modifier.fillMaxSize(),
       reverseLayout = true,
       verticalArrangement = Arrangement.Bottom,
