@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.player
 
 import dev.halim.core.network.ApiService
+import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
@@ -230,6 +231,21 @@ constructor(
     bookmarkRepo.delete(id, bookmark.time)
     val bookmarks = uiState.playerBookmarks.toMutableList()
     bookmarks.remove(bookmark)
+    return uiState.copy(playerBookmarks = bookmarks)
+  }
+
+  suspend fun updateBookmark(
+    uiState: PlayerUiState,
+    bookmark: PlayerBookmark,
+    title: String,
+  ): PlayerUiState {
+    val id = uiState.id
+    val request = BookmarkRequest(bookmark.time, title)
+    val result = apiService.updateBookmark(uiState.id, request).getOrNull()
+    if (result == null) return uiState
+    bookmarkRepo.updateTitle(id, bookmark.time, title)
+    val bookmarks =
+      uiState.playerBookmarks.map { if (it.time == bookmark.time) it.copy(title = title) else it }
     return uiState.copy(playerBookmarks = bookmarks)
   }
 

@@ -87,7 +87,13 @@ constructor(
         }
       }
       is PlayerEvent.GoToBookmark -> TODO()
-      is PlayerEvent.UpdateBookmark -> TODO()
+      is PlayerEvent.UpdateBookmark -> {
+        viewModelScope.launch {
+          _uiState.update {
+            playerRepository.updateBookmark(_uiState.value, event.bookmark, event.title)
+          }
+        }
+      }
       PlayerEvent.PreviousChapter -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
         serviceUiStateHolder.playContent()
@@ -127,7 +133,7 @@ sealed class PlayerEvent {
 
   class CreateBookmark(val time: Long, val title: String) : PlayerEvent()
 
-  class UpdateBookmark(val time: Long, val title: String) : PlayerEvent()
+  class UpdateBookmark(val bookmark: PlayerBookmark, val title: String) : PlayerEvent()
 
   class DeleteBookmark(val bookmark: PlayerBookmark) : PlayerEvent()
 

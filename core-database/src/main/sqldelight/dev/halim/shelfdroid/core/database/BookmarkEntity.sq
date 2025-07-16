@@ -18,6 +18,11 @@ SELECT *
 FROM BookmarkEntity
 WHERE libraryItemId = :libraryItemId;
 
+updateTitle:
+UPDATE BookmarkEntity
+SET title = :title
+WHERE libraryItemId = :libraryItemId AND time = :time;
+
 delete:
 DELETE FROM BookmarkEntity
 WHERE libraryItemId = :libraryItemId AND time = :time;

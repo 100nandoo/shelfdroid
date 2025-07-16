@@ -82,7 +82,7 @@ interface ApiService {
   suspend fun updateBookmark(
     @Path("itemId") itemId: String,
     @Body request: BookmarkRequest,
-  ): Result<AudioBookmark>
+  ): Result<Unit>
 
   @DELETE("/api/me/item/{itemId}/bookmark/{time}")
   suspend fun deleteBookmark(@Path("itemId") itemId: String, @Path("time") time: Int): Result<Unit>

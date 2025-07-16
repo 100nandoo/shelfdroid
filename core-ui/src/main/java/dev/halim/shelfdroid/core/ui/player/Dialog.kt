@@ -1,6 +1,18 @@
 package dev.halim.shelfdroid.core.ui.player
 
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 
 @Composable
@@ -14,4 +26,35 @@ fun DeleteDialog(showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Un
     onConfirm = { onConfirm() },
     onDismiss = { onDismiss() },
   )
+}
+
+@Composable
+fun UpdateBookmarkDialog(
+  showDialog: Boolean,
+  title: String,
+  textFieldValue: TextFieldValue,
+  onValueChange: (TextFieldValue) -> Unit,
+  onConfirm: () -> Unit,
+  onDismiss: () -> Unit,
+) {
+  if (showDialog) {
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text(title) },
+      text = {
+        OutlinedTextField(
+          value = textFieldValue,
+          onValueChange = onValueChange,
+          label = { Text(title) },
+          keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+          singleLine = true,
+          modifier = Modifier.focusRequester(focusRequester),
+        )
+      },
+      confirmButton = { TextButton(onClick = { onConfirm() }) { Text("OK") } },
+      dismissButton = { TextButton(onClick = { onDismiss() }) { Text("Cancel") } },
+    )
+  }
 }
