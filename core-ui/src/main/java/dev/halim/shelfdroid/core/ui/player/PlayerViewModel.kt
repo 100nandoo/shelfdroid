@@ -80,7 +80,18 @@ constructor(
       is PlayerEvent.SleepTimer -> {
         serviceUiStateHolder.sleepTimer(event.duration)
       }
-      is PlayerEvent.CreateBookmark -> TODO()
+      PlayerEvent.NewBookmarkTime -> {
+        val currentTimeInSeconds = playerManager.get().currentTime() / 1000
+        _uiState.update { playerRepository.newBookmarkTime(_uiState.value, currentTimeInSeconds) }
+      }
+
+      is PlayerEvent.CreateBookmark -> {
+        viewModelScope.launch {
+          _uiState.update {
+            playerRepository.createBookmark(_uiState.value, event.time, event.title)
+          }
+        }
+      }
       is PlayerEvent.DeleteBookmark -> {
         viewModelScope.launch {
           _uiState.update { playerRepository.deleteBookmark(_uiState.value, event.bookmark) }
@@ -130,6 +141,8 @@ sealed class PlayerEvent {
   class SleepTimer(val duration: Duration) : PlayerEvent()
 
   class GoToBookmark(val time: Long) : PlayerEvent()
+
+  data object NewBookmarkTime : PlayerEvent()
 
   class CreateBookmark(val time: Long, val title: String) : PlayerEvent()
 

@@ -249,6 +249,24 @@ constructor(
     return uiState.copy(playerBookmarks = bookmarks)
   }
 
+  fun newBookmarkTime(uiState: PlayerUiState, currentTime: Long): PlayerUiState {
+    val newBookmarkTime = uiState.currentTrack.startOffset.toLong() + currentTime
+    val readableTime = helper.formatChapterTime(newBookmarkTime.toDouble())
+    val bookmark = PlayerBookmark(time = newBookmarkTime, readableTime = readableTime)
+    return uiState.copy(newBookmarkTime = bookmark)
+  }
+
+  suspend fun createBookmark(uiState: PlayerUiState, time: Long, title: String): PlayerUiState {
+    val request = BookmarkRequest(time, title)
+    val result = apiService.createBookmark(uiState.id, request).getOrNull()
+    if (result == null) return uiState
+    val entity = bookmarkRepo.insertAndConvert(result)
+    val playerBookmark = mapper.toPlayerBookmark(entity)
+    val bookmarks = uiState.playerBookmarks.toMutableList()
+    bookmarks.add(playerBookmark)
+    return uiState.copy(playerBookmarks = bookmarks)
+  }
+
   suspend fun syncSession(sessionId: String, uiState: PlayerUiState): Boolean {
     val currentTime = 0L
     val timeListened = 0L
@@ -292,6 +310,7 @@ data class PlayerUiState(
   val advancedControl: AdvancedControl = AdvancedControl(),
   val playerBookmarks: List<PlayerBookmark> = emptyList(),
   val sessionId: String = "",
+  val newBookmarkTime: PlayerBookmark = PlayerBookmark(),
 )
 
 data class PlayerTrack(

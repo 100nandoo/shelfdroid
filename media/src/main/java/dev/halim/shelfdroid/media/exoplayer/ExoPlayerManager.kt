@@ -45,4 +45,8 @@ class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
   fun changeSpeed(speed: Float) {
     player.get().setPlaybackSpeed(speed)
   }
+
+  fun currentTime(): Long {
+    return player.get().currentPosition
+  }
 }

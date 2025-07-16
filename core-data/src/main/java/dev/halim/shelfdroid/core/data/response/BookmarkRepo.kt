@@ -19,6 +19,12 @@ class BookmarkRepo @Inject constructor(db: MyDatabase) {
     return entities
   }
 
+  fun insertAndConvert(audioBookmark: AudioBookmark): BookmarkEntity {
+    val entity = toEntity(audioBookmark)
+    queries.insert(entity)
+    return entity
+  }
+
   fun delete(libraryItemId: String, time: Long) = queries.delete(libraryItemId, time)
 
   fun updateTitle(libraryItemId: String, time: Long, title: String) =

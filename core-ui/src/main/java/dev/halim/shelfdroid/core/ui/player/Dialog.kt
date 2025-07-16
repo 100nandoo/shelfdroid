@@ -7,10 +7,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
@@ -32,11 +36,15 @@ fun DeleteDialog(showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Un
 fun UpdateBookmarkDialog(
   showDialog: Boolean,
   title: String,
-  textFieldValue: TextFieldValue,
-  onValueChange: (TextFieldValue) -> Unit,
-  onConfirm: () -> Unit,
+  bookmarkTitle: String,
+  onConfirm: (String) -> Unit,
   onDismiss: () -> Unit,
 ) {
+  var textFieldValue by
+    remember(bookmarkTitle) {
+      mutableStateOf(TextFieldValue(bookmarkTitle, TextRange(0, bookmarkTitle.length)))
+    }
+
   if (showDialog) {
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -46,14 +54,14 @@ fun UpdateBookmarkDialog(
       text = {
         OutlinedTextField(
           value = textFieldValue,
-          onValueChange = onValueChange,
+          onValueChange = { textFieldValue = it },
           label = { Text(title) },
           keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
           singleLine = true,
           modifier = Modifier.focusRequester(focusRequester),
         )
       },
-      confirmButton = { TextButton(onClick = { onConfirm() }) { Text("OK") } },
+      confirmButton = { TextButton(onClick = { onConfirm(textFieldValue.text) }) { Text("OK") } },
       dismissButton = { TextButton(onClick = { onDismiss() }) { Text("Cancel") } },
     )
   }

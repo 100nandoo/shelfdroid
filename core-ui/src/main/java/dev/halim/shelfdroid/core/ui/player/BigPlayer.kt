@@ -82,6 +82,7 @@ fun BigPlayerContent(
   chapters: List<PlayerChapter> = emptyList(),
   currentChapter: PlayerChapter? = PlayerChapter(),
   bookmarks: List<PlayerBookmark> = emptyList(),
+  newBookmarkTime: PlayerBookmark = PlayerBookmark(),
   multipleButtonState: MultipleButtonState = MultipleButtonState(),
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
@@ -111,7 +112,7 @@ fun BigPlayerContent(
       ) {
         BasicPlayerContent(id, author, title, cover)
 
-        BookmarkAndChapter(chapters, currentChapter, bookmarks, onEvent)
+        BookmarkAndChapter(chapters, currentChapter, bookmarks, newBookmarkTime, onEvent)
 
         PlayerProgress(id, progress, multipleButtonState, onEvent)
 
@@ -352,17 +353,25 @@ fun BookmarkAndChapter(
   chapters: List<PlayerChapter>,
   currentChapter: PlayerChapter?,
   bookmarks: List<PlayerBookmark>,
+  newBookmarkTime: PlayerBookmark,
   onEvent: (PlayerEvent) -> Unit,
 ) {
   val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val bookmarkSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val scope = rememberCoroutineScope()
+
+  var selectedBookmark by remember { mutableStateOf(PlayerBookmark()) }
+  var showDeleteDialog by remember { mutableStateOf(false) }
+  var showUpdateDialog by remember { mutableStateOf(false) }
+
   Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
     MyIconButton(
       icon = Icons.Default.Bookmarks,
       contentDescription = "bookmarks",
-      enabled = bookmarks.isNotEmpty(),
-      onClick = { scope.launch { bookmarkSheetState.show() } },
+      onClick = {
+        onEvent(PlayerEvent.NewBookmarkTime)
+        scope.launch { bookmarkSheetState.show() }
+      },
     )
 
     MyIconButton(
@@ -373,7 +382,40 @@ fun BookmarkAndChapter(
     )
   }
   ChapterBottomSheet(chapterSheetState, chapters, currentChapter, onEvent)
-  BookmarkBottomSheet(bookmarkSheetState, bookmarks, onEvent)
+  BookmarkBottomSheet(
+    bookmarkSheetState,
+    bookmarks,
+    newBookmarkTime,
+    onEvent,
+    {
+      selectedBookmark = it
+      showDeleteDialog = true
+    },
+    {
+      selectedBookmark = it
+      showUpdateDialog = true
+    },
+  )
+
+  DeleteDialog(
+    showDialog = showDeleteDialog,
+    onConfirm = {
+      onEvent(PlayerEvent.DeleteBookmark(selectedBookmark))
+      showDeleteDialog = false
+    },
+    onDismiss = { showDeleteDialog = false },
+  )
+
+  UpdateBookmarkDialog(
+    showDialog = showUpdateDialog,
+    title = "Update Bookmark",
+    bookmarkTitle = selectedBookmark.title,
+    onConfirm = {
+      onEvent(PlayerEvent.UpdateBookmark(selectedBookmark, it))
+      showUpdateDialog = false
+    },
+    onDismiss = { showUpdateDialog = false },
+  )
 }
 
 @ShelfDroidPreview
