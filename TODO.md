@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Bookmarks
 - [ ] Sync session
 - [ ] Preview for all UI component
 - [ ] List View
@@ -34,3 +33,4 @@
 - [x] Save device id to local storage
 - [x] Refactor slider to player ui state
 - [x] Change chapter order of chapter bottom sheet
+- [x] Bookmarks

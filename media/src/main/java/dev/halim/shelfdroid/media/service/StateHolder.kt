@@ -12,7 +12,7 @@ import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
 import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
 import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper
-import dev.halim.shelfdroid.media.timer.TimerManager
+import dev.halim.shelfdroid.media.misc.TimerManager
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration
@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Singleton
-class ServiceUiStateHolder
+class StateHolder
 @Inject
 constructor(
   private val playerEventListener: Lazy<PlayerEventListener>,

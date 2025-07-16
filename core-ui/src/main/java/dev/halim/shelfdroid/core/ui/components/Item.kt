@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import coil3.request.crossfade
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.Animations
@@ -151,7 +150,7 @@ fun ItemCoverNoAnimation(
   } else {
     AsyncImage(
       modifier = modifier.clip(shape).background(background).aspectRatio(1f),
-      model = ImageRequest.Builder(LocalContext.current).data(coverUrl).crossfade(true).build(),
+      model = ImageRequest.Builder(LocalContext.current).data(coverUrl).build(),
       contentDescription = "Library item cover image",
       onError = { imageLoadFailed = true },
     )

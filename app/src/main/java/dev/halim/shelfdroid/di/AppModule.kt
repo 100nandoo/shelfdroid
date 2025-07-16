@@ -33,4 +33,10 @@ object AppModule {
       mediaPlayer = "media3_" + BuildConfig.MEDIA3_VERSION,
     )
   }
+
+  @Singleton
+  @Provides
+  fun provideIsDebug(): Boolean {
+    return BuildConfig.DEBUG
+  }
 }

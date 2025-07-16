@@ -26,7 +26,9 @@ object UiModule {
   fun providesImageLoader(
     @ApplicationContext appContext: Context,
     okhttpClient: OkHttpClient,
+    isDebug: Boolean,
   ): ImageLoader {
+    val logger = if (isDebug) DebugLogger() else null
     return ImageLoader.Builder(appContext)
       .memoryCachePolicy(CachePolicy.ENABLED)
       .components { add(OkHttpNetworkFetcherFactory(callFactory = { okhttpClient })) }
@@ -39,7 +41,7 @@ object UiModule {
           .build()
       }
       .crossfade(true)
-      .logger(DebugLogger())
+      .logger(logger)
       .build()
   }
 }

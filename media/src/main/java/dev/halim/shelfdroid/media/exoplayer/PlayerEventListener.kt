@@ -21,14 +21,14 @@ class PlayerEventListener @Inject constructor(private val player: Lazy<ExoPlayer
     return CoroutineScope(Dispatchers.Default).launch {
       player.get().apply {
         listen { event ->
-          changeChapterLogic(this@apply, uiState, changeChapterEvent)
+          goToNextChapterLogic(this@apply, uiState, changeChapterEvent)
           onEvents(event)
         }
       }
     }
   }
 
-  private fun changeChapterLogic(
+  private fun goToNextChapterLogic(
     player: ExoPlayer,
     uiState: PlayerUiState,
     changeChapterEvent: () -> Unit,

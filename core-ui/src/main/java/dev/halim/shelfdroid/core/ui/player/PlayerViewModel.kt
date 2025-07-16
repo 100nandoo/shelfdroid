@@ -11,7 +11,7 @@ import dev.halim.shelfdroid.core.data.screen.player.PlayerState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
-import dev.halim.shelfdroid.media.service.ServiceUiStateHolder
+import dev.halim.shelfdroid.media.service.StateHolder
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,10 +26,10 @@ class PlayerViewModel
 constructor(
   private val playerManager: Lazy<ExoPlayerManager>,
   private val playerRepository: PlayerRepository,
-  private val serviceUiStateHolder: ServiceUiStateHolder,
+  private val stateHolder: StateHolder,
 ) : ViewModel() {
 
-  private val _uiState = serviceUiStateHolder.uiState
+  private val _uiState = stateHolder.uiState
 
   val uiState: StateFlow<PlayerUiState> =
     _uiState.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), PlayerUiState())
@@ -41,7 +41,7 @@ constructor(
           when {
             _uiState.value.id != event.id -> {
               _uiState.update { playerRepository.playBook(event.id) }
-              serviceUiStateHolder.playContent()
+              stateHolder.playContent()
             }
             _uiState.value.exoState == ExoState.Playing -> playerManager.get().pause()
             else -> playerManager.get().resume()
@@ -53,7 +53,7 @@ constructor(
           when {
             _uiState.value.episodeId != event.episodeId -> {
               _uiState.update { playerRepository.playPodcast(event.itemId, event.episodeId) }
-              serviceUiStateHolder.playContent()
+              stateHolder.playContent()
             }
             _uiState.value.exoState == ExoState.Playing -> playerManager.get().pause()
             else -> playerManager.get().resume()
@@ -62,7 +62,7 @@ constructor(
       }
       is PlayerEvent.ChangeChapter -> {
         _uiState.update { playerRepository.changeChapter(_uiState.value, event.target) }
-        serviceUiStateHolder.playContent()
+        stateHolder.playContent()
       }
       PlayerEvent.SeekBack -> playerManager.get().seekBack()
       PlayerEvent.SeekForward -> playerManager.get().seekForward()
@@ -78,7 +78,7 @@ constructor(
         playerManager.get().changeSpeed(event.speed)
       }
       is PlayerEvent.SleepTimer -> {
-        serviceUiStateHolder.sleepTimer(event.duration)
+        stateHolder.sleepTimer(event.duration)
       }
       PlayerEvent.NewBookmarkTime -> {
         val currentTimeInSeconds = playerManager.get().currentTime() / 1000
@@ -107,11 +107,11 @@ constructor(
       }
       PlayerEvent.PreviousChapter -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
-        serviceUiStateHolder.playContent()
+        stateHolder.playContent()
       }
       PlayerEvent.NextChapter -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, false) }
-        serviceUiStateHolder.playContent()
+        stateHolder.playContent()
       }
       PlayerEvent.Big -> _uiState.update { it.copy(state = PlayerState.Big) }
       PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }

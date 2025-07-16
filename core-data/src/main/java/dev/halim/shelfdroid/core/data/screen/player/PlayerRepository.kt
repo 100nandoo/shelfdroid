@@ -112,8 +112,6 @@ constructor(
 
   fun podcast(itemId: String, episodeId: String): PlayerUiState {
     val result = libraryItemRepo.byId(itemId)
-    val bookmarks = bookmarkRepo.byLibraryItemId(itemId)
-    val playerBookmarks = bookmarks.map { mapper.toPlayerBookmark(it) }
     return if (result != null && result.isBook == 0L) {
       val media = Json.decodeFromString<Podcast>(result.media)
 
@@ -127,7 +125,6 @@ constructor(
         author = result.author,
         title = episode.title,
         cover = result.cover,
-        playerBookmarks = playerBookmarks,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }

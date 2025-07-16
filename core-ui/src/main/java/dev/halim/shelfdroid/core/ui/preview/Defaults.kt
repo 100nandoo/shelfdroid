@@ -113,7 +113,6 @@ object Defaults {
     listOf(
       DEFAULT_PLAYER_BOOKMARK,
       PlayerBookmark("Another bookmark", "02:34", 154),
-      PlayerBookmark("Yet another bookmark", "03:45", 225)
+      PlayerBookmark("Yet another bookmark", "03:45", 225),
     )
-
 }

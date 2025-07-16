@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.media.timer
+package dev.halim.shelfdroid.media.misc
 
 import android.util.Log
 import androidx.media3.common.Player
