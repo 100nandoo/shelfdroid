@@ -31,6 +31,16 @@ SELECT *
 FROM ProgressEntity
 WHERE episodeId = :episodeId;
 
+updateBookProgress:
+UPDATE ProgressEntity
+SET progress = :progress, currentTime = :currentTime
+WHERE libraryItemId = :libraryItemId AND episodeId IS NULL;
+
+updatePodcastProgress:
+UPDATE ProgressEntity
+SET progress = :progress, currentTime = :currentTime
+WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
+
 deleteBookById:
 DELETE FROM ProgressEntity
 WHERE libraryItemId = :libraryItemId;

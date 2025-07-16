@@ -77,6 +77,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun BigPlayerContent(
   id: String = "",
+  isBook: Boolean = true,
   author: String = Defaults.BOOK_AUTHOR,
   title: String = Defaults.BOOK_TITLE,
   cover: String = "",
@@ -115,7 +116,7 @@ fun BigPlayerContent(
       ) {
         BasicPlayerContent(id, author, title, cover)
 
-        BookmarkAndChapter(chapters, currentChapter, bookmarks, newBookmarkTime, onEvent)
+        BookmarkAndChapter(isBook, chapters, currentChapter, bookmarks, newBookmarkTime, onEvent)
 
         PlayerProgress(id, progress, multipleButtonState, onEvent)
 
@@ -353,6 +354,7 @@ fun SleepTimerBottomSheet(sheetState: SheetState, onEvent: (PlayerEvent) -> Unit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookmarkAndChapter(
+  isBook: Boolean,
   chapters: List<PlayerChapter>,
   currentChapter: PlayerChapter?,
   bookmarks: List<PlayerBookmark>,
@@ -371,6 +373,7 @@ fun BookmarkAndChapter(
     MyIconButton(
       icon = Icons.Default.Bookmarks,
       contentDescription = "bookmarks",
+      enabled = isBook,
       onClick = {
         onEvent(PlayerEvent.NewBookmarkTime)
         scope.launch { bookmarkSheetState.show() }

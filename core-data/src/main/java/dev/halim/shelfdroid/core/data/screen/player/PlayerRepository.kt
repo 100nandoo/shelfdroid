@@ -264,12 +264,19 @@ constructor(
     return uiState.copy(playerBookmarks = bookmarks)
   }
 
-  suspend fun syncSession(sessionId: String, uiState: PlayerUiState): Boolean {
-    val currentTime = 0L
-    val timeListened = 0L
-    val request = SyncSessionRequest(currentTime, timeListened)
-    val response = apiService.syncSession(sessionId, request)
-    return response.isSuccess
+  suspend fun syncSession(uiState: PlayerUiState, rawPositionMs: Long, duration: Duration) {
+    val currentTime = finder.bookPosition(uiState, rawPositionMs)
+    val request = SyncSessionRequest(currentTime, duration.inWholeSeconds)
+    val result = apiService.syncSession(uiState.sessionId, request).getOrNull()
+    if (result == null) return
+    val isBook = uiState.episodeId.isBlank()
+    val entity =
+      if (isBook) progressRepo.bookById(uiState.id) else progressRepo.episodeById(uiState.id)
+    entity?.let {
+      val progress = currentTime / it.duration
+      val updated = it.copy(currentTime = currentTime.toDouble(), progress = progress)
+      progressRepo.updateProgress(updated)
+    }
   }
 }
 

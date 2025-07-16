@@ -85,6 +85,7 @@ fun Player(
             BackHandler(enabled = true) { viewModel.onEvent(PlayerEvent.Small) }
             BigPlayerContent(
               id = uiState.value.id,
+              isBook = uiState.value.episodeId.isBlank(),
               author = uiState.value.author,
               title = uiState.value.title,
               cover = uiState.value.cover,

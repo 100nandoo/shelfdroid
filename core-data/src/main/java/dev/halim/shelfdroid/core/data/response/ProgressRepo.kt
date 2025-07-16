@@ -46,6 +46,15 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
   fun updateMediaById(episodeId: String): Boolean =
     queries.toggleIsFinishedByEpisodeId(episodeId).value == 1L
 
+  fun updateProgress(entity: ProgressEntity) {
+    val episodeId = entity.episodeId
+    if (episodeId.isNullOrBlank()) {
+      queries.updateBookProgress(entity.progress, entity.currentTime, entity.libraryItemId)
+    } else {
+      queries.updatePodcastProgress(entity.progress, entity.currentTime, episodeId)
+    }
+  }
+
   private fun toEntity(mediaProgress: MediaProgress): ProgressEntity =
     ProgressEntity(
       id = mediaProgress.id,

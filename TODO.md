@@ -2,7 +2,7 @@
 
 ## High Priority
 
-- [ ] Sync session
+- [ ] Long interval sync session
 - [ ] Preview for all UI component
 - [ ] List View
 
@@ -34,3 +34,4 @@
 - [x] Refactor slider to player ui state
 - [x] Change chapter order of chapter bottom sheet
 - [x] Bookmarks
+- [x] Short interval sync session
