@@ -201,7 +201,6 @@ private val previewHomeUiState =
               author = Defaults.BOOK_AUTHOR,
               title = Defaults.BOOK_TITLE,
               cover = Defaults.BOOK_COVER,
-              url = "",
               progress = 0.3f,
             ),
             BookUiState(
@@ -209,7 +208,6 @@ private val previewHomeUiState =
               author = "George R. R. Martin",
               title = "A Game of Thrones",
               cover = Defaults.BOOK_COVER,
-              url = "",
               progress = 0.7f,
             ),
           ),
@@ -220,9 +218,6 @@ private val previewHomeUiState =
               author = Defaults.AUTHOR_NAME,
               title = Defaults.TITLE,
               cover = Defaults.IMAGE_URL,
-              url = "",
-              startTime = 0L,
-              endTime = 3600000L,
               episodeCount = Defaults.EPISODES.size,
             )
           ),

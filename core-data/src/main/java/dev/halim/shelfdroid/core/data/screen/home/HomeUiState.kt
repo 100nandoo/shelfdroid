@@ -15,10 +15,7 @@ abstract class ShelfdroidMediaItem {
   abstract val author: String
   abstract val title: String
   abstract val cover: String
-  abstract val url: String
   abstract val seekTime: Long
-  abstract val startTime: Long
-  abstract val endTime: Long
 }
 
 @Serializable
@@ -27,10 +24,7 @@ data class BookUiState(
   override val author: String = "",
   override val title: String = "",
   override val cover: String = "",
-  override val url: String = "",
   override val seekTime: Long = 0L,
-  override val startTime: Long = 0L,
-  override val endTime: Long = 0L,
   val progress: Float = 0f,
 ) : ShelfdroidMediaItem()
 
@@ -39,10 +33,7 @@ data class PodcastUiState(
   override val author: String,
   override val title: String,
   override val cover: String,
-  override val url: String,
   override val seekTime: Long = 0L,
-  override val startTime: Long,
-  override val endTime: Long,
   val episodeCount: Int,
 ) : ShelfdroidMediaItem()
 

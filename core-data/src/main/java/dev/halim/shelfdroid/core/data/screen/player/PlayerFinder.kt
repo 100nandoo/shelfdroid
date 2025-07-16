@@ -54,4 +54,11 @@ class PlayerFinder @Inject constructor() {
       }
     return positionMs
   }
+
+  fun startTime(uiState: PlayerUiState): Double {
+    val currentChapter = uiState.currentChapter
+    val currentTrack = uiState.currentTrack
+    val startTime = currentChapter?.startTimeSeconds ?: currentTrack.startOffset
+    return startTime
+  }
 }

@@ -250,9 +250,9 @@ constructor(
   }
 
   fun newBookmarkTime(uiState: PlayerUiState, currentTime: Long): PlayerUiState {
-    val newBookmarkTime = uiState.currentTrack.startOffset.toLong() + currentTime
-    val readableTime = helper.formatChapterTime(newBookmarkTime.toDouble())
-    val bookmark = PlayerBookmark(time = newBookmarkTime, readableTime = readableTime)
+    val newBookmarkTime = finder.startTime(uiState) + currentTime
+    val readableTime = helper.formatChapterTime(newBookmarkTime)
+    val bookmark = PlayerBookmark(time = newBookmarkTime.toLong(), readableTime = readableTime)
     return uiState.copy(newBookmarkTime = bookmark)
   }
 

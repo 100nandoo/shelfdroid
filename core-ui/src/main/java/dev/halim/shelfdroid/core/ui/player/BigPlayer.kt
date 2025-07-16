@@ -64,6 +64,9 @@ import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.player.bookmark.BookmarkBottomSheet
+import dev.halim.shelfdroid.core.ui.player.bookmark.DeleteBookmarkDialog
+import dev.halim.shelfdroid.core.ui.player.bookmark.UpdateBookmarkDialog
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -397,7 +400,7 @@ fun BookmarkAndChapter(
     },
   )
 
-  DeleteDialog(
+  DeleteBookmarkDialog(
     showDialog = showDeleteDialog,
     onConfirm = {
       onEvent(PlayerEvent.DeleteBookmark(selectedBookmark))

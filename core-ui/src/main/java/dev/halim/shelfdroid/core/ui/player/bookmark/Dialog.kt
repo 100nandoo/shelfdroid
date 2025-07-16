@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.player
+package dev.halim.shelfdroid.core.ui.player.bookmark
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -20,7 +20,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 
 @Composable
-fun DeleteDialog(showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun DeleteBookmarkDialog(showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {
   MyAlertDialog(
     title = "Delete Bookmark",
     text = "Are you sure you want to delete this bookmark?",

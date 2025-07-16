@@ -108,4 +108,12 @@ object Defaults {
 
   val DEFAULT_PLAYER_BOOKMARK =
     PlayerBookmark("A very long bookmark title that should be truncated", "01:23", 83)
+
+  val DEFAULT_PLAYER_BOOKMARK_LIST =
+    listOf(
+      DEFAULT_PLAYER_BOOKMARK,
+      PlayerBookmark("Another bookmark", "02:34", 154),
+      PlayerBookmark("Yet another bookmark", "03:45", 225)
+    )
+
 }
