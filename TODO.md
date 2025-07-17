@@ -2,13 +2,12 @@
 
 ## High Priority
 
-- [ ] Long interval sync session
-- [ ] Preview for all UI component
+- [ ] Download Function
 - [ ] List View
 
 ### Low Priority
 
-- [ ] Download Function
+- [ ] Preview for all UI component
 - [ ] Settings
     - [ ] Episode screen, default expand/shrink description state
     - [ ] Onclick notification, (big/small)
@@ -35,3 +34,4 @@
 - [x] Change chapter order of chapter bottom sheet
 - [x] Bookmarks
 - [x] Short interval sync session
+- [x] Long interval sync session

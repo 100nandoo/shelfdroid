@@ -33,7 +33,7 @@ constructor(
   private val playerRepository: PlayerRepository,
   private val mediaItemMapper: MediaItemMapper,
   private val timerManager: TimerManager,
-  private val sessionManager: SessionManager,
+  private val sessionManager: Lazy<SessionManager>,
 ) {
   val uiState = MutableStateFlow(PlayerUiState())
 
@@ -61,7 +61,7 @@ constructor(
   }
 
   fun syncSession() {
-    sessionManager.start(uiState.value)
+    sessionManager.get().start(uiState.value)
   }
 
   private var playbackProgressJob: Job? = null
