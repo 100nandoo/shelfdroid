@@ -1,4 +1,5 @@
 CREATE TABLE BookmarkEntity(
+  id TEXT PRIMARY KEY NOT NULL,
   libraryItemId TEXT NOT NULL,
   title TEXT NOT NULL DEFAULT '',
   time INTEGER NOT NULL,
@@ -7,11 +8,14 @@ CREATE TABLE BookmarkEntity(
 );
 
 insert:
-INSERT OR REPLACE INTO BookmarkEntity(libraryItemId, title, time, createdAt)
+INSERT OR REPLACE INTO BookmarkEntity(id, libraryItemId, title, time, createdAt)
 VALUES ?;
 
 all:
 SELECT * FROM BookmarkEntity;
+
+allIds:
+SELECT id FROM BookmarkEntity;
 
 byLibraryItemId:
 SELECT *
@@ -22,6 +26,9 @@ updateTitle:
 UPDATE BookmarkEntity
 SET title = :title
 WHERE libraryItemId = :libraryItemId AND time = :time;
+
+deleteById:
+DELETE FROM BookmarkEntity WHERE id = ?;
 
 delete:
 DELETE FROM BookmarkEntity

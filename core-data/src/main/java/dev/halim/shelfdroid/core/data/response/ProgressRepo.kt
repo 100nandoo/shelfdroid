@@ -8,7 +8,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ProgressRepo @Inject constructor(db: MyDatabase) {
 
@@ -22,20 +22,10 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
 
   fun episodeById(id: String): ProgressEntity? = queries.episodeById(id).executeAsOneOrNull()
 
-  fun saveAndConvert(user: User): List<ProgressEntity> {
+  suspend fun saveAndConvert(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map(::toEntity)
-
-    repositoryScope.launch {
-      queries.transaction {
-        entities.forEach { progress ->
-          when (progress.mediaItemType) {
-            "book" -> queries.deleteBookById(progress.libraryItemId)
-            else -> queries.deleteEpisodeById(progress.episodeId)
-          }
-          queries.insert(progress)
-        }
-      }
-    }
+    withContext(Dispatchers.IO) { cleanup(entities) }
+    entities.forEach { entity -> queries.insert(entity) }
     return entities
   }
 
@@ -52,6 +42,15 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
       queries.updateBookProgress(entity.progress, entity.currentTime, entity.libraryItemId)
     } else {
       queries.updatePodcastProgress(entity.progress, entity.currentTime, episodeId)
+    }
+  }
+
+  private fun cleanup(entities: List<ProgressEntity>) {
+    queries.transaction {
+      val ids = queries.allIds().executeAsList()
+      val newIds = entities.map { it.id }
+      val toDelete = ids.filter { !newIds.contains(it) }
+      toDelete.forEach { queries.deleteById(it) }
     }
   }
 

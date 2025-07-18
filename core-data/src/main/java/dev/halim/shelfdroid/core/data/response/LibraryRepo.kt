@@ -6,6 +6,8 @@ import dev.halim.core.network.response.Library
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabase) {
 
@@ -14,7 +16,9 @@ class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabas
   suspend fun entities(): List<LibraryEntity> {
     val response = api.libraries().getOrNull()
     return if (response != null) {
-      saveAndConvert(response)
+      val entities = saveAndConvert(response)
+      withContext(Dispatchers.IO) { cleanup(entities) }
+      entities
     } else {
       queries.all().executeAsList()
     }
@@ -24,6 +28,15 @@ class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabas
     val entities = response.libraries.map { toEntity(it) }
     entities.forEach { entity -> queries.insert(entity) }
     return entities
+  }
+
+  private fun cleanup(entities: List<LibraryEntity>) {
+    queries.transaction {
+      val ids = queries.allIds().executeAsList()
+      val newIds = entities.map { it.id }
+      val toDelete = ids.filter { !newIds.contains(it) }
+      toDelete.forEach { queries.deleteById(it) }
+    }
   }
 
   private fun toEntity(library: Library): LibraryEntity =

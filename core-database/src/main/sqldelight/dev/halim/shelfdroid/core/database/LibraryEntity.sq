@@ -6,6 +6,12 @@ CREATE TABLE LibraryEntity(
 all:
 SELECT * FROM LibraryEntity;
 
+allIds:
+SELECT id FROM LibraryEntity;
+
 insert:
 INSERT OR REPLACE INTO LibraryEntity(id, name)
 VALUES ?;
+
+deleteById:
+DELETE FROM LibraryEntity WHERE id = ?;

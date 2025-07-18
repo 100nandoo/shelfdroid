@@ -10,6 +10,8 @@ import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 class LibraryItemRepo
@@ -37,7 +39,9 @@ constructor(
     val result = api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()
 
     return if (result != null) {
-      saveAndConvert(libraryId, result)
+      val entities = saveAndConvert(libraryId, result)
+      withContext(Dispatchers.IO) { cleanup(libraryId, entities) }
+      entities
     } else {
       queries.byLibraryId(libraryId).executeAsList()
     }
@@ -50,6 +54,15 @@ constructor(
     val entities = response.libraryItems.map { toEntity(it, libraryId) }
     entities.forEach { entity -> queries.insert(entity) }
     return entities
+  }
+
+  private fun cleanup(libraryId: String, entities: List<LibraryItemEntity>) {
+    queries.transaction {
+      val ids = queries.idsByLibraryId(libraryId).executeAsList()
+      val newIds = entities.map { it.id }
+      val toDelete = ids.filter { !newIds.contains(it) }
+      toDelete.forEach { queries.deleteById(it) }
+    }
   }
 
   private fun toEntity(item: LibraryItem, libraryId: String): LibraryItemEntity {

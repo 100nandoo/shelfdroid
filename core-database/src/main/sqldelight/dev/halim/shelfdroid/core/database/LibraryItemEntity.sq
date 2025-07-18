@@ -14,6 +14,11 @@ CREATE TABLE LibraryItemEntity (
 all:
 SELECT * FROM LibraryItemEntity;
 
+idsByLibraryId:
+SELECT id
+FROM LibraryItemEntity
+WHERE libraryId = :libraryId;
+
 byLibraryId:
 SELECT *
 FROM LibraryItemEntity
@@ -29,7 +34,5 @@ INSERT OR REPLACE INTO LibraryItemEntity(id, libraryId, author, title, descripti
 duration)
 VALUES ?;
 
-idsByLibraryId:
-SELECT id
-FROM LibraryItemEntity
-WHERE libraryId = :libraryId;
+deleteById:
+DELETE FROM LibraryItemEntity WHERE id = ?;

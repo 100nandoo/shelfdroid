@@ -16,6 +16,9 @@ VALUES ?;
 all:
 SELECT * FROM ProgressEntity;
 
+allIds:
+SELECT id FROM ProgressEntity;
+
 byLibraryItemId:
 SELECT *
 FROM ProgressEntity
@@ -48,6 +51,9 @@ WHERE libraryItemId = :libraryItemId;
 deleteEpisodeById:
 DELETE FROM ProgressEntity
 WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
+
+deleteById:
+DELETE FROM ProgressEntity WHERE id = ?;
 
 deleteAll:
 DELETE FROM ProgressEntity;
