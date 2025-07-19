@@ -27,6 +27,7 @@ import dev.halim.shelfdroid.core.data.screen.player.ExoState
 import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
@@ -43,6 +44,7 @@ fun PodcastScreen(
   onEpisodeClicked: (String, String) -> Unit,
   onPlayClicked: (String, String) -> Unit,
 ) {
+  InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
   if (uiState.state == GenericState.Success) {

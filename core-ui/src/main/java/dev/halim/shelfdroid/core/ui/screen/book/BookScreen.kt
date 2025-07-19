@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.player.ExoState
 import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
@@ -40,7 +41,7 @@ fun BookScreen(
   playerViewModel: PlayerViewModel,
   onPlayClicked: (String) -> Unit,
 ) {
-
+  InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
   if (uiState.state == GenericState.Success) {

@@ -45,6 +45,7 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
   var mediaController: MediaController? = null
 
   fun init(scope: CoroutineScope) {
+    if (mediaController != null) return
     Log.d("media3", "mediaController instantiated")
     scope.launch { runCatching { mediaController = mediaControllerFuture.await() } }
   }
