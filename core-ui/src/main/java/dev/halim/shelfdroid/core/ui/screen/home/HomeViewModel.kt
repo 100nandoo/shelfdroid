@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
-import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +40,6 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
           }
         }
       }
-      is HomeEvent.PlayBook -> {}
     }
   }
 
@@ -111,6 +109,4 @@ sealed class HomeEvent {
   data class RefreshLibrary(val page: Int) : HomeEvent()
 
   data class Navigate(val id: String, val isBook: Boolean) : HomeEvent()
-
-  data class PlayBook(val mediaItem: ShelfdroidMediaItem) : HomeEvent()
 }

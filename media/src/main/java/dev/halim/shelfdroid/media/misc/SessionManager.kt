@@ -61,7 +61,7 @@ constructor(
         } else {
           connectivityJob?.cancel()
           syncJob?.cancel()
-          syncToServer()
+          sync()
         }
       }
     }
@@ -74,7 +74,7 @@ constructor(
     return withContext(Dispatchers.Main) { player.get().currentPosition }
   }
 
-  private fun syncToServer() {
+  private fun sync() {
     val syncDuration = duration
     syncScope.launch {
       playerRepository.syncSession(uiState, getCurrentPositionSafe(), syncDuration)
@@ -91,7 +91,7 @@ constructor(
           duration += 1.seconds
           val syncThreshold = if (isMetered) SYNC_LONG_INTERVAL else SYNC_SHORT_INTERVAL
           if (duration >= syncThreshold.seconds) {
-            syncToServer()
+            sync()
           }
         }
       }

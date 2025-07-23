@@ -60,6 +60,7 @@ fun SmallPlayerContent(
         Modifier.fillMaxWidth()
           .mySharedBound(Animations.Companion.Player.containerKey(id))
           .height(120.dp)
+          .navigationBarsPadding()
           .pointerInput(Unit) {
             detectVerticalDragGestures { _, dragAmount ->
               if (dragAmount < 0) {
@@ -70,7 +71,6 @@ fun SmallPlayerContent(
             }
           }
           .clickable { onClicked(id) }
-          .navigationBarsPadding()
       ) {
         LinearProgressIndicator(
           progress = { progress },
