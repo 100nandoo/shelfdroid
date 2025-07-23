@@ -41,7 +41,7 @@ kotlinSerialization = "1.9.0"
 sqldelight = "2.1.0"
 
 # 3rd party
-coil = "3.2.0"
+coil = "3.3.0"
 retrofit = "3.0.0"
 retrofit-result = "1.0.13"
 kotlinGradlePlugin = "2.2.0"
