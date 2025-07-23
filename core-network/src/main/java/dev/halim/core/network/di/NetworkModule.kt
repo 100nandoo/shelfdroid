@@ -6,7 +6,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.interceptor.HostSelectionInterceptor
+import dev.halim.core.network.client.HostSelectionInterceptor
+import dev.halim.core.network.client.TokenAuthenticator
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
@@ -32,8 +33,14 @@ object NetworkModule {
 
   @Singleton
   @Provides
-  fun providesOkHttpClient(dataStoreManager: DataStoreManager): OkHttpClient {
-    return OkHttpClient.Builder().addInterceptor(HostSelectionInterceptor(dataStoreManager)).build()
+  fun providesOkHttpClient(
+    dataStoreManager: DataStoreManager,
+    tokenAuthenticator: TokenAuthenticator,
+  ): OkHttpClient {
+    return OkHttpClient.Builder()
+      .addInterceptor(HostSelectionInterceptor(dataStoreManager))
+      .authenticator(tokenAuthenticator)
+      .build()
   }
 
   @Singleton

@@ -5,7 +5,6 @@ import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
-import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -24,7 +23,6 @@ constructor(
   private val apiService: ApiService,
   private val mapper: PlayerMapper,
   private val finder: PlayerFinder,
-  private val device: Device,
 ) {
 
   suspend fun playBook(id: String): PlayerUiState {
@@ -34,7 +32,7 @@ constructor(
     }
     val result =
       runCatching {
-          val request = mapper.toPlayRequest(device)
+          val request = mapper.toPlayRequest()
           val response = apiService.playBook(id, request)
           val sessionId = response.id
           val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
@@ -63,7 +61,7 @@ constructor(
     }
     val result =
       runCatching {
-          val request = mapper.toPlayRequest(device)
+          val request = mapper.toPlayRequest()
           val response = apiService.playPodcast(itemId, episodeId, request)
           val sessionId = response.id
           val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }

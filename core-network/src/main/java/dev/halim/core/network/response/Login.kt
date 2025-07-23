@@ -12,10 +12,19 @@ data class LoginResponse(
 )
 
 @Serializable
+enum class UserType {
+  @SerialName("admin") ADMIN,
+  @SerialName("user") USER,
+  @SerialName("root") ROOT,
+  @SerialName("guest") GUEST,
+  @SerialName("unknown") UNKNOWN,
+}
+
+@Serializable
 data class User(
   @SerialName("id") val id: String = "",
   @SerialName("username") val username: String = "",
-  @SerialName("type") val type: String = "",
+  @SerialName("type") val type: UserType = UserType.UNKNOWN,
   @SerialName("token") val token: String = "",
   @SerialName("mediaProgress") val mediaProgress: List<MediaProgress> = listOf(),
   @SerialName("seriesHideFromContinueListening")
@@ -28,6 +37,8 @@ data class User(
   @SerialName("permissions") val permissions: Permissions = Permissions(),
   @SerialName("librariesAccessible") val librariesAccessible: List<String> = listOf(),
   @SerialName("itemTagsAccessible") val itemTagsAccessible: List<String> = listOf(),
+  @SerialName("refreshToken") val refreshToken: String = "",
+  @SerialName("accessToken") val accessToken: String = "",
 )
 
 @Serializable

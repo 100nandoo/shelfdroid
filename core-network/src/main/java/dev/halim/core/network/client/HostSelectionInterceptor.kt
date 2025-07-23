@@ -1,4 +1,4 @@
-package dev.halim.core.network.interceptor
+package dev.halim.core.network.client
 
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
@@ -23,7 +23,7 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
 
     val newUrl = request.url.newBuilder().host(host).build()
 
-    val token = runBlocking { dataStoreManager.token.firstOrNull() ?: "" }
+    val token = runBlocking { dataStoreManager.userPrefs.firstOrNull()?.accessToken ?: "" }
     if (token.isBlank().not()) {
       request = request.newBuilder().header("Authorization", "Bearer $token").build()
     }

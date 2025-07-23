@@ -5,16 +5,20 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
-class Helper @Inject constructor() {
+class Helper @Inject constructor(private val dataStoreManager: DataStoreManager) {
+
+  val token = runBlocking { dataStoreManager.userPrefs.first().accessToken }
 
   fun generateItemCoverUrl(itemId: String): String {
     return "https://${DataStoreManager.BASE_URL}/api/items/$itemId/cover"
   }
 
-  fun generateContentUrl(token: String, url: String): String =
+  fun generateContentUrl(url: String): String =
     "https://${DataStoreManager.BASE_URL}$url?token=$token"
 
   @OptIn(ExperimentalTime::class)

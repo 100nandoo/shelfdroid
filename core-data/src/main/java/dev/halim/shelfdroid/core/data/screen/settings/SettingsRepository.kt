@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.settings
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
+import kotlinx.coroutines.flow.map
 
 class SettingsRepository
 @Inject
@@ -10,7 +11,7 @@ constructor(private val api: ApiService, private val dataStoreManager: DataStore
 
   val darkMode = dataStoreManager.darkMode
   val dynamicTheme = dataStoreManager.dynamicTheme
-  val token = dataStoreManager.token
+  val token = dataStoreManager.userPrefs.map { it.accessToken }
 
   suspend fun logout(): Result<Unit> {
     val result = api.logout()

@@ -6,20 +6,21 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import dev.halim.shelfdroid.core.datastore.model.UserPrefs
 import java.nio.ByteBuffer
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 private object Keys {
   val BASE_URL = stringPreferencesKey("base_url")
-  val TOKEN = stringPreferencesKey("token")
   val DARK_MODE = booleanPreferencesKey("dark_mode")
   val DYNAMIC_THEME = booleanPreferencesKey("dynamic_theme")
   val DEVICE_ID = stringPreferencesKey("device_id")
-  val USER_ID = stringPreferencesKey("user_id")
+  val USER_PREFS = stringPreferencesKey("user_prefs")
 }
 
 private fun <T> DataStore<Preferences>.preferenceFlow(
@@ -40,10 +41,6 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
 
   suspend fun updateBaseUrl(baseUrl: String) = dataStore.updatePreference(Keys.BASE_URL, baseUrl)
 
-  val token: Flow<String> = dataStore.preferenceFlow(Keys.TOKEN, "")
-
-  suspend fun updateToken(token: String) = dataStore.updatePreference(Keys.TOKEN, token)
-
   suspend fun getDeviceId(): String {
     val currentDeviceId = dataStore.preferenceFlow(Keys.DEVICE_ID, "").first()
     return currentDeviceId.ifEmpty {
@@ -52,10 +49,6 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
       newDeviceId
     }
   }
-
-  val userId: Flow<String> = dataStore.preferenceFlow(Keys.USER_ID, "")
-
-  suspend fun updateUserId(userId: String) = dataStore.updatePreference(Keys.USER_ID, userId)
 
   val darkMode: Flow<Boolean> = dataStore.preferenceFlow(Keys.DARK_MODE, true)
 
@@ -78,10 +71,32 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
     )
   }
 
-  suspend fun clear() =
-    dataStore.edit { preferences ->
-      val deviceId = preferences[Keys.DEVICE_ID]
-      preferences.clear()
-      deviceId?.let { preferences[Keys.DEVICE_ID] = it }
+  val userPrefs: Flow<UserPrefs> =
+    dataStore.data.map { prefs ->
+      prefs[Keys.USER_PREFS]?.let { json ->
+        try {
+          Json.decodeFromString<UserPrefs>(json)
+        } catch (e: Exception) {
+          UserPrefs()
+        }
+      } ?: UserPrefs()
     }
+
+  suspend fun updateUserPrefs(userPrefs: UserPrefs) {
+    val json = Json.encodeToString(userPrefs)
+    dataStore.edit { prefs -> prefs[Keys.USER_PREFS] = json }
+  }
+
+  suspend fun updateAccessToken(newToken: String) {
+    val currentPrefs = userPrefs.first()
+    val updatedPrefs = currentPrefs.copy(accessToken = newToken)
+    updateUserPrefs(updatedPrefs)
+  }
+
+  suspend fun updateRefreshToken(newToken: String) {
+    val updated = userPrefs.first().copy(refreshToken = newToken)
+    updateUserPrefs(updated)
+  }
+
+  suspend fun clear() = dataStore.edit { preferences -> preferences.clear() }
 }

@@ -1,35 +1,23 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
-import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.ProgressEntity
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 
 class HomeRepository
 @Inject
 constructor(
-  private val json: Json,
-  private val dataStoreManager: DataStoreManager,
-  private val helper: Helper,
   private val api: ApiService,
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
   private val bookmarkRepo: BookmarkRepo,
   private val libraryRepo: LibraryRepo,
 ) {
-
-  private suspend fun getToken(): String =
-    withContext(Dispatchers.IO) { dataStoreManager.token.first() }
 
   suspend fun getUser(uiState: HomeUiState): HomeUiState {
     val response = api.me()

@@ -12,6 +12,7 @@ class LoginRepository
 constructor(
   private val api: ApiService,
   private val dataStoreManager: DataStoreManager,
+  private val mapper: LoginMapper,
   private val progressRepo: ProgressRepo,
 ) {
 
@@ -32,9 +33,10 @@ constructor(
 
   private suspend fun updateDataStoreManager(server: String, response: LoginResponse) {
     dataStoreManager.apply {
+      val userPrefs = mapper.toUserPrefs(response.user)
+
       updateBaseUrl(server)
-      updateToken(response.user.token)
-      updateUserId(response.user.id)
+      updateUserPrefs(userPrefs)
     }
   }
 }

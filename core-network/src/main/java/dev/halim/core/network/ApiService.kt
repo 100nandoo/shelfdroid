@@ -18,13 +18,21 @@ import dev.halim.core.network.response.play.PlayResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-  @POST("login") suspend fun login(@Body request: LoginRequest): Result<LoginResponse>
+  @POST("login")
+  suspend fun login(
+    @Body request: LoginRequest,
+    @Header("x-return-tokens") returnTokens: String = "true",
+  ): Result<LoginResponse>
+
+  @POST("auth/refresh")
+  suspend fun refresh(@Header("x-refresh-token") refreshToken: String): Result<LoginResponse>
 
   @POST("logout") suspend fun logout(): Result<LogoutResponse>
 

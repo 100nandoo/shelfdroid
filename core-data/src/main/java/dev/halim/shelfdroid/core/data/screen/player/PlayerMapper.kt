@@ -22,8 +22,8 @@ constructor(
   private val device: Device,
 ) {
 
-  suspend fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
-    val url = helper.generateContentUrl(getToken(), audioTrack.contentUrl)
+  fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
+    val url = helper.generateContentUrl(audioTrack.contentUrl)
     return PlayerTrack(url, audioTrack.duration, audioTrack.startOffset)
   }
 
@@ -86,7 +86,7 @@ constructor(
     return PlayerBookmark(entity.title, readableTime, entity.time)
   }
 
-  suspend fun toPlayRequest(device: Device): PlayRequest {
+  suspend fun toPlayRequest(): PlayRequest {
     val deviceInfo =
       DeviceInfo(
         deviceId = getDeviceId(),
@@ -110,5 +110,5 @@ constructor(
     withContext(Dispatchers.IO) { dataStoreManager.getDeviceId() }
 
   private suspend fun getToken(): String =
-    withContext(Dispatchers.IO) { dataStoreManager.token.first() }
+    withContext(Dispatchers.IO) { dataStoreManager.userPrefs.first().accessToken }
 }
