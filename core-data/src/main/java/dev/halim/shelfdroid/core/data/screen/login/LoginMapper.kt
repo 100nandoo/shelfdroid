@@ -10,7 +10,7 @@ class LoginMapper @Inject constructor() {
     return UserPrefs(
       id = user.id,
       username = user.username,
-      isAdmin = user.type == UserType.ADMIN,
+      isAdmin = user.type == UserType.ADMIN || user.type == UserType.ROOT,
       download = user.permissions.download,
       upload = user.permissions.upload,
       delete = user.permissions.delete,

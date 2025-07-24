@@ -1,13 +1,18 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
+import dev.halim.core.network.response.User
+import dev.halim.core.network.response.UserType
+import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.ProgressEntity
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
+import kotlinx.coroutines.flow.firstOrNull
 
 class HomeRepository
 @Inject
@@ -17,6 +22,7 @@ constructor(
   private val progressRepo: ProgressRepo,
   private val bookmarkRepo: BookmarkRepo,
   private val libraryRepo: LibraryRepo,
+  private val dataStoreManager: DataStoreManager,
 ) {
 
   suspend fun getUser(uiState: HomeUiState): HomeUiState {
@@ -26,6 +32,7 @@ constructor(
     return if (result != null) {
       progressRepo.saveAndConvert(result)
       bookmarkRepo.saveAndConvert(result)
+      updateDataStore(result)
       uiState.copy(homeState = HomeState.Success)
     } else {
       uiState.copy(homeState = HomeState.Failure("Get User Failed"))
@@ -44,6 +51,25 @@ constructor(
     return libraryItems.map { item ->
       val progress = progresses.firstOrNull { it.libraryItemId == item.id }
       toUiState(item, progress)
+    }
+  }
+
+  private suspend fun updateDataStore(user: User) {
+    val old = dataStoreManager.userPrefs.firstOrNull()?.copy()
+    old?.let {
+      val userPrefs =
+        UserPrefs(
+          id = user.id,
+          username = user.username,
+          isAdmin = user.type == UserType.ADMIN || user.type == UserType.ROOT,
+          download = user.permissions.download,
+          upload = user.permissions.upload,
+          delete = user.permissions.delete,
+          update = user.permissions.update,
+          accessToken = old.accessToken,
+          refreshToken = old.refreshToken,
+        )
+      dataStoreManager.updateUserPrefs(userPrefs)
     }
   }
 
