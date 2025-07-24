@@ -1,7 +1,9 @@
 # 📚 ShelfDroid
 
-ShelfDroid is a third-party Android client for [Audiobookshelf](https://github.com/advplyr/audiobookshelf), designed to
-provide seamless access to your audiobook collection. Stream, organize, and enjoy your audiobooks with an intuitive
+ShelfDroid is a third-party Android client
+for [Audiobookshelf](https://github.com/advplyr/audiobookshelf), designed to
+provide seamless access to your audiobook collection. Stream, organize, and enjoy your audiobooks
+with an intuitive
 interface built specifically for Android.
 
 ---
@@ -21,14 +23,16 @@ interface built specifically for Android.
 
 ## 🎨 Code Style & Formatting
 
-This project uses [ktfmt](https://github.com/facebook/ktfmt) for Kotlin code formatting, applying Google’s Kotlin style
+This project uses [ktfmt](https://github.com/facebook/ktfmt) for Kotlin code formatting, applying
+Google’s Kotlin style
 guide.
 
 To format all Kotlin files in the project, run:
 
 `ktfmt --google-style .`
 
-Maintaining a consistent style across the codebase helps improve readability and reduce noise in pull requests.
+Maintaining a consistent style across the codebase helps improve readability and reduce noise in
+pull requests.
 
 ---
 
@@ -52,7 +56,8 @@ to ensure a scalable and maintainable codebase.
 - [ ] Add in-app settings for customization.
 - [ ] Integrate Google Assistant for voice control.
 
-Feel free to check out the [Issues](https://github.com/100nandoo/shelfdroid/issues) section to see what’s in progress or
+Feel free to check out the [Issues](https://github.com/100nandoo/shelfdroid/issues) section to see
+what’s in progress or
 suggest new features!
 
 ---
@@ -78,13 +83,14 @@ Contributions are welcome! If you'd like to contribute, please follow these step
 
 ## 📖 Documentation
 
-For more details on using and extending this project, check out the [Documentation](DOCS.md).
+For more details on using and extending this project, check out the [Documentation](docs/DOCS.md).
 
 ---
 
 ## 🙌 Acknowledgements
 
-- [Audiobookshelf](https://github.com/advplyr/audiobookshelf) – The powerful server that ShelfDroid connects to.
+- [Audiobookshelf](https://github.com/advplyr/audiobookshelf) – The powerful server that ShelfDroid
+  connects to.
 
 ---
 
