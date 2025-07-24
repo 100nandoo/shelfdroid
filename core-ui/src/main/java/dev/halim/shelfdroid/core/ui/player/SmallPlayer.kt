@@ -77,9 +77,9 @@ fun SmallPlayerContent(
           Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
           drawStopIndicator = {},
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
           ItemCover(
-            Modifier.fillMaxHeight().padding(8.dp),
+            Modifier.fillMaxHeight(),
             cover = cover,
             animationKey = Animations.Companion.Player.coverKey(id),
             fontSize = 10.sp,
@@ -148,9 +148,9 @@ private fun SmallPlayerControls(
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      SeekBackButton(onSeekBackClick, multipleButtonState, id, 40)
+      SeekBackButton(onSeekBackClick, multipleButtonState, id, 32)
       PlayPauseButton(onPlayPauseClick, multipleButtonState, id)
-      SeekForwardButton(onSeekForwardClick, multipleButtonState, id, 40)
+      SeekForwardButton(onSeekForwardClick, multipleButtonState, id, 32)
     }
   }
 }

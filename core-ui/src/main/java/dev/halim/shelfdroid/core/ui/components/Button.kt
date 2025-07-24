@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,13 +11,14 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -30,25 +32,33 @@ fun MyIconButton(
   enabled: Boolean = true,
   onClick: () -> Unit,
 ) {
-  Box(modifier = Modifier.size((size + 4).dp)) {
-    IconButton(
-      modifier = Modifier.align(Alignment.Center).clip(CircleShape).then(modifier),
-      enabled = enabled,
-      onClick = onClick,
-    ) {
-      Icon(
-        modifier = Modifier.size(size.dp),
-        imageVector = icon,
-        contentDescription = contentDescription,
-      )
-    }
+  Box(
+    modifier =
+      Modifier.size(size.dp)
+        .clip(CircleShape)
+        .clickable(
+          interactionSource = null,
+          onClick = onClick,
+          enabled = enabled,
+          role = Role.Button,
+          indication = ripple(false, size.dp),
+        )
+        .padding(4.dp)
+        .then(modifier),
+    contentAlignment = Alignment.Center,
+  ) {
+    Icon(
+      modifier = Modifier.size(size.dp),
+      imageVector = icon,
+      contentDescription = contentDescription,
+    )
   }
 }
 
 @Composable
-private fun SampleMyIconButton() {
+private fun SampleMyIconButton(size: Int = 48) {
   MyIconButton(
-    size = 48,
+    size = size,
     icon = Icons.Filled.PlayArrow,
     contentDescription = "Play Icon Button",
     onClick = {},
@@ -58,7 +68,13 @@ private fun SampleMyIconButton() {
 @ShelfDroidPreview
 @Composable
 fun MyIconButtonPreview() {
-  PreviewWrapper(content = { SampleMyIconButton() })
+  PreviewWrapper(content = { SampleMyIconButton(48) })
+}
+
+@ShelfDroidPreview
+@Composable
+fun MyIconButtonLargePreview() {
+  PreviewWrapper(content = { SampleMyIconButton(72) })
 }
 
 @Composable

@@ -25,7 +25,7 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
 
   private val _uiState = MutableStateFlow(SettingsUiState())
   val uiState: StateFlow<SettingsUiState> =
-    combine(_uiState, repository.darkMode, repository.dynamicTheme, repository.auserPrefs) {
+    combine(_uiState, repository.darkMode, repository.dynamicTheme, repository.userPrefs) {
         uiState: SettingsUiState,
         isDarkMode: Boolean,
         isDynamicTheme: Boolean,

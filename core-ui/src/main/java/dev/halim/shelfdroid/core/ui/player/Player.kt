@@ -8,10 +8,10 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Forward10
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -133,7 +133,7 @@ fun SeekBackButton(onClick: () -> Unit, state: MultipleButtonState, id: String, 
     with(animatedContentScope) {
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
-        icon = Icons.Default.Replay10,
+        icon = Icons.Default.FastRewind,
         size = size,
         contentDescription = "Seek Back",
         onClick = { onClick() },
@@ -151,7 +151,7 @@ fun SeekForwardButton(onClick: () -> Unit, state: MultipleButtonState, id: Strin
     with(animatedContentScope) {
       MyIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
-        icon = Icons.Default.Forward10,
+        icon = Icons.Default.FastForward,
         size = size,
         contentDescription = "Seek Forward",
         onClick = { onClick() },

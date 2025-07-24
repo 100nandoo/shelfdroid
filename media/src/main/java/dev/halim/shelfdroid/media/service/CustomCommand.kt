@@ -50,7 +50,7 @@ class CustomMediaNotificationProvider @Inject constructor(context: Context) :
   companion object {
     @UnstableApi
     val BACK_COMMAND_BUTTON: CommandButton =
-      CommandButton.Builder(CommandButton.ICON_SKIP_BACK_10)
+      CommandButton.Builder(CommandButton.ICON_REWIND)
         .setSessionCommand(SessionCommand(CUSTOM_BACK, Bundle.EMPTY))
         .setDisplayName("Rewind 10s")
         .setExtras(Bundle().apply { putInt(COMMAND_KEY_COMPACT_VIEW_INDEX, 0) })
@@ -58,7 +58,7 @@ class CustomMediaNotificationProvider @Inject constructor(context: Context) :
 
     @UnstableApi
     val FORWARD_COMMAND_BUTTON: CommandButton =
-      CommandButton.Builder(CommandButton.ICON_SKIP_FORWARD_10)
+      CommandButton.Builder(CommandButton.ICON_FAST_FORWARD)
         .setSessionCommand(SessionCommand(CUSTOM_FORWARD, Bundle.EMPTY))
         .setDisplayName("Forward 10s")
         .setExtras(Bundle().apply { putInt(COMMAND_KEY_COMPACT_VIEW_INDEX, 2) })
