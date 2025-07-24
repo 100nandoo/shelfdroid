@@ -33,7 +33,8 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
         SettingsUiState(
           isDarkMode = isDarkMode,
           isDynamicTheme = isDynamicTheme,
-          user = userPrefs.username + if (userPrefs.isAdmin) " is an admin" else " is not an admin",
+          isAdmin = userPrefs.isAdmin,
+          username = userPrefs.username,
         )
       }
       .stateIn(viewModelScope, SharingStarted.Lazily, SettingsUiState())

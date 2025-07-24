@@ -32,6 +32,7 @@ import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
@@ -95,8 +97,8 @@ fun LoginScreenContent(
       LoginTextField(
         value = uiState.server,
         onValueChange = { updateUiState(uiState.copy(server = it)) },
-        label = "Server Address",
-        placeholder = "audio.bookshelf.org",
+        label = stringResource(R.string.server_address),
+        placeholder = stringResource(R.string.placeholder_server),
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
         modifier = Modifier.focusRequester(server).testTag("server"),
@@ -108,10 +110,10 @@ fun LoginScreenContent(
       LoginTextField(
         value = uiState.username,
         onValueChange = { updateUiState(uiState.copy(username = it)) },
-        label = "Username",
+        label = stringResource(R.string.username),
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-        modifier = Modifier.testTag("username").focusRequester(username),
+        modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(username),
         onNext = { focusManager.moveFocus(FocusDirection.Next) },
       )
 
@@ -120,11 +122,11 @@ fun LoginScreenContent(
       LoginTextField(
         value = uiState.password,
         onValueChange = { updateUiState(uiState.copy(password = it)) },
-        label = "Password",
+        label = stringResource(R.string.password),
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
         visualTransformation = PasswordVisualTransformation(),
-        modifier = Modifier.testTag("password").focusRequester(password),
+        modifier = Modifier.testTag(stringResource(R.string.password)).focusRequester(password),
         onDone = {
           focusManager.clearFocus()
           onEvent(LoginEvent.LoginButtonPressed)
@@ -138,9 +140,9 @@ fun LoginScreenContent(
           focusManager.clearFocus()
           onEvent(LoginEvent.LoginButtonPressed)
         },
-        modifier = Modifier.fillMaxWidth().testTag("login"),
+        modifier = Modifier.fillMaxWidth().testTag(stringResource(R.string.login)),
       ) {
-        Text("Login")
+        Text(stringResource(R.string.login))
       }
     }
   }

@@ -14,19 +14,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 
 @Composable
 fun DeleteBookmarkDialog(showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {
   MyAlertDialog(
-    title = "Delete Bookmark",
-    text = "Are you sure you want to delete this bookmark?",
+    title = stringResource(R.string.delete_bookmark_title),
+    text = stringResource(R.string.are_you_sure_delete_bookmark),
     showDialog = showDialog,
-    confirmText = "Delete",
-    dismissText = "Cancel",
+    confirmText = stringResource(R.string.delete),
+    dismissText = stringResource(R.string.cancel),
     onConfirm = { onConfirm() },
     onDismiss = { onDismiss() },
   )
@@ -61,8 +63,14 @@ fun UpdateBookmarkDialog(
           modifier = Modifier.focusRequester(focusRequester),
         )
       },
-      confirmButton = { TextButton(onClick = { onConfirm(textFieldValue.text) }) { Text("OK") } },
-      dismissButton = { TextButton(onClick = { onDismiss() }) { Text("Cancel") } },
+      confirmButton = {
+        TextButton(onClick = { onConfirm(textFieldValue.text) }) {
+          Text(stringResource(R.string.ok))
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { onDismiss() }) { Text(stringResource(R.string.cancel)) }
+      },
     )
   }
 }

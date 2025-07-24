@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,6 +42,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -104,7 +106,7 @@ fun HomeScreenContent(
 ) {
   ReportDrawnWhen { uiState.libraryItemsUiState.isNotEmpty() }
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
-    GenericMessageScreen("No libraries available.")
+    GenericMessageScreen(stringResource(R.string.no_libraries_available))
   } else {
     val homeState = uiState.homeState
     if (homeState is HomeState.Failure) {
@@ -136,9 +138,9 @@ fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> 
   Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
     MyIconButton(
       icon = Icons.Filled.Refresh,
-      contentDescription = "Refresh",
+      contentDescription = stringResource(R.string.refresh),
       onClick = onRefresh,
-      size = 28,
+      size = 32,
     )
     Text(
       text = name,
@@ -148,7 +150,7 @@ fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> 
     )
     MyIconButton(
       icon = Icons.Default.Settings,
-      contentDescription = "Settings",
+      contentDescription = stringResource(R.string.settings),
       onClick = onSettingsClicked,
       size = 32,
     )

@@ -21,6 +21,8 @@ import okhttp3.OkHttpClient
 @InstallIn(SingletonComponent::class)
 object UiModule {
 
+  const val DISK_CACHE_DIR = "image_cache"
+
   @Singleton
   @Provides
   fun providesImageLoader(
@@ -36,7 +38,7 @@ object UiModule {
       .diskCachePolicy(CachePolicy.ENABLED)
       .diskCache {
         DiskCache.Builder()
-          .directory(appContext.cacheDir.resolve("image_cache"))
+          .directory(appContext.cacheDir.resolve(DISK_CACHE_DIR))
           .maxSizeBytes(100 * 1024 * 1024)
           .build()
       }

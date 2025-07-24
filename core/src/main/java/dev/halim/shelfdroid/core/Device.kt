@@ -5,7 +5,7 @@ data class Device(
   val model: String,
   val osVersion: String,
   val sdkVersion: Int,
-  val clientName: String = "ShelfDroid",
+  val clientName: String,
   val clientVersion: String,
   val mediaPlayer: String,
 )

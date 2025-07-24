@@ -5,6 +5,8 @@ import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 
 object Defaults {
+  const val USERNAME = "testuser"
+  const val VERSION = "0.2.2"
   const val IMAGE_URL = ""
   const val TITLE = "Chapter 26"
   const val AUTHOR_NAME = "Adam"

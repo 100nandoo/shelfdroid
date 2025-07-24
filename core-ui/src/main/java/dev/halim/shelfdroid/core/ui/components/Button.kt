@@ -18,8 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -60,7 +62,7 @@ private fun SampleMyIconButton(size: Int = 48) {
   MyIconButton(
     size = size,
     icon = Icons.Filled.PlayArrow,
-    contentDescription = "Play Icon Button",
+    contentDescription = stringResource(R.string.play),
     onClick = {},
   )
 }

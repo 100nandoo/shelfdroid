@@ -38,11 +38,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.player.PlayerBookmark
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -98,7 +100,7 @@ fun NewBookmarkRow(newBookmarkTime: PlayerBookmark, onEvent: (PlayerEvent) -> Un
     OutlinedTextField(
       value = textFieldValue,
       onValueChange = { textFieldValue = it },
-      label = { Text("Bookmark Title") },
+      label = { Text(stringResource(R.string.bookmark_title)) },
       modifier = Modifier.weight(1f).padding(bottom = 8.dp),
       keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
       singleLine = true,
@@ -113,7 +115,10 @@ fun NewBookmarkRow(newBookmarkTime: PlayerBookmark, onEvent: (PlayerEvent) -> Un
     FilledTonalIconButton(
       onClick = { onEvent(PlayerEvent.CreateBookmark(newBookmarkTime.time, textFieldValue.text)) }
     ) {
-      Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Note")
+      Icon(
+        Icons.AutoMirrored.Filled.Send,
+        contentDescription = stringResource(R.string.create_bookmark),
+      )
     }
     Spacer(modifier = Modifier.width(8.dp))
 
@@ -156,11 +161,14 @@ private fun BookmarkRow(
     Spacer(modifier = Modifier.width(8.dp))
 
     FilledTonalIconButton(onClick = { onDeleteBookmark() }) {
-      Icon(Icons.Default.DeleteOutline, contentDescription = "Delete bookmark")
+      Icon(
+        Icons.Default.DeleteOutline,
+        contentDescription = stringResource(R.string.delete_bookmark),
+      )
     }
 
     FilledTonalIconButton(onClick = { onUpdateBookmark() }) {
-      Icon(Icons.Default.ModeEdit, contentDescription = "Edit bookmark")
+      Icon(Icons.Default.ModeEdit, contentDescription = stringResource(R.string.edit_bookmark))
     }
   }
 }

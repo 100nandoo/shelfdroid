@@ -7,23 +7,13 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.halim.shelfdroid.core.data.screen.player.MultipleButtonState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerState
-import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
-import dev.halim.shelfdroid.core.ui.components.MyIconButton
-import dev.halim.shelfdroid.core.ui.mySharedBound
 
 @Composable
 fun Player(
@@ -31,7 +21,7 @@ fun Player(
   viewModel: PlayerViewModel = hiltViewModel(),
 ) {
   val uiState = viewModel.uiState.collectAsState()
-  AnimatedContent(targetState = uiState.value.state, label = "PlayerTransition") { targetState ->
+  AnimatedContent(targetState = uiState.value.state) { targetState ->
     CompositionLocalProvider(
       LocalSharedTransitionScope provides sharedTransitionScope,
       LocalAnimatedContentScope provides this@AnimatedContent,
@@ -96,67 +86,6 @@ fun Player(
           PlayerState.TempHidden -> {}
         }
       }
-    }
-  }
-}
-
-@Composable
-fun PlayPauseButton(
-  onClick: () -> Unit,
-  multipleButtonState: MultipleButtonState,
-  id: String,
-  size: Int = 48,
-) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      val icon = if (multipleButtonState.showPlay) Icons.Default.PlayArrow else Icons.Default.Pause
-      val contentDescription = if (multipleButtonState.showPlay) "Play" else "Pause"
-      MyIconButton(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
-        icon = icon,
-        size = size,
-        contentDescription = contentDescription,
-        onClick = { onClick() },
-        enabled = multipleButtonState.playPauseEnabled,
-      )
-    }
-  }
-}
-
-@Composable
-fun SeekBackButton(onClick: () -> Unit, state: MultipleButtonState, id: String, size: Int = 48) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      MyIconButton(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
-        icon = Icons.Default.FastRewind,
-        size = size,
-        contentDescription = "Seek Back",
-        onClick = { onClick() },
-        enabled = state.seekBackEnabled,
-      )
-    }
-  }
-}
-
-@Composable
-fun SeekForwardButton(onClick: () -> Unit, state: MultipleButtonState, id: String, size: Int = 48) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      MyIconButton(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
-        icon = Icons.Default.FastForward,
-        size = size,
-        contentDescription = "Seek Forward",
-        onClick = { onClick() },
-        enabled = state.seekForwardEnabled,
-      )
     }
   }
 }

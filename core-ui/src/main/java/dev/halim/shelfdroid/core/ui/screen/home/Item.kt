@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
@@ -38,6 +39,7 @@ import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.screen.home.HomeEvent
@@ -145,13 +147,18 @@ fun ItemCoverNoAnimation(
       modifier = modifier.aspectRatio(1f).background(background, shape = shape),
       contentAlignment = Alignment.Center,
     ) {
-      Text(text = "No cover", fontSize = fontSize, color = textColor, textAlign = TextAlign.Center)
+      Text(
+        text = stringResource(R.string.no_cover),
+        fontSize = fontSize,
+        color = textColor,
+        textAlign = TextAlign.Center,
+      )
     }
   } else {
     AsyncImage(
       modifier = modifier.clip(shape).background(background).aspectRatio(1f),
       model = ImageRequest.Builder(LocalContext.current).data(coverUrl).build(),
-      contentDescription = "Library item cover image",
+      contentDescription = stringResource(R.string.library_item_cover_image),
       onError = { imageLoadFailed = true },
     )
   }

@@ -47,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -61,6 +62,7 @@ import dev.halim.shelfdroid.core.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -119,9 +121,7 @@ fun BigPlayerContent(
         BookmarkAndChapter(isBook, chapters, currentChapter, bookmarks, newBookmarkTime, onEvent)
 
         PlayerProgress(id, progress, multipleButtonState, onEvent)
-
         BasicPlayerControl(multipleButtonState, id, currentChapter, onEvent)
-
         AdvancedPlayerControl(advancedControl, onEvent)
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -237,7 +237,7 @@ fun BasicPlayerControl(
       ) {
         MyIconButton(
           icon = Icons.Default.SkipPrevious,
-          contentDescription = "Previous Chapter",
+          contentDescription = stringResource(R.string.previous_chapter),
           onClick = { onEvent(PlayerEvent.PreviousChapter) },
           enabled =
             currentChapter?.chapterPosition != ChapterPosition.First && currentChapter != null,
@@ -248,7 +248,7 @@ fun BasicPlayerControl(
 
         MyIconButton(
           icon = Icons.Default.SkipNext,
-          contentDescription = "Next Chapter",
+          contentDescription = stringResource(R.string.next_chapter),
           onClick = { onEvent(PlayerEvent.NextChapter) },
           enabled =
             currentChapter?.chapterPosition != ChapterPosition.Last && currentChapter != null,
@@ -273,7 +273,7 @@ fun SpeedSlider(speed: Float, onEvent: (PlayerEvent) -> Unit) {
 
     val speedText = remember(speed) { speed.toSpeedText() }
 
-    Text(text = "Speed: ${speedText}x")
+    Text(text = stringResource(R.string.speed, speedText))
     Spacer(modifier = Modifier.height(4.dp))
 
     Slider(
@@ -293,7 +293,7 @@ fun SleepTimer(sleepTimeLeft: Duration, onEvent: (PlayerEvent) -> Unit) {
   val sheetState = rememberModalBottomSheetState()
   val scope = rememberCoroutineScope()
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    Text("Sleep Timer")
+    Text(stringResource(R.string.sleep_timer))
 
     Spacer(modifier = Modifier.height(4.dp))
 
@@ -313,7 +313,7 @@ fun SleepTimer(sleepTimeLeft: Duration, onEvent: (PlayerEvent) -> Unit) {
           modifier = Modifier.size(36.dp).align(Alignment.Center),
           tint = MaterialTheme.colorScheme.onSecondaryContainer,
           imageVector = Icons.Default.Timer,
-          contentDescription = "timer",
+          contentDescription = stringResource(R.string.timer),
         )
       }
     }
@@ -327,7 +327,15 @@ fun SleepTimerBottomSheet(sheetState: SheetState, onEvent: (PlayerEvent) -> Unit
   val scope = rememberCoroutineScope()
 
   val sleepTimerOptions =
-    listOf("60m" to 60, "45m" to 45, "30m" to 30, "15m" to 15, "10m" to 10, "5m" to 5, "1m" to 1)
+    listOf(
+      stringResource(R.string.timer_minute, 60) to 60,
+      stringResource(R.string.timer_minute, 45) to 45,
+      stringResource(R.string.timer_minute, 30) to 30,
+      stringResource(R.string.timer_minute, 15) to 15,
+      stringResource(R.string.timer_minute, 10) to 10,
+      stringResource(R.string.timer_minute, 5) to 5,
+      stringResource(R.string.timer_minute, 1) to 1,
+    )
   if (sheetState.isVisible) {
     ModalBottomSheet(
       sheetState = sheetState,
@@ -372,7 +380,7 @@ fun BookmarkAndChapter(
   Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
     MyIconButton(
       icon = Icons.Default.Bookmarks,
-      contentDescription = "bookmarks",
+      contentDescription = stringResource(R.string.bookmarks),
       enabled = isBook,
       onClick = {
         onEvent(PlayerEvent.NewBookmarkTime)
@@ -382,7 +390,7 @@ fun BookmarkAndChapter(
 
     MyIconButton(
       icon = Icons.AutoMirrored.Filled.List,
-      contentDescription = "chapters",
+      contentDescription = stringResource(R.string.chapters),
       enabled = chapters.isNotEmpty(),
       onClick = { scope.launch { chapterSheetState.show() } },
     )
@@ -414,7 +422,7 @@ fun BookmarkAndChapter(
 
   UpdateBookmarkDialog(
     showDialog = showUpdateDialog,
-    title = "Update Bookmark",
+    title = stringResource(R.string.update_bookmark),
     bookmarkTitle = selectedBookmark.title,
     onConfirm = {
       onEvent(PlayerEvent.UpdateBookmark(selectedBookmark, it))

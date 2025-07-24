@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.player.PlaybackProgress
@@ -32,6 +33,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -103,14 +105,18 @@ fun EpisodeItem(
             onClick = { onEvent(PodcastEvent.ToggleIsFinished(episode)) },
             colors = checkButtonColors,
           ) {
-            Icon(Icons.Default.Check, contentDescription = "Mark as Finished")
+            Icon(
+              Icons.Default.Check,
+              contentDescription = stringResource(R.string.mark_as_finished),
+            )
           }
           FilledTonalIconButton(onClick = {}, enabled = false) {
-            Icon(Icons.Default.Download, contentDescription = "Download")
+            Icon(Icons.Default.Download, contentDescription = stringResource(R.string.download))
           }
           FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.id) }) {
             val icon = if (isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
-            val contentDescription = if (isPlaying.not()) "Play" else "Pause"
+            val contentDescription =
+              if (isPlaying.not()) stringResource(R.string.play) else stringResource(R.string.pause)
             Icon(icon, contentDescription)
           }
         }

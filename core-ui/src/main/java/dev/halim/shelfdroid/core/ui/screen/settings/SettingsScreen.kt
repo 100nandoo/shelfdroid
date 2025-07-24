@@ -16,13 +16,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
-import dev.halim.shelfdroid.core.ui.components.SettingsBody
-import dev.halim.shelfdroid.core.ui.components.SettingsLabel
-import dev.halim.shelfdroid.core.ui.components.SettingsSwitchItem
+import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -31,9 +31,9 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel(), onLogoutSucce
   val uiState by viewModel.uiState.collectAsState()
   val version = remember { viewModel.version }
   SettingsScreenContent(
-    uiState,
-    version,
-    user = uiState.user,
+    uiState = uiState,
+    version = version,
+    user = uiState.username,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
     onLogoutSuccess,
   )
@@ -42,8 +42,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel(), onLogoutSucce
 @Composable
 fun SettingsScreenContent(
   uiState: SettingsUiState = SettingsUiState(),
-  version: String = "0.2.2",
-  user: String = "test",
+  version: String = Defaults.VERSION,
+  user: String = Defaults.USERNAME,
   onEvent: (SettingsEvent) -> Unit = {},
   onLogoutSuccess: () -> Unit = {},
 ) {
@@ -51,28 +51,32 @@ fun SettingsScreenContent(
     modifier = Modifier.fillMaxSize().padding(16.dp),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    SettingsLabel(text = "Display")
+    SettingsLabel(text = stringResource(R.string.display))
     Spacer(modifier = Modifier.height(4.dp))
     SettingsSwitchItem(
-      title = "Dark Mode",
+      title = stringResource(R.string.dark_mode),
       checked = uiState.isDarkMode,
       onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
-      contentDescription = "Dark Mode",
+      contentDescription = stringResource(R.string.dark_mode),
     )
     SettingsSwitchItem(
-      title = "Dynamic Theme",
+      title = stringResource(R.string.dynamic_theme),
       checked = uiState.isDynamicTheme,
       onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
-      contentDescription = "Dynamic Theme",
+      contentDescription = stringResource(R.string.dynamic_theme),
       enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
     )
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    SettingsLabel(text = "Others")
+    SettingsLabel(text = stringResource(R.string.others))
     Spacer(modifier = Modifier.height(4.dp))
-    SettingsBody(text = "Version $version")
-    SettingsBody(text = user)
+    SettingsBody(text = stringResource(R.string.args_version, version))
+    val userText =
+      user +
+        if (uiState.isAdmin) stringResource(R.string.is_an_admin)
+        else stringResource(R.string.is_not_an_admin)
+    SettingsBody(text = userText)
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -80,7 +84,7 @@ fun SettingsScreenContent(
       onClick = { onEvent(SettingsEvent.LogoutButtonPressed) },
       modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
     ) {
-      Text("Logout")
+      Text(stringResource(R.string.logout))
     }
 
     LaunchedEffect(uiState.settingsState) {

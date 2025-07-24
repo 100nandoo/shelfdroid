@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +28,7 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -130,12 +132,12 @@ private fun BookDetail(
     modifier = Modifier.padding(vertical = 8.dp),
     verticalArrangement = Arrangement.spacedBy(4.dp),
   ) {
-    BookDetailRow("Duration", duration)
-    BookDetailRow("Narrator", narrator)
-    BookDetailRow("Publish Year", publishYear)
-    BookDetailRow("Publisher", publisher)
-    BookDetailRow("Genre", genres)
-    BookDetailRow("Language", language)
+    BookDetailRow(stringResource(R.string.duration), duration)
+    BookDetailRow(stringResource(R.string.narrator), narrator)
+    BookDetailRow(stringResource(R.string.publish_year), publishYear)
+    BookDetailRow(stringResource(R.string.publisher), publisher)
+    BookDetailRow(stringResource(R.string.genre), genres)
+    BookDetailRow(stringResource(R.string.language), language)
   }
 }
 
@@ -148,7 +150,11 @@ private fun BookDetailRow(label: String, value: String) {
         style = MaterialTheme.typography.labelSmall,
         modifier = Modifier.weight(1f),
       )
-      Text(text = value, modifier = Modifier.weight(4f))
+      Text(
+        text = value,
+        style = MaterialTheme.typography.labelSmall,
+        modifier = Modifier.weight(4f),
+      )
     }
   }
 }

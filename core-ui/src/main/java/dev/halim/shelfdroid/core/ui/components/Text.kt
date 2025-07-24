@@ -16,6 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -25,24 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-
-@Composable
-fun SettingsLabel(
-  text: String,
-  modifier: Modifier = Modifier,
-  style: TextStyle = MaterialTheme.typography.labelLarge,
-) {
-  Text(text = text, style = style, color = MaterialTheme.colorScheme.tertiary, modifier = modifier)
-}
-
-@Composable
-fun SettingsBody(
-  text: String,
-  modifier: Modifier = Modifier,
-  style: TextStyle = MaterialTheme.typography.bodyLarge,
-) {
-  Text(text = text, style = style, modifier = modifier)
-}
+import dev.halim.shelfdroid.core.ui.R
 
 @Composable
 fun ExpandShrinkText(
@@ -62,13 +47,17 @@ fun ExpandShrinkText(
     if (text.isNotEmpty()) {
       Text(
         modifier =
-          Modifier.animateContentSize().clickable { expandedState.value = !expandedState.value },
+          Modifier.animateContentSize().clickable(role = Role.Button) {
+            expandedState.value = !expandedState.value
+          },
         text = remember(text) { AnnotatedString.fromHtml(text, linkStyles = linkStyles) },
         maxLines = if (expandedState.value) Int.MAX_VALUE else maxLines,
         overflow = TextOverflow.Ellipsis,
       )
       Text(
-        text = if (expandedState.value) "Show less" else "Show more",
+        text =
+          if (expandedState.value) stringResource(R.string.show_less)
+          else stringResource(R.string.show_more),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.primary,
         modifier =
