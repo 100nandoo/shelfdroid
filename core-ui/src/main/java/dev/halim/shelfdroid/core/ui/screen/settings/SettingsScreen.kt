@@ -18,6 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
+import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.components.SettingsBody
 import dev.halim.shelfdroid.core.ui.components.SettingsLabel
 import dev.halim.shelfdroid.core.ui.components.SettingsSwitchItem
@@ -31,6 +33,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel(), onLogoutSucce
   SettingsScreenContent(
     uiState,
     version,
+    user = uiState.user,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
     onLogoutSuccess,
   )
@@ -39,7 +42,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel(), onLogoutSucce
 @Composable
 fun SettingsScreenContent(
   uiState: SettingsUiState = SettingsUiState(),
-  version: String = "0.2",
+  version: String = "0.2.2",
+  user: String = "test",
   onEvent: (SettingsEvent) -> Unit = {},
   onLogoutSuccess: () -> Unit = {},
 ) {
@@ -68,6 +72,7 @@ fun SettingsScreenContent(
     SettingsLabel(text = "Others")
     Spacer(modifier = Modifier.height(4.dp))
     SettingsBody(text = "Version $version")
+    SettingsBody(text = user)
 
     Spacer(modifier = Modifier.height(16.dp))
 

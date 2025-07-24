@@ -24,10 +24,7 @@ constructor(
         val refreshToken =
           dataStoreManager.userPrefs.firstOrNull()?.refreshToken ?: return@runBlocking null
 
-        val refreshResponse = apiService.get().refresh(refreshToken).getOrNull()
-        if (refreshResponse == null) {
-          return@runBlocking null
-        }
+        val refreshResponse = apiService.get().refresh(refreshToken).getOrNull() ?: return@runBlocking null
 
         val newTokens = refreshResponse.user.accessToken
         dataStoreManager.updateAccessToken(refreshResponse.user.accessToken)

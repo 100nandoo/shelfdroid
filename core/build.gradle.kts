@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.kotlin.android)
+  alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -31,4 +32,7 @@ android {
   kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 }
 
-dependencies { implementation(libs.androidx.core.ktx) }
+dependencies {
+  implementation(libs.androidx.core.ktx)
+  implementation(libs.kotlinx.serialization)
+}

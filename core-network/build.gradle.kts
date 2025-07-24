@@ -34,6 +34,7 @@ android {
 }
 
 dependencies {
+  implementation(project(libs.versions.core.get()))
   implementation(project(libs.versions.coreDatastore.get()))
   implementation(libs.kotlinx.serialization)
 

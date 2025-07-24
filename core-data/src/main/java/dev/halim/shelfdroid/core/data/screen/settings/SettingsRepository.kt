@@ -12,6 +12,7 @@ constructor(private val api: ApiService, private val dataStoreManager: DataStore
   val darkMode = dataStoreManager.darkMode
   val dynamicTheme = dataStoreManager.dynamicTheme
   val token = dataStoreManager.userPrefs.map { it.accessToken }
+  val userPrefs = dataStoreManager.userPrefs
 
   suspend fun logout(): Result<Unit> {
     val result = api.logout()

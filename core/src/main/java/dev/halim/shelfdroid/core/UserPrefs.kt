@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.datastore.model
+package dev.halim.shelfdroid.core
 
 import kotlinx.serialization.Serializable
 

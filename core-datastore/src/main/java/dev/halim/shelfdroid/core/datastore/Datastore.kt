@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import dev.halim.shelfdroid.core.datastore.model.UserPrefs
+import dev.halim.shelfdroid.core.UserPrefs
 import java.nio.ByteBuffer
 import java.util.UUID
 import javax.inject.Inject

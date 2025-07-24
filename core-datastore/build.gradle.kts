@@ -34,6 +34,8 @@ android {
 }
 
 dependencies {
+  implementation(project(libs.versions.core.get()))
+
   // datastore
   implementation(libs.androidx.datastore)
 
