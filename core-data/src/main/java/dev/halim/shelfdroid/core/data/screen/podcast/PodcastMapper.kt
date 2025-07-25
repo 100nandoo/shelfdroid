@@ -10,7 +10,7 @@ import javax.inject.Inject
 class PodcastMapper @Inject constructor(private val helper: Helper) {
 
   @SuppressLint("UnsafeOptInUsageError")
-  fun mapEpisodes(
+  suspend fun mapEpisodes(
     episodes: List<PodcastEpisode>,
     progresses: List<ProgressEntity>,
     downloads: List<Download>,

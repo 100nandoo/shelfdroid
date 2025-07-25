@@ -10,7 +10,6 @@ import dev.halim.shelfdroid.core.database.BookmarkEntity
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class PlayerMapper
@@ -22,7 +21,7 @@ constructor(
   private val device: Device,
 ) {
 
-  fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
+  suspend fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
     val url = helper.generateContentUrl(audioTrack.contentUrl)
     return PlayerTrack(url, audioTrack.duration, audioTrack.startOffset)
   }
@@ -108,7 +107,4 @@ constructor(
 
   private suspend fun getDeviceId(): String =
     withContext(Dispatchers.IO) { dataStoreManager.getDeviceId() }
-
-  private suspend fun getToken(): String =
-    withContext(Dispatchers.IO) { dataStoreManager.userPrefs.first().accessToken }
 }

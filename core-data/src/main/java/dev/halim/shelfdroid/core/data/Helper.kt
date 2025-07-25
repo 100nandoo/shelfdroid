@@ -5,21 +5,23 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 class Helper @Inject constructor(private val dataStoreManager: DataStoreManager) {
 
-  val token = runBlocking { dataStoreManager.userPrefs.first().accessToken }
+  private suspend fun getToken(): String =
+    withContext(Dispatchers.IO) { dataStoreManager.userPrefs.first().accessToken }
 
   fun generateItemCoverUrl(itemId: String): String {
     return "https://${DataStoreManager.BASE_URL}/api/items/$itemId/cover"
   }
 
-  fun generateContentUrl(url: String): String =
-    "https://${DataStoreManager.BASE_URL}$url?token=$token"
+  suspend fun generateContentUrl(url: String): String =
+    "https://${DataStoreManager.BASE_URL}$url?token=${getToken()}"
 
   fun generateDownloadId(itemId: String, episodeId: String?): String =
     episodeId?.let { "$itemId|$it" } ?: itemId

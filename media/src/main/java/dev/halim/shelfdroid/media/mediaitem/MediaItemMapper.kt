@@ -1,11 +1,13 @@
 package dev.halim.shelfdroid.media.mediaitem
 
+import android.annotation.SuppressLint
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import javax.inject.Inject
 
+@SuppressLint("UnsafeOptInUsageError")
 class MediaItemMapper @Inject constructor() {
   fun toMediaItem(uiState: PlayerUiState): MediaItem {
     val mediaIdWrapper = MediaIdWrapper(uiState.id, uiState.episodeId.takeIf { it.isNotBlank() })
@@ -37,6 +39,7 @@ class MediaItemMapper @Inject constructor() {
     return MediaItem.Builder()
       .setUri(uiState.currentTrack.url)
       .setMediaId(mediaId)
+      .setCustomCacheKey(mediaId)
       .setMediaMetadata(mediaMetadata)
       .setClippingConfiguration(clippingConfiguration)
       .build()

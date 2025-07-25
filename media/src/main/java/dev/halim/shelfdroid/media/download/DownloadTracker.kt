@@ -24,6 +24,6 @@ class DownloadTracker @Inject constructor(@ApplicationContext private val contex
   }
 
   private fun toDownloadRequest(id: String, url: String): DownloadRequest {
-    return DownloadRequest.Builder(id, url.toUri()).build()
+    return DownloadRequest.Builder(id, url.toUri()).setCustomCacheKey(id).build()
   }
 }
