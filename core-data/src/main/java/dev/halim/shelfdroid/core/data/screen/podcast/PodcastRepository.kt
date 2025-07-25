@@ -70,6 +70,7 @@ constructor(
           publishedAt = podcastEpisode.publishedAt?.let { helper.toReadableDate(it) } ?: "",
           progress = progress?.progress?.toFloat() ?: 0f,
           isFinished = progress?.isFinished == 1L,
+          url = helper.generateContentUrl(podcastEpisode.audioTrack.contentUrl),
         )
       }
 }

@@ -17,4 +17,5 @@ data class Episode(
   val publishedAt: String = "",
   val progress: Float = 0f,
   val isFinished: Boolean = false,
+  val url: String = "",
 )

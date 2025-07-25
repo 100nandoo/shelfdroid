@@ -110,7 +110,10 @@ fun EpisodeItem(
               contentDescription = stringResource(R.string.mark_as_finished),
             )
           }
-          FilledTonalIconButton(onClick = {}, enabled = false) {
+          FilledTonalIconButton(
+            onClick = { onEvent(PodcastEvent.Download(episode)) },
+            enabled = true,
+          ) {
             Icon(Icons.Default.Download, contentDescription = stringResource(R.string.download))
           }
           FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.id) }) {

@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
+import dev.halim.shelfdroid.media.download.DownloadTracker
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,8 +18,11 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class PodcastViewModel
 @Inject
-constructor(private val podcastRepository: PodcastRepository, savedStateHandle: SavedStateHandle) :
-  ViewModel() {
+constructor(
+  private val podcastRepository: PodcastRepository,
+  private val downloadTracker: DownloadTracker,
+  savedStateHandle: SavedStateHandle,
+) : ViewModel() {
   val id: String = checkNotNull(savedStateHandle.get<String>("id"))
 
   private val _uiState = MutableStateFlow(PodcastUiState())
@@ -37,6 +41,10 @@ constructor(private val podcastRepository: PodcastRepository, savedStateHandle: 
             updateEpisodeFinishedState(event.episode.id)
           }
         }
+      }
+
+      is PodcastEvent.Download -> {
+        downloadTracker.download(event.episode.url)
       }
     }
   }
@@ -63,4 +71,6 @@ constructor(private val podcastRepository: PodcastRepository, savedStateHandle: 
 
 sealed class PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent()
+
+  data class Download(val episode: Episode) : PodcastEvent()
 }

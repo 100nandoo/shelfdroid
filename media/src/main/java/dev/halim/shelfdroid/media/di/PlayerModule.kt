@@ -8,11 +8,9 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
-import androidx.media3.datasource.cache.SimpleCache
-import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
@@ -32,9 +30,7 @@ import dev.halim.shelfdroid.media.service.CUSTOM_FORWARD
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
-import java.io.File
 import javax.inject.Singleton
-import okhttp3.OkHttpClient
 
 @OptIn(UnstableApi::class)
 @Module
@@ -45,18 +41,9 @@ object PlayerModule {
   @Provides
   fun provideMediaSourceFactory(
     @ApplicationContext context: Context,
-    okHttpClient: OkHttpClient,
+    okhttpDataSourceFactory: DataSource.Factory,
+    cache: Cache,
   ): MediaSource.Factory {
-    val databaseProvider = StandaloneDatabaseProvider(context)
-    val okhttpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
-    val maxBytes = 100L * 1024 * 1024
-    val cache =
-      SimpleCache(
-        File(context.cacheDir, "media3"),
-        LeastRecentlyUsedCacheEvictor(maxBytes),
-        databaseProvider,
-      )
-
     val cacheDataSourceFactory =
       CacheDataSource.Factory()
         .setCache(cache)

@@ -2,8 +2,12 @@
 
 ## High Priority
 
-- [ ] Download Function
+- [ ] Download Podcast
+- [ ] Download Book
+- [ ] Local playback sync
 - [ ] List View
+- [ ] Widget
+- [ ] Backup Restore
 
 ### Low Priority
 

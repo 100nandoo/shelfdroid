@@ -1,5 +1,6 @@
 package dev.halim.core.network.response.libraryitem
 
+import dev.halim.core.network.response.play.AudioTrack
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -31,6 +32,7 @@ data class PodcastEpisode(
   @SerialName("enclosure") val enclosure: Enclosure? = null,
   @SerialName("pubDate") val pubDate: String? = null,
   @SerialName("audioFile") val audioFile: AudioFile = AudioFile(),
+  @SerialName("audioTrack") val audioTrack: AudioTrack = AudioTrack(),
   @SerialName("publishedAt") val publishedAt: Long? = null,
   @SerialName("addedAt") val addedAt: Long = 0,
   @SerialName("updatedAt") val updatedAt: Long = 0,
