@@ -12,10 +12,20 @@ data class PodcastUiState(
 )
 
 data class Episode(
-  val id: String = "",
+  val episodeId: String = "",
+  val downloadId: String = "",
   val title: String = "",
   val publishedAt: String = "",
   val progress: Float = 0f,
   val isFinished: Boolean = false,
   val url: String = "",
+  val downloadState: DownloadState = DownloadState.Unknown,
 )
+
+enum class DownloadState {
+  Downloading,
+  Completed,
+  Queued,
+  Failed,
+  Unknown,
+}

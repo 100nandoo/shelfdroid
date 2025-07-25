@@ -93,7 +93,7 @@ fun PodcastScreenContent(
       ) {
         item { Spacer(modifier = Modifier.height(12.dp)) }
         items(uiState.episodes) { episode ->
-          val isPlaying = currentEpisodeId == episode.id && exoState == ExoState.Playing
+          val isPlaying = currentEpisodeId == episode.episodeId && exoState == ExoState.Playing
           EpisodeItem(
             id,
             episode,

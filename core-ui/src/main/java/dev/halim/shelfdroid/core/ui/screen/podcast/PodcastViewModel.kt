@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
@@ -20,6 +21,7 @@ class PodcastViewModel
 @Inject
 constructor(
   private val podcastRepository: PodcastRepository,
+  private val downloadRepo: DownloadRepo,
   private val downloadTracker: DownloadTracker,
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -38,19 +40,28 @@ constructor(
         viewModelScope.launch {
           val isSuccess = podcastRepository.toggleIsFinished(id, event.episode)
           if (isSuccess) {
-            updateEpisodeFinishedState(event.episode.id)
+            updateEpisodeFinishedState(event.episode.episodeId)
           }
         }
       }
 
       is PodcastEvent.Download -> {
-        downloadTracker.download(event.episode.url)
+        downloadTracker.download(event.episode.downloadId, event.episode.url)
+      }
+
+      is PodcastEvent.DeleteDownload -> {
+        downloadTracker.delete(event.episode.downloadId)
       }
     }
   }
 
   private fun initUiState() {
-    viewModelScope.launch { _uiState.update { podcastRepository.item(id) } }
+    viewModelScope.launch {
+      _uiState.update { podcastRepository.item(id) }
+      downloadRepo.downloads.collect { downloads ->
+        _uiState.update { podcastRepository.updateDownloads(it, downloads) }
+      }
+    }
   }
 
   private fun updateEpisodeFinishedState(episodeId: String) {
@@ -58,7 +69,7 @@ constructor(
       currentState.copy(
         episodes =
           currentState.episodes.map { episode ->
-            if (episode.id == episodeId) {
+            if (episode.episodeId == episodeId) {
               episode.copy(isFinished = !episode.isFinished)
             } else {
               episode
@@ -73,4 +84,6 @@ sealed class PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent()
 
   data class Download(val episode: Episode) : PodcastEvent()
+
+  data class DeleteDownload(val episode: Episode) : PodcastEvent()
 }

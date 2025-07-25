@@ -29,6 +29,8 @@ import okhttp3.OkHttpClient
 @InstallIn(SingletonComponent::class)
 object DownloadModule {
 
+  private const val DOWNLOAD_DIR = "downloads"
+
   @Provides
   @Singleton
   fun provideDatabaseProvider(@ApplicationContext context: Context): DatabaseProvider {
@@ -37,16 +39,14 @@ object DownloadModule {
 
   @Provides
   @Singleton
-  fun provideDownloadDirectory(@ApplicationContext context: Context): File {
-    val downloadDirectory = context.getExternalFilesDir(null)
-    return downloadDirectory ?: context.filesDir
+  fun provideFileDirectory(@ApplicationContext context: Context): File {
+    return context.getExternalFilesDir(null) ?: context.filesDir
   }
 
   @Provides
   @Singleton
-  fun provideCache(databaseProvider: DatabaseProvider, downloadDirectory: File): Cache {
-    val cache =
-      SimpleCache(File(downloadDirectory, "downloads"), NoOpCacheEvictor(), databaseProvider)
+  fun provideCache(databaseProvider: DatabaseProvider, fileDir: File): Cache {
+    val cache = SimpleCache(File(fileDir, DOWNLOAD_DIR), NoOpCacheEvictor(), databaseProvider)
 
     return cache
   }

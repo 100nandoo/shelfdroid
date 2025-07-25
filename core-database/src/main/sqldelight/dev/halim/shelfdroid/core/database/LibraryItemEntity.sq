@@ -36,3 +36,6 @@ VALUES ?;
 
 deleteById:
 DELETE FROM LibraryItemEntity WHERE id = ?;
+
+deleteAll:
+DELETE FROM LibraryItemEntity;

@@ -1,14 +1,14 @@
 package dev.halim.shelfdroid.core.data.screen.podcast
 
+import android.annotation.SuppressLint
+import androidx.media3.exoplayer.offline.Download
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.response.libraryitem.Podcast
-import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.database.ProgressEntity
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,19 +21,20 @@ constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
   private val apiService: ApiService,
-  private val helper: Helper,
+  private val mapper: PodcastMapper,
+  private val downloadRepo: DownloadRepo,
 ) {
   private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
   suspend fun item(id: String): PodcastUiState {
     val entity = libraryItemRepo.byId(id)
     val progresses = progressRepo.entities()
-
+    val downloads = downloadRepo.downloads.value
     return entity
       ?.takeIf { it.isBook == 0L }
       ?.let {
         val media = Json.decodeFromString<Podcast>(it.media)
-        val episodes = mapEpisodes(media.episodes, progresses)
+        val episodes = mapper.mapEpisodes(media.episodes, progresses, downloads)
 
         PodcastUiState(
           state = GenericState.Success,
@@ -46,31 +47,29 @@ constructor(
       } ?: PodcastUiState(state = GenericState.Failure("Failed to fetch podcast"))
   }
 
+  @SuppressLint("UnsafeOptInUsageError")
+  fun updateDownloads(uiState: PodcastUiState, downloads: List<Download>): PodcastUiState {
+    val downloadMap = downloads.associateBy { it.request.id }
+
+    val updatedEpisodes =
+      uiState.episodes.map { episode ->
+        val downloadState = downloadMap[episode.downloadId]?.state
+        if (downloadState != null) {
+          episode.copy(downloadState = mapper.toDownloadState(downloadState))
+        } else {
+          episode
+        }
+      }
+    return uiState.copy(episodes = updatedEpisodes)
+  }
+
   suspend fun toggleIsFinished(itemId: String, episode: Episode): Boolean {
     val request = ProgressRequest(episode.isFinished.not())
-    val result = apiService.patchPodcastProgress(itemId, episode.id, request)
+    val result = apiService.patchPodcastProgress(itemId, episode.episodeId, request)
 
     if (result.isSuccess) {
-      repositoryScope.launch { progressRepo.updateMediaById(episode.id) }
+      repositoryScope.launch { progressRepo.updateMediaById(episode.episodeId) }
     }
     return result.isSuccess
   }
-
-  private fun mapEpisodes(
-    episodes: List<PodcastEpisode>,
-    progresses: List<ProgressEntity>,
-  ): List<Episode> =
-    episodes
-      .sortedByDescending { it.publishedAt }
-      .map { podcastEpisode ->
-        val progress = progresses.find { it.episodeId == podcastEpisode.id }
-        Episode(
-          id = podcastEpisode.id,
-          title = podcastEpisode.title,
-          publishedAt = podcastEpisode.publishedAt?.let { helper.toReadableDate(it) } ?: "",
-          progress = progress?.progress?.toFloat() ?: 0f,
-          isFinished = progress?.isFinished == 1L,
-          url = helper.generateContentUrl(podcastEpisode.audioTrack.contentUrl),
-        )
-      }
 }

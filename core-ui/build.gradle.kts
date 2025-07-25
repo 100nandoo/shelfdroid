@@ -82,4 +82,6 @@ dependencies {
   // Coil
   implementation(libs.coil)
   implementation(libs.coil.okhttp)
+
+  implementation(libs.androidx.media3.exoplayer)
 }

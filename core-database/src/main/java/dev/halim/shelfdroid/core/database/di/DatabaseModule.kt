@@ -13,11 +13,14 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class DatabaseModule {
+object DatabaseModule {
+
+  const val DATABASE_NAME = "shelfdroid.db"
+
   @Provides
   @Singleton
   fun provideSqlDriver(@ApplicationContext appContext: Context): SqlDriver {
-    return AndroidSqliteDriver(MyDatabase.Schema, appContext, "shelfdroid.db")
+    return AndroidSqliteDriver(MyDatabase.Schema, appContext, DATABASE_NAME)
   }
 
   @Provides

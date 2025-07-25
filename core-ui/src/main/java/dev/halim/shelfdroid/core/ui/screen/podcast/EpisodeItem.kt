@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
@@ -57,16 +56,18 @@ fun EpisodeItem(
     with(animatedContentScope) {
       Column(
         modifier =
-          Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episode.id))
+          Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episode.episodeId))
             .fillMaxWidth()
-            .clickable { onEpisodeClicked(itemId, episode.id) }
+            .clickable { onEpisodeClicked(itemId, episode.episodeId) }
             .padding(vertical = 8.dp)
       ) {
         Text(
           text = episode.title,
           style = MaterialTheme.typography.bodyLarge,
           modifier =
-            Modifier.mySharedBound(Animations.Companion.Episode.titleKey(episode.id, episode.title))
+            Modifier.mySharedBound(
+                Animations.Companion.Episode.titleKey(episode.episodeId, episode.title)
+              )
               .padding(horizontal = 16.dp),
           maxLines = 2,
           overflow = TextOverflow.Ellipsis,
@@ -76,7 +77,9 @@ fun EpisodeItem(
           Column(modifier = Modifier.weight(1f).height(40.dp)) {
             Text(
               modifier =
-                Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episode.id)),
+                Modifier.mySharedElement(
+                  Animations.Companion.Episode.publishedAtKey(episode.episodeId)
+                ),
               text = episode.publishedAt,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               style = MaterialTheme.typography.labelMedium,
@@ -110,13 +113,9 @@ fun EpisodeItem(
               contentDescription = stringResource(R.string.mark_as_finished),
             )
           }
-          FilledTonalIconButton(
-            onClick = { onEvent(PodcastEvent.Download(episode)) },
-            enabled = true,
-          ) {
-            Icon(Icons.Default.Download, contentDescription = stringResource(R.string.download))
-          }
-          FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.id) }) {
+          DownloadButton(episode, onEvent)
+
+          FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.episodeId) }) {
             val icon = if (isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
             val contentDescription =
               if (isPlaying.not()) stringResource(R.string.play) else stringResource(R.string.pause)

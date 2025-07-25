@@ -15,3 +15,6 @@ VALUES ?;
 
 deleteById:
 DELETE FROM LibraryEntity WHERE id = ?;
+
+deleteAll:
+DELETE FROM LibraryEntity;

@@ -21,6 +21,9 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
   fun generateContentUrl(url: String): String =
     "https://${DataStoreManager.BASE_URL}$url?token=$token"
 
+  fun generateDownloadId(itemId: String, episodeId: String?): String =
+    episodeId?.let { "$itemId|$it" } ?: itemId
+
   @OptIn(ExperimentalTime::class)
   fun toReadableDate(long: Long): String {
     val instant = Instant.fromEpochMilliseconds(long)

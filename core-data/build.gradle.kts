@@ -54,6 +54,9 @@ dependencies {
   // datastore
   implementation(libs.androidx.datastore)
 
+  // exoplayer
+  implementation(libs.androidx.media3.exoplayer)
+
   // sqldelight
   implementation(libs.sqldelight.coroutines)
 
