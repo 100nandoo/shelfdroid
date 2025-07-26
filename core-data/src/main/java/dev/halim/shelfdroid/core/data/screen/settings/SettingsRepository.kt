@@ -10,6 +10,7 @@ import dev.halim.shelfdroid.core.database.di.DatabaseModule.DATABASE_NAME
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class SettingsRepository
@@ -27,7 +28,7 @@ constructor(
   val userPrefs = dataStoreManager.userPrefs
 
   suspend fun logout(): Result<Unit> {
-    val result = api.logout()
+    val result = api.logout(userPrefs.first().refreshToken)
     result.onSuccess { _ ->
       clearDir()
       dataStoreManager.clear()

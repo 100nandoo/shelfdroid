@@ -34,7 +34,8 @@ interface ApiService {
   @POST("auth/refresh")
   suspend fun refresh(@Header("x-refresh-token") refreshToken: String): Result<LoginResponse>
 
-  @POST("logout") suspend fun logout(): Result<LogoutResponse>
+  @POST("logout")
+  suspend fun logout(@Header("x-refresh-token") refreshToken: String): Result<LogoutResponse>
 
   //  libraries
   @GET("api/libraries") suspend fun libraries(): Result<LibrariesResponse>
