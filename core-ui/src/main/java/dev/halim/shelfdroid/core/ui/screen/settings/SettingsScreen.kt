@@ -11,23 +11,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel(), onLogoutSuccess: () -> Unit) {
+fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
   val uiState by viewModel.uiState.collectAsState()
   val version = remember { viewModel.version }
   SettingsScreenContent(
@@ -35,7 +36,6 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel(), onLogoutSucce
     version = version,
     user = uiState.username,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
-    onLogoutSuccess,
   )
 }
 
@@ -45,7 +45,6 @@ fun SettingsScreenContent(
   version: String = Defaults.VERSION,
   user: String = Defaults.USERNAME,
   onEvent: (SettingsEvent) -> Unit = {},
-  onLogoutSuccess: () -> Unit = {},
 ) {
   Column(
     modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -80,19 +79,33 @@ fun SettingsScreenContent(
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    TextButton(
-      onClick = { onEvent(SettingsEvent.LogoutButtonPressed) },
-      modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-    ) {
-      Text(stringResource(R.string.logout))
-    }
-
-    LaunchedEffect(uiState.settingsState) {
-      if (uiState.settingsState == SettingsState.Success) {
-        onLogoutSuccess()
-      }
-    }
+    LogoutSection(onEvent)
   }
+}
+
+@Composable
+fun LogoutSection(onEvent: (SettingsEvent) -> Unit = {}) {
+  var showLogoutDialog by remember { mutableStateOf(false) }
+
+  TextButton(
+    onClick = { showLogoutDialog = true },
+    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+  ) {
+    Text(stringResource(R.string.logout))
+  }
+
+  MyAlertDialog(
+    title = stringResource(R.string.logout),
+    text = stringResource(R.string.dialog_logout_text),
+    showDialog = showLogoutDialog,
+    confirmText = stringResource(R.string.ok),
+    dismissText = stringResource(R.string.cancel),
+    onConfirm = {
+      onEvent(SettingsEvent.LogoutButtonPressed)
+      showLogoutDialog = false
+    },
+    onDismiss = { showLogoutDialog = false },
+  )
 }
 
 @ShelfDroidPreview

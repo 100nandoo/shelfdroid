@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.settings
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.media3.database.StandaloneDatabaseProvider.DATABASE_NAME as EXOPLAYER_DATABASE_NAME
+import com.jakewharton.processphoenix.ProcessPhoenix
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.database.di.DatabaseModule.DATABASE_NAME
@@ -58,5 +59,7 @@ constructor(
     externalCacheDir?.deleteRecursively()
 
     fileDir.deleteRecursively()
+
+    ProcessPhoenix.triggerRebirth(context)
   }
 }

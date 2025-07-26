@@ -28,10 +28,15 @@
     <string name="args_version">Version %1$s</string>
     <!--Arguments-->
 
+    <!--Dialog-->
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="delete_bookmark_title">Delete Bookmark</string>
     <string name="are_you_sure_delete_bookmark">Are you sure you want to delete this bookmark?</string>
+    <string name="dialog_logout_text">Logging out will delete all app data and cached content. Restarting the app is required to complete the cleanup and reload it from a clean state.</string>
+    <!--Dialog-->
+
+
     <string name="ok">OK</string>
     <string name="no_cover">No cover</string>
     <string name="show_less">Show less</string>

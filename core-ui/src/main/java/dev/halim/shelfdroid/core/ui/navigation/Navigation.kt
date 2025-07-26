@@ -156,14 +156,7 @@ private fun ColumnScope.NavHostContainer(
         }
       }
 
-      composable<Settings> {
-        SettingsScreen(
-          onLogoutSuccess = {
-            navController.navigate(Login) { popUpTo(0) { inclusive = true } }
-            playerViewModel.onEvent(PlayerEvent.Logout)
-          }
-        )
-      }
+      composable<Settings> { SettingsScreen() }
     }
   }
 }
