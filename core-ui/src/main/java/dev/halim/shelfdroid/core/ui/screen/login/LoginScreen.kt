@@ -169,7 +169,7 @@ private fun LoginTextField(
 ) {
   OutlinedTextField(
     value = value,
-    onValueChange = onValueChange,
+    onValueChange = { onValueChange(it) },
     label = { Text(label) },
     placeholder = placeholder?.let { { Text(it) } },
     keyboardOptions = keyboardOptions,

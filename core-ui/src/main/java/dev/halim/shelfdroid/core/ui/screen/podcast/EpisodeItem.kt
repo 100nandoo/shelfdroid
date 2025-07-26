@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ fun EpisodeItem(
   onPlayClicked: (String, String) -> Unit,
   isPlaying: Boolean,
   playbackProgress: PlaybackProgress,
+  snackbarHostState: SnackbarHostState,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -113,7 +115,7 @@ fun EpisodeItem(
               contentDescription = stringResource(R.string.mark_as_finished),
             )
           }
-          DownloadButton(episode, onEvent)
+          DownloadButton(episode, snackbarHostState, onEvent)
 
           FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.episodeId) }) {
             val icon = if (isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
@@ -134,7 +136,18 @@ fun EpisodeItemPreview() {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
-        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }, false, PlaybackProgress()) }
+        item {
+          EpisodeItem(
+            "",
+            episode,
+            {},
+            { _, _ -> },
+            { _, _ -> },
+            false,
+            PlaybackProgress(),
+            SnackbarHostState(),
+          )
+        }
       }
     }
   }
@@ -147,7 +160,18 @@ fun EpisodeItemDynamicPreview() {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
-        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }, false, PlaybackProgress()) }
+        item {
+          EpisodeItem(
+            "",
+            episode,
+            {},
+            { _, _ -> },
+            { _, _ -> },
+            false,
+            PlaybackProgress(),
+            SnackbarHostState(),
+          )
+        }
       }
     }
   }

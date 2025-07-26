@@ -4,6 +4,7 @@ package dev.halim.shelfdroid.core.ui.screen.podcast
 
 import ItemDetail
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,9 +14,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -84,45 +88,54 @@ fun PodcastScreenContent(
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
+  val snackbarHostState = remember { SnackbarHostState() }
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      LazyColumn(
-        modifier = Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize(),
-        reverseLayout = true,
-      ) {
-        item { Spacer(modifier = Modifier.height(12.dp)) }
-        items(uiState.episodes) { episode ->
-          val isPlaying = currentEpisodeId == episode.episodeId && exoState == ExoState.Playing
-          EpisodeItem(
-            id,
-            episode,
-            onEvent,
-            onEpisodeClicked,
-            onPlayClicked,
-            isPlaying,
-            playbackProgress,
-          )
-          HorizontalDivider()
-        }
-        item {
-          Text(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            text = stringResource(R.string.episodes),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Left,
-          )
-          Spacer(modifier = Modifier.height(16.dp))
+      Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+          modifier = Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize(),
+          reverseLayout = true,
+        ) {
+          item { Spacer(modifier = Modifier.height(12.dp)) }
+          items(uiState.episodes) { episode ->
+            val isPlaying = currentEpisodeId == episode.episodeId && exoState == ExoState.Playing
+            EpisodeItem(
+              id,
+              episode,
+              onEvent,
+              onEpisodeClicked,
+              onPlayClicked,
+              isPlaying,
+              playbackProgress,
+              snackbarHostState,
+            )
+            HorizontalDivider()
+          }
+          item {
+            Text(
+              modifier = Modifier.padding(horizontal = 16.dp),
+              text = stringResource(R.string.episodes),
+              style = MaterialTheme.typography.headlineMedium,
+              textAlign = TextAlign.Left,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-          ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
+            ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
 
-          Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 16.dp),
-          ) {
-            ItemDetail(id, uiState.cover, uiState.title, uiState.author)
+            Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              modifier = Modifier.padding(horizontal = 16.dp),
+            ) {
+              ItemDetail(id, uiState.cover, uiState.title, uiState.author)
+            }
           }
         }
+
+        SnackbarHost(
+          hostState = snackbarHostState,
+          modifier = Modifier.align(Alignment.BottomCenter),
+        )
       }
     }
   }

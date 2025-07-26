@@ -36,6 +36,10 @@
     <string name="dialog_logout_text">Logging out will delete all app data and cached content. Restarting the app is required to complete the cleanup and reload it from a clean state.</string>
     <!--Dialog-->
 
+    <!--SnackBar-->
+    <string name="permission_required">Permission required</string>
+    <string name="go_to_settings">Go to settings</string>
+    <!--SnackBar-->
 
     <string name="ok">OK</string>
     <string name="no_cover">No cover</string>
