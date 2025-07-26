@@ -12,13 +12,10 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
@@ -86,10 +83,7 @@ private fun ColumnScope.NavHostContainer(
 ) {
   val playerViewModel: PlayerViewModel = hiltViewModel()
 
-  val snackbarHostState = remember { SnackbarHostState() }
-
-  Scaffold(modifier = Modifier.weight(1f), snackbarHost = { SnackbarHost(snackbarHostState) }) {
-    paddingValues ->
+  Scaffold(modifier = Modifier.weight(1f)) { paddingValues ->
     val playerUiState = playerViewModel.uiState.collectAsState()
 
     val bottom =
@@ -109,9 +103,7 @@ private fun ColumnScope.NavHostContainer(
     ) {
       composable<Login> {
         LoginScreen(
-          onLoginSuccess = { navController.navigate(Home) { popUpTo(Login) { inclusive = true } } },
-          paddingValues = paddingValues,
-          snackbarHostState = snackbarHostState,
+          onLoginSuccess = { navController.navigate(Home) { popUpTo(Login) { inclusive = true } } }
         )
       }
       composable<Home> {

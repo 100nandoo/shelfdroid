@@ -63,6 +63,8 @@ dependencies {
   // sqldelight
   implementation(libs.sqldelight.coroutines)
 
+  implementation(libs.retrofit)
+
   // Local tests: jUnit, coroutines, Android runner
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)

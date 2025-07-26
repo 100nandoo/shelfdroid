@@ -19,6 +19,7 @@ constructor(
 ) : Authenticator {
 
   override fun authenticate(route: Route?, response: Response): Request? {
+    if (response.request.url.toString().contains("login")) return null
     synchronized(this) {
       return runBlocking {
         val refreshToken =

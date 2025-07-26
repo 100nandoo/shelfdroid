@@ -3,7 +3,10 @@ package dev.halim.shelfdroid.core.ui.screen.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
+import dev.halim.shelfdroid.core.data.screen.login.LoginState
+import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,45 +21,16 @@ class LoginViewModel @Inject constructor(private val loginRepository: LoginRepos
 
   val uiState: StateFlow<LoginUiState> = _uiState
 
-  fun onEvent(loginEvent: LoginEvent) {
-    when (loginEvent) {
-      is LoginEvent.LoginButtonPressed -> viewModelScope.launch { login() }
+  fun onEvent(event: LoginEvent) {
+    when (event) {
+      is LoginEvent.LoginButtonPressed ->
+        viewModelScope.launch { _uiState.update { loginRepository.login(_uiState.value) } }
+      is LoginEvent.ServerChanged -> _uiState.update { it.copy(server = event.server) }
+      is LoginEvent.UsernameChanged -> _uiState.update { it.copy(username = event.username) }
+      is LoginEvent.PasswordChanged -> _uiState.update { it.copy(password = event.password) }
+      LoginEvent.ErrorShown -> {
+        _uiState.update { it.copy(loginState = LoginState.NotLoggedIn) }
+      }
     }
   }
-
-  fun updateUiState(newState: LoginUiState) {
-    _uiState.value = newState
-  }
-
-  private suspend fun login() {
-    loginRepository
-      .login(_uiState.value.server, _uiState.value.username, _uiState.value.password)
-      .apply {
-        onSuccess { _uiState.update { it.copy(loginState = LoginState.Success) } }
-        onFailure { error ->
-          _uiState.update { it.copy(loginState = LoginState.Failure(error.message)) }
-        }
-      }
-  }
-}
-
-data class LoginUiState(
-  val server: String = "",
-  val username: String = "",
-  val password: String = "",
-  val loginState: LoginState = LoginState.NotLoggedIn,
-)
-
-sealed class LoginState {
-  data object NotLoggedIn : LoginState()
-
-  data object Loading : LoginState()
-
-  data object Success : LoginState()
-
-  data class Failure(val errorMessage: String?) : LoginState()
-}
-
-sealed class LoginEvent {
-  data object LoginButtonPressed : LoginEvent()
 }

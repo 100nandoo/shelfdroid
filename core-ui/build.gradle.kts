@@ -59,11 +59,12 @@ dependencies {
   implementation(libs.androidx.core.splashscreen)
 
   // Arch Components
+  implementation(libs.androidx.hilt.navigation.compose)
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.media3.exoplayer)
   implementation(libs.androidx.navigation.compose)
-  implementation(libs.androidx.hilt.navigation.compose)
 
   // Compose
   implementation(libs.androidx.compose.material3)
@@ -79,9 +80,12 @@ dependencies {
   implementation(libs.hilt.android)
   kapt(libs.hilt.compiler)
 
+  /// 3rd party
+
+  // Accompanist
+  implementation(libs.accompanist.permissions)
+
   // Coil
   implementation(libs.coil)
   implementation(libs.coil.okhttp)
-
-  implementation(libs.androidx.media3.exoplayer)
 }

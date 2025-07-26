@@ -41,6 +41,7 @@ kotlinSerialization = "1.9.0"
 sqldelight = "2.1.0"
 
 # 3rd party
+accompanist = "0.37.3"
 coil = "3.3.0"
 retrofit = "3.0.0"
 retrofit-result = "1.0.13"
@@ -90,6 +91,8 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 
 ## 3rd party
+
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 
 coil = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
