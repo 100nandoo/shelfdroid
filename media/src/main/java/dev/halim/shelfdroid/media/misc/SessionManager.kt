@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.media.misc
 
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
@@ -27,12 +28,15 @@ constructor(
   private val connectivityObserver: ConnectivityManager,
 ) {
   private var duration = Duration.ZERO
+
   private var syncJob: Job? = null
   private var connectivityJob: Job? = null
   private var isPlaying = false
-  private lateinit var uiState: PlayerUiState
+  private var uiState: PlayerUiState = PlayerUiState()
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
   @Volatile private var isMetered = true
+  @Volatile private var isSyncing = false
+  @Volatile private var isItemChanged = false
 
   fun start(uiState: PlayerUiState) {
     this.uiState = uiState
@@ -52,12 +56,17 @@ constructor(
 
   private val listener =
     object : Player.Listener {
+      override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        isItemChanged = true
+      }
+
       override fun onIsPlayingChanged(isPlaying: Boolean) {
         super.onIsPlayingChanged(isPlaying)
         this@SessionManager.isPlaying = isPlaying
         if (isPlaying) {
           startConnectivityJob()
           startSyncJob()
+          isItemChanged = false
         } else {
           connectivityJob?.cancel()
           syncJob?.cancel()
@@ -75,11 +84,13 @@ constructor(
   }
 
   private fun sync() {
-    val syncDuration = duration
+    if (isSyncing || isItemChanged || duration == 0.seconds) return
     syncScope.launch {
-      playerRepository.syncSession(uiState, getCurrentPositionSafe(), syncDuration)
+      isSyncing = true
+      playerRepository.syncSession(uiState, getCurrentPositionSafe(), duration)
+      resetDuration()
+      isSyncing = false
     }
-    resetDuration()
   }
 
   private fun startSyncJob() {
