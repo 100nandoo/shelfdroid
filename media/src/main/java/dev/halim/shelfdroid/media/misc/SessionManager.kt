@@ -5,10 +5,10 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.core.network.connectivity.ConnectivityManager
+import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.SYNC_LONG_INTERVAL
 import dev.halim.shelfdroid.core.data.screen.SYNC_SHORT_INTERVAL
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
-import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds

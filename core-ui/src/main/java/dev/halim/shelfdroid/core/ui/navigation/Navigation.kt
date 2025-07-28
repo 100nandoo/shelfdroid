@@ -24,10 +24,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import dev.halim.shelfdroid.core.data.screen.player.PlayerState
+import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
-import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
@@ -122,29 +121,18 @@ private fun ColumnScope.NavHostContainer(
             onEpisodeClicked = { itemId, episodeId ->
               navController.navigate(Episode(itemId, episodeId))
             },
-            onPlayClicked = { itemId, episodeId ->
-              playerViewModel.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId))
-            },
           )
         }
       }
       composable<Book> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
-          BookScreen(
-            playerViewModel = playerViewModel,
-            onPlayClicked = { id -> playerViewModel.onEvent(PlayerEvent.PlayBook(id)) },
-          )
+          BookScreen(playerViewModel = playerViewModel)
         }
       }
 
       composable<Episode> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
-          EpisodeScreen(
-            playerViewModel = playerViewModel,
-            onPlayClicked = { itemId, episodeId ->
-              playerViewModel.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId))
-            },
-          )
+          EpisodeScreen(playerViewModel = playerViewModel)
         }
       }
 

@@ -1,5 +1,7 @@
-package dev.halim.shelfdroid.core.ui.screen.podcast
+package dev.halim.shelfdroid.core.ui.components
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
@@ -57,5 +59,25 @@ fun DownloadButton(
         contentDescription = stringResource(R.string.download),
       )
     }
+  }
+}
+
+@Composable
+fun PlayAndDownload(
+  isPlaying: Boolean,
+  downloadState: DownloadState,
+  snackbarHostState: SnackbarHostState,
+  onPlayClicked: () -> Unit,
+  onDownloadClicked: () -> Unit,
+  onDeleteDownloadClicked: () -> Unit,
+) {
+  Row(Modifier.padding(vertical = 8.dp)) {
+    PlayButton(modifier = Modifier.padding(end = 8.dp), isPlaying = isPlaying) { onPlayClicked() }
+    DownloadButton(
+      downloadState = downloadState,
+      snackbarHostState = snackbarHostState,
+      onDownloadClicked = onDownloadClicked,
+      onDeleteDownloadClicked = onDeleteDownloadClicked,
+    )
   }
 }

@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
+import dev.halim.shelfdroid.core.PlayerUiState
 import javax.inject.Inject
 
 @SuppressLint("UnsafeOptInUsageError")

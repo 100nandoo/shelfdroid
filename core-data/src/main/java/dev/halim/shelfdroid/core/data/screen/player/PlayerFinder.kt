@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.player
 
+import dev.halim.shelfdroid.core.PlayerUiState
 import javax.inject.Inject
 
 class PlayerFinder @Inject constructor() {

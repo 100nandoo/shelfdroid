@@ -6,9 +6,9 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
-import dev.halim.shelfdroid.core.data.screen.player.ExoState
+import dev.halim.shelfdroid.core.ExoState
+import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
-import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
 import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
 import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper

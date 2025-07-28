@@ -9,7 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import dev.halim.shelfdroid.core.data.screen.player.PlayerState
+import dev.halim.shelfdroid.core.PlayerState
 
 @Composable
 fun PlayerHandler(

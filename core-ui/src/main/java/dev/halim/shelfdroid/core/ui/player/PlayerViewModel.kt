@@ -4,12 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.screen.player.ExoState
-import dev.halim.shelfdroid.core.data.screen.player.PlayerBookmark
+import dev.halim.shelfdroid.core.ExoState
+import dev.halim.shelfdroid.core.PlayerBookmark
+import dev.halim.shelfdroid.core.PlayerState
+import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
-import dev.halim.shelfdroid.core.data.screen.player.PlayerState
-import dev.halim.shelfdroid.core.data.screen.player.PlayerState.Hidden
-import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.service.StateHolder
 import javax.inject.Inject
@@ -116,7 +115,7 @@ constructor(
       PlayerEvent.Big -> _uiState.update { it.copy(state = PlayerState.Big) }
       PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }
       PlayerEvent.TempHidden -> _uiState.update { it.copy(state = PlayerState.TempHidden) }
-      PlayerEvent.Hidden -> _uiState.update { it.copy(state = Hidden()) }
+      PlayerEvent.Hidden -> _uiState.update { it.copy(state = PlayerState.Hidden()) }
       PlayerEvent.Logout -> logout()
     }
   }

@@ -1,5 +1,6 @@
 package dev.halim.core.network.response.libraryitem
 
+import dev.halim.core.network.response.play.AudioTrack
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,6 +12,7 @@ class Book(
   @SerialName("metadata") val metadata: BookMetadata = BookMetadata(),
   @SerialName("audioFiles") val audioFiles: List<AudioFile> = listOf(),
   @SerialName("chapters") val chapters: List<BookChapter> = listOf(),
+  @SerialName("tracks") val audioTracks: List<AudioTrack> = listOf(),
   @SerialName("ebookFile") val ebookFile: EbookFile? = EbookFile(),
   @SerialName("duration") val duration: Double? = 0.0,
 ) : Media()

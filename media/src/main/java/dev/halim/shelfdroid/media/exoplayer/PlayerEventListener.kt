@@ -4,8 +4,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.listen
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
-import dev.halim.shelfdroid.core.data.screen.player.ChapterPosition
-import dev.halim.shelfdroid.core.data.screen.player.PlayerUiState
+import dev.halim.shelfdroid.core.ChapterPosition
+import dev.halim.shelfdroid.core.PlayerUiState
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

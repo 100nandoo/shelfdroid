@@ -43,7 +43,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.core.data.screen.player.PlayerBookmark
+import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults

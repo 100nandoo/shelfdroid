@@ -2,7 +2,7 @@ package dev.halim.shelfdroid.media.exoplayer
 
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import dev.halim.shelfdroid.core.data.screen.player.RawPlaybackProgress
+import dev.halim.shelfdroid.core.RawPlaybackProgress
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay

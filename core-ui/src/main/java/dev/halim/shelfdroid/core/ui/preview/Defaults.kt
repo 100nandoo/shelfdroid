@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.ui.preview
 
-import dev.halim.shelfdroid.core.data.screen.player.PlayerBookmark
-import dev.halim.shelfdroid.core.data.screen.player.PlayerChapter
+import dev.halim.shelfdroid.core.PlayerBookmark
+import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 
 object Defaults {
