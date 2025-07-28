@@ -46,10 +46,6 @@ constructor(
     )
   }
 
-  fun downloadById(id: String): Download? {
-    return _downloads.value.find { it.request.id == id }
-  }
-
   suspend fun item(itemId: String, episodeId: String? = null, url: String): DownloadUiState {
     val downloadId = helper.generateDownloadId(itemId, episodeId)
     val download = downloadById(downloadId)
@@ -57,6 +53,10 @@ constructor(
     val downloadUrl = helper.generateContentUrl(url)
 
     return DownloadUiState(state = downloadState, id = downloadId, url = downloadUrl)
+  }
+
+  private fun downloadById(id: String): Download? {
+    return _downloads.value.find { it.request.id == id }
   }
 
   private fun updateDownloadsIfChanged() {

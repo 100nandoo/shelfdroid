@@ -1,9 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.book
 
 import android.annotation.SuppressLint
+import androidx.media3.exoplayer.offline.Download
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.media.DownloadMapper
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.media.DownloadUiState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -18,6 +20,7 @@ constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
   private val downloadRepo: DownloadRepo,
+  private val downloadMapper: DownloadMapper,
   private val helper: Helper,
 ) {
 
@@ -70,5 +73,13 @@ constructor(
     } else {
       BookUiState(state = GenericState.Failure("Failed to fetch book"))
     }
+  }
+
+  @SuppressLint("UnsafeOptInUsageError")
+  fun updateDownloads(uiState: BookUiState, download: Download): BookUiState {
+    val downloadUiState =
+      uiState.download.copy(state = downloadMapper.toDownloadState(download.state))
+
+    return uiState.copy(download = downloadUiState)
   }
 }

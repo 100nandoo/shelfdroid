@@ -63,13 +63,9 @@ constructor(
   }
 
   @SuppressLint("UnsafeOptInUsageError")
-  fun updateDownloads(uiState: EpisodeUiState, downloads: List<Download>): EpisodeUiState {
-    val downloadMap = downloads.associateBy { it.request.id }
-
-    val downloadState = downloadMap[uiState.download.id]?.state
-
+  fun updateDownloads(uiState: EpisodeUiState, download: Download): EpisodeUiState {
     val downloadUiState =
-      uiState.download.copy(state = downloadMapper.toDownloadState(downloadState))
+      uiState.download.copy(state = downloadMapper.toDownloadState(download.state))
 
     return uiState.copy(download = downloadUiState)
   }

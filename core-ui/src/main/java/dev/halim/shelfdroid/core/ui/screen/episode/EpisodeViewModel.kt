@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.episode
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,6 +14,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -52,13 +54,14 @@ constructor(
     }
   }
 
+  @SuppressLint("UnsafeOptInUsageError")
   private fun initUiState() {
     viewModelScope.launch {
       _uiState.update { repository.item(itemId, episodeId) }
 
-      downloadRepo.downloads.collect { downloads ->
-        _uiState.update { repository.updateDownloads(it, downloads) }
-      }
+      downloadRepo.downloads
+        .mapNotNull { downloads -> downloads.find { it.request.id == _uiState.value.download.id } }
+        .collect { download -> _uiState.update { repository.updateDownloads(it, download) } }
     }
   }
 }

@@ -1,9 +1,11 @@
 package dev.halim.shelfdroid.core.ui.screen.book
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.screen.book.BookRepository
 import dev.halim.shelfdroid.core.data.screen.book.BookUiState
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
@@ -12,6 +14,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -23,6 +26,7 @@ class BookViewModel
 constructor(
   private val repository: BookRepository,
   private val downloadTracker: DownloadTracker,
+  private val downloadRepo: DownloadRepo,
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -49,8 +53,15 @@ constructor(
     }
   }
 
+  @SuppressLint("UnsafeOptInUsageError")
   private fun initUiState() {
-    viewModelScope.launch { _uiState.update { repository.item(id) } }
+    viewModelScope.launch {
+      _uiState.update { repository.item(id) }
+
+      downloadRepo.downloads
+        .mapNotNull { downloads -> downloads.find { it.request.id == _uiState.value.download.id } }
+        .collect { download -> _uiState.update { repository.updateDownloads(it, download) } }
+    }
   }
 }
 
