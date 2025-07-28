@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.book
 
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.media.DownloadUiState
 
 data class BookUiState(
   val state: GenericState = GenericState.Loading,
@@ -17,4 +18,6 @@ data class BookUiState(
   val genres: String = "",
   val language: String = "",
   val progress: String = "",
+  val isSingleTrack: Boolean = false,
+  val download: DownloadUiState = DownloadUiState(),
 )

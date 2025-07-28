@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeUiState
+import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.media.download.DownloadTracker
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,12 +39,15 @@ constructor(
 
   fun onEvent(event: EpisodeEvent) {
     when (event) {
-      is EpisodeEvent.Download -> {
-        downloadTracker.download(event.downloadId, event.url)
-      }
-
-      is EpisodeEvent.DeleteDownload -> {
-        downloadTracker.delete(event.downloadId)
+      is EpisodeEvent.DownloadEvent -> {
+        when (event.downloadEvent) {
+          is CommonDownloadEvent.Download -> {
+            downloadTracker.download(event.downloadEvent.downloadId, event.downloadEvent.url)
+          }
+          is CommonDownloadEvent.DeleteDownload -> {
+            downloadTracker.delete(event.downloadEvent.downloadId)
+          }
+        }
       }
     }
   }
@@ -60,7 +64,5 @@ constructor(
 }
 
 sealed class EpisodeEvent {
-  data class Download(val downloadId: String, val url: String) : EpisodeEvent()
-
-  data class DeleteDownload(val downloadId: String) : EpisodeEvent()
+  data class DownloadEvent(val downloadEvent: CommonDownloadEvent) : EpisodeEvent()
 }

@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.media
 import android.annotation.SuppressLint
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
+import dev.halim.shelfdroid.core.data.Helper
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,13 @@ import kotlinx.coroutines.flow.update
 
 @SuppressLint("UnsafeOptInUsageError")
 @Singleton
-class DownloadRepo @Inject constructor(private val downloadManager: DownloadManager) {
+class DownloadRepo
+@Inject
+constructor(
+  private val downloadManager: DownloadManager,
+  private val helper: Helper,
+  private val downloadMapper: DownloadMapper,
+) {
 
   private val _downloads = MutableStateFlow(fetch())
   val downloads: StateFlow<List<Download>> = _downloads.asStateFlow()
@@ -41,6 +48,15 @@ class DownloadRepo @Inject constructor(private val downloadManager: DownloadMana
 
   fun downloadById(id: String): Download? {
     return _downloads.value.find { it.request.id == id }
+  }
+
+  suspend fun item(itemId: String, episodeId: String? = null, url: String): DownloadUiState {
+    val downloadId = helper.generateDownloadId(itemId, episodeId)
+    val download = downloadById(downloadId)
+    val downloadState = downloadMapper.toDownloadState(download?.state)
+    val downloadUrl = helper.generateContentUrl(url)
+
+    return DownloadUiState(state = downloadState, id = downloadId, url = downloadUrl)
   }
 
   private fun updateDownloadsIfChanged() {

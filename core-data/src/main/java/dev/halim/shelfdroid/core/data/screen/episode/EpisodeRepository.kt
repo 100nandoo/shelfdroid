@@ -40,10 +40,12 @@ constructor(
       val formattedProgress = String.format(Locale.getDefault(), "%.0f", progress * 100)
       val publishedAt = episode.publishedAt?.let { helper.toReadableDate(it) } ?: ""
 
-      val downloadId = helper.generateDownloadId(itemId, episodeId)
-      val download = downloadRepo.downloadById(downloadId)
-
-      val url = helper.generateContentUrl(episode.audioTrack.contentUrl)
+      val downloadUiState =
+        downloadRepo.item(
+          itemId = itemId,
+          episodeId = episodeId,
+          url = episode.audioTrack.contentUrl,
+        )
 
       EpisodeUiState(
         state = GenericState.Success,
@@ -53,9 +55,7 @@ constructor(
         cover = result.cover,
         description = description,
         progress = formattedProgress,
-        downloadState = downloadMapper.toDownloadState(download?.state),
-        downloadId = downloadId,
-        url = url,
+        download = downloadUiState,
       )
     } else {
       EpisodeUiState(state = GenericState.Failure("Failed to fetch Podcast"))
@@ -66,8 +66,11 @@ constructor(
   fun updateDownloads(uiState: EpisodeUiState, downloads: List<Download>): EpisodeUiState {
     val downloadMap = downloads.associateBy { it.request.id }
 
-    val downloadState = downloadMap[uiState.downloadId]?.state
+    val downloadState = downloadMap[uiState.download.id]?.state
 
-    return uiState.copy(downloadState = downloadMapper.toDownloadState(downloadState))
+    val downloadUiState =
+      uiState.download.copy(state = downloadMapper.toDownloadState(downloadState))
+
+    return uiState.copy(download = downloadUiState)
   }
 }

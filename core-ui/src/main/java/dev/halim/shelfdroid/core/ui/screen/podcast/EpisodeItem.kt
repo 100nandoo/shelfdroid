@@ -35,6 +35,7 @@ import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DownloadButton
+import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -117,10 +118,17 @@ fun EpisodeItem(
             )
           }
           DownloadButton(
-            episode.downloadState,
+            episode.download.state,
             snackbarHostState,
-            { onEvent(PodcastEvent.Download(episode.downloadId, episode.url)) },
-            { onEvent(PodcastEvent.DeleteDownload(episode.downloadId)) },
+            {
+              val downloadEvent =
+                CommonDownloadEvent.Download(episode.download.id, episode.download.url)
+              onEvent(PodcastEvent.DownloadEvent(downloadEvent))
+            },
+            {
+              val downloadEvent = CommonDownloadEvent.DeleteDownload(episode.download.id)
+              onEvent(PodcastEvent.DownloadEvent(downloadEvent))
+            },
           )
 
           FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.episodeId) }) {

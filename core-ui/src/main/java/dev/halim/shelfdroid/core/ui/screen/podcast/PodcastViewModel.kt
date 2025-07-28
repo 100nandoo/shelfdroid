@@ -8,6 +8,7 @@ import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
+import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.media.download.DownloadTracker
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,13 +45,15 @@ constructor(
           }
         }
       }
-
-      is PodcastEvent.Download -> {
-        downloadTracker.download(event.downloadId, event.url)
-      }
-
-      is PodcastEvent.DeleteDownload -> {
-        downloadTracker.delete(event.downloadId)
+      is PodcastEvent.DownloadEvent -> {
+        when (event.downloadEvent) {
+          is CommonDownloadEvent.Download -> {
+            downloadTracker.download(event.downloadEvent.downloadId, event.downloadEvent.url)
+          }
+          is CommonDownloadEvent.DeleteDownload -> {
+            downloadTracker.delete(event.downloadEvent.downloadId)
+          }
+        }
       }
     }
   }
@@ -83,7 +86,5 @@ constructor(
 sealed class PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent()
 
-  data class Download(val downloadId: String, val url: String) : PodcastEvent()
-
-  data class DeleteDownload(val downloadId: String) : PodcastEvent()
+  data class DownloadEvent(val downloadEvent: CommonDownloadEvent) : PodcastEvent()
 }

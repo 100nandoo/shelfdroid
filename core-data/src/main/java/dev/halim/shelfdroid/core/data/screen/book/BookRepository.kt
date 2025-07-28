@@ -1,8 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.book
 
+import android.annotation.SuppressLint
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.media.DownloadRepo
+import dev.halim.shelfdroid.core.data.media.DownloadUiState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import java.util.Locale
@@ -14,10 +17,12 @@ class BookRepository
 constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
+  private val downloadRepo: DownloadRepo,
   private val helper: Helper,
 ) {
 
-  fun item(id: String): BookUiState {
+  @SuppressLint("UnsafeOptInUsageError")
+  suspend fun item(id: String): BookUiState {
     val result = libraryItemRepo.byId(id)
     val progressEntity = progressRepo.bookById(id)
     return if (result != null && result.isBook == 1L) {
@@ -33,6 +38,17 @@ constructor(
       val progress = progressEntity?.progress?.toFloat() ?: 0f
       val formattedProgress = String.format(Locale.getDefault(), "%.0f", progress * 100)
       val remaining = helper.calculateRemaining(media.duration ?: 0.0, progress)
+
+      val isSingleTrack = media.audioTracks.size == 1
+
+      val downloadUiState =
+        if (isSingleTrack) {
+          val url = media.audioTracks.first().contentUrl
+          downloadRepo.item(itemId = id, url = url)
+        } else {
+          DownloadUiState()
+        }
+
       BookUiState(
         state = GenericState.Success,
         author = result.author,
@@ -48,6 +64,8 @@ constructor(
         genres = genres,
         language = language,
         progress = formattedProgress,
+        isSingleTrack = isSingleTrack,
+        download = downloadUiState,
       )
     } else {
       BookUiState(state = GenericState.Failure("Failed to fetch book"))

@@ -14,7 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.core.data.screen.podcast.DownloadState
+import dev.halim.shelfdroid.core.data.media.DownloadState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.permissions.rememberNotificationPermissionHandler
 

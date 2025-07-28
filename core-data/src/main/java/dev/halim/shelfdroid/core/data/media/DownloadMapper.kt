@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.core.data.media
 
 import android.annotation.SuppressLint
 import androidx.media3.exoplayer.offline.Download
-import dev.halim.shelfdroid.core.data.screen.podcast.DownloadState
 import javax.inject.Inject
 
 class DownloadMapper @Inject constructor() {

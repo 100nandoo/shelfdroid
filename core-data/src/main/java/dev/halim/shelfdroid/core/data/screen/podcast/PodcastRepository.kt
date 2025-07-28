@@ -7,7 +7,6 @@ import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.media.DownloadMapper
-import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import javax.inject.Inject
@@ -23,7 +22,6 @@ constructor(
   private val progressRepo: ProgressRepo,
   private val apiService: ApiService,
   private val mapper: PodcastMapper,
-  private val downloadRepo: DownloadRepo,
   private val downloadMapper: DownloadMapper,
 ) {
   private val repositoryScope = CoroutineScope(Dispatchers.IO)
@@ -31,12 +29,11 @@ constructor(
   suspend fun item(id: String): PodcastUiState {
     val entity = libraryItemRepo.byId(id)
     val progresses = progressRepo.entities()
-    val downloads = downloadRepo.downloads.value
     return entity
       ?.takeIf { it.isBook == 0L }
       ?.let {
         val media = Json.decodeFromString<Podcast>(it.media)
-        val episodes = mapper.mapEpisodes(media.episodes, progresses, downloads)
+        val episodes = mapper.mapEpisodes(media.episodes, progresses)
 
         PodcastUiState(
           state = GenericState.Success,
@@ -55,9 +52,12 @@ constructor(
 
     val updatedEpisodes =
       uiState.episodes.map { episode ->
-        val downloadState = downloadMap[episode.downloadId]?.state
-        if (downloadState != null) {
-          episode.copy(downloadState = downloadMapper.toDownloadState(downloadState))
+        val state = downloadMap[episode.download.id]?.state
+        val downloadState = downloadMapper.toDownloadState(state)
+        val downloadUiState = episode.download.copy(state = downloadState)
+
+        if (state != null) {
+          episode.copy(download = downloadUiState)
         } else {
           episode
         }

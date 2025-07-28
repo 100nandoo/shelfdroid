@@ -23,7 +23,7 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
   suspend fun generateContentUrl(url: String): String =
     "https://${DataStoreManager.BASE_URL}$url?token=${getToken()}"
 
-  fun generateDownloadId(itemId: String, episodeId: String?): String =
+  fun generateDownloadId(itemId: String, episodeId: String? = null): String =
     episodeId?.let { "$itemId|$it" } ?: itemId
 
   @OptIn(ExperimentalTime::class)
