@@ -4,8 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeUiState
+import dev.halim.shelfdroid.media.download.DownloadTracker
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,8 +21,10 @@ import kotlinx.coroutines.launch
 class EpisodeViewModel
 @Inject
 constructor(
-  private val savedStateHandle: SavedStateHandle,
+  savedStateHandle: SavedStateHandle,
   private val repository: EpisodeRepository,
+  private val downloadRepo: DownloadRepo,
+  private val downloadTracker: DownloadTracker,
 ) : ViewModel() {
 
   val itemId: String = checkNotNull(savedStateHandle.get<String>("itemId"))
@@ -32,7 +36,31 @@ constructor(
       .onStart { initUiState() }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), EpisodeUiState())
 
-  private fun initUiState() {
-    viewModelScope.launch { _uiState.update { repository.item(itemId, episodeId) } }
+  fun onEvent(event: EpisodeEvent) {
+    when (event) {
+      is EpisodeEvent.Download -> {
+        downloadTracker.download(event.downloadId, event.url)
+      }
+
+      is EpisodeEvent.DeleteDownload -> {
+        downloadTracker.delete(event.downloadId)
+      }
+    }
   }
+
+  private fun initUiState() {
+    viewModelScope.launch {
+      _uiState.update { repository.item(itemId, episodeId) }
+
+      downloadRepo.downloads.collect { downloads ->
+        _uiState.update { repository.updateDownloads(it, downloads) }
+      }
+    }
+  }
+}
+
+sealed class EpisodeEvent {
+  data class Download(val downloadId: String, val url: String) : EpisodeEvent()
+
+  data class DeleteDownload(val downloadId: String) : EpisodeEvent()
 }

@@ -46,11 +46,11 @@ constructor(
       }
 
       is PodcastEvent.Download -> {
-        downloadTracker.download(event.episode.downloadId, event.episode.url)
+        downloadTracker.download(event.downloadId, event.url)
       }
 
       is PodcastEvent.DeleteDownload -> {
-        downloadTracker.delete(event.episode.downloadId)
+        downloadTracker.delete(event.downloadId)
       }
     }
   }
@@ -83,7 +83,7 @@ constructor(
 sealed class PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent()
 
-  data class Download(val episode: Episode) : PodcastEvent()
+  data class Download(val downloadId: String, val url: String) : PodcastEvent()
 
-  data class DeleteDownload(val episode: Episode) : PodcastEvent()
+  data class DeleteDownload(val downloadId: String) : PodcastEvent()
 }

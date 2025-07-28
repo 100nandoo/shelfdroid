@@ -21,10 +21,10 @@ object Defaults {
   val EPISODES =
     listOf(
       Episode("1", "1", "Episode 1: The Beginning", "10 January 2024", 0.75f, false),
-      Episode("1", "2", "Episode 2: Rising Action", "30 May 2024", 0.5f, false),
-      Episode("1", "3", "Episode 3: The Climax", "10 October 2024", 0.2f, false),
+      Episode("2", "2", "Episode 2: Rising Action", "30 May 2024", 0.5f, false),
+      Episode("3", "3", "Episode 3: The Climax", "10 October 2024", 0.2f, false),
       Episode(
-        "1",
+        "4",
         "4",
         "Episode 4: Android 15, Credential Manager, Android Studio Narwhal, Compose for TV, Enhancing  Safety " +
           "and Security",
@@ -33,7 +33,7 @@ object Defaults {
         false,
       ),
       Episode(
-        "1",
+        "5",
         "5",
         "Episode 5: Google I/O, Gemini, and Jetpack Compose 1.8 and more!",
         "8 May 2025",

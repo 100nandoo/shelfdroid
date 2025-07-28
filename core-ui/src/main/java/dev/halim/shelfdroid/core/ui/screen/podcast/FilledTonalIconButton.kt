@@ -13,24 +13,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.podcast.DownloadState
-import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.permissions.rememberNotificationPermissionHandler
 
 @Composable
 fun DownloadButton(
-  episode: Episode,
+  downloadState: DownloadState,
   snackbarHostState: SnackbarHostState,
-  onEvent: (PodcastEvent) -> Unit,
+  onDownloadClicked: () -> Unit,
+  onDeleteDownloadClicked: () -> Unit,
 ) {
-  val isDownloading = episode.downloadState == DownloadState.Downloading
-  val isDownloaded = episode.downloadState == DownloadState.Completed
+  val isDownloading = downloadState == DownloadState.Downloading
+  val isDownloaded = downloadState == DownloadState.Completed
 
   val downloadLogic = {
     if (!isDownloaded) {
-      onEvent(PodcastEvent.Download(episode))
+      onDownloadClicked()
     } else {
-      onEvent(PodcastEvent.DeleteDownload(episode))
+      onDeleteDownloadClicked()
     }
   }
 

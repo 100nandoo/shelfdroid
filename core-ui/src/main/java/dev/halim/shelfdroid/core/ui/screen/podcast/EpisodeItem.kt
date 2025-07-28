@@ -115,7 +115,12 @@ fun EpisodeItem(
               contentDescription = stringResource(R.string.mark_as_finished),
             )
           }
-          DownloadButton(episode, snackbarHostState, onEvent)
+          DownloadButton(
+            episode.downloadState,
+            snackbarHostState,
+            { onEvent(PodcastEvent.Download(episode.downloadId, episode.url)) },
+            { onEvent(PodcastEvent.DeleteDownload(episode.downloadId)) },
+          )
 
           FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.episodeId) }) {
             val icon = if (isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause

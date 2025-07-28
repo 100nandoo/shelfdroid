@@ -2,7 +2,8 @@ package dev.halim.shelfdroid.core.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -80,17 +81,14 @@ fun MyIconButtonLargePreview() {
 }
 
 @Composable
-fun PlayButton(
+fun RowScope.PlayButton(
   modifier: Modifier = Modifier,
   isPlaying: Boolean = false,
   onPlayClicked: () -> Unit,
 ) {
   val icon = if (isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
   val contentDescription = if (isPlaying.not()) "Play" else "Pause"
-  Button(
-    onClick = { onPlayClicked() },
-    modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
-  ) {
+  Button(onClick = { onPlayClicked() }, modifier = modifier.weight(1f)) {
     Icon(
       imageVector = icon,
       contentDescription = contentDescription,
@@ -103,5 +101,5 @@ fun PlayButton(
 @ShelfDroidPreview
 @Composable
 fun PlayButtonPreview() {
-  PreviewWrapper(content = { PlayButton(onPlayClicked = {}) })
+  PreviewWrapper(content = { Row { PlayButton(onPlayClicked = {}) } })
 }

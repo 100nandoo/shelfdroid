@@ -6,6 +6,7 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.media.DownloadMapper
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
@@ -23,6 +24,7 @@ constructor(
   private val apiService: ApiService,
   private val mapper: PodcastMapper,
   private val downloadRepo: DownloadRepo,
+  private val downloadMapper: DownloadMapper,
 ) {
   private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
@@ -55,7 +57,7 @@ constructor(
       uiState.episodes.map { episode ->
         val downloadState = downloadMap[episode.downloadId]?.state
         if (downloadState != null) {
-          episode.copy(downloadState = mapper.toDownloadState(downloadState))
+          episode.copy(downloadState = downloadMapper.toDownloadState(downloadState))
         } else {
           episode
         }

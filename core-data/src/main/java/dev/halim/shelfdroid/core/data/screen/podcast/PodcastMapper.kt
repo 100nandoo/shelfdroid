@@ -4,10 +4,13 @@ import android.annotation.SuppressLint
 import androidx.media3.exoplayer.offline.Download
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.media.DownloadMapper
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import javax.inject.Inject
 
-class PodcastMapper @Inject constructor(private val helper: Helper) {
+class PodcastMapper
+@Inject
+constructor(private val helper: Helper, private val downloadMapper: DownloadMapper) {
 
   @SuppressLint("UnsafeOptInUsageError")
   suspend fun mapEpisodes(
@@ -23,24 +26,13 @@ class PodcastMapper @Inject constructor(private val helper: Helper) {
         val download = downloads.find { it.request.id == downloadId }
         Episode(
           episodeId = podcastEpisode.id,
-          downloadId = downloadId,
           title = podcastEpisode.title,
           publishedAt = podcastEpisode.publishedAt?.let { helper.toReadableDate(it) } ?: "",
           progress = progress?.progress?.toFloat() ?: 0f,
           isFinished = progress?.isFinished == 1L,
+          downloadId = downloadId,
           url = helper.generateContentUrl(podcastEpisode.audioTrack.contentUrl),
-          downloadState = toDownloadState(download?.state),
+          downloadState = downloadMapper.toDownloadState(download?.state),
         )
       }
-
-  @SuppressLint("UnsafeOptInUsageError")
-  fun toDownloadState(state: Int?): DownloadState {
-    return when (state) {
-      Download.STATE_COMPLETED -> DownloadState.Completed
-      Download.STATE_DOWNLOADING -> DownloadState.Downloading
-      Download.STATE_QUEUED -> DownloadState.Queued
-      Download.STATE_FAILED -> DownloadState.Failed
-      else -> DownloadState.Unknown
-    }
-  }
 }

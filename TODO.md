@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Download Podcast inside episode screen
 - [ ] Download book with one audio track
 - [ ] Local playback sync
 - [ ] List View
@@ -40,3 +39,4 @@
 - [x] Short interval sync session
 - [x] Long interval sync session
 - [x] Download Podcast
+- [x] Download Podcast inside episode screen

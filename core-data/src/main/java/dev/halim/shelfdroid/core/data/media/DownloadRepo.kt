@@ -39,6 +39,10 @@ class DownloadRepo @Inject constructor(private val downloadManager: DownloadMana
     )
   }
 
+  fun downloadById(id: String): Download? {
+    return _downloads.value.find { it.request.id == id }
+  }
+
   private fun updateDownloadsIfChanged() {
     val newList = fetch()
     if (newList.size != _downloads.value.size) {

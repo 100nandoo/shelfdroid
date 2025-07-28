@@ -1,8 +1,12 @@
 package dev.halim.shelfdroid.core.data.screen.episode
 
+import android.annotation.SuppressLint
+import androidx.media3.exoplayer.offline.Download
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.media.DownloadMapper
+import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import java.util.Locale
@@ -14,9 +18,12 @@ class EpisodeRepository
 constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
+  private val downloadRepo: DownloadRepo,
   private val helper: Helper,
+  private val downloadMapper: DownloadMapper,
 ) {
-  fun item(itemId: String, episodeId: String): EpisodeUiState {
+  @SuppressLint("UnsafeOptInUsageError")
+  suspend fun item(itemId: String, episodeId: String): EpisodeUiState {
     val result = libraryItemRepo.byId(itemId)
     val progressEntity = progressRepo.episodeById(episodeId)
 
@@ -33,6 +40,11 @@ constructor(
       val formattedProgress = String.format(Locale.getDefault(), "%.0f", progress * 100)
       val publishedAt = episode.publishedAt?.let { helper.toReadableDate(it) } ?: ""
 
+      val downloadId = helper.generateDownloadId(itemId, episodeId)
+      val download = downloadRepo.downloadById(downloadId)
+
+      val url = helper.generateContentUrl(episode.audioTrack.contentUrl)
+
       EpisodeUiState(
         state = GenericState.Success,
         title = episode.title,
@@ -41,9 +53,21 @@ constructor(
         cover = result.cover,
         description = description,
         progress = formattedProgress,
+        downloadState = downloadMapper.toDownloadState(download?.state),
+        downloadId = downloadId,
+        url = url,
       )
     } else {
       EpisodeUiState(state = GenericState.Failure("Failed to fetch Podcast"))
     }
+  }
+
+  @SuppressLint("UnsafeOptInUsageError")
+  fun updateDownloads(uiState: EpisodeUiState, downloads: List<Download>): EpisodeUiState {
+    val downloadMap = downloads.associateBy { it.request.id }
+
+    val downloadState = downloadMap[uiState.downloadId]?.state
+
+    return uiState.copy(downloadState = downloadMapper.toDownloadState(downloadState))
   }
 }

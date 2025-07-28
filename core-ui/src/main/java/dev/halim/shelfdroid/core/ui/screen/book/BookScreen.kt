@@ -106,7 +106,9 @@ fun BookScreenContent(
       ) {
         item {
           Spacer(modifier = Modifier.height(16.dp))
-          PlayButton(isPlaying = isPlaying) { onPlayClicked() }
+          Row(modifier = Modifier.padding(vertical = 8.dp)) {
+            PlayButton(isPlaying = isPlaying) { onPlayClicked() }
+          }
           ProgressRow(progress, remaining)
           ExpandShrinkText(text = description)
           BookDetail(duration, narrator, publishYear, publisher, genres, language)
