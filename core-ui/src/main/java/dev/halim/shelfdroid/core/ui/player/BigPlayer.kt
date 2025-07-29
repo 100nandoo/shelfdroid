@@ -182,12 +182,12 @@ fun PlayerProgress(
     with(animatedContentScope) {
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(
-          text = progress.position,
+          text = progress.formattedPosition,
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-          text = progress.duration,
+          text = progress.formattedDuration,
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurface,
         )
@@ -238,18 +238,16 @@ fun BasicPlayerControl(
         MyIconButton(
           icon = Icons.Default.SkipPrevious,
           contentDescription = stringResource(R.string.previous_chapter),
-          onClick = { onEvent(PlayerEvent.PreviousChapter) },
-          enabled =
-            currentChapter?.chapterPosition != ChapterPosition.First && currentChapter != null,
+          onClick = { onEvent(PlayerEvent.SkipPreviousButton) },
         )
-        SeekBackButton({ onEvent(PlayerEvent.SeekBack) }, multipleButtonState, id)
-        PlayPauseButton({ onEvent(PlayerEvent.PlayPause) }, multipleButtonState, id, 72)
-        SeekForwardButton({ onEvent(PlayerEvent.SeekForward) }, multipleButtonState, id)
+        SeekBackButton({ onEvent(PlayerEvent.SeekBackButton) }, multipleButtonState, id)
+        PlayPauseButton({ onEvent(PlayerEvent.PlayPauseButton) }, multipleButtonState, id, 72)
+        SeekForwardButton({ onEvent(PlayerEvent.SeekForwardButton) }, multipleButtonState, id)
 
         MyIconButton(
           icon = Icons.Default.SkipNext,
           contentDescription = stringResource(R.string.next_chapter),
-          onClick = { onEvent(PlayerEvent.NextChapter) },
+          onClick = { onEvent(PlayerEvent.SkipNextButton) },
           enabled =
             currentChapter?.chapterPosition != ChapterPosition.Last && currentChapter != null,
         )

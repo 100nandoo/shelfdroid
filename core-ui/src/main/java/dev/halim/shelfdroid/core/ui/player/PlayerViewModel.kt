@@ -63,9 +63,9 @@ constructor(
         _uiState.update { playerRepository.changeChapter(_uiState.value, event.target) }
         stateHolder.playContent()
       }
-      PlayerEvent.SeekBack -> playerManager.get().seekBack()
-      PlayerEvent.SeekForward -> playerManager.get().seekForward()
-      PlayerEvent.PlayPause -> playerManager.get().playPause()
+      PlayerEvent.SeekBackButton -> playerManager.get().seekBack()
+      PlayerEvent.SeekForwardButton -> playerManager.get().seekForward()
+      PlayerEvent.PlayPauseButton -> playerManager.get().playPause()
       is PlayerEvent.SeekTo -> {
         val durationMs = playerManager.get().rawDuration()
         _uiState.update { playerRepository.seekTo(_uiState.value, event.target, durationMs) }
@@ -104,11 +104,19 @@ constructor(
           }
         }
       }
-      PlayerEvent.PreviousChapter -> {
-        _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
-        stateHolder.playContent()
+      PlayerEvent.SkipPreviousButton -> {
+        if (
+          _uiState.value.playbackProgress.position > 3 ||
+            _uiState.value.currentChapter?.isFirst() == true ||
+            _uiState.value.currentChapter == null
+        ) {
+          playerManager.get().seekTo(0)
+        } else {
+          _uiState.update { playerRepository.previousNextChapter(_uiState.value, true) }
+          stateHolder.playContent()
+        }
       }
-      PlayerEvent.NextChapter -> {
+      PlayerEvent.SkipNextButton -> {
         _uiState.update { playerRepository.previousNextChapter(_uiState.value, false) }
         stateHolder.playContent()
       }
@@ -149,15 +157,15 @@ sealed class PlayerEvent {
 
   class DeleteBookmark(val bookmark: PlayerBookmark) : PlayerEvent()
 
-  data object SeekBack : PlayerEvent()
+  data object SeekBackButton : PlayerEvent()
 
-  data object SeekForward : PlayerEvent()
+  data object SeekForwardButton : PlayerEvent()
 
-  data object PlayPause : PlayerEvent()
+  data object PlayPauseButton : PlayerEvent()
 
-  data object PreviousChapter : PlayerEvent()
+  data object SkipPreviousButton : PlayerEvent()
 
-  data object NextChapter : PlayerEvent()
+  data object SkipNextButton : PlayerEvent()
 
   data object Logout : PlayerEvent()
 

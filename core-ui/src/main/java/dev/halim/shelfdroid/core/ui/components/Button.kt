@@ -1,26 +1,20 @@
 package dev.halim.shelfdroid.core.ui.components
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -35,23 +29,15 @@ fun MyIconButton(
   enabled: Boolean = true,
   onClick: () -> Unit,
 ) {
-  Box(
-    modifier =
-      Modifier.size(size.dp)
-        .clip(CircleShape)
-        .clickable(
-          interactionSource = null,
-          onClick = onClick,
-          enabled = enabled,
-          role = Role.Button,
-          indication = ripple(false, size.dp),
-        )
-        .padding(4.dp)
-        .then(modifier),
-    contentAlignment = Alignment.Center,
+  require(size >= 48) { "Size must be at least 48" }
+  val iconPadding = (size / 6).dp
+  IconButton(
+    modifier = Modifier.size(size.dp).then(modifier),
+    onClick = onClick,
+    enabled = enabled,
   ) {
     Icon(
-      modifier = Modifier.size(size.dp),
+      modifier = Modifier.size(size.dp).padding(iconPadding),
       imageVector = icon,
       contentDescription = contentDescription,
     )

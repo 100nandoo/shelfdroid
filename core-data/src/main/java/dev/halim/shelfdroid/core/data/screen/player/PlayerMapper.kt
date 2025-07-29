@@ -53,15 +53,17 @@ constructor(
 
   fun toPlaybackProgressPodcast(raw: RawPlaybackProgress): PlaybackProgress {
     val position = raw.positionMs / 1000
-    val duration = (raw.durationMs / 1000).toFloat()
+    val duration = raw.durationMs / 1000
     val buffered = (raw.bufferedPosition / 1000)
     val formattedPosition = helper.formatChapterTime(position.toDouble())
     val formattedDuration = helper.formatChapterTime(duration.toDouble())
-    val formattedBuffered = if (duration > 0) buffered / duration else 0f
-    val progress = if (duration > 0) position / duration else 0f
+    val formattedBuffered = if (duration > 0) buffered / duration.toFloat() else 0f
+    val progress = if (duration > 0) position / duration.toFloat() else 0f
     return PlaybackProgress(
-      position = formattedPosition,
-      duration = formattedDuration,
+      position = position,
+      duration = duration,
+      formattedPosition = formattedPosition,
+      formattedDuration = formattedDuration,
       bufferedPosition = formattedBuffered,
       progress = progress,
     )
@@ -80,8 +82,10 @@ constructor(
     val progress = if (duration > 0) (position / duration).toFloat() else 0f
 
     return PlaybackProgress(
-      position = formattedPosition,
-      duration = formattedDuration,
+      position = position.toLong(),
+      duration = duration.toLong(),
+      formattedPosition = formattedPosition,
+      formattedDuration = formattedDuration,
       bufferedPosition = formattedBuffered,
       progress = progress,
     )

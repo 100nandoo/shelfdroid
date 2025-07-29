@@ -53,7 +53,11 @@ data class PlayerChapter(
   val endFormattedTime: String = "",
   val title: String = "",
   val chapterPosition: ChapterPosition = ChapterPosition.First,
-)
+) {
+  fun isFirst() = chapterPosition == ChapterPosition.First
+
+  fun isLast() = chapterPosition == ChapterPosition.Last
+}
 
 enum class ChapterPosition {
   First,
@@ -68,8 +72,10 @@ data class RawPlaybackProgress(
 )
 
 data class PlaybackProgress(
-  val position: String = "",
-  val duration: String = "",
+  val position: Long = 0,
+  val duration: Long = 0,
+  val formattedPosition: String = "",
+  val formattedDuration: String = "",
   val bufferedPosition: Float = 0f,
   val progress: Float = 0f,
 )

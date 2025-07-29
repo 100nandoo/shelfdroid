@@ -109,7 +109,7 @@ constructor(
         playerBookmarks = playerBookmarks,
         playbackProgress =
           PlaybackProgress(
-            duration = helper.formatChapterTime(chapter?.endTimeSeconds ?: 0.0, true)
+            formattedDuration = helper.formatChapterTime(chapter?.endTimeSeconds ?: 0.0, true)
           ),
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))

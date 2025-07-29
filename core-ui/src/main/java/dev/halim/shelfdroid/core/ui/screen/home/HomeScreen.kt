@@ -140,7 +140,7 @@ fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> 
       icon = Icons.Filled.Refresh,
       contentDescription = stringResource(R.string.refresh),
       onClick = onRefresh,
-      size = 32,
+      size = 48,
     )
     Text(
       text = name,
@@ -152,7 +152,7 @@ fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> 
       icon = Icons.Default.Settings,
       contentDescription = stringResource(R.string.settings),
       onClick = onSettingsClicked,
-      size = 32,
+      size = 48,
     )
   }
 }

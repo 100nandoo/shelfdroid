@@ -3,6 +3,8 @@
 package dev.halim.shelfdroid.core.ui.player
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
@@ -16,8 +18,11 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MyFilledTonalIconButton
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun PlayPauseButton(
@@ -34,13 +39,13 @@ fun PlayPauseButton(
       val contentDescription =
         if (multipleButtonState.showPlay) stringResource(R.string.play)
         else stringResource(R.string.pause)
-      MyIconButton(
+      MyFilledTonalIconButton(
         modifier = Modifier.mySharedBound(Animations.Companion.Player.playKey(id)),
+        enabled = multipleButtonState.playPauseEnabled,
+        onClick = { onClick() },
+        contentDescription = contentDescription,
         icon = icon,
         size = size,
-        contentDescription = contentDescription,
-        onClick = { onClick() },
-        enabled = multipleButtonState.playPauseEnabled,
       )
     }
   }
@@ -80,4 +85,43 @@ fun SeekForwardButton(onClick: () -> Unit, state: MultipleButtonState, id: Strin
       )
     }
   }
+}
+
+@ShelfDroidPreview
+@Composable
+fun PlayPauseButtonLargePreview() {
+  AnimatedPreviewWrapper(
+    dynamicColor = false,
+    content = {
+      Column {
+        Row {
+          PlayPauseButton({}, MultipleButtonState(playPauseEnabled = true), "1", 72)
+          PlayPauseButton(
+            {},
+            MultipleButtonState(playPauseEnabled = true, showPlay = false),
+            "2",
+            72,
+          )
+          PlayPauseButton(
+            {},
+            MultipleButtonState(playPauseEnabled = false, showPlay = true),
+            "3",
+            72,
+          )
+          PlayPauseButton(
+            {},
+            MultipleButtonState(playPauseEnabled = false, showPlay = false),
+            "4",
+            72,
+          )
+        }
+        Row {
+          PlayPauseButton({}, MultipleButtonState(playPauseEnabled = true), "5")
+          PlayPauseButton({}, MultipleButtonState(playPauseEnabled = true, showPlay = false), "6")
+          PlayPauseButton({}, MultipleButtonState(playPauseEnabled = false, showPlay = true), "7")
+          PlayPauseButton({}, MultipleButtonState(playPauseEnabled = false, showPlay = false), "8")
+        }
+      }
+    },
+  )
 }

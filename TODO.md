@@ -2,11 +2,13 @@
 
 ## High Priority
 
-- [ ] Download book with one audio track
 - [ ] Local playback sync
+- [ ] while offline, allow playback downloaded item
 - [ ] List View
 - [ ] Widget
 - [ ] Backup Restore
+
+## Bugs
 
 ### Low Priority
 
@@ -40,3 +42,5 @@
 - [x] Long interval sync session
 - [x] Download Podcast
 - [x] Download Podcast inside episode screen
+- [x] Download book with one audio track
+- [x] Prev chapter button not working when podcast playing
