@@ -87,7 +87,7 @@ constructor(
 
   fun book(id: String): PlayerUiState {
     val result = libraryItemRepo.byId(id)
-    val progress = progressRepo.byLibraryItemId(id)
+    val progress = progressRepo.bookById(id)
     val bookmarks = bookmarkRepo.byLibraryItemId(id)
     val playerBookmarks = bookmarks.map { mapper.toPlayerBookmark(it) }
     return if (result != null) {

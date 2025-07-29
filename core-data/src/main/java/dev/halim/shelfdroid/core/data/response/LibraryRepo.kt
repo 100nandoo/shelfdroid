@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.response
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.Library
+import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
@@ -40,5 +41,9 @@ class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabas
   }
 
   private fun toEntity(library: Library): LibraryEntity =
-    LibraryEntity(id = library.id, name = library.name)
+    LibraryEntity(
+      id = library.id,
+      name = library.name,
+      isBook = if (library.mediaType == MediaType.BOOK) 1 else 0,
+    )
 }

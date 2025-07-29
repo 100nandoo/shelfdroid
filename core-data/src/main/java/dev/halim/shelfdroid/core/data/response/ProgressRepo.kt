@@ -15,8 +15,8 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
   private val queries = db.progressEntityQueries
   private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-  fun byLibraryItemId(id: String): ProgressEntity? =
-    queries.byLibraryItemId(id).executeAsOneOrNull()
+  fun byLibraryItemId(id: String): List<ProgressEntity> =
+    queries.byLibraryItemId(id).executeAsList()
 
   fun bookById(id: String): ProgressEntity? = queries.bookById(id).executeAsOneOrNull()
 

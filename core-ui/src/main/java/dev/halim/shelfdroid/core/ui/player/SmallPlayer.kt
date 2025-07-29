@@ -148,9 +148,9 @@ private fun SmallPlayerControls(
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      SeekBackButton(onSeekBackClick, multipleButtonState, id, 32)
-      PlayPauseButton(onPlayPauseClick, multipleButtonState, id)
-      SeekForwardButton(onSeekForwardClick, multipleButtonState, id, 32)
+      SeekBackButton(onSeekBackClick, multipleButtonState, id)
+      PlayPauseButton(onPlayPauseClick, multipleButtonState, id, 48)
+      SeekForwardButton(onSeekForwardClick, multipleButtonState, id)
     }
   }
 }

@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -35,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
-import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
+import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -43,56 +42,54 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.screen.home.HomeEvent
+import dev.halim.shelfdroid.core.ui.screen.home.UnreadEpisodeCount
 
 @Composable
-fun Item(uiState: ShelfdroidMediaItem, onEvent: (HomeEvent) -> Unit = {}) {
+fun HomeItem(
+  id: String,
+  title: String,
+  author: String,
+  cover: String,
+  onClick: () -> Unit,
+  coverOverlayContent: @Composable () -> Unit = {},
+) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Card(
-        modifier = Modifier.mySharedBound(Animations.containerKey(uiState.id)).padding(4.dp),
-        onClick = { onEvent(HomeEvent.Navigate(uiState.id, uiState is BookUiState)) },
+        modifier = Modifier.mySharedBound(Animations.containerKey(id)).padding(4.dp),
+        onClick = onClick,
         shape = RoundedCornerShape(8.dp),
       ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-          Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
-            ItemCover(Modifier.fillMaxWidth(), cover = uiState.cover)
-            if (uiState is BookUiState && uiState.progress > 0.01) {
-              val progress = uiState.progress
-              LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxWidth().height(12.dp),
-                strokeCap = StrokeCap.Round,
-                color = MaterialTheme.colorScheme.tertiaryContainer,
-                trackColor = Color.Transparent,
-                drawStopIndicator = {},
-              )
-            }
+          Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.fillMaxWidth()) {
+            ItemCover(Modifier.fillMaxWidth(), cover = cover)
+            coverOverlayContent()
           }
           Text(
-            text = uiState.title,
+            text = title,
             style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface,
             modifier =
-              Modifier.mySharedBound(Animations.titleKey(uiState.id, uiState.title))
+              Modifier.mySharedBound(Animations.titleKey(id, title))
                 .padding(horizontal = 8.dp)
                 .padding(top = 8.dp),
           )
 
           Text(
-            text = uiState.author,
+            text = author,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
             modifier =
-              Modifier.mySharedBound(Animations.authorKey(uiState.id, uiState.author))
+              Modifier.mySharedBound(Animations.authorKey(id, author))
                 .skipToLookaheadSize()
                 .padding(horizontal = 8.dp)
                 .padding(top = 4.dp, bottom = 8.dp),
@@ -100,6 +97,33 @@ fun Item(uiState: ShelfdroidMediaItem, onEvent: (HomeEvent) -> Unit = {}) {
         }
       }
     }
+  }
+}
+
+@Composable
+fun HomeBookItem(uiState: BookUiState, onEvent: (HomeEvent) -> Unit = {}) {
+  HomeItem(
+    id = uiState.id,
+    title = uiState.title,
+    author = uiState.author,
+    cover = uiState.cover,
+    onClick = { onEvent(HomeEvent.Navigate(uiState.id, true)) },
+  )
+}
+
+@Composable
+fun HomePodcastItem(uiState: PodcastUiState, onEvent: (HomeEvent) -> Unit = {}) {
+  HomeItem(
+    id = uiState.id,
+    title = uiState.title,
+    author = uiState.author,
+    cover = uiState.cover,
+    onClick = { onEvent(HomeEvent.Navigate(uiState.id, false)) },
+  ) {
+    UnreadEpisodeCount(
+      modifier = Modifier.size(40.dp).padding(8.dp),
+      count = uiState.unfinishedEpisodeCount,
+    )
   }
 }
 

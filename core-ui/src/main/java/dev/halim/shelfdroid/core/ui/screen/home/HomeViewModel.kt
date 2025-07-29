@@ -56,37 +56,36 @@ class HomeViewModel @Inject constructor(private val homeRepository: HomeReposito
     viewModelScope.launch(handler) {
       val libraries = homeRepository.getLibraries()
       _uiState.update { it.copy(homeState = HomeState.Success, librariesUiState = libraries) }
-      prefetchLibraryItems(0)
       fetchUser()
+      prefetchLibraryItems(0)
     }
   }
 
   private fun prefetchLibraryItems(page: Int) {
     val currentState = _uiState.value
     val libraries = currentState.librariesUiState
-    val loadedItems = currentState.libraryItemsUiState
 
     // Prefetch current page if not loaded
-    if (page < libraries.size && !loadedItems.containsKey(page)) {
+    if (page < libraries.size) {
       fetchLibraryItems(page)
     }
 
     // Prefetch next page if not loaded
     val nextPage = page + 1
-    if (nextPage < libraries.size && !loadedItems.containsKey(nextPage)) {
+    if (nextPage < libraries.size) {
       fetchLibraryItems(nextPage)
     }
   }
 
   private fun fetchLibraryItems(page: Int) {
     _uiState.update { it.copy(homeState = HomeState.Loading) }
-    val id = _uiState.value.librariesUiState[page].id
+    val library = _uiState.value.librariesUiState[page]
     viewModelScope.launch(handler) {
-      val libraryItems = homeRepository.getLibraryItems(id)
+      val newLibrary = homeRepository.getLibraryItems(library)
       _uiState.update { currentState ->
-        val updatedMap = currentState.libraryItemsUiState.toMutableMap()
-        updatedMap[page] = libraryItems
-        currentState.copy(homeState = HomeState.Success, libraryItemsUiState = updatedMap)
+        val libraries = currentState.librariesUiState.toMutableList()
+        libraries[page] = newLibrary
+        currentState.copy(homeState = HomeState.Success, librariesUiState = libraries)
       }
     }
   }

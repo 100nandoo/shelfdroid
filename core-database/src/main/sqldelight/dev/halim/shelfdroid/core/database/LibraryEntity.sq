@@ -1,6 +1,7 @@
 CREATE TABLE LibraryEntity(
   id TEXT PRIMARY KEY NOT NULL,
-  name TEXT NOT NULL DEFAULT ''
+  name TEXT NOT NULL DEFAULT '',
+  isBook INTEGER NOT NULL DEFAULT 1
 );
 
 all:
@@ -10,7 +11,7 @@ allIds:
 SELECT id FROM LibraryEntity;
 
 insert:
-INSERT OR REPLACE INTO LibraryEntity(id, name)
+INSERT OR REPLACE INTO LibraryEntity(id, name, isBook)
 VALUES ?;
 
 deleteById:

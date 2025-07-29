@@ -2,40 +2,34 @@ package dev.halim.shelfdroid.core.data.screen.home
 
 import kotlinx.serialization.Serializable
 
-data class LibraryUiState(val id: String = "", val name: String = "")
+data class LibraryUiState(
+  val id: String = "",
+  val name: String = "",
+  val isBook: Boolean = true,
+  val books: List<BookUiState> = emptyList(),
+  val podcasts: List<PodcastUiState> = emptyList(),
+)
 
 data class HomeUiState(
   val homeState: HomeState = HomeState.Loading,
   val librariesUiState: List<LibraryUiState> = emptyList(),
-  val libraryItemsUiState: Map<Int, List<ShelfdroidMediaItem>> = emptyMap(),
 )
-
-abstract class ShelfdroidMediaItem {
-  abstract val id: String
-  abstract val author: String
-  abstract val title: String
-  abstract val cover: String
-  abstract val seekTime: Long
-}
 
 @Serializable
 data class BookUiState(
-  override val id: String = "",
-  override val author: String = "",
-  override val title: String = "",
-  override val cover: String = "",
-  override val seekTime: Long = 0L,
-  val progress: Float = 0f,
-) : ShelfdroidMediaItem()
+  val id: String = "",
+  val author: String = "",
+  val title: String = "",
+  val cover: String = "",
+)
 
 data class PodcastUiState(
-  override val id: String,
-  override val author: String,
-  override val title: String,
-  override val cover: String,
-  override val seekTime: Long = 0L,
-  val episodeCount: Int,
-) : ShelfdroidMediaItem()
+  val id: String,
+  val author: String,
+  val title: String,
+  val cover: String,
+  val unfinishedEpisodeCount: Int,
+)
 
 sealed class HomeState {
   data object Loading : HomeState()

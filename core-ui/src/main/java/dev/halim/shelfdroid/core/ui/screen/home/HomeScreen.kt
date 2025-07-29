@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import Item
-import androidx.activity.compose.ReportDrawnWhen
+import HomeBookItem
+import HomePodcastItem
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +41,6 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
-import dev.halim.shelfdroid.core.data.screen.home.ShelfdroidMediaItem
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -104,7 +103,6 @@ fun HomeScreenContent(
   loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) },
   onSettingsClicked: () -> Unit = {},
 ) {
-  ReportDrawnWhen { uiState.libraryItemsUiState.isNotEmpty() }
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
   } else {
@@ -115,10 +113,15 @@ fun HomeScreenContent(
   }
 
   HorizontalPager(state = pagerState) { page ->
+    val library = uiState.librariesUiState[page]
+    val isBook = library.isBook
+
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
       LibraryContent(
         modifier = Modifier.weight(1f),
-        list = uiState.libraryItemsUiState[page],
+        isBook = isBook,
+        books = library.books,
+        podcasts = library.podcasts,
         onEvent = onEvent,
         name = uiState.librariesUiState[page].name,
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
@@ -160,27 +163,33 @@ fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> 
 @Composable
 fun LibraryContent(
   modifier: Modifier = Modifier,
-  list: List<ShelfdroidMediaItem>?,
+  isBook: Boolean,
+  books: List<BookUiState>,
+  podcasts: List<PodcastUiState>,
   onEvent: (HomeEvent) -> Unit,
   name: String,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
 ) {
-  if (list?.isNotEmpty() == true) {
-    val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
+  val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
 
-    LazyVerticalGrid(
-      state = gridState,
-      columns = GridCells.Fixed(2),
-      modifier = modifier.fillMaxSize(),
-      reverseLayout = true,
-      verticalArrangement = Arrangement.Bottom,
-    ) {
-      item(span = { GridItemSpan(maxLineSpan) }) {
-        LibraryHeader(name = name, onRefresh = onRefresh, onSettingsClicked = onSettingsClicked)
+  LazyVerticalGrid(
+    state = gridState,
+    columns = GridCells.Fixed(2),
+    modifier = modifier.fillMaxSize(),
+    reverseLayout = true,
+    verticalArrangement = Arrangement.Bottom,
+  ) {
+    item(span = { GridItemSpan(maxLineSpan) }) {
+      LibraryHeader(name = name, onRefresh = onRefresh, onSettingsClicked = onSettingsClicked)
+    }
+    if (isBook) {
+      items(items = books, key = { it.id }) { book ->
+        HomeBookItem(uiState = book, onEvent = onEvent)
       }
-      items(items = list, key = { it.id }) { libraryItem ->
-        Item(uiState = libraryItem, onEvent = onEvent)
+    } else {
+      items(items = podcasts, key = { it.id }) { podcast ->
+        HomePodcastItem(uiState = podcast, onEvent = onEvent)
       }
     }
   }
@@ -191,38 +200,41 @@ private val previewHomeUiState =
     homeState = HomeState.Success,
     librariesUiState =
       listOf(
-        LibraryUiState(id = "1", name = "My Books"),
-        LibraryUiState(id = "2", name = "My Podcasts"),
-      ),
-    libraryItemsUiState =
-      mapOf(
-        0 to
-          listOf(
-            BookUiState(
-              id = Defaults.BOOK_ID,
-              author = Defaults.BOOK_AUTHOR,
-              title = Defaults.BOOK_TITLE,
-              cover = Defaults.BOOK_COVER,
-              progress = 0.3f,
+        LibraryUiState(
+          id = "1",
+          name = "My Books",
+          isBook = true,
+          books =
+            listOf(
+              BookUiState(
+                id = Defaults.BOOK_ID,
+                author = Defaults.BOOK_AUTHOR,
+                title = Defaults.BOOK_TITLE,
+                cover = Defaults.BOOK_COVER,
+              ),
+              BookUiState(
+                id = "book2",
+                author = "George R. R. Martin",
+                title = "A Game of Thrones",
+                cover = Defaults.BOOK_COVER,
+              ),
             ),
-            BookUiState(
-              id = "book2",
-              author = "George R. R. Martin",
-              title = "A Game of Thrones",
-              cover = Defaults.BOOK_COVER,
-              progress = 0.7f,
+        ),
+        LibraryUiState(
+          id = "2",
+          name = "My Podcasts",
+          isBook = false,
+          podcasts =
+            listOf(
+              PodcastUiState(
+                id = "podcast1",
+                author = Defaults.AUTHOR_NAME,
+                title = Defaults.TITLE,
+                cover = Defaults.IMAGE_URL,
+                unfinishedEpisodeCount = Defaults.EPISODES.size,
+              )
             ),
-          ),
-        1 to
-          listOf(
-            PodcastUiState(
-              id = "podcast1",
-              author = Defaults.AUTHOR_NAME,
-              title = Defaults.TITLE,
-              cover = Defaults.IMAGE_URL,
-              episodeCount = Defaults.EPISODES.size,
-            )
-          ),
+        ),
       ),
   )
 
