@@ -18,5 +18,6 @@ data class Episode(
   val publishedAt: String = "",
   val progress: Float = 0f,
   val isFinished: Boolean = false,
+  val isPlaying: Boolean = false,
   val download: DownloadUiState = DownloadUiState(),
 )

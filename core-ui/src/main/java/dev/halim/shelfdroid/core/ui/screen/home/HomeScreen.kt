@@ -39,7 +39,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
-import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
@@ -195,57 +194,18 @@ fun LibraryContent(
   }
 }
 
-private val previewHomeUiState =
-  HomeUiState(
-    homeState = HomeState.Success,
-    librariesUiState =
-      listOf(
-        LibraryUiState(
-          id = "1",
-          name = "My Books",
-          isBook = true,
-          books =
-            listOf(
-              BookUiState(
-                id = Defaults.BOOK_ID,
-                author = Defaults.BOOK_AUTHOR,
-                title = Defaults.BOOK_TITLE,
-                cover = Defaults.BOOK_COVER,
-              ),
-              BookUiState(
-                id = "book2",
-                author = "George R. R. Martin",
-                title = "A Game of Thrones",
-                cover = Defaults.BOOK_COVER,
-              ),
-            ),
-        ),
-        LibraryUiState(
-          id = "2",
-          name = "My Podcasts",
-          isBook = false,
-          podcasts =
-            listOf(
-              PodcastUiState(
-                id = "podcast1",
-                author = Defaults.AUTHOR_NAME,
-                title = Defaults.TITLE,
-                cover = Defaults.IMAGE_URL,
-                unfinishedEpisodeCount = Defaults.EPISODES.size,
-              )
-            ),
-        ),
-      ),
-  )
-
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentPreview() {
-  AnimatedPreviewWrapper(dynamicColor = false) { HomeScreenContent(uiState = previewHomeUiState) }
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    HomeScreenContent(uiState = Defaults.HOME_UI_STATE)
+  }
 }
 
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentDynamicPreview() {
-  AnimatedPreviewWrapper(dynamicColor = true) { HomeScreenContent(uiState = previewHomeUiState) }
+  AnimatedPreviewWrapper(dynamicColor = true) {
+    HomeScreenContent(uiState = Defaults.HOME_UI_STATE)
+  }
 }

@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.response
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.response.BatchLibraryItemsResponse
@@ -11,6 +13,7 @@ import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
@@ -27,6 +30,10 @@ constructor(
 
   fun byId(id: String): LibraryItemEntity? {
     return queries.byId(id).executeAsOneOrNull()
+  }
+
+  fun flowById(id: String): Flow<LibraryItemEntity?> {
+    return queries.byId(id).asFlow().mapToOneOrNull(Dispatchers.IO)
   }
 
   suspend fun idsByLibraryId(libraryId: String): List<String> {

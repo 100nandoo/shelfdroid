@@ -4,16 +4,18 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.media.DownloadRepo
+import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.media.download.DownloadTracker
+import dev.halim.shelfdroid.media.service.StateHolder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -22,8 +24,8 @@ class PodcastViewModel
 @Inject
 constructor(
   private val podcastRepository: PodcastRepository,
-  private val downloadRepo: DownloadRepo,
   private val downloadTracker: DownloadTracker,
+  private val stateHolder: StateHolder,
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
   val id: String = checkNotNull(savedStateHandle.get<String>("id"))
@@ -32,7 +34,23 @@ constructor(
   val uiState: StateFlow<PodcastUiState> = _uiState.asStateFlow()
 
   init {
-    initUiState()
+    viewModelScope.launch {
+      combine(podcastRepository.item(id), stateHolder.uiState) { podcast, state ->
+          val updatedEpisodes =
+            podcast.episodes.map { episode ->
+              if (episode.episodeId == state.episodeId) {
+                episode.copy(
+                  progress = state.playbackProgress.progress,
+                  isPlaying = state.exoState == ExoState.Playing,
+                )
+              } else {
+                episode
+              }
+            }
+          podcast.copy(episodes = updatedEpisodes)
+        }
+        .collect { updatedPodcast -> _uiState.value = updatedPodcast }
+    }
   }
 
   fun onEvent(event: PodcastEvent) {
@@ -54,15 +72,6 @@ constructor(
             downloadTracker.delete(event.downloadEvent.downloadId)
           }
         }
-      }
-    }
-  }
-
-  private fun initUiState() {
-    viewModelScope.launch {
-      _uiState.update { podcastRepository.item(id) }
-      downloadRepo.downloads.collect { downloads ->
-        _uiState.update { podcastRepository.updateDownloads(it, downloads) }
       }
     }
   }

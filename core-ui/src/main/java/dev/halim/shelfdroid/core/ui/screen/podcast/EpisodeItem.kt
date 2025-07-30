@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -49,8 +48,6 @@ fun EpisodeItem(
   onEvent: (PodcastEvent) -> Unit,
   onEpisodeClicked: (String, String) -> Unit,
   onPlayClicked: (String, String) -> Unit,
-  isPlaying: Boolean,
-  playbackProgress: PlaybackProgress,
   snackbarHostState: SnackbarHostState,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -91,10 +88,9 @@ fun EpisodeItem(
               overflow = TextOverflow.Ellipsis,
             )
             Spacer(modifier = Modifier.weight(1f))
-            AnimatedVisibility(episode.isFinished.not() || isPlaying) {
+            AnimatedVisibility(episode.isFinished.not() || episode.isPlaying) {
               val currentProgress =
                 when {
-                  isPlaying -> playbackProgress.progress
                   !episode.isFinished -> episode.progress
                   else -> 0f
                 }
@@ -132,9 +128,10 @@ fun EpisodeItem(
           )
 
           FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.episodeId) }) {
-            val icon = if (isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
+            val icon = if (episode.isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
             val contentDescription =
-              if (isPlaying.not()) stringResource(R.string.play) else stringResource(R.string.pause)
+              if (episode.isPlaying.not()) stringResource(R.string.play)
+              else stringResource(R.string.pause)
             Icon(icon, contentDescription)
           }
         }
@@ -150,18 +147,7 @@ fun EpisodeItemPreview() {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
-        item {
-          EpisodeItem(
-            "",
-            episode,
-            {},
-            { _, _ -> },
-            { _, _ -> },
-            false,
-            PlaybackProgress(),
-            SnackbarHostState(),
-          )
-        }
+        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }, SnackbarHostState()) }
       }
     }
   }
@@ -174,18 +160,7 @@ fun EpisodeItemDynamicPreview() {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
-        item {
-          EpisodeItem(
-            "",
-            episode,
-            {},
-            { _, _ -> },
-            { _, _ -> },
-            false,
-            PlaybackProgress(),
-            SnackbarHostState(),
-          )
-        }
+        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }, SnackbarHostState()) }
       }
     }
   }

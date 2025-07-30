@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.response
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import dev.halim.core.network.response.MediaProgress
 import dev.halim.core.network.response.User
 import dev.halim.shelfdroid.core.database.MyDatabase
@@ -8,6 +10,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class ProgressRepo @Inject constructor(db: MyDatabase) {
@@ -31,6 +34,10 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
 
   fun entities(): List<ProgressEntity> {
     return queries.all().executeAsList()
+  }
+
+  fun flowEntities(): Flow<List<ProgressEntity>> {
+    return queries.all().asFlow().mapToList(Dispatchers.IO)
   }
 
   fun updateMediaById(episodeId: String): Boolean =

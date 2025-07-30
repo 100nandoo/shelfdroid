@@ -23,8 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.ExoState
-import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
@@ -49,13 +47,9 @@ fun PodcastScreen(
 ) {
   InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
   if (uiState.state == GenericState.Success) {
     PodcastScreenContent(
       uiState = uiState,
-      currentEpisodeId = playerUiState.episodeId,
-      exoState = playerUiState.exoState,
-      playbackProgress = playerUiState.playbackProgress,
       id = viewModel.id,
       onEvent = viewModel::onEvent,
       onEpisodeClicked = onEpisodeClicked,
@@ -77,9 +71,6 @@ fun PodcastScreenContent(
       description = Defaults.DESCRIPTION,
       episodes = Defaults.EPISODES,
     ),
-  currentEpisodeId: String = Defaults.EPISODE_ID,
-  exoState: ExoState = ExoState.Pause,
-  playbackProgress: PlaybackProgress = PlaybackProgress(),
   id: String = Defaults.BOOK_ID,
   onEvent: (PodcastEvent) -> Unit = {},
   onEpisodeClicked: (String, String) -> Unit = { _, _ -> },
@@ -97,17 +88,7 @@ fun PodcastScreenContent(
         ) {
           item { Spacer(modifier = Modifier.height(12.dp)) }
           items(uiState.episodes) { episode ->
-            val isPlaying = currentEpisodeId == episode.episodeId && exoState == ExoState.Playing
-            EpisodeItem(
-              id,
-              episode,
-              onEvent,
-              onEpisodeClicked,
-              onPlayClicked,
-              isPlaying,
-              playbackProgress,
-              snackbarHostState,
-            )
+            EpisodeItem(id, episode, onEvent, onEpisodeClicked, onPlayClicked, snackbarHostState)
             HorizontalDivider()
           }
           item {
