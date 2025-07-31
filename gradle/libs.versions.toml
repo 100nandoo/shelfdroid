@@ -47,7 +47,7 @@ retrofit = "3.0.0"
 retrofit-result = "1.0.13"
 process-phoenix = "3.0.0"
 kotlinGradlePlugin = "2.2.0"
-espressoCore = "3.6.1"
+espressoCore = "3.7.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
