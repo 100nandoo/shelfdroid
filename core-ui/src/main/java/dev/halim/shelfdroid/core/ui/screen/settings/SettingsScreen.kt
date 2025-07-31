@@ -50,21 +50,7 @@ fun SettingsScreenContent(
     modifier = Modifier.fillMaxSize().padding(16.dp),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    SettingsLabel(text = stringResource(R.string.display))
-    Spacer(modifier = Modifier.height(4.dp))
-    SettingsSwitchItem(
-      title = stringResource(R.string.dark_mode),
-      checked = uiState.isDarkMode,
-      onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
-      contentDescription = stringResource(R.string.dark_mode),
-    )
-    SettingsSwitchItem(
-      title = stringResource(R.string.dynamic_theme),
-      checked = uiState.isDynamicTheme,
-      onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
-      contentDescription = stringResource(R.string.dynamic_theme),
-      enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
-    )
+    DisplaySection(uiState, onEvent)
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -81,6 +67,33 @@ fun SettingsScreenContent(
 
     LogoutSection(onEvent)
   }
+}
+
+@Composable
+private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) -> Unit) {
+  SettingsLabel(text = stringResource(R.string.display))
+  Spacer(modifier = Modifier.height(4.dp))
+  SettingsSwitchItem(
+    title = stringResource(R.string.dark_mode),
+    checked = uiState.isDarkMode,
+    onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
+    contentDescription = stringResource(R.string.dark_mode),
+  )
+  SettingsSwitchItem(
+    title = stringResource(R.string.dynamic_theme),
+    checked = uiState.isDynamicTheme,
+    onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
+    contentDescription = stringResource(R.string.dynamic_theme),
+    enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+  )
+  SettingsSublabel(Modifier.padding(top = 16.dp), text = stringResource(R.string.home_screen))
+  SettingsSwitchItem(
+    modifier = Modifier,
+    title = stringResource(R.string.list_view),
+    checked = uiState.isListView,
+    onCheckedChange = { onEvent(SettingsEvent.SwitchListView(it)) },
+    contentDescription = stringResource(R.string.list_view),
+  )
 }
 
 @Composable

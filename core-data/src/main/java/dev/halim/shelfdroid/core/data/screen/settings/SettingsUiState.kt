@@ -4,6 +4,7 @@ data class SettingsUiState(
   val settingsState: SettingsState = SettingsState.NotLoggedOut,
   val isDarkMode: Boolean = true,
   val isDynamicTheme: Boolean = false,
+  val isListView: Boolean = false,
   val isAdmin: Boolean = false,
   val username: String = "",
 )

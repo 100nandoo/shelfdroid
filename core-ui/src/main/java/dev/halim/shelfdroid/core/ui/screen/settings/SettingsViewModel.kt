@@ -25,14 +25,22 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
 
   private val _uiState = MutableStateFlow(SettingsUiState())
   val uiState: StateFlow<SettingsUiState> =
-    combine(_uiState, repository.darkMode, repository.dynamicTheme, repository.userPrefs) {
+    combine(
+        _uiState,
+        repository.darkMode,
+        repository.dynamicTheme,
+        repository.listView,
+        repository.userPrefs,
+      ) {
         uiState: SettingsUiState,
         isDarkMode: Boolean,
         isDynamicTheme: Boolean,
+        isListView: Boolean,
         userPrefs: UserPrefs ->
         SettingsUiState(
           isDarkMode = isDarkMode,
           isDynamicTheme = isDynamicTheme,
+          isListView = isListView,
           isAdmin = userPrefs.isAdmin,
           username = userPrefs.username,
         )
@@ -49,6 +57,9 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
 
       is SettingsEvent.SwitchDynamicTheme -> {
         viewModelScope.launch { repository.updateDynamicTheme(event.isDynamic) }
+      }
+      is SettingsEvent.SwitchListView -> {
+        viewModelScope.launch { repository.updateListView(event.isListView) }
       }
     }
   }
@@ -69,4 +80,6 @@ sealed class SettingsEvent {
   data class SwitchDarkTheme(val isDarkMode: Boolean) : SettingsEvent()
 
   data class SwitchDynamicTheme(val isDynamic: Boolean) : SettingsEvent()
+
+  data class SwitchListView(val isListView: Boolean) : SettingsEvent()
 }

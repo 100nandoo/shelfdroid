@@ -24,6 +24,7 @@ constructor(
 
   val darkMode = dataStoreManager.darkMode
   val dynamicTheme = dataStoreManager.dynamicTheme
+  val listView = dataStoreManager.listView
   val token = dataStoreManager.userPrefs.map { it.accessToken }
   val userPrefs = dataStoreManager.userPrefs
 
@@ -46,6 +47,10 @@ constructor(
 
   suspend fun updateDynamicTheme(enabled: Boolean) {
     dataStoreManager.updateDynamicTheme(enabled)
+  }
+
+  suspend fun updateListView(enabled: Boolean) {
+    dataStoreManager.updateListView(enabled)
   }
 
   @SuppressLint("UnsafeOptInUsageError")

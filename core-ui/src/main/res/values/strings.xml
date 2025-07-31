@@ -41,6 +41,11 @@
     <string name="go_to_settings">Go to settings</string>
     <!--SnackBar-->
 
+    <!--Settings-->
+    <string name="list_view">List View</string>
+    <string name="home_screen">Home Screen</string>
+    <!--Settings-->
+
     <string name="ok">OK</string>
     <string name="no_cover">No cover</string>
     <string name="show_less">Show less</string>

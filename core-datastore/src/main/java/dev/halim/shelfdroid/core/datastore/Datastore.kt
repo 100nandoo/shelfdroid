@@ -19,6 +19,7 @@ private object Keys {
   val BASE_URL = stringPreferencesKey("base_url")
   val DARK_MODE = booleanPreferencesKey("dark_mode")
   val DYNAMIC_THEME = booleanPreferencesKey("dynamic_theme")
+  val LIST_VIEW = booleanPreferencesKey("list_view")
   val DEVICE_ID = stringPreferencesKey("device_id")
   val USER_PREFS = stringPreferencesKey("user_prefs")
 }
@@ -59,6 +60,11 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
 
   suspend fun updateDynamicTheme(dynamicTheme: Boolean) =
     dataStore.updatePreference(Keys.DYNAMIC_THEME, dynamicTheme)
+
+  val listView: Flow<Boolean> = dataStore.preferenceFlow(Keys.LIST_VIEW, false)
+
+  suspend fun updateListView(listView: Boolean) =
+    dataStore.updatePreference(Keys.LIST_VIEW, listView)
 
   private fun generateDeviceId(): String {
     val uuid = UUID.randomUUID()
