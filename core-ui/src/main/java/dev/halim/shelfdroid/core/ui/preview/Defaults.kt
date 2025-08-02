@@ -24,47 +24,60 @@ object Defaults {
     """
 
   // Home
+  val HOME_BOOKS =
+    listOf(
+      BookUiState(id = BOOK_ID, author = BOOK_AUTHOR, title = BOOK_TITLE, cover = BOOK_COVER),
+      BookUiState(
+        id = "book2",
+        author = "Jordan B. Peterson, Norman Doidge - foreword",
+        title = "12 Rules of Life: An Antidote to Chaos and Order of the World",
+        cover = BOOK_COVER,
+      ),
+      BookUiState(
+        id = "book3",
+        author = "George R. R. Martin",
+        title = "A Game of Thrones",
+        cover = BOOK_COVER,
+      ),
+    )
+
+  val HOME_PODCASTS =
+    listOf(
+      PodcastUiState(
+        id = "podcast1",
+        author = AUTHOR_NAME,
+        title = TITLE,
+        cover = IMAGE_URL,
+        unfinishedEpisodeCount = 3,
+      ),
+      PodcastUiState(
+        id = "podcast2",
+        author = AUTHOR_NAME,
+        title = TITLE,
+        cover = IMAGE_URL,
+        unfinishedEpisodeCount = 3,
+      ),
+      PodcastUiState(
+        id = "podcast3",
+        author = AUTHOR_NAME,
+        title = TITLE,
+        cover = IMAGE_URL,
+        unfinishedEpisodeCount = 3,
+      ),
+    )
+
+  val HOME_LIBRARY_STATE =
+    listOf(
+      LibraryUiState(id = "1", name = "My Books", isBook = true, books = HOME_BOOKS),
+      LibraryUiState(id = "2", name = "My Podcasts", isBook = false, podcasts = HOME_PODCASTS),
+    )
   val HOME_UI_STATE =
+    HomeUiState(homeState = HomeState.Success, librariesUiState = HOME_LIBRARY_STATE)
+  val HOME_UI_STATE_LIST =
     HomeUiState(
       homeState = HomeState.Success,
-      librariesUiState =
-        listOf(
-          LibraryUiState(
-            id = "1",
-            name = "My Books",
-            isBook = true,
-            books =
-              listOf(
-                BookUiState(
-                  id = BOOK_ID,
-                  author = BOOK_AUTHOR,
-                  title = BOOK_TITLE,
-                  cover = BOOK_COVER,
-                ),
-                BookUiState(
-                  id = "book2",
-                  author = "George R. R. Martin",
-                  title = "A Game of Thrones",
-                  cover = BOOK_COVER,
-                ),
-              ),
-          ),
-          LibraryUiState(
-            id = "2",
-            name = "My Podcasts",
-            isBook = false,
-            podcasts =
-              listOf(
-                PodcastUiState(
-                  id = "podcast1",
-                  author = AUTHOR_NAME,
-                  title = TITLE,
-                  cover = IMAGE_URL,
-                  unfinishedEpisodeCount = 3,
-                )
-              ),
-          ),
-        ),
+      listView = true,
+      librariesUiState = HOME_LIBRARY_STATE,
     )
 
   // Book

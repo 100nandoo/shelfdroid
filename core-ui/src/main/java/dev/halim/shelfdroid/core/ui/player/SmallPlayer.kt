@@ -2,7 +2,6 @@
 
 package dev.halim.shelfdroid.core.ui.player
 
-import ItemCover
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -35,6 +34,7 @@ import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 
 @Composable
 fun SmallPlayerContent(

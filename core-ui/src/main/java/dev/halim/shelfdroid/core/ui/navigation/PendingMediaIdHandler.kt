@@ -23,5 +23,5 @@ fun handlePendingMediaId(
     navController.navigate(Episode(request.itemId, episodeId)) { launchSingleTop = true }
   }
   onMediaIdHandled()
-  viewModel.onEvent(PlayerEvent.Small)
+  viewModel.onEvent(PlayerEvent.Big)
 }

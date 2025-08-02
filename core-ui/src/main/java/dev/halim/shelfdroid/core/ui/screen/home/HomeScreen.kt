@@ -1,7 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import HomeBookItem
-import HomePodcastItem
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.layout.Arrangement
@@ -21,12 +19,12 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -36,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
@@ -46,6 +45,7 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
+import dev.halim.shelfdroid.core.ui.screen.home.item.HomeItem
 
 @Composable
 fun HomeScreen(
@@ -54,7 +54,7 @@ fun HomeScreen(
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
 ) {
-  val uiState by viewModel.uiState.collectAsState()
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size
 
   val pagerState = rememberPagerState(pageCount = { libraryCount })
@@ -113,12 +113,11 @@ fun HomeScreenContent(
 
   HorizontalPager(state = pagerState) { page ->
     val library = uiState.librariesUiState[page]
-    val isBook = library.isBook
 
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
       LibraryContent(
         modifier = Modifier.weight(1f),
-        isBook = isBook,
+        listView = uiState.listView,
         books = library.books,
         podcasts = library.podcasts,
         onEvent = onEvent,
@@ -162,7 +161,7 @@ fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> 
 @Composable
 fun LibraryContent(
   modifier: Modifier = Modifier,
-  isBook: Boolean,
+  listView: Boolean,
   books: List<BookUiState>,
   podcasts: List<PodcastUiState>,
   onEvent: (HomeEvent) -> Unit,
@@ -171,10 +170,11 @@ fun LibraryContent(
   onSettingsClicked: () -> Unit,
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
+  val columnCount = remember(listView) { if (listView) 1 else 3 }
 
   LazyVerticalGrid(
     state = gridState,
-    columns = GridCells.Fixed(2),
+    columns = GridCells.Fixed(columnCount),
     modifier = modifier.fillMaxSize(),
     reverseLayout = true,
     verticalArrangement = Arrangement.Bottom,
@@ -182,13 +182,31 @@ fun LibraryContent(
     item(span = { GridItemSpan(maxLineSpan) }) {
       LibraryHeader(name = name, onRefresh = onRefresh, onSettingsClicked = onSettingsClicked)
     }
-    if (isBook) {
-      items(items = books, key = { it.id }) { book ->
-        HomeBookItem(uiState = book, onEvent = onEvent)
+    items(items = books, key = { it.id }) { book ->
+      HomeItem(
+        listView = listView,
+        id = book.id,
+        title = book.title,
+        author = book.author,
+        cover = book.cover,
+        onClick = { onEvent(HomeEvent.Navigate(book.id, true)) },
+      )
+      if (listView) {
+        HorizontalDivider()
       }
-    } else {
-      items(items = podcasts, key = { it.id }) { podcast ->
-        HomePodcastItem(uiState = podcast, onEvent = onEvent)
+    }
+    items(items = podcasts, key = { it.id }) { podcast ->
+      HomeItem(
+        listView = listView,
+        id = podcast.id,
+        title = podcast.title,
+        author = podcast.author,
+        cover = podcast.cover,
+        unfinishedEpisodeCount = podcast.unfinishedEpisodeCount,
+        onClick = { onEvent(HomeEvent.Navigate(podcast.id, false)) },
+      )
+      if (listView) {
+        HorizontalDivider()
       }
     }
   }
@@ -196,7 +214,7 @@ fun LibraryContent(
 
 @ShelfDroidPreview
 @Composable
-fun PodcastScreenContentPreview() {
+fun HomeScreenContentPreview() {
   AnimatedPreviewWrapper(dynamicColor = false) {
     HomeScreenContent(uiState = Defaults.HOME_UI_STATE)
   }
@@ -204,8 +222,24 @@ fun PodcastScreenContentPreview() {
 
 @ShelfDroidPreview
 @Composable
-fun PodcastScreenContentDynamicPreview() {
+fun HomeScreenContentDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) {
     HomeScreenContent(uiState = Defaults.HOME_UI_STATE)
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun HomeScreenContentListPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    HomeScreenContent(uiState = Defaults.HOME_UI_STATE_LIST)
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun HomeScreenContentListDynamicPreview() {
+  AnimatedPreviewWrapper(dynamicColor = true) {
+    HomeScreenContent(uiState = Defaults.HOME_UI_STATE_LIST)
   }
 }

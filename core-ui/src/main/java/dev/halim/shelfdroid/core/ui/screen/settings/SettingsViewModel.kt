@@ -37,7 +37,7 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
         isDynamicTheme: Boolean,
         isListView: Boolean,
         userPrefs: UserPrefs ->
-        SettingsUiState(
+        uiState.copy(
           isDarkMode = isDarkMode,
           isDynamicTheme = isDynamicTheme,
           isListView = isListView,

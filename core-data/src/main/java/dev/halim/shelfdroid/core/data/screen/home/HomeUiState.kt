@@ -12,6 +12,7 @@ data class LibraryUiState(
 
 data class HomeUiState(
   val homeState: HomeState = HomeState.Loading,
+  val listView: Boolean = false,
   val librariesUiState: List<LibraryUiState> = emptyList(),
 )
 

@@ -38,7 +38,7 @@ fun AnimatedPreviewWrapper(content: @Composable () -> Unit = {}) {
         LocalSharedTransitionScope provides this@SharedTransitionLayout,
         LocalAnimatedContentScope provides this@AnimatedContent,
       ) {
-        PreviewWrapper(content = content)
+        PreviewWrapper(dynamicColor = false, content = content)
       }
     }
   }

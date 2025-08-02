@@ -2,7 +2,6 @@
 
 package dev.halim.shelfdroid.core.ui.screen.episode
 
-import ItemCover
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,6 +40,7 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.SnackBarHostScreen
+import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 
 @Composable
 fun EpisodeScreen(viewModel: EpisodeViewModel = hiltViewModel(), playerViewModel: PlayerViewModel) {
