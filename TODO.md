@@ -4,7 +4,6 @@
 
 - [ ] Local playback sync
 - [ ] while offline, allow playback downloaded item
-- [ ] List View
 - [ ] Widget
 - [ ] Backup Restore
 
@@ -44,3 +43,4 @@
 - [x] Download Podcast inside episode screen
 - [x] Download book with one audio track
 - [x] Prev chapter button not working when podcast playing
+- [x] List View
