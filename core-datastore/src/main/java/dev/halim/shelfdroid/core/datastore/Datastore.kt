@@ -61,7 +61,7 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   suspend fun updateDynamicTheme(dynamicTheme: Boolean) =
     dataStore.updatePreference(Keys.DYNAMIC_THEME, dynamicTheme)
 
-  val listView: Flow<Boolean> = dataStore.preferenceFlow(Keys.LIST_VIEW, false)
+  val listView: Flow<Boolean> = dataStore.preferenceFlow(Keys.LIST_VIEW, true)
 
   suspend fun updateListView(listView: Boolean) =
     dataStore.updatePreference(Keys.LIST_VIEW, listView)

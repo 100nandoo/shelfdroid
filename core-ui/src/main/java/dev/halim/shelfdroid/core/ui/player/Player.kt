@@ -9,8 +9,8 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -20,7 +20,7 @@ fun Player(
   sharedTransitionScope: SharedTransitionScope,
   viewModel: PlayerViewModel = hiltViewModel(),
 ) {
-  val uiState = viewModel.uiState.collectAsState()
+  val uiState = viewModel.uiState.collectAsStateWithLifecycle()
   AnimatedContent(targetState = uiState.value.state) { targetState ->
     CompositionLocalProvider(
       LocalSharedTransitionScope provides sharedTransitionScope,

@@ -15,11 +15,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -83,7 +83,7 @@ private fun ColumnScope.NavHostContainer(
   val playerViewModel: PlayerViewModel = hiltViewModel()
 
   Scaffold(modifier = Modifier.weight(1f)) { paddingValues ->
-    val playerUiState = playerViewModel.uiState.collectAsState()
+    val playerUiState = playerViewModel.uiState.collectAsStateWithLifecycle()
 
     val bottom =
       if (playerUiState.value.state == PlayerState.Small) 0.dp

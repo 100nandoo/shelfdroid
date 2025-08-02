@@ -53,8 +53,8 @@ fun HomeItemList(
           Modifier.height(88.dp)
             .fillMaxWidth()
             .mySharedBound(Animations.containerKey(id))
-            .padding(vertical = 12.dp, horizontal = 16.dp)
-            .clickable { onClick() },
+            .clickable { onClick() }
+            .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         ItemCover(

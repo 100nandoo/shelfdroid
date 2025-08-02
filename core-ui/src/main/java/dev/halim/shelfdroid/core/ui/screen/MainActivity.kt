@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,10 +46,12 @@ class MainActivity : ComponentActivity() {
     Log.d("MainActivity", "onCreate called")
 
     setContent {
-      val isDarkMode by settingsRepository.darkMode.collectAsState(true)
-      val isDynamic by settingsRepository.dynamicTheme.collectAsState(false)
+      val isDarkMode by settingsRepository.darkMode.collectAsStateWithLifecycle(true)
+      val isDynamic by settingsRepository.dynamicTheme.collectAsStateWithLifecycle(false)
       val token by
-        settingsRepository.token.collectAsState(runBlocking { settingsRepository.token.first() })
+        settingsRepository.token.collectAsStateWithLifecycle(
+          runBlocking { settingsRepository.token.first() }
+        )
       ShelfDroidTheme(darkTheme = isDarkMode, dynamicColor = isDynamic) {
         Surface(
           modifier = Modifier.fillMaxSize().semantics { testTagsAsResourceId = true },

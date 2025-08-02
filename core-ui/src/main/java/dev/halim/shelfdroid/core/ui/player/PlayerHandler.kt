@@ -6,8 +6,8 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import dev.halim.shelfdroid.core.PlayerState
 
@@ -17,7 +17,7 @@ fun PlayerHandler(
   sharedTransitionScope: SharedTransitionScope,
   viewModel: PlayerViewModel = hiltViewModel(),
 ) {
-  val uiState = viewModel.uiState.collectAsState()
+  val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
   LaunchedEffect(navController) {
     navController.addOnDestinationChangedListener { _, destination, _ ->
