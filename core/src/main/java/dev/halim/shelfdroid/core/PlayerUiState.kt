@@ -74,8 +74,6 @@ data class RawPlaybackProgress(
 data class PlaybackProgress(
   val position: Long = 0,
   val duration: Long = 0,
-  val formattedPosition: String = "",
-  val formattedDuration: String = "",
   val bufferedPosition: Float = 0f,
   val progress: Float = 0f,
 )

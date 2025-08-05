@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data
 
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime
@@ -70,15 +71,6 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
   }
 
   fun formatChapterTime(inputInSeconds: Double, padHour: Boolean = false): String {
-    val totalSeconds = inputInSeconds.toInt()
-    val hours = totalSeconds / 3600
-    val minutes = (totalSeconds % 3600) / 60
-    val seconds = totalSeconds % 60
-
-    return if (padHour || hours > 0) {
-      String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
-    } else {
-      String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-    }
+    return inputInSeconds.formatChapterTime(padHour)
   }
 }

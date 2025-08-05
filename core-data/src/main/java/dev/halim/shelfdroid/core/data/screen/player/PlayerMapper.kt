@@ -55,28 +55,22 @@ constructor(
     val position = raw.positionMs / 1000
     val duration = raw.durationMs / 1000
     val buffered = (raw.bufferedPosition / 1000)
-    val formattedPosition = helper.formatChapterTime(position.toDouble())
-    val formattedDuration = helper.formatChapterTime(duration.toDouble())
     val formattedBuffered = if (duration > 0) buffered / duration.toFloat() else 0f
     val progress = if (duration > 0) position / duration.toFloat() else 0f
     return PlaybackProgress(
       position = position,
       duration = duration,
-      formattedPosition = formattedPosition,
-      formattedDuration = formattedDuration,
       bufferedPosition = formattedBuffered,
       progress = progress,
     )
   }
 
   fun toPlaybackProgressBook(uiState: PlayerUiState, raw: RawPlaybackProgress): PlaybackProgress {
-    val duration = finder.bookDuration(uiState)
+    val duration = finder.chapterOrBookDuration(uiState)
 
-    val position = finder.bookChapterPosition(uiState, raw.positionMs)
+    val position = finder.chapterOrBookPosition(uiState, raw.positionMs)
     val buffered = (raw.bufferedPosition / 1000)
 
-    val formattedPosition = helper.formatChapterTime(position)
-    val formattedDuration = helper.formatChapterTime(duration)
     val formattedBuffered = if (duration > 0) buffered / duration.toFloat() else 0f
 
     val progress = if (duration > 0) (position / duration).toFloat() else 0f
@@ -84,8 +78,6 @@ constructor(
     return PlaybackProgress(
       position = position.toLong(),
       duration = duration.toLong(),
-      formattedPosition = formattedPosition,
-      formattedDuration = formattedDuration,
       bufferedPosition = formattedBuffered,
       progress = progress,
     )

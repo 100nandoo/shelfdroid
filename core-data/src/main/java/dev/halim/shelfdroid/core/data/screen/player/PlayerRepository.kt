@@ -5,7 +5,6 @@ import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
-import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerState
@@ -107,10 +106,6 @@ constructor(
         playerChapters = chapters,
         currentChapter = chapter,
         playerBookmarks = playerBookmarks,
-        playbackProgress =
-          PlaybackProgress(
-            formattedDuration = helper.formatChapterTime(chapter?.endTimeSeconds ?: 0.0, true)
-          ),
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -197,7 +192,7 @@ constructor(
     val isBook = uiState.episodeId.isBlank()
     val durationMs =
       if (isBook) {
-        (finder.bookDuration(uiState) * 1000).toLong()
+        (finder.chapterOrBookDuration(uiState) * 1000).toLong()
       } else {
         rawDurationMs
       }

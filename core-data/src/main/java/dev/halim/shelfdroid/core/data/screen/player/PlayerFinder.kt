@@ -4,7 +4,8 @@ import dev.halim.shelfdroid.core.PlayerUiState
 import javax.inject.Inject
 
 class PlayerFinder @Inject constructor() {
-  fun bookDuration(uiState: PlayerUiState): Double {
+  // Return chapter duration if exist, else book duration
+  fun chapterOrBookDuration(uiState: PlayerUiState): Double {
     val currentChapter = uiState.currentChapter
     val currentTrack = uiState.currentTrack
     val duration =
@@ -18,7 +19,7 @@ class PlayerFinder @Inject constructor() {
   }
 
   // Find chapter position (in second) based on raw position (in ms, from ExoPlayer)
-  fun bookChapterPosition(uiState: PlayerUiState, rawPositionMs: Long): Double {
+  fun chapterOrBookPosition(uiState: PlayerUiState, rawPositionMs: Long): Double {
     val currentChapter = uiState.currentChapter
     val currentTrack = uiState.currentTrack
     val position =

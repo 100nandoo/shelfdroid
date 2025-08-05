@@ -56,14 +56,15 @@ import dev.halim.shelfdroid.core.MultipleButtonState
 import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
-import dev.halim.shelfdroid.core.extensions.toSleepTimerText
-import dev.halim.shelfdroid.core.extensions.toSpeedText
+import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
+import dev.halim.shelfdroid.core.ui.extensions.toSleepTimerText
+import dev.halim.shelfdroid.core.ui.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.player.bookmark.BookmarkBottomSheet
 import dev.halim.shelfdroid.core.ui.player.bookmark.DeleteBookmarkDialog
@@ -178,16 +179,19 @@ fun PlayerProgress(
   var target by remember { mutableFloatStateOf(0f) }
 
   val sliderValue = if (isDragging) target else progress.progress
+  val positionValue =
+    if (isDragging) (target * progress.duration).toDouble().formatChapterTime()
+    else progress.position.toDouble().formatChapterTime()
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(
-          text = progress.formattedPosition,
+          text = positionValue,
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-          text = progress.formattedDuration,
+          text = progress.duration.toDouble().formatChapterTime(),
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurface,
         )

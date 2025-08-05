@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.extensions
+package dev.halim.shelfdroid.core.ui.extensions
 
 import java.math.RoundingMode
 
