@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.book
 
+import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.media.DownloadUiState
 
 data class BookUiState(
   val state: GenericState = GenericState.Loading,

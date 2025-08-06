@@ -3,11 +3,11 @@ package dev.halim.shelfdroid.core.data.screen.book
 import android.annotation.SuppressLint
 import androidx.media3.exoplayer.offline.Download
 import dev.halim.core.network.response.libraryitem.Book
+import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.media.DownloadMapper
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
-import dev.halim.shelfdroid.core.data.media.DownloadUiState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import java.util.Locale

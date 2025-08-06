@@ -22,9 +22,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.media.DownloadState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope

@@ -5,6 +5,7 @@ import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerState
@@ -12,6 +13,7 @@ import dev.halim.shelfdroid.core.PlayerTrack
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.RawPlaybackProgress
 import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
@@ -30,6 +32,7 @@ constructor(
   private val apiService: ApiService,
   private val mapper: PlayerMapper,
   private val finder: PlayerFinder,
+  private val downloadRepo: DownloadRepo,
 ) {
 
   suspend fun playBook(id: String): PlayerUiState {
@@ -82,7 +85,7 @@ constructor(
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
   }
 
-  fun book(id: String): PlayerUiState {
+  suspend fun book(id: String): PlayerUiState {
     val result = libraryItemRepo.byId(id)
     val progress = progressRepo.bookById(id)
     val bookmarks = bookmarkRepo.byLibraryItemId(id)
@@ -93,6 +96,16 @@ constructor(
         media.chapters.mapIndexed { i, bookChapter ->
           mapper.toPlayerChapter(i, bookChapter, media.chapters.size)
         }
+      val isSingleTrack = media.audioTracks.size == 1
+
+      val downloadUiState =
+        if (isSingleTrack) {
+          val url = media.audioTracks.first().contentUrl
+          downloadRepo.item(itemId = id, url = url)
+        } else {
+          DownloadUiState()
+        }
+
       val chapter = findCurrentPlayerChapter(chapters, progress?.currentTime ?: 0.0)
       PlayerUiState(
         state = PlayerState.Small,
@@ -104,6 +117,7 @@ constructor(
         playerChapters = chapters,
         currentChapter = chapter,
         playerBookmarks = playerBookmarks,
+        download = downloadUiState,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -118,6 +132,13 @@ constructor(
         media.episodes.find { it.id == episodeId }
           ?: return PlayerUiState(state = PlayerState.Hidden(Error("Failed to find episode")))
 
+      val downloadUiState =
+        downloadRepo.item(
+          itemId = itemId,
+          episodeId = episodeId,
+          url = episode.audioTrack.contentUrl,
+        )
+
       val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }
 
       PlayerUiState(
@@ -130,6 +151,7 @@ constructor(
         playerTracks = listOf(playerTrack),
         currentTrack = playerTrack,
         currentTime = progress?.currentTime ?: 0.0,
+        download = downloadUiState,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -270,17 +292,22 @@ constructor(
   }
 
   suspend fun syncSession(uiState: PlayerUiState, rawPositionMs: Long, duration: Duration) {
-    val currentTime = finder.bookPosition(uiState, rawPositionMs)
-    val request = SyncSessionRequest(currentTime, duration.inWholeSeconds)
-    val result = apiService.syncSession(uiState.sessionId, request).getOrNull()
-    if (result == null) return
-    val isBook = uiState.episodeId.isBlank()
-    val entity =
-      if (isBook) progressRepo.bookById(uiState.id) else progressRepo.episodeById(uiState.episodeId)
-    entity?.let {
-      val progress = currentTime / it.duration
-      val updated = it.copy(currentTime = currentTime.toDouble(), progress = progress)
-      progressRepo.updateProgress(updated)
+    if (uiState.download.state.isDownloaded()) {
+      return
+    } else {
+      val currentTime = finder.bookPosition(uiState, rawPositionMs)
+      val request = SyncSessionRequest(currentTime, duration.inWholeSeconds)
+      val result = apiService.syncSession(uiState.sessionId, request).getOrNull()
+      if (result == null) return
+      val isBook = uiState.episodeId.isBlank()
+      val entity =
+        if (isBook) progressRepo.bookById(uiState.id)
+        else progressRepo.episodeById(uiState.episodeId)
+      entity?.let {
+        val progress = currentTime / it.duration
+        val updated = it.copy(currentTime = currentTime.toDouble(), progress = progress)
+        progressRepo.updateProgress(updated)
+      }
     }
   }
 }

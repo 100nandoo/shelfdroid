@@ -37,6 +37,7 @@ data class PlayerUiState(
   val playerBookmarks: List<PlayerBookmark> = emptyList(),
   val sessionId: String = "",
   val newBookmarkTime: PlayerBookmark = PlayerBookmark(),
+  val download: DownloadUiState = DownloadUiState(),
 )
 
 data class PlayerTrack(

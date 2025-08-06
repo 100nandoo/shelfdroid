@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.media
 import android.annotation.SuppressLint
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
+import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.data.Helper
 import javax.inject.Inject
 import javax.inject.Singleton

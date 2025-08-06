@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.media.DownloadUiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.media
+package dev.halim.shelfdroid.core
 
 data class DownloadUiState(
   val state: DownloadState = DownloadState.Unknown,

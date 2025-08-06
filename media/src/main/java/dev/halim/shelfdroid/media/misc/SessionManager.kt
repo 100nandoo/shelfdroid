@@ -93,8 +93,6 @@ constructor(
     }
   }
 
-  private fun localSync() {}
-
   private fun startSyncJob() {
     syncJob?.cancel()
     syncJob =
