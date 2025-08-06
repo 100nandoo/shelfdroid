@@ -5,6 +5,7 @@ import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.ProgressRequest
+import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BatchLibraryItemsResponse
@@ -103,4 +104,10 @@ interface ApiService {
     @Path("sessionId") sessionId: String,
     @Body request: SyncSessionRequest,
   ): Result<Unit>
+
+  @POST("/api/session/local")
+  suspend fun syncLocalSession(@Body request: SyncLocalSessionRequest): Result<Unit>
+
+  @POST("/api/session/local-all")
+  suspend fun syncLocalSession(@Body sessions: List<SyncLocalSessionRequest>): Result<Unit>
 }

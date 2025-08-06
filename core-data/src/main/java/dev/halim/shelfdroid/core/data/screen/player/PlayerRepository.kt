@@ -15,6 +15,7 @@ import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlinx.serialization.json.Json
@@ -60,25 +61,22 @@ constructor(
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Book")))
   }
 
-  suspend fun playPodcast(itemId: String, episodeId: String): PlayerUiState {
+  suspend fun playPodcast(itemId: String, episodeId: String, isDownloaded: Boolean): PlayerUiState {
     val playerUiState = podcast(itemId, episodeId)
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
     val result =
       runCatching {
-          val request = mapper.toPlayRequest()
-          val response = apiService.playPodcast(itemId, episodeId, request)
-          val sessionId = response.id
-          val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
-
-          val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
-          playerUiState.copy(
-            playerTracks = playerTracks,
-            currentTrack = currentTrack,
-            currentTime = response.currentTime,
-            sessionId = sessionId,
-          )
+          if (isDownloaded) {
+            val sessionId = UUID.randomUUID().toString()
+            playerUiState.copy(sessionId = sessionId)
+          } else {
+            val request = mapper.toPlayRequest()
+            val response = apiService.playPodcast(itemId, episodeId, request)
+            val sessionId = response.id
+            playerUiState.copy(currentTime = response.currentTime, sessionId = sessionId)
+          }
         }
         .getOrNull()
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
@@ -110,14 +108,18 @@ constructor(
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
 
-  fun podcast(itemId: String, episodeId: String): PlayerUiState {
+  suspend fun podcast(itemId: String, episodeId: String): PlayerUiState {
     val result = libraryItemRepo.byId(itemId)
+    val progress = progressRepo.episodeById(episodeId)
     return if (result != null && result.isBook == 0L) {
       val media = Json.decodeFromString<Podcast>(result.media)
 
       val episode =
         media.episodes.find { it.id == episodeId }
           ?: return PlayerUiState(state = PlayerState.Hidden(Error("Failed to find episode")))
+
+      val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }
+
       PlayerUiState(
         state = PlayerState.Small,
         id = result.id,
@@ -125,6 +127,9 @@ constructor(
         author = result.author,
         title = episode.title,
         cover = result.cover,
+        playerTracks = listOf(playerTrack),
+        currentTrack = playerTrack,
+        currentTime = progress?.currentTime ?: 0.0,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }

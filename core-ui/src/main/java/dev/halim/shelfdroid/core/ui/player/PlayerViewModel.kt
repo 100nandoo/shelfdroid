@@ -51,7 +51,9 @@ constructor(
         viewModelScope.launch {
           when {
             _uiState.value.episodeId != event.episodeId -> {
-              _uiState.update { playerRepository.playPodcast(event.itemId, event.episodeId) }
+              _uiState.update {
+                playerRepository.playPodcast(event.itemId, event.episodeId, event.isDownloaded)
+              }
               stateHolder.playContent()
             }
             _uiState.value.exoState == ExoState.Playing -> playerManager.get().pause()
@@ -137,7 +139,8 @@ constructor(
 sealed class PlayerEvent {
   class PlayBook(val id: String) : PlayerEvent()
 
-  class PlayPodcast(val itemId: String, val episodeId: String) : PlayerEvent()
+  class PlayPodcast(val itemId: String, val episodeId: String, val isDownloaded: Boolean) :
+    PlayerEvent()
 
   class ChangeChapter(val target: Int) : PlayerEvent()
 

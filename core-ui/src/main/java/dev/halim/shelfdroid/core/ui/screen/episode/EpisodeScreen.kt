@@ -69,7 +69,13 @@ fun EpisodeScreen(viewModel: EpisodeViewModel = hiltViewModel(), playerViewModel
         viewModel.onEvent(EpisodeEvent.DownloadEvent(downloadEvent))
       },
       onPlayClicked = {
-        playerViewModel.onEvent(PlayerEvent.PlayPodcast(viewModel.itemId, viewModel.episodeId))
+        playerViewModel.onEvent(
+          PlayerEvent.PlayPodcast(
+            viewModel.itemId,
+            viewModel.episodeId,
+            uiState.download.state.isDownloaded(),
+          )
+        )
       },
     )
   }

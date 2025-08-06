@@ -26,7 +26,7 @@ fun DownloadButton(
   onDeleteDownloadClicked: () -> Unit,
 ) {
   val isDownloading = downloadState == DownloadState.Downloading
-  val isDownloaded = downloadState == DownloadState.Completed
+  val isDownloaded = downloadState.isDownloaded()
 
   val downloadLogic = {
     if (!isDownloaded) {

@@ -53,8 +53,8 @@ fun PodcastScreen(
       id = viewModel.id,
       onEvent = viewModel::onEvent,
       onEpisodeClicked = onEpisodeClicked,
-      onPlayClicked = { itemId, episodeId ->
-        playerViewModel.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId))
+      onPlayClicked = { itemId, episodeId, isDownloaded ->
+        playerViewModel.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId, isDownloaded))
       },
     )
   }
@@ -74,7 +74,7 @@ fun PodcastScreenContent(
   id: String = Defaults.BOOK_ID,
   onEvent: (PodcastEvent) -> Unit = {},
   onEpisodeClicked: (String, String) -> Unit = { _, _ -> },
-  onPlayClicked: (String, String) -> Unit = { _, _ -> },
+  onPlayClicked: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
@@ -118,11 +118,15 @@ fun PodcastScreenContent(
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentPreview() {
-  AnimatedPreviewWrapper(dynamicColor = false) { PodcastScreenContent(onPlayClicked = { _, _ -> }) }
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    PodcastScreenContent(onPlayClicked = { _, _, _ -> })
+  }
 }
 
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentDynamicPreview() {
-  AnimatedPreviewWrapper(dynamicColor = true) { PodcastScreenContent(onPlayClicked = { _, _ -> }) }
+  AnimatedPreviewWrapper(dynamicColor = true) {
+    PodcastScreenContent(onPlayClicked = { _, _, _ -> })
+  }
 }

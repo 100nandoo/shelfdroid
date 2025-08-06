@@ -3,7 +3,10 @@
 ## High Priority
 
 - [ ] Local playback sync
-- [ ] while offline, allow playback downloaded item
+    - [ ] Create entity for local request
+    - [ ] Create repo for entity
+    - [ ] Handle write entity
+    - [ ] Handle sync when connected to internet
 - [ ] Widget
 - [ ] Backup Restore
 
@@ -44,3 +47,4 @@
 - [x] Download book with one audio track
 - [x] Prev chapter button not working when podcast playing
 - [x] List View
+- [x] while offline, allow playback downloaded item

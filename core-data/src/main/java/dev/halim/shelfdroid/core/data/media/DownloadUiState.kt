@@ -16,4 +16,6 @@ sealed class DownloadState {
   data object Failed : DownloadState()
 
   data object Unknown : DownloadState()
+
+  fun isDownloaded() = this is Completed
 }

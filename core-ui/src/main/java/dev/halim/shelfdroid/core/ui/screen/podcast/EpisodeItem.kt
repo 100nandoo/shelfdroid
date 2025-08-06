@@ -47,7 +47,7 @@ fun EpisodeItem(
   episode: Episode,
   onEvent: (PodcastEvent) -> Unit,
   onEpisodeClicked: (String, String) -> Unit,
-  onPlayClicked: (String, String) -> Unit,
+  onPlayClicked: (String, String, Boolean) -> Unit,
   snackbarHostState: SnackbarHostState,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -127,7 +127,11 @@ fun EpisodeItem(
             },
           )
 
-          FilledTonalIconButton(onClick = { onPlayClicked(itemId, episode.episodeId) }) {
+          FilledTonalIconButton(
+            onClick = {
+              onPlayClicked(itemId, episode.episodeId, episode.download.state.isDownloaded())
+            }
+          ) {
             val icon = if (episode.isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
             val contentDescription =
               if (episode.isPlaying.not()) stringResource(R.string.play)
@@ -147,7 +151,7 @@ fun EpisodeItemPreview() {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
-        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }, SnackbarHostState()) }
+        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _, _ -> }, SnackbarHostState()) }
       }
     }
   }
@@ -160,7 +164,7 @@ fun EpisodeItemDynamicPreview() {
     LazyColumn(reverseLayout = true) {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
-        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _ -> }, SnackbarHostState()) }
+        item { EpisodeItem("", episode, {}, { _, _ -> }, { _, _, _ -> }, SnackbarHostState()) }
       }
     }
   }

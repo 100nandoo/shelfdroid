@@ -4,7 +4,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
-import dev.halim.core.network.connectivity.ConnectivityManager
+import dev.halim.core.network.connectivity.NetworkMonitor
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.SYNC_LONG_INTERVAL
 import dev.halim.shelfdroid.core.data.screen.SYNC_SHORT_INTERVAL
@@ -25,7 +25,7 @@ class SessionManager
 constructor(
   private val player: Lazy<ExoPlayer>,
   private val playerRepository: PlayerRepository,
-  private val connectivityObserver: ConnectivityManager,
+  private val networkMonitor: NetworkMonitor,
 ) {
   private var duration = Duration.ZERO
 
@@ -93,6 +93,8 @@ constructor(
     }
   }
 
+  private fun localSync() {}
+
   private fun startSyncJob() {
     syncJob?.cancel()
     syncJob =
@@ -109,11 +111,10 @@ constructor(
   }
 
   private fun startConnectivityJob() {
-    isMetered = connectivityObserver.currentStatus().isMetered
     connectivityJob?.cancel()
     connectivityJob =
       syncScope.launch {
-        connectivityObserver.observe().collect { status -> isMetered = status.isMetered }
+        networkMonitor.observe().collect { status -> isMetered = status.isMetered }
       }
   }
 }
