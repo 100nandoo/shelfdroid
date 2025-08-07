@@ -2,10 +2,11 @@
 
 ## High Priority
 
-- [ ] Local playback sync
-    - [ ] Create entity for local request
-    - [ ] Create repo for entity
-    - [ ] Handle write entity
+- [ ] Local playback sync book
+    - [x] Create entity for local request
+    - [x] Create repo for entity
+    - [x] Handle write entity
+    - [ ] Handle sync when connected to internet for multiple entity
     - [ ] Handle sync when connected to internet
 - [ ] Widget
 - [ ] Backup Restore

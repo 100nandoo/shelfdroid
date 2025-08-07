@@ -12,13 +12,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class NetworkMonitor @Inject constructor(@ApplicationContext private val context: Context) {
-
-  fun observe(): StateFlow<ConnectivityStatus> = _status.asStateFlow()
-
   private val connectivityManager =
     context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
   private val _status = MutableStateFlow(initialStatus())
+  val status: StateFlow<ConnectivityStatus> = _status.asStateFlow()
 
   private val callback =
     object : ConnectivityManager.NetworkCallback() {

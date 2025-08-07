@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import java.nio.ByteBuffer
 import java.util.UUID
@@ -22,6 +23,7 @@ private object Keys {
   val LIST_VIEW = booleanPreferencesKey("list_view")
   val DEVICE_ID = stringPreferencesKey("device_id")
   val USER_PREFS = stringPreferencesKey("user_prefs")
+  val SERVER_PREFS = stringPreferencesKey("server_prefs")
 }
 
 private fun <T> DataStore<Preferences>.preferenceFlow(
@@ -80,17 +82,25 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   val userPrefs: Flow<UserPrefs> =
     dataStore.data.map { prefs ->
       prefs[Keys.USER_PREFS]?.let { json ->
-        try {
-          Json.decodeFromString<UserPrefs>(json)
-        } catch (e: Exception) {
-          UserPrefs()
-        }
+        runCatching { Json.decodeFromString<UserPrefs>(json) }.getOrNull()
       } ?: UserPrefs()
     }
 
   suspend fun updateUserPrefs(userPrefs: UserPrefs) {
     val json = Json.encodeToString(userPrefs)
     dataStore.edit { prefs -> prefs[Keys.USER_PREFS] = json }
+  }
+
+  val serverPrefs: Flow<ServerPrefs> =
+    dataStore.data.map { prefs ->
+      prefs[Keys.SERVER_PREFS]?.let { json ->
+        runCatching { Json.decodeFromString<ServerPrefs>(json) }.getOrNull()
+      } ?: ServerPrefs()
+    }
+
+  suspend fun updateServerPrefs(serverPrefs: ServerPrefs) {
+    val json = Json.encodeToString(serverPrefs)
+    dataStore.edit { prefs -> prefs[Keys.SERVER_PREFS] = json }
   }
 
   suspend fun updateAccessToken(newToken: String) {

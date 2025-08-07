@@ -32,6 +32,11 @@ interface ApiService {
     @Header("x-return-tokens") returnTokens: String = "true",
   ): Result<LoginResponse>
 
+  @POST("api/authorize")
+  suspend fun authorize(
+    @Header("x-return-tokens") returnTokens: String = "true"
+  ): Result<LoginResponse>
+
   @POST("auth/refresh")
   suspend fun refresh(@Header("x-refresh-token") refreshToken: String): Result<LoginResponse>
 
@@ -109,5 +114,5 @@ interface ApiService {
   suspend fun syncLocalSession(@Body request: SyncLocalSessionRequest): Result<Unit>
 
   @POST("/api/session/local-all")
-  suspend fun syncLocalSession(@Body sessions: List<SyncLocalSessionRequest>): Result<Unit>
+  suspend fun syncLocalSessions(@Body sessions: List<SyncLocalSessionRequest>): Result<Unit>
 }

@@ -75,7 +75,11 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), playerViewModel: Play
         val downloadEvent = CommonDownloadEvent.DeleteDownload(uiState.download.id)
         viewModel.onEvent(BookEvent.DownloadEvent(downloadEvent))
       },
-      onPlayClicked = { playerViewModel.onEvent(PlayerEvent.PlayBook(viewModel.id)) },
+      onPlayClicked = {
+        playerViewModel.onEvent(
+          PlayerEvent.PlayBook(viewModel.id, uiState.download.state.isDownloaded())
+        )
+      },
     )
   }
 }

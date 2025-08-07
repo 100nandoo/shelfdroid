@@ -14,3 +14,5 @@ data class UserPrefs(
   val accessToken: String = "",
   val refreshToken: String = "",
 )
+
+@Serializable data class ServerPrefs(val version: String = "")

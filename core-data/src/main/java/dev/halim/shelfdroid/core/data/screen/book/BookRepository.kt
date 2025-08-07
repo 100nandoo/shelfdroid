@@ -55,8 +55,7 @@ constructor(
           val downloadUiState =
             if (isSingleTrack) {
               val url = media.audioTracks.first().contentUrl
-              val downloadState = downloadMapper.toDownloadState(download?.state)
-              DownloadUiState(state = downloadState, id = id, url = url)
+              downloadRepo.item(itemId = id, url = url)
             } else {
               DownloadUiState()
             }

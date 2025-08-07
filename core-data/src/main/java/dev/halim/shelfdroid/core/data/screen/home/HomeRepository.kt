@@ -1,9 +1,10 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.response.User
+import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.UserType
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -27,12 +28,13 @@ constructor(
 ) {
 
   suspend fun getUser(uiState: HomeUiState): HomeUiState {
-    val response = api.me()
+    val response = api.authorize()
     val result = response.getOrNull()
+    val user = result?.user
 
-    return if (result != null) {
-      progressRepo.saveAndConvert(result)
-      bookmarkRepo.saveAndConvert(result)
+    return if (user != null) {
+      progressRepo.saveAndConvert(user)
+      bookmarkRepo.saveAndConvert(user)
       updateDataStore(result)
       uiState.copy(homeState = HomeState.Success)
     } else {
@@ -58,7 +60,8 @@ constructor(
     }
   }
 
-  private suspend fun updateDataStore(user: User) {
+  private suspend fun updateDataStore(loginResponse: LoginResponse) {
+    val user = loginResponse.user
     val old = dataStoreManager.userPrefs.firstOrNull()?.copy()
     old?.let {
       val userPrefs =
@@ -75,6 +78,10 @@ constructor(
         )
       dataStoreManager.updateUserPrefs(userPrefs)
     }
+
+    val server = loginResponse.serverSettings
+    val serverPrefs = ServerPrefs(version = server.version)
+    dataStoreManager.updateServerPrefs(serverPrefs)
   }
 
   private fun toBookUiState(item: LibraryItemEntity): BookUiState {

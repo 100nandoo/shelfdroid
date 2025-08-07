@@ -35,29 +35,24 @@ constructor(
   private val downloadRepo: DownloadRepo,
 ) {
 
-  suspend fun playBook(id: String): PlayerUiState {
+  suspend fun playBook(id: String, isDownloaded: Boolean): PlayerUiState {
     val playerUiState = book(id)
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
     val result =
       runCatching {
-          val request = mapper.toPlayRequest()
-          val response = apiService.playBook(id, request)
-          val sessionId = response.id
-          val playerTracks = response.audioTracks.map { mapper.toPlayerTrack(it) }
+          if (isDownloaded) {
+            val sessionId = UUID.randomUUID().toString()
 
-          val currentTrack = findCurrentPlayerTrack(playerTracks, response.currentTime)
-          val currentChapter = playerUiState.currentChapter
-          val currentTime =
-            if (currentChapter != null) response.currentTime - currentChapter.startTimeSeconds
-            else response.currentTime
-          playerUiState.copy(
-            playerTracks = playerTracks,
-            currentTrack = currentTrack,
-            currentTime = currentTime,
-            sessionId = sessionId,
-          )
+            playerUiState.copy(sessionId = sessionId)
+          } else {
+            val request = mapper.toPlayRequest()
+            val response = apiService.playBook(id, request)
+            val sessionId = response.id
+
+            playerUiState.copy(sessionId = sessionId)
+          }
         }
         .getOrNull()
 
@@ -97,6 +92,12 @@ constructor(
           mapper.toPlayerChapter(i, bookChapter, media.chapters.size)
         }
       val isSingleTrack = media.audioTracks.size == 1
+      val playerTracks = media.audioTracks.map { mapper.toPlayerTrack(it) }
+      val currentTrack = findCurrentPlayerTrack(playerTracks, progress?.currentTime ?: 0.0)
+      val currentChapter = findCurrentPlayerChapter(chapters, progress?.currentTime ?: 0.0)
+      val currentTime =
+        if (currentChapter != null) (progress?.currentTime ?: 0.0) - currentChapter.startTimeSeconds
+        else progress?.currentTime ?: 0.0
 
       val downloadUiState =
         if (isSingleTrack) {
@@ -106,16 +107,17 @@ constructor(
           DownloadUiState()
         }
 
-      val chapter = findCurrentPlayerChapter(chapters, progress?.currentTime ?: 0.0)
       PlayerUiState(
         state = PlayerState.Small,
         id = result.id,
         author = result.author,
-        title = chapter?.title ?: result.title,
+        title = currentChapter?.title ?: result.title,
         cover = result.cover,
-        currentTime = progress?.currentTime ?: 0.0,
+        currentTime = currentTime,
         playerChapters = chapters,
-        currentChapter = chapter,
+        currentChapter = currentChapter,
+        playerTracks = playerTracks,
+        currentTrack = currentTrack,
         playerBookmarks = playerBookmarks,
         download = downloadUiState,
       )

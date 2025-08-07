@@ -1,0 +1,69 @@
+CREATE TABLE LocalSessionEntity (
+  id TEXT NOT NULL PRIMARY KEY,
+  userId TEXT NOT NULL,
+  libraryId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  episodeId TEXT,
+  mediaType TEXT NOT NULL,
+  mediaMetadata TEXT NOT NULL,
+  chapters TEXT NOT NULL,
+  displayTitle TEXT NOT NULL,
+  displayAuthor TEXT NOT NULL,
+  coverPath TEXT NOT NULL,
+  duration REAL NOT NULL,
+  playMethod INTEGER NOT NULL,
+  mediaPlayer TEXT NOT NULL,
+  deviceInfo TEXT NOT NULL,
+  serverVersion TEXT NOT NULL,
+  date TEXT NOT NULL,
+  dayOfWeek TEXT NOT NULL,
+  timeListening INTEGER NOT NULL,
+  startTime REAL NOT NULL,
+  currentTime REAL NOT NULL,
+  startedAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO LocalSessionEntity(
+  id,
+  userId,
+  libraryId,
+  libraryItemId,
+  episodeId,
+  mediaType,
+  mediaMetadata,
+  chapters,
+  displayTitle,
+  displayAuthor,
+  coverPath,
+  duration,
+  playMethod,
+  mediaPlayer,
+  deviceInfo,
+  serverVersion,
+  date,
+  dayOfWeek,
+  timeListening,
+  startTime,
+  currentTime,
+  startedAt,
+  updatedAt
+) VALUES ?;
+
+update:
+UPDATE LocalSessionEntity
+SET
+  currentTime = :currentTime,
+  updatedAt = :updateAt,
+  timeListening = :currentTime - startTime
+WHERE id = ?;
+
+all:
+SELECT * FROM LocalSessionEntity;
+
+deleteById:
+DELETE FROM LocalSessionEntity WHERE id = ?;
+
+count:
+SELECT count(*) FROM LocalSessionEntity;

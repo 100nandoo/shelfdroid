@@ -18,6 +18,16 @@ sealed class ExoState {
   data object Pause : ExoState()
 }
 
+sealed class MediaStructure {
+  data object SingleTrackWithChapters : MediaStructure()
+
+  data object SingleTrack : MediaStructure()
+
+  data object MultiTrackWithChapters : MediaStructure()
+
+  data object MultiTrack : MediaStructure()
+}
+
 data class PlayerUiState(
   val state: PlayerState = PlayerState.Hidden(),
   val exoState: ExoState = ExoState.Pause,
@@ -97,3 +107,5 @@ data class MultipleButtonState(
   val showPlay: Boolean = true,
   val seekSliderEnabled: Boolean = false,
 )
+
+data class PlayerInternalState(val sessionId: String = "")

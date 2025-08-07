@@ -19,6 +19,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 
+const val MEDIA_TYPE_BOOK = "book"
+const val MEDIA_TYPE_PODCAST = "podcast"
+
 object LibraryItemSerializer : KSerializer<LibraryItem> {
   override val descriptor: SerialDescriptor = buildClassSerialDescriptor("LibraryItem")
 
@@ -33,8 +36,8 @@ object LibraryItemSerializer : KSerializer<LibraryItem> {
     val media =
       jsonObject["media"]?.let {
         when (mediaType) {
-          "book" -> decoder.json.decodeFromJsonElement<Book>(it)
-          "podcast" -> decoder.json.decodeFromJsonElement<Podcast>(it)
+          MEDIA_TYPE_BOOK -> decoder.json.decodeFromJsonElement<Book>(it)
+          MEDIA_TYPE_PODCAST -> decoder.json.decodeFromJsonElement<Podcast>(it)
           else -> throw SerializationException("Unknown mediaType: $mediaType")
         }
       } ?: throw SerializationException("media field is missing")

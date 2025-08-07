@@ -73,4 +73,8 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
   fun formatChapterTime(inputInSeconds: Double, padHour: Boolean = false): String {
     return inputInSeconds.formatChapterTime(padHour)
   }
+
+  fun nowMilis(): Long {
+    return System.currentTimeMillis()
+  }
 }

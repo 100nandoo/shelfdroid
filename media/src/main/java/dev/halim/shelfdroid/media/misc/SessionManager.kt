@@ -6,10 +6,12 @@ import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.core.network.connectivity.NetworkMonitor
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.data.response.LocalSessionRepo
 import dev.halim.shelfdroid.core.data.screen.SYNC_LONG_INTERVAL
 import dev.halim.shelfdroid.core.data.screen.SYNC_SHORT_INTERVAL
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -17,26 +19,39 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@Singleton
 class SessionManager
 @Inject
 constructor(
   private val player: Lazy<ExoPlayer>,
-  private val playerRepository: PlayerRepository,
+  private val playerRepository: Lazy<PlayerRepository>,
+  private val localSessionRepo: LocalSessionRepo,
   private val networkMonitor: NetworkMonitor,
 ) {
   private var duration = Duration.ZERO
 
   private var syncJob: Job? = null
-  private var connectivityJob: Job? = null
   private var isPlaying = false
+  private var isLocal = false
   private var uiState: PlayerUiState = PlayerUiState()
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
   @Volatile private var isMetered = true
   @Volatile private var isSyncing = false
   @Volatile private var isItemChanged = false
+
+  init {
+    syncScope.launch {
+      combine(networkMonitor.status, localSessionRepo.count()) { status, count ->
+          isMetered = status.isMetered
+          status.hasInternet && (count ?: 0) > 0
+        }
+        .collect { shouldSync -> if (shouldSync) localSessionRepo.syncToServer() }
+    }
+  }
 
   fun start(uiState: PlayerUiState) {
     this.uiState = uiState
@@ -49,8 +64,12 @@ constructor(
     }
 
     if (isPlaying) {
-      startConnectivityJob()
       startSyncJob()
+    }
+
+    isLocal = this.uiState.download.state.isDownloaded()
+    if (isLocal) {
+      syncScope.launch { localSessionRepo.startBook(uiState) }
     }
   }
 
@@ -64,11 +83,9 @@ constructor(
         super.onIsPlayingChanged(isPlaying)
         this@SessionManager.isPlaying = isPlaying
         if (isPlaying) {
-          startConnectivityJob()
           startSyncJob()
           isItemChanged = false
         } else {
-          connectivityJob?.cancel()
           syncJob?.cancel()
           sync()
         }
@@ -87,7 +104,11 @@ constructor(
     if (isSyncing || isItemChanged || duration == 0.seconds) return
     syncScope.launch {
       isSyncing = true
-      playerRepository.syncSession(uiState, getCurrentPositionSafe(), duration)
+      if (isLocal) {
+        localSessionRepo.syncLocal(uiState, getCurrentPositionSafe())
+      } else {
+        playerRepository.get().syncSession(uiState, getCurrentPositionSafe(), duration)
+      }
       resetDuration()
       isSyncing = false
     }
@@ -105,14 +126,6 @@ constructor(
             sync()
           }
         }
-      }
-  }
-
-  private fun startConnectivityJob() {
-    connectivityJob?.cancel()
-    connectivityJob =
-      syncScope.launch {
-        networkMonitor.observe().collect { status -> isMetered = status.isMetered }
       }
   }
 }
