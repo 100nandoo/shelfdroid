@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.data.response
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import dev.halim.core.network.response.MediaProgress
 import dev.halim.core.network.response.User
 import dev.halim.shelfdroid.core.database.MyDatabase
@@ -23,7 +24,13 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
 
   fun bookById(id: String): ProgressEntity? = queries.bookById(id).executeAsOneOrNull()
 
+  fun flowBookById(id: String): Flow<ProgressEntity?> =
+    queries.bookById(id).asFlow().mapToOneOrNull(Dispatchers.IO)
+
   fun episodeById(id: String): ProgressEntity? = queries.episodeById(id).executeAsOneOrNull()
+
+  fun flowEpisodeById(id: String): Flow<ProgressEntity?> =
+    queries.episodeById(id).asFlow().mapToOneOrNull(Dispatchers.IO)
 
   suspend fun saveAndConvert(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map(::toEntity)

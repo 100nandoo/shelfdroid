@@ -14,10 +14,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -57,11 +55,9 @@ constructor(
   @SuppressLint("UnsafeOptInUsageError")
   private fun initUiState() {
     viewModelScope.launch {
-      _uiState.update { repository.item(itemId, episodeId) }
-
-      downloadRepo.downloads
-        .mapNotNull { downloads -> downloads.find { it.request.id == _uiState.value.download.id } }
-        .collect { download -> _uiState.update { repository.updateDownloads(it, download) } }
+      repository.item(itemId, episodeId).collect { episodeUiState ->
+        _uiState.value = episodeUiState
+      }
     }
   }
 }
