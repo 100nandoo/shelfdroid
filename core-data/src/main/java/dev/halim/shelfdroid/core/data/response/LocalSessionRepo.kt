@@ -7,6 +7,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.DeviceInfo
+import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
@@ -14,6 +15,7 @@ import dev.halim.core.network.response.libraryitem.BookMetadata
 import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_BOOK
 import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.SessionHolder
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
 import dev.halim.shelfdroid.core.database.LocalSessionEntity
@@ -25,6 +27,7 @@ import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -39,13 +42,14 @@ constructor(
   private val helper: Helper,
   private val device: Device,
   private val api: ApiService,
-  db: MyDatabase,
+  private val db: MyDatabase,
 ) {
 
   private suspend fun getDeviceId(): String =
     withContext(Dispatchers.IO) { dataStoreManager.getDeviceId() }
 
   private val queries = db.localSessionEntityQueries
+  private val progressQueries = db.progressEntityQueries
 
   fun count(): Flow<Long?> = queries.count().asFlow().mapToOneOrNull(Dispatchers.IO)
 
@@ -85,7 +89,7 @@ constructor(
         val startAt = now.toEpochMilliseconds()
         val entity =
           LocalSessionEntity(
-            id = uiState.sessionId,
+            id = SessionHolder.sessionId(),
             userId = userPrefs.id,
             libraryId = book.libraryId,
             libraryItemId = book.id,
@@ -115,24 +119,38 @@ constructor(
 
   fun syncLocal(uiState: PlayerUiState, rawPositionMs: Long) {
     val now = helper.nowMilis()
-    val currentTime = finder.bookPosition(uiState, rawPositionMs)
+    val currentTime = finder.bookPosition(uiState, rawPositionMs).toDouble()
 
-    queries.update(currentTime.toDouble(), now, uiState.sessionId)
+    queries.update(currentTime, now, SessionHolder.sessionId())
+    progressQueries.updateBookCurrentTime(currentTime = currentTime, uiState.id)
   }
 
+  private val syncMutex = Mutex()
+
   suspend fun syncToServer() {
-    val entities = queries.all().executeAsList()
-    val isOne = entities.size == 1
-    if (isOne) {
-      val entity = entities.first()
-      val result = api.syncLocalSession(toRequest(entity))
-      Log.d("LocalSessionRepo", "${result.exceptionOrNull()?.toString()}")
-      if (result.isSuccess) {
-        queries.deleteById(entity.id)
+    if (!syncMutex.tryLock()) return
+    try {
+      val entities = queries.all().executeAsList()
+      val isOne = entities.size == 1
+
+      if (isOne) {
+        val entity = entities.first()
+        val result = api.syncLocalSession(toRequest(entity))
+        Log.d("LocalSessionRepo", "${result.exceptionOrNull()?.toString()}")
+        if (result.isSuccess && SessionHolder.sessionId() != entity.id) {
+          queries.deleteById(entity.id)
+        }
+      } else {
+        val listRequest = entities.map { toRequest(it) }
+        val response = api.syncLocalAllSession(SyncLocalAllSessionRequest(listRequest)).getOrNull()
+        response?.results?.forEach {
+          if (it.success && it.id != SessionHolder.sessionId()) {
+            queries.deleteById(it.id)
+          }
+        }
       }
-    } else {
-      //      val listRequest = entities.map { toRequest(it) }
-      //      val result = api.syncLocalSessions(listRequest)
+    } finally {
+      syncMutex.unlock()
     }
   }
 

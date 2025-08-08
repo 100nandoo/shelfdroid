@@ -12,6 +12,7 @@ import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerTrack
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.RawPlaybackProgress
+import dev.halim.shelfdroid.core.SessionHolder
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
@@ -45,13 +46,15 @@ constructor(
           if (isDownloaded) {
             val sessionId = UUID.randomUUID().toString()
 
-            playerUiState.copy(sessionId = sessionId)
+            SessionHolder.setSessionId(sessionId)
+            playerUiState
           } else {
             val request = mapper.toPlayRequest()
             val response = apiService.playBook(id, request)
             val sessionId = response.id
 
-            playerUiState.copy(sessionId = sessionId)
+            SessionHolder.setSessionId(sessionId)
+            playerUiState
           }
         }
         .getOrNull()
@@ -68,12 +71,14 @@ constructor(
       runCatching {
           if (isDownloaded) {
             val sessionId = UUID.randomUUID().toString()
-            playerUiState.copy(sessionId = sessionId)
+            SessionHolder.setSessionId(sessionId)
+            playerUiState
           } else {
             val request = mapper.toPlayRequest()
             val response = apiService.playPodcast(itemId, episodeId, request)
             val sessionId = response.id
-            playerUiState.copy(currentTime = response.currentTime, sessionId = sessionId)
+            SessionHolder.setSessionId(sessionId)
+            playerUiState.copy(currentTime = response.currentTime)
           }
         }
         .getOrNull()
@@ -299,7 +304,7 @@ constructor(
     } else {
       val currentTime = finder.bookPosition(uiState, rawPositionMs)
       val request = SyncSessionRequest(currentTime, duration.inWholeSeconds)
-      val result = apiService.syncSession(uiState.sessionId, request).getOrNull()
+      val result = apiService.syncSession(SessionHolder.sessionId(), request).getOrNull()
       if (result == null) return
       val isBook = uiState.episodeId.isBlank()
       val entity =

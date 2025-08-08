@@ -45,7 +45,6 @@ data class PlayerUiState(
   val playbackProgress: PlaybackProgress = PlaybackProgress(),
   val advancedControl: AdvancedControl = AdvancedControl(),
   val playerBookmarks: List<PlayerBookmark> = emptyList(),
-  val sessionId: String = "",
   val newBookmarkTime: PlayerBookmark = PlayerBookmark(),
   val download: DownloadUiState = DownloadUiState(),
 )

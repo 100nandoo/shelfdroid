@@ -5,6 +5,7 @@ import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.ProgressRequest
+import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.AudioBookmark
@@ -14,6 +15,7 @@ import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
+import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.play.PlayResponse
 import retrofit2.http.Body
@@ -114,5 +116,7 @@ interface ApiService {
   suspend fun syncLocalSession(@Body request: SyncLocalSessionRequest): Result<Unit>
 
   @POST("/api/session/local-all")
-  suspend fun syncLocalSessions(@Body sessions: List<SyncLocalSessionRequest>): Result<Unit>
+  suspend fun syncLocalAllSession(
+    @Body sessions: SyncLocalAllSessionRequest
+  ): Result<SyncLocalAllSessionResponse>
 }
