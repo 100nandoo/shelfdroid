@@ -2,17 +2,16 @@ package dev.halim.shelfdroid.core.data.screen.player
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BookmarkRequest
-import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
+import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerTrack
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.RawPlaybackProgress
-import dev.halim.shelfdroid.core.SessionHolder
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
@@ -20,7 +19,6 @@ import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import java.util.UUID
 import javax.inject.Inject
-import kotlin.time.Duration
 import kotlinx.serialization.json.Json
 
 class PlayerRepository
@@ -34,6 +32,7 @@ constructor(
   private val mapper: PlayerMapper,
   private val finder: PlayerFinder,
   private val downloadRepo: DownloadRepo,
+  private val playerInternalStateHolder: PlayerInternalStateHolder,
 ) {
 
   suspend fun playBook(id: String, isDownloaded: Boolean): PlayerUiState {
@@ -41,21 +40,19 @@ constructor(
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
+    var sessionId: String
     val result =
       runCatching {
           if (isDownloaded) {
-            val sessionId = UUID.randomUUID().toString()
-
-            SessionHolder.setSessionId(sessionId)
-            playerUiState
+            sessionId = UUID.randomUUID().toString()
           } else {
             val request = mapper.toPlayRequest()
             val response = apiService.playBook(id, request)
-            val sessionId = response.id
-
-            SessionHolder.setSessionId(sessionId)
-            playerUiState
+            sessionId = response.id
           }
+
+          playerInternalStateHolder.changeMedia(playerUiState, sessionId)
+          playerUiState
         }
         .getOrNull()
 
@@ -67,19 +64,19 @@ constructor(
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
+    var sessionId: String
     val result =
       runCatching {
           if (isDownloaded) {
-            val sessionId = UUID.randomUUID().toString()
-            SessionHolder.setSessionId(sessionId)
-            playerUiState
+            sessionId = UUID.randomUUID().toString()
           } else {
             val request = mapper.toPlayRequest()
             val response = apiService.playPodcast(itemId, episodeId, request)
-            val sessionId = response.id
-            SessionHolder.setSessionId(sessionId)
-            playerUiState.copy(currentTime = response.currentTime)
+            sessionId = response.id
           }
+
+          playerInternalStateHolder.changeMedia(playerUiState, sessionId)
+          playerUiState
         }
         .getOrNull()
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
@@ -191,6 +188,8 @@ constructor(
       val currentTime =
         if (uiState.playerTracks.size > 1) targetChapter.startTimeSeconds - targetTrack.startOffset
         else 0.0
+
+      playerInternalStateHolder.setStartOffset(targetChapter.startTimeSeconds)
       uiState.copy(
         title = targetChapter.title,
         currentChapter = targetChapter,
@@ -296,25 +295,5 @@ constructor(
     val bookmarks = uiState.playerBookmarks.toMutableList()
     bookmarks.add(playerBookmark)
     return uiState.copy(playerBookmarks = bookmarks)
-  }
-
-  suspend fun syncSession(uiState: PlayerUiState, rawPositionMs: Long, duration: Duration) {
-    if (uiState.download.state.isDownloaded()) {
-      return
-    } else {
-      val currentTime = finder.bookPosition(uiState, rawPositionMs)
-      val request = SyncSessionRequest(currentTime, duration.inWholeSeconds)
-      val result = apiService.syncSession(SessionHolder.sessionId(), request).getOrNull()
-      if (result == null) return
-      val isBook = uiState.episodeId.isBlank()
-      val entity =
-        if (isBook) progressRepo.bookById(uiState.id)
-        else progressRepo.episodeById(uiState.episodeId)
-      entity?.let {
-        val progress = currentTime / it.duration
-        val updated = it.copy(currentTime = currentTime.toDouble(), progress = progress)
-        progressRepo.updateProgress(updated)
-      }
-    }
   }
 }

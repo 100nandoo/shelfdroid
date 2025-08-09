@@ -64,19 +64,13 @@ class PlayerFinder @Inject constructor() {
     return startTime
   }
 
-  fun bookPosition(uiState: PlayerUiState, rawPositionMs: Long): Long {
-    val currentChapter = uiState.currentChapter
-    val currentTrack = uiState.currentTrack
-    val position =
-      if (currentChapter != null) {
-        if (uiState.playerTracks.size > 1) {
-          (rawPositionMs / 1000) + currentTrack.startOffset
-        } else {
-          (rawPositionMs / 1000) + currentChapter.startTimeSeconds
-        }
-      } else {
-        (rawPositionMs / 1000) + currentTrack.startOffset
-      }
-    return position.toLong()
+  /**
+   * Current book position (in second) since the beginning of the book
+   *
+   * Usage: For sync progress to server
+   */
+  fun bookPosition(startOffset: Double, rawPositionMs: Long): Double {
+    val position = (rawPositionMs / 1000) + startOffset
+    return position
   }
 }

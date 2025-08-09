@@ -6,10 +6,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.core.network.connectivity.NetworkMonitor
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.core.data.response.LocalSessionRepo
 import dev.halim.shelfdroid.core.data.screen.SYNC_LONG_INTERVAL
 import dev.halim.shelfdroid.core.data.screen.SYNC_SHORT_INTERVAL
-import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
+import dev.halim.shelfdroid.core.data.session.LocalSessionRepo
+import dev.halim.shelfdroid.core.data.session.RemoteSessionRepo
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration
@@ -28,8 +28,8 @@ class SessionManager
 @Inject
 constructor(
   private val player: Lazy<ExoPlayer>,
-  private val playerRepository: Lazy<PlayerRepository>,
   private val localSessionRepo: LocalSessionRepo,
+  private val remoteSessionRepo: RemoteSessionRepo,
   private val networkMonitor: NetworkMonitor,
 ) {
   private var duration = Duration.ZERO
@@ -107,7 +107,7 @@ constructor(
       if (isLocal) {
         localSessionRepo.syncLocal(uiState, getCurrentPositionSafe())
       } else {
-        playerRepository.get().syncSession(uiState, getCurrentPositionSafe(), duration)
+        remoteSessionRepo.syncSession(uiState, getCurrentPositionSafe(), duration)
       }
       resetDuration()
       isSyncing = false

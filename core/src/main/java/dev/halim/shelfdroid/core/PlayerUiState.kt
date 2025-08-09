@@ -26,6 +26,17 @@ sealed class MediaStructure {
   data object MultiTrackWithChapters : MediaStructure()
 
   data object MultiTrack : MediaStructure()
+
+  companion object {
+    fun from(hasChapter: Boolean, multipleTrack: Boolean): MediaStructure {
+      return when {
+        hasChapter && multipleTrack -> MultiTrackWithChapters
+        hasChapter && !multipleTrack -> SingleTrackWithChapters
+        !hasChapter && multipleTrack -> MultiTrack
+        else -> SingleTrack
+      }
+    }
+  }
 }
 
 data class PlayerUiState(
@@ -106,5 +117,3 @@ data class MultipleButtonState(
   val showPlay: Boolean = true,
   val seekSliderEnabled: Boolean = false,
 )
-
-data class PlayerInternalState(val sessionId: String = "")
