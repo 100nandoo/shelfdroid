@@ -2,6 +2,8 @@
 
 ## High Priority
 
+- [ ] Jump to bookmark
+- [ ] Play multiple tracks
 - [ ] Widget
 - [ ] Backup Restore
 
