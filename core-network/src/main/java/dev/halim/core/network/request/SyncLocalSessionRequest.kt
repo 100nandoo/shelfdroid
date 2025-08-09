@@ -14,7 +14,7 @@ data class SyncLocalSessionRequest(
   @SerialName("episodeId") val episodeId: String? = null,
   @SerialName("mediaType") val mediaType: String,
   @SerialName("mediaMetadata") val mediaMetadata: Metadata,
-  @SerialName("chapters") val chapters: List<BookChapter>,
+  @SerialName("chapters") val chapters: List<BookChapter>?,
   @SerialName("displayTitle") val displayTitle: String,
   @SerialName("displayAuthor") val displayAuthor: String,
   @SerialName("coverPath") val coverPath: String,

@@ -6,8 +6,7 @@
     - [x] Create entity for local request
     - [x] Create repo for entity
     - [x] Handle write entity
-    - [ ] Handle sync when connected to internet for multiple entity
-    - [ ] Handle sync when connected to internet
+    - [x] Handle sync when connected to internet for multiple entity
 - [ ] Widget
 - [ ] Backup Restore
 

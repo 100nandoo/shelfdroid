@@ -20,6 +20,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -45,11 +50,18 @@ constructor(
 
   init {
     syncScope.launch {
-      combine(networkMonitor.status, localSessionRepo.count()) { status, count ->
-          isMetered = status.isMetered
-          status.hasInternet && (count ?: 0) > 0
+      combine(
+          networkMonitor.status.map { it.hasInternet to it.isMetered }.distinctUntilChanged(),
+          localSessionRepo.hasProgress(),
+        ) { (hasInternet, isMetered), hasProgress ->
+          (hasInternet && hasProgress) to isMetered
         }
-        .collect { shouldSync -> if (shouldSync) localSessionRepo.syncToServer() }
+        .filter { (shouldSync, _) -> shouldSync }
+        .onEach { (_, isMeteredValue) ->
+          isMetered = isMeteredValue
+          localSessionRepo.syncToServer()
+        }
+        .launchIn(this)
     }
   }
 
@@ -69,7 +81,7 @@ constructor(
 
     isLocal = this.uiState.download.state.isDownloaded()
     if (isLocal) {
-      syncScope.launch { localSessionRepo.startBook(uiState) }
+      syncScope.launch { localSessionRepo.start(uiState) }
     }
   }
 

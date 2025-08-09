@@ -6,7 +6,7 @@ CREATE TABLE LocalSessionEntity (
   episodeId TEXT,
   mediaType TEXT NOT NULL,
   mediaMetadata TEXT NOT NULL,
-  chapters TEXT NOT NULL,
+  chapters TEXT,
   displayTitle TEXT NOT NULL,
   displayAuthor TEXT NOT NULL,
   coverPath TEXT NOT NULL,
@@ -21,7 +21,8 @@ CREATE TABLE LocalSessionEntity (
   startTime REAL NOT NULL,
   currentTime REAL NOT NULL,
   startedAt INTEGER NOT NULL,
-  updatedAt INTEGER NOT NULL
+  updatedAt INTEGER NOT NULL,
+  synced INTEGER NOT NULL
 );
 
 insert:
@@ -48,7 +49,8 @@ INSERT OR REPLACE INTO LocalSessionEntity(
   startTime,
   currentTime,
   startedAt,
-  updatedAt
+  updatedAt,
+  synced
 ) VALUES ?;
 
 update:
@@ -56,14 +58,31 @@ UPDATE LocalSessionEntity
 SET
   currentTime = :currentTime,
   updatedAt = :updateAt,
-  timeListening = :currentTime - startTime
+  timeListening = :currentTime - startTime,
+  synced = 0
+WHERE id = ?;
+
+updateSynced:
+UPDATE LocalSessionEntity
+SET
+  synced = :synced
 WHERE id = ?;
 
 all:
 SELECT * FROM LocalSessionEntity;
+
+allNotSync:
+SELECT * FROM LocalSessionEntity WHERE synced = 0;
 
 deleteById:
 DELETE FROM LocalSessionEntity WHERE id = ?;
 
 count:
 SELECT count(*) FROM LocalSessionEntity;
+
+hasProgress:
+SELECT EXISTS(
+  SELECT 1
+  FROM LocalSessionEntity
+  WHERE currentTime != startTime AND synced = 0
+) AS hasProgress;

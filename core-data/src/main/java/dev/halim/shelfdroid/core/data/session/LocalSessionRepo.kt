@@ -3,7 +3,7 @@
 package dev.halim.shelfdroid.core.data.session
 
 import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToOneOrNull
+import app.cash.sqldelight.coroutines.mapToOne
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.DeviceInfo
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
@@ -12,6 +12,9 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.BookMetadata
 import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_BOOK
+import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_PODCAST
+import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.core.network.response.libraryitem.PodcastMetadata
 import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
@@ -45,6 +48,7 @@ constructor(
   private val helper: Helper,
   private val device: Device,
   private val api: ApiService,
+  private val json: Json,
   private val playerInternalStateHolder: PlayerInternalStateHolder,
   db: MyDatabase,
 ) {
@@ -55,9 +59,64 @@ constructor(
   private val progressQueries = db.progressEntityQueries
   private val syncMutex = Mutex()
 
-  fun count(): Flow<Long?> = queries.count().asFlow().mapToOneOrNull(Dispatchers.IO)
+  fun hasProgress(): Flow<Boolean> = queries.hasProgress().asFlow().mapToOne(Dispatchers.IO)
 
-  suspend fun startBook(uiState: PlayerUiState) {
+  suspend fun start(uiState: PlayerUiState) {
+    val isBook = uiState.episodeId.isBlank()
+    if (isBook) {
+      startBook(uiState)
+    } else {
+      startPodcast(uiState)
+    }
+  }
+
+  fun syncLocal(uiState: PlayerUiState, rawPositionMs: Long) {
+    val now = helper.nowMilis()
+    val currentTime = finder.bookPosition(playerInternalStateHolder.startOffset(), rawPositionMs)
+
+    queries.update(currentTime, now, playerInternalStateHolder.sessionId())
+
+    val isBook = uiState.episodeId.isBlank()
+    if (isBook) {
+      progressQueries.updateBookCurrentTime(currentTime = currentTime, uiState.id)
+    } else {
+      progressQueries.updatePodcastCurrentTime(currentTime = currentTime, uiState.episodeId)
+    }
+  }
+
+  suspend fun syncToServer() {
+    if (!syncMutex.tryLock()) return
+    try {
+      val entities = queries.allNotSync().executeAsList()
+      val isOne = entities.size == 1
+
+      if (isOne) {
+        val entity = entities.first()
+        val result = api.syncLocalSession(toRequest(entity))
+        if (result.isSuccess) {
+          queries.updateSynced(1, entity.id)
+          if (playerInternalStateHolder.sessionId() != entity.id) {
+            queries.deleteById(entity.id)
+          }
+        }
+      } else {
+        val listRequest = entities.map { toRequest(it) }
+        val response = api.syncLocalAllSession(SyncLocalAllSessionRequest(listRequest)).getOrNull()
+        response?.results?.forEach {
+          if (it.success) {
+            queries.updateSynced(1, it.id)
+            if (it.id != playerInternalStateHolder.sessionId()) {
+              queries.deleteById(it.id)
+            }
+          }
+        }
+      }
+    } finally {
+      syncMutex.unlock()
+    }
+  }
+
+  private suspend fun startBook(uiState: PlayerUiState) {
     val userPrefs = dataStoreManager.userPrefs.firstOrNull()
     val serverPrefs = dataStoreManager.serverPrefs.firstOrNull()
     val book = libraryItemRepo.byId(uiState.id)
@@ -68,45 +127,101 @@ constructor(
     book
       .takeIf { it.isBook == 1L }
       .let {
-        val media = Json.Default.decodeFromString<Book>(book.media)
-        val mediaMetadata = Json.Default.encodeToString(media.metadata)
-        val entity = createEntity(media, uiState, userPrefs, book, mediaMetadata, serverPrefs)
+        val media = json.decodeFromString<Book>(book.media)
+        val mediaMetadata = json.encodeToString(media.metadata)
+        val chapters = json.encodeToString(media.chapters)
+        val coverPath = media.coverPath ?: ""
+        val duration = media.duration ?: 0.0
+        val entity =
+          createEntity(
+            coverPath,
+            duration,
+            chapters,
+            MEDIA_TYPE_BOOK,
+            uiState,
+            userPrefs,
+            book,
+            mediaMetadata,
+            serverPrefs,
+          )
         queries.insert(entity)
       }
   }
 
-  fun syncLocal(uiState: PlayerUiState, rawPositionMs: Long) {
-    val now = helper.nowMilis()
-    val currentTime = finder.bookPosition(playerInternalStateHolder.startOffset(), rawPositionMs)
+  private suspend fun startPodcast(uiState: PlayerUiState) {
+    val userPrefs = dataStoreManager.userPrefs.firstOrNull()
+    val serverPrefs = dataStoreManager.serverPrefs.firstOrNull()
+    val podcast = libraryItemRepo.byId(uiState.id)
+    if (userPrefs == null) return
+    if (serverPrefs == null) return
+    if (podcast == null) return
 
-    queries.update(currentTime, now, playerInternalStateHolder.sessionId())
-    progressQueries.updateBookCurrentTime(currentTime = currentTime, uiState.id)
+    podcast
+      .takeIf { it.isBook != 1L }
+      .let {
+        val media = json.decodeFromString<Podcast>(podcast.media)
+        val mediaMetadata = json.encodeToString(media.metadata)
+        val coverPath = media.coverPath ?: ""
+        val duration = uiState.currentTrack.duration
+        val entity =
+          createEntity(
+            coverPath,
+            duration,
+            null,
+            MEDIA_TYPE_PODCAST,
+            uiState,
+            userPrefs,
+            podcast,
+            mediaMetadata,
+            serverPrefs,
+          )
+        queries.insert(entity)
+      }
   }
 
-  suspend fun syncToServer() {
-    if (!syncMutex.tryLock()) return
-    try {
-      val entities = queries.all().executeAsList()
-      val isOne = entities.size == 1
+  private fun createEntity(
+    coverPath: String,
+    duration: Double,
+    chapters: String?,
+    mediaType: String,
+    uiState: PlayerUiState,
+    userPrefs: UserPrefs,
+    entity: LibraryItemEntity,
+    mediaMetadata: String,
+    serverPrefs: ServerPrefs,
+  ): LocalSessionEntity {
+    val startTimeServer = uiState.currentTime + (uiState.currentChapter?.startTimeSeconds ?: 0.0)
 
-      if (isOne) {
-        val entity = entities.first()
-        val result = api.syncLocalSession(toRequest(entity))
-        if (result.isSuccess && playerInternalStateHolder.sessionId() != entity.id) {
-          queries.deleteById(entity.id)
-        }
-      } else {
-        val listRequest = entities.map { toRequest(it) }
-        val response = api.syncLocalAllSession(SyncLocalAllSessionRequest(listRequest)).getOrNull()
-        response?.results?.forEach {
-          if (it.success && it.id != playerInternalStateHolder.sessionId()) {
-            queries.deleteById(it.id)
-          }
-        }
-      }
-    } finally {
-      syncMutex.unlock()
-    }
+    val deviceInfoString = createDeviceInfoString()
+    val (currentDateString, dayOfWeek, startAt) = calculateDateDayAndStartAt()
+    val localSessionEntity =
+      LocalSessionEntity(
+        id = playerInternalStateHolder.sessionId(),
+        userId = userPrefs.id,
+        libraryId = entity.libraryId,
+        libraryItemId = entity.id,
+        episodeId = uiState.episodeId,
+        mediaType = mediaType,
+        mediaMetadata = mediaMetadata,
+        chapters = chapters,
+        displayTitle = uiState.title,
+        displayAuthor = uiState.author,
+        coverPath = coverPath,
+        duration = duration,
+        playMethod = 0L,
+        mediaPlayer = device.mediaPlayer,
+        deviceInfo = deviceInfoString,
+        serverVersion = serverPrefs.version,
+        date = currentDateString,
+        dayOfWeek = dayOfWeek,
+        timeListening = 0L,
+        startTime = startTimeServer,
+        currentTime = startTimeServer,
+        startedAt = startAt,
+        updatedAt = startAt,
+        synced = 0,
+      )
+    return localSessionEntity
   }
 
   private fun calculateDateDayAndStartAt(): Triple<String, String, Long> {
@@ -129,57 +244,20 @@ constructor(
         clientName = device.clientName,
         clientVersion = device.clientVersion,
       )
-    val deviceInfoString = Json.Default.encodeToString(deviceInfo)
+    val deviceInfoString = json.encodeToString(deviceInfo)
     return deviceInfoString
   }
 
-  private fun createEntity(
-    media: Book,
-    uiState: PlayerUiState,
-    userPrefs: UserPrefs,
-    book: LibraryItemEntity,
-    mediaMetadata: String,
-    serverPrefs: ServerPrefs,
-  ): LocalSessionEntity {
-    val chapters = Json.Default.encodeToString(media.chapters)
-    val startTimeServer = uiState.currentTime + (uiState.currentChapter?.startTimeSeconds ?: 0.0)
-
-    val deviceInfoString = createDeviceInfoString()
-    val (currentDateString, dayOfWeek, startAt) = calculateDateDayAndStartAt()
-
-    val entity =
-      LocalSessionEntity(
-        id = playerInternalStateHolder.sessionId(),
-        userId = userPrefs.id,
-        libraryId = book.libraryId,
-        libraryItemId = book.id,
-        episodeId = null,
-        mediaType = MEDIA_TYPE_BOOK,
-        mediaMetadata = mediaMetadata,
-        chapters = chapters,
-        displayTitle = book.title,
-        displayAuthor = book.author,
-        coverPath = media.coverPath ?: "",
-        duration = media.duration ?: 0.0,
-        playMethod = 0L,
-        mediaPlayer = device.mediaPlayer,
-        deviceInfo = deviceInfoString,
-        serverVersion = serverPrefs.version,
-        date = currentDateString,
-        dayOfWeek = dayOfWeek,
-        timeListening = 0L,
-        startTime = startTimeServer,
-        currentTime = startTimeServer,
-        startedAt = startAt,
-        updatedAt = startAt,
-      )
-    return entity
-  }
-
   private fun toRequest(entity: LocalSessionEntity): SyncLocalSessionRequest {
-    val mediaMetadata = Json.Default.decodeFromString<BookMetadata>(entity.mediaMetadata)
-    val chapters = Json.Default.decodeFromString<List<BookChapter>>(entity.chapters)
-    val deviceInfo = Json.Default.decodeFromString<DeviceInfo>(entity.deviceInfo)
+    val isBook = entity.episodeId?.isBlank() ?: true
+    val mediaMetadata =
+      if (isBook) {
+        json.decodeFromString<BookMetadata>(entity.mediaMetadata)
+      } else {
+        json.decodeFromString<PodcastMetadata>(entity.mediaMetadata)
+      }
+    val chapters = entity.chapters?.let { json.decodeFromString<List<BookChapter>>(it) }
+    val deviceInfo = json.decodeFromString<DeviceInfo>(entity.deviceInfo)
     return SyncLocalSessionRequest(
       entity.id,
       entity.userId,

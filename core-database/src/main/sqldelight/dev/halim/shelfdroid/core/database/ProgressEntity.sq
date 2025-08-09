@@ -50,6 +50,12 @@ UPDATE ProgressEntity
 SET progress = :progress, currentTime = :currentTime
 WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
 
+updatePodcastCurrentTime:
+UPDATE ProgressEntity
+SET currentTime = :currentTime,
+    progress = :currentTime/duration
+WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
+
 deleteBookById:
 DELETE FROM ProgressEntity
 WHERE libraryItemId = :libraryItemId;
