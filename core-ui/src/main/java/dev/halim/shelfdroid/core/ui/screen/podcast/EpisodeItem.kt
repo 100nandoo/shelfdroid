@@ -118,7 +118,11 @@ fun EpisodeItem(
             snackbarHostState,
             {
               val downloadEvent =
-                CommonDownloadEvent.Download(episode.download.id, episode.download.url)
+                CommonDownloadEvent.Download(
+                  episode.download.id,
+                  episode.download.url,
+                  episode.title,
+                )
               onEvent(PodcastEvent.DownloadEvent(downloadEvent))
             },
             {

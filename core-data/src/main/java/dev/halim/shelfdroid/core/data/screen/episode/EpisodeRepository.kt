@@ -53,6 +53,7 @@ constructor(
               itemId = itemId,
               episodeId = episodeId,
               url = episode.audioTrack.contentUrl,
+              title = episode.title,
             )
 
           EpisodeUiState(

@@ -10,11 +10,11 @@ import javax.inject.Inject
 
 @SuppressLint("UnsafeOptInUsageError")
 class DownloadTracker @Inject constructor(@ApplicationContext private val context: Context) {
-  fun download(id: String, url: String) {
+  fun download(id: String, url: String, message: String) {
     DownloadService.sendAddDownload(
       context,
       ShelfDownloadService::class.java,
-      toDownloadRequest(id, url),
+      toDownloadRequest(id, url, message),
       false,
     )
   }
@@ -23,7 +23,10 @@ class DownloadTracker @Inject constructor(@ApplicationContext private val contex
     DownloadService.sendRemoveDownload(context, ShelfDownloadService::class.java, id, false)
   }
 
-  private fun toDownloadRequest(id: String, url: String): DownloadRequest {
-    return DownloadRequest.Builder(id, url.toUri()).setCustomCacheKey(id).build()
+  private fun toDownloadRequest(id: String, url: String, message: String): DownloadRequest {
+    return DownloadRequest.Builder(id, url.toUri())
+      .setCustomCacheKey(id)
+      .setData(message.toByteArray())
+      .build()
   }
 }

@@ -61,7 +61,12 @@ fun EpisodeScreen(viewModel: EpisodeViewModel = hiltViewModel(), playerViewModel
       isPlaying = isPlaying,
       downloadUiState = uiState.download,
       onDownloadClicked = {
-        val downloadEvent = CommonDownloadEvent.Download(uiState.download.id, uiState.download.url)
+        val downloadEvent =
+          CommonDownloadEvent.Download(
+            uiState.download.id,
+            uiState.download.url,
+            uiState.download.title,
+          )
         viewModel.onEvent(EpisodeEvent.DownloadEvent(downloadEvent))
       },
       onDeleteDownloadClicked = {

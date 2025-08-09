@@ -66,7 +66,11 @@ constructor(
       is PodcastEvent.DownloadEvent -> {
         when (event.downloadEvent) {
           is CommonDownloadEvent.Download -> {
-            downloadTracker.download(event.downloadEvent.downloadId, event.downloadEvent.url)
+            downloadTracker.download(
+              event.downloadEvent.downloadId,
+              event.downloadEvent.url,
+              event.downloadEvent.message,
+            )
           }
           is CommonDownloadEvent.DeleteDownload -> {
             downloadTracker.delete(event.downloadEvent.downloadId)

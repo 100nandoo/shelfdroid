@@ -104,7 +104,7 @@ constructor(
       val downloadUiState =
         if (isSingleTrack) {
           val url = media.audioTracks.first().contentUrl
-          downloadRepo.item(itemId = id, url = url)
+          downloadRepo.item(itemId = id, url = url, title = currentChapter?.title ?: result.title)
         } else {
           DownloadUiState()
         }
@@ -141,6 +141,7 @@ constructor(
           itemId = itemId,
           episodeId = episodeId,
           url = episode.audioTrack.contentUrl,
+          title = episode.title,
         )
 
       val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }

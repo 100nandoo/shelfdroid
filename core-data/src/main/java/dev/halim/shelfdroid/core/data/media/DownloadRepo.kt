@@ -47,13 +47,18 @@ constructor(
     )
   }
 
-  suspend fun item(itemId: String, episodeId: String? = null, url: String): DownloadUiState {
+  suspend fun item(
+    itemId: String,
+    episodeId: String? = null,
+    url: String,
+    title: String,
+  ): DownloadUiState {
     val downloadId = helper.generateDownloadId(itemId, episodeId)
     val download = downloadById(downloadId)
     val downloadState = downloadMapper.toDownloadState(download?.state)
     val downloadUrl = helper.generateContentUrl(url)
 
-    return DownloadUiState(state = downloadState, id = downloadId, url = downloadUrl)
+    return DownloadUiState(state = downloadState, id = downloadId, url = downloadUrl, title = title)
   }
 
   private fun downloadById(id: String): Download? {

@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.media.download
 
 import android.app.Notification
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
@@ -45,13 +46,14 @@ class ShelfDownloadService :
     downloads: List<Download>,
     notMetRequirements: Int,
   ): Notification {
+    val message = downloads.joinToString(separator = "\n") { Util.fromUtf8Bytes(it.request.data) }
     return downloadNotificationHelper
       .get()
       .buildProgressNotification(
         this,
         R.drawable.download,
         null,
-        null,
+        message,
         downloads,
         notMetRequirements,
       )

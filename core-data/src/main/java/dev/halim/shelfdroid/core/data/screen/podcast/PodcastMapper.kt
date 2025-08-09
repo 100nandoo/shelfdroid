@@ -23,9 +23,10 @@ constructor(private val helper: Helper, private val downloadRepository: Download
 
         val downloadUiState =
           downloadRepository.item(
-            podcastEpisode.libraryItemId,
-            podcastEpisode.id,
-            podcastEpisode.audioTrack.contentUrl,
+            itemId = podcastEpisode.libraryItemId,
+            episodeId = podcastEpisode.id,
+            url = podcastEpisode.audioTrack.contentUrl,
+            title = podcastEpisode.title,
           )
         Episode(
           episodeId = podcastEpisode.id,

@@ -4,6 +4,7 @@ data class DownloadUiState(
   val state: DownloadState = DownloadState.Unknown,
   val id: String = "",
   val url: String = "",
+  val title: String = "",
 )
 
 sealed class DownloadState {
