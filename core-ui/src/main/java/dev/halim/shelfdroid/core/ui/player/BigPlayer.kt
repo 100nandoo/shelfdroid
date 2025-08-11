@@ -142,7 +142,7 @@ fun BasicPlayerContent(id: String, author: String, title: String, cover: String)
         Modifier.fillMaxWidth(),
         cover = cover,
         animationKey = Animations.Companion.Player.coverKey(id),
-        shape = RoundedCornerShape(32.dp),
+        shape = RoundedCornerShape(8.dp),
       )
 
       Spacer(modifier = Modifier.height(16.dp))

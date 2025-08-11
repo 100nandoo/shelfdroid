@@ -117,7 +117,7 @@ constructor(
     syncScope.launch {
       isSyncing = true
       if (isLocal) {
-        localSessionRepo.syncLocal(uiState, getCurrentPositionSafe())
+        localSessionRepo.syncLocal(uiState, getCurrentPositionSafe(), duration)
       } else {
         remoteSessionRepo.syncSession(uiState, getCurrentPositionSafe(), duration)
       }

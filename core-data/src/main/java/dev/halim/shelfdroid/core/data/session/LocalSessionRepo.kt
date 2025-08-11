@@ -29,6 +29,7 @@ import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -63,6 +64,8 @@ constructor(
 
   suspend fun start(uiState: PlayerUiState) {
     val isBook = uiState.episodeId.isBlank()
+    val isExist = queries.hasId(playerInternalStateHolder.sessionId()).executeAsOneOrNull() == true
+    if (isExist) return
     if (isBook) {
       startBook(uiState)
     } else {
@@ -70,11 +73,11 @@ constructor(
     }
   }
 
-  fun syncLocal(uiState: PlayerUiState, rawPositionMs: Long) {
+  fun syncLocal(uiState: PlayerUiState, rawPositionMs: Long, duration: Duration) {
     val now = helper.nowMilis()
     val currentTime = finder.bookPosition(playerInternalStateHolder.startOffset(), rawPositionMs)
 
-    queries.update(currentTime, now, playerInternalStateHolder.sessionId())
+    queries.update(currentTime, now, duration.inWholeSeconds, playerInternalStateHolder.sessionId())
 
     val isBook = uiState.episodeId.isBlank()
     if (isBook) {
@@ -204,11 +207,11 @@ constructor(
         mediaType = mediaType,
         mediaMetadata = mediaMetadata,
         chapters = chapters,
-        displayTitle = uiState.title,
+        displayTitle = entity.title,
         displayAuthor = uiState.author,
         coverPath = coverPath,
         duration = duration,
-        playMethod = 0L,
+        playMethod = 3L,
         mediaPlayer = device.mediaPlayer,
         deviceInfo = deviceInfoString,
         serverVersion = serverPrefs.version,

@@ -58,7 +58,7 @@ UPDATE LocalSessionEntity
 SET
   currentTime = :currentTime,
   updatedAt = :updateAt,
-  timeListening = :currentTime - startTime,
+  timeListening = :timeListening + timeListening,
   synced = 0
 WHERE id = ?;
 
@@ -86,3 +86,10 @@ SELECT EXISTS(
   FROM LocalSessionEntity
   WHERE currentTime != startTime AND synced = 0
 ) AS hasProgress;
+
+hasId:
+SELECT EXISTS(
+    SELECT 1
+    FROM LocalSessionEntity
+    WHERE id = :id
+) AS hasId;
