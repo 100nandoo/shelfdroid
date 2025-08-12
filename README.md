@@ -48,13 +48,13 @@ to ensure a scalable and maintainable codebase.
 
 - [ ] Implement core audiobook streaming functionality.
 - [ ] Add offline downloading and playback.
-- [ ] Enhance playback controls with bookmarks and sleep timers.
 - [ ] Improve search and filtering features.
-- [ ] Develop a modern and user-friendly UI.
 - [ ] Introduce custom themes for personalization.
-- [ ] Support audiobook chapters for easy navigation.
 - [ ] Add in-app settings for customization.
 - [ ] Integrate Google Assistant for voice control.
+- [x] Enhance playback controls with bookmarks and sleep timers.
+- [x] Develop a modern and user-friendly UI.
+- [x] Support audiobook chapters for easy navigation.
 
 Feel free to check out the [Issues](https://github.com/100nandoo/shelfdroid/issues) section to see
 what’s in progress or
@@ -71,10 +71,11 @@ Contributions are welcome! If you'd like to contribute, please follow these step
     ```bash
     git checkout -b feature/YourFeatureName
     ```
-3. Make your changes and commit:
+3. Make your changes and commit them using [Commitizen](https://github.com/commitizen/cz-cli):
     ```bash
-    git commit -m "Add YourFeatureName"
+    cz c
     ```
+   This will guide you through creating a compliant commit message.
 4. Push your branch:
     ```bash
     git push origin feature/YourFeatureName

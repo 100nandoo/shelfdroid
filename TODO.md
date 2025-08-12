@@ -2,14 +2,14 @@
 
 ## High Priority
 
-- [ ] Jump to bookmark
+- [ ] Download notification intent
+- [ ] Sort
 - [ ] Play multiple tracks
 - [ ] Widget
 - [ ] Backup Restore
 
-## Bugs
 
-### Low Priority
+## Low Priority
 
 - [ ] Preview for all UI component
 - [ ] Settings
@@ -17,6 +17,8 @@
     - [ ] Onclick notification, (big/small)
     - [ ] Choose custom Commands
     - [ ] Disable animation
+
+## Bugs
 
 ## Done
 
@@ -46,3 +48,4 @@
 - [x] List View
 - [x] while offline, allow playback downloaded item
 - [x] Local playback sync book
+- [x] Jump to bookmark
