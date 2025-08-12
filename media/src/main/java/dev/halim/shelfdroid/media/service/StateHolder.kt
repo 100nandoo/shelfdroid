@@ -39,15 +39,21 @@ constructor(
 
   fun playContent() {
     player.get().apply {
-      val mediaItem = mediaItemMapper.toMediaItem(uiState.value)
-      val positionMs = uiState.value.currentTime.toLong() * 1000
-      setMediaItem(mediaItem, positionMs)
-      prepare()
+      changeContent()
       play()
       collectPlaybackProgress()
       listenIsPlaying()
       listenPlayer()
       syncSession()
+    }
+  }
+
+  fun changeContent() {
+    player.get().apply {
+      val mediaItem = mediaItemMapper.toMediaItem(uiState.value)
+      val positionMs = uiState.value.currentTime.toLong() * 1000
+      setMediaItem(mediaItem, positionMs)
+      prepare()
     }
   }
 

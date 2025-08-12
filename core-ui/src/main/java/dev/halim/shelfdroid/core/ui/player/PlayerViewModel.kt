@@ -98,7 +98,15 @@ constructor(
           _uiState.update { playerRepository.deleteBookmark(_uiState.value, event.bookmark) }
         }
       }
-      is PlayerEvent.GoToBookmark -> TODO()
+      is PlayerEvent.GoToBookmark -> {
+        viewModelScope.launch {
+          _uiState.update {
+            val newUiState = playerRepository.goToBookmark(_uiState.value, event.time)
+            newUiState
+          }
+          stateHolder.changeContent()
+        }
+      }
       is PlayerEvent.UpdateBookmark -> {
         viewModelScope.launch {
           _uiState.update {

@@ -28,7 +28,7 @@ constructor(
       if (isBook) progressRepo.bookById(uiState.id) else progressRepo.episodeById(uiState.episodeId)
     entity?.let {
       val progress = currentTime / it.duration
-      val updated = it.copy(currentTime = currentTime.toDouble(), progress = progress)
+      val updated = it.copy(currentTime = currentTime, progress = progress)
       progressRepo.updateProgress(updated)
     }
   }

@@ -6,7 +6,6 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.PlayerBookmark
-import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerTrack
@@ -96,7 +95,7 @@ constructor(
       val isSingleTrack = media.audioTracks.size == 1
       val playerTracks = media.audioTracks.map { mapper.toPlayerTrack(it) }
       val currentTrack = findCurrentPlayerTrack(playerTracks, progress?.currentTime ?: 0.0)
-      val currentChapter = findCurrentPlayerChapter(chapters, progress?.currentTime ?: 0.0)
+      val currentChapter = finder.playerChapter(chapters, progress?.currentTime ?: 0.0)
       val currentTime =
         if (currentChapter != null) (progress?.currentTime ?: 0.0) - currentChapter.startTimeSeconds
         else progress?.currentTime ?: 0.0
@@ -170,22 +169,11 @@ constructor(
       ?: playerTracks.first()
   }
 
-  private fun findCurrentPlayerChapter(
-    playerChapters: List<PlayerChapter>,
-    currentTime: Double,
-  ): PlayerChapter? {
-    // Find the last chapter that starts at or before the current time
-    if (playerChapters.isEmpty()) return null
-    return playerChapters
-      .sortedBy { it.startTimeSeconds }
-      .lastOrNull { it.startTimeSeconds <= currentTime } ?: playerChapters.first()
-  }
-
   fun changeChapter(uiState: PlayerUiState, target: Int): PlayerUiState {
     val chapters = uiState.playerChapters
     return if (target in chapters.indices) {
       val targetChapter = chapters[target]
-      val targetTrack = findTrackFromChapter(uiState, targetChapter)
+      val targetTrack = finder.trackFromChapter(uiState, targetChapter)
       val currentTime =
         if (uiState.playerTracks.size > 1) targetChapter.startTimeSeconds - targetTrack.startOffset
         else 0.0
@@ -245,16 +233,6 @@ constructor(
     return uiState.copy(advancedControl = advancedControl)
   }
 
-  private fun findTrackFromChapter(uiState: PlayerUiState, chapter: PlayerChapter): PlayerTrack {
-    val tracks = uiState.playerTracks
-    return if (tracks.size == 1) {
-      return tracks.first()
-    } else {
-      val track = tracks.lastOrNull { it.startOffset <= chapter.startTimeSeconds } ?: tracks.first()
-      track
-    }
-  }
-
   suspend fun deleteBookmark(uiState: PlayerUiState, bookmark: PlayerBookmark): PlayerUiState {
     val id = uiState.id
     val result = apiService.deleteBookmark(uiState.id, bookmark.time.toInt()).getOrNull()
@@ -263,6 +241,31 @@ constructor(
     val bookmarks = uiState.playerBookmarks.toMutableList()
     bookmarks.remove(bookmark)
     return uiState.copy(playerBookmarks = bookmarks)
+  }
+
+  fun goToBookmark(uiState: PlayerUiState, time: Long): PlayerUiState {
+    val targetChapter = finder.playerChapter(uiState.playerChapters, time.toDouble())
+    return if (targetChapter != null) {
+      val durationMs = (targetChapter.endTimeSeconds - targetChapter.startTimeSeconds) * 1000
+      val positionMs = (time - targetChapter.startTimeSeconds) * 1000
+      val rawPlaybackProgress = RawPlaybackProgress(positionMs.toLong(), durationMs.toLong(), 0)
+      val result = changeChapter(uiState, uiState.playerChapters.indexOf(targetChapter))
+      val playbackProgress = mapper.toPlaybackProgressBook(result, rawPlaybackProgress)
+      result.copy(
+        currentTime = time - playerInternalStateHolder.startOffset(),
+        playbackProgress = playbackProgress,
+      )
+    } else {
+      val targetTrack = finder.trackFromCurrentTime(uiState, time.toDouble())
+      val durationMs = targetTrack.duration * 1000
+      val rawPlaybackProgress = RawPlaybackProgress(time * 1000, durationMs.toLong(), 0)
+      val playbackProgress = mapper.toPlaybackProgressBook(uiState, rawPlaybackProgress)
+      uiState.copy(
+        currentTime = time.toDouble(),
+        currentTrack = targetTrack,
+        playbackProgress = playbackProgress,
+      )
+    }
   }
 
   suspend fun updateBookmark(
@@ -281,7 +284,7 @@ constructor(
   }
 
   fun newBookmarkTime(uiState: PlayerUiState, currentTime: Long): PlayerUiState {
-    val newBookmarkTime = finder.startTime(uiState) + currentTime
+    val newBookmarkTime = playerInternalStateHolder.startOffset() + currentTime
     val readableTime = helper.formatChapterTime(newBookmarkTime)
     val bookmark = PlayerBookmark(time = newBookmarkTime.toLong(), readableTime = readableTime)
     return uiState.copy(newBookmarkTime = bookmark)
