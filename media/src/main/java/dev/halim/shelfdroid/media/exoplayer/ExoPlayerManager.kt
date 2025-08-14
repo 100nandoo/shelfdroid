@@ -1,14 +1,45 @@
 package dev.halim.shelfdroid.media.exoplayer
 
-import androidx.media3.common.util.Util.handlePlayPauseButtonAction
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
+sealed class PlayerEvent {
+  object Pause : PlayerEvent()
+
+  object Resume : PlayerEvent()
+}
+
+@Singleton
 class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
+
+  private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+  private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+  private val _events = MutableSharedFlow<PlayerEvent>()
+  val events: SharedFlow<PlayerEvent> = _events
+
+  fun isPlaying() = player.get().isPlaying
+
+  suspend fun isPlayingSafe(): Boolean =
+    withContext(Dispatchers.Main) {
+      val result = player.get().isPlaying
+      return@withContext result
+    }
 
   fun rawDuration(): Long {
     return player.get().duration
+  }
+
+  suspend fun currentPosition(): Long {
+    return withContext(Dispatchers.Main) { player.get().currentPosition }
   }
 
   fun seekBack() {
@@ -19,16 +50,14 @@ class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
     player.get().seekForward()
   }
 
-  fun playPause() {
-    handlePlayPauseButtonAction(player.get())
-  }
-
   fun pause() {
     player.get().pause()
+    emit(PlayerEvent.Pause)
   }
 
   fun resume() {
     player.get().play()
+    emit(PlayerEvent.Resume)
   }
 
   fun clearAndStop() {
@@ -48,5 +77,9 @@ class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
 
   fun currentTime(): Long {
     return player.get().currentPosition
+  }
+
+  private fun emit(event: PlayerEvent) {
+    syncScope.launch { _events.emit(event) }
   }
 }

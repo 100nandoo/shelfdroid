@@ -67,7 +67,10 @@ constructor(
       }
       PlayerEvent.SeekBackButton -> playerManager.get().seekBack()
       PlayerEvent.SeekForwardButton -> playerManager.get().seekForward()
-      PlayerEvent.PlayPauseButton -> playerManager.get().playPause()
+      PlayerEvent.PlayPauseButton -> {
+        if (_uiState.value.exoState == ExoState.Playing) playerManager.get().pause()
+        else playerManager.get().resume()
+      }
       is PlayerEvent.SeekTo -> {
         val durationMs = playerManager.get().rawDuration()
         _uiState.update { playerRepository.seekTo(_uiState.value, event.target, durationMs) }

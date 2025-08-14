@@ -1,49 +1,47 @@
 package dev.halim.shelfdroid.media.misc
 
-import android.util.Log
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import dagger.Lazy
+import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
+import dev.halim.shelfdroid.media.exoplayer.PlayerEvent
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class TimerManager @Inject constructor(private val player: Lazy<ExoPlayer>) {
+class TimerManager @Inject constructor(private val exoPlayerManager: ExoPlayerManager) {
 
   var duration = MutableStateFlow(Duration.ZERO)
     private set
 
   private var timerFinished: () -> Unit = {}
   private var sleepJob: Job? = null
-  private var isPlaying = false
+  private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-  private val listener =
-    object : Player.Listener {
-      override fun onIsPlayingChanged(isPlaying: Boolean) {
-        super.onIsPlayingChanged(isPlaying)
-        this@TimerManager.isPlaying = isPlaying
-
-        if (isPlaying) {
-          startSleepJob()
-        } else {
-          sleepJob?.cancel()
+  init {
+    syncScope.launch {
+      exoPlayerManager.events.collect { event ->
+        when (event) {
+          PlayerEvent.Pause -> {
+            sleepJob?.cancel()
+          }
+          PlayerEvent.Resume -> {
+            startSleepJob()
+          }
         }
       }
     }
+  }
 
   fun start(targetDuration: Duration, timerFinished: () -> Unit) {
     duration.value = targetDuration
     this.timerFinished = timerFinished
-    player.get().removeListener(listener)
-    player.get().addListener(listener)
-    isPlaying = player.get().isPlaying
-    if (isPlaying) {
+    if (exoPlayerManager.isPlaying()) {
       startSleepJob()
     }
   }
@@ -51,19 +49,18 @@ class TimerManager @Inject constructor(private val player: Lazy<ExoPlayer>) {
   private fun startSleepJob() {
     sleepJob?.cancel()
     sleepJob =
-      CoroutineScope(Dispatchers.IO).launch {
+      syncScope.launch {
         while (duration.value.inWholeSeconds > 0) {
           delay(1.seconds)
-          Log.d("timer", duration.value.inWholeSeconds.toString())
-          if (isPlaying) {
+          if (exoPlayerManager.isPlayingSafe()) {
             duration.value -= 1.seconds
           }
         }
-        CoroutineScope(Dispatchers.Main).launch {
+
+        withContext(Dispatchers.Main) {
           timerFinished()
           timerFinished = {}
           sleepJob?.cancel()
-          player.get().removeListener(listener)
         }
       }
   }
