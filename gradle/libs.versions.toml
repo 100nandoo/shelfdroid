@@ -36,7 +36,7 @@ datetime = "0.7.1"
 coroutines = "1.10.2"
 hilt = "2.57"
 junit = "4.13.2"
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 kotlinSerialization = "1.9.0"
 sqldelight = "2.1.0"
 
