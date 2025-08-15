@@ -1,5 +1,8 @@
 package dev.halim.shelfdroid.core.data
 
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import java.util.Locale
@@ -76,5 +79,36 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
 
   fun nowMilis(): Long {
     return System.currentTimeMillis()
+  }
+
+  fun createOpenPlayerIntent(mediaId: String, context: Context): PendingIntent =
+    createGenericIntent(context, ACTION_OPEN_PLAYER, mediaId)
+
+  fun createOpenDetailIntent(mediaId: String, context: Context): PendingIntent =
+    createGenericIntent(context, ACTION_OPEN_DETAIL, mediaId)
+
+  private fun createGenericIntent(
+    context: Context,
+    action: String,
+    mediaId: String,
+  ): PendingIntent {
+    val intent = Intent(action)
+    intent.apply {
+      setPackage(context.packageName)
+      putExtra(EXTRA_MEDIA_ID, mediaId)
+      flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+    }
+    return PendingIntent.getActivity(
+      context,
+      0,
+      intent,
+      PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+  }
+
+  companion object {
+    const val ACTION_OPEN_PLAYER = "dev.halim.shelfdroid.OPEN_PLAYER"
+    const val ACTION_OPEN_DETAIL = "dev.halim.shelfdroid.OPEN_DETAIL"
+    const val EXTRA_MEDIA_ID = "media_id"
   }
 }

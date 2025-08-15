@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.media.service
 
-import android.app.PendingIntent
 import android.content.Intent
 import android.os.Process
 import android.util.Log
@@ -12,6 +11,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import dev.halim.shelfdroid.core.data.Helper
 import javax.inject.Inject
 
 @UnstableApi
@@ -22,6 +22,7 @@ class PlaybackService : MediaLibraryService() {
   @Inject lateinit var player: Lazy<ExoPlayer>
   @Inject lateinit var mediaNotificationProvider: Lazy<CustomMediaNotificationProvider>
   @Inject lateinit var mediaLibrarySessionCallback: Lazy<MediaLibrarySession.Callback>
+  @Inject lateinit var helper: Lazy<Helper>
 
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession {
     return mediaLibrarySession
@@ -48,7 +49,7 @@ class PlaybackService : MediaLibraryService() {
             super.onIsPlayingChanged(isPlaying)
             if (isPlaying) {
               player.get().currentMediaItem?.mediaId?.let {
-                val intent = createIntent(it)
+                val intent = helper.get().createOpenPlayerIntent(it, this@PlaybackService)
                 Log.d("media3", "onIsPlayingChanged: $it")
                 mediaLibrarySession.setSessionActivity(intent)
               }
@@ -56,21 +57,6 @@ class PlaybackService : MediaLibraryService() {
           }
         }
       )
-  }
-
-  private fun createIntent(mediaId: String): PendingIntent {
-    val intent = Intent(ACTION_OPEN_PLAYER)
-    intent.apply {
-      setPackage(applicationContext.packageName)
-      putExtra(EXTRA_MEDIA_ID, mediaId)
-      flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-    }
-    return PendingIntent.getActivity(
-      this,
-      0,
-      intent,
-      PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-    )
   }
 
   override fun onDestroy() {
@@ -85,10 +71,5 @@ class PlaybackService : MediaLibraryService() {
   @OptIn(UnstableApi::class)
   override fun onTaskRemoved(rootIntent: Intent?) {
     pauseAllPlayersAndStopSelf()
-  }
-
-  companion object {
-    const val ACTION_OPEN_PLAYER = "dev.halim.shelfdroid.OPEN_PLAYER"
-    const val EXTRA_MEDIA_ID = "media_id"
   }
 }

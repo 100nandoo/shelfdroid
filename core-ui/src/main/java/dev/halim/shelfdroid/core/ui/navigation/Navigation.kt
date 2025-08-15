@@ -53,15 +53,15 @@ import kotlinx.serialization.Serializable
 fun MainNavigation(
   isLoggedIn: Boolean,
   viewModel: PlayerViewModel = hiltViewModel(),
-  pendingMediaId: String? = null,
-  onMediaIdHandled: () -> Unit = {},
+  navRequest: NavRequest,
+  onNavRequestComplete: () -> Unit = {},
 ) {
   SharedTransitionLayout {
     val navController = rememberNavController()
     val startDestination = if (isLoggedIn) Home else Login
 
-    LaunchedEffect(pendingMediaId) {
-      handlePendingMediaId(pendingMediaId, isLoggedIn, navController, onMediaIdHandled, viewModel)
+    LaunchedEffect(navRequest.mediaId) {
+      handlePendingMediaId(navRequest, isLoggedIn, navController, onNavRequestComplete, viewModel)
     }
     Column {
       NavHostContainer(

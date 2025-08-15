@@ -5,27 +5,33 @@ import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.media.mediaitem.MediaIdWrapper
 
+data class NavRequest(val mediaId: String? = null, val isOpenPlayer: Boolean = true)
+
 fun handlePendingMediaId(
-  pendingMediaId: String?,
+  navRequest: NavRequest,
   isLoggedIn: Boolean,
   navController: NavHostController,
-  onMediaIdHandled: () -> Unit,
+  onNavRequestComplete: () -> Unit,
   viewModel: PlayerViewModel,
 ) {
-  if (pendingMediaId == null || !isLoggedIn) return
+  if (navRequest.mediaId == null || !isLoggedIn) return
+  val mediaId = navRequest.mediaId
 
-  val request = MediaIdWrapper.fromMediaId(pendingMediaId)
+  val request = MediaIdWrapper.fromMediaId(mediaId)
   val episodeId = request.episodeId
 
   if (episodeId == null) {
-    navController.navigateOnce(Book(pendingMediaId), popUpToRoute = Home)
+    navController.navigateOnce(Book(mediaId), popUpToRoute = Home)
   } else {
     navController.navigateOnce(Podcast(request.itemId), Home)
     navController.navigateOnce(Episode(request.itemId, episodeId), Podcast(request.itemId))
   }
 
-  onMediaIdHandled()
-  viewModel.onEvent(PlayerEvent.Big)
+  if (navRequest.isOpenPlayer) {
+    viewModel.onEvent(PlayerEvent.Big)
+  }
+
+  onNavRequestComplete()
 }
 
 fun <T : Any> NavHostController.navigateOnce(

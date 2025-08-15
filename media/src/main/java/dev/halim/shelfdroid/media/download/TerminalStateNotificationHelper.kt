@@ -8,6 +8,7 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.media.R
 import dev.halim.shelfdroid.media.download.ShelfDownloadService.Companion.FOREGROUND_NOTIFICATION_ID
 import javax.inject.Inject
@@ -18,6 +19,7 @@ class TerminalStateNotificationHelper
 constructor(
   @ApplicationContext context: Context,
   private val notificationHelper: DownloadNotificationHelper,
+  private val helper: Helper,
 ) : DownloadManager.Listener {
 
   private val appContext: Context = context.applicationContext
@@ -28,13 +30,14 @@ constructor(
     download: Download,
     finalException: Exception?,
   ) {
+    val pendingIntent = helper.createOpenDetailIntent(download.request.id, appContext)
     val notification =
       when (download.state) {
         Download.STATE_COMPLETED ->
           notificationHelper.buildDownloadCompletedNotification(
             appContext,
             R.drawable.download_done,
-            null,
+            pendingIntent,
             Util.fromUtf8Bytes(download.request.data),
           )
 
@@ -42,7 +45,7 @@ constructor(
           notificationHelper.buildDownloadFailedNotification(
             appContext,
             R.drawable.download_failed,
-            null,
+            pendingIntent,
             Util.fromUtf8Bytes(download.request.data),
           )
 

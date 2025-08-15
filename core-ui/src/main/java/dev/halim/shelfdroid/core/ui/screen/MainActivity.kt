@@ -19,8 +19,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import dev.halim.shelfdroid.core.data.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.MainNavigation
+import dev.halim.shelfdroid.core.ui.navigation.NavRequest
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import javax.inject.Inject
@@ -36,7 +38,7 @@ class MainActivity : ComponentActivity() {
 
   @Inject lateinit var settingsRepository: SettingsRepository
   @Inject lateinit var mediaControllerManager: Lazy<MediaControllerManager>
-  private var pendingMediaId by mutableStateOf<String?>(null)
+  private var navRequest by mutableStateOf<NavRequest>(NavRequest())
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -59,8 +61,8 @@ class MainActivity : ComponentActivity() {
         ) {
           MainNavigation(
             isLoggedIn = token.isBlank().not(),
-            pendingMediaId = pendingMediaId,
-            onMediaIdHandled = { pendingMediaId = null },
+            navRequest = navRequest,
+            onNavRequestComplete = { navRequest = NavRequest() },
           )
         }
       }
@@ -84,6 +86,7 @@ class MainActivity : ComponentActivity() {
 
   private fun handleExtra() {
     val mediaId = intent.getStringExtra(EXTRA_MEDIA_ID)
-    pendingMediaId = mediaId
+    val isOpenPlayer = intent.action == ACTION_OPEN_PLAYER
+    navRequest = NavRequest(mediaId = mediaId, isOpenPlayer = isOpenPlayer)
   }
 }
