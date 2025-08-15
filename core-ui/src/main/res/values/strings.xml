@@ -34,6 +34,7 @@
     <string name="delete_bookmark_title">Delete Bookmark</string>
     <string name="are_you_sure_delete_bookmark">Are you sure you want to delete this bookmark?</string>
     <string name="dialog_logout_text">Logging out will delete all app data and cached content. Restarting the app is required to complete the cleanup and reload it from a clean state.</string>
+    <string name="dialog_delete_text">Are you sure you want to delete this item?</string>
     <!--Dialog-->
 
     <!--SnackBar-->

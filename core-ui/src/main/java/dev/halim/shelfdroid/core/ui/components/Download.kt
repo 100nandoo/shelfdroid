@@ -11,6 +11,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -27,12 +31,26 @@ fun DownloadButton(
 ) {
   val isDownloading = downloadState == DownloadState.Downloading
   val isDownloaded = downloadState.isDownloaded()
+  var showDeleteDialog by remember { mutableStateOf(false) }
+
+  MyAlertDialog(
+    title = stringResource(R.string.delete),
+    text = stringResource(R.string.dialog_delete_text),
+    showDialog = showDeleteDialog,
+    confirmText = stringResource(R.string.ok),
+    dismissText = stringResource(R.string.cancel),
+    onConfirm = {
+      onDeleteDownloadClicked()
+      showDeleteDialog = false
+    },
+    onDismiss = { showDeleteDialog = false },
+  )
 
   val downloadLogic = {
     if (!isDownloaded) {
       onDownloadClicked()
     } else {
-      onDeleteDownloadClicked()
+      showDeleteDialog = true
     }
   }
 
