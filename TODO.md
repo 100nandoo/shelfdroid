@@ -2,12 +2,10 @@
 
 ## High Priority
 
-- [ ] Download notification intent
 - [ ] Sort
 - [ ] Play multiple tracks
 - [ ] Widget
 - [ ] Backup Restore
-
 
 ## Low Priority
 
@@ -49,3 +47,4 @@
 - [x] while offline, allow playback downloaded item
 - [x] Local playback sync book
 - [x] Jump to bookmark
+- [x] Download notification intent

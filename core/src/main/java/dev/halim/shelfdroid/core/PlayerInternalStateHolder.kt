@@ -9,6 +9,8 @@ data class PlayerInternalState(
   val mediaStructure: MediaStructure = MediaStructure.SingleTrack,
   val sessionId: String = "",
   val startOffset: Double = 0.0,
+  val duration: Double = 0.0,
+  val position: Double = 0.0,
 )
 
 @Singleton
@@ -20,16 +22,39 @@ class PlayerInternalStateHolder @Inject constructor() {
     val multipleTrack = uiState.playerTracks.size > 1
     val mediaStructure = MediaStructure.from(hasChapter, multipleTrack)
     val startOffset = uiState.currentChapter?.startTimeSeconds ?: uiState.currentTrack.startOffset
+    val duration =
+      uiState.currentChapter?.endTimeSeconds?.minus(uiState.currentChapter.startTimeSeconds)
+        ?: uiState.currentTrack.duration
     _internalState.update {
-      it.copy(mediaStructure = mediaStructure, sessionId = sessionId, startOffset = startOffset)
+      it.copy(
+        mediaStructure = mediaStructure,
+        sessionId = sessionId,
+        startOffset = startOffset,
+        duration = duration,
+      )
     }
   }
 
-  fun setStartOffset(startOffset: Double) {
-    _internalState.update { it.copy(startOffset = startOffset) }
+  fun changeChapter(chapter: PlayerChapter) {
+    val duration = chapter.endTimeSeconds - chapter.startTimeSeconds
+    _internalState.update { it.copy(startOffset = chapter.startTimeSeconds, duration = duration) }
+  }
+
+  fun changePosition(rawPositionMs: Double): Double {
+    val rawPositionSeconds = rawPositionMs / 1000
+    val position =
+      when (_internalState.value.mediaStructure) {
+        MediaStructure.MultiTrackWithChapters -> (rawPositionSeconds + startOffset())
+        MediaStructure.SingleTrackWithChapters -> rawPositionSeconds
+        else -> (rawPositionSeconds - _internalState.value.startOffset)
+      }
+    _internalState.update { it.copy(position = position) }
+    return position
   }
 
   fun sessionId() = _internalState.value.sessionId
 
   fun startOffset() = _internalState.value.startOffset
+
+  fun duration() = _internalState.value.duration
 }

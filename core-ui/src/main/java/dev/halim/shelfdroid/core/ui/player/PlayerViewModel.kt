@@ -72,8 +72,7 @@ constructor(
         else playerManager.get().resume()
       }
       is PlayerEvent.SeekTo -> {
-        val durationMs = playerManager.get().rawDuration()
-        _uiState.update { playerRepository.seekTo(_uiState.value, event.target, durationMs) }
+        _uiState.update { playerRepository.seekTo(_uiState.value, event.target) }
         val positionMs = _uiState.value.currentTime.toLong() * 1000
         playerManager.get().seekTo(positionMs)
       }

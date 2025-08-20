@@ -6,37 +6,6 @@ import dev.halim.shelfdroid.core.PlayerUiState
 import javax.inject.Inject
 
 class PlayerFinder @Inject constructor() {
-  // Return chapter duration if exist, else book duration
-  fun chapterOrBookDuration(uiState: PlayerUiState): Double {
-    val currentChapter = uiState.currentChapter
-    val currentTrack = uiState.currentTrack
-    val duration =
-      if (currentChapter != null) {
-        (currentChapter.endTimeSeconds - currentChapter.startTimeSeconds)
-      } else {
-        currentTrack.duration
-      }
-
-    return duration
-  }
-
-  // Find chapter position (in second) based on raw position (in ms, from ExoPlayer)
-  fun chapterOrBookPosition(uiState: PlayerUiState, rawPositionMs: Long): Double {
-    val currentChapter = uiState.currentChapter
-    val currentTrack = uiState.currentTrack
-    val position =
-      if (currentChapter != null) {
-        if (uiState.playerTracks.size > 1) {
-          ((rawPositionMs / 1000) + currentTrack.startOffset).toFloat()
-        } else {
-          (rawPositionMs / 1000).toFloat()
-        }
-      } else {
-        ((rawPositionMs / 1000) - currentTrack.startOffset).toFloat()
-      }
-    return position.toDouble()
-  }
-
   fun bookRawPositionMs(uiState: PlayerUiState, target: Float, chapterDurationMs: Long): Long {
     val isBook = uiState.episodeId.isBlank()
     val currentChapter = uiState.currentChapter
@@ -77,12 +46,11 @@ class PlayerFinder @Inject constructor() {
       .lastOrNull { it.startTimeSeconds <= currentTime } ?: playerChapters.first()
   }
 
-  fun trackFromChapter(uiState: PlayerUiState, chapter: PlayerChapter): PlayerTrack {
-    val tracks = uiState.playerTracks
+  fun trackFromChapter(tracks: List<PlayerTrack>, target: Double): PlayerTrack {
     return if (tracks.size == 1) {
       return tracks.first()
     } else {
-      val track = tracks.lastOrNull { it.startOffset <= chapter.startTimeSeconds } ?: tracks.first()
+      val track = tracks.lastOrNull { it.startOffset <= target } ?: tracks.first()
       track
     }
   }

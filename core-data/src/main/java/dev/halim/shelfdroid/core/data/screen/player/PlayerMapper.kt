@@ -9,8 +9,8 @@ import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
+import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerTrack
-import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.RawPlaybackProgress
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.database.BookmarkEntity
@@ -26,6 +26,7 @@ constructor(
   private val dataStoreManager: DataStoreManager,
   private val finder: PlayerFinder,
   private val device: Device,
+  private val state: PlayerInternalStateHolder,
 ) {
 
   suspend fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
@@ -65,10 +66,9 @@ constructor(
     )
   }
 
-  fun toPlaybackProgressBook(uiState: PlayerUiState, raw: RawPlaybackProgress): PlaybackProgress {
-    val duration = finder.chapterOrBookDuration(uiState)
-
-    val position = finder.chapterOrBookPosition(uiState, raw.positionMs)
+  fun toPlaybackProgressBook(raw: RawPlaybackProgress): PlaybackProgress {
+    val duration = state.duration()
+    val position = state.changePosition(raw.positionMs.toDouble())
     val buffered = (raw.bufferedPosition / 1000)
 
     val formattedBuffered = if (duration > 0) buffered / duration.toFloat() else 0f
