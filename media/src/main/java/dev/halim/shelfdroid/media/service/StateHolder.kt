@@ -7,6 +7,7 @@ import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.shelfdroid.core.ExoState
+import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
@@ -34,6 +35,7 @@ constructor(
   private val mediaItemMapper: MediaItemMapper,
   private val timerManager: TimerManager,
   private val sessionManager: SessionManager,
+  private val state: PlayerInternalStateHolder,
 ) {
   val uiState = MutableStateFlow(PlayerUiState())
 
@@ -50,7 +52,7 @@ constructor(
 
   fun changeContent() {
     player.get().apply {
-      val mediaItem = mediaItemMapper.toMediaItem(uiState.value)
+      val mediaItem = mediaItemMapper.toMediaItem(uiState.value, state)
       val positionMs = uiState.value.currentTime.toLong() * 1000
       setMediaItem(mediaItem, positionMs)
       prepare()

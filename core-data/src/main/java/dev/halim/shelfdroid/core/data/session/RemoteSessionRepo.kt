@@ -15,17 +15,17 @@ constructor(
   private val apiService: ApiService,
   private val finder: PlayerFinder,
   private val progressRepo: ProgressRepo,
-  private val playerInternalStateHolder: PlayerInternalStateHolder,
+  private val state: PlayerInternalStateHolder,
 ) {
 
   suspend fun syncSession(uiState: PlayerUiState, rawPositionMs: Long, duration: Duration) {
-    val currentTime = finder.bookPosition(playerInternalStateHolder.startOffset(), rawPositionMs)
+    val currentTime = finder.bookPosition(state.startOffset(), rawPositionMs)
     val request = SyncSessionRequest(currentTime.toLong(), duration.inWholeSeconds)
-    val result = apiService.syncSession(playerInternalStateHolder.sessionId(), request).getOrNull()
+    val result = apiService.syncSession(state.sessionId(), request).getOrNull()
     if (result == null) return
-    val isBook = uiState.episodeId.isBlank()
     val entity =
-      if (isBook) progressRepo.bookById(uiState.id) else progressRepo.episodeById(uiState.episodeId)
+      if (state.isBook()) progressRepo.bookById(uiState.id)
+      else progressRepo.episodeById(uiState.episodeId)
     entity?.let {
       val progress = currentTime / it.duration
       val updated = it.copy(currentTime = currentTime, progress = progress)

@@ -193,22 +193,22 @@ constructor(
   }
 
   fun toPlayback(uiState: PlayerUiState, raw: RawPlaybackProgress): PlayerUiState {
-    val isBook = uiState.episodeId.isBlank()
     val playbackProgress =
-      if (isBook) mapper.toPlaybackProgressBook(raw) else mapper.toPlaybackProgressPodcast(raw)
+      if (state.isBook()) mapper.toPlaybackProgressBook(raw)
+      else mapper.toPlaybackProgressPodcast(raw)
 
     return uiState.copy(playbackProgress = playbackProgress)
   }
 
   fun seekTo(uiState: PlayerUiState, target: Float): PlayerUiState {
-    val isBook = uiState.episodeId.isBlank()
     val durationMs = (state.duration() * 1000).toLong()
     val positionMs = finder.bookRawPositionMs(uiState, target, durationMs)
 
     val currentTime = (positionMs / 1000)
     val raw = RawPlaybackProgress(positionMs, durationMs, 0)
     val playbackProgress =
-      if (isBook) mapper.toPlaybackProgressBook(raw) else mapper.toPlaybackProgressPodcast(raw)
+      if (state.isBook()) mapper.toPlaybackProgressBook(raw)
+      else mapper.toPlaybackProgressPodcast(raw)
     return uiState.copy(playbackProgress = playbackProgress, currentTime = currentTime.toDouble())
   }
 

@@ -11,6 +11,7 @@ data class PlayerInternalState(
   val startOffset: Double = 0.0,
   val duration: Double = 0.0,
   val position: Double = 0.0,
+  val isBook: Boolean = true,
 )
 
 @Singleton
@@ -31,6 +32,7 @@ class PlayerInternalStateHolder @Inject constructor() {
         sessionId = sessionId,
         startOffset = startOffset,
         duration = duration,
+        isBook = uiState.episodeId.isBlank(),
       )
     }
   }
@@ -52,9 +54,13 @@ class PlayerInternalStateHolder @Inject constructor() {
     return position
   }
 
+  fun mediaStructure() = _internalState.value.mediaStructure
+
   fun sessionId() = _internalState.value.sessionId
 
   fun startOffset() = _internalState.value.startOffset
 
   fun duration() = _internalState.value.duration
+
+  fun isBook() = _internalState.value.isBook
 }

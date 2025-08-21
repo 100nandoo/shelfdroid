@@ -6,6 +6,11 @@ import dev.halim.shelfdroid.core.PlayerUiState
 import javax.inject.Inject
 
 class PlayerFinder @Inject constructor() {
+  /**
+   * Current book position (in ms) since the beginning of the book
+   *
+   * Usage: For seekTo
+   */
   fun bookRawPositionMs(uiState: PlayerUiState, target: Float, chapterDurationMs: Long): Long {
     val isBook = uiState.episodeId.isBlank()
     val currentChapter = uiState.currentChapter

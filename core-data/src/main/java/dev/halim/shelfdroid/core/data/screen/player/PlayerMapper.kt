@@ -24,7 +24,6 @@ class PlayerMapper
 constructor(
   private val helper: Helper,
   private val dataStoreManager: DataStoreManager,
-  private val finder: PlayerFinder,
   private val device: Device,
   private val state: PlayerInternalStateHolder,
 ) {

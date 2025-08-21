@@ -50,7 +50,7 @@ constructor(
   private val device: Device,
   private val api: ApiService,
   private val json: Json,
-  private val playerInternalStateHolder: PlayerInternalStateHolder,
+  private val state: PlayerInternalStateHolder,
   db: MyDatabase,
 ) {
 
@@ -63,10 +63,9 @@ constructor(
   fun hasProgress(): Flow<Boolean> = queries.hasProgress().asFlow().mapToOne(Dispatchers.IO)
 
   suspend fun start(uiState: PlayerUiState) {
-    val isBook = uiState.episodeId.isBlank()
-    val isExist = queries.hasId(playerInternalStateHolder.sessionId()).executeAsOneOrNull() == true
+    val isExist = queries.hasId(state.sessionId()).executeAsOneOrNull() == true
     if (isExist) return
-    if (isBook) {
+    if (state.isBook()) {
       startBook(uiState)
     } else {
       startPodcast(uiState)
@@ -75,12 +74,11 @@ constructor(
 
   fun syncLocal(uiState: PlayerUiState, rawPositionMs: Long, duration: Duration) {
     val now = helper.nowMilis()
-    val currentTime = finder.bookPosition(playerInternalStateHolder.startOffset(), rawPositionMs)
+    val currentTime = finder.bookPosition(state.startOffset(), rawPositionMs)
 
-    queries.update(currentTime, now, duration.inWholeSeconds, playerInternalStateHolder.sessionId())
+    queries.update(currentTime, now, duration.inWholeSeconds, state.sessionId())
 
-    val isBook = uiState.episodeId.isBlank()
-    if (isBook) {
+    if (state.isBook()) {
       progressQueries.updateBookCurrentTime(currentTime = currentTime, uiState.id)
     } else {
       progressQueries.updatePodcastCurrentTime(currentTime = currentTime, uiState.episodeId)
@@ -98,7 +96,7 @@ constructor(
         val result = api.syncLocalSession(toRequest(entity))
         if (result.isSuccess) {
           queries.updateSynced(1, entity.id)
-          if (playerInternalStateHolder.sessionId() != entity.id) {
+          if (state.sessionId() != entity.id) {
             queries.deleteById(entity.id)
           }
         }
@@ -108,7 +106,7 @@ constructor(
         response?.results?.forEach {
           if (it.success) {
             queries.updateSynced(1, it.id)
-            if (it.id != playerInternalStateHolder.sessionId()) {
+            if (it.id != state.sessionId()) {
               queries.deleteById(it.id)
             }
           }
@@ -165,7 +163,7 @@ constructor(
         val media = json.decodeFromString<Podcast>(podcast.media)
         val mediaMetadata = json.encodeToString(media.metadata)
         val coverPath = media.coverPath ?: ""
-        val duration = uiState.currentTrack.duration
+        val duration = state.duration()
         val entity =
           createEntity(
             coverPath,
@@ -199,7 +197,7 @@ constructor(
     val (currentDateString, dayOfWeek, startAt) = calculateDateDayAndStartAt()
     val localSessionEntity =
       LocalSessionEntity(
-        id = playerInternalStateHolder.sessionId(),
+        id = state.sessionId(),
         userId = userPrefs.id,
         libraryId = entity.libraryId,
         libraryItemId = entity.id,

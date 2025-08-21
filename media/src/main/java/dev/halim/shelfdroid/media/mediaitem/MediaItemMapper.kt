@@ -4,19 +4,21 @@ import android.annotation.SuppressLint
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
 import javax.inject.Inject
 
 @SuppressLint("UnsafeOptInUsageError")
 class MediaItemMapper @Inject constructor() {
-  fun toMediaItem(uiState: PlayerUiState): MediaItem {
+  fun toMediaItem(uiState: PlayerUiState, state: PlayerInternalStateHolder): MediaItem {
     val mediaIdWrapper = MediaIdWrapper(uiState.id, uiState.episodeId.takeIf { it.isNotBlank() })
-    val isBook = uiState.episodeId.isBlank()
+    val isBook = state.isBook()
     val mediaType =
       if (isBook) MediaMetadata.MEDIA_TYPE_AUDIO_BOOK else MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE
     val mediaId = mediaIdWrapper.toMediaId()
 
     val currentChapter = uiState.currentChapter
+
     val clippingConfiguration =
       if (currentChapter != null && uiState.playerTracks.size == 1 && isBook) {
         val start = currentChapter.startTimeSeconds * 1000

@@ -21,9 +21,9 @@ sealed class ExoState {
 sealed class MediaStructure {
   data object SingleTrackWithChapters : MediaStructure()
 
-  data object SingleTrack : MediaStructure()
-
   data object MultiTrackWithChapters : MediaStructure()
+
+  data object SingleTrack : MediaStructure()
 
   data object MultiTrack : MediaStructure()
 
