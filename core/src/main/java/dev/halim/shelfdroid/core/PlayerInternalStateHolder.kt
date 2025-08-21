@@ -46,7 +46,7 @@ class PlayerInternalStateHolder @Inject constructor() {
     val rawPositionSeconds = rawPositionMs / 1000
     val position =
       when (_internalState.value.mediaStructure) {
-        MediaStructure.MultiTrackWithChapters -> (rawPositionSeconds + startOffset())
+        MediaStructure.MultiTrackWithChapters,
         MediaStructure.SingleTrackWithChapters -> rawPositionSeconds
         else -> (rawPositionSeconds - _internalState.value.startOffset)
       }

@@ -27,6 +27,8 @@ sealed class MediaStructure {
 
   data object MultiTrack : MediaStructure()
 
+  fun isSingleTrack() = this is SingleTrack || this is SingleTrackWithChapters
+
   companion object {
     fun from(hasChapter: Boolean, multipleTrack: Boolean): MediaStructure {
       return when {
@@ -61,6 +63,7 @@ data class PlayerUiState(
 )
 
 data class PlayerTrack(
+  val index: Int = 0,
   val url: String = "",
   val duration: Double = 0.0,
   val startOffset: Double = 0.0,

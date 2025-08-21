@@ -30,7 +30,7 @@ constructor(
 
   suspend fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
     val url = helper.generateContentUrl(audioTrack.contentUrl)
-    return PlayerTrack(url, audioTrack.duration, audioTrack.startOffset)
+    return PlayerTrack(audioTrack.index, url, audioTrack.duration, audioTrack.startOffset)
   }
 
   fun toPlayerChapter(index: Int, bookChapter: BookChapter, totalChapters: Int): PlayerChapter {

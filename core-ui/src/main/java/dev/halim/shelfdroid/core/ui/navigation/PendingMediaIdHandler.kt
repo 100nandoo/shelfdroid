@@ -18,13 +18,13 @@ fun handlePendingMediaId(
   val mediaId = navRequest.mediaId
 
   val request = MediaIdWrapper.fromMediaId(mediaId)
-  val episodeId = request.episodeId
+  val secondaryId = request.secondaryId
 
-  if (episodeId == null) {
-    navController.navigateOnce(Book(mediaId), popUpToRoute = Home)
+  if (secondaryId == null || secondaryId.length < 32) {
+    navController.navigateOnce(Book(request.itemId), popUpToRoute = Home)
   } else {
     navController.navigateOnce(Podcast(request.itemId), Home)
-    navController.navigateOnce(Episode(request.itemId, episodeId), Podcast(request.itemId))
+    navController.navigateOnce(Episode(request.itemId, secondaryId), Podcast(request.itemId))
   }
 
   if (navRequest.isOpenPlayer) {
