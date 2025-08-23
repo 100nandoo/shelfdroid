@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.media.exoplayer
 
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
 import dev.halim.shelfdroid.core.RawPlaybackProgress
 import kotlinx.coroutines.Job
@@ -17,13 +18,13 @@ fun ExoPlayer.playbackProgressFlow(): Flow<RawPlaybackProgress> = callbackFlow {
     job?.cancel()
     job = launch {
       while (true) {
-        trySend(
-          RawPlaybackProgress(
-            positionMs = currentPosition,
-            durationMs = duration,
-            bufferedPosition = bufferedPosition,
-          )
-        )
+        var position = currentPosition
+        val isNotFirstMediaItem = mediaItemCount > 1 && currentMediaItemIndex != 0
+        if (isNotFirstMediaItem) {
+          val totalPreviousDurations = sumPreviousDurations(currentTimeline, currentMediaItemIndex)
+          position = totalPreviousDurations + currentPosition
+        }
+        trySend(RawPlaybackProgress(positionMs = position, bufferedPosition = bufferedPosition))
         delay(500)
       }
     }
@@ -50,4 +51,14 @@ fun ExoPlayer.playbackProgressFlow(): Flow<RawPlaybackProgress> = callbackFlow {
     removeListener(listener)
     job?.cancel()
   }
+}
+
+private fun sumPreviousDurations(timeline: Timeline, upToIndex: Int): Long {
+  var sum: Long = 0
+  val window = Timeline.Window()
+  for (i in 0 until upToIndex) {
+    timeline.getWindow(i, window)
+    sum += window.durationMs
+  }
+  return sum
 }

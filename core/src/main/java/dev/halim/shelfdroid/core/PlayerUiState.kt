@@ -89,11 +89,7 @@ enum class ChapterPosition {
   Middle,
 }
 
-data class RawPlaybackProgress(
-  val positionMs: Long = 0,
-  val durationMs: Long = 0,
-  val bufferedPosition: Long = 0,
-)
+data class RawPlaybackProgress(val positionMs: Long = 0, val bufferedPosition: Long = 0)
 
 data class PlaybackProgress(
   val position: Long = 0,

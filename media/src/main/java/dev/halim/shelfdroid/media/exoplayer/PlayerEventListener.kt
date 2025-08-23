@@ -36,8 +36,8 @@ class PlayerEventListener @Inject constructor(private val player: Lazy<ExoPlayer
     player.apply {
       if (this.playbackState == Player.STATE_ENDED && uiState.episodeId.isBlank()) {
         val start = uiState.currentChapter?.startTimeSeconds ?: 0.0
-        val end = uiState.currentChapter?.endTimeSeconds?.minus(start)?.toLong()
-        val isReachEndChapter = end == currentPosition / 1000
+        val end = uiState.currentChapter?.endTimeSeconds?.minus(start)?.toLong() ?: 0
+        val isReachEndChapter = (currentPosition / 1000) >= end
         val isNotLastChapter = uiState.currentChapter?.chapterPosition != ChapterPosition.Last
         if (isReachEndChapter && isNotLastChapter) {
           changeChapterEvent()

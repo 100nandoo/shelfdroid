@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.media.exoplayer
 
+import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import javax.inject.Inject
@@ -68,7 +69,25 @@ class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
   }
 
   fun seekTo(positionMs: Long) {
-    player.get().seekTo(positionMs)
+    player.get().apply {
+      if (mediaItemCount > 1) {
+        val window = Timeline.Window()
+        var sum = 0L
+        for (i in 0 until currentTimeline.windowCount) {
+          currentTimeline.getWindow(i, window)
+          val windowDuration = window.durationMs
+          if (positionMs < sum + windowDuration) {
+            seekTo(i, positionMs - sum)
+            return
+          }
+          sum += windowDuration
+        }
+        currentTimeline.getWindow(currentTimeline.windowCount - 1, window)
+        seekTo(currentTimeline.windowCount - 1, window.durationMs)
+      } else {
+        seekTo(positionMs)
+      }
+    }
   }
 
   fun changeSpeed(speed: Float) {

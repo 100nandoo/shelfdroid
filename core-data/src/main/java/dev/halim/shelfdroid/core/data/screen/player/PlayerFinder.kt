@@ -7,33 +7,6 @@ import javax.inject.Inject
 
 class PlayerFinder @Inject constructor() {
   /**
-   * Current book position (in ms) since the beginning of the book
-   *
-   * Usage: For seekTo
-   */
-  fun bookRawPositionMs(uiState: PlayerUiState, target: Float, chapterDurationMs: Long): Long {
-    val isBook = uiState.episodeId.isBlank()
-    val currentChapter = uiState.currentChapter
-    val currentTrack = uiState.currentTrack
-    val positionMs =
-      if (isBook) {
-        if (currentChapter != null) {
-          val currentTrackOffsetMs = currentTrack.startOffset * 1000
-          if (uiState.playerTracks.size > 1) {
-            (target * chapterDurationMs - currentTrackOffsetMs).toLong()
-          } else {
-            (target * chapterDurationMs).toLong()
-          }
-        } else {
-          (target * chapterDurationMs).toLong()
-        }
-      } else {
-        (target * chapterDurationMs).toLong()
-      }
-    return positionMs
-  }
-
-  /**
    * Current book position (in second) since the beginning of the book
    *
    * Usage: For sync progress to server
@@ -57,6 +30,18 @@ class PlayerFinder @Inject constructor() {
     } else {
       val track = tracks.lastOrNull { it.startOffset <= target } ?: tracks.first()
       track
+    }
+  }
+
+  fun tracksFromChapter(tracks: List<PlayerTrack>, chapter: PlayerChapter): List<PlayerTrack> {
+    return if (tracks.size == 1) {
+      tracks
+    } else {
+      tracks.filter { track ->
+        val trackStart = track.startOffset
+        val trackEnd = track.startOffset + track.duration
+        trackEnd > chapter.startTimeSeconds && trackStart < chapter.endTimeSeconds
+      }
     }
   }
 

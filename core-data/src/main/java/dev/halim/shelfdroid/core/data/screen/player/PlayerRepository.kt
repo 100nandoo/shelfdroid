@@ -166,15 +166,12 @@ constructor(
       state.changeChapter(targetChapter)
       val targetTrack =
         finder.trackFromChapter(uiState.playerTracks, targetChapter.startTimeSeconds)
-      val currentTime =
-        if (uiState.playerTracks.size > 1) targetChapter.startTimeSeconds - targetTrack.startOffset
-        else 0.0
 
       uiState.copy(
         title = targetChapter.title,
         currentChapter = targetChapter,
         currentTrack = targetTrack,
-        currentTime = currentTime,
+        currentTime = 0.0,
       )
     } else {
       uiState.copy(state = PlayerState.Hidden(Error("Failed to change chapter")))
@@ -193,22 +190,18 @@ constructor(
   }
 
   fun toPlayback(uiState: PlayerUiState, raw: RawPlaybackProgress): PlayerUiState {
-    val playbackProgress =
-      if (state.isBook()) mapper.toPlaybackProgressBook(raw)
-      else mapper.toPlaybackProgressPodcast(raw)
+    val playbackProgress = mapper.toPlaybackProgress(raw)
 
     return uiState.copy(playbackProgress = playbackProgress)
   }
 
   fun seekTo(uiState: PlayerUiState, target: Float): PlayerUiState {
     val durationMs = (state.duration() * 1000).toLong()
-    val positionMs = finder.bookRawPositionMs(uiState, target, durationMs)
+    val positionMs = (target * durationMs).toLong()
 
     val currentTime = (positionMs / 1000)
-    val raw = RawPlaybackProgress(positionMs, durationMs, 0)
-    val playbackProgress =
-      if (state.isBook()) mapper.toPlaybackProgressBook(raw)
-      else mapper.toPlaybackProgressPodcast(raw)
+    val raw = RawPlaybackProgress(positionMs, 0)
+    val playbackProgress = mapper.toPlaybackProgress(raw)
     return uiState.copy(playbackProgress = playbackProgress, currentTime = currentTime.toDouble())
   }
 
@@ -230,17 +223,18 @@ constructor(
   fun goToBookmark(uiState: PlayerUiState, time: Long): PlayerUiState {
     val targetChapter = finder.playerChapter(uiState.playerChapters, time.toDouble())
     return if (targetChapter != null) {
-      val durationMs = (targetChapter.endTimeSeconds - targetChapter.startTimeSeconds) * 1000
       val positionMs = (time - targetChapter.startTimeSeconds) * 1000
-      val rawPlaybackProgress = RawPlaybackProgress(positionMs.toLong(), durationMs.toLong(), 0)
+      val rawPlaybackProgress = RawPlaybackProgress(positionMs.toLong(), 0)
       val result = changeChapter(uiState, uiState.playerChapters.indexOf(targetChapter))
-      val playbackProgress = mapper.toPlaybackProgressBook(rawPlaybackProgress)
-      result.copy(currentTime = time - state.startOffset(), playbackProgress = playbackProgress)
+      val playbackProgress = mapper.toPlaybackProgress(rawPlaybackProgress)
+      result.copy(
+        currentTime = time - targetChapter.startTimeSeconds,
+        playbackProgress = playbackProgress,
+      )
     } else {
       val targetTrack = finder.trackFromCurrentTime(uiState, time.toDouble())
-      val durationMs = targetTrack.duration * 1000
-      val rawPlaybackProgress = RawPlaybackProgress(time * 1000, durationMs.toLong(), 0)
-      val playbackProgress = mapper.toPlaybackProgressBook(rawPlaybackProgress)
+      val rawPlaybackProgress = RawPlaybackProgress(time * 1000, 0)
+      val playbackProgress = mapper.toPlaybackProgress(rawPlaybackProgress)
       uiState.copy(
         currentTime = time.toDouble(),
         currentTrack = targetTrack,

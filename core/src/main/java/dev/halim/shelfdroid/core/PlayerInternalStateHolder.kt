@@ -10,7 +10,6 @@ data class PlayerInternalState(
   val sessionId: String = "",
   val startOffset: Double = 0.0,
   val duration: Double = 0.0,
-  val position: Double = 0.0,
   val isBook: Boolean = true,
 )
 
@@ -22,10 +21,19 @@ class PlayerInternalStateHolder @Inject constructor() {
     val hasChapter = uiState.playerChapters.isNotEmpty()
     val multipleTrack = uiState.playerTracks.size > 1
     val mediaStructure = MediaStructure.from(hasChapter, multipleTrack)
-    val startOffset = uiState.currentChapter?.startTimeSeconds ?: uiState.currentTrack.startOffset
-    val duration =
-      uiState.currentChapter?.endTimeSeconds?.minus(uiState.currentChapter.startTimeSeconds)
-        ?: uiState.currentTrack.duration
+    val isBook = uiState.episodeId.isBlank()
+    val startOffset: Double
+    val duration: Double
+    if (isBook) {
+      startOffset = uiState.currentChapter?.startTimeSeconds ?: uiState.currentTrack.startOffset
+      duration =
+        uiState.currentChapter?.endTimeSeconds?.minus(uiState.currentChapter.startTimeSeconds)
+          ?: uiState.currentTrack.duration
+    } else {
+      startOffset = uiState.currentTrack.startOffset
+      duration = uiState.currentTrack.duration
+    }
+
     _internalState.update {
       it.copy(
         mediaStructure = mediaStructure,
@@ -40,18 +48,6 @@ class PlayerInternalStateHolder @Inject constructor() {
   fun changeChapter(chapter: PlayerChapter) {
     val duration = chapter.endTimeSeconds - chapter.startTimeSeconds
     _internalState.update { it.copy(startOffset = chapter.startTimeSeconds, duration = duration) }
-  }
-
-  fun changePosition(rawPositionMs: Double): Double {
-    val rawPositionSeconds = rawPositionMs / 1000
-    val position =
-      when (_internalState.value.mediaStructure) {
-        MediaStructure.MultiTrackWithChapters,
-        MediaStructure.SingleTrackWithChapters -> rawPositionSeconds
-        else -> (rawPositionSeconds - _internalState.value.startOffset)
-      }
-    _internalState.update { it.copy(position = position) }
-    return position
   }
 
   fun mediaStructure() = _internalState.value.mediaStructure

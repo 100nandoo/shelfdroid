@@ -2,8 +2,8 @@
 
 ## High Priority
 
+- [ ] Download book with multiple tracks
 - [ ] Sort
-- [ ] Play multiple tracks
 - [ ] Widget
 - [ ] Backup Restore
 
@@ -48,3 +48,4 @@
 - [x] Local playback sync book
 - [x] Jump to bookmark
 - [x] Download notification intent
+- [x] Play multiple tracks

@@ -161,13 +161,13 @@ constructor(
       .takeIf { it.isBook != 1L }
       .let {
         val media = json.decodeFromString<Podcast>(podcast.media)
+        val episode = media.episodes.firstOrNull { it.id == uiState.episodeId }
         val mediaMetadata = json.encodeToString(media.metadata)
         val coverPath = media.coverPath ?: ""
-        val duration = state.duration()
         val entity =
           createEntity(
             coverPath,
-            duration,
+            episode?.audioTrack?.duration ?: 0.0,
             null,
             MEDIA_TYPE_PODCAST,
             uiState,
