@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package dev.halim.shelfdroid.core.ui.player.bookmark
+package dev.halim.shelfdroid.core.ui.player.bigplayer
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -206,7 +206,6 @@ private fun PreviewBookmarkBottomSheet() {
         density = density,
       )
 
-    bookmarkSheetState.isVisible
     BookmarkBottomSheet(
       bookmarkSheetState,
       bookmarks = Defaults.DEFAULT_PLAYER_BOOKMARK_LIST,

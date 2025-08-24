@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerState
+import dev.halim.shelfdroid.core.PlayerState.Hidden
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
@@ -81,7 +82,11 @@ constructor(
         playerManager.get().changeSpeed(event.speed)
       }
       is PlayerEvent.SleepTimer -> {
-        stateHolder.sleepTimer(event.duration)
+        if (event.duration != Duration.ZERO) {
+          stateHolder.sleepTimer(event.duration)
+        } else {
+          stateHolder.clearTimer()
+        }
       }
       PlayerEvent.NewBookmarkTime -> {
         val currentTimeInSeconds = playerManager.get().currentTime() / 1000
@@ -135,7 +140,7 @@ constructor(
       PlayerEvent.Big -> _uiState.update { it.copy(state = PlayerState.Big) }
       PlayerEvent.Small -> _uiState.update { it.copy(state = PlayerState.Small) }
       PlayerEvent.TempHidden -> _uiState.update { it.copy(state = PlayerState.TempHidden) }
-      PlayerEvent.Hidden -> _uiState.update { it.copy(state = PlayerState.Hidden()) }
+      PlayerEvent.Hidden -> _uiState.update { it.copy(state = Hidden()) }
       PlayerEvent.Logout -> logout()
     }
   }

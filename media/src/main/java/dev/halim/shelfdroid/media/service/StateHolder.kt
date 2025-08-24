@@ -77,6 +77,10 @@ constructor(
     collectSleepTimer()
   }
 
+  fun clearTimer() {
+    timerManager.clear()
+  }
+
   fun syncSession() {
     sessionManager.start(uiState.value)
   }

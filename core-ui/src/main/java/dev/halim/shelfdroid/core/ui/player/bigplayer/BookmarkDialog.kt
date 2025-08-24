@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.player.bookmark
+package dev.halim.shelfdroid.core.ui.player.bigplayer
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog

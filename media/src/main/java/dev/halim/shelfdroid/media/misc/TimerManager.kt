@@ -46,6 +46,12 @@ class TimerManager @Inject constructor(private val exoPlayerManager: ExoPlayerMa
     }
   }
 
+  fun clear() {
+    sleepJob?.cancel()
+    duration.value = Duration.ZERO
+    timerFinished = {}
+  }
+
   private fun startSleepJob() {
     sleepJob?.cancel()
     sleepJob =

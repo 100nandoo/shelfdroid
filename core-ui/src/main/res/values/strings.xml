@@ -74,5 +74,6 @@
     <string name="logout">Logout</string>
     <string name="is_an_admin">" is an admin"</string>
     <string name="is_not_an_admin">" is not an admin"</string>
+    <string name="clear">Clear</string>
 
 </resources>
