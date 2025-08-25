@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -55,12 +54,7 @@ constructor(
   fun onEvent(event: PodcastEvent) {
     when (event) {
       is PodcastEvent.ToggleIsFinished -> {
-        viewModelScope.launch {
-          val isSuccess = podcastRepository.toggleIsFinished(id, event.episode)
-          if (isSuccess) {
-            updateEpisodeFinishedState(event.episode.episodeId)
-          }
-        }
+        viewModelScope.launch { podcastRepository.toggleIsFinished(id, event.episode) }
       }
       is PodcastEvent.Download -> {
         downloadTracker.download(event.downloadId, event.url, event.message)
@@ -68,21 +62,6 @@ constructor(
       is PodcastEvent.DeleteDownload -> {
         downloadTracker.delete(event.downloadId)
       }
-    }
-  }
-
-  private fun updateEpisodeFinishedState(episodeId: String) {
-    _uiState.update { currentState ->
-      currentState.copy(
-        episodes =
-          currentState.episodes.map { episode ->
-            if (episode.episodeId == episodeId) {
-              episode.copy(isFinished = !episode.isFinished)
-            } else {
-              episode
-            }
-          }
-      )
     }
   }
 }

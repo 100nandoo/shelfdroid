@@ -22,6 +22,9 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
   fun byLibraryItemId(id: String): List<ProgressEntity> =
     queries.byLibraryItemId(id).executeAsList()
 
+  fun flowByLibraryItemId(id: String): Flow<List<ProgressEntity>> =
+    queries.byLibraryItemId(id).asFlow().mapToList(Dispatchers.IO)
+
   fun bookById(id: String): ProgressEntity? = queries.bookById(id).executeAsOneOrNull()
 
   fun flowBookById(id: String): Flow<ProgressEntity?> =
@@ -37,14 +40,6 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
     withContext(Dispatchers.IO) { cleanup(entities) }
     entities.forEach { entity -> queries.insert(entity) }
     return entities
-  }
-
-  fun entities(): List<ProgressEntity> {
-    return queries.all().executeAsList()
-  }
-
-  fun flowEntities(): Flow<List<ProgressEntity>> {
-    return queries.all().asFlow().mapToList(Dispatchers.IO)
   }
 
   fun updateMediaById(episodeId: String): Boolean =

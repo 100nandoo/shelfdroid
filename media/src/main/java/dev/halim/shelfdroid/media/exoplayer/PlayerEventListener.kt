@@ -6,13 +6,17 @@ import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.shelfdroid.core.ChapterPosition
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.data.screen.podcast.Episode
+import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class PlayerEventListener @Inject constructor(private val player: Lazy<ExoPlayer>) {
+class PlayerEventListener
+@Inject
+constructor(private val player: Lazy<ExoPlayer>, private val podcastRepository: PodcastRepository) {
   fun listen(
     uiState: PlayerUiState,
     changeChapterEvent: () -> Unit,
@@ -34,13 +38,23 @@ class PlayerEventListener @Inject constructor(private val player: Lazy<ExoPlayer
     changeChapterEvent: () -> Unit,
   ) {
     player.apply {
-      if (this.playbackState == Player.STATE_ENDED && uiState.episodeId.isBlank()) {
-        val start = uiState.currentChapter?.startTimeSeconds ?: 0.0
-        val end = uiState.currentChapter?.endTimeSeconds?.minus(start)?.toLong() ?: 0
-        val isReachEndChapter = (currentPosition / 1000) >= end
-        val isNotLastChapter = uiState.currentChapter?.chapterPosition != ChapterPosition.Last
-        if (isReachEndChapter && isNotLastChapter) {
-          changeChapterEvent()
+      val isEnded = this.playbackState == Player.STATE_ENDED
+      if (isEnded) {
+        if (uiState.episodeId.isBlank()) {
+          val start = uiState.currentChapter?.startTimeSeconds ?: 0.0
+          val end = uiState.currentChapter?.endTimeSeconds?.minus(start)?.toLong() ?: 0
+          val isReachEndChapter = (currentPosition / 1000) >= end
+          val isNotLastChapter = uiState.currentChapter?.chapterPosition != ChapterPosition.Last
+          if (isReachEndChapter && isNotLastChapter) {
+            changeChapterEvent()
+          }
+        } else {
+          CoroutineScope(Dispatchers.IO).launch {
+            podcastRepository.toggleIsFinished(
+              uiState.id,
+              Episode(uiState.episodeId, isFinished = true),
+            )
+          }
         }
       }
     }

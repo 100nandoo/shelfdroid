@@ -72,5 +72,8 @@ DELETE FROM ProgressEntity;
 
 toggleIsFinishedByEpisodeId:
 UPDATE ProgressEntity
-SET isFinished = CASE WHEN isFinished = 1 THEN 0 ELSE 1 END
+SET
+  isFinished = CASE WHEN isFinished = 1 THEN 0 ELSE 1 END,
+  progress   = CASE WHEN isFinished = 1 THEN progress ELSE 0 END,
+  currentTime = CASE WHEN isFinished = 1 THEN currentTime ELSE 0 END
 WHERE episodeId = :episodeId AND episodeId IS NOT NULL;

@@ -28,24 +28,22 @@ constructor(
 
   fun item(id: String): Flow<PodcastUiState> {
     val entity = libraryItemRepo.flowById(id)
-    val progresses = progressRepo.flowEntities()
+    val progresses = progressRepo.flowByLibraryItemId(id)
 
     return combine(entity, progresses, downloadRepo.downloads) { entity, progresses, downloads ->
-      entity
-        ?.takeIf { it.isBook == 0L }
-        ?.let {
-          val media = Json.decodeFromString<Podcast>(it.media)
-          val episodes = mapper.mapEpisodes(media.episodes, progresses)
+      entity?.let {
+        val media = Json.decodeFromString<Podcast>(it.media)
+        val episodes = mapper.mapEpisodes(media.episodes, progresses)
 
-          PodcastUiState(
-            state = GenericState.Success,
-            author = it.author,
-            title = it.title,
-            cover = it.cover,
-            description = it.description,
-            episodes = episodes,
-          )
-        } ?: PodcastUiState(state = GenericState.Failure("Failed to fetch podcast"))
+        PodcastUiState(
+          state = GenericState.Success,
+          author = it.author,
+          title = it.title,
+          cover = it.cover,
+          description = it.description,
+          episodes = episodes,
+        )
+      } ?: PodcastUiState(state = GenericState.Failure("Failed to fetch podcast"))
     }
   }
 
