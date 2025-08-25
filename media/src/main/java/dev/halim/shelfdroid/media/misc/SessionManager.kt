@@ -80,7 +80,7 @@ constructor(
 
     startSyncJob()
 
-    isLocal = this.uiState.download.state.isDownloaded()
+    isLocal = this.uiState.downloadState.isDownloaded()
     if (isLocal) {
       syncScope.launch { localSessionRepo.start(uiState) }
     }

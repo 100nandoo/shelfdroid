@@ -55,7 +55,7 @@ constructor(
           }
           is CommonDownloadEvent.DeleteDownload -> {
             if (isSingleTrack) {
-              downloadTracker.delete(event.downloadEvent.downloadId)
+              downloadTracker.delete(download.id)
             } else {
               _uiState.value.downloads.items.forEach { downloadTracker.delete(id = it.id) }
             }

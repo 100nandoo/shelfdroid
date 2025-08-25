@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Refactor book download state on viewmodel
 - [ ] Sort
 - [ ] Widget
 - [ ] Backup Restore
@@ -50,3 +49,4 @@
 - [x] Download notification intent
 - [x] Play multiple tracks
 - [x] Download book with multiple tracks
+- [x] Refactor book download state on viewmodel

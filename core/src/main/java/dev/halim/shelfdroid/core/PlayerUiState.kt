@@ -59,7 +59,7 @@ data class PlayerUiState(
   val advancedControl: AdvancedControl = AdvancedControl(),
   val playerBookmarks: List<PlayerBookmark> = emptyList(),
   val newBookmarkTime: PlayerBookmark = PlayerBookmark(),
-  val download: DownloadUiState = DownloadUiState(),
+  val downloadState: DownloadState = DownloadState.Unknown,
 )
 
 data class PlayerTrack(

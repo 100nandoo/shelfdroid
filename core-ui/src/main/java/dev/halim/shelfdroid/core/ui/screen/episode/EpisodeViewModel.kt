@@ -38,18 +38,15 @@ constructor(
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), EpisodeUiState())
 
   fun onEvent(event: EpisodeEvent) {
+    val download = _uiState.value.download
     when (event) {
       is EpisodeEvent.DownloadEvent -> {
         when (event.downloadEvent) {
           is CommonDownloadEvent.Download -> {
-            downloadTracker.download(
-              event.downloadEvent.downloadId,
-              event.downloadEvent.url,
-              event.downloadEvent.message,
-            )
+            downloadTracker.download(download.id, download.url, download.title)
           }
           is CommonDownloadEvent.DeleteDownload -> {
-            downloadTracker.delete(event.downloadEvent.downloadId)
+            downloadTracker.delete(download.id)
           }
         }
       }

@@ -4,7 +4,6 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
-import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerState
@@ -99,12 +98,20 @@ constructor(
         if (currentChapter != null) (progress?.currentTime ?: 0.0) - currentChapter.startTimeSeconds
         else progress?.currentTime ?: 0.0
 
-      val downloadUiState =
+      val downloadState =
         if (isSingleTrack) {
           val url = media.audioTracks.first().contentUrl
-          downloadRepo.item(itemId = id, url = url, title = currentChapter?.title ?: result.title)
+          downloadRepo
+            .item(itemId = id, url = url, title = currentChapter?.title ?: result.title)
+            .state
         } else {
-          DownloadUiState()
+          downloadRepo
+            .multipleTrackItem(
+              itemId = id,
+              title = currentChapter?.title ?: result.title,
+              tracks = media.audioTracks,
+            )
+            .state
         }
 
       PlayerUiState(
@@ -119,7 +126,7 @@ constructor(
         playerTracks = playerTracks,
         currentTrack = currentTrack,
         playerBookmarks = playerBookmarks,
-        download = downloadUiState,
+        downloadState = downloadState,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -134,13 +141,15 @@ constructor(
         media.episodes.find { it.id == episodeId }
           ?: return PlayerUiState(state = PlayerState.Hidden(Error("Failed to find episode")))
 
-      val downloadUiState =
-        downloadRepo.item(
-          itemId = itemId,
-          episodeId = episodeId,
-          url = episode.audioTrack.contentUrl,
-          title = episode.title,
-        )
+      val downloadState =
+        downloadRepo
+          .item(
+            itemId = itemId,
+            episodeId = episodeId,
+            url = episode.audioTrack.contentUrl,
+            title = episode.title,
+          )
+          .state
 
       val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }
 
@@ -154,7 +163,7 @@ constructor(
         playerTracks = listOf(playerTrack),
         currentTrack = playerTrack,
         currentTime = progress?.currentTime ?: 0.0,
-        download = downloadUiState,
+        downloadState = downloadState,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }

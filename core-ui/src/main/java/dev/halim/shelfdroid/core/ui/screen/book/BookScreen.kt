@@ -67,18 +67,13 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), playerViewModel: Play
       currentItemId = playerUiState.id,
       exoState = playerUiState.exoState,
       onDownloadClicked = {
-        val downloadEvent =
-          CommonDownloadEvent.Download(uiState.download.id, uiState.download.url, uiState.title)
-        viewModel.onEvent(BookEvent.DownloadEvent(downloadEvent))
+        viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.Download))
       },
       onDeleteDownloadClicked = {
-        val downloadEvent = CommonDownloadEvent.DeleteDownload(uiState.download.id)
-        viewModel.onEvent(BookEvent.DownloadEvent(downloadEvent))
+        viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.DeleteDownload))
       },
       onPlayClicked = {
-        playerViewModel.onEvent(
-          PlayerEvent.PlayBook(viewModel.id, uiState.download.state.isDownloaded())
-        )
+        playerViewModel.onEvent(PlayerEvent.PlayBook(viewModel.id, downloadState.isDownloaded()))
       },
     )
   }
