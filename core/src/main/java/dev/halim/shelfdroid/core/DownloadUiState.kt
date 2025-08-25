@@ -7,6 +7,11 @@ data class DownloadUiState(
   val title: String = "",
 )
 
+data class MultipleTrackDownloadUiState(
+  val state: DownloadState = DownloadState.Unknown,
+  val items: List<DownloadUiState> = emptyList(),
+)
+
 sealed class DownloadState {
   data object Downloading : DownloadState()
 
@@ -15,6 +20,8 @@ sealed class DownloadState {
   data object Queued : DownloadState()
 
   data object Failed : DownloadState()
+
+  data object Incomplete : DownloadState()
 
   data object Unknown : DownloadState()
 

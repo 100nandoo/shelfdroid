@@ -15,7 +15,7 @@ class DownloadTracker @Inject constructor(@ApplicationContext private val contex
       context,
       ShelfDownloadService::class.java,
       toDownloadRequest(id, url, message),
-      false,
+      true,
     )
   }
 

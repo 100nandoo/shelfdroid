@@ -18,6 +18,8 @@
     <string name="refresh">Refresh</string>
     <string name="mark_as_finished">Mark as finished</string>
     <string name="download">Download</string>
+    <string name="download_incomplete">Download incomplete</string>
+    <string name="downloaded">Downloaded</string>
     <!--Content Description-->
 
     <!--Arguments-->

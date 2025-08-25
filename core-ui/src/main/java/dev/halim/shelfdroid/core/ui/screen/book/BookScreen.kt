@@ -32,7 +32,6 @@ import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
-import dev.halim.shelfdroid.core.ui.components.PlayButton
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
@@ -47,6 +46,7 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), playerViewModel: Play
   InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+  val downloadState = if (uiState.isSingleTrack) uiState.download.state else uiState.downloads.state
   if (uiState.state == GenericState.Success) {
     BookScreenContent(
       id = viewModel.id,
@@ -63,8 +63,7 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), playerViewModel: Play
       genres = uiState.genres,
       language = uiState.language,
       progress = uiState.progress,
-      isSingleTrack = uiState.isSingleTrack,
-      downloadState = uiState.download.state,
+      downloadState = downloadState,
       currentItemId = playerUiState.id,
       exoState = playerUiState.exoState,
       onDownloadClicked = {
@@ -101,7 +100,6 @@ fun BookScreenContent(
   genres: String = Defaults.BOOK_GENRES,
   language: String = Defaults.BOOK_LANGUAGE,
   progress: String = Defaults.PROGRESS_PERCENT,
-  isSingleTrack: Boolean = false,
   downloadState: DownloadState = DownloadState.Unknown,
   currentItemId: String = Defaults.BOOK_ID,
   exoState: ExoState = ExoState.Pause,
@@ -127,20 +125,14 @@ fun BookScreenContent(
         ) {
           item {
             Spacer(modifier = Modifier.height(16.dp))
-            if (isSingleTrack) {
-              PlayAndDownload(
-                isPlaying = isPlaying,
-                downloadState = downloadState,
-                snackbarHostState = snackbarHostState,
-                onDownloadClicked = onDownloadClicked,
-                onDeleteDownloadClicked = onDeleteDownloadClicked,
-                onPlayClicked = onPlayClicked,
-              )
-            } else {
-              Row(Modifier.padding(vertical = 8.dp)) {
-                PlayButton(isPlaying = isPlaying) { onPlayClicked() }
-              }
-            }
+            PlayAndDownload(
+              isPlaying = isPlaying,
+              downloadState = downloadState,
+              snackbarHostState = snackbarHostState,
+              onDownloadClicked = onDownloadClicked,
+              onDeleteDownloadClicked = onDeleteDownloadClicked,
+              onPlayClicked = onPlayClicked,
+            )
             ProgressRow(progress, remaining)
             ExpandShrinkText(text = description)
             BookDetail(duration, narrator, publishYear, publisher, genres, language)

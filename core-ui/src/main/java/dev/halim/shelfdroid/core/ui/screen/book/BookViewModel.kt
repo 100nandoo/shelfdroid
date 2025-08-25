@@ -35,18 +35,30 @@ constructor(
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), BookUiState())
 
   fun onEvent(event: BookEvent) {
+    val isSingleTrack = _uiState.value.isSingleTrack
+    val download = _uiState.value.download
     when (event) {
       is BookEvent.DownloadEvent -> {
         when (event.downloadEvent) {
           is CommonDownloadEvent.Download -> {
-            downloadTracker.download(
-              event.downloadEvent.downloadId,
-              event.downloadEvent.url,
-              event.downloadEvent.message,
-            )
+            if (isSingleTrack) {
+              downloadTracker.download(
+                id = download.id,
+                url = download.url,
+                message = download.title,
+              )
+            } else {
+              _uiState.value.downloads.items.forEach {
+                downloadTracker.download(id = it.id, url = it.url, message = it.title)
+              }
+            }
           }
           is CommonDownloadEvent.DeleteDownload -> {
-            downloadTracker.delete(event.downloadEvent.downloadId)
+            if (isSingleTrack) {
+              downloadTracker.delete(event.downloadEvent.downloadId)
+            } else {
+              _uiState.value.downloads.items.forEach { downloadTracker.delete(id = it.id) }
+            }
           }
         }
       }

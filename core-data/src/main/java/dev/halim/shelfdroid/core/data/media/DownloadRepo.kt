@@ -3,7 +3,10 @@ package dev.halim.shelfdroid.core.data.media
 import android.annotation.SuppressLint
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
+import dev.halim.core.network.response.play.AudioTrack
+import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.DownloadUiState
+import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.Helper
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -59,6 +62,39 @@ constructor(
     val downloadUrl = helper.generateContentUrl(url)
 
     return DownloadUiState(state = downloadState, id = downloadId, url = downloadUrl, title = title)
+  }
+
+  suspend fun multipleTrackItem(
+    itemId: String,
+    title: String,
+    tracks: List<AudioTrack>,
+  ): MultipleTrackDownloadUiState {
+    val titleShort = if (title.length > 27) title.take(27) + "..." else title
+    val size = tracks.size
+    val items =
+      tracks.map { track ->
+        val downloadId = helper.generateDownloadId(itemId, track.index.toString())
+        val download = downloadById(downloadId)
+        val downloadState = downloadMapper.toDownloadState(download?.state)
+        val downloadUrl = helper.generateContentUrl(track.contentUrl)
+        DownloadUiState(
+          state = downloadState,
+          id = downloadId,
+          url = downloadUrl,
+          title = "$titleShort ${track.index}/$size",
+        )
+      }
+
+    val state =
+      when {
+        items.all { it.state == DownloadState.Completed } -> DownloadState.Completed
+        items.all { it.state == DownloadState.Failed } -> DownloadState.Failed
+        items.any { it.state == DownloadState.Downloading } -> DownloadState.Downloading
+        items.any { it.state == DownloadState.Failed } &&
+          items.any { it.state == DownloadState.Completed } -> DownloadState.Incomplete
+        else -> DownloadState.Unknown
+      }
+    return MultipleTrackDownloadUiState(state = state, items = items)
   }
 
   private fun downloadById(id: String): Download? {

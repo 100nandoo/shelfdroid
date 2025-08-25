@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.book
 import android.annotation.SuppressLint
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.DownloadUiState
+import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.media.DownloadMapper
@@ -33,7 +34,7 @@ constructor(
     val download =
       downloadRepo.downloads.map { downloads -> downloads.find { it.request.id == id } }
 
-    return combine(bookFlow, progressFlow, download) { book, progress, download ->
+    return combine(bookFlow, progressFlow, download) { book, progress, _ ->
       book
         ?.takeIf { it.isBook == 1L }
         ?.let {
@@ -52,12 +53,23 @@ constructor(
 
           val isSingleTrack = media.audioTracks.size == 1
 
-          val downloadUiState =
+          val download =
             if (isSingleTrack) {
               val url = media.audioTracks.first().contentUrl
               downloadRepo.item(itemId = id, url = url, title = book.title)
             } else {
               DownloadUiState()
+            }
+
+          val downloads =
+            if (isSingleTrack.not()) {
+              downloadRepo.multipleTrackItem(
+                itemId = id,
+                title = book.title,
+                tracks = media.audioTracks,
+              )
+            } else {
+              MultipleTrackDownloadUiState()
             }
 
           BookUiState(
@@ -76,7 +88,8 @@ constructor(
             language = language,
             progress = formattedProgress,
             isSingleTrack = isSingleTrack,
-            download = downloadUiState,
+            download = download,
+            downloads = downloads,
           )
         } ?: BookUiState(state = GenericState.Failure("Failed to fetch book"))
     }

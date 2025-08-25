@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.DownloadDone
+import androidx.compose.material.icons.filled.FileDownloadOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -69,13 +71,28 @@ fun DownloadButton(
     colors = buttonColors,
     enabled = !isDownloading,
   ) {
-    if (isDownloading) {
-      CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-    } else {
-      Icon(
-        imageVector = Icons.Default.Download,
-        contentDescription = stringResource(R.string.download),
-      )
+    when (downloadState) {
+      DownloadState.Downloading -> {
+        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+      }
+      DownloadState.Incomplete -> {
+        Icon(
+          imageVector = Icons.Default.FileDownloadOff,
+          contentDescription = stringResource(R.string.download_incomplete),
+        )
+      }
+      DownloadState.Completed -> {
+        Icon(
+          imageVector = Icons.Default.DownloadDone,
+          contentDescription = stringResource(R.string.downloaded),
+        )
+      }
+      else -> {
+        Icon(
+          imageVector = Icons.Default.Download,
+          contentDescription = stringResource(R.string.download),
+        )
+      }
     }
   }
 }

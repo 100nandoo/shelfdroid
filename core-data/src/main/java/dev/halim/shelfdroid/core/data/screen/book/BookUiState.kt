@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.book
 
 import dev.halim.shelfdroid.core.DownloadUiState
+import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
 
 data class BookUiState(
@@ -20,4 +21,5 @@ data class BookUiState(
   val progress: String = "",
   val isSingleTrack: Boolean = false,
   val download: DownloadUiState = DownloadUiState(),
+  val downloads: MultipleTrackDownloadUiState = MultipleTrackDownloadUiState(),
 )
