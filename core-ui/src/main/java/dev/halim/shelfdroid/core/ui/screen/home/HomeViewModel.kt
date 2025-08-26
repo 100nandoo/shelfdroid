@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
@@ -23,13 +24,34 @@ class HomeViewModel
 @Inject
 constructor(
   private val repository: HomeRepository,
+  private val progressRepo: ProgressRepo,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(HomeUiState())
+
   val uiState: StateFlow<HomeUiState> =
-    combine(_uiState, settingsRepository.listView) { uiState: HomeUiState, listView: Boolean ->
-        uiState.copy(listView = listView)
+    combine(_uiState, settingsRepository.listView, progressRepo.flowFinishedEpisodesCountById()) {
+        uiState: HomeUiState,
+        listView: Boolean,
+        progress: List<Pair<String, Long>> ->
+        if (uiState.librariesUiState.isNotEmpty()) {
+          val currentLibrary = uiState.librariesUiState[uiState.currentPage]
+          val updatedPodcasts =
+            currentLibrary.podcasts.map { podcast ->
+              val update = progress.find { it.first == podcast.id }?.second?.toInt()
+              if (update != null) {
+                val unfinishedEpisodeCount = podcast.episodeCount - update
+                podcast.copy(unfinishedEpisodeCount = unfinishedEpisodeCount)
+              } else podcast
+            }
+          val updatedLibraries = uiState.librariesUiState.toMutableList()
+          updatedLibraries[uiState.currentPage] =
+            uiState.librariesUiState[uiState.currentPage].copy(podcasts = updatedPodcasts)
+          uiState.copy(listView = listView, librariesUiState = updatedLibraries)
+        } else {
+          uiState.copy(listView = listView)
+        }
       }
       .onStart { onStartApis() }
       .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
@@ -40,10 +62,14 @@ constructor(
   fun onEvent(event: HomeEvent) {
     when (event) {
       is HomeEvent.RefreshLibrary -> {
+        _uiState.update { it.copy(currentPage = event.page) }
         fetchLibraryItems(event.page)
         fetchUser()
       }
-      is HomeEvent.ChangeLibrary -> prefetchLibraryItems(event.page)
+      is HomeEvent.ChangeLibrary -> {
+        _uiState.update { it.copy(currentPage = event.page) }
+        prefetchLibraryItems(event.page)
+      }
       is HomeEvent.Navigate -> {
         viewModelScope.launch {
           _navState.update {

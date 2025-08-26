@@ -89,14 +89,15 @@ constructor(
   }
 
   private fun toPodcastUiState(item: LibraryItemEntity): PodcastUiState {
-    val podcast = Json.decodeFromString<Podcast>(item.media).episodes.count()
+    val episodeCount = Json.decodeFromString<Podcast>(item.media).episodes.count()
     val finished = progressRepo.byLibraryItemId(item.id).count { it.isFinished == 1L }
-    val unfinished = podcast - finished
+    val unfinished = episodeCount - finished
     return PodcastUiState(
       id = item.id,
       author = item.author,
       title = item.title,
       cover = item.cover,
+      episodeCount = episodeCount,
       unfinishedEpisodeCount = unfinished,
     )
   }

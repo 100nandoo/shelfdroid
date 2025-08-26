@@ -6,7 +6,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.shelfdroid.core.ChapterPosition
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -50,10 +49,7 @@ constructor(private val player: Lazy<ExoPlayer>, private val podcastRepository: 
           }
         } else {
           CoroutineScope(Dispatchers.IO).launch {
-            podcastRepository.toggleIsFinished(
-              uiState.id,
-              Episode(uiState.episodeId, isFinished = true),
-            )
+            podcastRepository.markIsFinished(uiState.id, uiState.episodeId)
           }
         }
       }

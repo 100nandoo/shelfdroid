@@ -74,6 +74,21 @@ toggleIsFinishedByEpisodeId:
 UPDATE ProgressEntity
 SET
   isFinished = CASE WHEN isFinished = 1 THEN 0 ELSE 1 END,
-  progress   = CASE WHEN isFinished = 1 THEN progress ELSE 0 END,
-  currentTime = CASE WHEN isFinished = 1 THEN currentTime ELSE 0 END
+  progress   = 0,
+  currentTime = 0
 WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
+
+markEpisodeFinished:
+UPDATE ProgressEntity
+SET isFinished = 1,
+    progress = 1,
+    currentTime = duration
+WHERE episodeId = :episodeId
+  AND episodeId IS NOT NULL;
+
+finishedEpisodesCountById:
+SELECT libraryItemId, COUNT(*) AS finishedCount
+FROM ProgressEntity
+WHERE isFinished = 1
+  AND episodeId IS NOT NULL
+GROUP BY libraryItemId;

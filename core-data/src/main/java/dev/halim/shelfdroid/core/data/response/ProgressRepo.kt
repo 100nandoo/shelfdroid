@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class ProgressRepo @Inject constructor(db: MyDatabase) {
@@ -42,8 +43,10 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
     return entities
   }
 
-  fun updateMediaById(episodeId: String): Boolean =
+  fun toggleIsFinishedByEpisodeId(episodeId: String): Boolean =
     queries.toggleIsFinishedByEpisodeId(episodeId).value == 1L
+
+  fun markEpisodeFinished(episodeId: String) = queries.markEpisodeFinished(episodeId)
 
   fun updateProgress(entity: ProgressEntity) {
     val episodeId = entity.episodeId
@@ -51,6 +54,12 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
       queries.updateBookProgress(entity.progress, entity.currentTime, entity.libraryItemId)
     } else {
       queries.updatePodcastProgress(entity.progress, entity.currentTime, episodeId)
+    }
+  }
+
+  fun flowFinishedEpisodesCountById(): Flow<List<Pair<String, Long>>> {
+    return queries.finishedEpisodesCountById().asFlow().mapToList(Dispatchers.IO).map { list ->
+      list.map { Pair(it.libraryItemId, it.finishedCount) }
     }
   }
 

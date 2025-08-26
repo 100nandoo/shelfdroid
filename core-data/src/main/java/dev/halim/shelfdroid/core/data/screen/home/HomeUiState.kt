@@ -13,6 +13,7 @@ data class LibraryUiState(
 data class HomeUiState(
   val homeState: HomeState = HomeState.Loading,
   val listView: Boolean = false,
+  val currentPage: Int = 0,
   val librariesUiState: List<LibraryUiState> = emptyList(),
 )
 
@@ -29,6 +30,7 @@ data class PodcastUiState(
   val author: String,
   val title: String,
   val cover: String,
+  val episodeCount: Int,
   val unfinishedEpisodeCount: Int,
 )
 

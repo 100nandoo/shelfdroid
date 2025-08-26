@@ -48,6 +48,7 @@ object Defaults {
         author = AUTHOR_NAME,
         title = TITLE,
         cover = IMAGE_URL,
+        episodeCount = 5,
         unfinishedEpisodeCount = 3,
       ),
       PodcastUiState(
@@ -55,6 +56,7 @@ object Defaults {
         author = AUTHOR_NAME,
         title = TITLE,
         cover = IMAGE_URL,
+        episodeCount = 5,
         unfinishedEpisodeCount = 3,
       ),
       PodcastUiState(
@@ -62,6 +64,7 @@ object Defaults {
         author = AUTHOR_NAME,
         title = TITLE,
         cover = IMAGE_URL,
+        episodeCount = 7,
         unfinishedEpisodeCount = 3,
       ),
     )

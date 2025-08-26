@@ -11,10 +11,10 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.media.download.DownloadTracker
 import dev.halim.shelfdroid.media.service.StateHolder
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -23,33 +23,29 @@ class PodcastViewModel
 constructor(
   private val podcastRepository: PodcastRepository,
   private val downloadTracker: DownloadTracker,
-  private val stateHolder: StateHolder,
+  stateHolder: StateHolder,
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
   val id: String = checkNotNull(savedStateHandle.get<String>("id"))
 
-  private val _uiState = MutableStateFlow(PodcastUiState())
-  val uiState: StateFlow<PodcastUiState> = _uiState.asStateFlow()
-
-  init {
-    viewModelScope.launch {
-      combine(podcastRepository.item(id), stateHolder.uiState) { podcast, state ->
-          val updatedEpisodes =
-            podcast.episodes.map { episode ->
-              if (episode.episodeId == state.episodeId) {
-                episode.copy(
-                  progress = state.playbackProgress.progress,
-                  isPlaying = state.exoState == ExoState.Playing,
-                )
-              } else {
-                episode
-              }
-            }
-          podcast.copy(episodes = updatedEpisodes)
-        }
-        .collect { updatedPodcast -> _uiState.value = updatedPodcast }
-    }
-  }
+  val uiState: StateFlow<PodcastUiState> =
+    combine(podcastRepository.item(id), stateHolder.uiState) { podcast, state ->
+        val updatedEpisodes =
+          podcast.episodes.map { episode ->
+            if (episode.episodeId == state.episodeId) {
+              episode.copy(
+                progress = state.playbackProgress.progress,
+                isPlaying = state.exoState == ExoState.Playing,
+              )
+            } else episode
+          }
+        podcast.copy(episodes = updatedEpisodes)
+      }
+      .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = PodcastUiState(),
+      )
 
   fun onEvent(event: PodcastEvent) {
     when (event) {
