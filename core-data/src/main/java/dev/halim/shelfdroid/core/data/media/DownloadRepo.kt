@@ -50,6 +50,31 @@ constructor(
     )
   }
 
+  fun bookIsDownloaded(id: String, trackIndexes: List<Int>): Boolean {
+    val downloadedIds =
+      downloads.value.filter { it.state == Download.STATE_COMPLETED }.map { it.request.id }
+
+    return when (trackIndexes.size) {
+      1 -> id in downloadedIds
+      0 -> false
+      else -> {
+        val ids =
+          trackIndexes.map { trackIndex -> helper.generateDownloadId(id, trackIndex.toString()) }
+        ids.all { id -> id in downloadedIds }
+      }
+    }
+  }
+
+  fun podcastDownloadedEpisodeIds(id: String): Set<String> {
+    return downloads.value
+      .asSequence()
+      .filter { it.state == Download.STATE_COMPLETED }
+      .map { it.request.id }
+      .filter { it.contains(id) }
+      .map { it.substringAfter("|") }
+      .toSet()
+  }
+
   suspend fun item(
     itemId: String,
     episodeId: String? = null,

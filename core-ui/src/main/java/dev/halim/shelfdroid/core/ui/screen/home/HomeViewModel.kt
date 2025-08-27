@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -30,31 +29,44 @@ constructor(
 
   private val _uiState = MutableStateFlow(HomeUiState())
 
-  val uiState: StateFlow<HomeUiState> =
-    combine(_uiState, settingsRepository.listView, progressRepo.flowFinishedEpisodesCountById()) {
-        uiState: HomeUiState,
-        listView: Boolean,
-        progress: List<Pair<String, Long>> ->
-        if (uiState.librariesUiState.isNotEmpty()) {
-          val currentLibrary = uiState.librariesUiState[uiState.currentPage]
-          val updatedPodcasts =
-            currentLibrary.podcasts.map { podcast ->
-              val update = progress.find { it.first == podcast.id }?.second?.toInt()
-              if (update != null) {
-                val unfinishedEpisodeCount = podcast.episodeCount - update
-                podcast.copy(unfinishedEpisodeCount = unfinishedEpisodeCount)
-              } else podcast
-            }
-          val updatedLibraries = uiState.librariesUiState.toMutableList()
-          updatedLibraries[uiState.currentPage] =
-            uiState.librariesUiState[uiState.currentPage].copy(podcasts = updatedPodcasts)
-          uiState.copy(listView = listView, librariesUiState = updatedLibraries)
-        } else {
-          uiState.copy(listView = listView)
+  init {
+    viewModelScope.launch {
+      settingsRepository.listView.collect { listView ->
+        _uiState.update {
+          val displayOptions = it.displayOptions.copy(listView = listView)
+          it.copy(displayOptions = displayOptions)
         }
       }
-      .onStart { onStartApis() }
-      .stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
+    }
+
+    viewModelScope.launch {
+      progressRepo.flowFinishedEpisodesCountById().collect { progress: List<Pair<String, Long>> ->
+        _uiState.update {
+          if (_uiState.value.librariesUiState.isNotEmpty()) {
+            val currentPage = it.currentPage
+            val currentLibrary = it.librariesUiState[currentPage]
+            val updatedPodcasts =
+              currentLibrary.podcasts.map { podcast ->
+                val update = progress.find { it.first == podcast.id }?.second?.toInt()
+                if (update != null) {
+                  val unfinishedEpisodeCount = podcast.episodeCount - update
+                  podcast.copy(unfinishedCount = unfinishedEpisodeCount)
+                } else podcast
+              }
+            val updatedLibraries = it.librariesUiState.toMutableList()
+            updatedLibraries[currentPage] =
+              it.librariesUiState[currentPage].copy(podcasts = updatedPodcasts)
+            it.copy(librariesUiState = updatedLibraries)
+          } else {
+            it
+          }
+        }
+      }
+    }
+  }
+
+  val uiState: StateFlow<HomeUiState> =
+    _uiState.onStart { onStartApis() }.stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
 
   private val _navState = MutableStateFlow(NavUiState())
   val navState = _navState.stateIn(viewModelScope, SharingStarted.Lazily, NavUiState())
@@ -68,13 +80,18 @@ constructor(
       }
       is HomeEvent.ChangeLibrary -> {
         _uiState.update { it.copy(currentPage = event.page) }
-        prefetchLibraryItems(event.page)
       }
       is HomeEvent.Navigate -> {
         viewModelScope.launch {
           _navState.update {
             _navState.value.copy(id = event.id, isBook = event.isBook, isNavigate = true)
           }
+        }
+      }
+      is HomeEvent.DownloadFilter -> {
+        _uiState.update { state ->
+          val filter = state.displayOptions.filter.toggleDownloaded()
+          state.copy(displayOptions = state.displayOptions.copy(filter = filter))
         }
       }
     }
@@ -90,28 +107,19 @@ constructor(
 
   private fun onStartApis() {
     _uiState.update { it.copy(homeState = HomeState.Loading) }
-    viewModelScope.launch(handler) {
+    viewModelScope.launch {
       val libraries = repository.getLibraries()
       _uiState.update { it.copy(homeState = HomeState.Success, librariesUiState = libraries) }
       fetchUser()
-      prefetchLibraryItems(0)
+      prefetchLibraryItems()
     }
   }
 
-  private fun prefetchLibraryItems(page: Int) {
+  private fun prefetchLibraryItems() {
     val currentState = _uiState.value
     val libraries = currentState.librariesUiState
 
-    // Prefetch current page if not loaded
-    if (page < libraries.size) {
-      fetchLibraryItems(page)
-    }
-
-    // Prefetch next page if not loaded
-    val nextPage = page + 1
-    if (nextPage < libraries.size) {
-      fetchLibraryItems(nextPage)
-    }
+    libraries.forEachIndexed { index, _ -> fetchLibraryItems(index) }
   }
 
   private fun fetchLibraryItems(page: Int) {
@@ -129,7 +137,10 @@ constructor(
 
   private fun fetchUser() {
     _uiState.update { it.copy(homeState = HomeState.Loading) }
-    viewModelScope.launch { _uiState.update { repository.getUser(_uiState.value) } }
+    viewModelScope.launch {
+      val result = repository.getUser(_uiState.value)
+      _uiState.update { result }
+    }
   }
 }
 
@@ -145,4 +156,6 @@ sealed class HomeEvent {
   data class RefreshLibrary(val page: Int) : HomeEvent()
 
   data class Navigate(val id: String, val isBook: Boolean) : HomeEvent()
+
+  data object DownloadFilter : HomeEvent()
 }

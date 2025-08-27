@@ -23,6 +23,9 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
   fun byLibraryItemId(id: String): List<ProgressEntity> =
     queries.byLibraryItemId(id).executeAsList()
 
+  fun byLibraryItemIdAndFinished(id: String): List<ProgressEntity> =
+    queries.byLibraryItemIdAndFinished(id).executeAsList()
+
   fun flowByLibraryItemId(id: String): Flow<List<ProgressEntity>> =
     queries.byLibraryItemId(id).asFlow().mapToList(Dispatchers.IO)
 

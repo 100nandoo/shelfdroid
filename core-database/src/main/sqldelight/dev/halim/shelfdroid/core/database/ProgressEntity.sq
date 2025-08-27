@@ -24,6 +24,11 @@ SELECT *
 FROM ProgressEntity
 WHERE libraryItemId = :id;
 
+byLibraryItemIdAndFinished:
+SELECT *
+FROM ProgressEntity
+WHERE libraryItemId = :id AND isFinished = 1;
+
 bookById:
 SELECT *
 FROM ProgressEntity

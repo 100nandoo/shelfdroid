@@ -132,7 +132,7 @@ fun PreviewHomePodcastItemList() {
           author = podcast.author,
           cover = podcast.cover,
           onClick = {},
-          unfinishedEpisodeCount = podcast.unfinishedEpisodeCount,
+          unfinishedEpisodeCount = podcast.unfinishedCount,
         )
       }
     }

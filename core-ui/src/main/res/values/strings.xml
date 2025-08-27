@@ -20,6 +20,8 @@
     <string name="download">Download</string>
     <string name="download_incomplete">Download incomplete</string>
     <string name="downloaded">Downloaded</string>
+    <string name="downloaded_filter_on">Downloaded Filter On</string>
+    <string name="downloaded_filter_off">Downloaded Filter Off</string>
     <!--Content Description-->
 
     <!--Arguments-->

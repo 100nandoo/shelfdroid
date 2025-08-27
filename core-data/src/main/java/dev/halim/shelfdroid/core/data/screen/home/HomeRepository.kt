@@ -3,18 +3,15 @@ package dev.halim.shelfdroid.core.data.screen.home
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.UserType
-import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.serialization.json.Json
 
 class HomeRepository
 @Inject
@@ -24,6 +21,7 @@ constructor(
   private val progressRepo: ProgressRepo,
   private val bookmarkRepo: BookmarkRepo,
   private val libraryRepo: LibraryRepo,
+  private val mapper: HomeMapper,
   private val dataStoreManager: DataStoreManager,
 ) {
 
@@ -52,10 +50,10 @@ constructor(
     val ids = libraryItemRepo.idsByLibraryId(libraryId)
     val libraryItems = libraryItemRepo.entities(libraryId, ids)
     return if (uiState.isBook) {
-      val books = libraryItems.map { toBookUiState(it) }
+      val books = libraryItems.map { mapper.toBookUiState(it) }
       uiState.copy(books = books)
     } else {
-      val podcasts = libraryItems.map { toPodcastUiState(it) }
+      val podcasts = libraryItems.map { mapper.toPodcastUiState(it) }
       uiState.copy(podcasts = podcasts)
     }
   }
@@ -82,23 +80,5 @@ constructor(
     val server = loginResponse.serverSettings
     val serverPrefs = ServerPrefs(version = server.version)
     dataStoreManager.updateServerPrefs(serverPrefs)
-  }
-
-  private fun toBookUiState(item: LibraryItemEntity): BookUiState {
-    return BookUiState(id = item.id, author = item.author, title = item.title, cover = item.cover)
-  }
-
-  private fun toPodcastUiState(item: LibraryItemEntity): PodcastUiState {
-    val episodeCount = Json.decodeFromString<Podcast>(item.media).episodes.count()
-    val finished = progressRepo.byLibraryItemId(item.id).count { it.isFinished == 1L }
-    val unfinished = episodeCount - finished
-    return PodcastUiState(
-      id = item.id,
-      author = item.author,
-      title = item.title,
-      cover = item.cover,
-      episodeCount = episodeCount,
-      unfinishedEpisodeCount = unfinished,
-    )
   }
 }

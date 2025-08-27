@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.preview
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
+import dev.halim.shelfdroid.core.data.screen.home.DisplayOptions
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
@@ -49,7 +50,9 @@ object Defaults {
         title = TITLE,
         cover = IMAGE_URL,
         episodeCount = 5,
-        unfinishedEpisodeCount = 3,
+        unfinishedCount = 3,
+        downloadedCount = 2,
+        unfinishedAndDownloadCount = 1,
       ),
       PodcastUiState(
         id = "podcast2",
@@ -57,7 +60,9 @@ object Defaults {
         title = TITLE,
         cover = IMAGE_URL,
         episodeCount = 5,
-        unfinishedEpisodeCount = 3,
+        unfinishedCount = 3,
+        downloadedCount = 2,
+        unfinishedAndDownloadCount = 1,
       ),
       PodcastUiState(
         id = "podcast3",
@@ -65,7 +70,9 @@ object Defaults {
         title = TITLE,
         cover = IMAGE_URL,
         episodeCount = 7,
-        unfinishedEpisodeCount = 3,
+        unfinishedCount = 3,
+        downloadedCount = 2,
+        unfinishedAndDownloadCount = 2,
       ),
     )
 
@@ -79,7 +86,7 @@ object Defaults {
   val HOME_UI_STATE_LIST =
     HomeUiState(
       homeState = HomeState.Success,
-      listView = true,
+      displayOptions = DisplayOptions(),
       librariesUiState = HOME_LIBRARY_STATE,
     )
 

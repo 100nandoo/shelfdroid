@@ -17,6 +17,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileDownloadDone
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
+import dev.halim.shelfdroid.core.data.screen.home.DisplayOptions
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
@@ -58,6 +61,9 @@ fun HomeScreen(
   val libraryCount = uiState.librariesUiState.size
 
   val pagerState = rememberPagerState(pageCount = { libraryCount })
+  LaunchedEffect(pagerState.currentPage) {
+    viewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
+  }
 
   LaunchedEffect(Unit) {
     viewModel.navState.collect { navUiState ->
@@ -117,11 +123,12 @@ fun HomeScreenContent(
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
       LibraryContent(
         modifier = Modifier.weight(1f),
-        listView = uiState.listView,
+        displayOptions = uiState.displayOptions,
         books = library.books,
         podcasts = library.podcasts,
         onEvent = onEvent,
         name = uiState.librariesUiState[page].name,
+        onDownloadFilterClicked = { onEvent(HomeEvent.DownloadFilter) },
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
         onSettingsClicked = onSettingsClicked,
       )
@@ -135,19 +142,37 @@ fun HomeScreenContent(
 }
 
 @Composable
-fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> Unit) {
+fun LibraryHeader(
+  name: String,
+  displayOptions: DisplayOptions = DisplayOptions(),
+  onDownloadFilterClicked: () -> Unit,
+  onRefresh: () -> Unit,
+  onSettingsClicked: () -> Unit,
+) {
   Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-    MyIconButton(
-      icon = Icons.Filled.Refresh,
-      contentDescription = stringResource(R.string.refresh),
-      onClick = onRefresh,
-      size = 48,
-    )
     Text(
       text = name,
       Modifier.padding(horizontal = 8.dp).weight(1f),
       style = MaterialTheme.typography.titleLarge,
       textAlign = TextAlign.Start,
+    )
+    val isDownloadedFilterOn = displayOptions.filter.isDownloaded()
+    val icon =
+      if (isDownloadedFilterOn) Icons.Filled.FileDownloadDone else Icons.Filled.FileDownload
+    val contentDescription =
+      if (isDownloadedFilterOn) stringResource(R.string.downloaded_filter_on)
+      else stringResource(R.string.downloaded_filter_off)
+    MyIconButton(
+      icon = icon,
+      contentDescription = contentDescription,
+      onClick = onDownloadFilterClicked,
+      size = 48,
+    )
+    MyIconButton(
+      icon = Icons.Filled.Refresh,
+      contentDescription = stringResource(R.string.refresh),
+      onClick = onRefresh,
+      size = 48,
     )
     MyIconButton(
       icon = Icons.Default.Settings,
@@ -161,16 +186,21 @@ fun LibraryHeader(name: String, onRefresh: () -> Unit, onSettingsClicked: () -> 
 @Composable
 fun LibraryContent(
   modifier: Modifier = Modifier,
-  listView: Boolean,
+  displayOptions: DisplayOptions,
   books: List<BookUiState>,
   podcasts: List<PodcastUiState>,
   onEvent: (HomeEvent) -> Unit,
   name: String,
+  onDownloadFilterClicked: () -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
+  val listView = displayOptions.listView
   val columnCount = remember(listView) { if (listView) 1 else 3 }
+  val isDownloaded = displayOptions.filter.isDownloaded()
+  val books = books.filter { if (isDownloaded) it.isDownloaded else true }
+  val podcasts = podcasts.filter { if (isDownloaded) it.downloadedCount > 0 else true }
 
   LazyVerticalGrid(
     state = gridState,
@@ -180,7 +210,13 @@ fun LibraryContent(
     verticalArrangement = Arrangement.Bottom,
   ) {
     item(span = { GridItemSpan(maxLineSpan) }) {
-      LibraryHeader(name = name, onRefresh = onRefresh, onSettingsClicked = onSettingsClicked)
+      LibraryHeader(
+        name = name,
+        displayOptions = displayOptions,
+        onDownloadFilterClicked = onDownloadFilterClicked,
+        onRefresh = onRefresh,
+        onSettingsClicked = onSettingsClicked,
+      )
     }
     items(items = books, key = { it.id }) { book ->
       HomeItem(
@@ -196,13 +232,17 @@ fun LibraryContent(
       }
     }
     items(items = podcasts, key = { it.id }) { podcast ->
+      val count =
+        remember(isDownloaded) {
+          if (isDownloaded) podcast.unfinishedAndDownloadCount else podcast.unfinishedCount
+        }
       HomeItem(
         listView = listView,
         id = podcast.id,
         title = podcast.title,
         author = podcast.author,
         cover = podcast.cover,
-        unfinishedEpisodeCount = podcast.unfinishedEpisodeCount,
+        unfinishedEpisodeCount = count,
         onClick = { onEvent(HomeEvent.Navigate(podcast.id, false)) },
       )
       if (listView) {
