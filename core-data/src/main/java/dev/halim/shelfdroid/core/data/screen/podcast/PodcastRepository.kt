@@ -4,9 +4,9 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

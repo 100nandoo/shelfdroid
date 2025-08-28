@@ -2,8 +2,8 @@ package dev.halim.shelfdroid.core.data.screen.podcast
 
 import android.annotation.SuppressLint
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
-import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.database.ProgressEntity
+import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 

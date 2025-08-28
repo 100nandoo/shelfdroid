@@ -3,9 +3,9 @@ package dev.halim.shelfdroid.core.data.screen.home
 import android.annotation.SuppressLint
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
-import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
+import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 

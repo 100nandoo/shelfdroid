@@ -3,9 +3,9 @@ package dev.halim.shelfdroid.core.data.screen.episode
 import android.annotation.SuppressLint
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import java.util.Locale
 import javax.inject.Inject

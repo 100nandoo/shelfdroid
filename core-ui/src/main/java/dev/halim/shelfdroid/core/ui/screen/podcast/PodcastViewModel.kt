@@ -8,7 +8,7 @@ import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
-import dev.halim.shelfdroid.download.DownloadTracker
+import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.service.StateHolder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +22,7 @@ class PodcastViewModel
 @Inject
 constructor(
   private val podcastRepository: PodcastRepository,
-  private val downloadTracker: DownloadTracker,
+  private val downloadRepo: DownloadRepo,
   stateHolder: StateHolder,
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -53,10 +53,10 @@ constructor(
         viewModelScope.launch { podcastRepository.toggleIsFinished(id, event.episode) }
       }
       is PodcastEvent.Download -> {
-        downloadTracker.download(event.downloadId, event.url, event.message)
+        downloadRepo.download(event.downloadId, event.url, event.message)
       }
       is PodcastEvent.DeleteDownload -> {
-        downloadTracker.delete(event.downloadId)
+        downloadRepo.delete(event.downloadId)
       }
     }
   }

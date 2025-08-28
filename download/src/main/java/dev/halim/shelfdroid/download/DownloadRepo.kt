@@ -1,13 +1,17 @@
-package dev.halim.shelfdroid.core.data.media
+package dev.halim.shelfdroid.download
 
 import android.annotation.SuppressLint
+import android.content.Context
+import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
-import dev.halim.shelfdroid.download.DownloadMapper
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,6 +28,7 @@ constructor(
   private val downloadManager: DownloadManager,
   private val helper: Helper,
   private val downloadMapper: DownloadMapper,
+  @ApplicationContext private val context: Context,
 ) {
 
   private val _downloads = MutableStateFlow(fetch())
@@ -121,6 +126,26 @@ constructor(
         else -> DownloadState.Unknown
       }
     return MultipleTrackDownloadUiState(state = state, items = items)
+  }
+
+  fun download(id: String, url: String, message: String) {
+    DownloadService.sendAddDownload(
+      context,
+      ShelfDownloadService::class.java,
+      toDownloadRequest(id, url, message),
+      true,
+    )
+  }
+
+  fun delete(id: String) {
+    DownloadService.sendRemoveDownload(context, ShelfDownloadService::class.java, id, false)
+  }
+
+  private fun toDownloadRequest(id: String, url: String, message: String): DownloadRequest {
+    return DownloadRequest.Builder(id, url.toUri())
+      .setCustomCacheKey(id)
+      .setData(message.toByteArray())
+      .build()
   }
 
   private fun downloadById(id: String): Download? {

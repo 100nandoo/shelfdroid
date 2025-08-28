@@ -5,11 +5,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeUiState
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
-import dev.halim.shelfdroid.download.DownloadTracker
+import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,7 +24,6 @@ constructor(
   savedStateHandle: SavedStateHandle,
   private val repository: EpisodeRepository,
   private val downloadRepo: DownloadRepo,
-  private val downloadTracker: DownloadTracker,
 ) : ViewModel() {
 
   val itemId: String = checkNotNull(savedStateHandle.get<String>("itemId"))
@@ -43,10 +41,10 @@ constructor(
       is EpisodeEvent.DownloadEvent -> {
         when (event.downloadEvent) {
           is CommonDownloadEvent.Download -> {
-            downloadTracker.download(download.id, download.url, download.title)
+            downloadRepo.download(download.id, download.url, download.title)
           }
           is CommonDownloadEvent.DeleteDownload -> {
-            downloadTracker.delete(download.id)
+            downloadRepo.delete(download.id)
           }
         }
       }

@@ -8,7 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.book.BookRepository
 import dev.halim.shelfdroid.core.data.screen.book.BookUiState
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
-import dev.halim.shelfdroid.download.DownloadTracker
+import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +22,7 @@ class BookViewModel
 @Inject
 constructor(
   private val repository: BookRepository,
-  private val downloadTracker: DownloadTracker,
+  private val downloadRepo: DownloadRepo,
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -42,22 +42,18 @@ constructor(
         when (event.downloadEvent) {
           is CommonDownloadEvent.Download -> {
             if (isSingleTrack) {
-              downloadTracker.download(
-                id = download.id,
-                url = download.url,
-                message = download.title,
-              )
+              downloadRepo.download(id = download.id, url = download.url, message = download.title)
             } else {
               _uiState.value.downloads.items.forEach {
-                downloadTracker.download(id = it.id, url = it.url, message = it.title)
+                downloadRepo.download(id = it.id, url = it.url, message = it.title)
               }
             }
           }
           is CommonDownloadEvent.DeleteDownload -> {
             if (isSingleTrack) {
-              downloadTracker.delete(download.id)
+              downloadRepo.delete(download.id)
             } else {
-              _uiState.value.downloads.items.forEach { downloadTracker.delete(id = it.id) }
+              _uiState.value.downloads.items.forEach { downloadRepo.delete(id = it.id) }
             }
           }
         }

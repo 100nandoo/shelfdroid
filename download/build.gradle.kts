@@ -36,6 +36,10 @@ android {
 dependencies {
   implementation(project(libs.versions.core.get()))
   implementation(project(libs.versions.coreNetwork.get()))
+  implementation(project(libs.versions.helper.get()))
+
+  // Kotlinx
+  implementation(libs.kotlinx.coroutines.android)
 
   // Hilt Dependency Injection
   implementation(libs.hilt.android)
