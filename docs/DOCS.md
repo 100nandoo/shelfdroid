@@ -11,11 +11,19 @@ code is accessible within the **Data** module.
 ```mermaid
 ---
 config:
-  look: neo
-  theme: neutral
   layout: elk
+  theme: neutral
+  look: neo
 ---
 flowchart TD
+    Do["Download"]
+    H["Helper"]
+    H --> D
+    H --> U
+    H --> M
+    C --> Do
+    N --> Do
+    Do --> D
     D["Data"] --> U["UI"] & A["App"] & M["Media"]
     U --> A
     M --> U
@@ -23,7 +31,6 @@ flowchart TD
     S["Datastore"] --> D & N["Network"]
     N --> D & M
     C["Core"] --> A & D & S & N & U
-
 ```
 
 ## 📱 Screen Flow
