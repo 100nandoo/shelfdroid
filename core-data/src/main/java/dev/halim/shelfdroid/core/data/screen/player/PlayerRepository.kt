@@ -9,11 +9,11 @@ import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.RawPlaybackProgress
-import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.helper.Helper
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.serialization.json.Json

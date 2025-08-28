@@ -42,6 +42,7 @@ dependencies {
   implementation(project(libs.versions.coreDatastore.get()))
   implementation(project(libs.versions.coreNetwork.get()))
   implementation(project(libs.versions.download.get()))
+  implementation(project(libs.versions.helper.get()))
 
   implementation(libs.kotlinx.serialization)
 

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data
+package dev.halim.shelfdroid.helper
 
 import android.app.PendingIntent
 import android.content.Context
@@ -21,19 +21,19 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
     withContext(Dispatchers.IO) { dataStoreManager.userPrefs.first().accessToken }
 
   fun generateItemCoverUrl(itemId: String): String {
-    return "https://${DataStoreManager.BASE_URL}/api/items/$itemId/cover"
+    return "https://${DataStoreManager.Companion.BASE_URL}/api/items/$itemId/cover"
   }
 
   suspend fun generateContentUrl(url: String): String =
-    "https://${DataStoreManager.BASE_URL}$url?token=${getToken()}"
+    "https://${DataStoreManager.Companion.BASE_URL}$url?token=${getToken()}"
 
   fun generateDownloadId(itemId: String, episodeId: String? = null): String =
     episodeId?.let { "$itemId|$it" } ?: itemId
 
   @OptIn(ExperimentalTime::class)
   fun toReadableDate(long: Long): String {
-    val instant = Instant.fromEpochMilliseconds(long)
-    val dateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+    val instant = Instant.Companion.fromEpochMilliseconds(long)
+    val dateTime = instant.toLocalDateTime(TimeZone.Companion.currentSystemDefault())
     return "${dateTime.day} ${dateTime.month.name.lowercase()
       .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${dateTime.year}"
   }

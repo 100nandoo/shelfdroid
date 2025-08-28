@@ -15,6 +15,7 @@ coreNetwork = ":core-network"
 coreTesting = ":core-testing"
 coreUi = ":core-ui"
 download = ":download"
+helper = ":helper"
 media = ":media"
 testApp = ":test-app"
 

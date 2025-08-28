@@ -12,9 +12,9 @@ import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerTrack
 import dev.halim.shelfdroid.core.RawPlaybackProgress
-import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.database.BookmarkEntity
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

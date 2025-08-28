@@ -5,10 +5,10 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.helper.Helper
 import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow

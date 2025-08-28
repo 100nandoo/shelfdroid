@@ -11,7 +11,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
-import dev.halim.shelfdroid.core.data.Helper
+import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 
 @UnstableApi

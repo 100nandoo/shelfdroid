@@ -7,8 +7,8 @@ import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
-import dev.halim.shelfdroid.core.data.Helper
 import dev.halim.shelfdroid.download.DownloadMapper
+import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -19,11 +19,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
-import dev.halim.shelfdroid.core.data.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.MainNavigation
 import dev.halim.shelfdroid.core.ui.navigation.NavRequest
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
+import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first

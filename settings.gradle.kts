@@ -34,6 +34,8 @@ include(":core-ui")
 
 include(":download")
 
+include(":helper")
+
 include(":media")
 
 include(":test-app")
