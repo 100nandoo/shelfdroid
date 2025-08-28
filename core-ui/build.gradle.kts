@@ -46,6 +46,7 @@ android {
 dependencies {
   implementation(project(libs.versions.core.get()))
   implementation(project(libs.versions.coreData.get()))
+  implementation(project(libs.versions.download.get()))
   implementation(project(libs.versions.media.get()))
 
   val composeBom = platform(libs.androidx.compose.bom)

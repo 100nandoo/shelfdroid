@@ -8,7 +8,7 @@ import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
-import dev.halim.shelfdroid.media.download.DownloadTracker
+import dev.halim.shelfdroid.download.DownloadTracker
 import dev.halim.shelfdroid.media.service.StateHolder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted

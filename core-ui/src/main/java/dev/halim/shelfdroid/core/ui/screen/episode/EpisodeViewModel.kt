@@ -9,7 +9,7 @@ import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeUiState
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
-import dev.halim.shelfdroid.media.download.DownloadTracker
+import dev.halim.shelfdroid.download.DownloadTracker
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

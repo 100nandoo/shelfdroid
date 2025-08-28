@@ -14,6 +14,7 @@ coreDatastore = ":core-datastore"
 coreNetwork = ":core-network"
 coreTesting = ":core-testing"
 coreUi = ":core-ui"
+download = ":download"
 media = ":media"
 testApp = ":test-app"
 

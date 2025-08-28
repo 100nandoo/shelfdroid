@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.media
+package dev.halim.shelfdroid.download
 
 import android.annotation.SuppressLint
 import androidx.media3.exoplayer.offline.Download

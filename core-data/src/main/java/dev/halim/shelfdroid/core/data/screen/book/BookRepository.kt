@@ -6,7 +6,6 @@ import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.Helper
-import dev.halim.shelfdroid.core.data.media.DownloadMapper
 import dev.halim.shelfdroid.core.data.media.DownloadRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
@@ -23,7 +22,6 @@ constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
   private val downloadRepo: DownloadRepo,
-  private val downloadMapper: DownloadMapper,
   private val helper: Helper,
 ) {
 

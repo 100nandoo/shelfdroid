@@ -8,7 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.book.BookRepository
 import dev.halim.shelfdroid.core.data.screen.book.BookUiState
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
-import dev.halim.shelfdroid.media.download.DownloadTracker
+import dev.halim.shelfdroid.download.DownloadTracker
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

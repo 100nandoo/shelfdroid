@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.media.download
+package dev.halim.shelfdroid.download
 
 import android.annotation.SuppressLint
 import android.content.Context

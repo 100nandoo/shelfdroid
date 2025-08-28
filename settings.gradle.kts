@@ -32,8 +32,10 @@ include(":core-testing")
 
 include(":core-ui")
 
+include(":download")
+
+include(":media")
+
 include(":test-app")
 
 include(":benchmark")
-
-include(":media")

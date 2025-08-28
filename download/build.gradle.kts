@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-  namespace = "${libs.versions.namespace.get()}.media"
+  namespace = "${libs.versions.namespace.get()}.download"
   compileSdk = libs.versions.targetSdk.get().toInt()
 
   defaultConfig {
@@ -36,18 +36,11 @@ android {
 dependencies {
   implementation(project(libs.versions.core.get()))
   implementation(project(libs.versions.coreNetwork.get()))
-  implementation(project(libs.versions.coreData.get()))
-  implementation(project(libs.versions.download.get()))
 
   // Hilt Dependency Injection
   implementation(libs.hilt.android)
   kapt(libs.hilt.compiler)
 
-  implementation(libs.kotlinx.coroutines.guava)
-
   // Media3
-  implementation(libs.androidx.media3.datasource.okhttp)
-  implementation(libs.androidx.media3.compose.ui)
   implementation(libs.androidx.media3.exoplayer)
-  implementation(libs.androidx.media3.session)
 }

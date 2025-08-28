@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.media.download
+package dev.halim.shelfdroid.download
 
 import android.app.Notification
 import androidx.media3.common.util.UnstableApi
@@ -11,7 +11,6 @@ import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
-import dev.halim.shelfdroid.media.R
 import javax.inject.Inject
 
 @UnstableApi
