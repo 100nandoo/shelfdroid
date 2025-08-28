@@ -3,6 +3,8 @@ package dev.halim.shelfdroid.core.ui.screen.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.DisplayPrefs
+import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
@@ -29,18 +31,19 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
         _uiState,
         repository.darkMode,
         repository.dynamicTheme,
-        repository.listView,
+        repository.displayPrefs,
         repository.userPrefs,
       ) {
         uiState: SettingsUiState,
         isDarkMode: Boolean,
         isDynamicTheme: Boolean,
-        isListView: Boolean,
+        displayPrefs: DisplayPrefs,
         userPrefs: UserPrefs ->
         uiState.copy(
           isDarkMode = isDarkMode,
           isDynamicTheme = isDynamicTheme,
-          isListView = isListView,
+          isListView = displayPrefs.listView,
+          isOnlyDownloaded = displayPrefs.filter.isDownloaded(),
           isAdmin = userPrefs.isAdmin,
           username = userPrefs.username,
         )
@@ -60,6 +63,9 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
       }
       is SettingsEvent.SwitchListView -> {
         viewModelScope.launch { repository.updateListView(event.isListView) }
+      }
+      is SettingsEvent.SwitchFilter -> {
+        viewModelScope.launch { repository.updateFilter(event.filter) }
       }
     }
   }
@@ -82,4 +88,6 @@ sealed class SettingsEvent {
   data class SwitchDynamicTheme(val isDynamic: Boolean) : SettingsEvent()
 
   data class SwitchListView(val isListView: Boolean) : SettingsEvent()
+
+  data class SwitchFilter(val filter: Filter) : SettingsEvent()
 }

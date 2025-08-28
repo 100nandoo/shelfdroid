@@ -48,6 +48,7 @@
 
     <!--Settings-->
     <string name="list_view">List View</string>
+    <string name="show_only_downloaded">Show Only Downloaded</string>
     <string name="home_screen">Home Screen</string>
     <!--Settings-->
 

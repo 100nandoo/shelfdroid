@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import dev.halim.shelfdroid.core.DisplayPrefs
+import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import java.nio.ByteBuffer
@@ -13,6 +15,7 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
@@ -20,10 +23,10 @@ private object Keys {
   val BASE_URL = stringPreferencesKey("base_url")
   val DARK_MODE = booleanPreferencesKey("dark_mode")
   val DYNAMIC_THEME = booleanPreferencesKey("dynamic_theme")
-  val LIST_VIEW = booleanPreferencesKey("list_view")
   val DEVICE_ID = stringPreferencesKey("device_id")
   val USER_PREFS = stringPreferencesKey("user_prefs")
   val SERVER_PREFS = stringPreferencesKey("server_prefs")
+  val DISPLAY_PREFS = stringPreferencesKey("display_prefs")
 }
 
 private fun <T> DataStore<Preferences>.preferenceFlow(
@@ -63,11 +66,6 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   suspend fun updateDynamicTheme(dynamicTheme: Boolean) =
     dataStore.updatePreference(Keys.DYNAMIC_THEME, dynamicTheme)
 
-  val listView: Flow<Boolean> = dataStore.preferenceFlow(Keys.LIST_VIEW, true)
-
-  suspend fun updateListView(listView: Boolean) =
-    dataStore.updatePreference(Keys.LIST_VIEW, listView)
-
   private fun generateDeviceId(): String {
     val uuid = UUID.randomUUID()
     val byteBuffer = ByteBuffer.wrap(ByteArray(16))
@@ -101,6 +99,28 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   suspend fun updateServerPrefs(serverPrefs: ServerPrefs) {
     val json = Json.encodeToString(serverPrefs)
     dataStore.edit { prefs -> prefs[Keys.SERVER_PREFS] = json }
+  }
+
+  val displayPrefs: Flow<DisplayPrefs> =
+    dataStore.data.map { prefs ->
+      prefs[Keys.DISPLAY_PREFS]?.let { json ->
+        runCatching { Json.decodeFromString<DisplayPrefs>(json) }.getOrNull()
+      } ?: DisplayPrefs()
+    }
+
+  suspend fun updateDisplayPrefs(displayPrefs: DisplayPrefs) {
+    val json = Json.encodeToString(displayPrefs)
+    dataStore.edit { prefs -> prefs[Keys.DISPLAY_PREFS] = json }
+  }
+
+  suspend fun updateListView(listView: Boolean) {
+    val current = displayPrefs.firstOrNull()?.copy(listView = listView)
+    current?.let { updateDisplayPrefs(it) }
+  }
+
+  suspend fun updateFilter(filter: Filter) {
+    val current = displayPrefs.firstOrNull()?.copy(filter = filter)
+    current?.let { updateDisplayPrefs(it) }
   }
 
   suspend fun updateAccessToken(newToken: String) {

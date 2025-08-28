@@ -6,6 +6,7 @@ import androidx.media3.database.StandaloneDatabaseProvider.DATABASE_NAME as EXOP
 import com.jakewharton.processphoenix.ProcessPhoenix
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.ApiService
+import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.database.di.DatabaseModule.DATABASE_NAME
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.io.File
@@ -24,9 +25,9 @@ constructor(
 
   val darkMode = dataStoreManager.darkMode
   val dynamicTheme = dataStoreManager.dynamicTheme
-  val listView = dataStoreManager.listView
   val token = dataStoreManager.userPrefs.map { it.accessToken }
   val userPrefs = dataStoreManager.userPrefs
+  val displayPrefs = dataStoreManager.displayPrefs
 
   suspend fun logout(): Result<Unit> {
     val result = api.logout(userPrefs.first().refreshToken)
@@ -51,6 +52,10 @@ constructor(
 
   suspend fun updateListView(enabled: Boolean) {
     dataStoreManager.updateListView(enabled)
+  }
+
+  suspend fun updateFilter(filter: Filter) {
+    dataStoreManager.updateFilter(filter)
   }
 
   @SuppressLint("UnsafeOptInUsageError")

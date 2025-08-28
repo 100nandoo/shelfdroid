@@ -78,6 +78,10 @@ fun PodcastScreenContent(
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
   val animatedContentScope = LocalAnimatedContentScope.current
+  val isDownloaded = uiState.displayPrefs.filter.isDownloaded()
+  val episodes =
+    if (isDownloaded) uiState.episodes.filter { it.download.state.isDownloaded() }
+    else uiState.episodes
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
@@ -87,7 +91,7 @@ fun PodcastScreenContent(
           reverseLayout = true,
         ) {
           item { Spacer(modifier = Modifier.height(12.dp)) }
-          items(uiState.episodes) { episode ->
+          items(episodes) { episode ->
             EpisodeItem(id, episode, onEvent, onEpisodeClicked, onPlayClicked, snackbarHostState)
             HorizontalDivider()
           }

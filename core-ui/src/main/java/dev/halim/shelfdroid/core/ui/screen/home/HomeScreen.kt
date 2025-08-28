@@ -37,8 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
-import dev.halim.shelfdroid.core.data.screen.home.DisplayOptions
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
@@ -123,7 +123,7 @@ fun HomeScreenContent(
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
       LibraryContent(
         modifier = Modifier.weight(1f),
-        displayOptions = uiState.displayOptions,
+        displayPrefs = uiState.displayPrefs,
         books = library.books,
         podcasts = library.podcasts,
         onEvent = onEvent,
@@ -144,7 +144,7 @@ fun HomeScreenContent(
 @Composable
 fun LibraryHeader(
   name: String,
-  displayOptions: DisplayOptions = DisplayOptions(),
+  displayPrefs: DisplayPrefs = DisplayPrefs(),
   onDownloadFilterClicked: () -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
@@ -156,7 +156,7 @@ fun LibraryHeader(
       style = MaterialTheme.typography.titleLarge,
       textAlign = TextAlign.Start,
     )
-    val isDownloadedFilterOn = displayOptions.filter.isDownloaded()
+    val isDownloadedFilterOn = displayPrefs.filter.isDownloaded()
     val icon =
       if (isDownloadedFilterOn) Icons.Filled.FileDownloadDone else Icons.Filled.FileDownload
     val contentDescription =
@@ -186,7 +186,7 @@ fun LibraryHeader(
 @Composable
 fun LibraryContent(
   modifier: Modifier = Modifier,
-  displayOptions: DisplayOptions,
+  displayPrefs: DisplayPrefs,
   books: List<BookUiState>,
   podcasts: List<PodcastUiState>,
   onEvent: (HomeEvent) -> Unit,
@@ -196,9 +196,9 @@ fun LibraryContent(
   onSettingsClicked: () -> Unit,
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
-  val listView = displayOptions.listView
+  val listView = displayPrefs.listView
   val columnCount = remember(listView) { if (listView) 1 else 3 }
-  val isDownloaded = displayOptions.filter.isDownloaded()
+  val isDownloaded = displayPrefs.filter.isDownloaded()
   val books = books.filter { if (isDownloaded) it.isDownloaded else true }
   val podcasts = podcasts.filter { if (isDownloaded) it.downloadedCount > 0 else true }
 
@@ -212,7 +212,7 @@ fun LibraryContent(
     item(span = { GridItemSpan(maxLineSpan) }) {
       LibraryHeader(
         name = name,
-        displayOptions = displayOptions,
+        displayPrefs = displayPrefs,
         onDownloadFilterClicked = onDownloadFilterClicked,
         onRefresh = onRefresh,
         onSettingsClicked = onSettingsClicked,

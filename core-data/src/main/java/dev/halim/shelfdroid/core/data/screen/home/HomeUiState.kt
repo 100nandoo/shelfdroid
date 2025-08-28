@@ -1,29 +1,14 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
+import dev.halim.shelfdroid.core.DisplayPrefs
 import kotlinx.serialization.Serializable
 
 data class HomeUiState(
   val homeState: HomeState = HomeState.Loading,
-  val displayOptions: DisplayOptions = DisplayOptions(),
+  val displayPrefs: DisplayPrefs = DisplayPrefs(),
   val currentPage: Int = 0,
   val librariesUiState: List<LibraryUiState> = emptyList(),
 )
-
-sealed class Filter {
-  data object All : Filter()
-
-  data object Downloaded : Filter()
-
-  fun toggleDownloaded(): Filter =
-    when (this) {
-      All -> Downloaded
-      Downloaded -> All
-    }
-
-  fun isDownloaded(): Boolean = this == Downloaded
-}
-
-data class DisplayOptions(val listView: Boolean = true, val filter: Filter = Filter.All)
 
 data class LibraryUiState(
   val id: String = "",

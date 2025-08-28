@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
@@ -93,6 +94,16 @@ private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) ->
     checked = uiState.isListView,
     onCheckedChange = { onEvent(SettingsEvent.SwitchListView(it)) },
     contentDescription = stringResource(R.string.list_view),
+  )
+  SettingsSwitchItem(
+    modifier = Modifier,
+    title = stringResource(R.string.show_only_downloaded),
+    checked = uiState.isOnlyDownloaded,
+    onCheckedChange = {
+      val filter = if (it) Filter.Downloaded else Filter.All
+      onEvent(SettingsEvent.SwitchFilter(filter))
+    },
+    contentDescription = stringResource(R.string.show_only_downloaded),
   )
 }
 

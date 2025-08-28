@@ -1,9 +1,9 @@
 package dev.halim.shelfdroid.core.ui.preview
 
+import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
-import dev.halim.shelfdroid.core.data.screen.home.DisplayOptions
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
@@ -86,7 +86,7 @@ object Defaults {
   val HOME_UI_STATE_LIST =
     HomeUiState(
       homeState = HomeState.Success,
-      displayOptions = DisplayOptions(),
+      displayPrefs = DisplayPrefs(),
       librariesUiState = HOME_LIBRARY_STATE,
     )
 

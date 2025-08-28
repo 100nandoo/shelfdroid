@@ -16,3 +16,19 @@ data class UserPrefs(
 )
 
 @Serializable data class ServerPrefs(val version: String = "")
+
+enum class Filter {
+  All,
+  Downloaded;
+
+  fun toggleDownloaded(): Filter =
+    when (this) {
+      All -> Downloaded
+      Downloaded -> All
+    }
+
+  fun isDownloaded(): Boolean = this == Downloaded
+}
+
+@Serializable
+data class DisplayPrefs(val listView: Boolean = true, val filter: Filter = Filter.All)

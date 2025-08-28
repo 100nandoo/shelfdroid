@@ -31,11 +31,8 @@ constructor(
 
   init {
     viewModelScope.launch {
-      settingsRepository.listView.collect { listView ->
-        _uiState.update {
-          val displayOptions = it.displayOptions.copy(listView = listView)
-          it.copy(displayOptions = displayOptions)
-        }
+      settingsRepository.displayPrefs.collect { displayPrefs ->
+        _uiState.update { it.copy(displayPrefs = displayPrefs) }
       }
     }
 
@@ -90,8 +87,9 @@ constructor(
       }
       is HomeEvent.DownloadFilter -> {
         _uiState.update { state ->
-          val filter = state.displayOptions.filter.toggleDownloaded()
-          state.copy(displayOptions = state.displayOptions.copy(filter = filter))
+          val filter = state.displayPrefs.filter.toggleDownloaded()
+          viewModelScope.launch { settingsRepository.updateFilter(filter) }
+          state.copy(displayPrefs = state.displayPrefs.copy(filter = filter))
         }
       }
     }

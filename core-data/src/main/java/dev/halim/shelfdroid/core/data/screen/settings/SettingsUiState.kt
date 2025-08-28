@@ -5,6 +5,7 @@ data class SettingsUiState(
   val isDarkMode: Boolean = true,
   val isDynamicTheme: Boolean = false,
   val isListView: Boolean = false,
+  val isOnlyDownloaded: Boolean = false,
   val isAdmin: Boolean = false,
   val username: String = "",
 )
