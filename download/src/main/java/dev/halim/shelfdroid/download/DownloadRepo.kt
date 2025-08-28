@@ -141,6 +141,18 @@ constructor(
     DownloadService.sendRemoveDownload(context, ShelfDownloadService::class.java, id, false)
   }
 
+  fun cleanupBook(ids: List<String>) {
+    val toDelete = downloads.value.map { it.request.id }.filter { it.substringBefore("|") in ids }
+
+    toDelete.forEach { delete(it) }
+  }
+
+  fun cleanupEpisode(ids: List<String>) {
+    val toDelete = downloads.value.map { it.request.id }.filter { it.substringAfter("|") in ids }
+
+    toDelete.forEach { delete(it) }
+  }
+
   private fun toDownloadRequest(id: String, url: String, message: String): DownloadRequest {
     return DownloadRequest.Builder(id, url.toUri())
       .setCustomCacheKey(id)

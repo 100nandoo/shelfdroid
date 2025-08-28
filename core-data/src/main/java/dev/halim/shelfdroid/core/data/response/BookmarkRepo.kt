@@ -5,20 +5,24 @@ import dev.halim.core.network.response.User
 import dev.halim.shelfdroid.core.database.BookmarkEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 
 class BookmarkRepo @Inject constructor(db: MyDatabase) {
 
   private val queries = db.bookmarkEntityQueries
+  private val repoScope = CoroutineScope(Dispatchers.IO)
 
   fun byLibraryItemId(libraryItemId: String) =
     queries.byLibraryItemId(libraryItemId).executeAsList()
 
-  suspend fun saveAndConvert(user: User): List<BookmarkEntity> {
+  fun saveAndConvert(user: User): List<BookmarkEntity> {
     val entities = user.bookmarks.map { toEntity(it) }
-    withContext(Dispatchers.IO) { cleanup(entities) }
-    entities.forEach { entity -> queries.insert(entity) }
+    repoScope.launch {
+      cleanup(entities)
+      entities.forEach { entity -> queries.insert(entity) }
+    }
     return entities
   }
 

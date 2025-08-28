@@ -7,27 +7,31 @@ import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 
 class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabase) {
 
   private val queries = db.libraryEntityQueries
+  private val repoScope = CoroutineScope(Dispatchers.IO)
 
   suspend fun entities(): List<LibraryEntity> {
     val response = api.libraries().getOrNull()
     return if (response != null) {
-      val entities = saveAndConvert(response)
-      withContext(Dispatchers.IO) { cleanup(entities) }
+      val entities = convert(response)
+      repoScope.launch {
+        cleanup(entities)
+        entities.forEach { entity -> queries.insert(entity) }
+      }
       entities
     } else {
       queries.all().executeAsList()
     }
   }
 
-  private fun saveAndConvert(response: LibrariesResponse): List<LibraryEntity> {
+  private fun convert(response: LibrariesResponse): List<LibraryEntity> {
     val entities = response.libraries.map { toEntity(it) }
-    entities.forEach { entity -> queries.insert(entity) }
     return entities
   }
 

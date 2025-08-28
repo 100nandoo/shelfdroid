@@ -10,15 +10,14 @@ import dev.halim.shelfdroid.core.database.ProgressEntity
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 
 class ProgressRepo @Inject constructor(db: MyDatabase) {
 
   private val queries = db.progressEntityQueries
-  private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+  private val repoScope = CoroutineScope(Dispatchers.IO)
 
   fun byLibraryItemId(id: String): List<ProgressEntity> =
     queries.byLibraryItemId(id).executeAsList()
@@ -39,10 +38,12 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
   fun flowEpisodeById(id: String): Flow<ProgressEntity?> =
     queries.episodeById(id).asFlow().mapToOneOrNull(Dispatchers.IO)
 
-  suspend fun saveAndConvert(user: User): List<ProgressEntity> {
+  fun saveAndConvert(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map(::toEntity)
-    withContext(Dispatchers.IO) { cleanup(entities) }
-    entities.forEach { entity -> queries.insert(entity) }
+    repoScope.launch {
+      cleanup(entities)
+      entities.forEach { entity -> queries.insert(entity) }
+    }
     return entities
   }
 

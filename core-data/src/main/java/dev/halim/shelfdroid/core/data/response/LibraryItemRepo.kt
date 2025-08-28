@@ -10,11 +10,13 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
+import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class LibraryItemRepo
@@ -24,7 +26,10 @@ constructor(
   db: MyDatabase,
   private val helper: Helper,
   private val json: Json,
+  private val downloadRepo: DownloadRepo,
 ) {
+
+  private val repoScope = CoroutineScope(Dispatchers.IO)
 
   private val queries = db.libraryItemEntityQueries
 
@@ -46,20 +51,23 @@ constructor(
     val result = api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()
 
     return if (result != null) {
-      val entities = saveAndConvert(libraryId, result)
-      withContext(Dispatchers.IO) { cleanup(libraryId, entities) }
+      val entities = convert(libraryId, result)
+      repoScope.launch {
+        cleanupDownloads(libraryId, entities)
+        cleanup(libraryId, entities)
+        entities.forEach { queries.insert(it) }
+      }
       entities
     } else {
       queries.byLibraryId(libraryId).executeAsList()
     }
   }
 
-  private fun saveAndConvert(
+  private fun convert(
     libraryId: String,
     response: BatchLibraryItemsResponse,
   ): List<LibraryItemEntity> {
     val entities = response.libraryItems.map { toEntity(it, libraryId) }
-    entities.forEach { entity -> queries.insert(entity) }
     return entities
   }
 
@@ -68,8 +76,31 @@ constructor(
       val ids = queries.idsByLibraryId(libraryId).executeAsList()
       val newIds = entities.map { it.id }
       val toDelete = ids.filter { !newIds.contains(it) }
+
+      downloadRepo.cleanupBook(toDelete)
+
       toDelete.forEach { queries.deleteById(it) }
     }
+  }
+
+  private fun cleanupDownloads(libraryId: String, entities: List<LibraryItemEntity>) {
+    val episodeIds =
+      queries
+        .byLibraryId(libraryId)
+        .executeAsList()
+        .filter { it.isBook == 0L }
+        .map { Json.decodeFromString<Podcast>(it.media) }
+        .flatMap { it.episodes }
+        .map { it.id }
+    val newEpisodeIds =
+      entities
+        .filter { it.isBook == 0L }
+        .map { Json.decodeFromString<Podcast>(it.media) }
+        .flatMap { it.episodes }
+        .map { it.id }
+
+    val toDeleteEpisode = episodeIds.filter { !newEpisodeIds.contains(it) }
+    downloadRepo.cleanupEpisode(toDeleteEpisode)
   }
 
   private fun toEntity(item: LibraryItem, libraryId: String): LibraryItemEntity {
