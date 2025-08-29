@@ -61,6 +61,10 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
     }
   }
 
+  fun finishedEpisodeIdsByLibraryItemId(libraryItemId: String): List<String> {
+    return queries.finishedEpisodeIdsByLibraryItemId(libraryItemId).executeAsList()
+  }
+
   fun flowFinishedEpisodesCountById(): Flow<List<Pair<String, Long>>> {
     return queries.finishedEpisodesCountById().asFlow().mapToList(Dispatchers.IO).map { list ->
       list.map { Pair(it.libraryItemId, it.finishedCount) }

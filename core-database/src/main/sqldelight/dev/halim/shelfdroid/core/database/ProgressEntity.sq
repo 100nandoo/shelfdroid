@@ -97,3 +97,10 @@ FROM ProgressEntity
 WHERE isFinished = 1
   AND episodeId IS NOT NULL
 GROUP BY libraryItemId;
+
+finishedEpisodeIdsByLibraryItemId:
+SELECT episodeId
+FROM ProgressEntity
+WHERE libraryItemId = :libraryItemId
+  AND isFinished = 1
+  AND episodeId IS NOT NULL;

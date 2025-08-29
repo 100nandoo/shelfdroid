@@ -2,17 +2,21 @@ package dev.halim.shelfdroid.core.ui.screen.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.Download
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
+import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -20,10 +24,12 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class HomeViewModel
+@UnstableApi
 @Inject
 constructor(
   private val repository: HomeRepository,
   private val progressRepo: ProgressRepo,
+  private val downloadRepo: DownloadRepo,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
@@ -59,6 +65,47 @@ constructor(
           }
         }
       }
+    }
+
+    viewModelScope.launch {
+      downloadRepo.downloads
+        .map { downloads -> downloads.filter { it.state == Download.STATE_COMPLETED } }
+        .collect { downloads: List<Download> ->
+          if (_uiState.value.librariesUiState.isNotEmpty()) {
+            _uiState.update { state ->
+              val updatedLibraries =
+                state.librariesUiState.map { libraryUiState ->
+                  if (libraryUiState.isBook) {
+                    libraryUiState
+                  } else {
+                    val updatedPodcasts =
+                      libraryUiState.podcasts.map { podcast ->
+                        val finishedIds = progressRepo.finishedEpisodeIdsByLibraryItemId(podcast.id)
+
+                        val downloadedIds =
+                          downloads
+                            .filter { it.request.id.substringBefore("|") == podcast.id }
+                            .map { it.request.id.substringAfter("|") }
+
+                        val downloadedCount = downloadedIds.count()
+                        val downloadedAndFinishedCount = finishedIds.count { it in downloadedIds }
+                        val unfinishedAndDownloadCount =
+                          downloadedCount - downloadedAndFinishedCount
+
+                        podcast.copy(
+                          downloadedCount = downloadedCount,
+                          unfinishedAndDownloadCount = unfinishedAndDownloadCount,
+                        )
+                      }
+
+                    libraryUiState.copy(podcasts = updatedPodcasts)
+                  }
+                }
+
+              state.copy(librariesUiState = updatedLibraries)
+            }
+          }
+        }
     }
   }
 
