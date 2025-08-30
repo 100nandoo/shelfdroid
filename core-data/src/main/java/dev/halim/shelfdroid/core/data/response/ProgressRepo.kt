@@ -65,10 +65,14 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
     return queries.finishedEpisodeIdsByLibraryItemId(libraryItemId).executeAsList()
   }
 
-  fun flowFinishedEpisodesCountById(): Flow<List<Pair<String, Long>>> {
-    return queries.finishedEpisodesCountById().asFlow().mapToList(Dispatchers.IO).map { list ->
-      list.map { Pair(it.libraryItemId, it.finishedCount) }
-    }
+  fun finishedEpisodeIdsGroupedByLibraryItemId(): Flow<Map<String, List<String>>> {
+    return queries
+      .finishedEpisodeIdsGroupedByLibraryItemId()
+      .asFlow()
+      .mapToList(Dispatchers.IO)
+      .map { list ->
+        list.associate { it.libraryItemId to (it.finishedEpisodeIds?.split(",") ?: emptyList()) }
+      }
   }
 
   private fun cleanup(entities: List<ProgressEntity>) {

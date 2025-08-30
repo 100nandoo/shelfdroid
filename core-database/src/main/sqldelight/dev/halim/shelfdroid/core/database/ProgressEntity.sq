@@ -91,8 +91,9 @@ SET isFinished = 1,
 WHERE episodeId = :episodeId
   AND episodeId IS NOT NULL;
 
-finishedEpisodesCountById:
-SELECT libraryItemId, COUNT(*) AS finishedCount
+finishedEpisodeIdsGroupedByLibraryItemId:
+SELECT libraryItemId,
+       GROUP_CONCAT(episodeId) AS finishedEpisodeIds
 FROM ProgressEntity
 WHERE isFinished = 1
   AND episodeId IS NOT NULL

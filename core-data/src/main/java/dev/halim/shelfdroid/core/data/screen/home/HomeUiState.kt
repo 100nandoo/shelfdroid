@@ -25,6 +25,7 @@ data class BookUiState(
   val title: String = "",
   val cover: String = "",
   val isDownloaded: Boolean = false,
+  val trackIndexes: List<Int> = emptyList(),
 )
 
 data class PodcastUiState(

@@ -18,6 +18,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -33,6 +34,9 @@ constructor(
 
   private val _downloads = MutableStateFlow(fetch())
   val downloads: StateFlow<List<Download>> = _downloads.asStateFlow()
+
+  val completedDownloads =
+    downloads.map { downloads -> downloads.filter { it.state == Download.STATE_COMPLETED } }
 
   init {
     downloadManager.addListener(
@@ -56,7 +60,13 @@ constructor(
     )
   }
 
-  fun bookIsDownloaded(id: String, trackIndexes: List<Int>): Boolean {
+  fun fetchPodcast(id: String): List<Download> {
+    return downloads.value.filter {
+      it.request.id.substringBefore("|") == id && it.state == Download.STATE_COMPLETED
+    }
+  }
+
+  fun isBookDownloaded(id: String, trackIndexes: List<Int>): Boolean {
     val downloadedIds =
       downloads.value.filter { it.state == Download.STATE_COMPLETED }.map { it.request.id }
 
