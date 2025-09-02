@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +36,7 @@ import dev.halim.shelfdroid.core.ui.screen.home.UnreadEpisodeCount
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeItemList(
+fun LazyGridItemScope.HomeItemList(
   id: String,
   title: String,
   author: String,
@@ -50,7 +51,8 @@ fun HomeItemList(
     with(animatedContentScope) {
       Row(
         modifier =
-          Modifier.height(88.dp)
+          Modifier.animateItem()
+            .height(88.dp)
             .fillMaxWidth()
             .mySharedBound(Animations.containerKey(id))
             .clickable { onClick() }

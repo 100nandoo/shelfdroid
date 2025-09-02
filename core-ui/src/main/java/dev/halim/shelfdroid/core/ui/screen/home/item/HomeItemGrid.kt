@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,7 +35,7 @@ import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 import dev.halim.shelfdroid.core.ui.screen.home.UnreadEpisodeCount
 
 @Composable
-fun HomeItemGrid(
+fun LazyGridItemScope.HomeItemGrid(
   id: String,
   title: String,
   author: String,
@@ -48,7 +49,7 @@ fun HomeItemGrid(
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Card(
-        modifier = Modifier.mySharedBound(Animations.containerKey(id)).padding(4.dp),
+        modifier = Modifier.animateItem().mySharedBound(Animations.containerKey(id)).padding(4.dp),
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
       ) {
