@@ -1,12 +1,13 @@
 CREATE TABLE ProgressEntity(
-  id TEXT PRIMARY KEY NOT NULL,
+  id TEXT NOT NULL,
   libraryItemId TEXT NOT NULL DEFAULT '',
   episodeId TEXT,
   mediaItemType TEXT NOT NULL DEFAULT '',
   progress REAL NOT NULL,
   duration REAL NOT NULL,
   currentTime REAL NOT NULL,
-  isFinished INTEGER NOT NULL DEFAULT 0
+  isFinished INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (libraryItemId, episodeId)
 );
 
 insert:
@@ -84,12 +85,26 @@ SET
 WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
 
 markEpisodeFinished:
-UPDATE ProgressEntity
-SET isFinished = 1,
-    progress = 1,
-    currentTime = duration
-WHERE episodeId = :episodeId
-  AND episodeId IS NOT NULL;
+INSERT INTO ProgressEntity (
+  id,
+  libraryItemId,
+  episodeId,
+  mediaItemType,
+  progress,
+  duration,
+  currentTime,
+  isFinished
+)
+VALUES (
+  hex(randomblob(16)),
+  :libraryItemId,
+  :episodeId,
+  'podcastEpisode',
+  1,
+  0,
+  0,
+  1
+);
 
 finishedEpisodeIdsGroupedByLibraryItemId:
 SELECT libraryItemId,

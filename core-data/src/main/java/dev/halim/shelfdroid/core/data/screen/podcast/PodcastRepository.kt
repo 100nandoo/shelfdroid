@@ -59,7 +59,14 @@ constructor(
     val result = apiService.patchPodcastProgress(itemId, episode.episodeId, request)
 
     if (result.isSuccess) {
-      repositoryScope.launch { progressRepo.toggleIsFinishedByEpisodeId(episode.episodeId) }
+      repositoryScope.launch {
+        val entity = progressRepo.episodeById(episode.episodeId)
+        if (entity != null) {
+          progressRepo.toggleIsFinishedByEpisodeId(episode.episodeId)
+        } else {
+          progressRepo.markEpisodeFinished(itemId, episode.episodeId)
+        }
+      }
     }
     return result.isSuccess
   }
@@ -69,7 +76,7 @@ constructor(
     val result = apiService.patchPodcastProgress(itemId, episodeId, request)
 
     if (result.isSuccess) {
-      repositoryScope.launch { progressRepo.markEpisodeFinished(episodeId) }
+      repositoryScope.launch { progressRepo.markEpisodeFinished(itemId, episodeId) }
     }
     return result.isSuccess
   }
