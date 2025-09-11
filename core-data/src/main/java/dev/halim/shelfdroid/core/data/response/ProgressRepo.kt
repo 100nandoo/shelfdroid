@@ -50,7 +50,8 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
   fun toggleIsFinishedByEpisodeId(episodeId: String): Boolean =
     queries.toggleIsFinishedByEpisodeId(episodeId).value == 1L
 
-  fun markEpisodeFinished(episodeId: String) = queries.markEpisodeFinished(episodeId)
+  fun markEpisodeFinished(libraryItemId: String, episodeId: String) =
+    queries.markEpisodeFinished(libraryItemId, episodeId)
 
   fun updateProgress(entity: ProgressEntity) {
     val episodeId = entity.episodeId
