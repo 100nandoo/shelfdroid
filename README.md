@@ -46,8 +46,8 @@ to ensure a scalable and maintainable codebase.
 
 ## 📅 Roadmap
 
-- [ ] Implement core audiobook streaming functionality.
-- [ ] Add offline downloading and playback.
+- [x] Implement core audiobook streaming functionality.
+- [x] Add offline downloading and playback.
 - [ ] Improve search and filtering features.
 - [ ] Introduce custom themes for personalization.
 - [ ] Add in-app settings for customization.

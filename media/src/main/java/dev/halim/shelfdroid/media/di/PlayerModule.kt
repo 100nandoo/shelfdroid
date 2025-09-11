@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.media.di
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
@@ -12,8 +13,16 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.RenderersFactory
+import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.exoplayer.metadata.MetadataOutput
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.text.TextOutput
+import androidx.media3.exoplayer.video.VideoRendererEventListener
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
@@ -59,6 +68,19 @@ object PlayerModule {
     mediaSourceFactory: MediaSource.Factory,
   ): ExoPlayer {
     Log.d("media3", "exoplayer instantiated")
+
+    val audioOnlyRenderersFactory =
+      RenderersFactory {
+        handler: Handler,
+        videoListener: VideoRendererEventListener,
+        audioListener: AudioRendererEventListener,
+        textOutput: TextOutput,
+        metadataOutput: MetadataOutput ->
+        arrayOf<Renderer>(
+          MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, handler, audioListener)
+        )
+      }
+
     val audioAttributes =
       AudioAttributes.Builder()
         .setUsage(C.USAGE_MEDIA)
@@ -75,7 +97,7 @@ object PlayerModule {
         .build()
 
     val player =
-      ExoPlayer.Builder(context)
+      ExoPlayer.Builder(context, audioOnlyRenderersFactory)
         .setMediaSourceFactory(mediaSourceFactory)
         .setAudioAttributes(audioAttributes, true)
         .setHandleAudioBecomingNoisy(true)
