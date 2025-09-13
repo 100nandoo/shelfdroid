@@ -60,7 +60,7 @@ constructor(
     }
 
     syncScope.launch {
-      exoPlayerManager.events.collect { event ->
+      exoPlayerManager.events.distinctUntilChanged().collect { event ->
         when (event) {
           PlayerEvent.Pause -> {
             syncJob?.cancel()

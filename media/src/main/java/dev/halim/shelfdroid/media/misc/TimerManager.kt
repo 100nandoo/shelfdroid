@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -25,7 +26,7 @@ class TimerManager @Inject constructor(private val exoPlayerManager: ExoPlayerMa
 
   init {
     syncScope.launch {
-      exoPlayerManager.events.collect { event ->
+      exoPlayerManager.events.distinctUntilChanged().collect { event ->
         when (event) {
           PlayerEvent.Pause -> {
             sleepJob?.cancel()
