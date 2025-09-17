@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.media.exoplayer
 
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
@@ -23,21 +25,40 @@ sealed class PlayerEvent {
 class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
 
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-  private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
   private val _events = MutableSharedFlow<PlayerEvent>()
   val events: SharedFlow<PlayerEvent> = _events
+  @Volatile private var isItemChanged = false
+
+  private val listener =
+    object : Player.Listener {
+      override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        isItemChanged = true
+      }
+
+      override fun onIsPlayingChanged(isPlaying: Boolean) {
+        super.onIsPlayingChanged(isPlaying)
+        if (isPlaying) {
+          emit(PlayerEvent.Resume)
+          isItemChanged = false
+        } else {
+          emit(PlayerEvent.Pause)
+        }
+      }
+    }
+
+  init {
+    player.get().addListener(listener)
+  }
 
   fun isPlaying() = player.get().isPlaying
+
+  fun isItemChanged() = isItemChanged
 
   suspend fun isPlayingSafe(): Boolean =
     withContext(Dispatchers.Main) {
       val result = player.get().isPlaying
       return@withContext result
     }
-
-  fun rawDuration(): Long {
-    return player.get().duration
-  }
 
   suspend fun currentPosition(): Long {
     return withContext(Dispatchers.Main) { player.get().currentPosition }
@@ -53,12 +74,10 @@ class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
 
   fun pause() {
     player.get().pause()
-    emit(PlayerEvent.Pause)
   }
 
   fun resume() {
     player.get().play()
-    emit(PlayerEvent.Resume)
   }
 
   fun clearAndStop() {

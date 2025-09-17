@@ -11,6 +11,8 @@ import dev.halim.shelfdroid.core.MediaStructure
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
+import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
+import dev.halim.shelfdroid.media.exoplayer.PlayerEvent
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
 import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
 import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper
@@ -22,7 +24,9 @@ import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -32,6 +36,7 @@ class StateHolder
 constructor(
   private val playerEventListener: Lazy<PlayerEventListener>,
   private val player: Lazy<ExoPlayer>,
+  private val exoPlayerManager: ExoPlayerManager,
   private val playerRepository: PlayerRepository,
   private val mediaItemMapper: MediaItemMapper,
   private val timerManager: TimerManager,
@@ -39,13 +44,22 @@ constructor(
   private val state: PlayerInternalStateHolder,
 ) {
   val uiState = MutableStateFlow(PlayerUiState())
+  private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+  init {
+    syncScope.launch {
+      exoPlayerManager.events.distinctUntilChanged().collect { event ->
+        val exoState = if (event == PlayerEvent.Resume) ExoState.Playing else ExoState.Pause
+        uiState.update { it.copy(exoState = exoState) }
+      }
+    }
+  }
 
   fun playContent() {
     player.get().apply {
       changeContent()
       play()
       collectPlaybackProgress()
-      listenIsPlaying()
       listenPlayer()
       syncSession()
     }
@@ -86,18 +100,8 @@ constructor(
   }
 
   private var playbackProgressJob: Job? = null
-  private var isPlayingJob: Job? = null
   private var listenPlayer: Job? = null
   private var sleepTimerJob: Job? = null
-
-  private val isPlayingListener =
-    object : Player.Listener {
-      override fun onIsPlayingChanged(isPlaying: Boolean) {
-        super.onIsPlayingChanged(isPlaying)
-        val exoState = if (isPlaying) ExoState.Playing else ExoState.Pause
-        uiState.update { it.copy(exoState = exoState) }
-      }
-    }
 
   private fun listenPlayer() {
     listenPlayer?.cancel()
@@ -185,13 +189,6 @@ constructor(
           uiState.update { playerRepository.toPlayback(uiState.value, raw) }
         }
       }
-  }
-
-  private fun listenIsPlaying() {
-    player.get().removeListener(isPlayingListener)
-    isPlayingJob?.cancel()
-    isPlayingJob =
-      CoroutineScope(Dispatchers.Default).launch { player.get().addListener(isPlayingListener) }
   }
 
   private fun collectSleepTimer() {

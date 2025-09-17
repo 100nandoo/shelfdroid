@@ -78,7 +78,9 @@ constructor(
     this.uiState = uiState
     resetDuration()
 
-    startSyncJob()
+    if (exoPlayerManager.isPlaying()) {
+      startSyncJob()
+    }
 
     isLocal = this.uiState.downloadState.isDownloaded()
     if (isLocal) {
@@ -91,7 +93,7 @@ constructor(
   }
 
   private fun sync() {
-    if (isSyncing || duration == 0.seconds) return
+    if (isSyncing || exoPlayerManager.isItemChanged() || duration == 0.seconds) return
     syncScope.launch {
       isSyncing = true
       if (isLocal) {
