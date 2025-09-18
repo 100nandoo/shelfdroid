@@ -21,9 +21,9 @@ fun handlePendingMediaId(
   val secondaryId = request.secondaryId
 
   if (secondaryId == null || secondaryId.length < 32) {
-    navController.navigateOnce(Book(request.itemId), popUpToRoute = Home)
+    navController.navigateOnce(Book(request.itemId), popUpToRoute = Home(false))
   } else {
-    navController.navigateOnce(Podcast(request.itemId), Home)
+    navController.navigateOnce(Podcast(request.itemId), Home(false))
     navController.navigateOnce(Episode(request.itemId, secondaryId), Podcast(request.itemId))
   }
 

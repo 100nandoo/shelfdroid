@@ -78,8 +78,13 @@ object Defaults {
 
   val HOME_LIBRARY_STATE =
     listOf(
-      LibraryUiState(id = "1", name = "My Books", isBook = true, books = HOME_BOOKS),
-      LibraryUiState(id = "2", name = "My Podcasts", isBook = false, podcasts = HOME_PODCASTS),
+      LibraryUiState(id = "1", name = "My Books", isBookLibrary = true, books = HOME_BOOKS),
+      LibraryUiState(
+        id = "2",
+        name = "My Podcasts",
+        isBookLibrary = false,
+        podcasts = HOME_PODCASTS,
+      ),
     )
   val HOME_UI_STATE =
     HomeUiState(homeState = HomeState.Success, librariesUiState = HOME_LIBRARY_STATE)

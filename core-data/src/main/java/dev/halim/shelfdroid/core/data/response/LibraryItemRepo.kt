@@ -117,6 +117,7 @@ constructor(
         duration = helper.formatDuration(media.duration ?: 0.0),
         isBook = 1,
         media = json.encodeToString(media),
+        addedAt = item.addedAt,
       )
     } else {
       media as Podcast
@@ -131,6 +132,7 @@ constructor(
         duration = "",
         isBook = 0,
         media = json.encodeToString(media),
+        addedAt = item.addedAt,
       )
     }
   }

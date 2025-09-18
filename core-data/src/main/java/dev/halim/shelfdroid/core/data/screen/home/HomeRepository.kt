@@ -42,14 +42,14 @@ constructor(
 
   suspend fun getLibraries(): List<LibraryUiState> {
     val result = libraryRepo.entities()
-    return result.map { LibraryUiState(it.id, it.name, isBook = it.isBook == 1L) }
+    return result.map { LibraryUiState(it.id, it.name, isBookLibrary = it.isBookLibrary == 1L) }
   }
 
   suspend fun getLibraryItems(uiState: LibraryUiState): LibraryUiState {
     val libraryId = uiState.id
     val ids = libraryItemRepo.idsByLibraryId(libraryId)
     val libraryItems = libraryItemRepo.entities(libraryId, ids)
-    return if (uiState.isBook) {
+    return if (uiState.isBookLibrary) {
       val books = libraryItems.map { mapper.toBookUiState(it) }
       uiState.copy(books = books)
     } else {

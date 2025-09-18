@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.data.screen.podcast
 
-import android.annotation.SuppressLint
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.download.DownloadRepo
@@ -11,7 +10,6 @@ class PodcastMapper
 @Inject
 constructor(private val helper: Helper, private val downloadRepository: DownloadRepo) {
 
-  @SuppressLint("UnsafeOptInUsageError")
   suspend fun mapEpisodes(
     episodes: List<PodcastEpisode>,
     progresses: List<ProgressEntity>,

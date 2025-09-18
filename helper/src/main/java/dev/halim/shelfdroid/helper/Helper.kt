@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package dev.halim.shelfdroid.helper
 
 import android.app.PendingIntent
@@ -30,7 +32,6 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
   fun generateDownloadId(itemId: String, episodeId: String? = null): String =
     episodeId?.let { "$itemId|$it" } ?: itemId
 
-  @OptIn(ExperimentalTime::class)
   fun toReadableDate(long: Long): String {
     val instant = Instant.Companion.fromEpochMilliseconds(long)
     val dateTime = instant.toLocalDateTime(TimeZone.Companion.currentSystemDefault())

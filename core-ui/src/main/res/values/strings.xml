@@ -22,6 +22,7 @@
     <string name="downloaded">Downloaded</string>
     <string name="downloaded_filter_on">Downloaded Filter On</string>
     <string name="downloaded_filter_off">Downloaded Filter Off</string>
+    <string name="sort_and_filter">Sort and Filter</string>
     <!--Content Description-->
 
     <!--Arguments-->
@@ -40,6 +41,13 @@
     <string name="dialog_logout_text">Logging out will delete all app data and cached content. Restarting the app is required to complete the cleanup and reload it from a clean state.</string>
     <string name="dialog_delete_text">Are you sure you want to delete this item?</string>
     <!--Dialog-->
+
+    <!--Dropdown-->
+    <string name="filter">Filter</string>
+    <string name="sort">Sort</string>
+    <string name="order">Order</string>
+    <!--Dropdown-->
+
 
     <!--SnackBar-->
     <string name="permission_required">Permission required</string>
@@ -80,5 +88,4 @@
     <string name="is_an_admin">" is an admin"</string>
     <string name="is_not_an_admin">" is not an admin"</string>
     <string name="clear">Clear</string>
-
 </resources>

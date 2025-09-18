@@ -1,11 +1,16 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import android.annotation.SuppressLint
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.BookSort
+import dev.halim.shelfdroid.core.Filter
+import dev.halim.shelfdroid.core.PodcastSort
+import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
@@ -29,11 +34,13 @@ class HomeViewModel
 @UnstableApi
 @Inject
 constructor(
+  savedStateHandle: SavedStateHandle,
   private val repository: HomeRepository,
   private val progressRepo: ProgressRepo,
   private val downloadRepo: DownloadRepo,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
+  val fromLogin: Boolean = checkNotNull(savedStateHandle.get<Boolean>("fromLogin"))
 
   private val _uiState = MutableStateFlow(HomeUiState())
 
@@ -83,7 +90,7 @@ constructor(
         _uiState.update { state ->
           val updatedLibraries =
             state.librariesUiState.map { libraryUiState ->
-              if (libraryUiState.isBook) {
+              if (libraryUiState.isBookLibrary) {
                 updateLibraryWithBooks(libraryUiState)
               } else {
                 updateLibraryWithPodcasts(libraryUiState, downloads)
@@ -153,11 +160,33 @@ constructor(
           }
         }
       }
-      is HomeEvent.DownloadFilter -> {
+      is HomeEvent.Filter -> {
         _uiState.update { state ->
-          val filter = state.displayPrefs.filter.toggleDownloaded()
+          val filter = Filter.valueOf(event.filter)
           viewModelScope.launch { settingsRepository.updateFilter(filter) }
           state.copy(displayPrefs = state.displayPrefs.copy(filter = filter))
+        }
+      }
+      is HomeEvent.BookSort -> {
+        _uiState.update { state ->
+          val bookSort = BookSort.fromLabel(event.bookSort)
+          viewModelScope.launch { settingsRepository.updateBookSort(bookSort) }
+          state.copy(displayPrefs = state.displayPrefs.copy(bookSort = bookSort))
+        }
+      }
+      is HomeEvent.PodcastSort -> {
+        _uiState.update { state ->
+          val podcastSort = PodcastSort.fromLabel(event.podcastSort)
+          viewModelScope.launch { settingsRepository.updatePodcastSort(podcastSort) }
+          state.copy(displayPrefs = state.displayPrefs.copy(podcastSort = podcastSort))
+        }
+      }
+
+      is HomeEvent.SortOrder -> {
+        _uiState.update { state ->
+          val sortOrder = SortOrder.valueOf(event.sortOrder)
+          viewModelScope.launch { settingsRepository.updateSortOrder(sortOrder) }
+          state.copy(displayPrefs = state.displayPrefs.copy(sortOrder = sortOrder))
         }
       }
     }
@@ -176,7 +205,9 @@ constructor(
     viewModelScope.launch {
       val libraries = repository.getLibraries()
       _uiState.update { it.copy(homeState = HomeState.Success, librariesUiState = libraries) }
-      fetchUser()
+      if (fromLogin.not()) {
+        fetchUser()
+      }
       prefetchLibraryItems()
     }
   }
@@ -223,5 +254,11 @@ sealed class HomeEvent {
 
   data class Navigate(val id: String, val isBook: Boolean) : HomeEvent()
 
-  data object DownloadFilter : HomeEvent()
+  data class Filter(val filter: String) : HomeEvent()
+
+  data class BookSort(val bookSort: String) : HomeEvent()
+
+  data class PodcastSort(val podcastSort: String) : HomeEvent()
+
+  data class SortOrder(val sortOrder: String) : HomeEvent()
 }

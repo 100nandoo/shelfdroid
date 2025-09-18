@@ -15,13 +15,16 @@ class HomeMapper
 constructor(private val progressRepo: ProgressRepo, private val downloadRepo: DownloadRepo) {
 
   fun toBookUiState(item: LibraryItemEntity): BookUiState {
-    val trackIndexes = Json.decodeFromString<Book>(item.media).audioTracks.map { it.index }
+    val book = Json.decodeFromString<Book>(item.media)
+    val trackIndexes = book.audioTracks.map { it.index }
     val isDownloaded = downloadRepo.isBookDownloaded(item.id, trackIndexes)
     return BookUiState(
       id = item.id,
       author = item.author,
       title = item.title,
       cover = item.cover,
+      duration = book.duration ?: 0.0,
+      addedAt = item.addedAt,
       isDownloaded = isDownloaded,
       trackIndexes = trackIndexes,
     )
@@ -46,6 +49,7 @@ constructor(private val progressRepo: ProgressRepo, private val downloadRepo: Do
       author = item.author,
       title = item.title,
       cover = item.cover,
+      addedAt = item.addedAt,
       episodeCount = episodeCount,
       unfinishedCount = unfinishedCount,
       downloadedCount = downloadedCount,

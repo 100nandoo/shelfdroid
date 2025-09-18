@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import androidx.compose.animation.core.Animatable
@@ -17,18 +19,20 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.FileDownloadDone
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -37,7 +41,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.DisplayPrefs
+import dev.halim.shelfdroid.core.PodcastSort
+import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
@@ -49,6 +56,7 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 import dev.halim.shelfdroid.core.ui.screen.home.item.HomeItem
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -128,7 +136,11 @@ fun HomeScreenContent(
         podcasts = library.podcasts,
         onEvent = onEvent,
         name = uiState.librariesUiState[page].name,
-        onDownloadFilterClicked = { onEvent(HomeEvent.DownloadFilter) },
+        isBookLibrary = uiState.librariesUiState[page].isBookLibrary,
+        onFilterChange = { onEvent(HomeEvent.Filter(it)) },
+        onBookSortChange = { onEvent(HomeEvent.BookSort(it)) },
+        onPodcastSortChange = { onEvent(HomeEvent.PodcastSort(it)) },
+        onSortOrderChange = { onEvent(HomeEvent.SortOrder(it)) },
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
         onSettingsClicked = onSettingsClicked,
       )
@@ -144,11 +156,28 @@ fun HomeScreenContent(
 @Composable
 fun LibraryHeader(
   name: String,
+  isBookLibrary: Boolean,
   displayPrefs: DisplayPrefs = DisplayPrefs(),
-  onDownloadFilterClicked: () -> Unit,
+  onFilterChange: (String) -> Unit,
+  onBookSortChange: (String) -> Unit,
+  onPodcastSortChange: (String) -> Unit,
+  onSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
 ) {
+  val scope = rememberCoroutineScope()
+
+  val displayPrefsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  DisplayPrefsSheet(
+    displayPrefsSheetState,
+    displayPrefs,
+    isBookLibrary,
+    onFilterChange,
+    onBookSortChange,
+    onPodcastSortChange,
+    onSortOrderChange,
+  )
+
   Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
     Text(
       text = name,
@@ -156,18 +185,13 @@ fun LibraryHeader(
       style = MaterialTheme.typography.titleLarge,
       textAlign = TextAlign.Start,
     )
-    val isDownloadedFilterOn = displayPrefs.filter.isDownloaded()
-    val icon =
-      if (isDownloadedFilterOn) Icons.Filled.FileDownloadDone else Icons.Filled.FileDownload
-    val contentDescription =
-      if (isDownloadedFilterOn) stringResource(R.string.downloaded_filter_on)
-      else stringResource(R.string.downloaded_filter_off)
     MyIconButton(
-      icon = icon,
-      contentDescription = contentDescription,
-      onClick = onDownloadFilterClicked,
+      icon = Icons.AutoMirrored.Filled.Sort,
+      contentDescription = stringResource(R.string.sort_and_filter),
+      onClick = { scope.launch { displayPrefsSheetState.show() } },
       size = 48,
     )
+
     MyIconButton(
       icon = Icons.Filled.Refresh,
       contentDescription = stringResource(R.string.refresh),
@@ -191,7 +215,11 @@ fun LibraryContent(
   podcasts: List<PodcastUiState>,
   onEvent: (HomeEvent) -> Unit,
   name: String,
-  onDownloadFilterClicked: () -> Unit,
+  isBookLibrary: Boolean,
+  onFilterChange: (String) -> Unit,
+  onBookSortChange: (String) -> Unit,
+  onPodcastSortChange: (String) -> Unit,
+  onSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
 ) {
@@ -199,8 +227,8 @@ fun LibraryContent(
   val listView = displayPrefs.listView
   val columnCount = remember(listView) { if (listView) 1 else 3 }
   val isDownloaded = displayPrefs.filter.isDownloaded()
-  val books = books.filter { if (isDownloaded) it.isDownloaded else true }
-  val podcasts = podcasts.filter { if (isDownloaded) it.downloadedCount > 0 else true }
+  val processedBooks = bookFilterAndSort(books, displayPrefs)
+  val processedPodcasts = podcastFilterAndSort(podcasts, displayPrefs)
 
   LazyVerticalGrid(
     state = gridState,
@@ -212,13 +240,17 @@ fun LibraryContent(
     item(span = { GridItemSpan(maxLineSpan) }) {
       LibraryHeader(
         name = name,
+        isBookLibrary = isBookLibrary,
         displayPrefs = displayPrefs,
-        onDownloadFilterClicked = onDownloadFilterClicked,
+        onFilterChange = onFilterChange,
+        onBookSortChange = onBookSortChange,
+        onPodcastSortChange = onPodcastSortChange,
+        onSortOrderChange = onSortOrderChange,
         onRefresh = onRefresh,
         onSettingsClicked = onSettingsClicked,
       )
     }
-    items(items = books, key = { it.id }) { book ->
+    items(items = processedBooks, key = { it.id }) { book ->
       HomeItem(
         listView = listView,
         id = book.id,
@@ -231,7 +263,7 @@ fun LibraryContent(
         HorizontalDivider()
       }
     }
-    items(items = podcasts, key = { it.id }) { podcast ->
+    items(items = processedPodcasts, key = { it.id }) { podcast ->
       val count =
         remember(isDownloaded) {
           if (isDownloaded) podcast.unfinishedAndDownloadCount else podcast.unfinishedCount
@@ -249,6 +281,46 @@ fun LibraryContent(
         HorizontalDivider()
       }
     }
+  }
+}
+
+private fun bookFilterAndSort(
+  books: List<BookUiState>,
+  displayPrefs: DisplayPrefs,
+): List<BookUiState> {
+  val filtered = books.filter { !displayPrefs.filter.isDownloaded() }
+
+  val comparator =
+    when (displayPrefs.bookSort) {
+      BookSort.AddedAt -> compareBy<BookUiState> { it.addedAt }
+      BookSort.Duration -> compareBy { it.duration }
+      BookSort.Title -> compareBy { it.title }
+      BookSort.Progress -> compareBy { it.addedAt }
+    }
+
+  return if (displayPrefs.sortOrder == SortOrder.Desc) {
+    filtered.sortedWith(comparator.reversed())
+  } else {
+    filtered.sortedWith(comparator)
+  }
+}
+
+private fun podcastFilterAndSort(
+  podcasts: List<PodcastUiState>,
+  displayPrefs: DisplayPrefs,
+): List<PodcastUiState> {
+  val filtered = podcasts.filter { !displayPrefs.filter.isDownloaded() || it.downloadedCount > 0 }
+
+  val comparator =
+    when (displayPrefs.podcastSort) {
+      PodcastSort.AddedAt -> compareBy<PodcastUiState> { it.addedAt }
+      PodcastSort.Title -> compareBy { it.title }
+    }
+
+  return if (displayPrefs.sortOrder == SortOrder.Desc) {
+    filtered.sortedWith(comparator.reversed())
+  } else {
+    filtered.sortedWith(comparator)
   }
 }
 

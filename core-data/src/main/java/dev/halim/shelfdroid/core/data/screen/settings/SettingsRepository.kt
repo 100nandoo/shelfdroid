@@ -6,7 +6,10 @@ import androidx.media3.database.StandaloneDatabaseProvider.DATABASE_NAME as EXOP
 import com.jakewharton.processphoenix.ProcessPhoenix
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.ApiService
+import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
+import dev.halim.shelfdroid.core.PodcastSort
+import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.database.di.DatabaseModule.DATABASE_NAME
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.io.File
@@ -56,6 +59,18 @@ constructor(
 
   suspend fun updateFilter(filter: Filter) {
     dataStoreManager.updateFilter(filter)
+  }
+
+  suspend fun updateBookSort(bookSort: BookSort) {
+    dataStoreManager.updateBookSort(bookSort)
+  }
+
+  suspend fun updatePodcastSort(podcastSort: PodcastSort) {
+    dataStoreManager.updatePodcastSort(podcastSort)
+  }
+
+  suspend fun updateSortOrder(sortOrder: SortOrder) {
+    dataStoreManager.updateSortOrder(sortOrder)
   }
 
   @SuppressLint("UnsafeOptInUsageError")

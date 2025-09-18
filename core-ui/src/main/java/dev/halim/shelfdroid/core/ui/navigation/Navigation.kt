@@ -39,7 +39,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable object Login
 
-@Serializable object Home
+@Serializable data class Home(val fromLogin: Boolean)
 
 @Serializable object Settings
 
@@ -58,7 +58,7 @@ fun MainNavigation(
 ) {
   SharedTransitionLayout {
     val navController = rememberNavController()
-    val startDestination = if (isLoggedIn) Home else Login
+    val startDestination = if (isLoggedIn) Home(false) else Login
 
     LaunchedEffect(navRequest.mediaId) {
       handlePendingMediaId(navRequest, isLoggedIn, navController, onNavRequestComplete, viewModel)
@@ -102,7 +102,9 @@ private fun ColumnScope.NavHostContainer(
     ) {
       composable<Login> {
         LoginScreen(
-          onLoginSuccess = { navController.navigate(Home) { popUpTo(Login) { inclusive = true } } }
+          onLoginSuccess = {
+            navController.navigate(Home(true)) { popUpTo(Login) { inclusive = true } }
+          }
         )
       }
       composable<Home> {

@@ -6,9 +6,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.Filter
+import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.ServerPrefs
+import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.UserPrefs
 import java.nio.ByteBuffer
 import java.util.UUID
@@ -120,6 +123,21 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
 
   suspend fun updateFilter(filter: Filter) {
     val current = displayPrefs.firstOrNull()?.copy(filter = filter)
+    current?.let { updateDisplayPrefs(it) }
+  }
+
+  suspend fun updateBookSort(bookSort: BookSort) {
+    val current = displayPrefs.firstOrNull()?.copy(bookSort = bookSort)
+    current?.let { updateDisplayPrefs(it) }
+  }
+
+  suspend fun updatePodcastSort(podcastSort: PodcastSort) {
+    val current = displayPrefs.firstOrNull()?.copy(podcastSort = podcastSort)
+    current?.let { updateDisplayPrefs(it) }
+  }
+
+  suspend fun updateSortOrder(sortOrder: SortOrder) {
+    val current = displayPrefs.firstOrNull()?.copy(sortOrder = sortOrder)
     current?.let { updateDisplayPrefs(it) }
   }
 

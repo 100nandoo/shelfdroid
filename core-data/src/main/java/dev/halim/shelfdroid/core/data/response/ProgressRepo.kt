@@ -41,7 +41,7 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
   fun saveAndConvert(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map(::toEntity)
     repoScope.launch {
-      cleanup(entities)
+      cleanup()
       entities.forEach { entity -> queries.insert(entity) }
     }
     return entities
@@ -76,13 +76,8 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
       }
   }
 
-  private fun cleanup(entities: List<ProgressEntity>) {
-    queries.transaction {
-      val ids = queries.allIds().executeAsList()
-      val newIds = entities.map { it.id }
-      val toDelete = ids.filter { !newIds.contains(it) }
-      toDelete.forEach { queries.deleteById(it) }
-    }
+  private fun cleanup() {
+    queries.deleteAll()
   }
 
   private fun toEntity(mediaProgress: MediaProgress): ProgressEntity =

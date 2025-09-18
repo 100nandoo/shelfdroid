@@ -13,7 +13,7 @@ data class HomeUiState(
 data class LibraryUiState(
   val id: String = "",
   val name: String = "",
-  val isBook: Boolean = true,
+  val isBookLibrary: Boolean = true,
   val books: List<BookUiState> = emptyList(),
   val podcasts: List<PodcastUiState> = emptyList(),
 )
@@ -24,6 +24,8 @@ data class BookUiState(
   val author: String = "",
   val title: String = "",
   val cover: String = "",
+  val duration: Double = 0.0,
+  val addedAt: Long = 0,
   val isDownloaded: Boolean = false,
   val trackIndexes: List<Int> = emptyList(),
 )
@@ -33,6 +35,7 @@ data class PodcastUiState(
   val author: String,
   val title: String,
   val cover: String,
+  val addedAt: Long = 0,
   val episodeCount: Int,
   val unfinishedCount: Int,
   val downloadedCount: Int,

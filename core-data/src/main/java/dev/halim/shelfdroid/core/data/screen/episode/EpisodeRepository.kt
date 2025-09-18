@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.data.screen.episode
 
-import android.annotation.SuppressLint
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -22,7 +21,6 @@ constructor(
   private val downloadRepo: DownloadRepo,
   private val helper: Helper,
 ) {
-  @SuppressLint("UnsafeOptInUsageError")
   fun item(itemId: String, episodeId: String): Flow<EpisodeUiState> {
     val podcastFlow = libraryItemRepo.flowById(itemId)
     val progressFlow = progressRepo.flowEpisodeById(episodeId)

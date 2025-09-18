@@ -48,6 +48,6 @@ class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabas
     LibraryEntity(
       id = library.id,
       name = library.name,
-      isBook = if (library.mediaType == MediaType.BOOK) 1 else 0,
+      isBookLibrary = if (library.mediaType == MediaType.BOOK) 1 else 0,
     )
 }
