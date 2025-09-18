@@ -288,7 +288,7 @@ private fun bookFilterAndSort(
   books: List<BookUiState>,
   displayPrefs: DisplayPrefs,
 ): List<BookUiState> {
-  val filtered = books.filter { !displayPrefs.filter.isDownloaded() }
+  val filtered = books.filter { !displayPrefs.filter.isDownloaded() || it.isDownloaded }
 
   val comparator =
     when (displayPrefs.bookSort) {
