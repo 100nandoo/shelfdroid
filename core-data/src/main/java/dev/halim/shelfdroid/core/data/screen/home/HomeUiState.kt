@@ -28,6 +28,7 @@ data class BookUiState(
   val addedAt: Long = 0,
   val isDownloaded: Boolean = false,
   val trackIndexes: List<Int> = emptyList(),
+  val progressLastUpdate: Long = 0,
 )
 
 data class PodcastUiState(

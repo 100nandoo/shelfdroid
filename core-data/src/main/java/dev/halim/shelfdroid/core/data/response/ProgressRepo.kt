@@ -7,6 +7,7 @@ import dev.halim.core.network.response.MediaProgress
 import dev.halim.core.network.response.User
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.ProgressEntity
+import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,10 +15,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class ProgressRepo @Inject constructor(db: MyDatabase) {
+class ProgressRepo @Inject constructor(db: MyDatabase, val helper: Helper) {
 
   private val queries = db.progressEntityQueries
   private val repoScope = CoroutineScope(Dispatchers.IO)
+
+  fun flowAll(): Flow<List<ProgressEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
 
   fun byLibraryItemId(id: String): List<ProgressEntity> =
     queries.byLibraryItemId(id).executeAsList()
@@ -50,15 +53,18 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
   fun toggleIsFinishedByEpisodeId(episodeId: String): Boolean =
     queries.toggleIsFinishedByEpisodeId(episodeId).value == 1L
 
-  fun markEpisodeFinished(libraryItemId: String, episodeId: String) =
-    queries.markEpisodeFinished(libraryItemId, episodeId)
+  fun markEpisodeFinished(libraryItemId: String, episodeId: String) {
+    val now = helper.nowMilis()
+    queries.markEpisodeFinished(libraryItemId, episodeId, now)
+  }
 
   fun updateProgress(entity: ProgressEntity) {
+    val now = helper.nowMilis()
     val episodeId = entity.episodeId
     if (episodeId.isNullOrBlank()) {
-      queries.updateBookProgress(entity.progress, entity.currentTime, entity.libraryItemId)
+      queries.updateBookProgress(entity.progress, entity.currentTime, now, entity.libraryItemId)
     } else {
-      queries.updatePodcastProgress(entity.progress, entity.currentTime, episodeId)
+      queries.updatePodcastProgress(entity.progress, entity.currentTime, now, episodeId)
     }
   }
 
@@ -90,5 +96,6 @@ class ProgressRepo @Inject constructor(db: MyDatabase) {
       duration = mediaProgress.duration.toDouble(),
       currentTime = mediaProgress.currentTime.toDouble(),
       isFinished = if (mediaProgress.isFinished) 1 else 0,
+      lastUpdate = mediaProgress.lastUpdate,
     )
 }

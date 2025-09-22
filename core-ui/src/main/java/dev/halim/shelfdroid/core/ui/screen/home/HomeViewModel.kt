@@ -20,10 +20,10 @@ import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -43,14 +43,17 @@ constructor(
   val fromLogin: Boolean = checkNotNull(savedStateHandle.get<Boolean>("fromLogin"))
 
   private val _uiState = MutableStateFlow(HomeUiState())
+  val uiState: StateFlow<HomeUiState> =
+    combine(_uiState, repository.item()) { state, (displayPrefs, libraries) ->
+        state.copy(displayPrefs = displayPrefs, librariesUiState = libraries)
+      }
+      .onStart { _uiState.update { repository.remoteSync(it, fromLogin) } }
+      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
+
+  private val _navState = MutableStateFlow(NavUiState())
+  val navState = _navState.stateIn(viewModelScope, SharingStarted.Lazily, NavUiState())
 
   init {
-    viewModelScope.launch {
-      settingsRepository.displayPrefs.collect { displayPrefs ->
-        _uiState.update { it.copy(displayPrefs = displayPrefs) }
-      }
-    }
-
     viewModelScope.launch {
       progressRepo.finishedEpisodeIdsGroupedByLibraryItemId().collect {
         progress: Map<String, List<String>> ->
@@ -137,18 +140,11 @@ constructor(
     )
   }
 
-  val uiState: StateFlow<HomeUiState> =
-    _uiState.onStart { onStartApis() }.stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState())
-
-  private val _navState = MutableStateFlow(NavUiState())
-  val navState = _navState.stateIn(viewModelScope, SharingStarted.Lazily, NavUiState())
-
   fun onEvent(event: HomeEvent) {
     when (event) {
       is HomeEvent.RefreshLibrary -> {
-        _uiState.update { it.copy(currentPage = event.page) }
-        fetchLibraryItems(event.page)
-        fetchUser()
+        _uiState.update { it.copy(homeState = HomeState.Loading, currentPage = event.page) }
+        viewModelScope.launch { _uiState.update { repository.remoteSync(it) } }
       }
       is HomeEvent.ChangeLibrary -> {
         _uiState.update { it.copy(currentPage = event.page) }
@@ -194,50 +190,6 @@ constructor(
 
   fun resetNavigationState() {
     _navState.update { it.copy(isNavigate = false) }
-  }
-
-  private val handler = CoroutineExceptionHandler { _, exception ->
-    _uiState.update { it.copy(homeState = HomeState.Failure(exception.message)) }
-  }
-
-  private fun onStartApis() {
-    _uiState.update { it.copy(homeState = HomeState.Loading) }
-    viewModelScope.launch {
-      val libraries = repository.getLibraries()
-      _uiState.update { it.copy(homeState = HomeState.Success, librariesUiState = libraries) }
-      if (fromLogin.not()) {
-        fetchUser()
-      }
-      prefetchLibraryItems()
-    }
-  }
-
-  private fun prefetchLibraryItems() {
-    val currentState = _uiState.value
-    val libraries = currentState.librariesUiState
-
-    libraries.forEachIndexed { index, _ -> fetchLibraryItems(index) }
-  }
-
-  private fun fetchLibraryItems(page: Int) {
-    _uiState.update { it.copy(homeState = HomeState.Loading) }
-    val library = _uiState.value.librariesUiState[page]
-    viewModelScope.launch(handler) {
-      val newLibrary = repository.getLibraryItems(library)
-      _uiState.update { currentState ->
-        val libraries = currentState.librariesUiState.toMutableList()
-        libraries[page] = newLibrary
-        currentState.copy(homeState = HomeState.Success, librariesUiState = libraries)
-      }
-    }
-  }
-
-  private fun fetchUser() {
-    _uiState.update { it.copy(homeState = HomeState.Loading) }
-    viewModelScope.launch {
-      val result = repository.getUser(_uiState.value)
-      _uiState.update { result }
-    }
   }
 }
 

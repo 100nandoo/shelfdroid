@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.response
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.Library
@@ -7,27 +9,24 @@ import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
 
 class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabase) {
 
   private val queries = db.libraryEntityQueries
-  private val repoScope = CoroutineScope(Dispatchers.IO)
 
-  suspend fun entities(): List<LibraryEntity> {
+  suspend fun remote() {
     val response = api.libraries().getOrNull()
-    return if (response != null) {
+    if (response != null) {
       val entities = convert(response)
-      repoScope.launch {
-        cleanup(entities)
-        entities.forEach { entity -> queries.insert(entity) }
-      }
-      entities
-    } else {
-      queries.all().executeAsList()
+      cleanup(entities)
+      entities.forEach { entity -> queries.insert(entity) }
     }
+  }
+
+  fun flowEntities(): Flow<List<LibraryEntity>> {
+    return queries.all().asFlow().mapToList(Dispatchers.IO)
   }
 
   private fun convert(response: LibrariesResponse): List<LibraryEntity> {

@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.response
 
 import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BatchLibraryItemsRequest
@@ -15,7 +16,10 @@ import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -32,6 +36,28 @@ constructor(
   private val repoScope = CoroutineScope(Dispatchers.IO)
 
   private val queries = db.libraryItemEntityQueries
+  private val libraryQueries = db.libraryEntityQueries
+
+  suspend fun remote() {
+    val libraryIds = libraryQueries.allIds().executeAsList()
+    coroutineScope {
+      libraryIds.forEach { libraryId ->
+        async {
+          val ids = idsByLibraryId(libraryId)
+          val result = api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()
+
+          if (result != null) {
+            val entities = convert(libraryId, result)
+            repoScope.launch {
+              cleanupDownloads(libraryId, entities)
+              cleanup(libraryId, entities)
+              entities.forEach { queries.insert(it) }
+            }
+          }
+        }
+      }
+    }
+  }
 
   fun byId(id: String): LibraryItemEntity? {
     return queries.byId(id).executeAsOneOrNull()
@@ -47,19 +73,9 @@ constructor(
     return ids ?: queries.idsByLibraryId(libraryId).executeAsList()
   }
 
-  suspend fun entities(libraryId: String, ids: List<String>): List<LibraryItemEntity> {
-    val result = api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()
-
-    return if (result != null) {
-      val entities = convert(libraryId, result)
-      repoScope.launch {
-        cleanupDownloads(libraryId, entities)
-        cleanup(libraryId, entities)
-        entities.forEach { queries.insert(it) }
-      }
-      entities
-    } else {
-      queries.byLibraryId(libraryId).executeAsList()
+  fun flowEntities(): Flow<Map<String, List<LibraryItemEntity>>> {
+    return queries.all().asFlow().mapToList(Dispatchers.IO).map { list ->
+      list.groupBy { it.libraryId }
     }
   }
 

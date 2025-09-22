@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.login
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.response.LoginResponse
+import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
@@ -15,6 +16,7 @@ constructor(
   private val dataStoreManager: DataStoreManager,
   private val mapper: LoginMapper,
   private val progressRepo: ProgressRepo,
+  private val bookmarkRepo: BookmarkRepo,
 ) {
 
   suspend fun login(uiState: LoginUiState): LoginUiState {
@@ -25,6 +27,7 @@ constructor(
     if (result != null) {
       updateDataStoreManager(uiState.server, result)
       progressRepo.saveAndConvert(result.user)
+      bookmarkRepo.saveAndConvert(result.user)
       return uiState.copy(loginState = LoginState.Success)
     }
     val exception = response.exceptionOrNull()

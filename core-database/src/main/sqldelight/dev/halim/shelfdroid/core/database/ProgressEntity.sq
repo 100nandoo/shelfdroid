@@ -7,11 +7,12 @@ CREATE TABLE ProgressEntity(
   duration REAL NOT NULL,
   currentTime REAL NOT NULL,
   isFinished INTEGER NOT NULL DEFAULT 0,
+  lastUpdate INTEGER NOT NULL,
   PRIMARY KEY (libraryItemId, episodeId)
 );
 
 insert:
-INSERT OR REPLACE INTO ProgressEntity(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime, isFinished)
+INSERT OR REPLACE INTO ProgressEntity(id, libraryItemId, episodeId, mediaItemType, progress, duration, currentTime, isFinished, lastUpdate)
 VALUES ?;
 
 all:
@@ -42,24 +43,26 @@ WHERE episodeId = :episodeId;
 
 updateBookProgress:
 UPDATE ProgressEntity
-SET progress = :progress, currentTime = :currentTime
+SET progress = :progress, currentTime = :currentTime, lastUpdate = :lastUpdate
 WHERE libraryItemId = :libraryItemId AND episodeId IS NULL;
 
 updateBookCurrentTime:
 UPDATE ProgressEntity
 SET currentTime = :currentTime,
-    progress = :currentTime/duration
+    progress = :currentTime/duration,
+    lastUpdate = :lastUpdate
 WHERE libraryItemId = :libraryItemId AND episodeId IS NULL;
 
 updatePodcastProgress:
 UPDATE ProgressEntity
-SET progress = :progress, currentTime = :currentTime
+SET progress = :progress, currentTime = :currentTime, lastUpdate = :lastUpdate
 WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
 
 updatePodcastCurrentTime:
 UPDATE ProgressEntity
 SET currentTime = :currentTime,
-    progress = :currentTime/duration
+    progress = :currentTime/duration,
+    lastUpdate = :lastUpdate
 WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
 
 deleteBookById:
@@ -93,7 +96,8 @@ INSERT INTO ProgressEntity (
   progress,
   duration,
   currentTime,
-  isFinished
+  isFinished,
+  lastUpdate
 )
 VALUES (
   hex(randomblob(16)),
@@ -103,7 +107,8 @@ VALUES (
   1,
   0,
   0,
-  1
+  1,
+  :lastUpdate
 );
 
 finishedEpisodeIdsGroupedByLibraryItemId:

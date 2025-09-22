@@ -79,9 +79,17 @@ constructor(
     queries.update(currentTime, now, duration.inWholeSeconds, state.sessionId())
 
     if (state.isBook()) {
-      progressQueries.updateBookCurrentTime(currentTime = currentTime, uiState.id)
+      progressQueries.updateBookCurrentTime(
+        currentTime = currentTime,
+        lastUpdate = now,
+        libraryItemId = uiState.id,
+      )
     } else {
-      progressQueries.updatePodcastCurrentTime(currentTime = currentTime, uiState.episodeId)
+      progressQueries.updatePodcastCurrentTime(
+        currentTime = currentTime,
+        lastUpdate = now,
+        episodeId = uiState.episodeId,
+      )
     }
   }
 

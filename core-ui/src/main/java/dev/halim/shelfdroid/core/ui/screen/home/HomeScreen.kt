@@ -2,8 +2,7 @@
 
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -86,22 +84,12 @@ fun HomeScreen(
     }
   }
 
-  val loadingIndicatorAlpha = remember { Animatable(0f) }
-
-  LaunchedEffect(uiState.homeState) {
-    when (uiState.homeState) {
-      is HomeState.Loading -> loadingIndicatorAlpha.animateTo(1f)
-      else -> loadingIndicatorAlpha.animateTo(0f)
-    }
-  }
-
   HomeScreenContent(
     Modifier,
     libraryCount,
     pagerState,
     uiState,
     { homeEvent -> viewModel.onEvent(homeEvent) },
-    loadingIndicatorAlpha,
     onSettingsClicked,
   )
 }
@@ -113,7 +101,6 @@ fun HomeScreenContent(
   pagerState: PagerState = rememberPagerState { 1 },
   uiState: HomeUiState = HomeUiState(),
   onEvent: (HomeEvent) -> Unit = {},
-  loadingIndicatorAlpha: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) },
   onSettingsClicked: () -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
@@ -127,8 +114,10 @@ fun HomeScreenContent(
 
   HorizontalPager(state = pagerState) { page ->
     val library = uiState.librariesUiState[page]
-
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+      AnimatedVisibility(uiState.homeState is HomeState.Loading) {
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+      }
       LibraryContent(
         modifier = Modifier.weight(1f),
         displayPrefs = uiState.displayPrefs,
@@ -144,11 +133,6 @@ fun HomeScreenContent(
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
         onSettingsClicked = onSettingsClicked,
       )
-      if (loadingIndicatorAlpha.value > 0f) {
-        LinearProgressIndicator(
-          modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = loadingIndicatorAlpha.value }
-        )
-      }
     }
   }
 }
@@ -295,7 +279,7 @@ private fun bookFilterAndSort(
       BookSort.AddedAt -> compareBy<BookUiState> { it.addedAt }
       BookSort.Duration -> compareBy { it.duration }
       BookSort.Title -> compareBy { it.title }
-      BookSort.Progress -> compareBy { it.addedAt }
+      BookSort.Progress -> compareBy { it.progressLastUpdate }
     }
 
   return if (displayPrefs.sortOrder == SortOrder.Desc) {
