@@ -73,6 +73,10 @@ constructor(
     dataStoreManager.updateSortOrder(sortOrder)
   }
 
+  suspend fun updatePodcastSortOrder(podcastSortOrder: SortOrder) {
+    dataStoreManager.updatePodcastSortOrder(podcastSortOrder)
+  }
+
   @SuppressLint("UnsafeOptInUsageError")
   private fun clearDir() {
     val cacheDir = context.cacheDir

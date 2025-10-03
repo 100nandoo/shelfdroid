@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,6 +27,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExposedDropdownMenu
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.preview.sheetState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -39,6 +39,7 @@ fun DisplayPrefsSheet(
   onBookSortChange: (String) -> Unit,
   onPodcastSortChange: (String) -> Unit,
   onSortOrderChange: (String) -> Unit,
+  onPodcastSortOrderChange: (String) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
 
@@ -59,22 +60,26 @@ fun DisplayPrefsSheet(
           val options =
             if (isBookLibrary) BookSort.entries.map { it.label }
             else PodcastSort.entries.map { it.label }
-          val initialValue =
+          val sortInitialValue =
             if (isBookLibrary) displayPrefs.bookSort.label else displayPrefs.podcastSort.label
-          val onClick = if (isBookLibrary) onBookSortChange else onPodcastSortChange
+          val onSortChange = if (isBookLibrary) onBookSortChange else onPodcastSortChange
           ExposedDropdownMenu(
             modifier = Modifier.weight(1f),
             options,
             stringResource(R.string.sort),
-            initialValue,
-            onClick,
+            sortInitialValue,
+            onSortChange,
           )
+
+          val onSortOrderChange = if (isBookLibrary) onSortOrderChange else onPodcastSortOrderChange
+          val sortOrderInitialValue =
+            if (isBookLibrary) displayPrefs.sortOrder.name else displayPrefs.podcastSortOrder.name
           Spacer(Modifier.width(8.dp))
           ExposedDropdownMenu(
             modifier = Modifier.weight(1f),
             SortOrder.entries.map { it.name },
             stringResource(R.string.order),
-            displayPrefs.sortOrder.name,
+            sortOrderInitialValue,
             onSortOrderChange,
           )
         }
@@ -88,14 +93,9 @@ fun DisplayPrefsSheet(
 private fun DisplayPrefsSheetPreview() {
   PreviewWrapper(false) {
     val density = LocalDensity.current
-    val displayPrefsSheetState =
-      SheetState(
-        skipPartiallyExpanded = true,
-        initialValue = SheetValue.Expanded,
-        density = density,
-      )
+    val displayPrefsSheetState = sheetState(density)
 
-    DisplayPrefsSheet(displayPrefsSheetState, DisplayPrefs(), true, {}, {}, {}, {})
+    DisplayPrefsSheet(displayPrefsSheetState, DisplayPrefs(), true, {}, {}, {}, {}, {})
     LaunchedEffect(Unit) { displayPrefsSheetState.show() }
   }
 }

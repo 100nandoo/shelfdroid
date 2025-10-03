@@ -81,4 +81,5 @@ data class DisplayPrefs(
   val bookSort: BookSort = BookSort.AddedAt,
   val podcastSort: PodcastSort = PodcastSort.AddedAt,
   val sortOrder: SortOrder = SortOrder.Asc,
+  val podcastSortOrder: SortOrder = SortOrder.Asc,
 )

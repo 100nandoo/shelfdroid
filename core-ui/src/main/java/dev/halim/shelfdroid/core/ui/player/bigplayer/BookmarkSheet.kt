@@ -25,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -49,6 +48,7 @@ import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.preview.sheetState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -199,12 +199,7 @@ private fun PreviewNewBookmarkRow() {
 private fun PreviewBookmarkBottomSheet() {
   PreviewWrapper(false) {
     val density = LocalDensity.current
-    val bookmarkSheetState =
-      SheetState(
-        skipPartiallyExpanded = true,
-        initialValue = SheetValue.Expanded,
-        density = density,
-      )
+    val bookmarkSheetState = sheetState(density)
 
     BookmarkBottomSheet(
       bookmarkSheetState,

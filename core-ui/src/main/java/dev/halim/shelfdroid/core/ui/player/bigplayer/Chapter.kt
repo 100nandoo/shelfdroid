@@ -36,6 +36,7 @@ import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.preview.sheetState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -134,7 +135,8 @@ private fun PreviewChapterBottomSheet() {
       SheetState(
         skipPartiallyExpanded = true,
         initialValue = SheetValue.Expanded,
-        density = density,
+        positionalThreshold = { with(density) { 56.dp.toPx() } },
+        velocityThreshold = { with(density) { 125.dp.toPx() } },
       )
 
     chapterSheetState.isVisible
@@ -152,12 +154,7 @@ private fun PreviewChapterBottomSheet() {
 private fun PreviewChapterDynamicBottomSheet() {
   PreviewWrapper(true) {
     val density = LocalDensity.current
-    val chapterSheetState =
-      SheetState(
-        skipPartiallyExpanded = true,
-        initialValue = SheetValue.Expanded,
-        density = density,
-      )
+    val chapterSheetState = sheetState(density)
 
     chapterSheetState.isVisible
     ChapterBottomSheet(
@@ -173,12 +170,7 @@ private fun PreviewChapterDynamicBottomSheet() {
 private fun PreviewManyChaptersBottomSheet() {
   PreviewWrapper(false) {
     val density = LocalDensity.current
-    val chapterSheetState =
-      SheetState(
-        skipPartiallyExpanded = true,
-        initialValue = SheetValue.Expanded,
-        density = density,
-      )
+    val chapterSheetState = sheetState(density)
 
     chapterSheetState.isVisible
     ChapterBottomSheet(

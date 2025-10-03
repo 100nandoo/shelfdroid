@@ -141,6 +141,11 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
     current?.let { updateDisplayPrefs(it) }
   }
 
+  suspend fun updatePodcastSortOrder(podcastSortOrder: SortOrder) {
+    val current = displayPrefs.firstOrNull()?.copy(podcastSortOrder = podcastSortOrder)
+    current?.let { updateDisplayPrefs(it) }
+  }
+
   suspend fun updateAccessToken(newToken: String) {
     val currentPrefs = userPrefs.first()
     val updatedPrefs = currentPrefs.copy(accessToken = newToken)

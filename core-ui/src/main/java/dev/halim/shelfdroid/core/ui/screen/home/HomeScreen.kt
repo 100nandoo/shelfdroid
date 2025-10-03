@@ -37,7 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.DisplayPrefs
@@ -130,6 +130,7 @@ fun HomeScreenContent(
         onBookSortChange = { onEvent(HomeEvent.BookSort(it)) },
         onPodcastSortChange = { onEvent(HomeEvent.PodcastSort(it)) },
         onSortOrderChange = { onEvent(HomeEvent.SortOrder(it)) },
+        onPodcastSortOrderChange = { onEvent(HomeEvent.PodcastSortOrder(it)) },
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
         onSettingsClicked = onSettingsClicked,
       )
@@ -146,6 +147,7 @@ fun LibraryHeader(
   onBookSortChange: (String) -> Unit,
   onPodcastSortChange: (String) -> Unit,
   onSortOrderChange: (String) -> Unit,
+  onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
 ) {
@@ -160,6 +162,7 @@ fun LibraryHeader(
     onBookSortChange,
     onPodcastSortChange,
     onSortOrderChange,
+    onPodcastSortOrderChange,
   )
 
   Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -204,6 +207,7 @@ fun LibraryContent(
   onBookSortChange: (String) -> Unit,
   onPodcastSortChange: (String) -> Unit,
   onSortOrderChange: (String) -> Unit,
+  onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
 ) {
@@ -230,6 +234,7 @@ fun LibraryContent(
         onBookSortChange = onBookSortChange,
         onPodcastSortChange = onPodcastSortChange,
         onSortOrderChange = onSortOrderChange,
+        onPodcastSortOrderChange = onPodcastSortOrderChange,
         onRefresh = onRefresh,
         onSettingsClicked = onSettingsClicked,
       )
@@ -301,7 +306,7 @@ private fun podcastFilterAndSort(
       PodcastSort.Title -> compareBy { it.title }
     }
 
-  return if (displayPrefs.sortOrder == SortOrder.Desc) {
+  return if (displayPrefs.podcastSortOrder == SortOrder.Desc) {
     filtered.sortedWith(comparator.reversed())
   } else {
     filtered.sortedWith(comparator)

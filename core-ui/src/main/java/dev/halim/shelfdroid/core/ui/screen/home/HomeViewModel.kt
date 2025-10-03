@@ -177,12 +177,18 @@ constructor(
           state.copy(displayPrefs = state.displayPrefs.copy(podcastSort = podcastSort))
         }
       }
-
       is HomeEvent.SortOrder -> {
         _uiState.update { state ->
           val sortOrder = SortOrder.valueOf(event.sortOrder)
           viewModelScope.launch { settingsRepository.updateSortOrder(sortOrder) }
           state.copy(displayPrefs = state.displayPrefs.copy(sortOrder = sortOrder))
+        }
+      }
+      is HomeEvent.PodcastSortOrder -> {
+        _uiState.update { state ->
+          val sortOrder = SortOrder.valueOf(event.sortOrder)
+          viewModelScope.launch { settingsRepository.updatePodcastSortOrder(sortOrder) }
+          state.copy(displayPrefs = state.displayPrefs.copy(podcastSortOrder = sortOrder))
         }
       }
     }
@@ -213,4 +219,6 @@ sealed class HomeEvent {
   data class PodcastSort(val podcastSort: String) : HomeEvent()
 
   data class SortOrder(val sortOrder: String) : HomeEvent()
+
+  data class PodcastSortOrder(val sortOrder: String) : HomeEvent()
 }

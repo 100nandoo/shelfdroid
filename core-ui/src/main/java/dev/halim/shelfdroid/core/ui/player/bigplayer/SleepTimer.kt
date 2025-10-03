@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -39,6 +38,7 @@ import dev.halim.shelfdroid.core.ui.extensions.toSleepTimerText
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.preview.sheetState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.launch
@@ -137,12 +137,7 @@ fun SleepTimerBottomSheet(sheetState: SheetState, onEvent: (PlayerEvent) -> Unit
 private fun PreviewSleepTimerBottomSheet() {
   PreviewWrapper(false) {
     val density = LocalDensity.current
-    val sleepTimerSheetState =
-      SheetState(
-        skipPartiallyExpanded = true,
-        initialValue = SheetValue.Expanded,
-        density = density,
-      )
+    val sleepTimerSheetState = sheetState(density)
 
     SleepTimerBottomSheet(sleepTimerSheetState, onEvent = {})
     LaunchedEffect(Unit) { sleepTimerSheetState.show() }
