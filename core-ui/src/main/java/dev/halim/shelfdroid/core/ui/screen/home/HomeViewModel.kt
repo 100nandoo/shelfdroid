@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -47,13 +46,14 @@ constructor(
     combine(_uiState, repository.item()) { state, (displayPrefs, libraries) ->
         state.copy(displayPrefs = displayPrefs, librariesUiState = libraries)
       }
-      .onStart { _uiState.update { repository.remoteSync(it, fromLogin) } }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
   private val _navState = MutableStateFlow(NavUiState())
   val navState = _navState.stateIn(viewModelScope, SharingStarted.Lazily, NavUiState())
 
   init {
+    viewModelScope.launch { _uiState.update { repository.remoteSync(it, fromLogin) } }
+
     viewModelScope.launch {
       progressRepo.finishedEpisodeIdsGroupedByLibraryItemId().collect {
         progress: Map<String, List<String>> ->
