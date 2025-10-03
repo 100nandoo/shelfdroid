@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.ui.components
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -21,13 +20,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 fun ExposedDropdownMenu(
   modifier: Modifier = Modifier,
   options: List<String> = emptyList(),
-  label: String = "",
+  label: String? = null,
   initialValue: String = "",
   onClick: (String) -> Unit = {},
 ) {
   var expanded by remember { mutableStateOf(false) }
 
-  var textFieldValue by remember { mutableStateOf(TextFieldValue(initialValue)) }
+  var textFieldValue by remember(initialValue) { mutableStateOf(TextFieldValue(initialValue)) }
 
   ExposedDropdownMenuBox(
     modifier = modifier,
@@ -35,11 +34,11 @@ fun ExposedDropdownMenu(
     onExpandedChange = { expanded = it },
   ) {
     OutlinedTextField(
-      modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
+      modifier = modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
       readOnly = true,
       value = textFieldValue,
       onValueChange = { textFieldValue = it },
-      label = { Text(label) },
+      label = { label?.let { Text(it) } },
       singleLine = true,
       maxLines = 1,
       trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },

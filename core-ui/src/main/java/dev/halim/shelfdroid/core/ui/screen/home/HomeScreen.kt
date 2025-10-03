@@ -49,6 +49,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
+import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -126,11 +127,19 @@ fun HomeScreenContent(
         onEvent = onEvent,
         name = uiState.librariesUiState[page].name,
         isBookLibrary = uiState.librariesUiState[page].isBookLibrary,
-        onFilterChange = { onEvent(HomeEvent.Filter(it)) },
-        onBookSortChange = { onEvent(HomeEvent.BookSort(it)) },
-        onPodcastSortChange = { onEvent(HomeEvent.PodcastSort(it)) },
-        onSortOrderChange = { onEvent(HomeEvent.SortOrder(it)) },
-        onPodcastSortOrderChange = { onEvent(HomeEvent.PodcastSortOrder(it)) },
+        onFilterChange = { onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.Filter(it))) },
+        onBookSortChange = {
+          onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it)))
+        },
+        onPodcastSortChange = {
+          onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.PodcastSort(it)))
+        },
+        onSortOrderChange = {
+          onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.SortOrder(it)))
+        },
+        onPodcastSortOrderChange = {
+          onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.PodcastSortOrder(it)))
+        },
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
         onSettingsClicked = onSettingsClicked,
       )

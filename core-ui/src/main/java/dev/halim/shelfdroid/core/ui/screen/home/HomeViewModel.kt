@@ -18,6 +18,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
+import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -156,39 +157,43 @@ constructor(
           }
         }
       }
-      is HomeEvent.Filter -> {
-        _uiState.update { state ->
-          val filter = Filter.valueOf(event.filter)
-          viewModelScope.launch { settingsRepository.updateFilter(filter) }
-          state.copy(displayPrefs = state.displayPrefs.copy(filter = filter))
-        }
-      }
-      is HomeEvent.BookSort -> {
-        _uiState.update { state ->
-          val bookSort = BookSort.fromLabel(event.bookSort)
-          viewModelScope.launch { settingsRepository.updateBookSort(bookSort) }
-          state.copy(displayPrefs = state.displayPrefs.copy(bookSort = bookSort))
-        }
-      }
-      is HomeEvent.PodcastSort -> {
-        _uiState.update { state ->
-          val podcastSort = PodcastSort.fromLabel(event.podcastSort)
-          viewModelScope.launch { settingsRepository.updatePodcastSort(podcastSort) }
-          state.copy(displayPrefs = state.displayPrefs.copy(podcastSort = podcastSort))
-        }
-      }
-      is HomeEvent.SortOrder -> {
-        _uiState.update { state ->
-          val sortOrder = SortOrder.valueOf(event.sortOrder)
-          viewModelScope.launch { settingsRepository.updateSortOrder(sortOrder) }
-          state.copy(displayPrefs = state.displayPrefs.copy(sortOrder = sortOrder))
-        }
-      }
-      is HomeEvent.PodcastSortOrder -> {
-        _uiState.update { state ->
-          val sortOrder = SortOrder.valueOf(event.sortOrder)
-          viewModelScope.launch { settingsRepository.updatePodcastSortOrder(sortOrder) }
-          state.copy(displayPrefs = state.displayPrefs.copy(podcastSortOrder = sortOrder))
+      is HomeEvent.HomeDisplayPrefsEvent -> {
+        when (event.displayPrefsEvent) {
+          is DisplayPrefsEvent.BookSort -> {
+            _uiState.update { state ->
+              val bookSort = BookSort.fromLabel(event.displayPrefsEvent.bookSort)
+              viewModelScope.launch { settingsRepository.updateBookSort(bookSort) }
+              state.copy(displayPrefs = state.displayPrefs.copy(bookSort = bookSort))
+            }
+          }
+          is DisplayPrefsEvent.Filter -> {
+            _uiState.update { state ->
+              val filter = Filter.valueOf(event.displayPrefsEvent.filter)
+              viewModelScope.launch { settingsRepository.updateFilter(filter) }
+              state.copy(displayPrefs = state.displayPrefs.copy(filter = filter))
+            }
+          }
+          is DisplayPrefsEvent.PodcastSort -> {
+            _uiState.update { state ->
+              val podcastSort = PodcastSort.fromLabel(event.displayPrefsEvent.podcastSort)
+              viewModelScope.launch { settingsRepository.updatePodcastSort(podcastSort) }
+              state.copy(displayPrefs = state.displayPrefs.copy(podcastSort = podcastSort))
+            }
+          }
+          is DisplayPrefsEvent.PodcastSortOrder -> {
+            _uiState.update { state ->
+              val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
+              viewModelScope.launch { settingsRepository.updatePodcastSortOrder(sortOrder) }
+              state.copy(displayPrefs = state.displayPrefs.copy(podcastSortOrder = sortOrder))
+            }
+          }
+          is DisplayPrefsEvent.SortOrder -> {
+            _uiState.update { state ->
+              val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
+              viewModelScope.launch { settingsRepository.updateSortOrder(sortOrder) }
+              state.copy(displayPrefs = state.displayPrefs.copy(sortOrder = sortOrder))
+            }
+          }
         }
       }
     }
@@ -212,13 +217,5 @@ sealed class HomeEvent {
 
   data class Navigate(val id: String, val isBook: Boolean) : HomeEvent()
 
-  data class Filter(val filter: String) : HomeEvent()
-
-  data class BookSort(val bookSort: String) : HomeEvent()
-
-  data class PodcastSort(val podcastSort: String) : HomeEvent()
-
-  data class SortOrder(val sortOrder: String) : HomeEvent()
-
-  data class PodcastSortOrder(val sortOrder: String) : HomeEvent()
+  data class HomeDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : HomeEvent()
 }

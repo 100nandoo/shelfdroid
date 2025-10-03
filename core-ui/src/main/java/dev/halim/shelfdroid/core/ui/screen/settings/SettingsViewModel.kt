@@ -3,12 +3,16 @@ package dev.halim.shelfdroid.core.ui.screen.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.Filter
+import dev.halim.shelfdroid.core.PodcastSort
+import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
+import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import javax.inject.Inject
 import javax.inject.Named
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,8 +46,7 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
         uiState.copy(
           isDarkMode = isDarkMode,
           isDynamicTheme = isDynamicTheme,
-          isListView = displayPrefs.listView,
-          isOnlyDownloaded = displayPrefs.filter.isDownloaded(),
+          displayPrefs = displayPrefs,
           isAdmin = userPrefs.isAdmin,
           username = userPrefs.username,
         )
@@ -53,19 +56,38 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
   fun onEvent(event: SettingsEvent) {
     when (event) {
       is SettingsEvent.LogoutButtonPressed -> viewModelScope.launch { logout() }
-
       is SettingsEvent.SwitchDarkTheme -> {
         viewModelScope.launch { repository.updateDarkMode(event.isDarkMode) }
       }
-
       is SettingsEvent.SwitchDynamicTheme -> {
         viewModelScope.launch { repository.updateDynamicTheme(event.isDynamic) }
       }
       is SettingsEvent.SwitchListView -> {
         viewModelScope.launch { repository.updateListView(event.isListView) }
       }
-      is SettingsEvent.SwitchFilter -> {
-        viewModelScope.launch { repository.updateFilter(event.filter) }
+      is SettingsEvent.SettingsDisplayPrefsEvent -> {
+        when (event.displayPrefsEvent) {
+          is DisplayPrefsEvent.BookSort -> {
+            val bookSort = BookSort.fromLabel(event.displayPrefsEvent.bookSort)
+            viewModelScope.launch { repository.updateBookSort(bookSort) }
+          }
+          is DisplayPrefsEvent.Filter -> {
+            val filter = Filter.valueOf(event.displayPrefsEvent.filter)
+            viewModelScope.launch { repository.updateFilter(filter) }
+          }
+          is DisplayPrefsEvent.PodcastSort -> {
+            val podcastSort = PodcastSort.fromLabel(event.displayPrefsEvent.podcastSort)
+            viewModelScope.launch { repository.updatePodcastSort(podcastSort) }
+          }
+          is DisplayPrefsEvent.PodcastSortOrder -> {
+            val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
+            viewModelScope.launch { repository.updatePodcastSortOrder(sortOrder) }
+          }
+          is DisplayPrefsEvent.SortOrder -> {
+            val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
+            viewModelScope.launch { repository.updateSortOrder(sortOrder) }
+          }
+        }
       }
     }
   }
@@ -89,5 +111,5 @@ sealed class SettingsEvent {
 
   data class SwitchListView(val isListView: Boolean) : SettingsEvent()
 
-  data class SwitchFilter(val filter: Filter) : SettingsEvent()
+  data class SettingsDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : SettingsEvent()
 }

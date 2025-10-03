@@ -1,11 +1,12 @@
 package dev.halim.shelfdroid.core.data.screen.settings
 
+import dev.halim.shelfdroid.core.DisplayPrefs
+
 data class SettingsUiState(
   val settingsState: SettingsState = SettingsState.NotLoggedOut,
   val isDarkMode: Boolean = true,
   val isDynamicTheme: Boolean = false,
-  val isListView: Boolean = false,
-  val isOnlyDownloaded: Boolean = false,
+  val displayPrefs: DisplayPrefs = DisplayPrefs(),
   val isAdmin: Boolean = false,
   val username: String = "",
 )

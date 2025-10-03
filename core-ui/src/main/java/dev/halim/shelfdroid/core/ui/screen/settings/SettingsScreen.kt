@@ -20,10 +20,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
+import dev.halim.shelfdroid.core.PodcastSort
+import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
+import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -52,6 +56,7 @@ fun SettingsScreenContent(
     verticalArrangement = Arrangement.Bottom,
   ) {
     DisplaySection(uiState, onEvent)
+    HomeScreenSection(uiState, onEvent)
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -87,23 +92,55 @@ private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) ->
     contentDescription = stringResource(R.string.dynamic_theme),
     enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
   )
-  SettingsSublabel(Modifier.padding(top = 16.dp), text = stringResource(R.string.home_screen))
+}
+
+@Composable
+private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent) -> Unit) {
+  SettingsLabel(Modifier.padding(top = 16.dp), text = stringResource(R.string.home_screen))
   SettingsSwitchItem(
     modifier = Modifier,
     title = stringResource(R.string.list_view),
-    checked = uiState.isListView,
+    checked = uiState.displayPrefs.listView,
     onCheckedChange = { onEvent(SettingsEvent.SwitchListView(it)) },
     contentDescription = stringResource(R.string.list_view),
   )
   SettingsSwitchItem(
     modifier = Modifier,
     title = stringResource(R.string.show_only_downloaded),
-    checked = uiState.isOnlyDownloaded,
+    checked = uiState.displayPrefs.filter.isDownloaded(),
     onCheckedChange = {
       val filter = if (it) Filter.Downloaded else Filter.All
-      onEvent(SettingsEvent.SwitchFilter(filter))
+      onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.Filter(filter.name)))
     },
     contentDescription = stringResource(R.string.show_only_downloaded),
+  )
+
+  SettingsSublabel(Modifier.padding(top = 16.dp), text = "Book Library")
+  SettingsDropDown(
+    "Sort",
+    BookSort.entries.map { it.name },
+    uiState.displayPrefs.bookSort.name,
+    { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it))) },
+  )
+  SettingsDropDown(
+    "Sort Order",
+    SortOrder.entries.map { it.name },
+    uiState.displayPrefs.sortOrder.name,
+    { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.SortOrder(it))) },
+  )
+
+  SettingsSublabel(Modifier.padding(top = 16.dp), text = "Podcast Library")
+  SettingsDropDown(
+    "Sort",
+    PodcastSort.entries.map { it.name },
+    uiState.displayPrefs.podcastSort.name,
+    { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSort(it))) },
+  )
+  SettingsDropDown(
+    "Sort Order",
+    SortOrder.entries.map { it.name },
+    uiState.displayPrefs.podcastSortOrder.name,
+    { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSortOrder(it))) },
   )
 }
 

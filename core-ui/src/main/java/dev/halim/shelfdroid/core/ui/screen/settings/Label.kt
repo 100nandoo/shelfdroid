@@ -24,7 +24,7 @@ fun SettingsLabel(
 fun SettingsSublabel(
   modifier: Modifier = Modifier,
   text: String,
-  style: TextStyle = MaterialTheme.typography.bodyMedium,
+  style: TextStyle = MaterialTheme.typography.titleMedium,
 ) {
   Text(text = text, style = style, color = MaterialTheme.colorScheme.tertiary, modifier = modifier)
 }
