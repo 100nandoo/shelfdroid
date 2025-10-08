@@ -3,11 +3,13 @@ package dev.halim.shelfdroid.core.ui.screen.settings
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,6 +28,7 @@ import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.ExposedDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -60,14 +63,7 @@ fun SettingsScreenContent(
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    SettingsLabel(text = stringResource(R.string.others))
-    Spacer(modifier = Modifier.height(4.dp))
-    SettingsBody(text = stringResource(R.string.args_version, version))
-    val userText =
-      user +
-        if (uiState.isAdmin) stringResource(R.string.is_an_admin)
-        else stringResource(R.string.is_not_an_admin)
-    SettingsBody(text = userText)
+    OthersSection(version, user, uiState)
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -80,12 +76,14 @@ private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) ->
   SettingsLabel(text = stringResource(R.string.display))
   Spacer(modifier = Modifier.height(4.dp))
   SettingsSwitchItem(
+    modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.dark_mode),
     checked = uiState.isDarkMode,
     onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
     contentDescription = stringResource(R.string.dark_mode),
   )
   SettingsSwitchItem(
+    modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.dynamic_theme),
     checked = uiState.isDynamicTheme,
     onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
@@ -97,15 +95,16 @@ private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) ->
 @Composable
 private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent) -> Unit) {
   SettingsLabel(Modifier.padding(top = 16.dp), text = stringResource(R.string.home_screen))
+  val paddingStart = Modifier.padding(start = 8.dp)
   SettingsSwitchItem(
-    modifier = Modifier,
+    modifier = paddingStart,
     title = stringResource(R.string.list_view),
     checked = uiState.displayPrefs.listView,
     onCheckedChange = { onEvent(SettingsEvent.SwitchListView(it)) },
     contentDescription = stringResource(R.string.list_view),
   )
   SettingsSwitchItem(
-    modifier = Modifier,
+    modifier = paddingStart,
     title = stringResource(R.string.show_only_downloaded),
     checked = uiState.displayPrefs.filter.isDownloaded(),
     onCheckedChange = {
@@ -114,34 +113,65 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     },
     contentDescription = stringResource(R.string.show_only_downloaded),
   )
+  val paddingStartTwo = Modifier.padding(start = 16.dp, top = 4.dp)
+  SettingsSublabel(Modifier.padding(start = 8.dp, top = 4.dp), text = "Book Library")
+  Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    ExposedDropdownMenu(
+      modifier = Modifier.weight(1f),
+      label = stringResource(R.string.sort),
+      options = BookSort.entries.map { it.name },
+      initialValue = uiState.displayPrefs.bookSort.name,
+      onClick = { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it))) },
+    )
+    Spacer(Modifier.width(8.dp))
+    ExposedDropdownMenu(
+      modifier = Modifier.weight(1f),
+      label = stringResource(R.string.order),
+      options = SortOrder.entries.map { it.name },
+      initialValue = uiState.displayPrefs.sortOrder.name,
+      onClick = {
+        onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.SortOrder(it)))
+      },
+    )
+  }
 
-  SettingsSublabel(Modifier.padding(top = 16.dp), text = "Book Library")
-  SettingsDropDown(
-    "Sort",
-    BookSort.entries.map { it.name },
-    uiState.displayPrefs.bookSort.name,
-    { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it))) },
-  )
-  SettingsDropDown(
-    "Sort Order",
-    SortOrder.entries.map { it.name },
-    uiState.displayPrefs.sortOrder.name,
-    { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.SortOrder(it))) },
-  )
+  SettingsSublabel(Modifier.padding(start = 8.dp, top = 4.dp), text = "Podcast Library")
+  Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    ExposedDropdownMenu(
+      modifier = Modifier.weight(1f),
+      label = stringResource(R.string.sort),
+      options = PodcastSort.entries.map { it.name },
+      initialValue = uiState.displayPrefs.podcastSort.name,
+      onClick = {
+        onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSort(it)))
+      },
+    )
+    Spacer(Modifier.width(8.dp))
+    ExposedDropdownMenu(
+      modifier = Modifier.weight(1f),
+      label = stringResource(R.string.order),
+      options = SortOrder.entries.map { it.name },
+      initialValue = uiState.displayPrefs.podcastSortOrder.name,
+      onClick = {
+        onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSortOrder(it)))
+      },
+    )
+  }
+}
 
-  SettingsSublabel(Modifier.padding(top = 16.dp), text = "Podcast Library")
-  SettingsDropDown(
-    "Sort",
-    PodcastSort.entries.map { it.name },
-    uiState.displayPrefs.podcastSort.name,
-    { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSort(it))) },
+@Composable
+private fun OthersSection(version: String, user: String, uiState: SettingsUiState) {
+  SettingsLabel(text = stringResource(R.string.others))
+  Spacer(modifier = Modifier.height(4.dp))
+  SettingsBody(
+    modifier = Modifier.padding(start = 8.dp),
+    text = stringResource(R.string.args_version, version),
   )
-  SettingsDropDown(
-    "Sort Order",
-    SortOrder.entries.map { it.name },
-    uiState.displayPrefs.podcastSortOrder.name,
-    { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSortOrder(it))) },
-  )
+  val userText =
+    user +
+      if (uiState.isAdmin) stringResource(R.string.is_an_admin)
+      else stringResource(R.string.is_not_an_admin)
+  SettingsBody(modifier = Modifier.padding(start = 8.dp), text = userText)
 }
 
 @Composable
