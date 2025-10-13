@@ -45,7 +45,7 @@ jobs:
           git config --global user.email "actions@github.com"
           git add .
 
-      - uses: stefanzweifel/git-auto-commit-action@v6
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           branch: main
           commit_message: 🎊🎉 Release version ${{ github.ref_name }} 🎉🎊
