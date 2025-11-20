@@ -57,7 +57,7 @@ jobs:
         run: ls -al ./app/build/outputs/apk/debug/
 
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shelfdroid-${{ github.ref_name }}.apk
           path: |
