@@ -19,7 +19,7 @@ helper = ":helper"
 media = ":media"
 testApp = ":test-app"
 
-androidGradlePlugin = "8.13.0"
+androidGradlePlugin = "8.13.1"
 androidxActivity = "1.11.0"
 androidxComposeBom = "2025.11.01"
 androidxCore = "1.17.0"
