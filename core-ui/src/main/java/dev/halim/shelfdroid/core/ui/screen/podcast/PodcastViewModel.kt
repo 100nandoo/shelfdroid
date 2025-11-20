@@ -65,8 +65,7 @@ constructor(
 sealed class PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent()
 
-  data class Download(val downloadId: String, val url: String, val message: String) :
-    PodcastEvent()
+  data class Download(val downloadId: String, val url: String, val message: String) : PodcastEvent()
 
   data class DeleteDownload(val downloadId: String) : PodcastEvent()
 }

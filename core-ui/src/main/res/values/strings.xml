@@ -23,6 +23,8 @@
     <string name="downloaded_filter_on">Downloaded Filter On</string>
     <string name="downloaded_filter_off">Downloaded Filter Off</string>
     <string name="sort_and_filter">Sort and Filter</string>
+    <string name="search_podcast">Search podcast</string>
+    <string name="explicit">explicit</string>
     <!--Content Description-->
 
     <!--Arguments-->
@@ -47,7 +49,6 @@
     <string name="sort">Sort</string>
     <string name="order">Order</string>
     <!--Dropdown-->
-
 
     <!--SnackBar-->
     <string name="permission_required">Permission required</string>

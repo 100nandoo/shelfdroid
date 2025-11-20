@@ -20,6 +20,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -63,6 +64,7 @@ fun HomeScreen(
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
+  onSearchClicked: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size
@@ -92,6 +94,7 @@ fun HomeScreen(
     uiState,
     { homeEvent -> viewModel.onEvent(homeEvent) },
     onSettingsClicked,
+    onSearchClicked,
   )
 }
 
@@ -103,6 +106,7 @@ fun HomeScreenContent(
   uiState: HomeUiState = HomeUiState(),
   onEvent: (HomeEvent) -> Unit = {},
   onSettingsClicked: () -> Unit = {},
+  onSearchClicked: () -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
@@ -142,6 +146,7 @@ fun HomeScreenContent(
         },
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
         onSettingsClicked = onSettingsClicked,
+        onSearchClicked = onSearchClicked,
       )
     }
   }
@@ -159,6 +164,7 @@ fun LibraryHeader(
   onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
+  onSearchClicked: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
 
@@ -181,6 +187,14 @@ fun LibraryHeader(
       style = MaterialTheme.typography.titleLarge,
       textAlign = TextAlign.Start,
     )
+    if (isBookLibrary.not()) {
+      MyIconButton(
+        icon = Icons.Filled.Search,
+        contentDescription = stringResource(R.string.search_podcast),
+        onClick = { onSearchClicked() },
+        size = 48,
+      )
+    }
     MyIconButton(
       icon = Icons.AutoMirrored.Filled.Sort,
       contentDescription = stringResource(R.string.sort_and_filter),
@@ -219,6 +233,7 @@ fun LibraryContent(
   onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
+  onSearchClicked: () -> Unit,
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
   val listView = displayPrefs.listView
@@ -246,6 +261,7 @@ fun LibraryContent(
         onPodcastSortOrderChange = onPodcastSortOrderChange,
         onRefresh = onRefresh,
         onSettingsClicked = onSettingsClicked,
+        onSearchClicked = onSearchClicked,
       )
     }
     items(items = processedBooks, key = { it.id }) { book ->

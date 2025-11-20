@@ -19,6 +19,10 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
   override fun intercept(chain: Interceptor.Chain): Response {
 
     var request = chain.request()
+    if (request.url.host.contains("mzstatic.com")) {
+      return chain.proceed(request)
+    }
+
     val host: String = DataStoreManager.BASE_URL
 
     val newUrl = request.url.newBuilder().host(host).build()

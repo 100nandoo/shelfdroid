@@ -2,8 +2,15 @@
 
 ## High Priority
 
+- [ ] Add podcast
+    - [x] Search
+    - [ ] Feeds
+    - [ ] Add
+- [ ] Listening session
+- [ ] Server functions
 - [ ] Widget
 - [ ] Backup Restore
+- [ ] Window Manager
 
 ## Low Priority
 

@@ -34,6 +34,8 @@ import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
+import dev.halim.shelfdroid.core.ui.screen.podcastfeed.PodcastFeedScreen
+import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import kotlinx.serialization.Serializable
 
@@ -42,6 +44,10 @@ import kotlinx.serialization.Serializable
 @Serializable data class Home(val fromLogin: Boolean)
 
 @Serializable object Settings
+
+@Serializable object SearchPodcast
+
+@Serializable data class PodcastFeed(val rssFeed: String)
 
 @Serializable data class Podcast(val id: String)
 
@@ -113,6 +119,7 @@ private fun ColumnScope.NavHostContainer(
             onSettingsClicked = { navController.navigate(Settings) },
             onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
             onBookClicked = { id -> navController.navigate(Book(id)) },
+            onSearchClicked = { navController.navigate(SearchPodcast) },
           )
         }
       }
@@ -139,6 +146,12 @@ private fun ColumnScope.NavHostContainer(
       }
 
       composable<Settings> { SettingsScreen() }
+      composable<SearchPodcast> {
+        SearchPodcastScreen(
+          onItemClicked = { rssFeed -> navController.navigate(PodcastFeed(rssFeed)) }
+        )
+      }
+      composable<PodcastFeed> { PodcastFeedScreen() }
     }
   }
 }

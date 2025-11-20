@@ -103,11 +103,7 @@ data class AdvancedControl(
   val sleepTimerLeft: Duration = Duration.Companion.ZERO,
 )
 
-data class PlayerBookmark(
-  val title: String = "",
-  val readableTime: String = "",
-  val time: Long = 0,
-)
+data class PlayerBookmark(val title: String = "", val readableTime: String = "", val time: Long = 0)
 
 data class MultipleButtonState(
   val seekBackEnabled: Boolean = false,

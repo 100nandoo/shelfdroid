@@ -4,6 +4,7 @@ import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
+import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
@@ -15,6 +16,8 @@ import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
+import dev.halim.core.network.response.PodcastFeed
+import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.play.PlayResponse
@@ -119,4 +122,12 @@ interface ApiService {
   suspend fun syncLocalAllSession(
     @Body sessions: SyncLocalAllSessionRequest
   ): Result<SyncLocalAllSessionResponse>
+
+  // search
+  @GET("/api/search/podcast")
+  suspend fun searchPodcast(@Query("term") term: String): Result<List<SearchPodcast>>
+
+  // podcasts
+  @POST("/api/podcasts/feed")
+  suspend fun podcastFeed(@Body request: PodcastFeedRequest): Result<PodcastFeed>
 }
