@@ -40,7 +40,7 @@ constructor(
       displayPrefs,
       progresses ->
       val result =
-        libraries.map { (id, name, isBookLibrary) ->
+        libraries.map { (id, name, _, isBookLibrary) ->
           val isBook = isBookLibrary == 1L
           val libraryItems = libraryItems.getOrDefault(id, emptyList())
 

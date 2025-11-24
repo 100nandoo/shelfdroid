@@ -3,8 +3,10 @@ package dev.halim.core.network.response
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Serializable data class PodcastFeed(@SerialName("podcast") val podcast: Podcast)
+
 @Serializable
-data class PodcastFeed(
+data class Podcast(
   @SerialName("metadata") val metadata: PodcastMetadata,
   @SerialName("episodes") val episodes: List<Episode>,
 )
@@ -16,11 +18,12 @@ data class PodcastMetadata(
   @SerialName("feedUrl") val feedUrl: String,
   @SerialName("description") val description: String,
   @SerialName("descriptionPlain") val descriptionPlain: String,
+  @SerialName("type") val type: String,
   @SerialName("title") val title: String,
   @SerialName("language") val language: String,
-  @SerialName("explicit") val explicit: String,
+  @SerialName("explicit") val explicit: String?,
   @SerialName("author") val author: String,
-  @SerialName("pubDate") val pubDate: String,
+  @SerialName("pubDate") val pubDate: String?,
   @SerialName("link") val link: String,
 )
 

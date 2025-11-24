@@ -11,8 +11,11 @@ import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.Json
 
-class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabase) {
+class LibraryRepo
+@Inject
+constructor(private val api: ApiService, db: MyDatabase, private val json: Json) {
 
   private val queries = db.libraryEntityQueries
 
@@ -47,6 +50,7 @@ class LibraryRepo @Inject constructor(private val api: ApiService, db: MyDatabas
     LibraryEntity(
       id = library.id,
       name = library.name,
+      folders = json.encodeToString(library.folders),
       isBookLibrary = if (library.mediaType == MediaType.BOOK) 1 else 0,
     )
 }

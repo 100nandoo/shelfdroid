@@ -64,7 +64,7 @@ fun HomeScreen(
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
-  onSearchClicked: () -> Unit,
+  onSearchClicked: (String) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size
@@ -106,7 +106,7 @@ fun HomeScreenContent(
   uiState: HomeUiState = HomeUiState(),
   onEvent: (HomeEvent) -> Unit = {},
   onSettingsClicked: () -> Unit = {},
-  onSearchClicked: () -> Unit = {},
+  onSearchClicked: (String) -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
@@ -129,6 +129,7 @@ fun HomeScreenContent(
         books = library.books,
         podcasts = library.podcasts,
         onEvent = onEvent,
+        id = uiState.librariesUiState[page].id,
         name = uiState.librariesUiState[page].name,
         isBookLibrary = uiState.librariesUiState[page].isBookLibrary,
         onFilterChange = { onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.Filter(it))) },
@@ -154,6 +155,7 @@ fun HomeScreenContent(
 
 @Composable
 fun LibraryHeader(
+  id: String,
   name: String,
   isBookLibrary: Boolean,
   displayPrefs: DisplayPrefs = DisplayPrefs(),
@@ -164,7 +166,7 @@ fun LibraryHeader(
   onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
-  onSearchClicked: () -> Unit,
+  onSearchClicked: (String) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
 
@@ -191,7 +193,7 @@ fun LibraryHeader(
       MyIconButton(
         icon = Icons.Filled.Search,
         contentDescription = stringResource(R.string.search_podcast),
-        onClick = { onSearchClicked() },
+        onClick = { onSearchClicked(id) },
         size = 48,
       )
     }
@@ -224,6 +226,7 @@ fun LibraryContent(
   books: List<BookUiState>,
   podcasts: List<PodcastUiState>,
   onEvent: (HomeEvent) -> Unit,
+  id: String,
   name: String,
   isBookLibrary: Boolean,
   onFilterChange: (String) -> Unit,
@@ -233,7 +236,7 @@ fun LibraryContent(
   onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSettingsClicked: () -> Unit,
-  onSearchClicked: () -> Unit,
+  onSearchClicked: (String) -> Unit,
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
   val listView = displayPrefs.listView
@@ -251,6 +254,7 @@ fun LibraryContent(
   ) {
     item(span = { GridItemSpan(maxLineSpan) }) {
       LibraryHeader(
+        id = id,
         name = name,
         isBookLibrary = isBookLibrary,
         displayPrefs = displayPrefs,

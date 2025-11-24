@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -31,7 +32,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,27 +45,28 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun SearchPodcastScreen(
   viewModel: SearchPodcastViewModel = hiltViewModel(),
-  onItemClicked: (String) -> Unit,
+  onItemClicked: (String, String) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  SearchPodcastScreenContent(viewModel::onEvent, uiState, onItemClicked)
+  SearchPodcastScreenContent(viewModel::onEvent, uiState, viewModel.libraryId, onItemClicked)
 }
 
 @Composable
 private fun SearchPodcastScreenContent(
   onEvent: (SearchPodcastEvent) -> Unit = {},
   uiState: SearchPodcastUiState,
-  onItemClicked: (String) -> Unit = {},
+  libraryId: String = "",
+  onItemClicked: (String, String) -> Unit = { _, _ -> },
 ) {
-  var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
+  var textFieldValue by rememberSaveable { mutableStateOf("") }
 
   Column {
     AnimatedVisibility(uiState.state is SearchState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     LazyColumn(modifier = Modifier.imePadding().fillMaxSize(), reverseLayout = true) {
-      item {
+      item(key = "search_text_field") {
         SearchTextField(
           textFieldValue = textFieldValue,
           onValueChange = { textFieldValue = it },
@@ -73,7 +74,7 @@ private fun SearchPodcastScreenContent(
         )
       }
       items(items = uiState.result, key = { it.id }) {
-        SearchPodcastItem(it, onItemClicked)
+        SearchPodcastItem(it, libraryId, onItemClicked)
         HorizontalDivider()
       }
     }
@@ -82,18 +83,25 @@ private fun SearchPodcastScreenContent(
 
 @Composable
 private fun SearchTextField(
-  textFieldValue: TextFieldValue,
-  onValueChange: (TextFieldValue) -> Unit,
+  textFieldValue: String,
+  onValueChange: (String) -> Unit,
   onEvent: (SearchPodcastEvent) -> Unit,
 ) {
   val searchRef = remember { FocusRequester() }
   val focusManager = LocalFocusManager.current
-  LaunchedEffect(Unit) { searchRef.requestFocus() }
+  var hasRequestedFocus by rememberSaveable { mutableStateOf(false) }
+
+  LaunchedEffect(Unit) {
+    if (!hasRequestedFocus) {
+      hasRequestedFocus = true
+      searchRef.requestFocus()
+    }
+  }
 
   Row(Modifier.padding(16.dp)) {
     val onSearchTriggered = {
-      if (textFieldValue.text.isNotBlank()) {
-        onEvent(SearchPodcastEvent.Search(textFieldValue.text))
+      if (textFieldValue.isNotBlank()) {
+        onEvent(SearchPodcastEvent.Search(textFieldValue))
         focusManager.clearFocus()
       }
     }

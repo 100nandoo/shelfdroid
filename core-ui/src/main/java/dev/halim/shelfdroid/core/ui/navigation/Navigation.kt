@@ -45,9 +45,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable object Settings
 
-@Serializable object SearchPodcast
+@Serializable data class SearchPodcast(val libraryId: String)
 
-@Serializable data class PodcastFeed(val rssFeed: String)
+@Serializable data class PodcastFeed(val libraryId: String, val rssFeed: String)
 
 @Serializable data class Podcast(val id: String)
 
@@ -119,7 +119,7 @@ private fun ColumnScope.NavHostContainer(
             onSettingsClicked = { navController.navigate(Settings) },
             onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
             onBookClicked = { id -> navController.navigate(Book(id)) },
-            onSearchClicked = { navController.navigate(SearchPodcast) },
+            onSearchClicked = { libraryId -> navController.navigate(SearchPodcast(libraryId)) },
           )
         }
       }
@@ -148,7 +148,9 @@ private fun ColumnScope.NavHostContainer(
       composable<Settings> { SettingsScreen() }
       composable<SearchPodcast> {
         SearchPodcastScreen(
-          onItemClicked = { rssFeed -> navController.navigate(PodcastFeed(rssFeed)) }
+          onItemClicked = { libraryId, rssFeed ->
+            navController.navigate(PodcastFeed(libraryId, rssFeed))
+          }
         )
       }
       composable<PodcastFeed> { PodcastFeedScreen() }

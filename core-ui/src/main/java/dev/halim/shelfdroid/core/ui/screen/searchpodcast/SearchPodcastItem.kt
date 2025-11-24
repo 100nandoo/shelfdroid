@@ -28,11 +28,15 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.home.ItemCoverNoAnimation
 
 @Composable
-fun SearchPodcastItem(model: SearchPodcastUi, onClick: (String) -> Unit = {}) {
+fun SearchPodcastItem(
+  model: SearchPodcastUi,
+  libraryId: String,
+  onClick: (String, String) -> Unit = { _, _ -> },
+) {
   Row(
     modifier =
       Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
-        .clickable(onClick = { onClick(model.feedUrl) })
+        .clickable(onClick = { onClick(libraryId, model.feedUrl) })
   ) {
     ItemCoverNoAnimation(
       Modifier.height(60.dp).padding(end = 16.dp),
@@ -93,7 +97,8 @@ private fun SearchPodcastItemPreview() {
           genre = "Comedy, Podcasts, Entertainment",
           episodeCount = 2000,
           explicit = true,
-        )
+        ),
+      libraryId = "",
     )
   }
 }

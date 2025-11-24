@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.searchpodcast
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,8 +14,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class SearchPodcastViewModel @Inject constructor(private val repository: SearchPodcastRepository) :
+class SearchPodcastViewModel
+@Inject
+constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPodcastRepository) :
   ViewModel() {
+  val libraryId: String = checkNotNull(savedStateHandle.get<String>("libraryId"))
 
   private val _uiState = MutableStateFlow(SearchPodcastUiState())
 
