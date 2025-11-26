@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.response
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import dev.halim.core.network.ApiService
+import dev.halim.core.network.response.Folder
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
@@ -26,6 +27,17 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
       cleanup(entities)
       entities.forEach { entity -> queries.insert(entity) }
     }
+  }
+
+  fun byId(id: String): LibraryEntity? {
+    return queries.byId(id).executeAsOneOrNull()
+  }
+
+  fun foldersByLibraryId(id: String): List<PodcastFolder> {
+    val entity = byId(id)
+    if (entity == null) return emptyList()
+    val folders = runCatching { json.decodeFromString<List<Folder>>(entity.folders) }
+    return folders.getOrNull()?.map { PodcastFolder(it) } ?: emptyList()
   }
 
   fun flowEntities(): Flow<List<LibraryEntity>> {
@@ -53,4 +65,8 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
       folders = json.encodeToString(library.folders),
       isBookLibrary = if (library.mediaType == MediaType.BOOK) 1 else 0,
     )
+}
+
+data class PodcastFolder(val id: String, val path: String) {
+  constructor(folder: Folder) : this(folder.id, folder.fullPath)
 }

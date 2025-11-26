@@ -11,6 +11,11 @@ SELECT * FROM LibraryEntity;
 allIds:
 SELECT id FROM LibraryEntity;
 
+byId:
+SELECT *
+FROM LibraryEntity
+WHERE id = :id;
+
 insert:
 INSERT OR REPLACE INTO LibraryEntity(id, name, folders, isBookLibrary)
 VALUES ?;

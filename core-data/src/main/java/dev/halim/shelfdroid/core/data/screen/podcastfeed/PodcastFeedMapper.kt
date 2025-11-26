@@ -2,24 +2,32 @@ package dev.halim.shelfdroid.core.data.screen.podcastfeed
 
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import javax.inject.Inject
 
-class PodcastFeedMapper @Inject constructor() {
-  fun map(response: PodcastFeed): PodcastFeedUiState {
+class PodcastFeedMapper @Inject constructor(private val libraryRepo: LibraryRepo) {
+
+  fun map(response: PodcastFeed, libraryId: String): PodcastFeedUiState {
+    val folders = libraryRepo.foldersByLibraryId(libraryId)
+    if (folders.isEmpty())
+      return PodcastFeedUiState(state = GenericState.Failure("No folders found"))
+
+    val metadata = response.podcast.metadata
+    val title = metadata.title
+    val genres = metadata.categories.flatMap { it.split(":") }.distinct()
     return PodcastFeedUiState(
       state = GenericState.Success,
-      title = response.podcast.metadata.title,
-      author = response.podcast.metadata.author,
-      feedUrl = response.podcast.metadata.feedUrl,
-      genres = response.podcast.metadata.categories,
-      type = response.podcast.metadata.type,
-      language = response.podcast.metadata.language,
-      explicit = response.podcast.metadata.explicit == "true",
-      description = response.podcast.metadata.description,
-      // TODO get folder from LibraryEntity
-      folder = "",
-      // TODO combine folder + title
-      path = "",
+      title = title,
+      author = metadata.author,
+      feedUrl = metadata.feedUrl,
+      genres = genres,
+      type = metadata.type,
+      language = metadata.language,
+      explicit = metadata.explicit == "true",
+      description = metadata.descriptionPlain,
+      folders = folders,
+      selectedFolder = folders.first(),
+      path = title,
     )
   }
 }

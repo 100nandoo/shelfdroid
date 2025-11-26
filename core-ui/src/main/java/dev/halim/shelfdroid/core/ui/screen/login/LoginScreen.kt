@@ -53,6 +53,7 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginState
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
@@ -108,7 +109,7 @@ fun LoginScreenContent(
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Bottom,
     ) {
-      LoginTextField(
+      MyOutlinedTextField(
         value = uiState.server,
         onValueChange = { onEvent(LoginEvent.ServerChanged(it)) },
         label = stringResource(R.string.server_address),
@@ -121,7 +122,7 @@ fun LoginScreenContent(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      LoginTextField(
+      MyOutlinedTextField(
         value = uiState.username,
         onValueChange = { onEvent(LoginEvent.UsernameChanged(it)) },
         label = stringResource(R.string.username),
@@ -153,31 +154,6 @@ fun LoginScreenContent(
       }
     }
   }
-}
-
-@Composable
-private fun LoginTextField(
-  modifier: Modifier = Modifier,
-  value: String,
-  onValueChange: (String) -> Unit,
-  label: String,
-  placeholder: String? = null,
-  keyboardOptions: KeyboardOptions,
-  visualTransformation: VisualTransformation = VisualTransformation.None,
-  onNext: (() -> Unit)? = null,
-  onDone: (() -> Unit)? = null,
-) {
-  OutlinedTextField(
-    value = value,
-    onValueChange = { onValueChange(it) },
-    label = { Text(label) },
-    placeholder = placeholder?.let { { Text(it) } },
-    keyboardOptions = keyboardOptions,
-    visualTransformation = visualTransformation,
-    modifier = modifier.fillMaxWidth(),
-    keyboardActions =
-      KeyboardActions(onNext = onNext?.let { { it() } }, onDone = onDone?.let { { it() } }),
-  )
 }
 
 @Composable

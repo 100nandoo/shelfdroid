@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.preview
 import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
+import dev.halim.shelfdroid.core.data.response.PodcastFolder
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
@@ -193,4 +194,7 @@ object Defaults {
       PlayerBookmark("Another bookmark", "02:34", 154),
       PlayerBookmark("Yet another bookmark", "03:45", 225),
     )
+
+  val DEFAULT_PODCAST_FOLDER = PodcastFolder(id = "1", path = "/podcast")
+  val DEFAULT_PODCAST_FOLDER_2 = PodcastFolder(id = "2", path = "/other-podcast")
 }

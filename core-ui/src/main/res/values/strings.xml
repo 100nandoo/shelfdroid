@@ -25,6 +25,9 @@
     <string name="sort_and_filter">Sort and Filter</string>
     <string name="search_podcast">Search podcast</string>
     <string name="explicit">explicit</string>
+    <string name="select_folder">Select folder</string>
+    <string name="genres">Genres</string>
+    <string name="remove_genre">Remove Genre</string>
     <!--Content Description-->
 
     <!--Arguments-->
@@ -89,4 +92,14 @@
     <string name="is_an_admin">" is an admin"</string>
     <string name="is_not_an_admin">" is not an admin"</string>
     <string name="clear">Clear</string>
+
+    <!--Podcast Feed-->
+    <string name="title">Title</string>
+    <string name="author">Author</string>
+    <string name="feed_url">Feed URL</string>
+    <string name="description">Description</string>
+    <string name="path">Path</string>
+    <string name="auto_download_episodes">Auto Download Episodes</string>
+    <string name="submit">Submit</string>
+
 </resources>
