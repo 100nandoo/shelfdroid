@@ -4,14 +4,19 @@ import android.annotation.SuppressLint
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MediaMetadata.PICTURE_TYPE_FRONT_COVER
+import coil3.ImageLoader
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerTrack
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
 import javax.inject.Inject
+import okio.FileSystem
 
 @SuppressLint("UnsafeOptInUsageError")
-class MediaItemMapper @Inject constructor(private val finder: PlayerFinder) {
+class MediaItemMapper
+@Inject
+constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoader) {
 
   fun toMediaItem(uiState: PlayerUiState, state: PlayerInternalStateHolder): MediaItem {
     val isBook = state.isBook()
@@ -35,11 +40,14 @@ class MediaItemMapper @Inject constructor(private val finder: PlayerFinder) {
         MediaItem.ClippingConfiguration.UNSET
       }
 
+    val artworkData: ByteArray? = readDiskCachedImage(uiState.cover)
+
     val mediaMetadata =
       MediaMetadata.Builder()
         .setTitle(uiState.title)
         .setArtist(uiState.author)
         .setArtworkUri(uiState.cover.toUri())
+        .setArtworkData(artworkData, PICTURE_TYPE_FRONT_COVER)
         .setMediaType(mediaType)
         .build()
     return MediaItem.Builder()
@@ -55,11 +63,14 @@ class MediaItemMapper @Inject constructor(private val finder: PlayerFinder) {
     val currentChapter = uiState.currentChapter
     val tracks = finder.tracksFromChapter(uiState.playerTracks, currentChapter!!)
 
+    val artworkData: ByteArray? = readDiskCachedImage(uiState.cover)
+
     val mediaMetadata =
       MediaMetadata.Builder()
         .setTitle(uiState.title)
         .setArtist(uiState.author)
         .setArtworkUri(uiState.cover.toUri())
+        .setArtworkData(artworkData, PICTURE_TYPE_FRONT_COVER)
         .setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK)
         .build()
 
@@ -89,5 +100,13 @@ class MediaItemMapper @Inject constructor(private val finder: PlayerFinder) {
       }
 
     return mediaItems
+  }
+
+  private fun readDiskCachedImage(cover: String): ByteArray? {
+    val artworkPath = imageLoader.diskCache?.openSnapshot(cover)?.data
+    val fileSystem = FileSystem.SYSTEM
+    var artworkData: ByteArray? = null
+    artworkPath?.let { artworkData = fileSystem.read(artworkPath) { readByteArray() } }
+    return artworkData
   }
 }
