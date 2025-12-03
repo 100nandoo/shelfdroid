@@ -40,3 +40,6 @@ DELETE FROM LibraryItemEntity WHERE id = ?;
 
 deleteAll:
 DELETE FROM LibraryItemEntity;
+
+podcasts:
+SELECT * FROM LibraryItemEntity WHERE isBook = 0;

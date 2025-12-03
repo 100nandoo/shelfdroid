@@ -10,6 +10,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
+import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 
 object Defaults {
   const val USERNAME = "testuser"
@@ -197,4 +198,46 @@ object Defaults {
 
   val DEFAULT_PODCAST_FOLDER = PodcastFolder(id = "1", path = "/podcast")
   val DEFAULT_PODCAST_FOLDER_2 = PodcastFolder(id = "2", path = "/other-podcast")
+
+  val SEARCH_PODCAST_1 =
+    SearchPodcastUi(
+      itunesId = 1,
+      title = "The Joe Rogan Experience in Life",
+      author = "Joe Rogan",
+      genre = "Comedy, Podcasts, Entertainment",
+      episodeCount = 2000,
+      explicit = true,
+      isAdded = true,
+    )
+  val SEARCH_PODCAST_2 =
+    SearchPodcastUi(
+      itunesId = 2,
+      title = "Podcast with A Very Long Title That Will Overflow",
+      author = "Joe Rogan",
+      genre = "Comedy, Podcasts, Entertainment",
+      episodeCount = 2000,
+      explicit = true,
+      isAdded = false,
+    )
+
+  val SEARCH_PODCAST_3 =
+    SearchPodcastUi(
+      itunesId = 3,
+      title = "Podcast with A Very Long Title That Will Overflow",
+      author = "Joe Rogan",
+      genre = "Comedy, Podcasts, Entertainment",
+      episodeCount = 2000,
+      explicit = false,
+      isAdded = true,
+    )
+  val SEARCH_PODCAST_4 =
+    SearchPodcastUi(
+      itunesId = 4,
+      title = "Podcast with A Very Long Title That Will Overflow",
+      author = "Joe Rogan",
+      genre = "Comedy, Podcasts, Entertainment",
+      episodeCount = 2000,
+      explicit = false,
+      isAdded = false,
+    )
 }

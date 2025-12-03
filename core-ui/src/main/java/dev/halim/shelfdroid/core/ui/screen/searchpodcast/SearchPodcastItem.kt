@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Explicit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.home.ItemCoverNoAnimation
@@ -32,11 +34,16 @@ fun SearchPodcastItem(
   model: SearchPodcastUi,
   libraryId: String,
   onClick: (String, String) -> Unit = { _, _ -> },
+  onAddedClick: (String) -> Unit = { _ -> },
 ) {
   Row(
     modifier =
       Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
-        .clickable(onClick = { onClick(libraryId, model.feedUrl) })
+        .clickable(
+          onClick = {
+            if (model.isAdded) onAddedClick(model.id) else onClick(libraryId, model.feedUrl)
+          }
+        )
   ) {
     ItemCoverNoAnimation(
       Modifier.height(60.dp).padding(end = 16.dp),
@@ -49,13 +56,23 @@ fun SearchPodcastItem(
           text = model.title,
           style = MaterialTheme.typography.bodyMedium,
           maxLines = 2,
+          modifier = Modifier.weight(1f),
           overflow = TextOverflow.Ellipsis,
         )
         if (model.explicit) {
           Icon(
-            modifier = Modifier.padding(start = 4.dp).size(12.dp),
+            modifier = Modifier.padding(start = 4.dp).size(16.dp),
             imageVector = Icons.Filled.Explicit,
             contentDescription = stringResource(R.string.explicit),
+            tint = MaterialTheme.colorScheme.onErrorContainer,
+          )
+        }
+        if (model.isAdded) {
+          Icon(
+            modifier = Modifier.padding(start = 4.dp).size(16.dp),
+            imageVector = Icons.Filled.CheckCircle,
+            contentDescription = stringResource(R.string.already_in_library),
+            tint = MaterialTheme.colorScheme.tertiaryContainer,
           )
         }
       }
@@ -88,17 +105,11 @@ fun SearchPodcastItem(
 @Composable
 private fun SearchPodcastItemPreview() {
   PreviewWrapper {
-    SearchPodcastItem(
-      model =
-        SearchPodcastUi(
-          id = 1,
-          title = "The Joe Rogan Experience in Life",
-          author = "Joe Rogan",
-          genre = "Comedy, Podcasts, Entertainment",
-          episodeCount = 2000,
-          explicit = true,
-        ),
-      libraryId = "",
-    )
+    Column {
+      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_1, libraryId = "")
+      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_2, libraryId = "")
+      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_3, libraryId = "")
+      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_4, libraryId = "")
+    }
   }
 }

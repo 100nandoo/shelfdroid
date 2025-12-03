@@ -1,18 +1,23 @@
 package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
 import dev.halim.core.network.ApiService
+import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import javax.inject.Inject
 
 class SearchPodcastRepository
 @Inject
-constructor(private val api: ApiService, private val mapper: SearchPodcastMapper) {
+constructor(
+  private val api: ApiService,
+  private val mapper: SearchPodcastMapper,
+  private val libraryItemRepo: LibraryItemRepo,
+) {
 
   suspend fun search(term: String): SearchPodcastUiState {
     val response = api.searchPodcast(term)
     val result = response.getOrNull()
-
+    val podcastInfoList = libraryItemRepo.podcastInfoList()
     return if (result != null) {
-      val result = mapper.map(result)
+      val result = mapper.map(result, podcastInfoList)
       SearchPodcastUiState(state = SearchState.Success, result = result)
     } else {
       SearchPodcastUiState(state = SearchState.Failure(response.exceptionOrNull()?.message))

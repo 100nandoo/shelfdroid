@@ -46,10 +46,17 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 fun SearchPodcastScreen(
   viewModel: SearchPodcastViewModel = hiltViewModel(),
   onItemClicked: (String, String) -> Unit,
+  onAddedClick: (String) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  SearchPodcastScreenContent(viewModel::onEvent, uiState, viewModel.libraryId, onItemClicked)
+  SearchPodcastScreenContent(
+    viewModel::onEvent,
+    uiState,
+    viewModel.libraryId,
+    onItemClicked,
+    onAddedClick,
+  )
 }
 
 @Composable
@@ -58,6 +65,7 @@ private fun SearchPodcastScreenContent(
   uiState: SearchPodcastUiState,
   libraryId: String = "",
   onItemClicked: (String, String) -> Unit = { _, _ -> },
+  onAddedClick: (String) -> Unit = { _ -> },
 ) {
   var textFieldValue by rememberSaveable { mutableStateOf("") }
 
@@ -73,8 +81,8 @@ private fun SearchPodcastScreenContent(
           onEvent = onEvent,
         )
       }
-      items(items = uiState.result, key = { it.id }) {
-        SearchPodcastItem(it, libraryId, onItemClicked)
+      items(items = uiState.result, key = { it.itunesId }) {
+        SearchPodcastItem(it, libraryId, onItemClicked, onAddedClick)
         HorizontalDivider()
       }
     }
@@ -134,7 +142,7 @@ private fun SearchPodcastScreenContentPreview() {
         SearchPodcastUiState(
           state = SearchState.Success,
           result =
-            listOf(SearchPodcastUi(1, "NPR", "Planet Money", genre = "Finance, News, Business")),
+            listOf(SearchPodcastUi("", 1, "NPR", "Planet Money", genre = "Finance, News, Business")),
         )
     )
   }
@@ -149,7 +157,7 @@ private fun SearchPodcastScreenContentDynamicPreview() {
         SearchPodcastUiState(
           state = SearchState.Success,
           result =
-            listOf(SearchPodcastUi(2, "NPR", "Planet Money", genre = "Finance, News, Business")),
+            listOf(SearchPodcastUi("", 2, "NPR", "Planet Money", genre = "Finance, News, Business")),
         )
     )
   }

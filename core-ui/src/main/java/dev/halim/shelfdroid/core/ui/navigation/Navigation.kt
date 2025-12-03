@@ -150,7 +150,8 @@ private fun ColumnScope.NavHostContainer(
         SearchPodcastScreen(
           onItemClicked = { libraryId, rssFeed ->
             navController.navigate(PodcastFeed(libraryId, rssFeed))
-          }
+          },
+          onAddedClick = { id -> navController.navigate(Podcast(id)) },
         )
       }
       composable<PodcastFeed> { PodcastFeedScreen() }

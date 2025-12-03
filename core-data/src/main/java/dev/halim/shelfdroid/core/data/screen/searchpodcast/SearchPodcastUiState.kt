@@ -16,7 +16,8 @@ sealed class SearchState {
 }
 
 data class SearchPodcastUi(
-  val id: Int = 0,
+  val id: String = "",
+  val itunesId: Int = 0,
   val author: String = "",
   val title: String = "",
   val cover: String = "",
@@ -25,4 +26,5 @@ data class SearchPodcastUi(
   val feedUrl: String = "",
   val pageUrl: String = "",
   val explicit: Boolean = false,
+  val isAdded: Boolean = false,
 )

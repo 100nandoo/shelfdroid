@@ -79,6 +79,20 @@ constructor(
     }
   }
 
+  fun podcastInfoList(): List<PodcastInfo> {
+    return queries.podcasts().executeAsList().map { entity ->
+      val podcast = Json.decodeFromString<Podcast>(entity.media)
+      val metadata = podcast.metadata
+      PodcastInfo(
+        id = entity.id,
+        itunesId = metadata.itunesId,
+        artist = podcast.metadata.author ?: "",
+        title = podcast.metadata.title ?: "",
+        feedUrl = metadata.feedUrl ?: "",
+      )
+    }
+  }
+
   private fun convert(
     libraryId: String,
     response: BatchLibraryItemsResponse,
@@ -153,3 +167,11 @@ constructor(
     }
   }
 }
+
+data class PodcastInfo(
+  val id: String,
+  val itunesId: Int?,
+  val title: String,
+  val artist: String,
+  val feedUrl: String,
+)
