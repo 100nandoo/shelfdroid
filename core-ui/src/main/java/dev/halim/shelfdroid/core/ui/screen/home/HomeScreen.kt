@@ -19,8 +19,8 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.PodcastSort
+import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
@@ -125,7 +126,7 @@ fun HomeScreenContent(
       }
       LibraryContent(
         modifier = Modifier.weight(1f),
-        displayPrefs = uiState.displayPrefs,
+        prefs = uiState.prefs,
         books = library.books,
         podcasts = library.podcasts,
         onEvent = onEvent,
@@ -158,7 +159,7 @@ fun LibraryHeader(
   id: String,
   name: String,
   isBookLibrary: Boolean,
-  displayPrefs: DisplayPrefs = DisplayPrefs(),
+  prefs: Prefs = Prefs(),
   onFilterChange: (String) -> Unit,
   onBookSortChange: (String) -> Unit,
   onPodcastSortChange: (String) -> Unit,
@@ -171,9 +172,11 @@ fun LibraryHeader(
   val scope = rememberCoroutineScope()
 
   val displayPrefsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+  val showAddPodcast = isBookLibrary.not() && prefs.userPrefs.isAdmin
   DisplayPrefsSheet(
     displayPrefsSheetState,
-    displayPrefs,
+    prefs.displayPrefs,
     isBookLibrary,
     onFilterChange,
     onBookSortChange,
@@ -189,10 +192,10 @@ fun LibraryHeader(
       style = MaterialTheme.typography.titleLarge,
       textAlign = TextAlign.Start,
     )
-    if (isBookLibrary.not()) {
+    if (showAddPodcast) {
       MyIconButton(
-        icon = Icons.Filled.Search,
-        contentDescription = stringResource(R.string.search_podcast),
+        icon = Icons.Filled.Add,
+        contentDescription = stringResource(R.string.add_podcast),
         onClick = { onSearchClicked(id) },
         size = 48,
       )
@@ -222,7 +225,7 @@ fun LibraryHeader(
 @Composable
 fun LibraryContent(
   modifier: Modifier = Modifier,
-  displayPrefs: DisplayPrefs,
+  prefs: Prefs,
   books: List<BookUiState>,
   podcasts: List<PodcastUiState>,
   onEvent: (HomeEvent) -> Unit,
@@ -239,6 +242,7 @@ fun LibraryContent(
   onSearchClicked: (String) -> Unit,
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
+  val displayPrefs = prefs.displayPrefs
   val listView = displayPrefs.listView
   val columnCount = remember(listView) { if (listView) 1 else 3 }
   val isDownloaded = displayPrefs.filter.isDownloaded()
@@ -257,7 +261,7 @@ fun LibraryContent(
         id = id,
         name = name,
         isBookLibrary = isBookLibrary,
-        displayPrefs = displayPrefs,
+        prefs = prefs,
         onFilterChange = onFilterChange,
         onBookSortChange = onBookSortChange,
         onPodcastSortChange = onPodcastSortChange,

@@ -83,3 +83,9 @@ data class DisplayPrefs(
   val sortOrder: SortOrder = SortOrder.Asc,
   val podcastSortOrder: SortOrder = SortOrder.Asc,
 )
+
+@Serializable
+data class Prefs(
+  val userPrefs: UserPrefs = UserPrefs(),
+  val displayPrefs: DisplayPrefs = DisplayPrefs(),
+)

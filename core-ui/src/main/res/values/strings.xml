@@ -24,6 +24,7 @@
     <string name="downloaded_filter_off">Downloaded Filter Off</string>
     <string name="sort_and_filter">Sort and Filter</string>
     <string name="search_podcast">Search podcast</string>
+    <string name="add_podcast">Add podcast</string>
     <string name="explicit">explicit</string>
     <string name="select_folder">Select folder</string>
     <string name="genres">Genres</string>

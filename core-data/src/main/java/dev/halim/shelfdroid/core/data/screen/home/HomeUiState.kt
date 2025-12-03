@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
-import dev.halim.shelfdroid.core.DisplayPrefs
+import dev.halim.shelfdroid.core.Prefs
 import kotlinx.serialization.Serializable
 
 data class HomeUiState(
   val homeState: HomeState = HomeState.Loading,
-  val displayPrefs: DisplayPrefs = DisplayPrefs(),
+  val prefs: Prefs = Prefs(),
   val currentPage: Int = 0,
   val librariesUiState: List<LibraryUiState> = emptyList(),
 )

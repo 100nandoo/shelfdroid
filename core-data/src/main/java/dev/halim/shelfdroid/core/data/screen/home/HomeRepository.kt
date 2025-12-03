@@ -3,7 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.home
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.UserType
-import dev.halim.shelfdroid.core.DisplayPrefs
+import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
@@ -28,16 +28,18 @@ constructor(
   private val dataStoreManager: DataStoreManager,
 ) {
 
-  fun item(): Flow<Pair<DisplayPrefs, List<LibraryUiState>>> {
+  fun item(): Flow<Pair<Prefs, List<LibraryUiState>>> {
     val libraries = libraryRepo.flowEntities()
     val libraryItems = libraryItemRepo.flowEntities()
     val displayPrefs = dataStoreManager.displayPrefs
+    val userPrefs = dataStoreManager.userPrefs
     val progresses = progressRepo.flowAll()
 
-    return combine(libraries, libraryItems, displayPrefs, progresses) {
+    return combine(libraries, libraryItems, displayPrefs, userPrefs, progresses) {
       libraries,
       libraryItems,
       displayPrefs,
+      userPrefs,
       progresses ->
       val result =
         libraries.map { (id, name, _, isBookLibrary) ->
@@ -54,7 +56,8 @@ constructor(
             }
           library
         }
-      displayPrefs to result
+      val prefs = Prefs(userPrefs, displayPrefs)
+      prefs to result
     }
   }
 
