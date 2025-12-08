@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 data class SearchPodcastUiState(
@@ -35,3 +37,6 @@ data class SearchPodcastUi(
   val isAdded: Boolean = false,
   val rawJson: String = "",
 )
+
+@Parcelize
+data class CreatePodcastResult(val id: String = "", val feedUrl: String = "") : Parcelable

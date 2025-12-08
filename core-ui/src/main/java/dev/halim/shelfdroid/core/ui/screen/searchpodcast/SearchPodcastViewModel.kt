@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.screen.searchpodcast.CreatePodcastResult
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastRepository
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchState
@@ -18,8 +19,11 @@ class SearchPodcastViewModel
 @Inject
 constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPodcastRepository) :
   ViewModel() {
-  val libraryId: String = checkNotNull(savedStateHandle.get<String>("libraryId"))
+  companion object {
+    const val KEY_RESULT = "result"
+  }
 
+  val libraryId: String = checkNotNull(savedStateHandle.get<String>("libraryId"))
   private val _uiState = MutableStateFlow(SearchPodcastUiState())
 
   val uiState: StateFlow<SearchPodcastUiState> = _uiState
@@ -30,10 +34,26 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPo
         _uiState.update { it.copy(state = SearchState.Loading) }
         viewModelScope.launch { _uiState.update { repository.search(event.term, libraryId) } }
       }
+
+      is SearchPodcastEvent.Update -> {
+        _uiState.update {
+          val updatedResult =
+            it.result.map { searchPodcastUi ->
+              if (searchPodcastUi.feedUrl == event.result.feedUrl) {
+                searchPodcastUi.copy(id = event.result.id, isAdded = true)
+              } else {
+                searchPodcastUi
+              }
+            }
+          it.copy(result = updatedResult)
+        }
+      }
     }
   }
 }
 
 sealed class SearchPodcastEvent {
   data class Search(val term: String) : SearchPodcastEvent()
+
+  data class Update(val result: CreatePodcastResult) : SearchPodcastEvent()
 }

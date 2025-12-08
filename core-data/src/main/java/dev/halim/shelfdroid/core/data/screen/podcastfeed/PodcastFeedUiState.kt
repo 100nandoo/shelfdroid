@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.podcastfeed
 
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
+import dev.halim.shelfdroid.core.data.screen.searchpodcast.CreatePodcastResult
 
 data class PodcastFeedUiState(
   val state: PodcastFeedState = PodcastFeedState.Loading,
@@ -23,7 +24,7 @@ sealed class PodcastFeedState {
 
   data object ApiFeedSuccess : PodcastFeedState()
 
-  data class ApiCreateSuccess(val id: String) : PodcastFeedState()
+  data class ApiCreateSuccess(val result: CreatePodcastResult) : PodcastFeedState()
 
   data class Failure(val errorMessage: String?) : PodcastFeedState()
 }

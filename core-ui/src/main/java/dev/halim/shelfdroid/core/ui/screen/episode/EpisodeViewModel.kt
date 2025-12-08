@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.episode
 
-import android.annotation.SuppressLint
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -51,7 +50,6 @@ constructor(
     }
   }
 
-  @SuppressLint("UnsafeOptInUsageError")
   private fun initUiState() {
     viewModelScope.launch {
       repository.item(itemId, episodeId).collect { episodeUiState ->

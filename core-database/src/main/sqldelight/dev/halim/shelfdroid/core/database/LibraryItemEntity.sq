@@ -43,3 +43,9 @@ DELETE FROM LibraryItemEntity;
 
 podcasts:
 SELECT * FROM LibraryItemEntity WHERE isBook = 0;
+
+podcastsByLibraryId:
+SELECT *
+FROM LibraryItemEntity
+WHERE isBook = 0
+  AND libraryId = :libraryId;

@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.data.screen.searchpodcast.CreatePodcastResult
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchState
@@ -44,11 +45,18 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun SearchPodcastScreen(
+  result: CreatePodcastResult? = null,
   viewModel: SearchPodcastViewModel = hiltViewModel(),
   onItemClicked: (String) -> Unit,
   onAddedClick: (String) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+  LaunchedEffect(result) {
+    if (result?.id != null) {
+      viewModel.onEvent(SearchPodcastEvent.Update(result))
+    }
+  }
 
   SearchPodcastScreenContent(viewModel::onEvent, uiState, onItemClicked, onAddedClick)
 }

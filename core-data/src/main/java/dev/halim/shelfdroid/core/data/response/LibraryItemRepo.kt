@@ -84,8 +84,8 @@ constructor(
     }
   }
 
-  fun podcastInfoList(): List<PodcastInfo> {
-    return queries.podcasts().executeAsList().map { entity ->
+  fun podcastInfoList(libraryId: String): List<PodcastInfo> {
+    return queries.podcastsByLibraryId(libraryId).executeAsList().map { entity ->
       val podcast = Json.decodeFromString<Podcast>(entity.media)
       val metadata = podcast.metadata
       PodcastInfo(

@@ -4,6 +4,7 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.screen.searchpodcast.CreatePodcastResult
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import javax.inject.Inject
 
@@ -64,7 +65,8 @@ constructor(
 
     return if (result != null) {
       libraryItemRepo.createPodcast(result, searchPodcastUi.libraryId)
-      PodcastFeedUiState(state = PodcastFeedState.ApiCreateSuccess(result.id))
+      val result = CreatePodcastResult(result.id, uiState.feedUrl)
+      PodcastFeedUiState(state = PodcastFeedState.ApiCreateSuccess(result))
     } else {
       PodcastFeedUiState(state = PodcastFeedState.Failure(response.exceptionOrNull()?.message))
     }

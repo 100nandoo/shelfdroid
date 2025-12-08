@@ -58,6 +58,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedState
 import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedUiState
+import dev.halim.shelfdroid.core.data.screen.searchpodcast.CreatePodcastResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -68,7 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PodcastFeedScreen(
   viewModel: PodcastFeedViewModel = hiltViewModel(),
-  onCreateSuccess: (String) -> Unit,
+  onCreateSuccess: (CreatePodcastResult) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   PodcastFeedScreenContent(uiState = uiState, viewModel::onEvent, onCreateSuccess)
@@ -79,7 +80,7 @@ fun PodcastFeedScreen(
 private fun PodcastFeedScreenContent(
   uiState: PodcastFeedUiState,
   onEvent: (PodcastFeedEvent) -> Unit = {},
-  onCreateSuccess: (String) -> Unit = { _ -> },
+  onCreateSuccess: (CreatePodcastResult) -> Unit = { _ -> },
 ) {
   val focusManager = LocalFocusManager.current
   val (titleRef, authorRef, feedUrlRef, descriptionRef, languageRef, pathRef, genreRef) =
@@ -205,7 +206,7 @@ private fun PodcastFeedScreenContent(
   LaunchedEffect(uiState.state) {
     val state = uiState.state
     if (state is PodcastFeedState.ApiCreateSuccess) {
-      onCreateSuccess(state.id)
+      onCreateSuccess(state.result)
     }
   }
 }

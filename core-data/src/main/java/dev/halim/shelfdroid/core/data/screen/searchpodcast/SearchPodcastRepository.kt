@@ -15,7 +15,7 @@ constructor(
   suspend fun search(term: String, libraryId: String): SearchPodcastUiState {
     val response = api.searchPodcast(term)
     val result = response.getOrNull()
-    val podcastInfoList = libraryItemRepo.podcastInfoList()
+    val podcastInfoList = libraryItemRepo.podcastInfoList(libraryId)
     return if (result != null) {
       val result = mapper.map(result, podcastInfoList, libraryId)
       SearchPodcastUiState(state = SearchState.Success, result = result)
