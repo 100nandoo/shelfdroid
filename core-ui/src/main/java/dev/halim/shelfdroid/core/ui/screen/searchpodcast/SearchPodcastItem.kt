@@ -32,17 +32,14 @@ import dev.halim.shelfdroid.core.ui.screen.home.ItemCoverNoAnimation
 @Composable
 fun SearchPodcastItem(
   model: SearchPodcastUi,
-  libraryId: String,
-  onClick: (String, String) -> Unit = { _, _ -> },
+  onClick: (String) -> Unit = { _ -> },
   onAddedClick: (String) -> Unit = { _ -> },
 ) {
   Row(
     modifier =
       Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
         .clickable(
-          onClick = {
-            if (model.isAdded) onAddedClick(model.id) else onClick(libraryId, model.feedUrl)
-          }
+          onClick = { if (model.isAdded) onAddedClick(model.id) else onClick(model.rawJson) }
         )
   ) {
     ItemCoverNoAnimation(
@@ -106,10 +103,10 @@ fun SearchPodcastItem(
 private fun SearchPodcastItemPreview() {
   PreviewWrapper {
     Column {
-      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_1, libraryId = "")
-      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_2, libraryId = "")
-      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_3, libraryId = "")
-      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_4, libraryId = "")
+      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_1)
+      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_2)
+      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_3)
+      SearchPodcastItem(model = Defaults.SEARCH_PODCAST_4)
     }
   }
 }

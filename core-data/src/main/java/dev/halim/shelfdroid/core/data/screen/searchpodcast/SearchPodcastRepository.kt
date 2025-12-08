@@ -12,12 +12,12 @@ constructor(
   private val libraryItemRepo: LibraryItemRepo,
 ) {
 
-  suspend fun search(term: String): SearchPodcastUiState {
+  suspend fun search(term: String, libraryId: String): SearchPodcastUiState {
     val response = api.searchPodcast(term)
     val result = response.getOrNull()
     val podcastInfoList = libraryItemRepo.podcastInfoList()
     return if (result != null) {
-      val result = mapper.map(result, podcastInfoList)
+      val result = mapper.map(result, podcastInfoList, libraryId)
       SearchPodcastUiState(state = SearchState.Success, result = result)
     } else {
       SearchPodcastUiState(state = SearchState.Failure(response.exceptionOrNull()?.message))

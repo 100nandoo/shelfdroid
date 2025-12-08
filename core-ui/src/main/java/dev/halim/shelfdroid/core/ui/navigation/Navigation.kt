@@ -47,7 +47,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class SearchPodcast(val libraryId: String)
 
-@Serializable data class PodcastFeed(val libraryId: String, val rssFeed: String)
+@Serializable data class PodcastFeed(val rawJson: String)
 
 @Serializable data class Podcast(val id: String)
 
@@ -148,13 +148,18 @@ private fun ColumnScope.NavHostContainer(
       composable<Settings> { SettingsScreen() }
       composable<SearchPodcast> {
         SearchPodcastScreen(
-          onItemClicked = { libraryId, rssFeed ->
-            navController.navigate(PodcastFeed(libraryId, rssFeed))
-          },
+          onItemClicked = { rawJson -> navController.navigate(PodcastFeed(rawJson)) },
           onAddedClick = { id -> navController.navigate(Podcast(id)) },
         )
       }
-      composable<PodcastFeed> { PodcastFeedScreen() }
+      composable<PodcastFeed> {
+        PodcastFeedScreen(
+          onCreateSuccess = {
+            navController.popBackStack()
+            navController.navigate(Podcast(it))
+          }
+        )
+      }
     }
   }
 }

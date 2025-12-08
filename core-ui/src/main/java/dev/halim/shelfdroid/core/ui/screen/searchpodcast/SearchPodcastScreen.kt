@@ -45,26 +45,19 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun SearchPodcastScreen(
   viewModel: SearchPodcastViewModel = hiltViewModel(),
-  onItemClicked: (String, String) -> Unit,
+  onItemClicked: (String) -> Unit,
   onAddedClick: (String) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  SearchPodcastScreenContent(
-    viewModel::onEvent,
-    uiState,
-    viewModel.libraryId,
-    onItemClicked,
-    onAddedClick,
-  )
+  SearchPodcastScreenContent(viewModel::onEvent, uiState, onItemClicked, onAddedClick)
 }
 
 @Composable
 private fun SearchPodcastScreenContent(
   onEvent: (SearchPodcastEvent) -> Unit = {},
   uiState: SearchPodcastUiState,
-  libraryId: String = "",
-  onItemClicked: (String, String) -> Unit = { _, _ -> },
+  onItemClicked: (String) -> Unit = { _ -> },
   onAddedClick: (String) -> Unit = { _ -> },
 ) {
   var textFieldValue by rememberSaveable { mutableStateOf("") }
@@ -82,7 +75,7 @@ private fun SearchPodcastScreenContent(
         )
       }
       items(items = uiState.result, key = { it.itunesId }) {
-        SearchPodcastItem(it, libraryId, onItemClicked, onAddedClick)
+        SearchPodcastItem(it, onItemClicked, onAddedClick)
         HorizontalDivider()
       }
     }
@@ -142,7 +135,9 @@ private fun SearchPodcastScreenContentPreview() {
         SearchPodcastUiState(
           state = SearchState.Success,
           result =
-            listOf(SearchPodcastUi("", 1, "NPR", "Planet Money", genre = "Finance, News, Business")),
+            listOf(
+              SearchPodcastUi("", 1, 2, "NPR", "Planet Money", genre = "Finance, News, Business")
+            ),
         )
     )
   }
@@ -157,7 +152,9 @@ private fun SearchPodcastScreenContentDynamicPreview() {
         SearchPodcastUiState(
           state = SearchState.Success,
           result =
-            listOf(SearchPodcastUi("", 2, "NPR", "Planet Money", genre = "Finance, News, Business")),
+            listOf(
+              SearchPodcastUi("", 2, 3, "NPR", "Planet Money", genre = "Finance, News, Business")
+            ),
         )
     )
   }

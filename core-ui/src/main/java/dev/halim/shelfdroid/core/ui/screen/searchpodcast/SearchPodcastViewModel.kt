@@ -28,7 +28,7 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPo
     when (event) {
       is SearchPodcastEvent.Search -> {
         _uiState.update { it.copy(state = SearchState.Loading) }
-        viewModelScope.launch { _uiState.update { repository.search(event.term) } }
+        viewModelScope.launch { _uiState.update { repository.search(event.term, libraryId) } }
       }
     }
   }

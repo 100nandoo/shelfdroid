@@ -1,10 +1,9 @@
 package dev.halim.shelfdroid.core.data.screen.podcastfeed
 
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
 
 data class PodcastFeedUiState(
-  val state: GenericState = GenericState.Loading,
+  val state: PodcastFeedState = PodcastFeedState.Loading,
   val title: String = "",
   val author: String = "",
   val feedUrl: String = "",
@@ -18,3 +17,13 @@ data class PodcastFeedUiState(
   val path: String = "",
   val autoDownload: Boolean = false,
 )
+
+sealed class PodcastFeedState {
+  data object Loading : PodcastFeedState()
+
+  data object ApiFeedSuccess : PodcastFeedState()
+
+  data class ApiCreateSuccess(val id: String) : PodcastFeedState()
+
+  data class Failure(val errorMessage: String?) : PodcastFeedState()
+}

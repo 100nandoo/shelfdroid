@@ -2,6 +2,7 @@ package dev.halim.core.network
 
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.BookmarkRequest
+import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.PodcastFeedRequest
@@ -130,4 +131,7 @@ interface ApiService {
   // podcasts
   @POST("/api/podcasts/feed")
   suspend fun podcastFeed(@Body request: PodcastFeedRequest): Result<PodcastFeed>
+
+  @POST("/api/podcasts")
+  suspend fun createPodcast(@Body request: CreatePodcastRequest): Result<LibraryItem>
 }

@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
+import kotlinx.serialization.Serializable
+
 data class SearchPodcastUiState(
   val state: SearchState = SearchState.Blank,
   val result: List<SearchPodcastUi> = emptyList(),
@@ -15,9 +17,12 @@ sealed class SearchState {
   data class Failure(val errorMessage: String?) : SearchState()
 }
 
+@Serializable
 data class SearchPodcastUi(
   val id: String = "",
   val itunesId: Int = 0,
+  val itunesArtistId: Int? = null,
+  val libraryId: String = "",
   val author: String = "",
   val title: String = "",
   val cover: String = "",
@@ -25,6 +30,8 @@ data class SearchPodcastUi(
   val episodeCount: Int = 0,
   val feedUrl: String = "",
   val pageUrl: String = "",
+  val releaseDate: String = "",
   val explicit: Boolean = false,
   val isAdded: Boolean = false,
+  val rawJson: String = "",
 )

@@ -7,32 +7,37 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
 import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedRepository
 import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedUiState
+import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 @HiltViewModel
 class PodcastFeedViewModel
 @Inject
 constructor(savedStateHandle: SavedStateHandle, private val repository: PodcastFeedRepository) :
   ViewModel() {
-  val libraryId: String = checkNotNull(savedStateHandle.get<String>("libraryId"))
-  val rssFeed: String = checkNotNull(savedStateHandle.get<String>("rssFeed"))
-
+  val rawJson: String = checkNotNull(savedStateHandle.get<String>("rawJson"))
+  val searchPodcastUi: SearchPodcastUi = Json.decodeFromString(rawJson)
   private val _uiState = MutableStateFlow(PodcastFeedUiState())
 
   val uiState: StateFlow<PodcastFeedUiState> = _uiState
 
   init {
-    viewModelScope.launch { _uiState.update { repository.feed(rssFeed, libraryId) } }
+    viewModelScope.launch {
+      _uiState.update { repository.feed(searchPodcastUi.feedUrl, searchPodcastUi) }
+    }
   }
 
   fun onEvent(event: PodcastFeedEvent) {
     when (event) {
       is PodcastFeedEvent.SubmitButtonPressed -> {
-        // TODO call api
+        viewModelScope.launch {
+          _uiState.update { repository.createPodcast(searchPodcastUi, _uiState.value) }
+        }
       }
       is PodcastFeedEvent.TitleChanged -> _uiState.update { it.copy(title = event.text) }
       is PodcastFeedEvent.AuthorChanged -> _uiState.update { it.copy(author = event.text) }

@@ -59,6 +59,11 @@ constructor(
     }
   }
 
+  fun createPodcast(libraryItem: LibraryItem, libraryId: String) {
+    val entity = toEntity(libraryItem, libraryId)
+    queries.insert(entity)
+  }
+
   fun byId(id: String): LibraryItemEntity? {
     return queries.byId(id).executeAsOneOrNull()
   }

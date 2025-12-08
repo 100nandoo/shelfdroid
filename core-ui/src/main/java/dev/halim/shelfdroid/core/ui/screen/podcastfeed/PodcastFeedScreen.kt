@@ -30,6 +30,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +56,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedState
 import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -65,9 +66,12 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @Composable
-fun PodcastFeedScreen(viewModel: PodcastFeedViewModel = hiltViewModel()) {
+fun PodcastFeedScreen(
+  viewModel: PodcastFeedViewModel = hiltViewModel(),
+  onCreateSuccess: (String) -> Unit,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  PodcastFeedScreenContent(uiState = uiState, viewModel::onEvent)
+  PodcastFeedScreenContent(uiState = uiState, viewModel::onEvent, onCreateSuccess)
 }
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -75,16 +79,17 @@ fun PodcastFeedScreen(viewModel: PodcastFeedViewModel = hiltViewModel()) {
 private fun PodcastFeedScreenContent(
   uiState: PodcastFeedUiState,
   onEvent: (PodcastFeedEvent) -> Unit = {},
+  onCreateSuccess: (String) -> Unit = { _ -> },
 ) {
   val focusManager = LocalFocusManager.current
   val (titleRef, authorRef, feedUrlRef, descriptionRef, languageRef, pathRef, genreRef) =
     remember { FocusRequester.createRefs() }
 
-  AnimatedVisibility(uiState.state is GenericState.Loading) {
+  AnimatedVisibility(uiState.state is PodcastFeedState.Loading) {
     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
   }
 
-  AnimatedVisibility(visible = uiState.state is GenericState.Success, enter = fadeIn()) {
+  AnimatedVisibility(visible = uiState.state is PodcastFeedState.ApiFeedSuccess, enter = fadeIn()) {
     var title by remember { mutableStateOf(TextFieldValue(uiState.title)) }
     var author by remember { mutableStateOf(TextFieldValue(uiState.author)) }
     var feedUrl by remember { mutableStateOf(TextFieldValue(uiState.feedUrl)) }
@@ -196,6 +201,13 @@ private fun PodcastFeedScreenContent(
       }
     }
   }
+
+  LaunchedEffect(uiState.state) {
+    val state = uiState.state
+    if (state is PodcastFeedState.ApiCreateSuccess) {
+      onCreateSuccess(state.id)
+    }
+  }
 }
 
 @Composable
@@ -301,7 +313,7 @@ private fun PodcastFeedScreenPreview() {
     PodcastFeedScreenContent(
       uiState =
         PodcastFeedUiState(
-          state = GenericState.Success,
+          state = PodcastFeedState.ApiFeedSuccess,
           title = "My Awesome Podcast",
           author = "John Doe",
           feedUrl = "https://example.com/feed.xml",
