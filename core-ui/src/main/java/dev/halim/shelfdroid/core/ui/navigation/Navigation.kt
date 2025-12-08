@@ -25,7 +25,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.core.PlayerState
-import dev.halim.shelfdroid.core.data.screen.searchpodcast.CreatePodcastResult
+import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
+import dev.halim.shelfdroid.core.navigation.NavResultKey
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
@@ -37,7 +38,6 @@ import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.podcastfeed.PodcastFeedScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
-import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastViewModel.Companion.KEY_RESULT
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import kotlinx.serialization.Serializable
 
@@ -149,20 +149,22 @@ private fun ColumnScope.NavHostContainer(
 
       composable<Settings> { SettingsScreen() }
       composable<SearchPodcast> { entry ->
-        val result = entry.savedStateHandle.get<CreatePodcastResult>(KEY_RESULT)
+        val result = entry.savedStateHandle.get<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
         SearchPodcastScreen(
           result = result,
           onItemClicked = { rawJson -> navController.navigate(PodcastFeed(rawJson)) },
           onAddedClick = { id -> navController.navigate(Podcast(id)) },
         )
         if (result != null) {
-          entry.savedStateHandle.remove<CreatePodcastResult>(KEY_RESULT)
+          entry.savedStateHandle.remove<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
         }
       }
       composable<PodcastFeed> {
         PodcastFeedScreen(
           onCreateSuccess = { result ->
-            navController.previousBackStackEntry?.savedStateHandle?.set(KEY_RESULT, result)
+            navController.previousBackStackEntry
+              ?.savedStateHandle
+              ?.set(NavResultKey.CREATE_PODCAST, result)
             navController.popBackStack()
             navController.navigate(Podcast(result.id))
           }

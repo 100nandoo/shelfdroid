@@ -4,10 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.screen.searchpodcast.CreatePodcastResult
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastRepository
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchState
+import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,10 +19,6 @@ class SearchPodcastViewModel
 @Inject
 constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPodcastRepository) :
   ViewModel() {
-  companion object {
-    const val KEY_RESULT = "result"
-  }
-
   val libraryId: String = checkNotNull(savedStateHandle.get<String>("libraryId"))
   private val _uiState = MutableStateFlow(SearchPodcastUiState())
 
@@ -55,5 +51,5 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPo
 sealed class SearchPodcastEvent {
   data class Search(val term: String) : SearchPodcastEvent()
 
-  data class Update(val result: CreatePodcastResult) : SearchPodcastEvent()
+  data class Update(val result: CreatePodcastNavResult) : SearchPodcastEvent()
 }
