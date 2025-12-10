@@ -89,3 +89,11 @@ data class Prefs(
   val userPrefs: UserPrefs = UserPrefs(),
   val displayPrefs: DisplayPrefs = DisplayPrefs(),
 )
+
+@Serializable
+data class PlaybackPrefs(
+  val keepSpeed: Boolean = false,
+  val keepSleepTimer: Boolean = false,
+  val episodeKeepSpeed: Boolean = true,
+  val episodeKeepSleepTimer: Boolean = true,
+)

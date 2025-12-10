@@ -4,6 +4,8 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.shelfdroid.core.AdvancedControl
+import dev.halim.shelfdroid.core.ChangeBehaviour
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerState
@@ -12,10 +14,13 @@ import dev.halim.shelfdroid.core.RawPlaybackProgress
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.time.Duration
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 
 class PlayerRepository
@@ -30,6 +35,7 @@ constructor(
   private val finder: PlayerFinder,
   private val downloadRepo: DownloadRepo,
   private val state: PlayerInternalStateHolder,
+  private val dataStoreManager: DataStoreManager,
 ) {
 
   suspend fun playBook(id: String, isDownloaded: Boolean): PlayerUiState {
@@ -56,8 +62,14 @@ constructor(
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Book")))
   }
 
-  suspend fun playPodcast(itemId: String, episodeId: String, isDownloaded: Boolean): PlayerUiState {
-    val playerUiState = podcast(itemId, episodeId)
+  suspend fun playPodcast(
+    itemId: String,
+    episodeId: String,
+    isDownloaded: Boolean,
+    advancedControl: AdvancedControl,
+    changeBehaviour: ChangeBehaviour,
+  ): PlayerUiState {
+    val playerUiState = podcast(itemId, episodeId, advancedControl, changeBehaviour)
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
@@ -131,7 +143,12 @@ constructor(
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
 
-  suspend fun podcast(itemId: String, episodeId: String): PlayerUiState {
+  suspend fun podcast(
+    itemId: String,
+    episodeId: String,
+    existing: AdvancedControl,
+    changeBehaviour: ChangeBehaviour,
+  ): PlayerUiState {
     val result = libraryItemRepo.byId(itemId)
     val progress = progressRepo.episodeById(episodeId)
     return if (result != null && result.isBook == 0L) {
@@ -152,6 +169,7 @@ constructor(
           .state
 
       val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }
+      val advancedControl = decideAdvanceControl(existing, changeBehaviour)
 
       PlayerUiState(
         state = PlayerState.Small,
@@ -164,8 +182,31 @@ constructor(
         currentTrack = playerTrack,
         currentTime = progress?.currentTime ?: 0.0,
         downloadState = downloadState,
+        advancedControl = advancedControl,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
+  }
+
+  suspend fun decideAdvanceControl(
+    existing: AdvancedControl,
+    changeBehaviour: ChangeBehaviour,
+  ): AdvancedControl {
+    val playbackPrefs = dataStoreManager.playbackPrefs.first()
+    return when (changeBehaviour) {
+      ChangeBehaviour.Type -> {
+        val speed = if (playbackPrefs.keepSpeed) existing.speed else 1f
+        val sleepTimerLeft =
+          if (playbackPrefs.keepSleepTimer) existing.sleepTimerLeft else Duration.Companion.ZERO
+        existing.copy(speed, sleepTimerLeft)
+      }
+      ChangeBehaviour.Episode -> {
+        val speed = if (playbackPrefs.episodeKeepSpeed) existing.speed else 1f
+        val sleepTimerLeft =
+          if (playbackPrefs.episodeKeepSleepTimer) existing.sleepTimerLeft
+          else Duration.Companion.ZERO
+        existing.copy(speed, sleepTimerLeft)
+      }
+    }
   }
 
   fun changeChapter(uiState: PlayerUiState, target: Int): PlayerUiState {

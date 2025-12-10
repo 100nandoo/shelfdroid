@@ -64,7 +64,17 @@
     <string name="list_view">List View</string>
     <string name="show_only_downloaded">Show Only Downloaded</string>
     <string name="home_screen">Home Screen</string>
+    <string name="playback_settings_and_behaviour">Playback settings and behaviour</string>
+    <string name="playback">Playback</string>
     <!--Settings-->
+
+    <!--Settings Playback-->
+    <string name="behaviour">Behaviour</string>
+    <string name="keep_playback_speed">Keep playback speed</string>
+    <string name="keep_sleep_timer">Keep sleep timer</string>
+    <string name="when_changing_between_podcast_episode">When changing between podcast episode:</string>
+    <string name="when_changing_between_book_and_podcast">When changing between book and podcast:</string>
+    <!--Settings Playback-->
 
     <string name="ok">OK</string>
     <string name="no_cover">No cover</string>

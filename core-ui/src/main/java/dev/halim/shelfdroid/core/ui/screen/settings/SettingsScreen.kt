@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,13 +38,17 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+  viewModel: SettingsViewModel = hiltViewModel(),
+  onPlaybackClicked: () -> Unit = {},
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val version = remember { viewModel.version }
   SettingsScreenContent(
     uiState = uiState,
     version = version,
     user = uiState.username,
+    onPlaybackClicked = onPlaybackClicked,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
   )
 }
@@ -52,12 +58,18 @@ fun SettingsScreenContent(
   uiState: SettingsUiState = SettingsUiState(),
   version: String = Defaults.VERSION,
   user: String = Defaults.USERNAME,
+  onPlaybackClicked: () -> Unit = {},
   onEvent: (SettingsEvent) -> Unit = {},
 ) {
   Column(
-    modifier = Modifier.fillMaxSize().padding(16.dp),
+    modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
+    SettingsClickLabel(
+      text = stringResource(R.string.playback),
+      supportingText = stringResource(R.string.playback_settings_and_behaviour),
+      onClick = onPlaybackClicked,
+    )
     DisplaySection(uiState, onEvent)
     HomeScreenSection(uiState, onEvent)
 
@@ -74,7 +86,6 @@ fun SettingsScreenContent(
 @Composable
 private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) -> Unit) {
   SettingsLabel(text = stringResource(R.string.display))
-  Spacer(modifier = Modifier.height(4.dp))
   SettingsSwitchItem(
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.dark_mode),
@@ -162,7 +173,6 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
 @Composable
 private fun OthersSection(version: String, user: String, uiState: SettingsUiState) {
   SettingsLabel(text = stringResource(R.string.others))
-  Spacer(modifier = Modifier.height(4.dp))
   SettingsBody(
     modifier = Modifier.padding(start = 8.dp),
     text = stringResource(R.string.args_version, version),

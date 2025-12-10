@@ -65,7 +65,6 @@ constructor(
     }
   }
 
-  @OptIn(UnstableApi::class)
   fun changeContent() {
     player.get().apply {
       val multiTrackWithChapters = state.mediaStructure() == MediaStructure.MultiTrackWithChapters
@@ -77,6 +76,12 @@ constructor(
         val mediaItem = mediaItemMapper.toMediaItem(uiState.value, state)
         val positionMs = uiState.value.currentTime.toLong() * 1000
         setMediaItem(mediaItem, positionMs)
+      }
+      setPlaybackSpeed(uiState.value.advancedControl.speed)
+      if (uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO) {
+        sleepTimer(uiState.value.advancedControl.sleepTimerLeft)
+      } else {
+        clearTimer()
       }
       prepare()
     }

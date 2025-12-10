@@ -31,7 +31,7 @@ fun SettingsSwitchItem(
   ) {
     Text(
       text = title,
-      style = MaterialTheme.typography.bodyLarge,
+      style = MaterialTheme.typography.bodyMedium,
       color =
         if (enabled) MaterialTheme.colorScheme.onSurface
         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),

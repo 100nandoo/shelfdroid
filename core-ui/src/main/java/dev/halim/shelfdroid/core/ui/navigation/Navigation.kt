@@ -40,6 +40,7 @@ import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.podcastfeed.PodcastFeedScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
+import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import kotlinx.serialization.Serializable
 
 @Serializable object Login
@@ -47,6 +48,8 @@ import kotlinx.serialization.Serializable
 @Serializable data class Home(val fromLogin: Boolean)
 
 @Serializable object Settings
+
+@Serializable object SettingsPlayback
 
 @Serializable data class SearchPodcast(val libraryId: String)
 
@@ -146,7 +149,11 @@ private fun ColumnScope.NavHostContainer(
         }
       }
 
-      composable<Settings> { SettingsScreen() }
+      composable<Settings> {
+        SettingsScreen(onPlaybackClicked = { navController.navigate(SettingsPlayback) })
+      }
+      composable<SettingsPlayback> { SettingsPlaybackScreen() }
+
       composable<SearchPodcast> { entry ->
         val result = entry.savedStateHandle.get<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
         SearchPodcastScreen(

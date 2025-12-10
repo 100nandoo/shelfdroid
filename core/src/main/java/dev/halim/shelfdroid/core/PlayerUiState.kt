@@ -112,3 +112,8 @@ data class MultipleButtonState(
   val showPlay: Boolean = true,
   val seekSliderEnabled: Boolean = false,
 )
+
+enum class ChangeBehaviour {
+  Episode,
+  Type,
+}

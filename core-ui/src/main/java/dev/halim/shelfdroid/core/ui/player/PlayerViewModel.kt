@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.ChangeBehaviour
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerState
@@ -52,8 +53,18 @@ constructor(
         viewModelScope.launch {
           when {
             _uiState.value.episodeId != event.episodeId -> {
+              val advancedControl = _uiState.value.advancedControl
+              val isCurrentBook = _uiState.value.episodeId.isBlank()
+              val changeBehaviour =
+                if (isCurrentBook) ChangeBehaviour.Type else ChangeBehaviour.Episode
               _uiState.update {
-                playerRepository.playPodcast(event.itemId, event.episodeId, event.isDownloaded)
+                playerRepository.playPodcast(
+                  event.itemId,
+                  event.episodeId,
+                  event.isDownloaded,
+                  advancedControl,
+                  changeBehaviour,
+                )
               }
               stateHolder.playContent()
             }

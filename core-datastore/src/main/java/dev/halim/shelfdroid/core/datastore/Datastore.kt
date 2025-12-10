@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.Filter
+import dev.halim.shelfdroid.core.PlaybackPrefs
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.SortOrder
@@ -30,6 +31,7 @@ private object Keys {
   val USER_PREFS = stringPreferencesKey("user_prefs")
   val SERVER_PREFS = stringPreferencesKey("server_prefs")
   val DISPLAY_PREFS = stringPreferencesKey("display_prefs")
+  val PLAYBACK_PREFS = stringPreferencesKey("playback_prefs")
 }
 
 private fun <T> DataStore<Preferences>.preferenceFlow(
@@ -114,6 +116,18 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   suspend fun updateDisplayPrefs(displayPrefs: DisplayPrefs) {
     val json = Json.encodeToString(displayPrefs)
     dataStore.edit { prefs -> prefs[Keys.DISPLAY_PREFS] = json }
+  }
+
+  val playbackPrefs: Flow<PlaybackPrefs> =
+    dataStore.data.map { prefs ->
+      prefs[Keys.PLAYBACK_PREFS]?.let { json ->
+        runCatching { Json.decodeFromString<PlaybackPrefs>(json) }.getOrNull()
+      } ?: PlaybackPrefs()
+    }
+
+  suspend fun updatePlaybackPrefs(playbackPrefs: PlaybackPrefs) {
+    val json = Json.encodeToString(playbackPrefs)
+    dataStore.edit { prefs -> prefs[Keys.PLAYBACK_PREFS] = json }
   }
 
   suspend fun updateListView(listView: Boolean) {
