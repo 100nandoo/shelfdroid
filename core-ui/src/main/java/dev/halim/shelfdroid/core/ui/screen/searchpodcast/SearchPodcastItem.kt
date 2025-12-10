@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
+import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -32,14 +33,14 @@ import dev.halim.shelfdroid.core.ui.screen.home.ItemCoverNoAnimation
 @Composable
 fun SearchPodcastItem(
   model: SearchPodcastUi,
-  onClick: (String) -> Unit = { _ -> },
+  onClick: (PodcastFeedNavPayload) -> Unit = { _ -> },
   onAddedClick: (String) -> Unit = { _ -> },
 ) {
   Row(
     modifier =
       Modifier.padding(vertical = 12.dp, horizontal = 16.dp)
         .clickable(
-          onClick = { if (model.isAdded) onAddedClick(model.id) else onClick(model.rawJson) }
+          onClick = { if (model.isAdded) onAddedClick(model.id) else onClick(model.payload) }
         )
   ) {
     ItemCoverNoAnimation(

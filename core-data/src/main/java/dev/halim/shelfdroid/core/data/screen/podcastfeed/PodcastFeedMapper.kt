@@ -2,19 +2,19 @@ package dev.halim.shelfdroid.core.data.screen.podcastfeed
 
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
-import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
+import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import javax.inject.Inject
 
 class PodcastFeedMapper @Inject constructor(private val libraryRepo: LibraryRepo) {
 
-  fun map(response: PodcastFeed, searchPodcastUi: SearchPodcastUi): PodcastFeedUiState {
-    val folders = libraryRepo.foldersByLibraryId(searchPodcastUi.libraryId)
+  fun map(response: PodcastFeed, payload: PodcastFeedNavPayload): PodcastFeedUiState {
+    val folders = libraryRepo.foldersByLibraryId(payload.libraryId)
     if (folders.isEmpty())
       return PodcastFeedUiState(state = PodcastFeedState.Failure("No folders found"))
 
     val metadata = response.podcast.metadata
     val title = metadata.title
-    val genres = searchPodcastUi.genre.split(",").map { it.trim() }.distinct()
+    val genres = payload.genre.split(",").map { it.trim() }.distinct()
     return PodcastFeedUiState(
       state = PodcastFeedState.ApiFeedSuccess,
       title = title,

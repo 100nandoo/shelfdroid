@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.navigation.NavResultKey
+import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
@@ -48,8 +49,6 @@ import kotlinx.serialization.Serializable
 @Serializable object Settings
 
 @Serializable data class SearchPodcast(val libraryId: String)
-
-@Serializable data class PodcastFeed(val rawJson: String)
 
 @Serializable data class Podcast(val id: String)
 
@@ -152,14 +151,14 @@ private fun ColumnScope.NavHostContainer(
         val result = entry.savedStateHandle.get<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
         SearchPodcastScreen(
           result = result,
-          onItemClicked = { rawJson -> navController.navigate(PodcastFeed(rawJson)) },
+          onItemClicked = { payload -> navController.navigate(payload) },
           onAddedClick = { id -> navController.navigate(Podcast(id)) },
         )
         if (result != null) {
           entry.savedStateHandle.remove<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
         }
       }
-      composable<PodcastFeed> {
+      composable<PodcastFeedNavPayload> {
         PodcastFeedScreen(
           onCreateSuccess = { result ->
             navController.previousBackStackEntry

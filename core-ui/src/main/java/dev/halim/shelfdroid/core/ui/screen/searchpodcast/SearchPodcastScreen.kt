@@ -39,6 +39,7 @@ import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
+import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -47,7 +48,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 fun SearchPodcastScreen(
   result: CreatePodcastNavResult? = null,
   viewModel: SearchPodcastViewModel = hiltViewModel(),
-  onItemClicked: (String) -> Unit,
+  onItemClicked: (PodcastFeedNavPayload) -> Unit,
   onAddedClick: (String) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,7 +66,7 @@ fun SearchPodcastScreen(
 private fun SearchPodcastScreenContent(
   onEvent: (SearchPodcastEvent) -> Unit = {},
   uiState: SearchPodcastUiState,
-  onItemClicked: (String) -> Unit = { _ -> },
+  onItemClicked: (PodcastFeedNavPayload) -> Unit = { _ -> },
   onAddedClick: (String) -> Unit = { _ -> },
 ) {
   var textFieldValue by rememberSaveable { mutableStateOf("") }

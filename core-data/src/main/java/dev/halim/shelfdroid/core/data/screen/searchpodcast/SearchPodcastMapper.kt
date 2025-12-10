@@ -2,10 +2,10 @@ package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
 import dev.halim.core.network.response.SearchPodcast
 import dev.halim.shelfdroid.core.data.response.PodcastInfo
+import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import javax.inject.Inject
-import kotlinx.serialization.json.Json
 
-class SearchPodcastMapper @Inject constructor(private val json: Json) {
+class SearchPodcastMapper @Inject constructor() {
   fun map(
     response: List<SearchPodcast>,
     podcastInfoList: List<PodcastInfo>,
@@ -41,8 +41,26 @@ class SearchPodcastMapper @Inject constructor(private val json: Json) {
           isAdded = isAdded,
         )
 
-      val raw = json.encodeToString(result)
-      result.copy(rawJson = raw)
+      val payload = toPayload(result)
+      result.copy(payload = payload)
     }
   }
+
+  fun toPayload(model: SearchPodcastUi): PodcastFeedNavPayload =
+    PodcastFeedNavPayload(
+      id = model.id,
+      itunesId = model.itunesId,
+      itunesArtistId = model.itunesArtistId,
+      libraryId = model.libraryId,
+      author = model.author,
+      title = model.title,
+      cover = model.cover,
+      genre = model.genre,
+      episodeCount = model.episodeCount,
+      feedUrl = model.feedUrl,
+      pageUrl = model.pageUrl,
+      releaseDate = model.releaseDate,
+      explicit = model.explicit,
+      isAdded = model.isAdded,
+    )
 }

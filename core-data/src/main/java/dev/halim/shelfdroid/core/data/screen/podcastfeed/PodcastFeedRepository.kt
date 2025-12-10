@@ -4,8 +4,8 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
-import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
+import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import javax.inject.Inject
 
 class PodcastFeedRepository
@@ -16,19 +16,19 @@ constructor(
   private val libraryItemRepo: LibraryItemRepo,
 ) {
 
-  suspend fun feed(rssFeed: String, searchPodcastUi: SearchPodcastUi): PodcastFeedUiState {
+  suspend fun feed(rssFeed: String, payload: PodcastFeedNavPayload): PodcastFeedUiState {
     val response = api.podcastFeed(PodcastFeedRequest(rssFeed))
     val result = response.getOrNull()
 
     return if (result != null) {
-      mapper.map(result, searchPodcastUi)
+      mapper.map(result, payload)
     } else {
       PodcastFeedUiState(state = PodcastFeedState.Failure(response.exceptionOrNull()?.message))
     }
   }
 
   suspend fun createPodcast(
-    searchPodcastUi: SearchPodcastUi,
+    payload: PodcastFeedNavPayload,
     uiState: PodcastFeedUiState,
   ): PodcastFeedUiState {
     val folder = uiState.selectedFolder
@@ -40,13 +40,13 @@ constructor(
         title = uiState.title,
         author = uiState.author,
         description = uiState.description,
-        releaseDate = searchPodcastUi.releaseDate,
+        releaseDate = payload.releaseDate,
         genres = uiState.genres,
         feedUrl = uiState.feedUrl,
-        imageUrl = searchPodcastUi.cover,
-        itunesPageUrl = searchPodcastUi.pageUrl,
-        itunesId = searchPodcastUi.itunesId,
-        itunesArtistId = searchPodcastUi.itunesArtistId,
+        imageUrl = payload.cover,
+        itunesPageUrl = payload.pageUrl,
+        itunesId = payload.itunesId,
+        itunesArtistId = payload.itunesArtistId,
         language = uiState.language,
         explicit = uiState.explicit,
         type = uiState.type,
@@ -56,7 +56,7 @@ constructor(
       CreatePodcastRequest(
         path = path,
         folderId = folderId,
-        libraryId = searchPodcastUi.libraryId,
+        libraryId = payload.libraryId,
         media = media,
       )
 
@@ -64,7 +64,7 @@ constructor(
     val result = response.getOrNull()
 
     return if (result != null) {
-      libraryItemRepo.createPodcast(result, searchPodcastUi.libraryId)
+      libraryItemRepo.createPodcast(result, payload.libraryId)
       val result = CreatePodcastNavResult(result.id, uiState.feedUrl)
       PodcastFeedUiState(state = PodcastFeedState.ApiCreateSuccess(result))
     } else {

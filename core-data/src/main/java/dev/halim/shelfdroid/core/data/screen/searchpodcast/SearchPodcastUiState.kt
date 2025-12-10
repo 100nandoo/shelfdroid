@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
+import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import kotlinx.serialization.Serializable
 
 data class SearchPodcastUiState(
@@ -33,5 +34,5 @@ data class SearchPodcastUi(
   val releaseDate: String = "",
   val explicit: Boolean = false,
   val isAdded: Boolean = false,
-  val rawJson: String = "",
+  val payload: PodcastFeedNavPayload = PodcastFeedNavPayload(),
 )
