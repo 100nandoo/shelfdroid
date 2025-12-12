@@ -130,8 +130,8 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     ExposedDropdownMenu(
       modifier = Modifier.weight(1f),
       label = stringResource(R.string.sort),
-      options = BookSort.entries.map { it.name },
-      initialValue = uiState.displayPrefs.bookSort.name,
+      options = BookSort.entries.map { it.label },
+      initialValue = uiState.displayPrefs.bookSort.label,
       onClick = { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it))) },
     )
     Spacer(Modifier.width(8.dp))
@@ -151,8 +151,8 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     ExposedDropdownMenu(
       modifier = Modifier.weight(1f),
       label = stringResource(R.string.sort),
-      options = PodcastSort.entries.map { it.name },
-      initialValue = uiState.displayPrefs.podcastSort.name,
+      options = PodcastSort.entries.map { it.label },
+      initialValue = uiState.displayPrefs.podcastSort.label,
       onClick = {
         onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSort(it)))
       },
