@@ -2,10 +2,8 @@
 
 ## High Priority
 
-- [ ] Add podcast
-    - [x] Search
-    - [ ] Feeds
-    - [ ] Add
+- [ ] Delete podcast
+- [ ] Add episode
 - [ ] Listening session
 - [ ] Server functions
 - [ ] Widget
@@ -58,3 +56,7 @@
 - [x] Refactor book download state on viewmodel
 - [x] Convert home screen ui state to flow
 - [x] Sort
+- [x] Add podcast
+    - [x] Search
+    - [x] Feeds
+    - [x] Add

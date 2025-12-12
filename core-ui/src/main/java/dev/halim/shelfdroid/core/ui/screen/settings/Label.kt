@@ -36,7 +36,7 @@ fun SettingsClickLabel(
       SettingsLabel(text = text, modifier = modifier.padding(end = 12.dp))
       Text(
         text = supportingText,
-        style = MaterialTheme.typography.labelMedium,
+        style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier,
       )
@@ -57,12 +57,7 @@ fun SettingsLabel(
   text: String,
   style: TextStyle = MaterialTheme.typography.titleMedium,
 ) {
-  Text(
-    text = text,
-    style = style,
-    color = MaterialTheme.colorScheme.secondary,
-    modifier = modifier.padding(bottom = 4.dp),
-  )
+  Text(text = text, style = style, modifier = modifier.padding(bottom = 4.dp))
 }
 
 @Composable

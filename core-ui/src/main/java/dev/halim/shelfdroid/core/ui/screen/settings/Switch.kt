@@ -33,8 +33,8 @@ fun SettingsSwitchItem(
       text = title,
       style = MaterialTheme.typography.bodyMedium,
       color =
-        if (enabled) MaterialTheme.colorScheme.onSurface
-        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+        if (enabled) MaterialTheme.colorScheme.onSurfaceVariant
+        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
     )
     Switch(
       enabled = enabled,

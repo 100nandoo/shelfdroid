@@ -114,5 +114,9 @@
     <string name="path">Path</string>
     <string name="auto_download_episodes">Auto Download Episodes</string>
     <string name="submit">Submit</string>
+    <string name="podcast_created_successfully">Podcast created successfully!</string>
+    <!--Podcast Feed-->
+
+    <!--Others-->
 
 </resources>
