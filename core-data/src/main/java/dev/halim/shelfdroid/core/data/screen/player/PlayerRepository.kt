@@ -38,8 +38,13 @@ constructor(
   private val dataStoreManager: DataStoreManager,
 ) {
 
-  suspend fun playBook(id: String, isDownloaded: Boolean): PlayerUiState {
-    val playerUiState = book(id)
+  suspend fun playBook(
+    id: String,
+    isDownloaded: Boolean,
+    advancedControl: AdvancedControl,
+    changeBehaviour: ChangeBehaviour,
+  ): PlayerUiState {
+    val playerUiState = book(id, advancedControl, changeBehaviour)
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
@@ -91,7 +96,11 @@ constructor(
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
   }
 
-  suspend fun book(id: String): PlayerUiState {
+  suspend fun book(
+    id: String,
+    existing: AdvancedControl,
+    changeBehaviour: ChangeBehaviour,
+  ): PlayerUiState {
     val result = libraryItemRepo.byId(id)
     val progress = progressRepo.bookById(id)
     val bookmarks = bookmarkRepo.byLibraryItemId(id)
@@ -126,6 +135,8 @@ constructor(
             .state
         }
 
+      val advancedControl = decideAdvanceControl(existing, changeBehaviour)
+
       PlayerUiState(
         state = PlayerState.Small,
         id = result.id,
@@ -139,6 +150,7 @@ constructor(
         currentTrack = currentTrack,
         playerBookmarks = playerBookmarks,
         downloadState = downloadState,
+        advancedControl = advancedControl,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -196,15 +208,20 @@ constructor(
       ChangeBehaviour.Type -> {
         val speed = if (playbackPrefs.keepSpeed) existing.speed else 1f
         val sleepTimerLeft =
-          if (playbackPrefs.keepSleepTimer) existing.sleepTimerLeft else Duration.Companion.ZERO
-        existing.copy(speed, sleepTimerLeft)
+          if (playbackPrefs.keepSleepTimer) existing.sleepTimerLeft else Duration.ZERO
+        existing.copy(speed = speed, sleepTimerLeft = sleepTimerLeft)
       }
       ChangeBehaviour.Episode -> {
         val speed = if (playbackPrefs.episodeKeepSpeed) existing.speed else 1f
         val sleepTimerLeft =
-          if (playbackPrefs.episodeKeepSleepTimer) existing.sleepTimerLeft
-          else Duration.Companion.ZERO
-        existing.copy(speed, sleepTimerLeft)
+          if (playbackPrefs.episodeKeepSleepTimer) existing.sleepTimerLeft else Duration.ZERO
+        existing.copy(speed = speed, sleepTimerLeft = sleepTimerLeft)
+      }
+      ChangeBehaviour.Book -> {
+        val speed = if (playbackPrefs.bookKeepSpeed) existing.speed else 1f
+        val sleepTimerLeft =
+          if (playbackPrefs.bookKeepSleepTimer) existing.sleepTimerLeft else Duration.ZERO
+        existing.copy(speed = speed, sleepTimerLeft = sleepTimerLeft)
       }
     }
   }

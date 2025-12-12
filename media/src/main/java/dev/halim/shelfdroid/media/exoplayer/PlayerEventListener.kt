@@ -1,7 +1,9 @@
 package dev.halim.shelfdroid.media.exoplayer
 
+import androidx.annotation.OptIn
 import androidx.media3.common.Player
 import androidx.media3.common.listen
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.shelfdroid.core.ChapterPosition
@@ -16,6 +18,7 @@ import kotlinx.coroutines.launch
 class PlayerEventListener
 @Inject
 constructor(private val player: Lazy<ExoPlayer>, private val podcastRepository: PodcastRepository) {
+  @OptIn(UnstableApi::class)
   fun listen(
     uiState: PlayerUiState,
     changeChapterEvent: () -> Unit,

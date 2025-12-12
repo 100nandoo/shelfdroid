@@ -41,7 +41,17 @@ constructor(
         viewModelScope.launch {
           when {
             _uiState.value.id != event.id -> {
-              _uiState.update { playerRepository.playBook(event.id, event.isDownloaded) }
+              val advancedControl = _uiState.value.advancedControl
+              val changeBehaviour = changeBehaviour(event)
+
+              _uiState.update {
+                playerRepository.playBook(
+                  event.id,
+                  event.isDownloaded,
+                  advancedControl,
+                  changeBehaviour,
+                )
+              }
               stateHolder.playContent()
             }
             _uiState.value.exoState == ExoState.Playing -> playerManager.get().pause()
@@ -54,9 +64,7 @@ constructor(
           when {
             _uiState.value.episodeId != event.episodeId -> {
               val advancedControl = _uiState.value.advancedControl
-              val isCurrentBook = _uiState.value.episodeId.isBlank()
-              val changeBehaviour =
-                if (isCurrentBook) ChangeBehaviour.Type else ChangeBehaviour.Episode
+              val changeBehaviour = changeBehaviour(event)
               _uiState.update {
                 playerRepository.playPodcast(
                   event.itemId,
@@ -153,6 +161,19 @@ constructor(
       PlayerEvent.TempHidden -> _uiState.update { it.copy(state = PlayerState.TempHidden) }
       PlayerEvent.Hidden -> _uiState.update { it.copy(state = Hidden()) }
       PlayerEvent.Logout -> logout()
+    }
+  }
+
+  private fun changeBehaviour(event: PlayerEvent): ChangeBehaviour {
+    val episodeIdBlank = _uiState.value.episodeId.isBlank()
+
+    return when (event) {
+      is PlayerEvent.PlayPodcast ->
+        if (episodeIdBlank) ChangeBehaviour.Type else ChangeBehaviour.Episode
+
+      is PlayerEvent.PlayBook -> if (episodeIdBlank) ChangeBehaviour.Book else ChangeBehaviour.Type
+
+      else -> ChangeBehaviour.Type
     }
   }
 

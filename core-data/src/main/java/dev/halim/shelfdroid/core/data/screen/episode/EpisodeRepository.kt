@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.episode
 
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -21,6 +23,7 @@ constructor(
   private val downloadRepo: DownloadRepo,
   private val helper: Helper,
 ) {
+  @OptIn(UnstableApi::class)
   fun item(itemId: String, episodeId: String): Flow<EpisodeUiState> {
     val podcastFlow = libraryItemRepo.flowById(itemId)
     val progressFlow = progressRepo.flowEpisodeById(episodeId)

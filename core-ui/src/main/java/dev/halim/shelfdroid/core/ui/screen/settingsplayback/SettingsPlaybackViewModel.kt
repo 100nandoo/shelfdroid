@@ -30,6 +30,8 @@ constructor(private val repository: SettingsPlaybackRepository) : ViewModel() {
           keepSleepTimer = playbackPrefs.keepSleepTimer,
           episodeKeepSpeed = playbackPrefs.episodeKeepSpeed,
           episodeKeepSleepTimer = playbackPrefs.episodeKeepSleepTimer,
+          bookKeepSpeed = playbackPrefs.bookKeepSpeed,
+          bookKeepSleepTimer = playbackPrefs.bookKeepSleepTimer,
         )
       }
       .stateIn(viewModelScope, SharingStarted.Lazily, SettingsPlaybackUiState())
@@ -46,6 +48,10 @@ constructor(private val repository: SettingsPlaybackRepository) : ViewModel() {
         viewModelScope.launch {
           repository.updateEpisodeKeepSleepTimer(event.episodeKeepSleepTimer)
         }
+      is SettingsPlaybackEvent.SwitchBookKeepSpeed ->
+        viewModelScope.launch { repository.updateBookKeepSpeed(event.bookKeepSpeed) }
+      is SettingsPlaybackEvent.SwitchBookKeepSleepTimer ->
+        viewModelScope.launch { repository.updateBookKeepSleepTimer(event.bookKeepSleepTimer) }
     }
   }
 }
@@ -59,4 +65,8 @@ sealed class SettingsPlaybackEvent {
 
   data class SwitchEpisodeKeepSleepTimer(val episodeKeepSleepTimer: Boolean) :
     SettingsPlaybackEvent()
+
+  data class SwitchBookKeepSpeed(val bookKeepSpeed: Boolean) : SettingsPlaybackEvent()
+
+  data class SwitchBookKeepSleepTimer(val bookKeepSleepTimer: Boolean) : SettingsPlaybackEvent()
 }

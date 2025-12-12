@@ -116,4 +116,5 @@ data class MultipleButtonState(
 enum class ChangeBehaviour {
   Episode,
   Type,
+  Book,
 }

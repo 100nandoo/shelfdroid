@@ -5,4 +5,6 @@ data class SettingsPlaybackUiState(
   val keepSleepTimer: Boolean = false,
   val episodeKeepSpeed: Boolean = true,
   val episodeKeepSleepTimer: Boolean = true,
+  val bookKeepSpeed: Boolean = true,
+  val bookKeepSleepTimer: Boolean = true,
 )

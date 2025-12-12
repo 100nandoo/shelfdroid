@@ -72,8 +72,9 @@
     <string name="behaviour">Behaviour</string>
     <string name="keep_playback_speed">Keep playback speed</string>
     <string name="keep_sleep_timer">Keep sleep timer</string>
-    <string name="when_changing_between_podcast_episode">When changing between podcast episode:</string>
-    <string name="when_changing_between_book_and_podcast">When changing between book and podcast:</string>
+    <string name="when_switching_between_book_and_podcast">When switching between a book and a podcast:</string>
+    <string name="when_switching_between_podcast_episodes">When switching between podcast episodes:</string>
+    <string name="when_switching_between_books">When switching between books:</string>
     <!--Settings Playback-->
 
     <string name="ok">OK</string>

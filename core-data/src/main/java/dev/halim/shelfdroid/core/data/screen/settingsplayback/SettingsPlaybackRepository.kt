@@ -28,4 +28,14 @@ constructor(private val dataStoreManager: DataStoreManager) {
     val playbackPrefs = playbackPrefs.first().copy(episodeKeepSleepTimer = enabled)
     dataStoreManager.updatePlaybackPrefs(playbackPrefs)
   }
+
+  suspend fun updateBookKeepSpeed(enabled: Boolean) {
+    val playbackPrefs = playbackPrefs.first().copy(bookKeepSpeed = enabled)
+    dataStoreManager.updatePlaybackPrefs(playbackPrefs)
+  }
+
+  suspend fun updateBookKeepSleepTimer(enabled: Boolean) {
+    val playbackPrefs = playbackPrefs.first().copy(bookKeepSleepTimer = enabled)
+    dataStoreManager.updatePlaybackPrefs(playbackPrefs)
+  }
 }
