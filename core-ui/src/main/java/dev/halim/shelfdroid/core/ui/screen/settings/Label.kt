@@ -24,7 +24,6 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun SettingsClickLabel(
   modifier: Modifier = Modifier,
-  style: TextStyle = MaterialTheme.typography.bodyLarge,
   text: String,
   supportingText: String,
   onClick: () -> Unit = {},
@@ -34,12 +33,7 @@ fun SettingsClickLabel(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Column {
-      Text(
-        text = text,
-        style = style,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = modifier.padding(end = 12.dp),
-      )
+      SettingsLabel(text = text, modifier = modifier.padding(end = 12.dp))
       Text(
         text = supportingText,
         style = MaterialTheme.typography.labelMedium,
@@ -61,13 +55,13 @@ fun SettingsClickLabel(
 fun SettingsLabel(
   modifier: Modifier = Modifier,
   text: String,
-  style: TextStyle = MaterialTheme.typography.titleLarge,
+  style: TextStyle = MaterialTheme.typography.titleMedium,
 ) {
   Text(
     text = text,
     style = style,
-    color = MaterialTheme.colorScheme.tertiary,
-    modifier = modifier.padding(bottom = 12.dp),
+    color = MaterialTheme.colorScheme.secondary,
+    modifier = modifier.padding(bottom = 4.dp),
   )
 }
 
@@ -75,7 +69,7 @@ fun SettingsLabel(
 fun SettingsSublabel(
   modifier: Modifier = Modifier,
   text: String,
-  style: TextStyle = MaterialTheme.typography.titleMedium,
+  style: TextStyle = MaterialTheme.typography.bodyLarge,
 ) {
   Text(text = text, style = style, modifier = modifier)
 }
@@ -98,10 +92,24 @@ fun SettingsLabelPreview() {
         text = stringResource(R.string.playback),
         supportingText = stringResource(R.string.playback_settings_and_behaviour),
       )
-      SettingsLabel(text = "Display")
-      SettingsSwitchItem(Modifier, "Dark Theme", true, {}, "List View", true)
-      SettingsSublabel(text = "Home Screen")
-      SettingsSwitchItem(Modifier, "List View", true, {}, "List View", true)
+      SettingsLabel(text = stringResource(R.string.display))
+      SettingsSwitchItem(
+        Modifier,
+        stringResource(R.string.dark_mode),
+        true,
+        stringResource(R.string.dark_mode),
+        true,
+        {},
+      )
+      SettingsSublabel(text = stringResource(R.string.home_screen))
+      SettingsSwitchItem(
+        Modifier,
+        stringResource(R.string.list_view),
+        true,
+        stringResource(R.string.list_view),
+        true,
+        {},
+      )
     }
   }
 }

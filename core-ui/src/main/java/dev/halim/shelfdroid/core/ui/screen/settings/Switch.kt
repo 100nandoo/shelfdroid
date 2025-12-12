@@ -20,9 +20,9 @@ fun SettingsSwitchItem(
   modifier: Modifier = Modifier,
   title: String,
   checked: Boolean,
-  onCheckedChange: (Boolean) -> Unit,
   contentDescription: String,
   enabled: Boolean = true,
+  onCheckedChange: (Boolean) -> Unit,
 ) {
   Row(
     modifier = modifier.fillMaxWidth(),

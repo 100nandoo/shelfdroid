@@ -65,21 +65,21 @@ fun SettingsScreenContent(
     modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
+    LogoutSection(onEvent)
+    Spacer(modifier = Modifier.height(16.dp))
+
+    OthersSection(version, user, uiState)
+    Spacer(modifier = Modifier.height(16.dp))
+
+    DisplaySection(uiState, onEvent)
+    HomeScreenSection(uiState, onEvent)
+    Spacer(modifier = Modifier.height(16.dp))
+
     SettingsClickLabel(
       text = stringResource(R.string.playback),
       supportingText = stringResource(R.string.playback_settings_and_behaviour),
       onClick = onPlaybackClicked,
     )
-    DisplaySection(uiState, onEvent)
-    HomeScreenSection(uiState, onEvent)
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    OthersSection(version, user, uiState)
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    LogoutSection(onEvent)
   }
 }
 
@@ -90,16 +90,16 @@ private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) ->
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.dark_mode),
     checked = uiState.isDarkMode,
-    onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
     contentDescription = stringResource(R.string.dark_mode),
+    onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
   )
   SettingsSwitchItem(
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.dynamic_theme),
     checked = uiState.isDynamicTheme,
-    onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
     contentDescription = stringResource(R.string.dynamic_theme),
     enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+    onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
   )
 }
 
@@ -111,18 +111,18 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     modifier = paddingStart,
     title = stringResource(R.string.list_view),
     checked = uiState.displayPrefs.listView,
-    onCheckedChange = { onEvent(SettingsEvent.SwitchListView(it)) },
     contentDescription = stringResource(R.string.list_view),
+    onCheckedChange = { onEvent(SettingsEvent.SwitchListView(it)) },
   )
   SettingsSwitchItem(
     modifier = paddingStart,
     title = stringResource(R.string.show_only_downloaded),
     checked = uiState.displayPrefs.filter.isDownloaded(),
+    contentDescription = stringResource(R.string.show_only_downloaded),
     onCheckedChange = {
       val filter = if (it) Filter.Downloaded else Filter.All
       onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.Filter(filter.name)))
     },
-    contentDescription = stringResource(R.string.show_only_downloaded),
   )
   val paddingStartTwo = Modifier.padding(start = 16.dp, top = 4.dp)
   SettingsSublabel(Modifier.padding(start = 8.dp, top = 4.dp), text = "Book Library")

@@ -50,20 +50,21 @@ private fun BehaviourSection(
   onEvent: (SettingsPlaybackEvent) -> Unit = {},
 ) {
   SettingsLabel(text = stringResource(R.string.behaviour))
+  Spacer(modifier = Modifier.height(16.dp))
   SettingsSublabel(text = stringResource(R.string.when_switching_between_book_and_podcast))
   SettingsSwitchItem(
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.keep_playback_speed),
     checked = uiState.keepSpeed,
-    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchKeepSpeed(it)) },
     contentDescription = stringResource(R.string.keep_playback_speed),
+    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchKeepSpeed(it)) },
   )
   SettingsSwitchItem(
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.keep_sleep_timer),
     checked = uiState.keepSleepTimer,
-    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchKeepSleepTimer(it)) },
     contentDescription = stringResource(R.string.keep_sleep_timer),
+    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchKeepSleepTimer(it)) },
   )
   Spacer(modifier = Modifier.height(12.dp))
   SettingsSublabel(text = stringResource(R.string.when_switching_between_podcast_episodes))
@@ -71,15 +72,15 @@ private fun BehaviourSection(
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.keep_playback_speed),
     checked = uiState.episodeKeepSpeed,
-    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchEpisodeKeepSpeed(it)) },
     contentDescription = stringResource(R.string.keep_playback_speed),
+    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchEpisodeKeepSpeed(it)) },
   )
   SettingsSwitchItem(
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.keep_sleep_timer),
     checked = uiState.episodeKeepSleepTimer,
-    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchEpisodeKeepSleepTimer(it)) },
     contentDescription = stringResource(R.string.keep_sleep_timer),
+    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchEpisodeKeepSleepTimer(it)) },
   )
 
   Spacer(modifier = Modifier.height(12.dp))
@@ -88,15 +89,15 @@ private fun BehaviourSection(
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.keep_playback_speed),
     checked = uiState.bookKeepSpeed,
-    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchBookKeepSpeed(it)) },
     contentDescription = stringResource(R.string.keep_playback_speed),
+    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchBookKeepSpeed(it)) },
   )
   SettingsSwitchItem(
     modifier = Modifier.padding(start = 16.dp),
     title = stringResource(R.string.keep_sleep_timer),
     checked = uiState.bookKeepSleepTimer,
-    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchBookKeepSleepTimer(it)) },
     contentDescription = stringResource(R.string.keep_sleep_timer),
+    onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchBookKeepSleepTimer(it)) },
   )
 }
 
