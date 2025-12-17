@@ -20,7 +20,7 @@ media = ":media"
 testApp = ":test-app"
 
 androidGradlePlugin = "8.13.2"
-androidxActivity = "1.12.1"
+androidxActivity = "1.12.2"
 androidxComposeBom = "2025.12.00"
 androidxCore = "1.17.0"
 androidxSplashscreen = "1.2.0"
