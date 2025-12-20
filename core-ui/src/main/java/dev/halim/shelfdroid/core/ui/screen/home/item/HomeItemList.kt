@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.home.item
 
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,7 +33,6 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 import dev.halim.shelfdroid.core.ui.screen.home.UnreadEpisodeCount
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun LazyGridItemScope.HomeItemList(
   id: String,
@@ -42,6 +40,7 @@ fun LazyGridItemScope.HomeItemList(
   author: String,
   cover: String,
   onClick: () -> Unit,
+  onLongClick: () -> Unit,
   unfinishedEpisodeCount: Int = 0,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -55,7 +54,7 @@ fun LazyGridItemScope.HomeItemList(
             .height(88.dp)
             .fillMaxWidth()
             .mySharedBound(Animations.containerKey(id))
-            .clickable { onClick() }
+            .combinedClickable(onLongClick = onLongClick, onClick = onClick)
             .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
@@ -112,6 +111,7 @@ fun PreviewHomeBookItemList() {
           author = book.author,
           cover = book.cover,
           onClick = {},
+          onLongClick = {},
         )
       }
     }
@@ -134,6 +134,7 @@ fun PreviewHomePodcastItemList() {
           author = podcast.author,
           cover = podcast.cover,
           onClick = {},
+          onLongClick = {},
           unfinishedEpisodeCount = podcast.unfinishedCount,
         )
       }

@@ -65,7 +65,7 @@ SET currentTime = :currentTime,
     lastUpdate = :lastUpdate
 WHERE episodeId = :episodeId AND episodeId IS NOT NULL;
 
-deleteBookById:
+deleteItemById:
 DELETE FROM ProgressEntity
 WHERE libraryItemId = :libraryItemId;
 

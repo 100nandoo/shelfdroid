@@ -1,9 +1,6 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
-
 package dev.halim.shelfdroid.core.ui.navigation
 
 import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Column

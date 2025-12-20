@@ -2,7 +2,8 @@
 
 ## High Priority
 
-- [ ] Delete podcast
+- [ ] Soft and hard delete podcast
+- [ ] add, delete episode
 - [ ] Add episode
 - [ ] Listening session
 - [ ] Server functions

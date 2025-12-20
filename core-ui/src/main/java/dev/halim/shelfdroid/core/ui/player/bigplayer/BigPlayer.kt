@@ -1,8 +1,7 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package dev.halim.shelfdroid.core.ui.player.bigplayer
 
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

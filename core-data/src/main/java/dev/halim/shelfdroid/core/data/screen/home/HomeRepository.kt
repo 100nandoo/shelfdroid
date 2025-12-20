@@ -82,6 +82,33 @@ constructor(
     }
   }
 
+  suspend fun deleteItem(
+    state: HomeUiState,
+    libraryId: String,
+    itemId: String,
+    isBook: Boolean,
+  ): HomeUiState {
+    val result = api.deleteItem(itemId)
+
+    if (!result.isSuccess) {
+      return state
+    }
+
+    val updatedLibraries =
+      state.librariesUiState.map { library ->
+        if (library.id != libraryId) return@map library
+
+        if (isBook) {
+          library.copy(books = library.books.filterNot { it.id == itemId })
+        } else {
+          library.copy(podcasts = library.podcasts.filterNot { it.id == itemId })
+        }
+      }
+
+    libraryItemRepo.cleanupItem(itemId)
+    return state.copy(librariesUiState = updatedLibraries)
+  }
+
   private suspend fun updateDataStore(loginResponse: LoginResponse) {
     val user = loginResponse.user
     val old = dataStoreManager.userPrefs.firstOrNull()?.copy()

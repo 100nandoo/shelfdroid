@@ -32,15 +32,15 @@ data class BookUiState(
 )
 
 data class PodcastUiState(
-  val id: String,
-  val author: String,
-  val title: String,
-  val cover: String,
+  val id: String = "",
+  val author: String = "",
+  val title: String = "",
+  val cover: String = "",
   val addedAt: Long = 0,
-  val episodeCount: Int,
-  val unfinishedCount: Int,
-  val downloadedCount: Int,
-  val unfinishedAndDownloadCount: Int,
+  val episodeCount: Int = 0,
+  val unfinishedCount: Int = 0,
+  val downloadedCount: Int = 0,
+  val unfinishedAndDownloadCount: Int = 0,
 )
 
 sealed class HomeState {

@@ -1,9 +1,6 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
-
 package dev.halim.shelfdroid.core.ui.preview
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize

@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.home.item
 
-import HomeItemGrid
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.runtime.Composable
 
@@ -13,6 +12,7 @@ fun LazyGridItemScope.HomeItem(
   cover: String,
   unfinishedEpisodeCount: Int = 0,
   onClick: () -> Unit,
+  onLongClick: () -> Unit,
 ) {
   if (listView) {
     HomeItemList(
@@ -22,6 +22,7 @@ fun LazyGridItemScope.HomeItem(
       cover = cover,
       unfinishedEpisodeCount = unfinishedEpisodeCount,
       onClick = onClick,
+      onLongClick = onLongClick,
     )
   } else {
     HomeItemGrid(
@@ -31,6 +32,7 @@ fun LazyGridItemScope.HomeItem(
       cover = cover,
       unfinishedEpisodeCount = unfinishedEpisodeCount,
       onClick = onClick,
+      onLongClick = onLongClick,
     )
   }
 }

@@ -31,6 +31,7 @@ constructor(
   private val helper: Helper,
   private val json: Json,
   private val downloadRepo: DownloadRepo,
+  private val progressRepo: ProgressRepo,
 ) {
 
   private val repoScope = CoroutineScope(Dispatchers.IO)
@@ -49,8 +50,8 @@ constructor(
           if (result != null) {
             val entities = convert(libraryId, result)
             repoScope.launch {
-              cleanupDownloads(libraryId, entities)
-              cleanup(libraryId, entities)
+              cleanupPodcasts(libraryId, entities)
+              cleanupBooks(libraryId, entities)
               entities.forEach { queries.insert(it) }
             }
           }
@@ -106,7 +107,13 @@ constructor(
     return entities
   }
 
-  private fun cleanup(libraryId: String, entities: List<LibraryItemEntity>) {
+  fun cleanupItem(id: String) {
+    queries.deleteById(id)
+    downloadRepo.delete(id)
+    progressRepo.deleteItem(id)
+  }
+
+  private fun cleanupBooks(libraryId: String, entities: List<LibraryItemEntity>) {
     queries.transaction {
       val ids = queries.idsByLibraryId(libraryId).executeAsList()
       val newIds = entities.map { it.id }
@@ -118,7 +125,7 @@ constructor(
     }
   }
 
-  private fun cleanupDownloads(libraryId: String, entities: List<LibraryItemEntity>) {
+  private fun cleanupPodcasts(libraryId: String, entities: List<LibraryItemEntity>) {
     val episodeIds =
       queries
         .byLibraryId(libraryId)

@@ -1,9 +1,6 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
-
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

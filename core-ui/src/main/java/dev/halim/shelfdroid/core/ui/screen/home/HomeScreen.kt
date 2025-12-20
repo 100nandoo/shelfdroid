@@ -31,8 +31,10 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -57,6 +59,7 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 import dev.halim.shelfdroid.core.ui.screen.home.item.HomeItem
+import dev.halim.shelfdroid.core.ui.screen.home.item.HomeItemBottomSheet
 import kotlinx.coroutines.launch
 
 @Composable
@@ -249,6 +252,39 @@ fun LibraryContent(
   val processedBooks = bookFilterAndSort(books, displayPrefs)
   val processedPodcasts = podcastFilterAndSort(podcasts, displayPrefs)
 
+  val scope = rememberCoroutineScope()
+
+  val sheetState = rememberModalBottomSheetState()
+  var selectedBook by remember { mutableStateOf(BookUiState()) }
+  var selectedPodcast by remember { mutableStateOf(PodcastUiState()) }
+  var isBook by remember { mutableStateOf(false) }
+
+  val canDelete = prefs.userPrefs.delete
+
+  fun onLongClick(book: BookUiState?, podcast: PodcastUiState?) {
+    if (canDelete.not()) return
+    if (book != null) {
+      selectedBook = book
+    } else if (podcast != null) {
+      selectedPodcast = podcast
+    }
+    isBook = book != null
+    scope.launch { sheetState.show() }
+  }
+
+  if (sheetState.isVisible) {
+    HomeItemBottomSheet(
+      sheetState = sheetState,
+      isBook = isBook,
+      selectedBook = selectedBook,
+      selectedPodcast = selectedPodcast,
+      onDelete = {
+        val itemId = if (isBook) selectedBook.id else selectedPodcast.id
+        onEvent(HomeEvent.Delete(id, itemId, isBook))
+      },
+    )
+  }
+
   LazyVerticalGrid(
     state = gridState,
     columns = GridCells.Fixed(columnCount),
@@ -280,6 +316,7 @@ fun LibraryContent(
         author = book.author,
         cover = book.cover,
         onClick = { onEvent(HomeEvent.Navigate(book.id, true)) },
+        onLongClick = { onLongClick(book, null) },
       )
       if (listView) {
         HorizontalDivider()
@@ -298,6 +335,7 @@ fun LibraryContent(
         cover = podcast.cover,
         unfinishedEpisodeCount = count,
         onClick = { onEvent(HomeEvent.Navigate(podcast.id, false)) },
+        onLongClick = { onLongClick(null, podcast) },
       )
       if (listView) {
         HorizontalDivider()

@@ -19,7 +19,7 @@ fun MyAlertDialog(
   confirmText: String,
   dismissText: String = stringResource(R.string.cancel),
   onConfirm: () -> Unit,
-  onDismiss: () -> Unit,
+  onDismiss: () -> Unit = {},
 ) {
   if (showDialog) {
     AlertDialog(

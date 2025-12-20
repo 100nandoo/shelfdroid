@@ -82,6 +82,10 @@ class ProgressRepo @Inject constructor(db: MyDatabase, val helper: Helper) {
       }
   }
 
+  fun deleteItem(itemId: String) {
+    queries.deleteItemById(itemId)
+  }
+
   private fun cleanup() {
     queries.deleteAll()
   }

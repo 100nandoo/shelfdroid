@@ -1,9 +1,5 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
-
 package dev.halim.shelfdroid.core.ui.screen.book
 
-import ItemDetail
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,6 +36,7 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.SnackBarHostScreen
+import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
 
 @Composable
 fun BookScreen(viewModel: BookViewModel = hiltViewModel(), playerViewModel: PlayerViewModel) {

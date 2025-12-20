@@ -206,6 +206,11 @@ constructor(
           }
         }
       }
+      is HomeEvent.Delete -> {
+        viewModelScope.launch {
+          _uiState.update { repository.deleteItem(it, event.libraryId, event.itemId, event.isBook) }
+        }
+      }
     }
   }
 
@@ -228,4 +233,6 @@ sealed class HomeEvent {
   data class Navigate(val id: String, val isBook: Boolean) : HomeEvent()
 
   data class HomeDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : HomeEvent()
+
+  data class Delete(val libraryId: String, val itemId: String, val isBook: Boolean) : HomeEvent()
 }

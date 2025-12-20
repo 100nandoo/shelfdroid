@@ -1,6 +1,6 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
+package dev.halim.shelfdroid.core.ui.screen.home.item
 
-import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +41,7 @@ fun LazyGridItemScope.HomeItemGrid(
   author: String,
   cover: String,
   onClick: () -> Unit,
+  onLongClick: () -> Unit,
   unfinishedEpisodeCount: Int = 0,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
@@ -49,8 +50,11 @@ fun LazyGridItemScope.HomeItemGrid(
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Card(
-        modifier = Modifier.animateItem().mySharedBound(Animations.containerKey(id)).padding(4.dp),
-        onClick = onClick,
+        modifier =
+          Modifier.animateItem()
+            .mySharedBound(Animations.containerKey(id))
+            .padding(4.dp)
+            .combinedClickable(onLongClick = onLongClick, onClick = onClick),
         shape = RoundedCornerShape(8.dp),
       ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -155,6 +159,7 @@ fun PreviewHomeItemTwoGrid() {
           author = book.author,
           cover = book.cover,
           onClick = {},
+          onLongClick = {},
         )
       }
     }
@@ -177,6 +182,7 @@ fun PreviewHomeItemThreeGrid() {
           author = book.author,
           cover = book.cover,
           onClick = {},
+          onLongClick = {},
         )
       }
     }
