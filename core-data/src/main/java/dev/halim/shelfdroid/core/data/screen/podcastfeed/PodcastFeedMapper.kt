@@ -21,7 +21,7 @@ class PodcastFeedMapper @Inject constructor(private val libraryRepo: LibraryRepo
       author = metadata.author,
       feedUrl = metadata.feedUrl,
       genres = genres,
-      type = metadata.type,
+      type = metadata.type ?: "episodic",
       language = metadata.language,
       explicit = metadata.explicit == "true",
       description = metadata.descriptionPlain,

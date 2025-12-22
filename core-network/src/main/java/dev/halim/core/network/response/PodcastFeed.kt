@@ -18,7 +18,7 @@ data class PodcastMetadata(
   @SerialName("feedUrl") val feedUrl: String,
   @SerialName("description") val description: String,
   @SerialName("descriptionPlain") val descriptionPlain: String,
-  @SerialName("type") val type: String,
+  @SerialName("type") val type: String?,
   @SerialName("title") val title: String,
   @SerialName("language") val language: String,
   @SerialName("explicit") val explicit: String?,

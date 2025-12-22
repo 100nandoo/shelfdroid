@@ -44,7 +44,7 @@ data class PodcastMetadata(
   @SerialName("imageUrl") val imageUrl: String? = "",
   @SerialName("itunesPageUrl") val itunesPageUrl: String? = "",
   @SerialName("itunesId") val itunesId: Int? = 0,
-  @SerialName("itunesArtistId") val itunesArtistId: Int? = 0,
+  @SerialName("itunesArtistId") val itunesArtistId: String? = "",
 ) : Metadata()
 
 @Serializable
