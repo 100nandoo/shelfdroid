@@ -17,7 +17,10 @@ import kotlinx.coroutines.launch
 
 class PlayerEventListener
 @Inject
-constructor(private val player: Lazy<ExoPlayer>, private val podcastRepository: PodcastRepository) {
+constructor(
+  private val playerManager: Lazy<ExoPlayerManager>,
+  private val podcastRepository: PodcastRepository,
+) {
   @OptIn(UnstableApi::class)
   fun listen(
     uiState: PlayerUiState,
@@ -25,7 +28,7 @@ constructor(private val player: Lazy<ExoPlayer>, private val podcastRepository: 
     onEvents: Player.(Player.Events) -> Unit,
   ): Job {
     return CoroutineScope(Dispatchers.Default).launch {
-      player.get().apply {
+      playerManager.get().player.get().apply {
         listen { event ->
           goToNextChapterLogic(this@apply, uiState, changeChapterEvent)
           onEvents(event)

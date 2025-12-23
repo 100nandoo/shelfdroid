@@ -4,7 +4,6 @@ import androidx.annotation.OptIn
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
-import androidx.media3.exoplayer.ExoPlayer
 import dagger.Lazy
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.MediaStructure
@@ -35,8 +34,7 @@ class StateHolder
 @Inject
 constructor(
   private val playerEventListener: Lazy<PlayerEventListener>,
-  private val player: Lazy<ExoPlayer>,
-  private val exoPlayerManager: ExoPlayerManager,
+  private val playerManager: ExoPlayerManager,
   private val playerRepository: PlayerRepository,
   private val mediaItemMapper: MediaItemMapper,
   private val timerManager: TimerManager,
@@ -48,7 +46,7 @@ constructor(
 
   init {
     syncScope.launch {
-      exoPlayerManager.events.distinctUntilChanged().collect { event ->
+      playerManager.events.distinctUntilChanged().collect { event ->
         val exoState = if (event == PlayerEvent.Resume) ExoState.Playing else ExoState.Pause
         uiState.update { it.copy(exoState = exoState) }
       }
@@ -56,7 +54,7 @@ constructor(
   }
 
   fun playContent() {
-    player.get().apply {
+    playerManager.player.get().apply {
       changeContent()
       play()
       collectPlaybackProgress()
@@ -66,7 +64,7 @@ constructor(
   }
 
   fun changeContent() {
-    player.get().apply {
+    playerManager.player.get().apply {
       val multiTrackWithChapters = state.mediaStructure() == MediaStructure.MultiTrackWithChapters
       if (multiTrackWithChapters) {
         val mediaItems = mediaItemMapper.toMediaItemList(uiState.value)
@@ -92,7 +90,7 @@ constructor(
       val advancedControl = uiState.value.advancedControl.copy(sleepTimerLeft = duration)
       it.copy(advancedControl = advancedControl)
     }
-    timerManager.start(duration, { player.get().pause() })
+    timerManager.start(duration, { playerManager.player.get().pause() })
     collectSleepTimer()
   }
 
@@ -126,7 +124,7 @@ constructor(
   }
 
   private fun handleSeekSliderState(events: Player.Events) {
-    with(player.get()) {
+    with(playerManager.player.get()) {
       if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
         val multipleButtonState =
           uiState.value.multipleButtonState.copy(
@@ -138,7 +136,7 @@ constructor(
   }
 
   private fun handleSeekBackState(events: Player.Events) {
-    with(player.get()) {
+    with(playerManager.player.get()) {
       if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
         val multipleButtonState =
           uiState.value.multipleButtonState.copy(
@@ -150,7 +148,7 @@ constructor(
   }
 
   private fun handleSeekForwardState(events: Player.Events) {
-    with(player.get()) {
+    with(playerManager.player.get()) {
       if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
         val multipleButtonState =
           uiState.value.multipleButtonState.copy(
@@ -163,7 +161,7 @@ constructor(
 
   @OptIn(UnstableApi::class)
   private fun handlePlayPauseState(events: Player.Events) {
-    with(player.get()) {
+    with(playerManager.player.get()) {
       if (
         events.containsAny(
           Player.EVENT_PLAYBACK_STATE_CHANGED,
@@ -190,7 +188,7 @@ constructor(
     playbackProgressJob?.cancel()
     playbackProgressJob =
       CoroutineScope(Dispatchers.Main).launch {
-        player.get().playbackProgressFlow().collect { raw ->
+        playerManager.player.get().playbackProgressFlow().collect { raw ->
           uiState.update { playerRepository.toPlayback(uiState.value, raw) }
         }
       }

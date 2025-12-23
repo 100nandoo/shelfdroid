@@ -22,7 +22,9 @@ sealed class PlayerEvent {
 }
 
 @Singleton
-class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
+class ExoPlayerManager @Inject constructor() {
+
+  @Inject lateinit var player: Lazy<ExoPlayer>
 
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
   private val _events = MutableSharedFlow<PlayerEvent>()
@@ -45,10 +47,6 @@ class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
         }
       }
     }
-
-  init {
-    player.get().addListener(listener)
-  }
 
   fun isPlaying() = player.get().isPlaying
 
@@ -115,6 +113,18 @@ class ExoPlayerManager @Inject constructor(val player: Lazy<ExoPlayer>) {
 
   fun currentTime(): Long {
     return player.get().currentPosition
+  }
+
+  fun addListener(listener: Player.Listener) {
+    player.get().addListener(listener)
+  }
+
+  fun addDefaultListener() {
+    player.get().addListener(listener)
+  }
+
+  fun currentMediaItem(): MediaItem? {
+    return player.get().currentMediaItem
   }
 
   private fun emit(event: PlayerEvent) {
