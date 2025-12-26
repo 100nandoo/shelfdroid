@@ -158,6 +158,7 @@ private fun ColumnScope.NavHostContainer(
       composable<Settings> {
         SettingsScreen(onPlaybackClicked = { navController.navigate(SettingsPlayback) })
       }
+
       composable<SettingsPlayback> { SettingsPlaybackScreen() }
 
       composable<SearchPodcast> { entry ->

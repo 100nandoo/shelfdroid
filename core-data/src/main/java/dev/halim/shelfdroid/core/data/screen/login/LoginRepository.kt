@@ -40,7 +40,7 @@ constructor(
           else -> exception.message()
         }
       } else {
-        "Unknown error"
+        exception?.message
       }
     return uiState.copy(loginState = LoginState.Failure(message))
   }

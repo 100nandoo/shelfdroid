@@ -64,9 +64,14 @@ fun SettingsLabel(
 fun SettingsSublabel(
   modifier: Modifier = Modifier,
   text: String,
-  style: TextStyle = MaterialTheme.typography.bodyLarge,
+  style: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
-  Text(text = text, style = style, modifier = modifier)
+  Text(
+    text = text,
+    style = style,
+    modifier = modifier,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+  )
 }
 
 @Composable

@@ -125,7 +125,10 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     },
   )
   val paddingStartTwo = Modifier.padding(start = 16.dp, top = 4.dp)
-  SettingsSublabel(Modifier.padding(start = 8.dp, top = 4.dp), text = "Book Library")
+  SettingsSublabel(
+    Modifier.padding(start = 8.dp, top = 4.dp),
+    text = stringResource(R.string.book_library),
+  )
   Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
     ExposedDropdownMenu(
       modifier = Modifier.weight(1f),
@@ -146,7 +149,10 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     )
   }
 
-  SettingsSublabel(Modifier.padding(start = 8.dp, top = 4.dp), text = "Podcast Library")
+  SettingsSublabel(
+    Modifier.padding(start = 8.dp, top = 4.dp),
+    text = stringResource(R.string.podcast_library),
+  )
   Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
     ExposedDropdownMenu(
       modifier = Modifier.weight(1f),

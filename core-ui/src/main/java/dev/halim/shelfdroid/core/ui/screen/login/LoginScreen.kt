@@ -113,6 +113,7 @@ fun LoginScreenContent(
         value = uiState.server,
         onValueChange = { onEvent(LoginEvent.ServerChanged(it)) },
         label = stringResource(R.string.server_address),
+        prefix = stringResource(R.string.https),
         placeholder = stringResource(R.string.placeholder_server),
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),

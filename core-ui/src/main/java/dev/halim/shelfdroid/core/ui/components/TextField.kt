@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ fun MyOutlinedTextField(
   value: String,
   onValueChange: (String) -> Unit,
   label: String,
+  prefix: String? = null,
   placeholder: String? = null,
   keyboardOptions: KeyboardOptions,
   visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -33,6 +35,7 @@ fun MyOutlinedTextField(
     value = value,
     onValueChange = { onValueChange(it) },
     label = { Text(label) },
+    prefix = prefix?.let { { Text(it, color = MaterialTheme.colorScheme.primary) } },
     placeholder = placeholder?.let { { Text(it) } },
     keyboardOptions = keyboardOptions,
     visualTransformation = visualTransformation,

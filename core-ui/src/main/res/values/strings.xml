@@ -62,12 +62,18 @@
     <string name="go_to_settings">Go to settings</string>
     <!--SnackBar-->
 
+    <!--Login-->
+    <string name="https">https://</string>
+    <!--Login-->
+
     <!--Settings-->
     <string name="list_view">List View</string>
     <string name="show_only_downloaded">Show Only Downloaded</string>
     <string name="home_screen">Home Screen</string>
     <string name="playback_settings_and_behaviour">Playback settings and behaviour</string>
     <string name="playback">Playback</string>
+    <string name="book_library">Book Library</string>
+    <string name="podcast_library">Podcast Library</string>
     <!--Settings-->
 
     <!--Settings Playback-->
@@ -78,6 +84,17 @@
     <string name="when_switching_between_podcast_episodes">When switching between podcast episodes:</string>
     <string name="when_switching_between_books">When switching between books:</string>
     <!--Settings Playback-->
+
+    <!--Podcast Feed-->
+    <string name="title">Title</string>
+    <string name="author">Author</string>
+    <string name="feed_url">Feed URL</string>
+    <string name="description">Description</string>
+    <string name="path">Path</string>
+    <string name="auto_download_episodes">Auto Download Episodes</string>
+    <string name="submit">Submit</string>
+    <string name="podcast_created_successfully">Podcast created successfully!</string>
+    <!--Podcast Feed-->
 
     <string name="ok">OK</string>
     <string name="no_cover">No cover</string>
@@ -108,16 +125,6 @@
     <string name="is_not_an_admin">" is not an admin"</string>
     <string name="clear">Clear</string>
 
-    <!--Podcast Feed-->
-    <string name="title">Title</string>
-    <string name="author">Author</string>
-    <string name="feed_url">Feed URL</string>
-    <string name="description">Description</string>
-    <string name="path">Path</string>
-    <string name="auto_download_episodes">Auto Download Episodes</string>
-    <string name="submit">Submit</string>
-    <string name="podcast_created_successfully">Podcast created successfully!</string>
-    <!--Podcast Feed-->
 
     <!--Others-->
 
