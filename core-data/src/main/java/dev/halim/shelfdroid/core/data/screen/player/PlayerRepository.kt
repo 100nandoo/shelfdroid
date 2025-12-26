@@ -183,6 +183,8 @@ constructor(
       val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }
       val advancedControl = decideAdvanceControl(existing, changeBehaviour)
 
+      val currentTime = if (progress?.isFinished == 1L) 0.0 else progress?.currentTime ?: 0.0
+
       PlayerUiState(
         state = PlayerState.Small,
         id = result.id,
@@ -192,7 +194,7 @@ constructor(
         cover = result.cover,
         playerTracks = listOf(playerTrack),
         currentTrack = playerTrack,
-        currentTime = progress?.currentTime ?: 0.0,
+        currentTime = currentTime,
         downloadState = downloadState,
         advancedControl = advancedControl,
       )

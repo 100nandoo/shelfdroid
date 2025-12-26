@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,11 +37,14 @@ import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.SnackBarHostScreen
 import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 
 @Composable
-fun EpisodeScreen(viewModel: EpisodeViewModel = hiltViewModel(), playerViewModel: PlayerViewModel) {
+fun EpisodeScreen(
+  viewModel: EpisodeViewModel = hiltViewModel(),
+  playerViewModel: PlayerViewModel,
+  snackbarHostState: SnackbarHostState,
+) {
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
@@ -57,6 +61,7 @@ fun EpisodeScreen(viewModel: EpisodeViewModel = hiltViewModel(), playerViewModel
       description = uiState.description,
       isPlaying = isPlaying,
       downloadUiState = uiState.download,
+      snackbarHostState = snackbarHostState,
       onDownloadClicked = {
         viewModel.onEvent(EpisodeEvent.DownloadEvent(CommonDownloadEvent.Download))
       },
@@ -86,6 +91,7 @@ fun EpisodeScreenContent(
   description: String = Defaults.EPISODE_DESCRIPTION,
   isPlaying: Boolean = false,
   downloadUiState: DownloadUiState = DownloadUiState(),
+  snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onDownloadClicked: () -> Unit = {},
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit = {},
@@ -95,57 +101,53 @@ fun EpisodeScreenContent(
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      SnackBarHostScreen { snackbarHostState ->
-        LazyColumn(
-          modifier =
-            Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episodeId))
-              .fillMaxSize()
-              .padding(horizontal = 16.dp),
-          reverseLayout = true,
-          verticalArrangement = Arrangement.Bottom,
-        ) {
-          item {
-            PlayAndDownload(
-              isPlaying = isPlaying,
-              downloadState = downloadUiState.state,
-              snackbarHostState = snackbarHostState,
-              onDownloadClicked = onDownloadClicked,
-              onDeleteDownloadClicked = onDeleteDownloadClicked,
-              onPlayClicked = onPlayClicked,
+      LazyColumn(
+        modifier =
+          Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episodeId))
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        reverseLayout = true,
+        verticalArrangement = Arrangement.Bottom,
+      ) {
+        item {
+          PlayAndDownload(
+            isPlaying = isPlaying,
+            downloadState = downloadUiState.state,
+            snackbarHostState = snackbarHostState,
+            onDownloadClicked = onDownloadClicked,
+            onDeleteDownloadClicked = onDeleteDownloadClicked,
+            onPlayClicked = onPlayClicked,
+          )
+        }
+        item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
+        item {
+          Row(Modifier.height(IntrinsicSize.Max)) {
+            ItemCover(
+              Modifier.weight(1f).fillMaxHeight(),
+              cover = cover,
+              animationKey = Animations.Companion.Episode.coverKey(itemId),
+              fontSize = 10.sp,
+              shape = RoundedCornerShape(4.dp),
             )
-          }
-          item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
-          item {
-            Row(Modifier.height(IntrinsicSize.Max)) {
-              ItemCover(
-                Modifier.weight(1f).fillMaxHeight(),
-                cover = cover,
-                animationKey = Animations.Companion.Episode.coverKey(itemId),
-                fontSize = 10.sp,
-                shape = RoundedCornerShape(4.dp),
-              )
 
-              Column(
-                Modifier.weight(4f).padding(8.dp).fillMaxHeight(),
-                verticalArrangement = Arrangement.Center,
-              ) {
-                Text(
-                  modifier =
-                    Modifier.mySharedBound(Animations.Companion.Episode.titleKey(episodeId, title)),
-                  text = title,
-                  style = MaterialTheme.typography.titleLarge,
-                )
-                Text(
-                  modifier =
-                    Modifier.mySharedElement(
-                      Animations.Companion.Episode.publishedAtKey(episodeId)
-                    ),
-                  text = publishedAt,
-                  style = MaterialTheme.typography.labelMedium,
-                  textAlign = TextAlign.Start,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-              }
+            Column(
+              Modifier.weight(4f).padding(8.dp).fillMaxHeight(),
+              verticalArrangement = Arrangement.Center,
+            ) {
+              Text(
+                modifier =
+                  Modifier.mySharedBound(Animations.Companion.Episode.titleKey(episodeId, title)),
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+              )
+              Text(
+                modifier =
+                  Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episodeId)),
+                text = publishedAt,
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Start,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
             }
           }
         }

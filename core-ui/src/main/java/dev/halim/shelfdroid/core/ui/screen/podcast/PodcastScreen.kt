@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,13 +34,13 @@ import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.SnackBarHostScreen
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
 
 @Composable
 fun PodcastScreen(
   viewModel: PodcastViewModel = hiltViewModel(),
   playerViewModel: PlayerViewModel,
+  snackbarHostState: SnackbarHostState,
   onEpisodeClicked: (String, String) -> Unit,
 ) {
   InitMediaControllerIfMainActivity()
@@ -48,6 +49,7 @@ fun PodcastScreen(
     PodcastScreenContent(
       uiState = uiState,
       id = viewModel.id,
+      snackbarHostState = snackbarHostState,
       onEvent = viewModel::onEvent,
       onEpisodeClicked = onEpisodeClicked,
       onPlayClicked = { itemId, episodeId, isDownloaded ->
@@ -69,6 +71,7 @@ fun PodcastScreenContent(
       episodes = Defaults.EPISODES,
     ),
   id: String = Defaults.BOOK_ID,
+  snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onEvent: (PodcastEvent) -> Unit = {},
   onEpisodeClicked: (String, String) -> Unit = { _, _ -> },
   onPlayClicked: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -82,33 +85,31 @@ fun PodcastScreenContent(
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      SnackBarHostScreen { snackbarHostState ->
-        LazyColumn(
-          modifier = Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize(),
-          reverseLayout = true,
-        ) {
-          item { Spacer(modifier = Modifier.height(12.dp)) }
-          items(episodes) { episode ->
-            EpisodeItem(id, episode, onEvent, onEpisodeClicked, onPlayClicked, snackbarHostState)
-            HorizontalDivider()
-          }
-          item {
-            Text(
-              modifier = Modifier.padding(horizontal = 16.dp),
-              text = stringResource(R.string.episodes),
-              style = MaterialTheme.typography.headlineMedium,
-              textAlign = TextAlign.Left,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+      LazyColumn(
+        modifier = Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize(),
+        reverseLayout = true,
+      ) {
+        item { Spacer(modifier = Modifier.height(12.dp)) }
+        items(episodes) { episode ->
+          EpisodeItem(id, episode, onEvent, onEpisodeClicked, onPlayClicked, snackbarHostState)
+          HorizontalDivider()
+        }
+        item {
+          Text(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            text = stringResource(R.string.episodes),
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Left,
+          )
+          Spacer(modifier = Modifier.height(16.dp))
 
-            ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
+          ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
 
-            Column(
-              horizontalAlignment = Alignment.CenterHorizontally,
-              modifier = Modifier.padding(horizontal = 16.dp),
-            ) {
-              ItemDetail(id, uiState.cover, uiState.title, uiState.author)
-            }
+          Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 16.dp),
+          ) {
+            ItemDetail(id, uiState.cover, uiState.title, uiState.author)
           }
         }
       }

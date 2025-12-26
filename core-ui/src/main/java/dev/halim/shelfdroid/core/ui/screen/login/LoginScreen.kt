@@ -20,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,8 +58,11 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), onLoginSuccess: () -> Unit) {
-  val snackbarHostState = remember { SnackbarHostState() }
+fun LoginScreen(
+  viewModel: LoginViewModel = hiltViewModel(),
+  snackbarHostState: SnackbarHostState,
+  onLoginSuccess: () -> Unit,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
   val focusManager = LocalFocusManager.current
@@ -80,7 +82,7 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), onLoginSuccess: () 
     }
   }
 
-  LoginScreenContent(uiState, focusManager, viewModel::onEvent, snackbarHostState)
+  LoginScreenContent(uiState, focusManager, viewModel::onEvent)
 }
 
 @Composable
@@ -88,7 +90,6 @@ fun LoginScreenContent(
   uiState: LoginUiState = LoginUiState(),
   focusManager: FocusManager = LocalFocusManager.current,
   onEvent: (LoginEvent) -> Unit = {},
-  snackbarHostState: SnackbarHostState = SnackbarHostState(),
 ) {
   val (serverRef, usernameRef, passwordRef) = remember { FocusRequester.createRefs() }
 
@@ -98,11 +99,6 @@ fun LoginScreenContent(
     AnimatedVisibility(uiState.loginState is LoginState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
     }
-
-    SnackbarHost(
-      hostState = snackbarHostState,
-      modifier = Modifier.align(Alignment.TopCenter).imePadding(),
-    )
 
     Column(
       modifier = Modifier.fillMaxSize().padding(16.dp),

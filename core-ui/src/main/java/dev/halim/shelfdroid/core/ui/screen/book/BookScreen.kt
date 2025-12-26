@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,11 +36,14 @@ import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.SnackBarHostScreen
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
 
 @Composable
-fun BookScreen(viewModel: BookViewModel = hiltViewModel(), playerViewModel: PlayerViewModel) {
+fun BookScreen(
+  viewModel: BookViewModel = hiltViewModel(),
+  playerViewModel: PlayerViewModel,
+  snackbarHostState: SnackbarHostState,
+) {
   InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
@@ -63,6 +67,7 @@ fun BookScreen(viewModel: BookViewModel = hiltViewModel(), playerViewModel: Play
       downloadState = downloadState,
       currentItemId = playerUiState.id,
       exoState = playerUiState.exoState,
+      snackbarHostState = snackbarHostState,
       onDownloadClicked = {
         viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.Download))
       },
@@ -95,6 +100,7 @@ fun BookScreenContent(
   downloadState: DownloadState = DownloadState.Unknown,
   currentItemId: String = Defaults.BOOK_ID,
   exoState: ExoState = ExoState.Pause,
+  snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onDownloadClicked: () -> Unit = {},
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit,
@@ -106,31 +112,29 @@ fun BookScreenContent(
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      SnackBarHostScreen { snackbarHostState ->
-        LazyColumn(
-          modifier =
-            Modifier.mySharedBound(Animations.containerKey(id))
-              .fillMaxSize()
-              .padding(horizontal = 16.dp),
-          reverseLayout = true,
-          verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom),
-        ) {
-          item {
-            Spacer(modifier = Modifier.height(16.dp))
-            PlayAndDownload(
-              isPlaying = isPlaying,
-              downloadState = downloadState,
-              snackbarHostState = snackbarHostState,
-              onDownloadClicked = onDownloadClicked,
-              onDeleteDownloadClicked = onDeleteDownloadClicked,
-              onPlayClicked = onPlayClicked,
-            )
-            ProgressRow(progress, remaining)
-            ExpandShrinkText(text = description)
-            BookDetail(duration, narrator, publishYear, publisher, genres, language)
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              ItemDetail(id, cover, title, author, subtitle = subtitle)
-            }
+      LazyColumn(
+        modifier =
+          Modifier.mySharedBound(Animations.containerKey(id))
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        reverseLayout = true,
+        verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom),
+      ) {
+        item {
+          Spacer(modifier = Modifier.height(16.dp))
+          PlayAndDownload(
+            isPlaying = isPlaying,
+            downloadState = downloadState,
+            snackbarHostState = snackbarHostState,
+            onDownloadClicked = onDownloadClicked,
+            onDeleteDownloadClicked = onDeleteDownloadClicked,
+            onPlayClicked = onPlayClicked,
+          )
+          ProgressRow(progress, remaining)
+          ExpandShrinkText(text = description)
+          BookDetail(duration, narrator, publishYear, publisher, genres, language)
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            ItemDetail(id, cover, title, author, subtitle = subtitle)
           }
         }
       }
