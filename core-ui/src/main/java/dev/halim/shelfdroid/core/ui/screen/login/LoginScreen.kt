@@ -106,6 +106,8 @@ fun LoginScreenContent(
       verticalArrangement = Arrangement.Bottom,
     ) {
       MyOutlinedTextField(
+        modifier = Modifier.fillMaxWidth().focusRequester(serverRef).testTag("server"),
+        readOnly = uiState.reLogin,
         value = uiState.server,
         onValueChange = { onEvent(LoginEvent.ServerChanged(it)) },
         label = stringResource(R.string.server_address),
@@ -113,31 +115,31 @@ fun LoginScreenContent(
         placeholder = stringResource(R.string.placeholder_server),
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
-        modifier = Modifier.fillMaxWidth().focusRequester(serverRef).testTag("server"),
         onNext = { focusManager.moveFocus(FocusDirection.Next) },
       )
 
       Spacer(modifier = Modifier.height(8.dp))
 
       MyOutlinedTextField(
+        modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
+        readOnly = uiState.reLogin,
         value = uiState.username,
         onValueChange = { onEvent(LoginEvent.UsernameChanged(it)) },
         label = stringResource(R.string.username),
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-        modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
         onNext = { focusManager.moveFocus(FocusDirection.Next) },
       )
 
       Spacer(modifier = Modifier.height(8.dp))
 
       PasswordTextField(
+        modifier = Modifier.testTag(stringResource(R.string.password)).focusRequester(passwordRef),
         value = uiState.password,
         onValueChange = { onEvent(LoginEvent.PasswordChanged(it)) },
         label = stringResource(R.string.password),
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-        modifier = Modifier.testTag(stringResource(R.string.password)).focusRequester(passwordRef),
         onDone = { onEvent(LoginEvent.LoginButtonPressed) },
       )
 

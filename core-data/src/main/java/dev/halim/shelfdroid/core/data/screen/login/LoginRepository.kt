@@ -19,6 +19,9 @@ constructor(
   private val bookmarkRepo: BookmarkRepo,
 ) {
 
+  val userPrefs = dataStoreManager.userPrefs
+  val baseUrl = dataStoreManager.baseUrl
+
   suspend fun login(uiState: LoginUiState): LoginUiState {
     DataStoreManager.BASE_URL = uiState.server
     val request = LoginRequest(uiState.username, uiState.password)
@@ -60,6 +63,7 @@ data class LoginUiState(
   val server: String = "",
   val username: String = "",
   val password: String = "",
+  val reLogin: Boolean = false,
 )
 
 sealed class LoginState {

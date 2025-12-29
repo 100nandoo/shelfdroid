@@ -41,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 fun SettingsScreen(
   viewModel: SettingsViewModel = hiltViewModel(),
   onPlaybackClicked: () -> Unit = {},
+  reLogin: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val version = remember { viewModel.version }
@@ -49,6 +50,7 @@ fun SettingsScreen(
     version = version,
     user = uiState.username,
     onPlaybackClicked = onPlaybackClicked,
+    reLogin = reLogin,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
   )
 }
@@ -59,13 +61,14 @@ fun SettingsScreenContent(
   version: String = Defaults.VERSION,
   user: String = Defaults.USERNAME,
   onPlaybackClicked: () -> Unit = {},
+  reLogin: () -> Unit = {},
   onEvent: (SettingsEvent) -> Unit = {},
 ) {
   Column(
     modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    LogoutSection(onEvent)
+    LogoutSection(onEvent, reLogin)
     Spacer(modifier = Modifier.height(16.dp))
 
     OthersSection(version, user, uiState)
@@ -191,14 +194,24 @@ private fun OthersSection(version: String, user: String, uiState: SettingsUiStat
 }
 
 @Composable
-fun LogoutSection(onEvent: (SettingsEvent) -> Unit = {}) {
+fun LogoutSection(onEvent: (SettingsEvent) -> Unit = {}, reLogin: () -> Unit) {
   var showLogoutDialog by remember { mutableStateOf(false) }
+  var showReLoginDialog by remember { mutableStateOf(false) }
 
-  TextButton(
-    onClick = { showLogoutDialog = true },
-    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-  ) {
-    Text(stringResource(R.string.logout))
+  Row {
+    TextButton(
+      onClick = { showLogoutDialog = true },
+      modifier = Modifier.weight(1f).padding(vertical = 4.dp),
+    ) {
+      Text(stringResource(R.string.logout))
+    }
+
+    TextButton(
+      onClick = { showReLoginDialog = true },
+      modifier = Modifier.weight(1f).padding(vertical = 4.dp),
+    ) {
+      Text(stringResource(R.string.re_login))
+    }
   }
 
   MyAlertDialog(
@@ -212,6 +225,19 @@ fun LogoutSection(onEvent: (SettingsEvent) -> Unit = {}) {
       showLogoutDialog = false
     },
     onDismiss = { showLogoutDialog = false },
+  )
+
+  MyAlertDialog(
+    title = stringResource(R.string.re_login),
+    text = stringResource(R.string.dialog_re_login_text),
+    showDialog = showReLoginDialog,
+    confirmText = stringResource(R.string.ok),
+    dismissText = stringResource(R.string.cancel),
+    onConfirm = {
+      reLogin()
+      showReLoginDialog = false
+    },
+    onDismiss = { showReLoginDialog = false },
   )
 }
 

@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 @Composable
 fun MyOutlinedTextField(
   modifier: Modifier = Modifier,
+  readOnly: Boolean = false,
   value: String,
   onValueChange: (String) -> Unit,
   label: String,
@@ -32,6 +33,8 @@ fun MyOutlinedTextField(
   onDone: (() -> Unit)? = null,
 ) {
   OutlinedTextField(
+    modifier = modifier.fillMaxWidth(),
+    readOnly = readOnly,
     value = value,
     onValueChange = { onValueChange(it) },
     label = { Text(label) },
@@ -39,7 +42,6 @@ fun MyOutlinedTextField(
     placeholder = placeholder?.let { { Text(it) } },
     keyboardOptions = keyboardOptions,
     visualTransformation = visualTransformation,
-    modifier = modifier.fillMaxWidth(),
     keyboardActions =
       KeyboardActions(onNext = onNext?.let { { it() } }, onDone = onDone?.let { { it() } }),
   )

@@ -51,7 +51,7 @@ import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScre
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
-@Serializable object Login
+@Serializable data class Login(val reLogin: Boolean = false)
 
 @Serializable data class Home(val fromLogin: Boolean)
 
@@ -76,7 +76,7 @@ fun MainNavigation(
 ) {
   SharedTransitionLayout {
     val navController = rememberNavController()
-    val startDestination = if (isLoggedIn) Home(false) else Login
+    val startDestination = if (isLoggedIn) Home(false) else Login()
 
     LaunchedEffect(navRequest.mediaId) {
       handlePendingMediaId(navRequest, isLoggedIn, navController, onNavRequestComplete, viewModel)
@@ -127,7 +127,10 @@ private fun ColumnScope.NavHostContainer(
           LoginScreen(
             snackbarHostState = snackbarHostState,
             onLoginSuccess = {
-              navController.navigate(Home(true)) { popUpTo(Login) { inclusive = true } }
+              navController.navigate(Home(true)) {
+                launchSingleTop = true
+                popUpTo(0) { inclusive = true }
+              }
             },
           )
         }
@@ -165,7 +168,10 @@ private fun ColumnScope.NavHostContainer(
         }
 
         composable<Settings> {
-          SettingsScreen(onPlaybackClicked = { navController.navigate(SettingsPlayback) })
+          SettingsScreen(
+            onPlaybackClicked = { navController.navigate(SettingsPlayback) },
+            reLogin = { navController.navigate(Login(reLogin = true)) },
+          )
         }
 
         composable<SettingsPlayback> { SettingsPlaybackScreen() }
