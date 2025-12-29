@@ -34,7 +34,7 @@ import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ListItem
-import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
+import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.preview.sheetState
@@ -48,26 +48,31 @@ fun HomeItemBottomSheet(
   isBook: Boolean,
   selectedBook: BookUiState,
   selectedPodcast: PodcastUiState,
-  onDelete: () -> Unit = {},
+  initialHardDelete: Boolean = false,
+  onDelete: (Boolean) -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
   var showDeleteDialog by remember { mutableStateOf(false) }
+  var hardDelete by remember { mutableStateOf(initialHardDelete) }
 
   val text =
     if (isBook) stringResource(R.string.dialog_delete_book)
     else stringResource(R.string.dialog_delete_podcast)
-  MyAlertDialog(
+  MyAlertDialogWithCheckbox(
     title = stringResource(R.string.delete),
     text = text,
     showDialog = showDeleteDialog,
     confirmText = stringResource(R.string.delete),
     dismissText = stringResource(R.string.cancel),
     onConfirm = {
-      onDelete()
+      onDelete(hardDelete)
       scope.launch { sheetState.hide() }
       showDeleteDialog = false
     },
     onDismiss = { showDeleteDialog = false },
+    checkboxChecked = hardDelete,
+    onCheckboxChange = { hardDelete = it },
+    checkboxText = stringResource(R.string.delete_from_file_system),
   )
 
   ModalBottomSheet(

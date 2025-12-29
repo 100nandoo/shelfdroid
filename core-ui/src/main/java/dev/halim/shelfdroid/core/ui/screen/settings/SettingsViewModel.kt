@@ -4,11 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.BookSort
-import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
+import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.SortOrder
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
@@ -31,24 +30,18 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
 
   private val _uiState = MutableStateFlow(SettingsUiState())
   val uiState: StateFlow<SettingsUiState> =
-    combine(
-        _uiState,
-        repository.darkMode,
-        repository.dynamicTheme,
-        repository.displayPrefs,
-        repository.userPrefs,
-      ) {
+    combine(_uiState, repository.darkMode, repository.dynamicTheme, repository.prefs) {
         uiState: SettingsUiState,
         isDarkMode: Boolean,
         isDynamicTheme: Boolean,
-        displayPrefs: DisplayPrefs,
-        userPrefs: UserPrefs ->
+        prefs: Prefs ->
         uiState.copy(
           isDarkMode = isDarkMode,
           isDynamicTheme = isDynamicTheme,
-          displayPrefs = displayPrefs,
-          isAdmin = userPrefs.isAdmin,
-          username = userPrefs.username,
+          displayPrefs = prefs.displayPrefs,
+          crudPrefs = prefs.crudPrefs,
+          isAdmin = prefs.userPrefs.isAdmin,
+          username = prefs.userPrefs.username,
         )
       }
       .stateIn(viewModelScope, SharingStarted.Lazily, SettingsUiState())
@@ -65,6 +58,10 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
       is SettingsEvent.SwitchListView -> {
         viewModelScope.launch { repository.updateListView(event.isListView) }
       }
+      is SettingsEvent.SwitchHardDelete -> {
+        viewModelScope.launch { repository.updateHardDelete(event.hardDelete) }
+      }
+
       is SettingsEvent.SettingsDisplayPrefsEvent -> {
         when (event.displayPrefsEvent) {
           is DisplayPrefsEvent.BookSort -> {
@@ -110,6 +107,8 @@ sealed class SettingsEvent {
   data class SwitchDynamicTheme(val isDynamic: Boolean) : SettingsEvent()
 
   data class SwitchListView(val isListView: Boolean) : SettingsEvent()
+
+  data class SwitchHardDelete(val hardDelete: Boolean) : SettingsEvent()
 
   data class SettingsDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : SettingsEvent()
 }

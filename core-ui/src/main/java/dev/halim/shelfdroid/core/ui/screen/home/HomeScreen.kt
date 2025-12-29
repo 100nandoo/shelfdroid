@@ -273,9 +273,10 @@ fun LibraryContent(
       isBook = isBook,
       selectedBook = selectedBook,
       selectedPodcast = selectedPodcast,
+      initialHardDelete = prefs.crudPrefs.hardDelete,
       onDelete = {
         val itemId = if (isBook) selectedBook.id else selectedPodcast.id
-        onEvent(HomeEvent.Delete(id, itemId, isBook))
+        onEvent(HomeEvent.Delete(id, itemId, isBook, it))
       },
     )
   }

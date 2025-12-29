@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.login
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.response.LoginResponse
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
@@ -13,13 +14,14 @@ class LoginRepository
 @Inject
 constructor(
   private val api: ApiService,
-  private val dataStoreManager: DataStoreManager,
   private val mapper: LoginMapper,
+  private val dataStoreManager: DataStoreManager,
+  prefsRepository: PrefsRepository,
   private val progressRepo: ProgressRepo,
   private val bookmarkRepo: BookmarkRepo,
 ) {
 
-  val userPrefs = dataStoreManager.userPrefs
+  val userPrefs = prefsRepository.userPrefs
   val baseUrl = dataStoreManager.baseUrl
 
   suspend fun login(uiState: LoginUiState): LoginUiState {

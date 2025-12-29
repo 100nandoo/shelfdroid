@@ -20,6 +20,7 @@ import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
@@ -44,6 +45,7 @@ class LocalSessionRepo
 @Inject
 constructor(
   private val dataStoreManager: DataStoreManager,
+  private val prefsRepository: PrefsRepository,
   private val libraryItemRepo: LibraryItemRepo,
   private val finder: PlayerFinder,
   private val helper: Helper,
@@ -126,8 +128,8 @@ constructor(
   }
 
   private suspend fun startBook(uiState: PlayerUiState) {
-    val userPrefs = dataStoreManager.userPrefs.firstOrNull()
-    val serverPrefs = dataStoreManager.serverPrefs.firstOrNull()
+    val userPrefs = prefsRepository.userPrefs.firstOrNull()
+    val serverPrefs = prefsRepository.serverPrefs.firstOrNull()
     val book = libraryItemRepo.byId(uiState.id)
     if (userPrefs == null) return
     if (serverPrefs == null) return
@@ -158,8 +160,8 @@ constructor(
   }
 
   private suspend fun startPodcast(uiState: PlayerUiState) {
-    val userPrefs = dataStoreManager.userPrefs.firstOrNull()
-    val serverPrefs = dataStoreManager.serverPrefs.firstOrNull()
+    val userPrefs = prefsRepository.userPrefs.firstOrNull()
+    val serverPrefs = prefsRepository.serverPrefs.firstOrNull()
     val podcast = libraryItemRepo.byId(uiState.id)
     if (userPrefs == null) return
     if (serverPrefs == null) return

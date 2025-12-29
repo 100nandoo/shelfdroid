@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Soft and hard delete podcast
 - [ ] add, delete episode
 - [ ] Add episode
 - [ ] Listening session
@@ -61,3 +60,4 @@
     - [x] Search
     - [x] Feeds
     - [x] Add
+- [x] Soft and hard delete podcast/book

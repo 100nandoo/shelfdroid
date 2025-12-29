@@ -11,10 +11,10 @@ import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.RawPlaybackProgress
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import java.util.UUID
@@ -35,7 +35,7 @@ constructor(
   private val finder: PlayerFinder,
   private val downloadRepo: DownloadRepo,
   private val state: PlayerInternalStateHolder,
-  private val dataStoreManager: DataStoreManager,
+  private val prefsRepository: PrefsRepository,
 ) {
 
   suspend fun playBook(
@@ -205,7 +205,7 @@ constructor(
     existing: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
   ): AdvancedControl {
-    val playbackPrefs = dataStoreManager.playbackPrefs.first()
+    val playbackPrefs = prefsRepository.playbackPrefs.first()
     return when (changeBehaviour) {
       ChangeBehaviour.Type -> {
         val speed = if (playbackPrefs.keepSpeed) existing.speed else 1f

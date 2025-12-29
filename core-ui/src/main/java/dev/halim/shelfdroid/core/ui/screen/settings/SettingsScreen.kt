@@ -127,6 +127,13 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
       onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.Filter(filter.name)))
     },
   )
+  SettingsSwitchItem(
+    modifier = paddingStart,
+    title = stringResource(R.string.user_permanent_delete),
+    checked = uiState.crudPrefs.hardDelete,
+    contentDescription = stringResource(R.string.user_permanent_delete),
+    onCheckedChange = { onEvent(SettingsEvent.SwitchHardDelete(it)) },
+  )
   val paddingStartTwo = Modifier.padding(start = 16.dp, top = 4.dp)
   SettingsSublabel(
     Modifier.padding(start = 8.dp, top = 4.dp),

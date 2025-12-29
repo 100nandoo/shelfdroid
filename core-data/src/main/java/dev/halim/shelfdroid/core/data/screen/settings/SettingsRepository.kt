@@ -10,6 +10,7 @@ import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.database.di.DatabaseModule.DATABASE_NAME
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.io.File
@@ -23,17 +24,17 @@ constructor(
   private val api: ApiService,
   private val dataStoreManager: DataStoreManager,
   private val fileDir: File,
+  private val prefsRepository: PrefsRepository,
   @ApplicationContext private val context: Context,
 ) {
 
   val darkMode = dataStoreManager.darkMode
   val dynamicTheme = dataStoreManager.dynamicTheme
-  val token = dataStoreManager.userPrefs.map { it.accessToken }
-  val userPrefs = dataStoreManager.userPrefs
-  val displayPrefs = dataStoreManager.displayPrefs
+  val token = prefsRepository.userPrefs.map { it.accessToken }
+  val prefs = prefsRepository.prefsFlow()
 
   suspend fun logout(): Result<Unit> {
-    val result = api.logout(userPrefs.first().refreshToken)
+    val result = api.logout(prefsRepository.userPrefs.first().refreshToken)
     result.onSuccess { _ ->
       clearDir()
       dataStoreManager.clear()
@@ -55,6 +56,11 @@ constructor(
 
   suspend fun updateListView(enabled: Boolean) {
     dataStoreManager.updateListView(enabled)
+  }
+
+  suspend fun updateHardDelete(enabled: Boolean) {
+    val crudPrefs = prefsRepository.crudPrefs.first().copy(hardDelete = enabled)
+    dataStoreManager.updateCrudPrefs(crudPrefs)
   }
 
   suspend fun updateFilter(filter: Filter) {

@@ -198,7 +198,9 @@ constructor(
       }
       is HomeEvent.Delete -> {
         viewModelScope.launch {
-          _uiState.update { repository.deleteItem(it, event.libraryId, event.itemId, event.isBook) }
+          _uiState.update {
+            repository.deleteItem(it, event.libraryId, event.itemId, event.isBook, event.hardDelete)
+          }
         }
       }
     }
@@ -212,5 +214,10 @@ sealed class HomeEvent {
 
   data class HomeDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : HomeEvent()
 
-  data class Delete(val libraryId: String, val itemId: String, val isBook: Boolean) : HomeEvent()
+  data class Delete(
+    val libraryId: String,
+    val itemId: String,
+    val isBook: Boolean,
+    val hardDelete: Boolean,
+  ) : HomeEvent()
 }

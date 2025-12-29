@@ -67,9 +67,15 @@
     <string name="https">https://</string>
     <!--Login-->
 
+    <!--Home-->
+    <string name="delete_from_file_system">Delete from file system</string>
+    <!--Home-->
+
+
     <!--Settings-->
     <string name="list_view">List View</string>
     <string name="show_only_downloaded">Show Only Downloaded</string>
+    <string name="user_permanent_delete">Use permanent delete by default</string>
     <string name="home_screen">Home Screen</string>
     <string name="playback_settings_and_behaviour">Playback settings and behaviour</string>
     <string name="playback">Playback</string>

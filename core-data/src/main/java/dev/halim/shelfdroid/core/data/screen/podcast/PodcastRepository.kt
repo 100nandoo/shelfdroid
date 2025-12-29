@@ -4,9 +4,9 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +22,7 @@ constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val progressRepo: ProgressRepo,
   private val downloadRepo: DownloadRepo,
-  private val settingsRepository: SettingsRepository,
+  private val prefsRepository: PrefsRepository,
   private val apiService: ApiService,
   private val mapper: PodcastMapper,
 ) {
@@ -31,12 +31,13 @@ constructor(
   fun item(id: String): Flow<PodcastUiState> {
     val entity = libraryItemRepo.flowById(id)
     val progresses = progressRepo.flowByLibraryItemId(id)
+    val prefs = prefsRepository.prefsFlow()
 
-    return combine(entity, progresses, downloadRepo.downloads, settingsRepository.displayPrefs) {
+    return combine(entity, progresses, downloadRepo.downloads, prefs) {
       entity,
       progresses,
       downloads,
-      displayPrefs ->
+      prefs ->
       entity?.let {
         val media = Json.decodeFromString<Podcast>(it.media)
         val episodes = mapper.mapEpisodes(media.episodes, progresses)
@@ -48,7 +49,7 @@ constructor(
           cover = it.cover,
           description = it.description,
           episodes = episodes,
-          displayPrefs = displayPrefs,
+          displayPrefs = prefs.displayPrefs,
         )
       } ?: PodcastUiState(state = GenericState.Failure("Failed to fetch podcast"))
     }

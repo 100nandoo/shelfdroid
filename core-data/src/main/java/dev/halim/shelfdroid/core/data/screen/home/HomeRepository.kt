@@ -6,11 +6,11 @@ import dev.halim.core.network.response.UserType
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -25,21 +25,19 @@ constructor(
   private val bookmarkRepo: BookmarkRepo,
   private val libraryRepo: LibraryRepo,
   private val mapper: HomeMapper,
-  private val dataStoreManager: DataStoreManager,
+  private val prefsRepository: PrefsRepository,
 ) {
 
   fun item(): Flow<Pair<Prefs, List<LibraryUiState>>> {
     val libraries = libraryRepo.flowEntities()
     val libraryItems = libraryItemRepo.flowEntities()
-    val displayPrefs = dataStoreManager.displayPrefs
-    val userPrefs = dataStoreManager.userPrefs
     val progresses = progressRepo.flowAll()
+    val prefs = prefsRepository.prefsFlow()
 
-    return combine(libraries, libraryItems, displayPrefs, userPrefs, progresses) {
+    return combine(libraries, libraryItems, prefs, progresses) {
       libraries,
       libraryItems,
-      displayPrefs,
-      userPrefs,
+      prefs,
       progresses ->
       val result =
         libraries.map { (id, name, _, isBookLibrary) ->
@@ -56,7 +54,6 @@ constructor(
             }
           library
         }
-      val prefs = Prefs(userPrefs, displayPrefs)
       prefs to result
     }
   }
@@ -87,8 +84,10 @@ constructor(
     libraryId: String,
     itemId: String,
     isBook: Boolean,
+    hardDelete: Boolean,
   ): HomeUiState {
-    val result = api.deleteItem(itemId)
+    val hard = if (hardDelete) 1 else 0
+    val result = api.deleteItem(itemId = itemId, hard = hard)
 
     if (!result.isSuccess) {
       return state
@@ -111,7 +110,7 @@ constructor(
 
   private suspend fun updateDataStore(loginResponse: LoginResponse) {
     val user = loginResponse.user
-    val old = dataStoreManager.userPrefs.firstOrNull()?.copy()
+    val old = prefsRepository.userPrefs.firstOrNull()?.copy()
     old?.let {
       val userPrefs =
         UserPrefs(
@@ -125,11 +124,11 @@ constructor(
           accessToken = old.accessToken,
           refreshToken = old.refreshToken,
         )
-      dataStoreManager.updateUserPrefs(userPrefs)
+      prefsRepository.updateUserPrefs(userPrefs)
     }
 
     val server = loginResponse.serverSettings
     val serverPrefs = ServerPrefs(version = server.version)
-    dataStoreManager.updateServerPrefs(serverPrefs)
+    prefsRepository.updateServerPrefs(serverPrefs)
   }
 }
