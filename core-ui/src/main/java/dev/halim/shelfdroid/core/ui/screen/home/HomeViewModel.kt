@@ -49,9 +49,6 @@ constructor(
       }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
-  private val _navState = MutableStateFlow(NavUiState())
-  val navState = _navState.stateIn(viewModelScope, SharingStarted.Lazily, NavUiState())
-
   init {
     viewModelScope.launch { _uiState.update { repository.remoteSync(it, fromLogin) } }
 
@@ -150,13 +147,6 @@ constructor(
       is HomeEvent.ChangeLibrary -> {
         _uiState.update { it.copy(currentPage = event.page) }
       }
-      is HomeEvent.Navigate -> {
-        viewModelScope.launch {
-          _navState.update {
-            _navState.value.copy(id = event.id, isBook = event.isBook, isNavigate = true)
-          }
-        }
-      }
       is HomeEvent.HomeDisplayPrefsEvent -> {
         when (event.displayPrefsEvent) {
           is DisplayPrefsEvent.BookSort -> {
@@ -213,24 +203,12 @@ constructor(
       }
     }
   }
-
-  fun resetNavigationState() {
-    _navState.update { it.copy(isNavigate = false) }
-  }
 }
-
-data class NavUiState(
-  val id: String = "",
-  val isBook: Boolean = true,
-  val isNavigate: Boolean = false,
-)
 
 sealed class HomeEvent {
   data class ChangeLibrary(val page: Int) : HomeEvent()
 
   data class RefreshLibrary(val page: Int) : HomeEvent()
-
-  data class Navigate(val id: String, val isBook: Boolean) : HomeEvent()
 
   data class HomeDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : HomeEvent()
 

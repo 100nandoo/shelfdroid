@@ -78,25 +78,14 @@ fun HomeScreen(
     viewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
   }
 
-  LaunchedEffect(Unit) {
-    viewModel.navState.collect { navUiState ->
-      if (navUiState.isNavigate) {
-        if (navUiState.isBook) {
-          onBookClicked(navUiState.id)
-        } else {
-          onPodcastClicked(navUiState.id)
-        }
-        viewModel.resetNavigationState()
-      }
-    }
-  }
-
   HomeScreenContent(
     Modifier,
     libraryCount,
     pagerState,
     uiState,
     { homeEvent -> viewModel.onEvent(homeEvent) },
+    onBookClicked,
+    onPodcastClicked,
     onSettingsClicked,
     onSearchClicked,
   )
@@ -109,6 +98,8 @@ fun HomeScreenContent(
   pagerState: PagerState = rememberPagerState { 1 },
   uiState: HomeUiState = HomeUiState(),
   onEvent: (HomeEvent) -> Unit = {},
+  onBookClicked: (String) -> Unit = {},
+  onPodcastClicked: (String) -> Unit = {},
   onSettingsClicked: () -> Unit = {},
   onSearchClicked: (String) -> Unit = {},
 ) {
@@ -152,6 +143,8 @@ fun HomeScreenContent(
         onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
         onSettingsClicked = onSettingsClicked,
         onSearchClicked = onSearchClicked,
+        onBookClicked = onBookClicked,
+        onPodcastClicked = onPodcastClicked,
       )
     }
   }
@@ -235,6 +228,8 @@ fun LibraryContent(
   id: String,
   name: String,
   isBookLibrary: Boolean,
+  onBookClicked: (String) -> Unit,
+  onPodcastClicked: (String) -> Unit,
   onFilterChange: (String) -> Unit,
   onBookSortChange: (String) -> Unit,
   onPodcastSortChange: (String) -> Unit,
@@ -315,7 +310,7 @@ fun LibraryContent(
         title = book.title,
         author = book.author,
         cover = book.cover,
-        onClick = { onEvent(HomeEvent.Navigate(book.id, true)) },
+        onClick = { onBookClicked(book.id) },
         onLongClick = { onLongClick(book, null) },
       )
       if (listView) {
@@ -334,7 +329,7 @@ fun LibraryContent(
         author = podcast.author,
         cover = podcast.cover,
         unfinishedEpisodeCount = count,
-        onClick = { onEvent(HomeEvent.Navigate(podcast.id, false)) },
+        onClick = { onPodcastClicked(podcast.id) },
         onLongClick = { onLongClick(null, podcast) },
       )
       if (listView) {
