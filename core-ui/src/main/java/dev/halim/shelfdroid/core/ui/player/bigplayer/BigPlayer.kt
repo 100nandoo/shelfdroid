@@ -49,6 +49,7 @@ import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
+import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -59,7 +60,6 @@ import dev.halim.shelfdroid.core.ui.player.SeekForwardButton
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 import kotlinx.coroutines.launch
 
 @Composable
@@ -123,7 +123,7 @@ fun BasicPlayerContent(id: String, author: String, title: String, cover: String)
 
   with(sharedTransitionScope) {
     with(animatedContentScope) {
-      ItemCover(
+      Cover(
         Modifier.fillMaxWidth(),
         cover = cover,
         animationKey = Animations.Companion.Player.coverKey(id),

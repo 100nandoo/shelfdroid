@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.screen.home
+package dev.halim.shelfdroid.core.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -31,7 +31,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.mySharedElement
 
 @Composable
-fun ItemCover(
+fun Cover(
   modifier: Modifier = Modifier,
   background: Color = MaterialTheme.colorScheme.secondaryContainer,
   textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -47,7 +47,7 @@ fun ItemCover(
     with(animatedContentScope) {
       val animatedModifier = modifier.mySharedElement(animationKey, OverlayClip(shape))
 
-      ItemCoverNoAnimation(
+      CoverNoAnimation(
         modifier = animatedModifier,
         background = background,
         textColor = textColor,
@@ -60,7 +60,7 @@ fun ItemCover(
 }
 
 @Composable
-fun ItemCoverNoAnimation(
+fun CoverNoAnimation(
   modifier: Modifier = Modifier,
   background: Color = MaterialTheme.colorScheme.secondaryContainer,
   textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,

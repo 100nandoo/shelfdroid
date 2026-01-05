@@ -25,10 +25,10 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.home.ItemCoverNoAnimation
 
 @Composable
 fun SearchPodcastItem(
@@ -43,7 +43,7 @@ fun SearchPodcastItem(
           onClick = { if (model.isAdded) onAddedClick(model.id) else onClick(model.payload) }
         )
   ) {
-    ItemCoverNoAnimation(
+    CoverNoAnimation(
       Modifier.height(60.dp).padding(end = 16.dp),
       coverUrl = model.cover,
       shape = RoundedCornerShape(4.dp),

@@ -25,12 +25,12 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.HOME_BOOKS
 import dev.halim.shelfdroid.core.ui.preview.Defaults.HOME_PODCASTS
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 import dev.halim.shelfdroid.core.ui.screen.home.UnreadEpisodeCount
 
 @Composable
@@ -58,7 +58,7 @@ fun LazyGridItemScope.HomeItemList(
             .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        ItemCover(
+        Cover(
           Modifier.fillMaxHeight().padding(end = 16.dp),
           cover = cover,
           shape = RoundedCornerShape(4.dp),

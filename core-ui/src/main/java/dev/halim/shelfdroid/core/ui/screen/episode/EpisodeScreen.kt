@@ -27,6 +27,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
@@ -37,7 +38,6 @@ import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 
 @Composable
 fun EpisodeScreen(
@@ -122,7 +122,7 @@ fun EpisodeScreenContent(
         item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
         item {
           Row(Modifier.height(IntrinsicSize.Max)) {
-            ItemCover(
+            Cover(
               Modifier.weight(1f).fillMaxHeight(),
               cover = cover,
               animationKey = Animations.Companion.Episode.coverKey(itemId),

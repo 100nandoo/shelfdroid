@@ -27,11 +27,11 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
+import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 
 @Composable
 fun SmallPlayerContent(
@@ -75,7 +75,7 @@ fun SmallPlayerContent(
           drawStopIndicator = {},
         )
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
-          ItemCover(
+          Cover(
             Modifier.fillMaxHeight(),
             cover = cover,
             animationKey = Animations.Companion.Player.coverKey(id),

@@ -27,11 +27,11 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
+import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.HOME_BOOKS
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.home.ItemCover
 import dev.halim.shelfdroid.core.ui.screen.home.UnreadEpisodeCount
 
 @Composable
@@ -59,7 +59,7 @@ fun LazyGridItemScope.HomeItemGrid(
       ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
           Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.fillMaxWidth()) {
-            ItemCover(Modifier.fillMaxWidth(), cover = cover)
+            Cover(Modifier.fillMaxWidth(), cover = cover)
             if (unfinishedEpisodeCount > 0) {
               UnreadEpisodeCount(
                 modifier = Modifier.size(40.dp).padding(8.dp),
@@ -107,7 +107,7 @@ fun ItemDetail(id: String, url: String, title: String, authorName: String, subti
   with(sharedTransitionScope) {
     with(animatedContentScope) {
       Spacer(modifier = Modifier.height(16.dp))
-      ItemCover(
+      Cover(
         Modifier.fillMaxWidth(),
         cover = url,
         shape = RoundedCornerShape(8.dp),

@@ -33,12 +33,12 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.components.ListItem
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.preview.sheetState
-import dev.halim.shelfdroid.core.ui.screen.home.ItemCoverNoAnimation
 import dev.halim.shelfdroid.core.ui.screen.home.UnreadEpisodeCount
 import kotlinx.coroutines.launch
 
@@ -120,7 +120,7 @@ private fun ItemDetail(
     modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 16.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    ItemCoverNoAnimation(
+    CoverNoAnimation(
       Modifier.height(64.dp).padding(end = 16.dp),
       coverUrl = cover,
       shape = RoundedCornerShape(4.dp),
