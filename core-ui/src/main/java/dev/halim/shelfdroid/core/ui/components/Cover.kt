@@ -1,8 +1,15 @@
 package dev.halim.shelfdroid.core.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +34,7 @@ import coil3.request.ImageRequest
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
 
 @Composable
@@ -84,5 +92,43 @@ fun CoverNoAnimation(
       contentDescription = stringResource(R.string.library_item_cover_image),
       onError = { imageLoadFailed = true },
     )
+  }
+}
+
+@Composable
+fun CoverWithTitle(
+  cover: String,
+  coverAnimationKey: String,
+  title: String,
+  titleAnimationKey: String,
+  subtitle: String,
+  subtitleAnimationKey: String,
+) {
+  Row(Modifier.height(IntrinsicSize.Max)) {
+    Cover(
+      Modifier.weight(1f).fillMaxHeight(),
+      cover = cover,
+      animationKey = coverAnimationKey,
+      fontSize = 10.sp,
+      shape = RoundedCornerShape(4.dp),
+    )
+
+    Column(
+      Modifier.weight(4f).padding(8.dp).fillMaxHeight(),
+      verticalArrangement = Arrangement.Center,
+    ) {
+      Text(
+        modifier = Modifier.mySharedBound(titleAnimationKey),
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+      )
+      Text(
+        modifier = Modifier.mySharedElement(subtitleAnimationKey),
+        text = subtitle,
+        style = MaterialTheme.typography.labelMedium,
+        textAlign = TextAlign.Start,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
   }
 }

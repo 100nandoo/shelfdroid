@@ -39,6 +39,7 @@ import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
+import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
@@ -66,6 +67,8 @@ import kotlinx.serialization.Serializable
 @Serializable data class Book(val id: String)
 
 @Serializable data class Episode(val itemId: String, val episodeId: String)
+
+@Serializable data class AddEpisode(val id: String)
 
 @Composable
 fun MainNavigation(
@@ -152,8 +155,12 @@ private fun ColumnScope.NavHostContainer(
               onEpisodeClicked = { itemId, episodeId ->
                 navController.navigate(Episode(itemId, episodeId))
               },
+              onAddEpisodeClicked = { itemId -> navController.navigate(AddEpisode(itemId)) },
             )
           }
+        }
+        composable<AddEpisode> {
+          SharedScreenWrapper(sharedTransitionScope, this@composable) { AddEpisodeScreen() }
         }
         composable<Book> {
           SharedScreenWrapper(sharedTransitionScope, this@composable) {

@@ -240,4 +240,16 @@ object Defaults {
       explicit = false,
       isAdded = false,
     )
+
+  val ADD_EPISODE_EPISODES =
+    (1..10).map {
+      dev.halim.shelfdroid.core.data.screen.addepisode.Episode(
+        title = "Episode $it",
+        description = "Description of Episode $it",
+        pubDate = "2023-01-01",
+        publishedAt = 1672531200,
+        url = "https://example.com/episode$it",
+        isDownloaded = it % 2 == 0,
+      )
+    }
 }

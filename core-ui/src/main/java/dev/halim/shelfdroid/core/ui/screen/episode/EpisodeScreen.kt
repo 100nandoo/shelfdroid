@@ -1,36 +1,25 @@
 package dev.halim.shelfdroid.core.ui.screen.episode
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.components.Cover
+import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
-import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -114,35 +103,14 @@ fun EpisodeScreenContent(
     }
     item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
     item {
-      Row(Modifier.height(IntrinsicSize.Max)) {
-        Cover(
-          Modifier.weight(1f).fillMaxHeight(),
-          cover = cover,
-          animationKey = Animations.coverKey(itemId),
-          fontSize = 10.sp,
-          shape = RoundedCornerShape(4.dp),
-        )
-
-        Column(
-          Modifier.weight(4f).padding(8.dp).fillMaxHeight(),
-          verticalArrangement = Arrangement.Center,
-        ) {
-          Text(
-            modifier =
-              Modifier.mySharedBound(Animations.Companion.Episode.titleKey(episodeId, title)),
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-          )
-          Text(
-            modifier =
-              Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episodeId)),
-            text = publishedAt,
-            style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.Start,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
-      }
+      CoverWithTitle(
+        cover = cover,
+        coverAnimationKey = Animations.coverKey(itemId),
+        title = title,
+        titleAnimationKey = Animations.Companion.Episode.titleKey(episodeId, title),
+        subtitle = publishedAt,
+        subtitleAnimationKey = Animations.Companion.Episode.publishedAtKey(episodeId),
+      )
     }
   }
 }

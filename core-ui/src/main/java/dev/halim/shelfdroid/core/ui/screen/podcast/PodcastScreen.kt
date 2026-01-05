@@ -96,7 +96,7 @@ fun PodcastScreenContent(
       EpisodeItem(id, episode, onEvent, onEpisodeClicked, onPlayClicked, snackbarHostState)
     }
     item {
-      Header({ onAddEpisodeClicked(uiState.feedUrl) })
+      Header({ onAddEpisodeClicked(id) })
       Spacer(modifier = Modifier.height(16.dp))
 
       ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
