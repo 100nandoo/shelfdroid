@@ -27,8 +27,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
-import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DownloadButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -46,92 +44,81 @@ fun EpisodeItem(
   onPlayClicked: (String, String, Boolean) -> Unit,
   snackbarHostState: SnackbarHostState,
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
 
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Column(
-        modifier =
-          Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episode.episodeId))
-            .fillMaxWidth()
-            .clickable { onEpisodeClicked(itemId, episode.episodeId) }
-            .padding(vertical = 8.dp)
-      ) {
+  Column(
+    modifier =
+      Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episode.episodeId))
+        .fillMaxWidth()
+        .clickable { onEpisodeClicked(itemId, episode.episodeId) }
+        .padding(vertical = 8.dp)
+  ) {
+    Text(
+      text = episode.title,
+      style = MaterialTheme.typography.bodyLarge,
+      modifier =
+        Modifier.mySharedBound(
+            Animations.Companion.Episode.titleKey(episode.episodeId, episode.title)
+          )
+          .padding(horizontal = 16.dp),
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+    Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+      Column(modifier = Modifier.weight(1f).height(40.dp)) {
         Text(
-          text = episode.title,
-          style = MaterialTheme.typography.bodyLarge,
           modifier =
-            Modifier.mySharedBound(
-                Animations.Companion.Episode.titleKey(episode.episodeId, episode.title)
-              )
-              .padding(horizontal = 16.dp),
-          maxLines = 2,
+            Modifier.mySharedElement(
+              Animations.Companion.Episode.publishedAtKey(episode.episodeId)
+            ),
+          text = episode.publishedAt,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          style = MaterialTheme.typography.labelMedium,
+          maxLines = 1,
           overflow = TextOverflow.Ellipsis,
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-          Column(modifier = Modifier.weight(1f).height(40.dp)) {
-            Text(
-              modifier =
-                Modifier.mySharedElement(
-                  Animations.Companion.Episode.publishedAtKey(episode.episodeId)
-                ),
-              text = episode.publishedAt,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              style = MaterialTheme.typography.labelMedium,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            AnimatedVisibility(episode.isFinished.not() || episode.isPlaying) {
-              val currentProgress =
-                when {
-                  !episode.isFinished -> episode.progress
-                  else -> 0f
-                }
-              LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
-                progress = { currentProgress },
-                drawStopIndicator = {},
-              )
+        Spacer(modifier = Modifier.weight(1f))
+        AnimatedVisibility(episode.isFinished.not() || episode.isPlaying) {
+          val currentProgress =
+            when {
+              !episode.isFinished -> episode.progress
+              else -> 0f
             }
-          }
-          val checkButtonColors =
-            if (episode.isFinished) IconButtonDefaults.filledIconButtonColors()
-            else IconButtonDefaults.filledTonalIconButtonColors()
-          FilledTonalIconButton(
-            onClick = { onEvent(PodcastEvent.ToggleIsFinished(episode)) },
-            colors = checkButtonColors,
-          ) {
-            Icon(
-              Icons.Default.Check,
-              contentDescription = stringResource(R.string.mark_as_finished),
-            )
-          }
-          DownloadButton(
-            episode.download.state,
-            snackbarHostState,
-            {
-              onEvent(
-                PodcastEvent.Download(episode.download.id, episode.download.url, episode.title)
-              )
-            },
-            { onEvent(PodcastEvent.DeleteDownload(episode.download.id)) },
+          LinearProgressIndicator(
+            modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
+            progress = { currentProgress },
+            drawStopIndicator = {},
           )
-
-          FilledTonalIconButton(
-            onClick = {
-              onPlayClicked(itemId, episode.episodeId, episode.download.state.isDownloaded())
-            }
-          ) {
-            val icon = if (episode.isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
-            val contentDescription =
-              if (episode.isPlaying.not()) stringResource(R.string.play)
-              else stringResource(R.string.pause)
-            Icon(icon, contentDescription)
-          }
         }
+      }
+      val checkButtonColors =
+        if (episode.isFinished) IconButtonDefaults.filledIconButtonColors()
+        else IconButtonDefaults.filledTonalIconButtonColors()
+      FilledTonalIconButton(
+        onClick = { onEvent(PodcastEvent.ToggleIsFinished(episode)) },
+        colors = checkButtonColors,
+      ) {
+        Icon(Icons.Default.Check, contentDescription = stringResource(R.string.mark_as_finished))
+      }
+      DownloadButton(
+        episode.download.state,
+        snackbarHostState,
+        {
+          onEvent(PodcastEvent.Download(episode.download.id, episode.download.url, episode.title))
+        },
+        { onEvent(PodcastEvent.DeleteDownload(episode.download.id)) },
+      )
+
+      FilledTonalIconButton(
+        onClick = {
+          onPlayClicked(itemId, episode.episodeId, episode.download.state.isDownloaded())
+        }
+      ) {
+        val icon = if (episode.isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
+        val contentDescription =
+          if (episode.isPlaying.not()) stringResource(R.string.play)
+          else stringResource(R.string.pause)
+        Icon(icon, contentDescription)
       }
     }
   }

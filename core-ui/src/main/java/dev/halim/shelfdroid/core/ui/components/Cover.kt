@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.mySharedElement
@@ -41,21 +40,18 @@ fun Cover(
   shape: Shape = RoundedCornerShape(8.dp, 8.dp),
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
 
   with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      val animatedModifier = modifier.mySharedElement(animationKey, OverlayClip(shape))
+    val animatedModifier = modifier.mySharedElement(animationKey, OverlayClip(shape))
 
-      CoverNoAnimation(
-        modifier = animatedModifier,
-        background = background,
-        textColor = textColor,
-        fontSize = fontSize,
-        coverUrl = cover,
-        shape = shape,
-      )
-    }
+    CoverNoAnimation(
+      modifier = animatedModifier,
+      background = background,
+      textColor = textColor,
+      fontSize = fontSize,
+      coverUrl = cover,
+      shape = shape,
+    )
   }
 }
 

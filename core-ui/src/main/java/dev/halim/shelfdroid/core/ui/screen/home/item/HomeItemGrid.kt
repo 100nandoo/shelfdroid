@@ -25,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -45,55 +44,52 @@ fun LazyGridItemScope.HomeItemGrid(
   unfinishedEpisodeCount: Int = 0,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
 
   with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Card(
-        modifier =
-          Modifier.animateItem()
-            .mySharedBound(Animations.containerKey(id))
-            .padding(4.dp)
-            .combinedClickable(onLongClick = onLongClick, onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
-      ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-          Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.fillMaxWidth()) {
-            Cover(Modifier.fillMaxWidth(), cover = cover)
-            if (unfinishedEpisodeCount > 0) {
-              UnreadEpisodeCount(
-                modifier = Modifier.size(40.dp).padding(8.dp),
-                count = unfinishedEpisodeCount,
-              )
-            }
+    Card(
+      modifier =
+        Modifier.animateItem()
+          .mySharedBound(Animations.containerKey(id))
+          .padding(4.dp)
+          .combinedClickable(onLongClick = onLongClick, onClick = onClick),
+      shape = RoundedCornerShape(8.dp),
+    ) {
+      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.fillMaxWidth()) {
+          Cover(Modifier.fillMaxWidth(), cover = cover)
+          if (unfinishedEpisodeCount > 0) {
+            UnreadEpisodeCount(
+              modifier = Modifier.size(40.dp).padding(8.dp),
+              count = unfinishedEpisodeCount,
+            )
           }
-          Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier =
-              Modifier.mySharedBound(Animations.titleKey(id, title))
-                .padding(horizontal = 8.dp)
-                .padding(top = 8.dp),
-          )
-
-          Text(
-            text = author,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier =
-              Modifier.mySharedBound(Animations.authorKey(id, author))
-                .skipToLookaheadSize()
-                .padding(horizontal = 8.dp)
-                .padding(top = 4.dp, bottom = 8.dp),
-          )
         }
+        Text(
+          text = title,
+          style = MaterialTheme.typography.titleMedium,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.onSurface,
+          modifier =
+            Modifier.mySharedBound(Animations.titleKey(id, title))
+              .padding(horizontal = 8.dp)
+              .padding(top = 8.dp),
+        )
+
+        Text(
+          text = author,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          textAlign = TextAlign.Center,
+          modifier =
+            Modifier.mySharedBound(Animations.authorKey(id, author))
+              .skipToLookaheadSize()
+              .padding(horizontal = 8.dp)
+              .padding(top = 4.dp, bottom = 8.dp),
+        )
       }
     }
   }
@@ -101,46 +97,39 @@ fun LazyGridItemScope.HomeItemGrid(
 
 @Composable
 fun ItemDetail(id: String, url: String, title: String, authorName: String, subtitle: String = "") {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
+  Spacer(modifier = Modifier.height(16.dp))
+  Cover(
+    Modifier.fillMaxWidth(),
+    cover = url,
+    shape = RoundedCornerShape(8.dp),
+    animationKey = Animations.coverKey(id),
+  )
+  Spacer(modifier = Modifier.height(16.dp))
 
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Spacer(modifier = Modifier.height(16.dp))
-      Cover(
-        Modifier.fillMaxWidth(),
-        cover = url,
-        shape = RoundedCornerShape(8.dp),
-        animationKey = Animations.Companion.Episode.coverKey(id),
-      )
-      Spacer(modifier = Modifier.height(16.dp))
+  Text(
+    modifier = Modifier.mySharedBound(Animations.titleKey(id, title)),
+    text = title,
+    style = MaterialTheme.typography.headlineLarge,
+    textAlign = TextAlign.Center,
+  )
 
-      Text(
-        modifier = Modifier.mySharedBound(Animations.titleKey(id, title)),
-        text = title,
-        style = MaterialTheme.typography.headlineLarge,
-        textAlign = TextAlign.Center,
-      )
-
-      if (subtitle.isNotEmpty()) {
-        Text(
-          text = subtitle,
-          style = MaterialTheme.typography.titleMedium,
-          textAlign = TextAlign.Center,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      }
-      Spacer(modifier = Modifier.height(8.dp))
-
-      Text(
-        modifier = Modifier.mySharedBound(Animations.authorKey(id, authorName)),
-        text = authorName,
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.Gray,
-        textAlign = TextAlign.Center,
-      )
-    }
+  if (subtitle.isNotEmpty()) {
+    Text(
+      text = subtitle,
+      style = MaterialTheme.typography.titleMedium,
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
   }
+  Spacer(modifier = Modifier.height(8.dp))
+
+  Text(
+    modifier = Modifier.mySharedBound(Animations.authorKey(id, authorName)),
+    text = authorName,
+    style = MaterialTheme.typography.bodyMedium,
+    color = Color.Gray,
+    textAlign = TextAlign.Center,
+  )
 }
 
 @ShelfDroidPreview

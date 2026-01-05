@@ -25,8 +25,6 @@ import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
-import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
@@ -96,60 +94,53 @@ fun EpisodeScreenContent(
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit = {},
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
+  LazyColumn(
+    modifier =
+      Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episodeId))
+        .fillMaxSize()
+        .padding(horizontal = 16.dp),
+    reverseLayout = true,
+    verticalArrangement = Arrangement.Bottom,
+  ) {
+    item {
+      PlayAndDownload(
+        isPlaying = isPlaying,
+        downloadState = downloadUiState.state,
+        snackbarHostState = snackbarHostState,
+        onDownloadClicked = onDownloadClicked,
+        onDeleteDownloadClicked = onDeleteDownloadClicked,
+        onPlayClicked = onPlayClicked,
+      )
+    }
+    item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
+    item {
+      Row(Modifier.height(IntrinsicSize.Max)) {
+        Cover(
+          Modifier.weight(1f).fillMaxHeight(),
+          cover = cover,
+          animationKey = Animations.coverKey(itemId),
+          fontSize = 10.sp,
+          shape = RoundedCornerShape(4.dp),
+        )
 
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      LazyColumn(
-        modifier =
-          Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episodeId))
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        reverseLayout = true,
-        verticalArrangement = Arrangement.Bottom,
-      ) {
-        item {
-          PlayAndDownload(
-            isPlaying = isPlaying,
-            downloadState = downloadUiState.state,
-            snackbarHostState = snackbarHostState,
-            onDownloadClicked = onDownloadClicked,
-            onDeleteDownloadClicked = onDeleteDownloadClicked,
-            onPlayClicked = onPlayClicked,
+        Column(
+          Modifier.weight(4f).padding(8.dp).fillMaxHeight(),
+          verticalArrangement = Arrangement.Center,
+        ) {
+          Text(
+            modifier =
+              Modifier.mySharedBound(Animations.Companion.Episode.titleKey(episodeId, title)),
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
           )
-        }
-        item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
-        item {
-          Row(Modifier.height(IntrinsicSize.Max)) {
-            Cover(
-              Modifier.weight(1f).fillMaxHeight(),
-              cover = cover,
-              animationKey = Animations.Companion.Episode.coverKey(itemId),
-              fontSize = 10.sp,
-              shape = RoundedCornerShape(4.dp),
-            )
-
-            Column(
-              Modifier.weight(4f).padding(8.dp).fillMaxHeight(),
-              verticalArrangement = Arrangement.Center,
-            ) {
-              Text(
-                modifier =
-                  Modifier.mySharedBound(Animations.Companion.Episode.titleKey(episodeId, title)),
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-              )
-              Text(
-                modifier =
-                  Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episodeId)),
-                text = publishedAt,
-                style = MaterialTheme.typography.labelMedium,
-                textAlign = TextAlign.Start,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-              )
-            }
-          }
+          Text(
+            modifier =
+              Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episodeId)),
+            text = publishedAt,
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.Start,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
         }
       }
     }

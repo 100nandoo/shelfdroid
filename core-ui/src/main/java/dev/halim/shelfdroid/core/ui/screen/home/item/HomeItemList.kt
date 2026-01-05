@@ -23,7 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -44,52 +43,49 @@ fun LazyGridItemScope.HomeItemList(
   unfinishedEpisodeCount: Int = 0,
 ) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
 
   with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Row(
-        modifier =
-          Modifier.animateItem()
-            .height(88.dp)
-            .fillMaxWidth()
-            .mySharedBound(Animations.containerKey(id))
-            .combinedClickable(onLongClick = onLongClick, onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Cover(
-          Modifier.fillMaxHeight().padding(end = 16.dp),
-          cover = cover,
-          shape = RoundedCornerShape(4.dp),
+    Row(
+      modifier =
+        Modifier.animateItem()
+          .height(88.dp)
+          .fillMaxWidth()
+          .mySharedBound(Animations.containerKey(id))
+          .combinedClickable(onLongClick = onLongClick, onClick = onClick)
+          .padding(vertical = 12.dp, horizontal = 16.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Cover(
+        Modifier.fillMaxHeight().padding(end = 16.dp),
+        cover = cover,
+        shape = RoundedCornerShape(4.dp),
+        animationKey = Animations.coverKey(id),
+      )
+      Column(Modifier.fillMaxWidth().weight(1f)) {
+        Text(
+          text = title,
+          style = MaterialTheme.typography.titleMedium,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.onSurface,
+          modifier = Modifier.mySharedBound(Animations.titleKey(id, title)),
         )
-        Column(Modifier.fillMaxWidth().weight(1f)) {
-          Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.mySharedBound(Animations.titleKey(id, title)),
-          )
-          Text(
-            text = author,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier =
-              Modifier.mySharedBound(Animations.authorKey(id, author)).skipToLookaheadSize(),
-          )
-        }
-        if (unfinishedEpisodeCount > 0) {
-          UnreadEpisodeCount(
-            modifier = Modifier.padding(start = 16.dp).size(24.dp),
-            count = unfinishedEpisodeCount,
-          )
-        }
+        Text(
+          text = author,
+          style = MaterialTheme.typography.bodyLarge,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          textAlign = TextAlign.Center,
+          modifier = Modifier.mySharedBound(Animations.authorKey(id, author)).skipToLookaheadSize(),
+        )
+      }
+      if (unfinishedEpisodeCount > 0) {
+        UnreadEpisodeCount(
+          modifier = Modifier.padding(start = 16.dp).size(24.dp),
+          count = unfinishedEpisodeCount,
+        )
       }
     }
   }

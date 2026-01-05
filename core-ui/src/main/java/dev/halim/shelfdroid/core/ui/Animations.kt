@@ -25,8 +25,6 @@ class Animations @Inject constructor() {
 
       fun containerKey(id: String) = "container_$id"
 
-      fun coverKey(id: String) = "episode_cover_$id"
-
       fun publishedAtKey(id: String) = "episode_published_at_$id"
     }
 
@@ -56,27 +54,39 @@ val LocalSharedTransitionScope =
 val LocalAnimatedContentScope =
   staticCompositionLocalOf<AnimatedContentScope> { error("AnimatedContentScope not provided") }
 
-context(SharedTransitionScope, AnimatedContentScope)
 @Composable
-fun Modifier.mySharedBound(id: String) =
-  this.sharedBounds(
-    rememberSharedContentState(key = id),
-    animatedVisibilityScope = this@AnimatedContentScope,
-  )
+fun Modifier.mySharedBound(id: String): Modifier {
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
+  return with(sharedTransitionScope) {
+    this@mySharedBound.sharedBounds(
+      rememberSharedContentState(key = id),
+      animatedVisibilityScope = animatedContentScope,
+    )
+  }
+}
 
-context(SharedTransitionScope, AnimatedContentScope)
 @Composable
-fun Modifier.mySharedElement(id: String, overlayClip: OverlayClip) =
-  this.sharedElement(
-    rememberSharedContentState(key = id),
-    animatedVisibilityScope = this@AnimatedContentScope,
-    clipInOverlayDuringTransition = overlayClip,
-  )
+fun Modifier.mySharedElement(id: String, overlayClip: OverlayClip): Modifier {
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
+  return with(sharedTransitionScope) {
+    this@mySharedElement.sharedElement(
+      rememberSharedContentState(key = id),
+      animatedVisibilityScope = animatedContentScope,
+      clipInOverlayDuringTransition = overlayClip,
+    )
+  }
+}
 
-context(SharedTransitionScope, AnimatedContentScope)
 @Composable
-fun Modifier.mySharedElement(id: String) =
-  this.sharedElement(
-    rememberSharedContentState(key = id),
-    animatedVisibilityScope = this@AnimatedContentScope,
-  )
+fun Modifier.mySharedElement(id: String): Modifier {
+  val sharedTransitionScope = LocalSharedTransitionScope.current
+  val animatedContentScope = LocalAnimatedContentScope.current
+  return with(sharedTransitionScope) {
+    this@mySharedElement.sharedElement(
+      rememberSharedContentState(key = id),
+      animatedVisibilityScope = animatedContentScope,
+    )
+  }
+}

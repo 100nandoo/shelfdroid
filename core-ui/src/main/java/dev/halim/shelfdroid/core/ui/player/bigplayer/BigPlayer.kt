@@ -45,8 +45,6 @@ import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
-import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.components.Cover
@@ -80,74 +78,60 @@ fun BigPlayerContent(
   onSwipeDown: () -> Unit = {},
   onEvent: (PlayerEvent) -> Unit = {},
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Column(
-        modifier =
-          Modifier.mySharedBound(Animations.Companion.Player.containerKey(id))
-            .fillMaxSize()
-            .pointerInput(Unit) {
-              detectVerticalDragGestures { _, dragAmount ->
-                if (dragAmount < 0) {
-                  onSwipeUp()
-                } else {
-                  onSwipeDown()
-                }
-              }
+  Column(
+    modifier =
+      Modifier.mySharedBound(Animations.Companion.Player.containerKey(id))
+        .fillMaxSize()
+        .pointerInput(Unit) {
+          detectVerticalDragGestures { _, dragAmount ->
+            if (dragAmount < 0) {
+              onSwipeUp()
+            } else {
+              onSwipeDown()
             }
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom),
-      ) {
-        BasicPlayerContent(id, author, title, cover)
+          }
+        }
+        .padding(16.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom),
+  ) {
+    BasicPlayerContent(id, author, title, cover)
 
-        BookmarkAndChapter(isBook, chapters, currentChapter, bookmarks, newBookmarkTime, onEvent)
+    BookmarkAndChapter(isBook, chapters, currentChapter, bookmarks, newBookmarkTime, onEvent)
 
-        PlayerProgress(id, progress, multipleButtonState, onEvent)
-        BasicPlayerControl(multipleButtonState, id, currentChapter, onEvent)
-        AdvancedPlayerControl(advancedControl, onEvent)
+    PlayerProgress(id, progress, multipleButtonState, onEvent)
+    BasicPlayerControl(multipleButtonState, id, currentChapter, onEvent)
+    AdvancedPlayerControl(advancedControl, onEvent)
 
-        Spacer(modifier = Modifier.height(16.dp))
-      }
-    }
+    Spacer(modifier = Modifier.height(16.dp))
   }
 }
 
 @Composable
 fun BasicPlayerContent(id: String, author: String, title: String, cover: String) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
+  Cover(
+    Modifier.fillMaxWidth(),
+    cover = cover,
+    animationKey = Animations.Companion.Player.coverKey(id),
+    shape = RoundedCornerShape(8.dp),
+  )
 
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Cover(
-        Modifier.fillMaxWidth(),
-        cover = cover,
-        animationKey = Animations.Companion.Player.coverKey(id),
-        shape = RoundedCornerShape(8.dp),
-      )
+  Spacer(modifier = Modifier.height(16.dp))
+  AutoSizeText(
+    Modifier.fillMaxWidth().mySharedBound(Animations.Companion.Player.titleKey(title)),
+    text = title,
+    maxLines = 2,
+    textAlign = TextAlign.Center,
+    style = MaterialTheme.typography.titleLarge,
+  )
 
-      Spacer(modifier = Modifier.height(16.dp))
-      AutoSizeText(
-        Modifier.fillMaxWidth().mySharedBound(Animations.Companion.Player.titleKey(title)),
-        text = title,
-        maxLines = 2,
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.titleLarge,
-      )
-
-      Text(
-        modifier = Modifier.mySharedBound(Animations.Companion.Player.authorKey(author)),
-        text = author,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-      )
-    }
-  }
+  Text(
+    modifier = Modifier.mySharedBound(Animations.Companion.Player.authorKey(author)),
+    text = author,
+    style = MaterialTheme.typography.bodyMedium,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+    textAlign = TextAlign.Center,
+  )
 }
 
 @Composable
@@ -157,9 +141,6 @@ fun PlayerProgress(
   multipleButtonState: MultipleButtonState,
   onEvent: (PlayerEvent) -> Unit,
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-
   var isDragging by remember { mutableStateOf(false) }
   var target by remember { mutableFloatStateOf(0f) }
 
@@ -167,44 +148,39 @@ fun PlayerProgress(
   val positionValue =
     if (isDragging) (target * progress.duration).toDouble().formatChapterTime()
     else progress.position.toDouble().formatChapterTime()
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(
-          text = positionValue,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-          text = progress.duration.toDouble().formatChapterTime(),
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurface,
-        )
-      }
-      Slider(
-        value = sliderValue,
-        onValueChange = {
-          isDragging = true
-          target = it
-        },
-        modifier =
-          Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
-        onValueChangeFinished = {
-          isDragging = false
-          onEvent(PlayerEvent.SeekTo(target))
-        },
-        enabled = multipleButtonState.seekSliderEnabled,
-        track = { sliderState ->
-          SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = {})
-        },
-        colors =
-          SliderDefaults.colors(
-            thumbColor = MaterialTheme.colorScheme.primary,
-            activeTrackColor = MaterialTheme.colorScheme.primary,
-          ),
-      )
-    }
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Text(
+      text = positionValue,
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      text = progress.duration.toDouble().formatChapterTime(),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
   }
+  Slider(
+    value = sliderValue,
+    onValueChange = {
+      isDragging = true
+      target = it
+    },
+    modifier = Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
+    onValueChangeFinished = {
+      isDragging = false
+      onEvent(PlayerEvent.SeekTo(target))
+    },
+    enabled = multipleButtonState.seekSliderEnabled,
+    track = { sliderState ->
+      SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = {})
+    },
+    colors =
+      SliderDefaults.colors(
+        thumbColor = MaterialTheme.colorScheme.primary,
+        activeTrackColor = MaterialTheme.colorScheme.primary,
+      ),
+  )
 }
 
 @Composable
@@ -214,34 +190,26 @@ fun BasicPlayerControl(
   currentChapter: PlayerChapter? = PlayerChapter(),
   onEvent: (PlayerEvent) -> Unit,
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceEvenly,
+    modifier = Modifier.fillMaxWidth(),
+  ) {
+    MyIconButton(
+      icon = Icons.Default.SkipPrevious,
+      contentDescription = stringResource(R.string.previous_chapter),
+      onClick = { onEvent(PlayerEvent.SkipPreviousButton) },
+    )
+    SeekBackButton({ onEvent(PlayerEvent.SeekBackButton) }, multipleButtonState, id)
+    PlayPauseButton({ onEvent(PlayerEvent.PlayPauseButton) }, multipleButtonState, id, 72)
+    SeekForwardButton({ onEvent(PlayerEvent.SeekForwardButton) }, multipleButtonState, id)
 
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxWidth(),
-      ) {
-        MyIconButton(
-          icon = Icons.Default.SkipPrevious,
-          contentDescription = stringResource(R.string.previous_chapter),
-          onClick = { onEvent(PlayerEvent.SkipPreviousButton) },
-        )
-        SeekBackButton({ onEvent(PlayerEvent.SeekBackButton) }, multipleButtonState, id)
-        PlayPauseButton({ onEvent(PlayerEvent.PlayPauseButton) }, multipleButtonState, id, 72)
-        SeekForwardButton({ onEvent(PlayerEvent.SeekForwardButton) }, multipleButtonState, id)
-
-        MyIconButton(
-          icon = Icons.Default.SkipNext,
-          contentDescription = stringResource(R.string.next_chapter),
-          onClick = { onEvent(PlayerEvent.SkipNextButton) },
-          enabled =
-            currentChapter?.chapterPosition != ChapterPosition.Last && currentChapter != null,
-        )
-      }
-    }
+    MyIconButton(
+      icon = Icons.Default.SkipNext,
+      contentDescription = stringResource(R.string.next_chapter),
+      onClick = { onEvent(PlayerEvent.SkipNextButton) },
+      enabled = currentChapter?.chapterPosition != ChapterPosition.Last && currentChapter != null,
+    )
   }
 }
 

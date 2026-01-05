@@ -24,8 +24,6 @@ import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
-import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
@@ -105,38 +103,29 @@ fun BookScreenContent(
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit,
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-
   val isPlaying = currentItemId == id && exoState == ExoState.Playing
 
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      LazyColumn(
-        modifier =
-          Modifier.mySharedBound(Animations.containerKey(id))
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        reverseLayout = true,
-        verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom),
-      ) {
-        item {
-          Spacer(modifier = Modifier.height(16.dp))
-          PlayAndDownload(
-            isPlaying = isPlaying,
-            downloadState = downloadState,
-            snackbarHostState = snackbarHostState,
-            onDownloadClicked = onDownloadClicked,
-            onDeleteDownloadClicked = onDeleteDownloadClicked,
-            onPlayClicked = onPlayClicked,
-          )
-          ProgressRow(progress, remaining)
-          ExpandShrinkText(text = description)
-          BookDetail(duration, narrator, publishYear, publisher, genres, language)
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            ItemDetail(id, cover, title, author, subtitle = subtitle)
-          }
-        }
+  LazyColumn(
+    modifier =
+      Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize().padding(horizontal = 16.dp),
+    reverseLayout = true,
+    verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom),
+  ) {
+    item {
+      Spacer(modifier = Modifier.height(16.dp))
+      PlayAndDownload(
+        isPlaying = isPlaying,
+        downloadState = downloadState,
+        snackbarHostState = snackbarHostState,
+        onDownloadClicked = onDownloadClicked,
+        onDeleteDownloadClicked = onDeleteDownloadClicked,
+        onPlayClicked = onPlayClicked,
+      )
+      ProgressRow(progress, remaining)
+      ExpandShrinkText(text = description)
+      BookDetail(duration, narrator, publishYear, publisher, genres, language)
+      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        ItemDetail(id, cover, title, author, subtitle = subtitle)
       }
     }
   }

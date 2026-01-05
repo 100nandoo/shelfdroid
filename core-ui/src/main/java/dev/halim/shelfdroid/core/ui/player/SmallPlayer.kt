@@ -24,8 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.halim.shelfdroid.core.MultipleButtonState
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
-import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -48,52 +46,45 @@ fun SmallPlayerContent(
   onSwipeUp: () -> Unit,
   onSwipeDown: () -> Unit,
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Column(
-        Modifier.fillMaxWidth()
-          .mySharedBound(Animations.Companion.Player.containerKey(id))
-          .height(120.dp)
-          .navigationBarsPadding()
-          .pointerInput(Unit) {
-            detectVerticalDragGestures { _, dragAmount ->
-              if (dragAmount < 0) {
-                onSwipeUp()
-              } else {
-                onSwipeDown()
-              }
-            }
+  Column(
+    Modifier.fillMaxWidth()
+      .mySharedBound(Animations.Companion.Player.containerKey(id))
+      .height(120.dp)
+      .navigationBarsPadding()
+      .pointerInput(Unit) {
+        detectVerticalDragGestures { _, dragAmount ->
+          if (dragAmount < 0) {
+            onSwipeUp()
+          } else {
+            onSwipeDown()
           }
-          .clickable { onClicked(id) }
-      ) {
-        LinearProgressIndicator(
-          progress = { progress },
-          Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
-          drawStopIndicator = {},
-        )
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
-          Cover(
-            Modifier.fillMaxHeight(),
-            cover = cover,
-            animationKey = Animations.Companion.Player.coverKey(id),
-            fontSize = 10.sp,
-            shape = RoundedCornerShape(4.dp),
-          )
-
-          SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true), author, title)
-
-          SmallPlayerControls(
-            multipleButtonState,
-            onSeekBackClick,
-            onSeekForwardClick,
-            onPlayPauseClick,
-            id,
-          )
         }
       }
+      .clickable { onClicked(id) }
+  ) {
+    LinearProgressIndicator(
+      progress = { progress },
+      Modifier.mySharedBound(Animations.Companion.Player.progressKey(id)).fillMaxWidth(),
+      drawStopIndicator = {},
+    )
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
+      Cover(
+        Modifier.fillMaxHeight(),
+        cover = cover,
+        animationKey = Animations.Companion.Player.coverKey(id),
+        fontSize = 10.sp,
+        shape = RoundedCornerShape(4.dp),
+      )
+
+      SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true), author, title)
+
+      SmallPlayerControls(
+        multipleButtonState,
+        onSeekBackClick,
+        onSeekForwardClick,
+        onPlayPauseClick,
+        id,
+      )
     }
   }
 }
@@ -104,31 +95,24 @@ private fun SmallPlayerInfo(
   author: String = "",
   title: String = "",
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      Column(modifier, verticalArrangement = Arrangement.Center) {
-        AutoSizeText(
-          modifier = Modifier.mySharedBound(Animations.Companion.Player.titleKey(title)),
-          text = title,
-          style = MaterialTheme.typography.titleMedium,
-          textAlign = TextAlign.Start,
-          maxLines = 2,
-        )
-        AutoSizeText(
-          modifier =
-            Modifier.mySharedBound(Animations.Companion.Player.authorKey(Defaults.BOOK_AUTHOR)),
-          text = author,
-          style = MaterialTheme.typography.bodySmall,
-          textAlign = TextAlign.Start,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          overflow = TextOverflow.Ellipsis,
-          maxLines = 2,
-        )
-      }
-    }
+  Column(modifier, verticalArrangement = Arrangement.Center) {
+    AutoSizeText(
+      modifier = Modifier.mySharedBound(Animations.Companion.Player.titleKey(title)),
+      text = title,
+      style = MaterialTheme.typography.titleMedium,
+      textAlign = TextAlign.Start,
+      maxLines = 2,
+    )
+    AutoSizeText(
+      modifier =
+        Modifier.mySharedBound(Animations.Companion.Player.authorKey(Defaults.BOOK_AUTHOR)),
+      text = author,
+      style = MaterialTheme.typography.bodySmall,
+      textAlign = TextAlign.Start,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      overflow = TextOverflow.Ellipsis,
+      maxLines = 2,
+    )
   }
 }
 
@@ -140,16 +124,9 @@ private fun SmallPlayerControls(
   onPlayPauseClick: () -> Unit,
   id: String = "",
 ) {
-  val sharedTransitionScope = LocalSharedTransitionScope.current
-  val animatedContentScope = LocalAnimatedContentScope.current
-
-  with(sharedTransitionScope) {
-    with(animatedContentScope) {
-      SeekBackButton(onSeekBackClick, multipleButtonState, id)
-      PlayPauseButton(onPlayPauseClick, multipleButtonState, id, 48)
-      SeekForwardButton(onSeekForwardClick, multipleButtonState, id)
-    }
-  }
+  SeekBackButton(onSeekBackClick, multipleButtonState, id)
+  PlayPauseButton(onPlayPauseClick, multipleButtonState, id, 48)
+  SeekForwardButton(onSeekForwardClick, multipleButtonState, id)
 }
 
 @ShelfDroidPreview
