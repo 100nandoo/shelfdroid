@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeUiState
 import javax.inject.Inject
@@ -33,7 +34,10 @@ constructor(repository: AddEpisodeRepository, savedStateHandle: SavedStateHandle
           val updatedEpisodes =
             it.episodes.map { episode ->
               if (episode.url == event.url) {
-                episode.copy(isDownloaded = event.isChecked)
+                val state =
+                  if (event.isChecked) AddEpisodeDownloadState.ToBeDownloaded
+                  else AddEpisodeDownloadState.NotDownloaded
+                episode.copy(state = state)
               } else {
                 episode
               }

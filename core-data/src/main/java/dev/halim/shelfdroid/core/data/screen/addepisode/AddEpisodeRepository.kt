@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.addepisode
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import javax.inject.Inject
@@ -24,7 +25,8 @@ constructor(
 
     val feedUrl = podcast.metadata.feedUrl ?: return failureState("Podcast feed URL not found")
 
-    val episodes = fetchEpisodes(feedUrl) ?: return failureState("No episodes found")
+    val episodes =
+      fetchEpisodes(podcast.episodes, feedUrl) ?: return failureState("No episodes found")
 
     return AddEpisodeUiState(
       state = GenericState.Success,
@@ -35,14 +37,21 @@ constructor(
     )
   }
 
-  private suspend fun fetchEpisodes(feedUrl: String): List<Episode>? = episodes(feedUrl).getOrNull()
+  private suspend fun fetchEpisodes(
+    episodesFromDb: List<PodcastEpisode>,
+    feedUrl: String,
+  ): List<Episode>? = episodes(episodesFromDb, feedUrl).getOrNull()
 
-  private suspend fun episodes(rssFeed: String): Result<List<Episode>> =
-    api.podcastFeed(PodcastFeedRequest(rssFeed)).mapCatching { response ->
+  private suspend fun episodes(
+    episodesFromDb: List<PodcastEpisode>,
+    rssFeed: String,
+  ): Result<List<Episode>> {
+    return api.podcastFeed(PodcastFeedRequest(rssFeed)).mapCatching { response ->
       val episodes = response.podcast.episodes
       require(episodes.isNotEmpty()) { "No episodes found" }
-      mapper.mapEpisodes(response)
+      mapper.mapEpisodes(episodesFromDb, response)
     }
+  }
 
   private fun decodePodcast(raw: String): Podcast? =
     runCatching { json.decodeFromString<Podcast>(raw) }.getOrNull()

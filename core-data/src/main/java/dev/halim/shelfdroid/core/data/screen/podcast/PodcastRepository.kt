@@ -48,6 +48,7 @@ constructor(
           title = it.title,
           cover = it.cover,
           description = it.description,
+          canAddEpisode = prefs.userPrefs.isAdmin,
           episodes = episodes,
           displayPrefs = prefs.displayPrefs,
         )

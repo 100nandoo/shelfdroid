@@ -24,9 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.addepisode.Episode
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
+import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -88,14 +90,20 @@ private fun AddEpisodeScreenContent(
 @Composable
 private fun AddEpisodeItem(episode: Episode, onCheckedChange: (Boolean) -> Unit) {
   Row(verticalAlignment = Alignment.CenterVertically) {
-    Checkbox(checked = episode.isDownloaded, onCheckedChange = onCheckedChange)
+    val checked =
+      episode.state == AddEpisodeDownloadState.Downloaded ||
+        episode.state == AddEpisodeDownloadState.ToBeDownloaded
+
+    val enabled = episode.state != AddEpisodeDownloadState.Downloaded
+
+    Checkbox(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     Column(modifier = Modifier.weight(1f)) {
-      Text(episode.title, maxLines = 2)
+      Text(episode.title, maxLines = 2, color = MaterialTheme.colorScheme.onSurface.enable(enabled))
       Text(
         episode.description,
         style = MaterialTheme.typography.labelSmall,
         maxLines = 2,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = MaterialTheme.colorScheme.onSurfaceVariant.enable(enabled),
       )
     }
   }

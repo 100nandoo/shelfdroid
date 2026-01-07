@@ -16,5 +16,11 @@ data class Episode(
   val pubDate: String,
   val publishedAt: Long,
   val url: String,
-  val isDownloaded: Boolean,
+  val state: AddEpisodeDownloadState,
 )
+
+enum class AddEpisodeDownloadState {
+  Downloaded,
+  ToBeDownloaded,
+  NotDownloaded,
+}

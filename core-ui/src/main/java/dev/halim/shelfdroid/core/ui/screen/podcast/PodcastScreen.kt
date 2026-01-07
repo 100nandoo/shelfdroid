@@ -96,7 +96,7 @@ fun PodcastScreenContent(
       EpisodeItem(id, episode, onEvent, onEpisodeClicked, onPlayClicked, snackbarHostState)
     }
     item {
-      Header({ onAddEpisodeClicked(id) })
+      Header(uiState.canAddEpisode, { onAddEpisodeClicked(id) })
       Spacer(modifier = Modifier.height(16.dp))
 
       ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
@@ -112,7 +112,7 @@ fun PodcastScreenContent(
 }
 
 @Composable
-private fun Header(onAddEpisodeClicked: () -> Unit) {
+private fun Header(canAddEpisode: Boolean, onAddEpisodeClicked: () -> Unit) {
   Row(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
     Text(
       modifier = Modifier.weight(1f),
@@ -121,11 +121,13 @@ private fun Header(onAddEpisodeClicked: () -> Unit) {
       textAlign = TextAlign.Left,
     )
 
-    Icon(
-      painter = painterResource(id = R.drawable.search),
-      contentDescription = stringResource(R.string.search_podcast),
-      modifier = Modifier.clickable { onAddEpisodeClicked() },
-    )
+    if (canAddEpisode) {
+      Icon(
+        painter = painterResource(id = R.drawable.search),
+        contentDescription = stringResource(R.string.search_podcast),
+        modifier = Modifier.clickable { onAddEpisodeClicked() },
+      )
+    }
   }
 }
 

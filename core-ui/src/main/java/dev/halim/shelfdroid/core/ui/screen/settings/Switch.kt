@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -32,9 +33,7 @@ fun SettingsSwitchItem(
     Text(
       text = title,
       style = MaterialTheme.typography.bodyMedium,
-      color =
-        if (enabled) MaterialTheme.colorScheme.onSurfaceVariant
-        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+      color = MaterialTheme.colorScheme.onSurfaceVariant.enable(enabled),
     )
     Switch(
       enabled = enabled,
