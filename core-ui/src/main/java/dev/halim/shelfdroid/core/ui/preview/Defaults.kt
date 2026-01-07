@@ -4,6 +4,7 @@ import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
+import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeState
@@ -247,7 +248,8 @@ object Defaults {
       val state =
         if (it % 2 == 0) AddEpisodeDownloadState.ToBeDownloaded
         else AddEpisodeDownloadState.NotDownloaded
-      dev.halim.shelfdroid.core.data.screen.addepisode.Episode(
+      AddEpisode(
+        episodeId = it.toString(),
         title = "Episode $it",
         description = "Description of Episode $it",
         pubDate = "2023-01-01",

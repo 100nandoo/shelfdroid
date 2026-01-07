@@ -5,21 +5,28 @@ import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import javax.inject.Inject
 
 class AddEpisodeMapper @Inject constructor() {
-  fun mapEpisodes(episodesFromDb: List<PodcastEpisode>, response: PodcastFeed): List<Episode> {
-    val dbEpisodeUrls = episodesFromDb.mapNotNull { it.enclosure?.url }
 
-    return response.podcast.episodes.map {
-      val isDownloaded = dbEpisodeUrls.contains(it.enclosure.url)
-      val state =
-        if (isDownloaded) AddEpisodeDownloadState.Downloaded
-        else AddEpisodeDownloadState.NotDownloaded
-      Episode(
-        title = it.title,
-        description = it.description,
-        pubDate = it.pubDate,
-        publishedAt = it.publishedAt,
-        url = it.enclosure.url,
-        state = state,
+  fun mapEpisodes(episodesFromDb: List<PodcastEpisode>, response: PodcastFeed): List<AddEpisode> {
+
+    val dbEpisodesByUrl =
+      episodesFromDb
+        .mapNotNull { episode -> episode.enclosure?.url?.let { url -> url to episode } }
+        .toMap()
+
+    return response.podcast.episodes.map { feedEpisode ->
+      val url = feedEpisode.enclosure.url
+      val dbEpisode = dbEpisodesByUrl[url]
+
+      AddEpisode(
+        episodeId = dbEpisode?.id.orEmpty(),
+        title = feedEpisode.title,
+        description = feedEpisode.description,
+        pubDate = feedEpisode.pubDate,
+        publishedAt = feedEpisode.publishedAt,
+        url = url,
+        state =
+          if (dbEpisode != null) AddEpisodeDownloadState.Downloaded
+          else AddEpisodeDownloadState.NotDownloaded,
       )
     }
   }

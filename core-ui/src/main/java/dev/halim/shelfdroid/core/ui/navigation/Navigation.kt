@@ -155,7 +155,7 @@ private fun ColumnScope.NavHostContainer(
               onEpisodeClicked = { itemId, episodeId ->
                 navController.navigate(Episode(itemId, episodeId))
               },
-              onAddEpisodeClicked = { itemId -> navController.navigate(AddEpisode(itemId)) },
+              onFetchEpisodeSuccess = { id -> navController.navigate(AddEpisode(id)) },
             )
           }
         }

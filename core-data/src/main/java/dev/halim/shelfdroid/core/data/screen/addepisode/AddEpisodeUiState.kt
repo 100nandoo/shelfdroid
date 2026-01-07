@@ -7,10 +7,11 @@ data class AddEpisodeUiState(
   val author: String = "",
   val title: String = "",
   val cover: String = "",
-  val episodes: List<Episode> = emptyList(),
+  val episodes: List<AddEpisode> = emptyList(),
 )
 
-data class Episode(
+data class AddEpisode(
+  val episodeId: String,
   val title: String,
   val description: String,
   val pubDate: String,

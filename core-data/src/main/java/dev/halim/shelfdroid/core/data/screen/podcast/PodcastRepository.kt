@@ -6,6 +6,7 @@ import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.response.PodcastFeedRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
@@ -23,10 +24,13 @@ constructor(
   private val progressRepo: ProgressRepo,
   private val downloadRepo: DownloadRepo,
   private val prefsRepository: PrefsRepository,
-  private val apiService: ApiService,
+  private val api: ApiService,
+  private val podcastFeedRepo: PodcastFeedRepo,
   private val mapper: PodcastMapper,
 ) {
   private val repositoryScope = CoroutineScope(Dispatchers.IO)
+
+  var podcast: Podcast? = null
 
   fun item(id: String): Flow<PodcastUiState> {
     val entity = libraryItemRepo.flowById(id)
@@ -39,8 +43,8 @@ constructor(
       downloads,
       prefs ->
       entity?.let {
-        val media = Json.decodeFromString<Podcast>(it.media)
-        val episodes = mapper.mapEpisodes(media.episodes, progresses)
+        podcast = Json.decodeFromString<Podcast>(it.media)
+        val episodes = mapper.mapEpisodes(podcast?.episodes ?: emptyList(), progresses)
 
         PodcastUiState(
           state = GenericState.Success,
@@ -58,7 +62,7 @@ constructor(
 
   suspend fun toggleIsFinished(itemId: String, episode: Episode): Boolean {
     val request = ProgressRequest(episode.isFinished.not())
-    val result = apiService.patchPodcastProgress(itemId, episode.episodeId, request)
+    val result = api.patchPodcastProgress(itemId, episode.episodeId, request)
 
     if (result.isSuccess) {
       repositoryScope.launch {
@@ -75,11 +79,23 @@ constructor(
 
   suspend fun markIsFinished(itemId: String, episodeId: String): Boolean {
     val request = ProgressRequest(true)
-    val result = apiService.patchPodcastProgress(itemId, episodeId, request)
+    val result = api.patchPodcastProgress(itemId, episodeId, request)
 
     if (result.isSuccess) {
       repositoryScope.launch { progressRepo.markEpisodeFinished(itemId, episodeId) }
     }
     return result.isSuccess
   }
+
+  suspend fun fetchEpisode(): GenericState {
+    if (podcast == null) return failureState("Podcast not found")
+
+    val feedUrl = podcast?.metadata?.feedUrl ?: return failureState("Podcast feed URL not found")
+
+    podcastFeedRepo.fetch(feedUrl)
+
+    return GenericState.Success
+  }
+
+  private fun failureState(message: String) = GenericState.Failure(message)
 }

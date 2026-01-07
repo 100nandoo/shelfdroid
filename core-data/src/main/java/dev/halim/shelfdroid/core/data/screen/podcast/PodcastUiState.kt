@@ -6,6 +6,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 
 data class PodcastUiState(
   val state: GenericState = GenericState.Loading,
+  val addEpisodeState: GenericState = GenericState.Idle,
   val author: String = "",
   val title: String = "",
   val cover: String = "",
