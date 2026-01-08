@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.book
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,29 +21,54 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun ProgressRow(progress: String, remaining: String) {
+fun ProgressRow(progress: Int, remaining: String) {
+  val isComplete = progress >= 100
+
   Card(
     modifier = Modifier.fillMaxWidth(),
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
   ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-        modifier = Modifier.weight(1f),
-        text = stringResource(R.string.args_percent, progress),
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-      Text(
-        modifier = Modifier.weight(4f),
-        text = stringResource(R.string.args_remaining, remaining),
-        textAlign = TextAlign.Start,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
+    if (isComplete) {
+      Box(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+      ) {
+        Text(
+          text = stringResource(R.string.completed),
+          style = MaterialTheme.typography.titleMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    } else {
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          modifier = Modifier.weight(1f),
+          text = stringResource(R.string.args_percent, progress),
+          textAlign = TextAlign.Center,
+          style = MaterialTheme.typography.titleLarge,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+          modifier = Modifier.weight(4f),
+          text = stringResource(R.string.args_remaining, remaining),
+          textAlign = TextAlign.Start,
+          style = MaterialTheme.typography.titleMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun EpisodeItemCompletedPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    LazyColumn(modifier = Modifier.padding(16.dp)) {
+      item { ProgressRow(Defaults.PROGRESS_COMPLETE_PERCENT, Defaults.BOOK_REMAINING) }
     }
   }
 }

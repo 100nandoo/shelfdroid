@@ -105,7 +105,8 @@ object Defaults {
   const val BOOK_TITLE = "The Fellowship of the Ring"
   const val BOOK_COVER = ""
   const val PROGRESS: Float = 0.5f
-  const val PROGRESS_PERCENT: String = "12"
+  const val PROGRESS_PERCENT = 12
+  const val PROGRESS_COMPLETE_PERCENT = 100
   const val BOOK_DESCRIPTION =
     """
         In a quiet village in the Shire, a young hobbit named Frodo Baggins inherits a Ring of great power.

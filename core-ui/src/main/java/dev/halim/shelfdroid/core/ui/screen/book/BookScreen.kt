@@ -94,7 +94,7 @@ fun BookScreenContent(
   publisher: String = Defaults.BOOK_PUBLISHER,
   genres: String = Defaults.BOOK_GENRES,
   language: String = Defaults.BOOK_LANGUAGE,
-  progress: String = Defaults.PROGRESS_PERCENT,
+  progress: Int = Defaults.PROGRESS_PERCENT,
   downloadState: DownloadState = DownloadState.Unknown,
   currentItemId: String = Defaults.BOOK_ID,
   exoState: ExoState = ExoState.Pause,

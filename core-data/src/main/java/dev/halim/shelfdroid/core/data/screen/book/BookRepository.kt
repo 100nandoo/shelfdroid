@@ -9,8 +9,8 @@ import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
-import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -46,7 +46,7 @@ constructor(
           val language = media.metadata.language ?: ""
 
           val progress = progress?.progress?.toFloat() ?: 0f
-          val formattedProgress = String.format(Locale.getDefault(), "%.0f", progress * 100)
+          val formattedProgress = (progress * 100).roundToInt()
           val remaining = helper.calculateRemaining(media.duration ?: 0.0, progress)
 
           val isSingleTrack = media.audioTracks.size == 1
