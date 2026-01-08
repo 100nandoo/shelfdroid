@@ -43,14 +43,28 @@ class MediaControllerManager
 constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
 
   var mediaController: MediaController? = null
+    private set
 
   fun init(scope: CoroutineScope) {
-    if (mediaController != null) return
-    Log.d("media3", "mediaController instantiated")
-    scope.launch { runCatching { mediaController = mediaControllerFuture.await() } }
+    if (mediaController?.isConnected == true) {
+      Log.d("media3", "MediaController already connected")
+      return
+    }
+
+    Log.d("media3", "Creating / reconnecting MediaController")
+
+    scope.launch {
+      runCatching {
+          mediaController?.release()
+          mediaController = mediaControllerFuture.await()
+          Log.d("media3", "MediaController connected=${mediaController?.isConnected}")
+        }
+        .onFailure { Log.e("media3", "Failed to init MediaController", it) }
+    }
   }
 
   fun release() {
     mediaController?.release()
+    mediaController = null
   }
 }
