@@ -25,8 +25,9 @@ import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
+import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
-import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -86,23 +87,19 @@ private fun AddEpisodeItem(episode: AddEpisode, onCheckedChange: (Boolean) -> Un
 
   val enabled = episode.state != AddEpisodeDownloadState.Downloaded
 
-  Row(
-    modifier = Modifier.alpha(enabled.enableAlpha()),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
+  Row(verticalAlignment = Alignment.CenterVertically) {
     Checkbox(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     Column(modifier = Modifier.weight(1f)) {
       Text(
         modifier =
-          Modifier.mySharedBound(
-            Animations.Companion.Episode.titleKey(episode.episodeId, episode.title)
-          ),
+          Modifier.mySharedElement(Animations.Companion.Episode.titleKey(episode.episodeId)),
         text = episode.title,
         maxLines = 2,
-        color = MaterialTheme.colorScheme.onSurface,
+        color = MaterialTheme.colorScheme.onSurface.enable(enabled),
       )
       Text(
         episode.description,
+        modifier = Modifier.alpha(enabled.enableAlpha()),
         style = MaterialTheme.typography.labelSmall,
         maxLines = 2,
         color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -34,7 +34,6 @@ import coil3.request.ImageRequest
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
-import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
 
 @Composable
@@ -118,7 +117,7 @@ fun CoverWithTitle(
       verticalArrangement = Arrangement.Center,
     ) {
       Text(
-        modifier = Modifier.mySharedBound(titleAnimationKey),
+        modifier = Modifier.mySharedElement(titleAnimationKey),
         text = title,
         style = MaterialTheme.typography.titleLarge,
       )

@@ -107,7 +107,7 @@ fun EpisodeScreenContent(
         cover = cover,
         coverAnimationKey = Animations.coverKey(itemId),
         title = title,
-        titleAnimationKey = Animations.Companion.Episode.titleKey(episodeId, title),
+        titleAnimationKey = Animations.Companion.Episode.titleKey(episodeId),
         subtitle = publishedAt,
         subtitleAnimationKey = Animations.Companion.Episode.publishedAtKey(episodeId),
       )

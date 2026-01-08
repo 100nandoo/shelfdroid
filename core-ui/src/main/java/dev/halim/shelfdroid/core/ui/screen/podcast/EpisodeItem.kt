@@ -49,7 +49,6 @@ fun EpisodeItem(
   Column(
     modifier =
       Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episode.episodeId))
-        .alpha(episode.isFinished.enableAlpha())
         .fillMaxWidth()
         .clickable { onEpisodeClicked(itemId, episode.episodeId) }
         .padding(vertical = 8.dp)
@@ -58,15 +57,16 @@ fun EpisodeItem(
       text = episode.title,
       style = MaterialTheme.typography.bodyLarge,
       modifier =
-        Modifier.mySharedBound(
-            Animations.Companion.Episode.titleKey(episode.episodeId, episode.title)
-          )
+        Modifier.mySharedElement(Animations.Companion.Episode.titleKey(episode.episodeId))
+          .alpha(episode.isFinished.not().enableAlpha())
           .padding(horizontal = 16.dp),
       maxLines = 2,
       overflow = TextOverflow.Ellipsis,
     )
     Spacer(modifier = Modifier.height(4.dp))
-    Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Row(
+      modifier = Modifier.alpha(episode.isFinished.not().enableAlpha()).padding(horizontal = 16.dp)
+    ) {
       Column(modifier = Modifier.weight(1f).height(40.dp)) {
         Text(
           modifier =
