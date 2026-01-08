@@ -10,9 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import dev.halim.shelfdroid.core.ui.extensions.enable
+import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -26,14 +27,14 @@ fun SettingsSwitchItem(
   onCheckedChange: (Boolean) -> Unit,
 ) {
   Row(
-    modifier = modifier.fillMaxWidth(),
+    modifier = modifier.fillMaxWidth().alpha(enabled.enableAlpha()),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Text(
       text = title,
       style = MaterialTheme.typography.bodyMedium,
-      color = MaterialTheme.colorScheme.onSurfaceVariant.enable(enabled),
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Switch(
       enabled = enabled,

@@ -22,6 +22,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DownloadButton
+import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -44,10 +46,10 @@ fun EpisodeItem(
   onPlayClicked: (String, String, Boolean) -> Unit,
   snackbarHostState: SnackbarHostState,
 ) {
-
   Column(
     modifier =
       Modifier.mySharedBound(Animations.Companion.Episode.containerKey(episode.episodeId))
+        .alpha(episode.isFinished.enableAlpha())
         .fillMaxWidth()
         .clickable { onEpisodeClicked(itemId, episode.episodeId) }
         .padding(vertical = 8.dp)

@@ -248,6 +248,7 @@ object Defaults {
     (1..10).map {
       val state =
         if (it % 2 == 0) AddEpisodeDownloadState.ToBeDownloaded
+        else if (it % 5 == 0) AddEpisodeDownloadState.Downloaded
         else AddEpisodeDownloadState.NotDownloaded
       AddEpisode(
         episodeId = it.toString(),

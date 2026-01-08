@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,7 +25,7 @@ import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
-import dev.halim.shelfdroid.core.ui.extensions.enable
+import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -85,7 +86,10 @@ private fun AddEpisodeItem(episode: AddEpisode, onCheckedChange: (Boolean) -> Un
 
   val enabled = episode.state != AddEpisodeDownloadState.Downloaded
 
-  Row(verticalAlignment = Alignment.CenterVertically) {
+  Row(
+    modifier = Modifier.alpha(enabled.enableAlpha()),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
     Checkbox(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     Column(modifier = Modifier.weight(1f)) {
       Text(
@@ -95,13 +99,13 @@ private fun AddEpisodeItem(episode: AddEpisode, onCheckedChange: (Boolean) -> Un
           ),
         text = episode.title,
         maxLines = 2,
-        color = MaterialTheme.colorScheme.onSurface.enable(enabled),
+        color = MaterialTheme.colorScheme.onSurface,
       )
       Text(
         episode.description,
         style = MaterialTheme.typography.labelSmall,
         maxLines = 2,
-        color = MaterialTheme.colorScheme.onSurfaceVariant.enable(enabled),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
   }
