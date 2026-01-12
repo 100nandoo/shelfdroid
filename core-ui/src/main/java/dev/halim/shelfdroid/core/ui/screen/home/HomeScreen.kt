@@ -2,7 +2,6 @@
 
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,6 +52,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
+import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -115,7 +115,7 @@ fun HomeScreenContent(
   HorizontalPager(state = pagerState) { page ->
     val library = uiState.librariesUiState[page]
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-      AnimatedVisibility(uiState.homeState is HomeState.Loading) {
+      VisibilityDown(uiState.homeState is HomeState.Loading) {
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
       }
       LibraryContent(

@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +29,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DownloadButton
+import dev.halim.shelfdroid.core.ui.components.VisibilityUp
 import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.mySharedElement
@@ -80,7 +80,7 @@ fun EpisodeItem(
           overflow = TextOverflow.Ellipsis,
         )
         Spacer(modifier = Modifier.weight(1f))
-        AnimatedVisibility(episode.isFinished.not() || episode.isPlaying) {
+        VisibilityUp(episode.isFinished.not() || episode.isPlaying) {
           val currentProgress =
             when {
               !episode.isFinished -> episode.progress

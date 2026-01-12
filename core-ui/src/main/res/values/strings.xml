@@ -53,7 +53,6 @@
     <!--Dialog-->
 
     <!--Dropdown-->
-    <string name="filter">Filter</string>
     <string name="sort">Sort</string>
     <string name="order">Order</string>
     <!--Dropdown-->
@@ -135,7 +134,7 @@
     <string name="is_an_admin">" is an admin"</string>
     <string name="is_not_an_admin">" is not an admin"</string>
     <string name="clear">Clear</string>
-
+    <string name="filter">Filter</string>
 
     <!--Others-->
 

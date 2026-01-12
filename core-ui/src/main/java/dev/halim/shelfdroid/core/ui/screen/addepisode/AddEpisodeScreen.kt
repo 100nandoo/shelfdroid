@@ -9,22 +9,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
+import dev.halim.shelfdroid.core.ui.components.VisibilityUp
 import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.mySharedElement
@@ -55,26 +65,46 @@ private fun AddEpisodeScreenContent(
   episodes: List<AddEpisode> = Defaults.ADD_EPISODE_EPISODES,
   onEvent: (AddEpisodeEvent) -> Unit = {},
 ) {
-  LazyColumn(
-    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-    reverseLayout = true,
-    verticalArrangement = Arrangement.Bottom,
-  ) {
-    item {
-      CoverWithTitle(
-        cover = cover,
-        coverAnimationKey = Animations.coverKey(itemId),
-        title = title,
-        titleAnimationKey = Animations.titleKey(itemId, title),
-        subtitle = author,
-        subtitleAnimationKey = Animations.authorKey(itemId, author),
-      )
-      Spacer(modifier = Modifier.height(16.dp))
+  val lazyListState = rememberLazyListState()
+  val fabVisible by remember { derivedStateOf { lazyListState.isScrollInProgress.not() } }
+  Scaffold(
+    floatingActionButton = {
+      VisibilityUp(fabVisible) {
+        ExtendedFloatingActionButton(
+          text = { Text(text = stringResource(R.string.filter)) },
+          icon = {
+            Icon(
+              painter = painterResource(R.drawable.filter),
+              contentDescription = stringResource(R.string.filter),
+            )
+          },
+          onClick = {},
+        )
+      }
     }
+  ) {
+    LazyColumn(
+      state = lazyListState,
+      modifier = Modifier.padding(it).fillMaxSize().padding(horizontal = 16.dp),
+      reverseLayout = true,
+      verticalArrangement = Arrangement.Bottom,
+    ) {
+      item {
+        CoverWithTitle(
+          cover = cover,
+          coverAnimationKey = Animations.coverKey(itemId),
+          title = title,
+          titleAnimationKey = Animations.titleKey(itemId, title),
+          subtitle = author,
+          subtitleAnimationKey = Animations.authorKey(itemId, author),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+      }
 
-    items(items = episodes, key = { it.url }) { episode ->
-      AddEpisodeItem(episode) { onEvent(AddEpisodeEvent.CheckEpisode(episode.url, it)) }
-      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+      items(items = episodes, key = { it.url }) { episode ->
+        AddEpisodeItem(episode) { onEvent(AddEpisodeEvent.CheckEpisode(episode.url, it)) }
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+      }
     }
   }
 }

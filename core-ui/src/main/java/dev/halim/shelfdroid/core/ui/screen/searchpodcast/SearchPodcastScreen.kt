@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.searchpodcast
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,6 +39,7 @@ import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -71,7 +71,7 @@ private fun SearchPodcastScreenContent(
   var textFieldValue by rememberSaveable { mutableStateOf("") }
 
   Column {
-    AnimatedVisibility(uiState.state is GenericState.Loading) {
+    VisibilityDown(uiState.state is GenericState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     LazyColumn(modifier = Modifier.imePadding().fillMaxSize(), reverseLayout = true) {

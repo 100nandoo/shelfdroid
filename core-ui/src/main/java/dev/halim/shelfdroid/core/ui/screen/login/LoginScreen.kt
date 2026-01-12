@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +52,7 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
@@ -98,7 +98,7 @@ fun LoginScreenContent(
   }
 
   Box(modifier = Modifier.fillMaxSize().imePadding()) {
-    AnimatedVisibility(uiState.loginState is GenericState.Loading) {
+    VisibilityDown(uiState.loginState is GenericState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
     }
 

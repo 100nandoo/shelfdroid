@@ -1,7 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.podcastfeed
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -61,6 +59,8 @@ import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedUiState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.VisibilityDown
+import dev.halim.shelfdroid.core.ui.components.VisibilityUp
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -86,11 +86,11 @@ private fun PodcastFeedScreenContent(
   val (titleRef, authorRef, feedUrlRef, descriptionRef, languageRef, pathRef, genreRef) =
     remember { FocusRequester.createRefs() }
 
-  AnimatedVisibility(uiState.state is PodcastFeedState.Loading) {
+  VisibilityDown(uiState.state is PodcastFeedState.Loading) {
     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
   }
 
-  AnimatedVisibility(visible = uiState.state is PodcastFeedState.ApiFeedSuccess, enter = fadeIn()) {
+  VisibilityUp(visible = uiState.state is PodcastFeedState.ApiFeedSuccess) {
     var title by remember { mutableStateOf(TextFieldValue(uiState.title)) }
     var author by remember { mutableStateOf(TextFieldValue(uiState.author)) }
     var feedUrl by remember { mutableStateOf(TextFieldValue(uiState.feedUrl)) }
