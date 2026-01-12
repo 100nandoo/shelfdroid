@@ -48,8 +48,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
-import dev.halim.shelfdroid.core.data.screen.login.LoginState
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -69,12 +69,12 @@ fun LoginScreen(
 
   LaunchedEffect(uiState.loginState) {
     when (val state = uiState.loginState) {
-      is LoginState.Failure -> {
+      is GenericState.Failure -> {
         state.errorMessage?.let { scope.launch { snackbarHostState.showSnackbar(it) } }
         viewModel.onEvent(LoginEvent.ErrorShown)
       }
 
-      is LoginState.Success -> {
+      is GenericState.Success -> {
         focusManager.clearFocus()
         onLoginSuccess()
       }
@@ -93,10 +93,12 @@ fun LoginScreenContent(
 ) {
   val (serverRef, usernameRef, passwordRef) = remember { FocusRequester.createRefs() }
 
-  LaunchedEffect(Unit) { serverRef.requestFocus() }
+  LaunchedEffect(Unit) {
+    if (uiState.reLogin) passwordRef.requestFocus() else serverRef.requestFocus()
+  }
 
   Box(modifier = Modifier.fillMaxSize().imePadding()) {
-    AnimatedVisibility(uiState.loginState is LoginState.Loading) {
+    AnimatedVisibility(uiState.loginState is GenericState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
     }
 
@@ -107,7 +109,7 @@ fun LoginScreenContent(
     ) {
       MyOutlinedTextField(
         modifier = Modifier.fillMaxWidth().focusRequester(serverRef).testTag("server"),
-        readOnly = uiState.reLogin,
+        enabled = uiState.reLogin.not(),
         value = uiState.server,
         onValueChange = { onEvent(LoginEvent.ServerChanged(it)) },
         label = stringResource(R.string.server_address),
@@ -122,7 +124,7 @@ fun LoginScreenContent(
 
       MyOutlinedTextField(
         modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
-        readOnly = uiState.reLogin,
+        enabled = uiState.reLogin.not(),
         value = uiState.username,
         onValueChange = { onEvent(LoginEvent.UsernameChanged(it)) },
         label = stringResource(R.string.username),
@@ -192,14 +194,21 @@ private fun PasswordTextField(
 
 @ShelfDroidPreview
 @Composable
-fun PodcastScreenContentPreview() {
+fun LoginScreenContentPreview() {
   val loginUiState = LoginUiState()
   PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
 }
 
 @ShelfDroidPreview
 @Composable
-fun PodcastScreenContentDynamicPreview() {
-  val loginUiState = LoginUiState(loginState = LoginState.Failure("Wrong credentials"))
+fun LoginScreenContentDynamicPreview() {
+  val loginUiState = LoginUiState(loginState = GenericState.Failure("Wrong credentials"))
   PreviewWrapper(dynamicColor = true) { LoginScreenContent(loginUiState) }
+}
+
+@ShelfDroidPreview
+@Composable
+fun ReLoginScreenContentPreview() {
+  val loginUiState = LoginUiState(reLogin = true)
+  PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
 }

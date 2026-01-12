@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.login
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.response.LoginResponse
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
@@ -33,7 +34,7 @@ constructor(
       updateDataStoreManager(uiState.server, result)
       progressRepo.saveAndConvert(result.user)
       bookmarkRepo.saveAndConvert(result.user)
-      return uiState.copy(loginState = LoginState.Success)
+      return uiState.copy(loginState = GenericState.Success)
     }
     val exception = response.exceptionOrNull()
     val message =
@@ -47,7 +48,7 @@ constructor(
       } else {
         exception?.message
       }
-    return uiState.copy(loginState = LoginState.Failure(message))
+    return uiState.copy(loginState = GenericState.Failure(message))
   }
 
   private suspend fun updateDataStoreManager(server: String, response: LoginResponse) {
@@ -61,22 +62,12 @@ constructor(
 }
 
 data class LoginUiState(
-  val loginState: LoginState = LoginState.NotLoggedIn,
+  val loginState: GenericState = GenericState.Idle,
   val server: String = "",
   val username: String = "",
   val password: String = "",
   val reLogin: Boolean = false,
 )
-
-sealed class LoginState {
-  data object NotLoggedIn : LoginState()
-
-  data object Loading : LoginState()
-
-  data object Success : LoginState()
-
-  data class Failure(val errorMessage: String?) : LoginState()
-}
 
 sealed class LoginEvent {
   data object LoginButtonPressed : LoginEvent()

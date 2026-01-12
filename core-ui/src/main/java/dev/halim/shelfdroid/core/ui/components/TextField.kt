@@ -3,8 +3,8 @@ package dev.halim.shelfdroid.core.ui.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,7 +21,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 @Composable
 fun MyOutlinedTextField(
   modifier: Modifier = Modifier,
-  readOnly: Boolean = false,
+  enabled: Boolean = true,
   value: String,
   onValueChange: (String) -> Unit,
   label: String,
@@ -32,13 +32,17 @@ fun MyOutlinedTextField(
   onNext: (() -> Unit)? = null,
   onDone: (() -> Unit)? = null,
 ) {
+  val prefixColor =
+    if (enabled) OutlinedTextFieldDefaults.colors().unfocusedTextColor
+    else OutlinedTextFieldDefaults.colors().disabledTextColor
   OutlinedTextField(
     modifier = modifier.fillMaxWidth(),
-    readOnly = readOnly,
+    readOnly = enabled.not(),
+    enabled = enabled,
     value = value,
     onValueChange = { onValueChange(it) },
     label = { Text(label) },
-    prefix = prefix?.let { { Text(it, color = MaterialTheme.colorScheme.primary) } },
+    prefix = prefix?.let { { Text(it, color = prefixColor) } },
     placeholder = placeholder?.let { { Text(it) } },
     keyboardOptions = keyboardOptions,
     visualTransformation = visualTransformation,

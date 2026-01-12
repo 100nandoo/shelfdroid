@@ -34,9 +34,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
-import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.R
@@ -71,7 +71,7 @@ private fun SearchPodcastScreenContent(
   var textFieldValue by rememberSaveable { mutableStateOf("") }
 
   Column {
-    AnimatedVisibility(uiState.state is SearchState.Loading) {
+    AnimatedVisibility(uiState.state is GenericState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     LazyColumn(modifier = Modifier.imePadding().fillMaxSize(), reverseLayout = true) {
@@ -141,7 +141,7 @@ private fun SearchPodcastScreenContentPreview() {
     SearchPodcastScreenContent(
       uiState =
         SearchPodcastUiState(
-          state = SearchState.Success,
+          state = GenericState.Success,
           result =
             listOf(
               SearchPodcastUi("", 1, 2, "NPR", "Planet Money", genre = "Finance, News, Business")
@@ -158,7 +158,7 @@ private fun SearchPodcastScreenContentDynamicPreview() {
     SearchPodcastScreenContent(
       uiState =
         SearchPodcastUiState(
-          state = SearchState.Success,
+          state = GenericState.Success,
           result =
             listOf(
               SearchPodcastUi("", 2, 3, "NPR", "Planet Money", genre = "Finance, News, Business")

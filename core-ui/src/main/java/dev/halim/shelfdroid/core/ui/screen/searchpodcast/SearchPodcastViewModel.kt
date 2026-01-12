@@ -4,9 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastRepository
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
-import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +27,7 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPo
   fun onEvent(event: SearchPodcastEvent) {
     when (event) {
       is SearchPodcastEvent.Search -> {
-        _uiState.update { it.copy(state = SearchState.Loading) }
+        _uiState.update { it.copy(state = GenericState.Loading) }
         viewModelScope.launch { _uiState.update { repository.search(event.term, libraryId) } }
       }
 

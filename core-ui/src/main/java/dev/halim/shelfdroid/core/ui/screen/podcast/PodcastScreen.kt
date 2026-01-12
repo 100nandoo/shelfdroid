@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.GenericState.Failure
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
@@ -41,6 +43,7 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
+import kotlinx.coroutines.launch
 
 @Composable
 fun PodcastScreen(
@@ -52,11 +55,18 @@ fun PodcastScreen(
 ) {
   InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  val scope = rememberCoroutineScope()
 
   LaunchedEffect(uiState.addEpisodeState) {
-    if (uiState.addEpisodeState == GenericState.Success) {
-      viewModel.onEvent(PodcastEvent.ResetAddEpisodeState)
-      onFetchEpisodeSuccess(viewModel.id)
+    when (val state = uiState.addEpisodeState) {
+      is GenericState.Success -> {
+        viewModel.onEvent(PodcastEvent.ResetAddEpisodeState)
+        onFetchEpisodeSuccess(viewModel.id)
+      }
+      is Failure -> {
+        state.errorMessage?.let { scope.launch { snackbarHostState.showSnackbar(it) } }
+      }
+      else -> Unit
     }
   }
 

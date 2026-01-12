@@ -92,9 +92,7 @@ constructor(
 
     val feedUrl = podcast?.metadata?.feedUrl ?: return failureState("Podcast feed URL not found")
 
-    podcastFeedRepo.fetch(feedUrl)
-
-    return GenericState.Success
+    return podcastFeedRepo.fetch(feedUrl)
   }
 
   private fun failureState(message: String) = GenericState.Failure(message)

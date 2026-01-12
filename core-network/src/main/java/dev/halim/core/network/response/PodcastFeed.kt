@@ -24,7 +24,7 @@ data class PodcastMetadata(
   @SerialName("explicit") val explicit: String?,
   @SerialName("author") val author: String,
   @SerialName("pubDate") val pubDate: String?,
-  @SerialName("link") val link: String,
+  @SerialName("link") val link: String?,
 )
 
 @Serializable

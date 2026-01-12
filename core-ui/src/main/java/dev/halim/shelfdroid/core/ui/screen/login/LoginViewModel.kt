@@ -4,9 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
-import dev.halim.shelfdroid.core.data.screen.login.LoginState
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +35,7 @@ constructor(private val loginRepository: LoginRepository, savedStateHandle: Save
       is LoginEvent.UsernameChanged -> _uiState.update { it.copy(username = event.username) }
       is LoginEvent.PasswordChanged -> _uiState.update { it.copy(password = event.password) }
       LoginEvent.ErrorShown -> {
-        _uiState.update { it.copy(loginState = LoginState.NotLoggedIn) }
+        _uiState.update { it.copy(loginState = GenericState.Idle) }
       }
     }
   }

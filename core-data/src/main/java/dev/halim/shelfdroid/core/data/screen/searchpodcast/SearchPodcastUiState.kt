@@ -1,22 +1,13 @@
 package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import kotlinx.serialization.Serializable
 
 data class SearchPodcastUiState(
-  val state: SearchState = SearchState.Blank,
+  val state: GenericState = GenericState.Idle,
   val result: List<SearchPodcastUi> = emptyList(),
 )
-
-sealed class SearchState {
-  data object Blank : SearchState()
-
-  data object Loading : SearchState()
-
-  data object Success : SearchState()
-
-  data class Failure(val errorMessage: String?) : SearchState()
-}
 
 @Serializable
 data class SearchPodcastUi(

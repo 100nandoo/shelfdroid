@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
 import dev.halim.core.network.ApiService
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import javax.inject.Inject
 
@@ -18,9 +19,9 @@ constructor(
     val podcastInfoList = libraryItemRepo.podcastInfoList(libraryId)
     return if (result != null) {
       val result = mapper.map(result, podcastInfoList, libraryId)
-      SearchPodcastUiState(state = SearchState.Success, result = result)
+      SearchPodcastUiState(state = GenericState.Success, result = result)
     } else {
-      SearchPodcastUiState(state = SearchState.Failure(response.exceptionOrNull()?.message))
+      SearchPodcastUiState(state = GenericState.Failure(response.exceptionOrNull()?.message))
     }
   }
 }
