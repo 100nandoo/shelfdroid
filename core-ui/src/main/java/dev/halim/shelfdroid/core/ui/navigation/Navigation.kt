@@ -160,7 +160,17 @@ private fun ColumnScope.NavHostContainer(
           }
         }
         composable<AddEpisode> {
-          SharedScreenWrapper(sharedTransitionScope, this@composable) { AddEpisodeScreen() }
+          val message = stringResource(R.string.starting_to_download_episodes)
+
+          SharedScreenWrapper(sharedTransitionScope, this@composable) {
+            AddEpisodeScreen(
+              snackbarHostState = snackbarHostState,
+              onDownloadEpisodeSuccess = {
+                navController.popBackStack()
+                scope.launch { snackbarHostState.showSnackbar(message) }
+              },
+            )
+          }
         }
         composable<Book> {
           SharedScreenWrapper(sharedTransitionScope, this@composable) {

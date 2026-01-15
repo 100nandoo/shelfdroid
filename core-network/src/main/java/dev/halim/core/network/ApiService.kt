@@ -12,6 +12,7 @@ import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BatchLibraryItemsResponse
+import dev.halim.core.network.response.Episode
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
@@ -137,4 +138,10 @@ interface ApiService {
 
   @POST("/api/podcasts")
   suspend fun createPodcast(@Body request: CreatePodcastRequest): Result<LibraryItem>
+
+  @POST("/api/podcasts/{itemId}/download-episodes")
+  suspend fun downloadEpisodes(
+    @Path("itemId") itemId: String,
+    @Body episodes: List<Episode>,
+  ): Result<Unit>
 }

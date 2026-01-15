@@ -38,7 +38,14 @@
     <string name="args_percent">%1$s%%</string>
     <string name="args_remaining">%1$s remaining</string>
     <string name="args_version">Version %1$s</string>
-    <!--Arguments-->
+
+
+    <!--Plurals-->
+    <plurals name="download_episode_count">
+        <item quantity="one">Download %d episode</item>
+        <item quantity="other">Download %d episodes</item>
+    </plurals>
+    <!--Plurals-->
 
     <!--Dialog-->
     <string name="cancel">Cancel</string>
@@ -106,6 +113,11 @@
     <string name="podcast_created_successfully">Podcast created successfully!</string>
     <!--Podcast Feed-->
 
+    <!--Add Episode-->
+    <string name="no_episodes_selected">No episodes selected</string>
+    <string name="starting_to_download_episodes">Starting to download episodes on the server</string>
+    <!--Add Episode-->
+
     <string name="ok">OK</string>
     <string name="no_cover">No cover</string>
     <string name="show_less">Show less</string>
@@ -137,5 +149,4 @@
     <string name="filter">Filter</string>
 
     <!--Others-->
-
 </resources>

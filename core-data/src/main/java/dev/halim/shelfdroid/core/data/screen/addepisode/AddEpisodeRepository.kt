@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.addepisode
 
+import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
@@ -13,17 +14,20 @@ class AddEpisodeRepository
 constructor(
   private val libraryItemRepo: LibraryItemRepo,
   private val podcastFeedRepo: PodcastFeedRepo,
+  private val apiService: ApiService,
   private val mapper: AddEpisodeMapper,
   private val json: Json,
 ) {
+  lateinit var podcast: Podcast
+  lateinit var podcastFeed: PodcastFeed
 
   fun item(id: String): AddEpisodeUiState {
     val entity = libraryItemRepo.byId(id) ?: return failureState("Failed to fetch podcast")
 
-    val podcast = decodePodcast(entity.media) ?: return failureState("Invalid podcast data")
+    podcast = decodePodcast(entity.media) ?: return failureState("Invalid podcast data")
 
     val feedUrl = podcast.metadata.feedUrl
-    val podcastFeed: PodcastFeed =
+    podcastFeed =
       podcastFeedRepo.cache[feedUrl] ?: return failureState("Failed to fetch podcast feed")
 
     val episodes: List<AddEpisode> = mapper.mapEpisodes(podcast.episodes, podcastFeed)
@@ -35,6 +39,19 @@ constructor(
       cover = entity.cover,
       episodes = episodes,
     )
+  }
+
+  suspend fun downloadEpisodes(id: String, addEpisodes: List<AddEpisode>): GenericState {
+    val episodes =
+      podcastFeed.podcast.episodes.filter { episode ->
+        episode.enclosure.url in addEpisodes.map { it.url }
+      }
+    val result = apiService.downloadEpisodes(id, episodes)
+    return if (result.isSuccess) {
+      GenericState.Success
+    } else {
+      GenericState.Failure(result.exceptionOrNull()?.message ?: "Failed to download episodes")
+    }
   }
 
   private fun decodePodcast(raw: String): Podcast? =
