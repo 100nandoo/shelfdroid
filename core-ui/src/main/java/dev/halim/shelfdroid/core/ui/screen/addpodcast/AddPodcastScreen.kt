@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.screen.podcastfeed
+package dev.halim.shelfdroid.core.ui.screen.addpodcast
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
@@ -54,8 +54,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedState
-import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedUiState
+import dev.halim.shelfdroid.core.data.screen.addpodcast.AddPodcastState
+import dev.halim.shelfdroid.core.data.screen.addpodcast.AddPodcastUiState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -67,18 +67,18 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @Composable
-fun PodcastFeedScreen(
-  viewModel: PodcastFeedViewModel = hiltViewModel(),
+fun AddPodcastScreen(
+  viewModel: AddPodcastViewModel = hiltViewModel(),
   onCreateSuccess: (CreatePodcastNavResult) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  PodcastFeedScreenContent(uiState = uiState, viewModel::onEvent, onCreateSuccess)
+  AddPodcastScreenContent(uiState = uiState, viewModel::onEvent, onCreateSuccess)
 }
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-private fun PodcastFeedScreenContent(
-  uiState: PodcastFeedUiState,
+private fun AddPodcastScreenContent(
+  uiState: AddPodcastUiState,
   onEvent: (PodcastFeedEvent) -> Unit = {},
   onCreateSuccess: (CreatePodcastNavResult) -> Unit = { _ -> },
 ) {
@@ -86,11 +86,11 @@ private fun PodcastFeedScreenContent(
   val (titleRef, authorRef, feedUrlRef, descriptionRef, languageRef, pathRef, genreRef) =
     remember { FocusRequester.createRefs() }
 
-  VisibilityDown(uiState.state is PodcastFeedState.Loading) {
+  VisibilityDown(uiState.state is AddPodcastState.Loading) {
     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
   }
 
-  VisibilityUp(visible = uiState.state is PodcastFeedState.ApiFeedSuccess) {
+  VisibilityUp(visible = uiState.state is AddPodcastState.ApiFeedSuccess) {
     var title by remember { mutableStateOf(TextFieldValue(uiState.title)) }
     var author by remember { mutableStateOf(TextFieldValue(uiState.author)) }
     var feedUrl by remember { mutableStateOf(TextFieldValue(uiState.feedUrl)) }
@@ -205,7 +205,7 @@ private fun PodcastFeedScreenContent(
 
   LaunchedEffect(uiState.state) {
     val state = uiState.state
-    if (state is PodcastFeedState.ApiCreateSuccess) {
+    if (state is AddPodcastState.ApiCreateSuccess) {
       onCreateSuccess(state.result)
     }
   }
@@ -213,7 +213,7 @@ private fun PodcastFeedScreenContent(
 
 @Composable
 private fun GenreSection(
-  uiState: PodcastFeedUiState,
+  uiState: AddPodcastUiState,
   scrollState: ScrollState,
   genreRef: FocusRequester,
   onEvent: (PodcastFeedEvent) -> Unit,
@@ -275,7 +275,7 @@ private fun GenreChip(genre: String, onRemove: (String) -> Unit, onEdit: (String
 
 @Composable
 private fun PathDropdown(
-  uiState: PodcastFeedUiState,
+  uiState: AddPodcastUiState,
   expanded: Boolean,
   onEvent: (PodcastFeedEvent) -> Unit,
   onExpandedChange: (Boolean) -> Unit,
@@ -309,12 +309,12 @@ private fun PathDropdown(
 
 @ShelfDroidPreview
 @Composable
-private fun PodcastFeedScreenPreview() {
+private fun AddPodcastScreenPreview() {
   PreviewWrapper(dynamicColor = false) {
-    PodcastFeedScreenContent(
+    AddPodcastScreenContent(
       uiState =
-        PodcastFeedUiState(
-          state = PodcastFeedState.ApiFeedSuccess,
+        AddPodcastUiState(
+          state = AddPodcastState.ApiFeedSuccess,
           title = "My Awesome Podcast",
           author = "John Doe",
           feedUrl = "https://example.com/feed.xml",

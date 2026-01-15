@@ -40,12 +40,12 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
+import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
-import dev.halim.shelfdroid.core.ui.screen.podcastfeed.PodcastFeedScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
@@ -208,7 +208,7 @@ private fun ColumnScope.NavHostContainer(
         composable<PodcastFeedNavPayload> {
           val message = stringResource(R.string.podcast_created_successfully)
 
-          PodcastFeedScreen(
+          AddPodcastScreen(
             onCreateSuccess = { result ->
               scope.launch { snackbarHostState.showSnackbar(message) }
 

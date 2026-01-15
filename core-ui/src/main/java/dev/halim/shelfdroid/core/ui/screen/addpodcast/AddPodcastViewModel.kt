@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.screen.podcastfeed
+package dev.halim.shelfdroid.core.ui.screen.addpodcast
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
-import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedRepository
-import dev.halim.shelfdroid.core.data.screen.podcastfeed.PodcastFeedUiState
+import dev.halim.shelfdroid.core.data.screen.addpodcast.AddPodcastRepository
+import dev.halim.shelfdroid.core.data.screen.addpodcast.AddPodcastUiState
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,14 +16,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class PodcastFeedViewModel
+class AddPodcastViewModel
 @Inject
-constructor(savedStateHandle: SavedStateHandle, private val repository: PodcastFeedRepository) :
+constructor(savedStateHandle: SavedStateHandle, private val repository: AddPodcastRepository) :
   ViewModel() {
   val payload: PodcastFeedNavPayload = savedStateHandle.toRoute()
-  private val _uiState = MutableStateFlow(PodcastFeedUiState())
+  private val _uiState = MutableStateFlow(AddPodcastUiState())
 
-  val uiState: StateFlow<PodcastFeedUiState> = _uiState
+  val uiState: StateFlow<AddPodcastUiState> = _uiState
 
   init {
     viewModelScope.launch { _uiState.update { repository.feed(payload.feedUrl, payload) } }

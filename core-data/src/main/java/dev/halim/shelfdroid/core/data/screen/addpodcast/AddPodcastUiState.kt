@@ -1,10 +1,10 @@
-package dev.halim.shelfdroid.core.data.screen.podcastfeed
+package dev.halim.shelfdroid.core.data.screen.addpodcast
 
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 
-data class PodcastFeedUiState(
-  val state: PodcastFeedState = PodcastFeedState.Loading,
+data class AddPodcastUiState(
+  val state: AddPodcastState = AddPodcastState.Loading,
   val title: String = "",
   val author: String = "",
   val feedUrl: String = "",
@@ -19,12 +19,12 @@ data class PodcastFeedUiState(
   val autoDownload: Boolean = false,
 )
 
-sealed class PodcastFeedState {
-  data object Loading : PodcastFeedState()
+sealed class AddPodcastState {
+  data object Loading : AddPodcastState()
 
-  data object ApiFeedSuccess : PodcastFeedState()
+  data object ApiFeedSuccess : AddPodcastState()
 
-  data class ApiCreateSuccess(val result: CreatePodcastNavResult) : PodcastFeedState()
+  data class ApiCreateSuccess(val result: CreatePodcastNavResult) : AddPodcastState()
 
-  data class Failure(val errorMessage: String?) : PodcastFeedState()
+  data class Failure(val errorMessage: String?) : AddPodcastState()
 }

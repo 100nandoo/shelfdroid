@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.screen.podcastfeed
+package dev.halim.shelfdroid.core.data.screen.addpodcast
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CreatePodcastRequest
@@ -8,29 +8,29 @@ import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import javax.inject.Inject
 
-class PodcastFeedRepository
+class AddPodcastRepository
 @Inject
 constructor(
   private val api: ApiService,
-  private val mapper: PodcastFeedMapper,
+  private val mapper: AddPodcastMapper,
   private val libraryItemRepo: LibraryItemRepo,
 ) {
 
-  suspend fun feed(rssFeed: String, payload: PodcastFeedNavPayload): PodcastFeedUiState {
+  suspend fun feed(rssFeed: String, payload: PodcastFeedNavPayload): AddPodcastUiState {
     val response = api.podcastFeed(PodcastFeedRequest(rssFeed))
     val result = response.getOrNull()
 
     return if (result != null) {
       mapper.map(result, payload)
     } else {
-      PodcastFeedUiState(state = PodcastFeedState.Failure(response.exceptionOrNull()?.message))
+      AddPodcastUiState(state = AddPodcastState.Failure(response.exceptionOrNull()?.message))
     }
   }
 
   suspend fun createPodcast(
     payload: PodcastFeedNavPayload,
-    uiState: PodcastFeedUiState,
-  ): PodcastFeedUiState {
+    uiState: AddPodcastUiState,
+  ): AddPodcastUiState {
     val folder = uiState.selectedFolder
     val path = "${folder.path}/${uiState.path}"
     val folderId = folder.id
@@ -66,9 +66,9 @@ constructor(
     return if (result != null) {
       libraryItemRepo.createPodcast(result, payload.libraryId)
       val result = CreatePodcastNavResult(result.id, uiState.feedUrl)
-      PodcastFeedUiState(state = PodcastFeedState.ApiCreateSuccess(result))
+      AddPodcastUiState(state = AddPodcastState.ApiCreateSuccess(result))
     } else {
-      PodcastFeedUiState(state = PodcastFeedState.Failure(response.exceptionOrNull()?.message))
+      AddPodcastUiState(state = AddPodcastState.Failure(response.exceptionOrNull()?.message))
     }
   }
 }
