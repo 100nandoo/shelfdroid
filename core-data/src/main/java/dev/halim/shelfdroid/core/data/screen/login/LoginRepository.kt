@@ -23,7 +23,7 @@ constructor(
 ) {
 
   val userPrefs = prefsRepository.userPrefs
-  val baseUrl = dataStoreManager.baseUrl
+  val baseUrl = dataStoreManager.baseUrl()
 
   suspend fun login(uiState: LoginUiState): LoginUiState {
     DataStoreManager.BASE_URL = uiState.server

@@ -38,6 +38,8 @@ include(":helper")
 
 include(":media")
 
+include(":socketio")
+
 include(":test-app")
 
 include(":benchmark")

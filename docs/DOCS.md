@@ -16,21 +16,30 @@ config:
   look: neo
 ---
 flowchart TD
-    Do["Download"]
-    H["Helper"]
-    H --> D
-    H --> U
-    H --> M
-    C --> Do
-    N --> Do
-    Do --> D
-    D["Data"] --> U["UI"] & A["App"] & M["Media"]
+%% Relationships
+    C --> A & D & S & N & U & Do
+    S --> D & N
+    B --> D
+    N --> D & M & Do
+    D --> U & A & M
     U --> A
     M --> U
-    B["Database"] --> D
-    S["Datastore"] --> D & N["Network"]
-    N --> D & M
-    C["Core"] --> A & D & S & N & U
+    SI --> U
+    H --> D & U & M
+    Do --> D
+    C --> SI
+%% Declarations
+    C["Core"]
+    A["App"]
+    U["UI"]
+    N["Network"]
+    S["Datastore"]
+    B["Database"]
+    D["Data"]
+    M["Media"]
+    Do["Download"]
+    H["Helper"]
+    SI["SocketIO"]
 ```
 
 ## 📱 Screen Flow

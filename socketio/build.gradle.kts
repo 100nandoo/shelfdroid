@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-  namespace = "${libs.versions.namespace.get()}.core.network"
+  namespace = "${libs.versions.namespace.get()}.socketio"
   compileSdk = libs.versions.targetSdk.get().toInt()
 
   defaultConfig {
@@ -38,11 +38,10 @@ dependencies {
   implementation(project(libs.versions.coreDatastore.get()))
   implementation(libs.kotlinx.serialization)
 
-  implementation(libs.retrofit)
-  implementation(libs.retrofit.kotlinx.serialization)
-  implementation(libs.retrofit.result)
-
   // hilt
   implementation(libs.hilt.android)
   kapt(libs.hilt.compiler)
+
+  // socket.io
+  implementation(libs.socketio.client) { exclude(group = "org.json", module = "json") }
 }

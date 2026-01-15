@@ -2,8 +2,6 @@ package dev.halim.core.network.client
 
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -13,9 +11,7 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
   Interceptor {
 
   init {
-    DataStoreManager.BASE_URL = runBlocking {
-      dataStoreManager.baseUrl.firstOrNull() ?: "https://www.audiobookshelf.org"
-    }
+    DataStoreManager.BASE_URL = dataStoreManager.baseUrl()
   }
 
   override fun intercept(chain: Interceptor.Chain): Response {
@@ -30,7 +26,7 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
     val result = runCatching { request.url.newBuilder().host(host).build() }
     if (result.isSuccess) {
       val newUrl = result.getOrThrow()
-      val token = runBlocking { dataStoreManager.userPrefs.firstOrNull()?.accessToken ?: "" }
+      val token = dataStoreManager.accessToken()
       if (token.isBlank().not()) {
         request = request.newBuilder().header("Authorization", "Bearer $token").build()
       }

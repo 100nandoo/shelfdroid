@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 private object Keys {
@@ -51,6 +52,8 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   }
 
   val baseUrl: Flow<String> = dataStore.preferenceFlow(Keys.BASE_URL, "")
+
+  fun baseUrl(): String = runBlocking { baseUrl.firstOrNull() ?: "" }
 
   suspend fun updateBaseUrl(baseUrl: String) = dataStore.updatePreference(Keys.BASE_URL, baseUrl)
 
@@ -90,6 +93,8 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
         runCatching { Json.decodeFromString<UserPrefs>(json) }.getOrNull()
       } ?: UserPrefs()
     }
+
+  fun accessToken(): String = runBlocking { userPrefs.firstOrNull()?.accessToken ?: "" }
 
   suspend fun updateUserPrefs(userPrefs: UserPrefs) {
     val json = Json.encodeToString(userPrefs)

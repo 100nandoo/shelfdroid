@@ -44,7 +44,7 @@ constructor(private val loginRepository: LoginRepository, savedStateHandle: Save
     return if (reLogin) {
       runBlocking {
         val username = loginRepository.userPrefs.firstOrNull()?.username ?: ""
-        val server = if (username.isNotBlank()) loginRepository.baseUrl.firstOrNull() ?: "" else ""
+        val server = if (username.isNotBlank()) loginRepository.baseUrl else ""
         LoginUiState(username = username, server = server, reLogin = true)
       }
     } else LoginUiState()

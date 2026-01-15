@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +12,9 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.service.StateHolder
+import dev.halim.socketio.SocketManager
+import dev.halim.socketio.SocketManager.Event.Episode as SocketEpisode
+import dev.halim.socketio.model.PodcastEpisodeDownload
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +24,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import org.json.JSONObject
 
 @HiltViewModel
 class PodcastViewModel
@@ -27,11 +33,22 @@ class PodcastViewModel
 constructor(
   private val repository: PodcastRepository,
   private val downloadRepo: DownloadRepo,
+  private val socketManager: SocketManager,
+  private val json: Json,
   stateHolder: StateHolder,
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
   val id: String = checkNotNull(savedStateHandle.get<String>("id"))
   private val addEpisodeState = MutableStateFlow<GenericState>(GenericState.Idle)
+
+  init {
+    startStopSocket(true)
+  }
+
+  override fun onCleared() {
+    startStopSocket(false)
+    super.onCleared()
+  }
 
   val uiState: StateFlow<PodcastUiState> =
     combine(repository.item(id), stateHolder.uiState, addEpisodeState) {
@@ -75,6 +92,32 @@ constructor(
       PodcastEvent.ResetAddEpisodeState -> {
         addEpisodeState.update { GenericState.Idle }
       }
+    }
+  }
+
+  private fun startStopSocket(isStart: Boolean) {
+    if (isStart) {
+      socketManager.connect()
+      socketManager.on(SocketEpisode.DOWNLOAD_QUEUED) {
+        val obj = it[0] as JSONObject
+        val json = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
+        Log.d("SocketManager", "DOWNLOAD_QUEUED: $json")
+      }
+      socketManager.on(SocketEpisode.DOWNLOAD_STARTED) {
+        val obj = it[0] as JSONObject
+        val json = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
+        Log.d("SocketManager", "DOWNLOAD_STARTED: $json")
+      }
+      socketManager.on(SocketEpisode.DOWNLOAD_FINISHED) {
+        val obj = it[0] as JSONObject
+        val json = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
+        Log.d("SocketManager", "DOWNLOAD_FINISHED: $json")
+      }
+    } else {
+      socketManager.off(SocketEpisode.DOWNLOAD_QUEUED)
+      socketManager.off(SocketEpisode.DOWNLOAD_STARTED)
+      socketManager.off(SocketEpisode.DOWNLOAD_FINISHED)
+      socketManager.disconnect()
     }
   }
 }

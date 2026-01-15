@@ -17,6 +17,7 @@ coreUi = ":core-ui"
 download = ":download"
 helper = ":helper"
 media = ":media"
+socketIO = ":socketio"
 testApp = ":test-app"
 
 androidGradlePlugin = "8.13.2"
@@ -48,9 +49,13 @@ accompanist = "0.37.3"
 coil = "3.3.0"
 retrofit = "3.0.0"
 retrofit-result = "1.1.0"
+socketioClient = "2.1.1"
 process-phoenix = "3.0.0"
 kotlinGradlePlugin = "2.2.0"
 espressoCore = "3.7.0"
+kotlinGradlePluginVersion = "2.2.21"
+appcompat = "1.7.1"
+material = "1.13.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
@@ -93,6 +98,7 @@ kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
+socketio-client = { module = "io.socket:socket.io-client", version.ref = "socketioClient" }
 
 ## 3rd party
 
@@ -109,6 +115,9 @@ process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "p
 
 sqldelight-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlinGradlePluginVersion" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

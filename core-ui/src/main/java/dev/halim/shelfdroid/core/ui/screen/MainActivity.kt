@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
 
   @Inject lateinit var settingsRepository: SettingsRepository
   @Inject lateinit var mediaControllerManager: Lazy<MediaControllerManager>
+
   private var navRequest by mutableStateOf<NavRequest>(NavRequest())
 
   override fun onCreate(savedInstanceState: Bundle?) {
