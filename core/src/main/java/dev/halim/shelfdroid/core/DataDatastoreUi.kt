@@ -84,7 +84,8 @@ data class DisplayPrefs(
   val podcastSortOrder: SortOrder = SortOrder.Asc,
 )
 
-@Serializable data class CrudPrefs(val hardDelete: Boolean = true)
+@Serializable
+data class CrudPrefs(val hardDelete: Boolean = true, val episodeHardDelete: Boolean = true)
 
 @Serializable
 data class Prefs(

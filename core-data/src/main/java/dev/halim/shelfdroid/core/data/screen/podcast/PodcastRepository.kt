@@ -57,7 +57,7 @@ constructor(
           description = it.description,
           canAddEpisode = prefs.userPrefs.isAdmin,
           episodes = episodes,
-          displayPrefs = prefs.displayPrefs,
+          prefs = prefs,
         )
       } ?: PodcastUiState(state = GenericState.Failure("Failed to fetch podcast"))
     }
@@ -101,10 +101,15 @@ constructor(
     } else failureState("Failed to fetch podcast feed")
   }
 
-  suspend fun deleteEpisode(itemId: String, episodeIds: Set<String>): Set<String> = coroutineScope {
+  suspend fun deleteEpisode(
+    itemId: String,
+    hardDelete: Boolean,
+    episodeIds: Set<String>,
+  ): Set<String> = coroutineScope {
+    val hard = if (hardDelete) 1 else 0
     val failureIds =
       episodeIds
-        .map { episodeId -> async { episodeId to api.deleteEpisode(itemId, episodeId) } }
+        .map { episodeId -> async { episodeId to api.deleteEpisode(itemId, episodeId, hard) } }
         .awaitAll()
         .filterNot { (_, result) -> result.isSuccess }
         .map { (episodeId, _) -> episodeId }

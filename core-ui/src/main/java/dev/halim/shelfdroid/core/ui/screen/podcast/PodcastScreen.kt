@@ -20,7 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
+import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
 import dev.halim.shelfdroid.core.ui.components.VisibilityCircular
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
@@ -120,7 +124,7 @@ fun PodcastScreenContent(
   onPlayClicked: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
   BackHandler(enabled = uiState.isSelectionMode) { onEvent(PodcastEvent.SelectionMode(false, "")) }
-  val isDownloaded = uiState.displayPrefs.filter.isDownloaded()
+  val isDownloaded = uiState.prefs.displayPrefs.filter.isDownloaded()
   val episodes =
     if (isDownloaded) uiState.episodes.filter { it.download.state.isDownloaded() }
     else uiState.episodes
@@ -161,7 +165,9 @@ fun PodcastScreenContent(
       }
     }
     AnimatedVisibility(visible = uiState.isSelectionMode) {
-      DeleteButton(count) { onEvent(PodcastEvent.DeleteEpisode) }
+      DeleteButton(count, uiState.prefs.crudPrefs.hardDelete) {
+        onEvent(PodcastEvent.DeleteEpisode(it))
+      }
     }
   }
 }
@@ -196,13 +202,20 @@ private fun Header(
 }
 
 @Composable
-private fun DeleteButton(count: Int, onDeleteClick: () -> Unit) {
+private fun DeleteButton(count: Int, initialHardDelete: Boolean, onDeleteClick: (Boolean) -> Unit) {
+  var showDeleteDialog by remember { mutableStateOf(false) }
+  var hardDelete by remember { mutableStateOf(initialHardDelete) }
+
   val isZero = count == 0
   val text =
     if (isZero) stringResource(R.string.no_episodes_selected)
     else pluralStringResource(id = R.plurals.delete_episode_count, count = count, count)
   Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-    Button(onClick = onDeleteClick, modifier = Modifier.weight(1f), enabled = count > 0) {
+    Button(
+      onClick = { showDeleteDialog = true },
+      modifier = Modifier.weight(1f),
+      enabled = count > 0,
+    ) {
       Icon(
         painter = painterResource(R.drawable.delete),
         contentDescription = stringResource(R.string.delete),
@@ -211,6 +224,25 @@ private fun DeleteButton(count: Int, onDeleteClick: () -> Unit) {
       Text(text)
     }
   }
+
+  val dialogText =
+    if (count == 1) stringResource(R.string.dialog_delete_episode)
+    else stringResource(R.string.dialog_delete_episodes)
+  MyAlertDialogWithCheckbox(
+    title = stringResource(R.string.delete),
+    text = dialogText,
+    showDialog = showDeleteDialog,
+    confirmText = stringResource(R.string.delete),
+    dismissText = stringResource(R.string.cancel),
+    onConfirm = {
+      onDeleteClick(hardDelete)
+      showDeleteDialog = false
+    },
+    onDismiss = { showDeleteDialog = false },
+    checkboxChecked = hardDelete,
+    onCheckboxChange = { hardDelete = it },
+    checkboxText = stringResource(R.string.delete_from_file_system),
+  )
 }
 
 @ShelfDroidPreview

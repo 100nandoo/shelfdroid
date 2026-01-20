@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.podcast
 
-import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.DownloadUiState
+import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.GenericState
 
 data class PodcastUiState(
@@ -15,7 +15,7 @@ data class PodcastUiState(
   val description: String = "",
   val canAddEpisode: Boolean = false,
   val episodes: List<Episode> = emptyList(),
-  val displayPrefs: DisplayPrefs = DisplayPrefs(),
+  val prefs: Prefs = Prefs(),
 )
 
 data class Episode(

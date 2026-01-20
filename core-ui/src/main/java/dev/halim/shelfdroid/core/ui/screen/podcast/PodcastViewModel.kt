@@ -114,9 +114,10 @@ constructor(
         apiState.update { PodcastApiState.Idle }
       }
 
-      PodcastEvent.DeleteEpisode -> {
+      is PodcastEvent.DeleteEpisode -> {
         viewModelScope.launch(Dispatchers.IO) {
-          val failedIds = repository.deleteEpisode(id, uiState.value.selectedEpisodeIds)
+          val failedIds =
+            repository.deleteEpisode(id, event.hardDelete, uiState.value.selectedEpisodeIds)
 
           if (failedIds.isEmpty()) {
             apiState.update { PodcastApiState.DeleteSuccess(uiState.value.selectedEpisodeIds.size) }
@@ -172,9 +173,9 @@ sealed interface PodcastEvent {
 
   data class SelectItem(val itemId: String) : PodcastEvent
 
+  data class DeleteEpisode(val hardDelete: Boolean) : PodcastEvent
+
   data object AddEpisode : PodcastEvent
 
   data object ResetAddEpisodeState : PodcastEvent
-
-  data object DeleteEpisode : PodcastEvent
 }
