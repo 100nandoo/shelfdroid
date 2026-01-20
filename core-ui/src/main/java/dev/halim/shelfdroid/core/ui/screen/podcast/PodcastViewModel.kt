@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.ExoState
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
+import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.download.DownloadRepo
@@ -39,7 +39,9 @@ constructor(
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
   val id: String = checkNotNull(savedStateHandle.get<String>("id"))
-  private val addEpisodeState = MutableStateFlow<GenericState>(GenericState.Idle)
+  private val apiState = MutableStateFlow<PodcastApiState>(PodcastApiState.Idle)
+  private val selectedEpisodeIds = MutableStateFlow<Set<String>>(emptySet())
+  private val selectionMode = MutableStateFlow(false)
 
   init {
     startStopSocket(true)
@@ -51,10 +53,13 @@ constructor(
   }
 
   val uiState: StateFlow<PodcastUiState> =
-    combine(repository.item(id), stateHolder.uiState, addEpisodeState) {
-        podcast,
-        playerState,
-        addState ->
+    combine(
+        repository.item(id),
+        stateHolder.uiState,
+        apiState,
+        selectionMode,
+        selectedEpisodeIds,
+      ) { podcast, playerState, apiState, selectionMode, selectedIds ->
         val updatedEpisodes =
           podcast.episodes.map { episode ->
             if (episode.episodeId == playerState.episodeId) {
@@ -64,7 +69,12 @@ constructor(
               )
             } else episode
           }
-        podcast.copy(episodes = updatedEpisodes, addEpisodeState = addState)
+        podcast.copy(
+          episodes = updatedEpisodes,
+          apiState = apiState,
+          isSelectionMode = selectionMode,
+          selectedEpisodeIds = selectedIds,
+        )
       }
       .stateIn(
         scope = viewModelScope,
@@ -83,14 +93,43 @@ constructor(
       is PodcastEvent.DeleteDownload -> {
         downloadRepo.delete(event.downloadId)
       }
-      PodcastEvent.AddEpisode -> {
-        addEpisodeState.update { GenericState.Loading }
-        viewModelScope.launch(Dispatchers.IO) {
-          addEpisodeState.update { repository.fetchEpisode() }
+      is PodcastEvent.SelectionMode -> {
+        selectionMode.update { event.isSelectionMode }
+        selectedEpisodeIds.update { if (event.isSelectionMode) it + event.itemId else emptySet() }
+      }
+      is PodcastEvent.SelectItem -> {
+        selectedEpisodeIds.update { current ->
+          if (current.contains(event.itemId)) {
+            current - event.itemId
+          } else {
+            current + event.itemId
+          }
         }
       }
+      PodcastEvent.AddEpisode -> {
+        apiState.update { PodcastApiState.AddLoading }
+        viewModelScope.launch(Dispatchers.IO) { apiState.update { repository.fetchEpisode() } }
+      }
       PodcastEvent.ResetAddEpisodeState -> {
-        addEpisodeState.update { GenericState.Idle }
+        apiState.update { PodcastApiState.Idle }
+      }
+
+      PodcastEvent.DeleteEpisode -> {
+        viewModelScope.launch(Dispatchers.IO) {
+          val failedIds = repository.deleteEpisode(id, uiState.value.selectedEpisodeIds)
+
+          if (failedIds.isEmpty()) {
+            apiState.update { PodcastApiState.DeleteSuccess(uiState.value.selectedEpisodeIds.size) }
+          } else {
+            apiState.update {
+              val titles =
+                uiState.value.episodes
+                  .filter { it.episodeId in failedIds }
+                  .joinToString { it.title }
+              PodcastApiState.DeleteFailure("Failed to delete episodes: $titles")
+            }
+          }
+        }
       }
     }
   }
@@ -122,14 +161,20 @@ constructor(
   }
 }
 
-sealed class PodcastEvent {
-  data class ToggleIsFinished(val episode: Episode) : PodcastEvent()
+sealed interface PodcastEvent {
+  data class ToggleIsFinished(val episode: Episode) : PodcastEvent
 
-  data class Download(val downloadId: String, val url: String, val message: String) : PodcastEvent()
+  data class Download(val downloadId: String, val url: String, val message: String) : PodcastEvent
 
-  data class DeleteDownload(val downloadId: String) : PodcastEvent()
+  data class DeleteDownload(val downloadId: String) : PodcastEvent
 
-  data object AddEpisode : PodcastEvent()
+  data class SelectionMode(val isSelectionMode: Boolean, val itemId: String) : PodcastEvent
 
-  data object ResetAddEpisodeState : PodcastEvent()
+  data class SelectItem(val itemId: String) : PodcastEvent
+
+  data object AddEpisode : PodcastEvent
+
+  data object ResetAddEpisodeState : PodcastEvent
+
+  data object DeleteEpisode : PodcastEvent
 }

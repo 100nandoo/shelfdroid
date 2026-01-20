@@ -12,6 +12,9 @@ import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -87,13 +90,29 @@ constructor(
     return result.isSuccess
   }
 
-  suspend fun fetchEpisode(): GenericState {
+  suspend fun fetchEpisode(): PodcastApiState {
     if (podcast == null) return failureState("Podcast not found")
 
     val feedUrl = podcast?.metadata?.feedUrl ?: return failureState("Podcast feed URL not found")
 
-    return podcastFeedRepo.fetch(feedUrl)
+    val result = podcastFeedRepo.fetch(feedUrl)
+    return if (result is GenericState.Success) {
+      PodcastApiState.AddSuccess
+    } else failureState("Failed to fetch podcast feed")
   }
 
-  private fun failureState(message: String) = GenericState.Failure(message)
+  suspend fun deleteEpisode(itemId: String, episodeIds: Set<String>): Set<String> = coroutineScope {
+    val failureIds =
+      episodeIds
+        .map { episodeId -> async { episodeId to api.deleteEpisode(itemId, episodeId) } }
+        .awaitAll()
+        .filterNot { (_, result) -> result.isSuccess }
+        .map { (episodeId, _) -> episodeId }
+        .toSet()
+    val toDeleteIds = episodeIds - failureIds
+    libraryItemRepo.deleteEpisodes(itemId, toDeleteIds)
+    failureIds
+  }
+
+  private fun failureState(message: String) = PodcastApiState.AddFailure(message)
 }

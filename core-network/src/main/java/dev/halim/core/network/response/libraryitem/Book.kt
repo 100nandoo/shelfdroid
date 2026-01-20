@@ -15,7 +15,7 @@ class Book(
   @SerialName("tracks") val audioTracks: List<AudioTrack> = listOf(),
   @SerialName("ebookFile") val ebookFile: EbookFile? = EbookFile(),
   @SerialName("duration") val duration: Double? = 0.0,
-) : Media()
+) : Media
 
 @Serializable
 data class BookChapter(

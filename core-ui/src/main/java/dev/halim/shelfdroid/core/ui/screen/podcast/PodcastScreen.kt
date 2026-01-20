@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,14 +23,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.GenericState.Failure
+import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
@@ -54,15 +59,30 @@ fun PodcastScreen(
   InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
+  val context = LocalContext.current
 
-  LaunchedEffect(uiState.addEpisodeState) {
-    when (val state = uiState.addEpisodeState) {
-      is GenericState.Success -> {
+  LaunchedEffect(uiState.apiState) {
+    when (val state = uiState.apiState) {
+      is PodcastApiState.AddSuccess -> {
         viewModel.onEvent(PodcastEvent.ResetAddEpisodeState)
         onFetchEpisodeSuccess(viewModel.id)
       }
-      is Failure -> {
-        state.errorMessage?.let { scope.launch { snackbarHostState.showSnackbar(it) } }
+      is PodcastApiState.AddFailure -> {
+        scope.launch { snackbarHostState.showSnackbar(state.message) }
+      }
+      is PodcastApiState.DeleteFailure -> {
+        scope.launch { snackbarHostState.showSnackbar(state.message) }
+        viewModel.onEvent(PodcastEvent.SelectionMode(false, ""))
+      }
+      is PodcastApiState.DeleteSuccess -> {
+        val message =
+          context.resources.getQuantityString(
+            R.plurals.success_delete_episode_count,
+            state.size,
+            state.size,
+          )
+        scope.launch { snackbarHostState.showSnackbar(message) }
+        viewModel.onEvent(PodcastEvent.SelectionMode(false, ""))
       }
       else -> Unit
     }
@@ -99,39 +119,59 @@ fun PodcastScreenContent(
   onEpisodeClicked: (String, String) -> Unit = { _, _ -> },
   onPlayClicked: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
+  BackHandler(enabled = uiState.isSelectionMode) { onEvent(PodcastEvent.SelectionMode(false, "")) }
   val isDownloaded = uiState.displayPrefs.filter.isDownloaded()
   val episodes =
     if (isDownloaded) uiState.episodes.filter { it.download.state.isDownloaded() }
     else uiState.episodes
+  val count = uiState.selectedEpisodeIds.size
 
-  LazyColumn(
-    modifier = Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize(),
-    reverseLayout = true,
-  ) {
-    item { Spacer(modifier = Modifier.height(12.dp)) }
-    items(episodes) { episode ->
-      HorizontalDivider()
-      EpisodeItem(id, episode, onEvent, onEpisodeClicked, onPlayClicked, snackbarHostState)
-    }
-    item {
-      Header(uiState.canAddEpisode, uiState.addEpisodeState, onEvent)
-      Spacer(modifier = Modifier.height(16.dp))
-
-      ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
-
-      Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(horizontal = 16.dp),
-      ) {
-        ItemDetail(id, uiState.cover, uiState.title, uiState.author)
+  Column(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+      modifier = Modifier.weight(1f).mySharedBound(Animations.containerKey(id)),
+      reverseLayout = true,
+    ) {
+      item { Spacer(modifier = Modifier.height(12.dp)) }
+      items(episodes) { episode ->
+        val isSelected = uiState.selectedEpisodeIds.contains(episode.episodeId)
+        HorizontalDivider()
+        EpisodeItem(
+          id,
+          episode,
+          isSelected,
+          onEvent,
+          onEpisodeClicked,
+          onPlayClicked,
+          snackbarHostState,
+          uiState.isSelectionMode,
+        )
       }
+      item {
+        Header(uiState.canAddEpisode, uiState.apiState, onEvent)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
+
+        Column(
+          horizontalAlignment = Alignment.CenterHorizontally,
+          modifier = Modifier.padding(horizontal = 16.dp),
+        ) {
+          ItemDetail(id, uiState.cover, uiState.title, uiState.author)
+        }
+      }
+    }
+    AnimatedVisibility(visible = uiState.isSelectionMode) {
+      DeleteButton(count) { onEvent(PodcastEvent.DeleteEpisode) }
     }
   }
 }
 
 @Composable
-private fun Header(canAddEpisode: Boolean, state: GenericState, onEvent: (PodcastEvent) -> Unit) {
-
+private fun Header(
+  canAddEpisode: Boolean,
+  state: PodcastApiState,
+  onEvent: (PodcastEvent) -> Unit,
+) {
   Row(
     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
@@ -144,13 +184,31 @@ private fun Header(canAddEpisode: Boolean, state: GenericState, onEvent: (Podcas
     )
 
     if (canAddEpisode) {
-      VisibilityCircular(state == GenericState.Loading) {
+      VisibilityCircular(state == PodcastApiState.AddLoading) {
         Icon(
           painter = painterResource(id = R.drawable.search),
           contentDescription = stringResource(R.string.search_podcast),
           modifier = Modifier.clickable { onEvent(PodcastEvent.AddEpisode) },
         )
       }
+    }
+  }
+}
+
+@Composable
+private fun DeleteButton(count: Int, onDeleteClick: () -> Unit) {
+  val isZero = count == 0
+  val text =
+    if (isZero) stringResource(R.string.no_episodes_selected)
+    else pluralStringResource(id = R.plurals.delete_episode_count, count = count, count)
+  Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+    Button(onClick = onDeleteClick, modifier = Modifier.weight(1f), enabled = count > 0) {
+      Icon(
+        painter = painterResource(R.drawable.delete),
+        contentDescription = stringResource(R.string.delete),
+        modifier = Modifier.padding(end = 8.dp),
+      )
+      Text(text)
     }
   }
 }

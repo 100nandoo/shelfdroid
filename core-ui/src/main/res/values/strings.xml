@@ -45,6 +45,14 @@
         <item quantity="one">Download %d episode</item>
         <item quantity="other">Download %d episodes</item>
     </plurals>
+    <plurals name="delete_episode_count">
+        <item quantity="one">Delete %d episode</item>
+        <item quantity="other">Delete %d episodes</item>
+    </plurals>
+    <plurals name="success_delete_episode_count">
+        <item quantity="one">Successfully delete %d episode</item>
+        <item quantity="other">Successfully delete %d episodes</item>
+    </plurals>
     <!--Plurals-->
 
     <!--Dialog-->

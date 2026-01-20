@@ -6,7 +6,9 @@ import dev.halim.shelfdroid.core.data.GenericState
 
 data class PodcastUiState(
   val state: GenericState = GenericState.Loading,
-  val addEpisodeState: GenericState = GenericState.Idle,
+  val apiState: PodcastApiState = PodcastApiState.Idle,
+  val isSelectionMode: Boolean = false,
+  val selectedEpisodeIds: Set<String> = emptySet(),
   val author: String = "",
   val title: String = "",
   val cover: String = "",
@@ -25,3 +27,19 @@ data class Episode(
   val isPlaying: Boolean = false,
   val download: DownloadUiState = DownloadUiState(),
 )
+
+sealed interface PodcastApiState {
+  data object Idle : PodcastApiState
+
+  data object AddSuccess : PodcastApiState
+
+  data class DeleteSuccess(val size: Int) : PodcastApiState
+
+  data class AddFailure(val message: String) : PodcastApiState
+
+  data class DeleteFailure(val message: String) : PodcastApiState
+
+  data object AddLoading : PodcastApiState
+
+  data object DeleteLoading : PodcastApiState
+}

@@ -99,18 +99,30 @@ constructor(
     }
   }
 
+  fun cleanupItem(id: String) {
+    queries.deleteById(id)
+    downloadRepo.delete(id)
+    progressRepo.deleteItem(id)
+  }
+
+  fun deleteEpisodes(id: String, episodeIds: Set<String>) {
+    val entity = queries.byId(id).executeAsOne()
+
+    val podcast = Json.decodeFromString<Podcast>(entity.media)
+
+    val updatedPodcast = podcast.copy(episodes = podcast.episodes.filterNot { it.id in episodeIds })
+
+    queries.updateMediaById(media = json.encodeToString(updatedPodcast), id = id)
+
+    downloadRepo.cleanupEpisode(episodeIds.toList())
+  }
+
   private fun convert(
     libraryId: String,
     response: BatchLibraryItemsResponse,
   ): List<LibraryItemEntity> {
     val entities = response.libraryItems.map { toEntity(it, libraryId) }
     return entities
-  }
-
-  fun cleanupItem(id: String) {
-    queries.deleteById(id)
-    downloadRepo.delete(id)
-    progressRepo.deleteItem(id)
   }
 
   private fun cleanupBooks(libraryId: String, entities: List<LibraryItemEntity>) {

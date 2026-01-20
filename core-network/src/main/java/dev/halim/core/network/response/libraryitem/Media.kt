@@ -3,11 +3,10 @@ package dev.halim.core.network.response.libraryitem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Serializable
-sealed class Media {
-  abstract val libraryItemId: String
-  abstract val coverPath: String?
-  abstract val tags: List<String>
+interface Media {
+  val libraryItemId: String
+  val coverPath: String?
+  val tags: List<String>
 }
 
 @Serializable

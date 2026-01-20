@@ -35,6 +35,11 @@ INSERT OR REPLACE INTO LibraryItemEntity(id, libraryId, author, title, descripti
 duration, addedAt)
 VALUES ?;
 
+updateMediaById:
+UPDATE LibraryItemEntity
+SET media = :media
+WHERE id = :id;
+
 deleteById:
 DELETE FROM LibraryItemEntity WHERE id = ?;
 

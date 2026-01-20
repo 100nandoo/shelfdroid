@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Podcast(
+data class Podcast(
   @SerialName("libraryItemId") override val libraryItemId: String = "",
   @SerialName("coverPath") override val coverPath: String?,
   @SerialName("tags") override val tags: List<String>,
@@ -16,7 +16,7 @@ class Podcast(
   @SerialName("lastEpisodeCheck") val lastEpisodeCheck: Long = 0,
   @SerialName("maxEpisodesToKeep") val maxEpisodesToKeep: Int = 0,
   @SerialName("maxNewEpisodesToDownload") val maxNewEpisodesToDownload: Int = 0,
-) : Media()
+) : Media
 
 @Serializable
 data class PodcastEpisode(

@@ -79,7 +79,7 @@ interface ApiService {
   ): PlayResponse
 
   @DELETE("/api/items/{itemId}")
-  suspend fun deleteItem(@Path("itemId") itemId: String, @Query("hard") hard: Int = 0): Result<Unit>
+  suspend fun deleteItem(@Path("itemId") itemId: String, @Query(" ") hard: Int = 0): Result<Unit>
 
   //  me
   @GET("/api/me") suspend fun me(): Result<User>
@@ -143,5 +143,12 @@ interface ApiService {
   suspend fun downloadEpisodes(
     @Path("itemId") itemId: String,
     @Body episodes: List<Episode>,
+  ): Result<Unit>
+
+  @DELETE("/api/podcasts/{itemId}/episode/{episodeId}")
+  suspend fun deleteEpisode(
+    @Path("itemId") itemId: String,
+    @Path("episodeId") episodeId: String,
+    @Query("hard") hard: Int = 0,
   ): Result<Unit>
 }
