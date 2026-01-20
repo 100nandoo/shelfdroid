@@ -56,6 +56,7 @@ constructor(
           cover = it.cover,
           description = it.description,
           canAddEpisode = prefs.userPrefs.isAdmin,
+          canDeleteEpisode = prefs.userPrefs.isAdmin || prefs.userPrefs.delete,
           episodes = episodes,
           prefs = prefs,
         )

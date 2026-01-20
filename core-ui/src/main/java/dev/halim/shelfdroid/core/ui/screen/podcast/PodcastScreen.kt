@@ -143,6 +143,7 @@ fun PodcastScreenContent(
           id,
           episode,
           isSelected,
+          uiState.canDeleteEpisode,
           onEvent,
           onEpisodeClicked,
           onPlayClicked,
@@ -165,7 +166,7 @@ fun PodcastScreenContent(
       }
     }
     AnimatedVisibility(visible = uiState.isSelectionMode) {
-      DeleteButton(count, uiState.prefs.crudPrefs.hardDelete) {
+      DeleteButton(count, uiState.prefs.crudPrefs.episodeHardDelete) {
         onEvent(PodcastEvent.DeleteEpisode(it))
       }
     }

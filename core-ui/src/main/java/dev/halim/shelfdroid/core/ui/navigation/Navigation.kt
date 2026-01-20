@@ -48,6 +48,7 @@ import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
+import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -59,6 +60,8 @@ import kotlinx.serialization.Serializable
 @Serializable object Settings
 
 @Serializable object SettingsPlayback
+
+@Serializable object SettingsPodcast
 
 @Serializable data class SearchPodcast(val libraryId: String)
 
@@ -187,11 +190,13 @@ private fun ColumnScope.NavHostContainer(
         composable<Settings> {
           SettingsScreen(
             onPlaybackClicked = { navController.navigate(SettingsPlayback) },
+            onPodcastClicked = { navController.navigate(SettingsPodcast) },
             reLogin = { navController.navigate(Login(reLogin = true)) },
           )
         }
 
         composable<SettingsPlayback> { SettingsPlaybackScreen() }
+        composable<SettingsPodcast> { SettingsPodcastScreen() }
 
         composable<SearchPodcast> { entry ->
           val result =

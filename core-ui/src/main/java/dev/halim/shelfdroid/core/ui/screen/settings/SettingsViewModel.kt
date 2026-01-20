@@ -42,6 +42,7 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
           crudPrefs = prefs.crudPrefs,
           isAdmin = prefs.userPrefs.isAdmin,
           username = prefs.userPrefs.username,
+          canDelete = prefs.userPrefs.isAdmin || prefs.userPrefs.delete,
         )
       }
       .stateIn(viewModelScope, SharingStarted.Lazily, SettingsUiState())

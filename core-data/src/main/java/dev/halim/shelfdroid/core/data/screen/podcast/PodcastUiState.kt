@@ -14,6 +14,7 @@ data class PodcastUiState(
   val cover: String = "",
   val description: String = "",
   val canAddEpisode: Boolean = false,
+  val canDeleteEpisode: Boolean = false,
   val episodes: List<Episode> = emptyList(),
   val prefs: Prefs = Prefs(),
 )

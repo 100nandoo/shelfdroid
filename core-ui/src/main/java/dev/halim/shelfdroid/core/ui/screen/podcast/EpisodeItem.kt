@@ -46,6 +46,7 @@ fun EpisodeItem(
   itemId: String,
   episode: Episode,
   isSelected: Boolean,
+  canDelete: Boolean,
   onEvent: (PodcastEvent) -> Unit,
   onEpisodeClicked: (String, String) -> Unit,
   onPlayClicked: (String, String, Boolean) -> Unit,
@@ -59,7 +60,7 @@ fun EpisodeItem(
         .fillMaxWidth()
         .combinedClickable(
           onLongClick = {
-            if (isSelectionMode.not()) {
+            if (isSelectionMode.not() && canDelete) {
               onEvent(PodcastEvent.SelectionMode(true, episode.episodeId))
             }
           },
@@ -163,7 +164,17 @@ fun EpisodeItemPreview() {
       item { Spacer(modifier = Modifier.height(12.dp)) }
       Defaults.EPISODES.forEach { episode ->
         item {
-          EpisodeItem("", episode, true, {}, { _, _ -> }, { _, _, _ -> }, SnackbarHostState(), true)
+          EpisodeItem(
+            "",
+            episode,
+            true,
+            true,
+            {},
+            { _, _ -> },
+            { _, _, _ -> },
+            SnackbarHostState(),
+            true,
+          )
         }
       }
     }
@@ -181,6 +192,7 @@ fun EpisodeItemDynamicPreview() {
           EpisodeItem(
             "",
             episode,
+            false,
             false,
             {},
             { _, _ -> },

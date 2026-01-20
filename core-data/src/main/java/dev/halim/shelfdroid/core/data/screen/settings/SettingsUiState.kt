@@ -10,6 +10,7 @@ data class SettingsUiState(
   val displayPrefs: DisplayPrefs = DisplayPrefs(),
   val crudPrefs: CrudPrefs = CrudPrefs(),
   val isAdmin: Boolean = false,
+  val canDelete: Boolean = false,
   val username: String = "",
 )
 

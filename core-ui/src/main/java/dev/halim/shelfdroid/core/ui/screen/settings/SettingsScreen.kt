@@ -41,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 fun SettingsScreen(
   viewModel: SettingsViewModel = hiltViewModel(),
   onPlaybackClicked: () -> Unit = {},
+  onPodcastClicked: () -> Unit = {},
   reLogin: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -50,6 +51,7 @@ fun SettingsScreen(
     version = version,
     user = uiState.username,
     onPlaybackClicked = onPlaybackClicked,
+    onPodcastClicked = onPodcastClicked,
     reLogin = reLogin,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
   )
@@ -61,6 +63,7 @@ fun SettingsScreenContent(
   version: String = Defaults.VERSION,
   user: String = Defaults.USERNAME,
   onPlaybackClicked: () -> Unit = {},
+  onPodcastClicked: () -> Unit = {},
   reLogin: () -> Unit = {},
   onEvent: (SettingsEvent) -> Unit = {},
 ) {
@@ -83,6 +86,14 @@ fun SettingsScreenContent(
       supportingText = stringResource(R.string.playback_settings_and_behaviour),
       onClick = onPlaybackClicked,
     )
+
+    if (uiState.canDelete) {
+      SettingsClickLabel(
+        text = stringResource(R.string.podcast),
+        supportingText = stringResource(R.string.podcast_screen_settings),
+        onClick = onPodcastClicked,
+      )
+    }
   }
 }
 
@@ -127,13 +138,15 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
       onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.Filter(filter.name)))
     },
   )
-  SettingsSwitchItem(
-    modifier = paddingStart,
-    title = stringResource(R.string.user_permanent_delete),
-    checked = uiState.crudPrefs.hardDelete,
-    contentDescription = stringResource(R.string.user_permanent_delete),
-    onCheckedChange = { onEvent(SettingsEvent.SwitchHardDelete(it)) },
-  )
+  if (uiState.canDelete) {
+    SettingsSwitchItem(
+      modifier = paddingStart,
+      title = stringResource(R.string.user_permanent_delete),
+      checked = uiState.crudPrefs.hardDelete,
+      contentDescription = stringResource(R.string.user_permanent_delete),
+      onCheckedChange = { onEvent(SettingsEvent.SwitchHardDelete(it)) },
+    )
+  }
   val paddingStartTwo = Modifier.padding(start = 16.dp, top = 4.dp)
   SettingsSublabel(
     Modifier.padding(start = 8.dp, top = 4.dp),
@@ -251,7 +264,8 @@ fun LogoutSection(onEvent: (SettingsEvent) -> Unit = {}, reLogin: () -> Unit) {
 @ShelfDroidPreview
 @Composable
 fun PodcastScreenContentPreview() {
-  PreviewWrapper(dynamicColor = false) { SettingsScreenContent() }
+  val uiState = SettingsUiState(canDelete = true)
+  PreviewWrapper(dynamicColor = false) { SettingsScreenContent(uiState) }
 }
 
 @ShelfDroidPreview
