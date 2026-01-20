@@ -1,7 +1,7 @@
 [versions]
 namespace = "dev.halim.shelfdroid"
-versionCode = "10"
-versionName = "0.2.8"
+versionCode = "11"
+versionName = "0.2.9"
 minSdk = "24"
 targetSdk = "36"
 
