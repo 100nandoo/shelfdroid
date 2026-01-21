@@ -23,8 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -38,6 +40,8 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericState.Failure
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
+import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeFilterState
+import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeUiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
@@ -47,7 +51,6 @@ import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
-import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
@@ -73,34 +76,24 @@ fun AddEpisodeScreen(
     }
   }
 
-  AddEpisodeScreenContent(
-    itemId = viewModel.id,
-    title = uiState.title,
-    author = uiState.author,
-    cover = uiState.cover,
-    episodes = uiState.episodes,
-    onEvent = viewModel::onEvent,
-  )
+  AddEpisodeScreenContent(itemId = viewModel.id, uiState = uiState, onEvent = viewModel::onEvent)
 }
 
 @Composable
 private fun AddEpisodeScreenContent(
   downloadState: GenericState = GenericState.Idle,
   itemId: String = "",
-  title: String = Defaults.TITLE,
-  author: String = Defaults.AUTHOR_NAME,
-  cover: String = Defaults.IMAGE_URL,
-  episodes: List<AddEpisode> = Defaults.ADD_EPISODE_EPISODES,
+  uiState: AddEpisodeUiState = AddEpisodeUiState(),
   onEvent: (AddEpisodeEvent) -> Unit = {},
 ) {
   val selectedEpisodesCount =
-    episodes.filter { it.state == AddEpisodeDownloadState.ToBeDownloaded }.size
+    uiState.episodes.filter { it.state == AddEpisodeDownloadState.ToBeDownloaded }.size
 
   val lazyListState = rememberLazyListState()
   val fabVisible by remember { derivedStateOf { lazyListState.isScrollInProgress.not() } }
 
   Scaffold(
-    floatingActionButton = { AddEpisodeFab(fabVisible) },
+    floatingActionButton = { FilterFab(fabVisible, uiState.filterState, onEvent) },
     bottomBar = {
       DownloadButton(downloadState, selectedEpisodesCount) {
         onEvent(AddEpisodeEvent.DownloadEpisodes)
@@ -115,17 +108,17 @@ private fun AddEpisodeScreenContent(
     ) {
       item {
         CoverWithTitle(
-          cover = cover,
+          cover = uiState.cover,
           coverAnimationKey = Animations.coverKey(itemId),
-          title = title,
-          titleAnimationKey = Animations.titleKey(itemId, title),
-          subtitle = author,
-          subtitleAnimationKey = Animations.authorKey(itemId, author),
+          title = uiState.title,
+          titleAnimationKey = Animations.titleKey(itemId, uiState.title),
+          subtitle = uiState.author,
+          subtitleAnimationKey = Animations.authorKey(itemId, uiState.author),
         )
         Spacer(modifier = Modifier.height(16.dp))
       }
 
-      items(items = episodes, key = { it.url }) { episode ->
+      items(items = uiState.episodes, key = { it.url }) { episode ->
         AddEpisodeItem(episode) { onEvent(AddEpisodeEvent.CheckEpisode(episode.url, it)) }
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
       }
@@ -154,7 +147,21 @@ private fun DownloadButton(state: GenericState, count: Int, onDownloadClick: () 
 }
 
 @Composable
-private fun AddEpisodeFab(fabVisible: Boolean) {
+private fun FilterFab(
+  fabVisible: Boolean,
+  filterState: AddEpisodeFilterState,
+  onEvent: (AddEpisodeEvent.FilterEvent) -> Unit,
+) {
+  var showFilterDialog by remember { mutableStateOf(false) }
+
+  FilterDialog(
+    showDialog = showFilterDialog,
+    filterState = filterState,
+    onConfirm = { showFilterDialog = false },
+    onDismiss = { showFilterDialog = false },
+    onEvent = onEvent,
+  )
+
   VisibilityUp(fabVisible) {
     ExtendedFloatingActionButton(
       text = { Text(text = stringResource(R.string.filter)) },
@@ -164,7 +171,7 @@ private fun AddEpisodeFab(fabVisible: Boolean) {
           contentDescription = stringResource(R.string.filter),
         )
       },
-      onClick = {},
+      onClick = { showFilterDialog = true },
     )
   }
 }

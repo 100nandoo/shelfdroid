@@ -1,9 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.podcast
 
-import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
-import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
-import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
@@ -38,32 +35,4 @@ constructor(private val helper: Helper, private val downloadRepository: Download
           download = downloadUiState,
         )
       }
-
-  fun mapAddEpisodes(
-    episodesFromDb: List<PodcastEpisode>,
-    response: PodcastFeed,
-  ): List<AddEpisode> {
-
-    val dbEpisodesByUrl =
-      episodesFromDb
-        .mapNotNull { episode -> episode.enclosure?.url?.let { url -> url to episode } }
-        .toMap()
-
-    return response.podcast.episodes.map { feedEpisode ->
-      val url = feedEpisode.enclosure.url
-      val dbEpisode = dbEpisodesByUrl[url]
-
-      AddEpisode(
-        episodeId = dbEpisode?.id.orEmpty(),
-        title = feedEpisode.title,
-        description = feedEpisode.description,
-        pubDate = feedEpisode.pubDate,
-        publishedAt = feedEpisode.publishedAt,
-        url = url,
-        state =
-          if (dbEpisode != null) AddEpisodeDownloadState.Downloaded
-          else AddEpisodeDownloadState.NotDownloaded,
-      )
-    }
-  }
 }

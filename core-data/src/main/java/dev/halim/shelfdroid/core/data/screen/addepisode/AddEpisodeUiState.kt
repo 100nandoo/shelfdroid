@@ -9,6 +9,7 @@ data class AddEpisodeUiState(
   val title: String = "",
   val cover: String = "",
   val episodes: List<AddEpisode> = emptyList(),
+  val filterState: AddEpisodeFilterState = AddEpisodeFilterState(),
 )
 
 data class AddEpisode(
@@ -19,6 +20,18 @@ data class AddEpisode(
   val publishedAt: Long,
   val url: String,
   val state: AddEpisodeDownloadState,
+)
+
+enum class TextFilter {
+  TITLE,
+  DESCRIPTION,
+  BOTH,
+}
+
+data class AddEpisodeFilterState(
+  val text: String = "",
+  val textFilter: TextFilter = TextFilter.TITLE,
+  val hideDownloaded: Boolean = true,
 )
 
 enum class AddEpisodeDownloadState {

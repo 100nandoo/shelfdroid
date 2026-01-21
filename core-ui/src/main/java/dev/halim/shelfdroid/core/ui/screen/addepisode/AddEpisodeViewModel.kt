@@ -8,6 +8,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeUiState
+import dev.halim.shelfdroid.core.data.screen.addepisode.TextFilter
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,17 +26,17 @@ constructor(private val repository: AddEpisodeRepository, savedStateHandle: Save
   val id: String = checkNotNull(savedStateHandle.get<String>("id"))
   private val downloadEpisodeState = MutableStateFlow<GenericState>(GenericState.Idle)
 
-  private val _uiState = MutableStateFlow(AddEpisodeUiState())
+  private val _uiState = MutableStateFlow(repository.item(id))
 
   val uiState: StateFlow<AddEpisodeUiState> =
     combine(_uiState, downloadEpisodeState) { uiState, downloadState ->
         uiState.copy(downloadEpisodeState = downloadState)
       }
-      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AddEpisodeUiState())
-
-  init {
-    viewModelScope.launch { _uiState.update { repository.item(id) } }
-  }
+      .stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        _uiState.value.copy(downloadEpisodeState = downloadEpisodeState.value),
+      )
 
   fun onEvent(event: AddEpisodeEvent) {
     when (event) {
@@ -68,6 +69,19 @@ constructor(private val repository: AddEpisodeRepository, savedStateHandle: Save
       AddEpisodeEvent.ResetDownloadEpisodeState -> {
         downloadEpisodeState.update { GenericState.Idle }
       }
+      is AddEpisodeEvent.FilterEvent.TextChanged -> {
+        _uiState.update { it.copy(filterState = it.filterState.copy(text = event.text)) }
+      }
+      is AddEpisodeEvent.FilterEvent.TextFilterChanged -> {
+        _uiState.update {
+          it.copy(filterState = it.filterState.copy(textFilter = event.textFilter))
+        }
+      }
+      is AddEpisodeEvent.FilterEvent.HideDownloadedChanged -> {
+        _uiState.update {
+          it.copy(filterState = it.filterState.copy(hideDownloaded = event.hideDownloaded))
+        }
+      }
     }
   }
 }
@@ -78,4 +92,12 @@ sealed interface AddEpisodeEvent {
   data object DownloadEpisodes : AddEpisodeEvent
 
   data object ResetDownloadEpisodeState : AddEpisodeEvent
+
+  sealed interface FilterEvent : AddEpisodeEvent {
+    data class TextChanged(val text: String) : FilterEvent
+
+    data class TextFilterChanged(val textFilter: TextFilter) : FilterEvent
+
+    data class HideDownloadedChanged(val hideDownloaded: Boolean) : FilterEvent
+  }
 }

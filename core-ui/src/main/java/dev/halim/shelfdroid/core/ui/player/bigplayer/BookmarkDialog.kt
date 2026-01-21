@@ -20,6 +20,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun DeleteBookmarkDialog(showDialog: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {
@@ -71,6 +73,28 @@ fun UpdateBookmarkDialog(
       dismissButton = {
         TextButton(onClick = { onDismiss() }) { Text(stringResource(R.string.cancel)) }
       },
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun DeleteBookmarkDialogPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    DeleteBookmarkDialog(showDialog = true, onConfirm = {}, onDismiss = {})
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun UpdateBookmarkDialogPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    UpdateBookmarkDialog(
+      showDialog = true,
+      title = stringResource(R.string.update_bookmark),
+      bookmarkTitle = "Chapter 3 – Introduction",
+      onConfirm = {},
+      onDismiss = {},
     )
   }
 }

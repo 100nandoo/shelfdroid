@@ -133,6 +133,10 @@
     <!--Add Episode-->
     <string name="no_episodes_selected">No episodes selected</string>
     <string name="starting_to_download_episodes">Starting to download episodes on the server</string>
+
+    <string name="hide_downloaded_episode">Hide downloaded episodes</string>
+    <string name="search">Search</string>
+    <string name="search_in">Search in:</string>
     <!--Add Episode-->
 
     <string name="ok">OK</string>
@@ -164,6 +168,5 @@
     <string name="is_not_an_admin">" is not an admin"</string>
     <string name="clear">Clear</string>
     <string name="filter">Filter</string>
-
     <!--Others-->
 </resources>

@@ -12,12 +12,16 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun MyAlertDialog(
@@ -82,6 +86,42 @@ fun MyAlertDialogWithCheckbox(
       },
       confirmButton = { TextButton(onClick = { onConfirm() }) { Text(confirmText) } },
       dismissButton = { TextButton(onClick = { onDismiss() }) { Text(dismissText) } },
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun MyAlertDialogPreview() {
+  AnimatedPreviewWrapper {
+    MyAlertDialog(
+      showDialog = true,
+      title = stringResource(R.string.logout),
+      text = stringResource(R.string.dialog_logout_text),
+      confirmText = stringResource(R.string.ok),
+      dismissText = stringResource(R.string.cancel),
+      onConfirm = {},
+      onDismiss = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun MyAlertDialogWithCheckboxPreview() {
+  val (checked, setChecked) = remember { mutableStateOf(false) }
+  AnimatedPreviewWrapper {
+    MyAlertDialogWithCheckbox(
+      showDialog = true,
+      title = stringResource(R.string.delete),
+      text = stringResource(R.string.dialog_delete_episode),
+      confirmText = stringResource(R.string.delete),
+      dismissText = stringResource(R.string.cancel),
+      onConfirm = {},
+      onDismiss = {},
+      checkboxChecked = checked,
+      onCheckboxChange = setChecked,
+      checkboxText = stringResource(R.string.delete_from_file_system),
     )
   }
 }
