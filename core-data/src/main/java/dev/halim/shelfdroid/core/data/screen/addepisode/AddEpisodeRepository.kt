@@ -4,14 +4,19 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.PodcastFeedRepo
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 
 class AddEpisodeRepository
 @Inject
 constructor(
+  private val prefsRepository: PrefsRepository,
+  private val dataStoreManager: DataStoreManager,
   private val libraryItemRepo: LibraryItemRepo,
   private val podcastFeedRepo: PodcastFeedRepo,
   private val apiService: ApiService,
@@ -20,6 +25,7 @@ constructor(
 ) {
   lateinit var podcast: Podcast
   lateinit var podcastFeed: PodcastFeed
+  val crudPrefs = prefsRepository.crudPrefs
 
   fun item(id: String): AddEpisodeUiState {
     val entity = libraryItemRepo.byId(id) ?: return failureState("Failed to fetch podcast")
@@ -52,6 +58,11 @@ constructor(
     } else {
       GenericState.Failure(result.exceptionOrNull()?.message ?: "Failed to download episodes")
     }
+  }
+
+  suspend fun updateHideDownloaded(enabled: Boolean) {
+    val crudPrefs = prefsRepository.crudPrefs.first().copy(addEpisodeHideDownloaded = enabled)
+    dataStoreManager.updateCrudPrefs(crudPrefs)
   }
 
   private fun decodePodcast(raw: String): Podcast? =

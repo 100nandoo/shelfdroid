@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
+import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeFilterState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeUiState
 import dev.halim.shelfdroid.core.data.screen.addepisode.TextFilter
@@ -29,8 +30,14 @@ constructor(private val repository: AddEpisodeRepository, savedStateHandle: Save
   private val _uiState = MutableStateFlow(repository.item(id))
 
   val uiState: StateFlow<AddEpisodeUiState> =
-    combine(_uiState, downloadEpisodeState) { uiState, downloadState ->
-        uiState.copy(downloadEpisodeState = downloadState)
+    combine(_uiState, repository.crudPrefs, downloadEpisodeState) {
+        uiState,
+        crudPrefs,
+        downloadState ->
+        uiState.copy(
+          downloadEpisodeState = downloadState,
+          filterState = AddEpisodeFilterState(hideDownloaded = crudPrefs.addEpisodeHideDownloaded),
+        )
       }
       .stateIn(
         viewModelScope,
@@ -78,9 +85,7 @@ constructor(private val repository: AddEpisodeRepository, savedStateHandle: Save
         }
       }
       is AddEpisodeEvent.FilterEvent.HideDownloadedChanged -> {
-        _uiState.update {
-          it.copy(filterState = it.filterState.copy(hideDownloaded = event.hideDownloaded))
-        }
+        viewModelScope.launch { repository.updateHideDownloaded(event.hideDownloaded) }
       }
     }
   }

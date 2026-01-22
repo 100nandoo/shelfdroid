@@ -18,4 +18,9 @@ constructor(
     val crudPrefs = prefsRepository.crudPrefs.first().copy(episodeHardDelete = enabled)
     dataStoreManager.updateCrudPrefs(crudPrefs)
   }
+
+  suspend fun updateHideDownloaded(enabled: Boolean) {
+    val crudPrefs = prefsRepository.crudPrefs.first().copy(addEpisodeHideDownloaded = enabled)
+    dataStoreManager.updateCrudPrefs(crudPrefs)
+  }
 }

@@ -115,8 +115,9 @@
     <!--Settings Playback-->
 
     <!--Settings Podcast-->
-    <string name="administration">Administration</string>
     <string name="user_permanent_deletion">Use permanent deletion for episodes</string>
+    <string name="hide_downloaded_episodes">Hide downloaded episodes</string>
+    <string name="add_episode">Add Episode</string>
     <!--Settings Podcast-->
 
     <!--Podcast Feed-->

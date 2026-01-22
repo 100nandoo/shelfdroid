@@ -85,7 +85,11 @@ data class DisplayPrefs(
 )
 
 @Serializable
-data class CrudPrefs(val hardDelete: Boolean = true, val episodeHardDelete: Boolean = true)
+data class CrudPrefs(
+  val hardDelete: Boolean = true,
+  val episodeHardDelete: Boolean = true,
+  val addEpisodeHideDownloaded: Boolean = true,
+)
 
 @Serializable
 data class Prefs(

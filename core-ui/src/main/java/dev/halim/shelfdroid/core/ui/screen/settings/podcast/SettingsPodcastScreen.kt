@@ -2,6 +2,9 @@ package dev.halim.shelfdroid.core.ui.screen.settings.podcast
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,13 +32,24 @@ private fun SettingsPodcastScreenContent(
   uiState: SettingsPodcastUiState = SettingsPodcastUiState(),
   onEvent: (SettingsPodcastEvent) -> Unit = {},
 ) {
-  Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.Bottom) {
-    SettingsLabel(text = stringResource(R.string.administration))
+  Column(
+    modifier = Modifier.fillMaxSize().padding(16.dp),
+    verticalArrangement = Arrangement.Bottom,
+  ) {
+    SettingsLabel(text = stringResource(R.string.delete))
     SettingsSwitchItem(
       title = stringResource(R.string.user_permanent_deletion),
       checked = uiState.crudPrefs.episodeHardDelete,
       contentDescription = stringResource(R.string.user_permanent_deletion),
       onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHardDelete(it)) },
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    SettingsLabel(text = stringResource(R.string.add_episode))
+    SettingsSwitchItem(
+      title = stringResource(R.string.hide_downloaded_episodes),
+      checked = uiState.crudPrefs.addEpisodeHideDownloaded,
+      contentDescription = stringResource(R.string.hide_downloaded_episodes),
+      onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHideDownloaded(it)) },
     )
   }
 }

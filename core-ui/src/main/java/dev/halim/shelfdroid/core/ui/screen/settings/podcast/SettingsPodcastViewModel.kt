@@ -30,10 +30,16 @@ constructor(private val repository: SettingsPodcastRepository) : ViewModel() {
       is SettingsPodcastEvent.SwitchHardDelete -> {
         viewModelScope.launch { repository.updateHardDelete(event.hardDelete) }
       }
+
+      is SettingsPodcastEvent.SwitchHideDownloaded -> {
+        viewModelScope.launch { repository.updateHideDownloaded(event.hideDownloaded) }
+      }
     }
   }
 }
 
 sealed interface SettingsPodcastEvent {
   data class SwitchHardDelete(val hardDelete: Boolean) : SettingsPodcastEvent
+
+  data class SwitchHideDownloaded(val hideDownloaded: Boolean) : SettingsPodcastEvent
 }
