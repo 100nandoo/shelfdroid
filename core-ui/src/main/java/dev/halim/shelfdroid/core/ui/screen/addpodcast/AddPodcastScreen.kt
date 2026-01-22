@@ -99,8 +99,10 @@ private fun AddPodcastScreenContent(
     var path by remember { mutableStateOf(TextFieldValue(uiState.path)) }
     var folderDropdownExpanded by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) { titleRef.requestFocus() }
     Column(
-      modifier = Modifier.padding(16.dp).imePadding().fillMaxSize().verticalScroll(scrollState)
+      modifier = Modifier.padding(16.dp).fillMaxSize().imePadding().verticalScroll(scrollState)
     ) {
       MyOutlinedTextField(
         value = title,
@@ -160,7 +162,7 @@ private fun AddPodcastScreenContent(
         },
         label = stringResource(R.string.language),
         keyboardOptions =
-          KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+          KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).focusRequester(languageRef),
         onNext = { focusManager.moveFocus(FocusDirection.Next) },
       )
@@ -173,7 +175,7 @@ private fun AddPodcastScreenContent(
         },
         label = stringResource(R.string.path),
         keyboardOptions =
-          KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+          KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).focusRequester(pathRef),
         onNext = { focusManager.moveFocus(FocusDirection.Next) },
         prefix = {
@@ -225,7 +227,7 @@ private fun GenreSection(
     value = genreInput,
     onValueChange = { genreInput = it },
     label = stringResource(R.string.genres),
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
     modifier = Modifier.fillMaxWidth().focusRequester(genreRef),
     onNext = {
       val text = genreInput.text.trim()

@@ -20,7 +20,7 @@ class AddEpisodeMapper @Inject constructor() {
       AddEpisode(
         episodeId = dbEpisode?.id.orEmpty(),
         title = feedEpisode.title,
-        description = feedEpisode.descriptionPlain,
+        description = feedEpisode.descriptionPlain.trim(),
         pubDate = feedEpisode.pubDate,
         publishedAt = feedEpisode.publishedAt,
         url = url,

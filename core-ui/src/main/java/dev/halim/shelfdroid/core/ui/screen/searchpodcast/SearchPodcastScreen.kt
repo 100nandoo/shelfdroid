@@ -3,7 +3,6 @@ package dev.halim.shelfdroid.core.ui.screen.searchpodcast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -74,19 +73,17 @@ private fun SearchPodcastScreenContent(
     VisibilityDown(uiState.state is GenericState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
-    LazyColumn(modifier = Modifier.imePadding().fillMaxSize(), reverseLayout = true) {
-      item(key = "search_text_field") {
-        SearchTextField(
-          textFieldValue = textFieldValue,
-          onValueChange = { textFieldValue = it },
-          onEvent = onEvent,
-        )
-      }
+    LazyColumn(modifier = Modifier.weight(1f), reverseLayout = true) {
       items(items = uiState.result, key = { it.itunesId }) {
         SearchPodcastItem(it, onItemClicked, onAddedClick)
         HorizontalDivider()
       }
     }
+    SearchTextField(
+      textFieldValue = textFieldValue,
+      onValueChange = { textFieldValue = it },
+      onEvent = onEvent,
+    )
   }
 }
 
@@ -119,7 +116,7 @@ private fun SearchTextField(
       value = textFieldValue,
       onValueChange = onValueChange,
       placeholder = { Text("Search term or RSS feel URL") },
-      modifier = Modifier.fillMaxWidth().focusRequester(searchRef),
+      modifier = Modifier.fillMaxWidth().imePadding().focusRequester(searchRef),
       keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
       keyboardActions = KeyboardActions(onSearch = { onSearchTriggered() }),
       trailingIcon = {
