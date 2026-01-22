@@ -19,14 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,8 +42,6 @@ fun FilterDialog(
   onDismiss: () -> Unit = {},
   onEvent: (AddEpisodeEvent.FilterEvent) -> Unit = {},
 ) {
-  val (inputTextRef) = remember { FocusRequester.createRefs() }
-  val focusManager = LocalFocusManager.current
   if (showDialog) {
     AlertDialog(
       onDismissRequest = { onDismiss() },
@@ -62,17 +55,16 @@ fun FilterDialog(
       text = {
         Column {
           MyOutlinedTextField(
-            modifier = Modifier.fillMaxWidth().focusRequester(inputTextRef),
+            modifier = Modifier.fillMaxWidth(),
             value = filterState.text,
             onValueChange = { onEvent(AddEpisodeEvent.FilterEvent.TextChanged(it)) },
             label = stringResource(R.string.search),
             keyboardOptions =
               KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-            onNext = { focusManager.moveFocus(FocusDirection.Next) },
           )
           Spacer(modifier = Modifier.height(16.dp))
 
-          MultiChoiceSegmentedButton(onEvent = onEvent)
+          MultiChoiceSegmentedButton(filterState.textFilter, onEvent = onEvent)
 
           Spacer(modifier = Modifier.height(16.dp))
           Row(
@@ -97,8 +89,11 @@ fun FilterDialog(
 }
 
 @Composable
-fun MultiChoiceSegmentedButton(onEvent: (AddEpisodeEvent.FilterEvent) -> Unit) {
-  val selectedOptions = remember { mutableStateListOf(true, false) }
+fun MultiChoiceSegmentedButton(
+  textFilter: TextFilter,
+  onEvent: (AddEpisodeEvent.FilterEvent) -> Unit,
+) {
+  val selectedOptions = textFilter.toSelectionList()
   val options = listOf(stringResource(R.string.title), stringResource(R.string.description))
   Text(
     stringResource(R.string.search_in),
@@ -111,11 +106,12 @@ fun MultiChoiceSegmentedButton(onEvent: (AddEpisodeEvent.FilterEvent) -> Unit) {
         shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
         checked = selectedOptions[index],
         onCheckedChange = {
-          selectedOptions[index] = !selectedOptions[index]
-          if (!selectedOptions.contains(true)) {
-            selectedOptions[0] = true
-          }
-          onEvent(AddEpisodeEvent.FilterEvent.TextFilterChanged(selectedOptions.toTextFilter()))
+          val newSelection =
+            selectedOptions.toMutableList().apply {
+              this[index] = !this[index]
+              if (!contains(true)) this[0] = true
+            }
+          onEvent(AddEpisodeEvent.FilterEvent.TextFilterChanged(newSelection.toTextFilter()))
         },
         icon = { SegmentedButtonDefaults.Icon(selectedOptions[index]) },
         label = { Text(label) },
@@ -133,6 +129,13 @@ private fun List<Boolean>.toTextFilter(): TextFilter {
     else -> TextFilter.TITLE
   }
 }
+
+private fun TextFilter.toSelectionList(): SnapshotStateList<Boolean> =
+  when (this) {
+    TextFilter.TITLE -> mutableStateListOf(true, false)
+    TextFilter.DESCRIPTION -> mutableStateListOf(false, true)
+    TextFilter.BOTH -> mutableStateListOf(true, true)
+  }
 
 @ShelfDroidPreview
 @Composable

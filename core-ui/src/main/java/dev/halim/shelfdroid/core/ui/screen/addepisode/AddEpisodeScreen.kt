@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -86,8 +87,17 @@ private fun AddEpisodeScreenContent(
   uiState: AddEpisodeUiState = AddEpisodeUiState(),
   onEvent: (AddEpisodeEvent) -> Unit = {},
 ) {
-  val selectedEpisodesCount =
-    uiState.episodes.filter { it.state == AddEpisodeDownloadState.ToBeDownloaded }.size
+  val selectedEpisodesCount by
+    remember(uiState.episodes) {
+      mutableIntStateOf(
+        uiState.episodes.filter { it.state == AddEpisodeDownloadState.ToBeDownloaded }.size
+      )
+    }
+
+  val filteredEpisodes by
+    remember(uiState.episodes, uiState.filterState) {
+      mutableStateOf(filter(uiState.episodes, uiState.filterState))
+    }
 
   val lazyListState = rememberLazyListState()
   val fabVisible by remember { derivedStateOf { lazyListState.isScrollInProgress.not() } }
@@ -99,10 +109,10 @@ private fun AddEpisodeScreenContent(
         onEvent(AddEpisodeEvent.DownloadEpisodes)
       }
     },
-  ) {
+  ) { paddingValues ->
     LazyColumn(
       state = lazyListState,
-      modifier = Modifier.padding(it).fillMaxSize().padding(horizontal = 16.dp),
+      modifier = Modifier.padding(paddingValues).fillMaxSize().padding(horizontal = 16.dp),
       reverseLayout = true,
       verticalArrangement = Arrangement.Bottom,
     ) {
@@ -118,7 +128,7 @@ private fun AddEpisodeScreenContent(
         Spacer(modifier = Modifier.height(16.dp))
       }
 
-      items(items = uiState.episodes, key = { it.url }) { episode ->
+      items(items = filteredEpisodes, key = { it.url }) { episode ->
         AddEpisodeItem(episode) { onEvent(AddEpisodeEvent.CheckEpisode(episode.url, it)) }
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
       }
