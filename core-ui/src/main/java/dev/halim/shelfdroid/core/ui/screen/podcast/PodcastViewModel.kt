@@ -6,8 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.ExoState
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState
+import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteFailure
+import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteSuccess
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.download.DownloadRepo
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -31,6 +35,7 @@ import org.json.JSONObject
 class PodcastViewModel
 @Inject
 constructor(
+  private val prefsRepository: PrefsRepository,
   private val repository: PodcastRepository,
   private val downloadRepo: DownloadRepo,
   private val socketManager: SocketManager,
@@ -95,7 +100,14 @@ constructor(
       }
       is PodcastEvent.SelectionMode -> {
         selectionMode.update { event.isSelectionMode }
-        selectedEpisodeIds.update { if (event.isSelectionMode) it + event.itemId else emptySet() }
+        viewModelScope.launch {
+          val ids =
+            if (prefsRepository.crudPrefs.first().episodeAutoSelectFinished) finishedIds()
+            else emptySet()
+          selectedEpisodeIds.update {
+            if (event.isSelectionMode) it + event.itemId + ids else emptySet()
+          }
+        }
       }
       is PodcastEvent.SelectItem -> {
         selectedEpisodeIds.update { current ->
@@ -106,6 +118,32 @@ constructor(
           }
         }
       }
+      is PodcastEvent.DeleteEpisode -> {
+        viewModelScope.launch(Dispatchers.IO) {
+          val failedIds =
+            repository.deleteEpisode(id, event.hardDelete, uiState.value.selectedEpisodeIds)
+
+          if (failedIds.isEmpty()) {
+            apiState.update { DeleteSuccess(uiState.value.selectedEpisodeIds.size) }
+          } else {
+            apiState.update {
+              val titles =
+                uiState.value.episodes
+                  .filter { it.episodeId in failedIds }
+                  .joinToString { it.title }
+              DeleteFailure("Failed to delete episodes: $titles")
+            }
+          }
+        }
+      }
+
+      is PodcastEvent.SwitchAutoSelectFinished -> {
+        viewModelScope.launch {
+          val ids = finishedIds()
+          selectedEpisodeIds.update { if (event.enabled) it + ids else it - ids }
+          prefsRepository.updateAutoSelectFinished(event.enabled)
+        }
+      }
       PodcastEvent.AddEpisode -> {
         apiState.update { PodcastApiState.AddLoading }
         viewModelScope.launch(Dispatchers.IO) { apiState.update { repository.fetchEpisode() } }
@@ -113,26 +151,11 @@ constructor(
       PodcastEvent.ResetAddEpisodeState -> {
         apiState.update { PodcastApiState.Idle }
       }
-
-      is PodcastEvent.DeleteEpisode -> {
-        viewModelScope.launch(Dispatchers.IO) {
-          val failedIds =
-            repository.deleteEpisode(id, event.hardDelete, uiState.value.selectedEpisodeIds)
-
-          if (failedIds.isEmpty()) {
-            apiState.update { PodcastApiState.DeleteSuccess(uiState.value.selectedEpisodeIds.size) }
-          } else {
-            apiState.update {
-              val titles =
-                uiState.value.episodes
-                  .filter { it.episodeId in failedIds }
-                  .joinToString { it.title }
-              PodcastApiState.DeleteFailure("Failed to delete episodes: $titles")
-            }
-          }
-        }
-      }
     }
+  }
+
+  private fun finishedIds(): Set<String> {
+    return uiState.value.episodes.filter { it.isFinished }.map { it.episodeId }.toSet()
   }
 
   private fun startStopSocket(isStart: Boolean) {
@@ -174,6 +197,8 @@ sealed interface PodcastEvent {
   data class SelectItem(val itemId: String) : PodcastEvent
 
   data class DeleteEpisode(val hardDelete: Boolean) : PodcastEvent
+
+  data class SwitchAutoSelectFinished(val enabled: Boolean) : PodcastEvent
 
   data object AddEpisode : PodcastEvent
 

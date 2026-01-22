@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeFilterState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeRepository
@@ -22,8 +23,11 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AddEpisodeViewModel
 @Inject
-constructor(private val repository: AddEpisodeRepository, savedStateHandle: SavedStateHandle) :
-  ViewModel() {
+constructor(
+  private val repository: AddEpisodeRepository,
+  private val prefsRepository: PrefsRepository,
+  savedStateHandle: SavedStateHandle,
+) : ViewModel() {
   val id: String = checkNotNull(savedStateHandle.get<String>("id"))
   private val downloadEpisodeState = MutableStateFlow<GenericState>(GenericState.Idle)
 
@@ -85,7 +89,7 @@ constructor(private val repository: AddEpisodeRepository, savedStateHandle: Save
         }
       }
       is AddEpisodeEvent.FilterEvent.HideDownloadedChanged -> {
-        viewModelScope.launch { repository.updateHideDownloaded(event.hideDownloaded) }
+        viewModelScope.launch { prefsRepository.updateHideDownloaded(event.hideDownloaded) }
       }
     }
   }

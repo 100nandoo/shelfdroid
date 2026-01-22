@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.prefs
 
+import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.PlaybackPrefs
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.ServerPrefs
@@ -8,6 +9,7 @@ import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 
 class PrefsRepository @Inject constructor(private val dataStoreManager: DataStoreManager) {
 
@@ -33,5 +35,24 @@ class PrefsRepository @Inject constructor(private val dataStoreManager: DataStor
 
   suspend fun updatePlaybackPrefs(playbackPrefs: PlaybackPrefs) {
     dataStoreManager.updatePlaybackPrefs(playbackPrefs)
+  }
+
+  suspend fun updateCrudPrefs(crudPrefs: CrudPrefs) {
+    dataStoreManager.updateCrudPrefs(crudPrefs)
+  }
+
+  suspend fun updateHardDelete(enabled: Boolean) {
+    val crudPrefs = crudPrefs.first().copy(episodeHardDelete = enabled)
+    updateCrudPrefs(crudPrefs)
+  }
+
+  suspend fun updateAutoSelectFinished(enabled: Boolean) {
+    val crudPrefs = crudPrefs.first().copy(episodeAutoSelectFinished = enabled)
+    updateCrudPrefs(crudPrefs)
+  }
+
+  suspend fun updateHideDownloaded(enabled: Boolean) {
+    val crudPrefs = crudPrefs.first().copy(addEpisodeHideDownloaded = enabled)
+    updateCrudPrefs(crudPrefs)
   }
 }

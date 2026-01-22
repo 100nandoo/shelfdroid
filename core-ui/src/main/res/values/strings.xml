@@ -116,6 +116,7 @@
 
     <!--Settings Podcast-->
     <string name="user_permanent_deletion">Use permanent deletion for episodes</string>
+    <string name="auto_select_finished_episodes">Auto select finished episodes</string>
     <string name="hide_downloaded_episodes">Hide downloaded episodes</string>
     <string name="add_episode">Add Episode</string>
     <!--Settings Podcast-->

@@ -60,7 +60,7 @@ constructor(
 
   suspend fun updateHardDelete(enabled: Boolean) {
     val crudPrefs = prefsRepository.crudPrefs.first().copy(hardDelete = enabled)
-    dataStoreManager.updateCrudPrefs(crudPrefs)
+    prefsRepository.updateCrudPrefs(crudPrefs)
   }
 
   suspend fun updateFilter(filter: Filter) {

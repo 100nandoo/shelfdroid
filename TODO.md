@@ -2,8 +2,6 @@
 
 ## High Priority
 
-- [ ] Add podcast filter
-- [ ] Delete podcast behaviour
 - [ ] Listening session
 - [ ] Server functions
 - [ ] Widget
@@ -62,3 +60,5 @@
     - [x] Add
 - [x] Soft and hard delete podcast/book
 - [x] add, delete episode
+- [x] Add episode filter
+- [x] Delete episode behaviour

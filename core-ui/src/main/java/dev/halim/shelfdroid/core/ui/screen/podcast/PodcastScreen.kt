@@ -3,15 +3,20 @@ package dev.halim.shelfdroid.core.ui.screen.podcast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +24,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -116,6 +122,7 @@ fun PodcastScreenContent(
       cover = Defaults.IMAGE_URL,
       description = Defaults.DESCRIPTION,
       episodes = Defaults.EPISODES,
+      isSelectionMode = true,
     ),
   id: String = Defaults.BOOK_ID,
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
@@ -130,8 +137,12 @@ fun PodcastScreenContent(
     else uiState.episodes
   val count = uiState.selectedEpisodeIds.size
 
+  val lazyListState = rememberLazyListState()
+  val fabVisible by remember { derivedStateOf { lazyListState.isScrollInProgress.not() } }
+
   Column(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
+      state = lazyListState,
       modifier = Modifier.weight(1f).mySharedBound(Animations.containerKey(id)),
       reverseLayout = true,
     ) {
@@ -165,10 +176,14 @@ fun PodcastScreenContent(
         }
       }
     }
-    AnimatedVisibility(visible = uiState.isSelectionMode) {
-      DeleteButton(count, uiState.prefs.crudPrefs.episodeHardDelete) {
-        onEvent(PodcastEvent.DeleteEpisode(it))
-      }
+    AnimatedVisibility(visible = uiState.isSelectionMode && fabVisible) {
+      DeleteSection(
+        count,
+        uiState.prefs.crudPrefs.episodeHardDelete,
+        uiState.prefs.crudPrefs.episodeAutoSelectFinished,
+        onDeleteClick = { onEvent(PodcastEvent.DeleteEpisode(it)) },
+        onAutoSelectFinishedChange = { onEvent(PodcastEvent.SwitchAutoSelectFinished(it)) },
+      )
     }
   }
 }
@@ -203,7 +218,13 @@ private fun Header(
 }
 
 @Composable
-private fun DeleteButton(count: Int, initialHardDelete: Boolean, onDeleteClick: (Boolean) -> Unit) {
+private fun DeleteSection(
+  count: Int,
+  initialHardDelete: Boolean,
+  autoSelectFinished: Boolean = false,
+  onDeleteClick: (Boolean) -> Unit,
+  onAutoSelectFinishedChange: (Boolean) -> Unit,
+) {
   var showDeleteDialog by remember { mutableStateOf(false) }
   var hardDelete by remember { mutableStateOf(initialHardDelete) }
 
@@ -211,18 +232,30 @@ private fun DeleteButton(count: Int, initialHardDelete: Boolean, onDeleteClick: 
   val text =
     if (isZero) stringResource(R.string.no_episodes_selected)
     else pluralStringResource(id = R.plurals.delete_episode_count, count = count, count)
-  Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-    Button(
-      onClick = { showDeleteDialog = true },
-      modifier = Modifier.weight(1f),
-      enabled = count > 0,
+
+  Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.Start,
     ) {
-      Icon(
-        painter = painterResource(R.drawable.delete),
-        contentDescription = stringResource(R.string.delete),
-        modifier = Modifier.padding(end = 8.dp),
-      )
-      Text(text)
+      Checkbox(checked = autoSelectFinished, onCheckedChange = onAutoSelectFinishedChange)
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(text = stringResource(R.string.auto_select_finished_episodes))
+    }
+    Row {
+      Button(
+        onClick = { showDeleteDialog = true },
+        modifier = Modifier.weight(1f),
+        enabled = count > 0,
+      ) {
+        Icon(
+          painter = painterResource(R.drawable.delete),
+          contentDescription = stringResource(R.string.delete),
+          modifier = Modifier.padding(end = 8.dp),
+        )
+        Text(text)
+      }
     }
   }
 
