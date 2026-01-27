@@ -8,7 +8,16 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-/.idea
+/.idea/*.xml
+/.idea/.*
+/.idea/inspectionProfiles/
+/.idea/runConfigurations/
+
+!.idea/icon.svg
+!.idea/codeStyles/
+!.idea/file.template.settings.xml
+!.idea/fileTemplates/
+
 .DS_Store
 /build
 /captures
@@ -16,3 +25,4 @@
 .cxx
 local.properties
 keystore.properties
+
