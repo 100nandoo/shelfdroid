@@ -10,7 +10,11 @@ data class LibrariesResponse(@SerialName("libraries") val libraries: List<Librar
 enum class MediaType {
   @SerialName("book") BOOK,
   @SerialName("podcast") PODCAST,
-  @SerialName("") UNKNOWN,
+  @SerialName("") UNKNOWN;
+
+  companion object {
+    fun isBook(value: String): Boolean = value.equals("book", ignoreCase = true)
+  }
 }
 
 @Serializable

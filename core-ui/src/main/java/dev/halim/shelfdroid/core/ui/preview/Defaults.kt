@@ -11,6 +11,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 
@@ -260,4 +261,31 @@ object Defaults {
         state = state,
       )
     }
+
+  val LISTENING_SESSION: ListeningSessionUiState.Session =
+    ListeningSessionUiState.Session(
+      id = "1",
+      item =
+        ListeningSessionUiState.Item(
+          author = "Brandon Sanderson",
+          title = "The Way of Kings",
+          narrator = "Michael Kramer",
+        ),
+      device =
+        ListeningSessionUiState.Device(
+          deviceName = "Samsung S24",
+          clientName = "Shelfdroid",
+          clientVersion = "0.2.9",
+          ip = "192.168.1.24",
+        ),
+      sessionTime =
+        ListeningSessionUiState.SessionTime(
+          duration = "30s",
+          currentTime = 750.0,
+          startedAt = 1_769_748_878_442,
+          updatedAt = 1_769_749_628_442,
+          timeRange = "10.00–11.00 AM, 30 January 2026",
+        ),
+      user = ListeningSessionUiState.User(id = "user_12345", username = "Mark"),
+    )
 }

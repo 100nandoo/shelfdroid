@@ -20,6 +20,7 @@ import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.SearchPodcast
+import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.play.PlayResponse
@@ -127,6 +128,14 @@ interface ApiService {
   suspend fun syncLocalAllSession(
     @Body sessions: SyncLocalAllSessionRequest
   ): Result<SyncLocalAllSessionResponse>
+
+  @GET("/api/sessions")
+  suspend fun sessions(
+    @Query("itemsPerPage") itemsPerPage: Int = 10,
+    @Query("page") page: Int = 0,
+    @Query("sort") sort: String = "updatedAt",
+    @Query("desc") desc: Int = 1,
+  ): Result<SessionsResponse>
 
   // search
   @GET("/api/search/podcast")

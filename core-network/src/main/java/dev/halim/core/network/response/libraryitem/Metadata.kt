@@ -1,9 +1,12 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package dev.halim.core.network.response.libraryitem
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Serializable
+@Serializable(with = MetadataSerializer::class)
 sealed class Metadata {
   abstract val title: String?
   abstract val language: String?

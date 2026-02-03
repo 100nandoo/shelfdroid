@@ -14,6 +14,7 @@ import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -52,6 +53,21 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
     }
   }
 
+  fun formatDurationShort(seconds: Double): String {
+    val totalSeconds = seconds.toLong()
+    val h = totalSeconds / 3600
+    val m = (totalSeconds % 3600) / 60
+    val s = totalSeconds % 60
+
+    return listOfNotNull(
+        if (h > 0) "${h}h" else null,
+        if (m > 0) "${m}m" else null,
+        // Only show seconds if there are no minutes and no hours
+        if ((h == 0L && m == 0L) || (s > 0 && h == 0L && m == 0L)) "${s}s" else null,
+      )
+      .joinToString(" ")
+  }
+
   /**
    * Formats a time duration given in seconds into a human-readable string.
    *
@@ -76,6 +92,48 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
 
   fun formatChapterTime(inputInSeconds: Double, padHour: Boolean = false): String {
     return inputInSeconds.formatChapterTime(padHour)
+  }
+
+  /**
+   * Formats a session duration into a human-readable string.
+   * * Examples:
+   * - Same period: "10.00–11.00 AM, 30 January 2026"
+   * - Different periods: "10.00 AM–1.00 PM, 30 January 2026"
+   * - Different days: "10.00 PM – 2.00 AM, 31 January 2026"
+   */
+  fun formatSessionTimeRange(
+    startedAt: Long,
+    updatedAt: Long,
+    timeZone: TimeZone = TimeZone.currentSystemDefault(),
+    locale: Locale = Locale.getDefault(),
+  ): String {
+    val start = Instant.fromEpochMilliseconds(startedAt).toLocalDateTime(timeZone)
+    val end = Instant.fromEpochMilliseconds(updatedAt).toLocalDateTime(timeZone)
+
+    fun LocalDateTime.formatTime(): String {
+      val h = if (hour % 12 == 0) 12 else hour % 12
+      return "$h.${minute.toString().padStart(2, '0')}"
+    }
+
+    fun LocalDateTime.amPm() = if (hour < 12) "AM" else "PM"
+
+    fun LocalDateTime.formatDate() =
+      "$day ${month.name.lowercase().replaceFirstChar { it.titlecase(locale) }} $year"
+
+    val isSameDay = start.date == end.date
+
+    return if (isSameDay) {
+      val startT = start.formatTime()
+      val endT = end.formatTime()
+      val startP = start.amPm()
+      val endP = end.amPm()
+
+      if (startP == endP) "$startT – $endT $startP, ${end.formatDate()}"
+      else "$startT $startP–$endT $endP, ${end.formatDate()}"
+    } else {
+      // Different days: Only show the date for the updatedAt (end) time
+      "${start.formatTime()} ${start.amPm()} – ${end.formatTime()} ${end.amPm()}, ${end.formatDate()}"
+    }
   }
 
   fun nowMilis(): Long {

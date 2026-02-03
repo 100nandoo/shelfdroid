@@ -69,11 +69,12 @@ fun HomeScreen(
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
   onSearchClicked: (String) -> Unit,
+  onSessionClicked: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  val libraryCount = uiState.librariesUiState.size
+  val libraryCount = uiState.librariesUiState.size + 1
 
-  val pagerState = rememberPagerState(pageCount = { libraryCount })
+  val pagerState = rememberPagerState(pageCount = { libraryCount }, initialPage = 1)
   LaunchedEffect(pagerState.currentPage) {
     viewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
   }
@@ -88,6 +89,7 @@ fun HomeScreen(
     onPodcastClicked,
     onSettingsClicked,
     onSearchClicked,
+    onSessionClicked,
   )
 }
 
@@ -102,6 +104,7 @@ fun HomeScreenContent(
   onPodcastClicked: (String) -> Unit = {},
   onSettingsClicked: () -> Unit = {},
   onSearchClicked: (String) -> Unit = {},
+  onSessionClicked: () -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
@@ -113,39 +116,45 @@ fun HomeScreenContent(
   }
 
   HorizontalPager(state = pagerState) { page ->
-    val library = uiState.librariesUiState[page]
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
       VisibilityDown(uiState.homeState is HomeState.Loading) {
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
       }
-      LibraryContent(
-        modifier = Modifier.weight(1f),
-        prefs = uiState.prefs,
-        books = library.books,
-        podcasts = library.podcasts,
-        onEvent = onEvent,
-        id = uiState.librariesUiState[page].id,
-        name = uiState.librariesUiState[page].name,
-        isBookLibrary = uiState.librariesUiState[page].isBookLibrary,
-        onFilterChange = { onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.Filter(it))) },
-        onBookSortChange = {
-          onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it)))
-        },
-        onPodcastSortChange = {
-          onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.PodcastSort(it)))
-        },
-        onSortOrderChange = {
-          onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.SortOrder(it)))
-        },
-        onPodcastSortOrderChange = {
-          onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.PodcastSortOrder(it)))
-        },
-        onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
-        onSettingsClicked = onSettingsClicked,
-        onSearchClicked = onSearchClicked,
-        onBookClicked = onBookClicked,
-        onPodcastClicked = onPodcastClicked,
-      )
+      if (pagerState.pageCount - 1 == page) {
+        MiscScreen(onSessionClicked)
+      } else {
+        val library = uiState.librariesUiState[page]
+        LibraryContent(
+          modifier = Modifier.weight(1f),
+          prefs = uiState.prefs,
+          books = library.books,
+          podcasts = library.podcasts,
+          onEvent = onEvent,
+          id = uiState.librariesUiState[page].id,
+          name = uiState.librariesUiState[page].name,
+          isBookLibrary = uiState.librariesUiState[page].isBookLibrary,
+          onFilterChange = {
+            onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.Filter(it)))
+          },
+          onBookSortChange = {
+            onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it)))
+          },
+          onPodcastSortChange = {
+            onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.PodcastSort(it)))
+          },
+          onSortOrderChange = {
+            onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.SortOrder(it)))
+          },
+          onPodcastSortOrderChange = {
+            onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.PodcastSortOrder(it)))
+          },
+          onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
+          onSettingsClicked = onSettingsClicked,
+          onSearchClicked = onSearchClicked,
+          onBookClicked = onBookClicked,
+          onPodcastClicked = onPodcastClicked,
+        )
+      }
     }
   }
 }
@@ -384,7 +393,11 @@ private fun podcastFilterAndSort(
 @Composable
 fun HomeScreenContentPreview() {
   AnimatedPreviewWrapper(dynamicColor = false) {
-    HomeScreenContent(uiState = Defaults.HOME_UI_STATE)
+    HomeScreenContent(
+      pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
+      uiState = Defaults.HOME_UI_STATE,
+      onSessionClicked = {},
+    )
   }
 }
 
@@ -392,7 +405,11 @@ fun HomeScreenContentPreview() {
 @Composable
 fun HomeScreenContentDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) {
-    HomeScreenContent(uiState = Defaults.HOME_UI_STATE)
+    HomeScreenContent(
+      pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
+      uiState = Defaults.HOME_UI_STATE,
+      onSessionClicked = {},
+    )
   }
 }
 
@@ -400,7 +417,11 @@ fun HomeScreenContentDynamicPreview() {
 @Composable
 fun HomeScreenContentListPreview() {
   AnimatedPreviewWrapper(dynamicColor = false) {
-    HomeScreenContent(uiState = Defaults.HOME_UI_STATE_LIST)
+    HomeScreenContent(
+      pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
+      uiState = Defaults.HOME_UI_STATE_LIST,
+      onSessionClicked = {},
+    )
   }
 }
 
@@ -408,6 +429,10 @@ fun HomeScreenContentListPreview() {
 @Composable
 fun HomeScreenContentListDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) {
-    HomeScreenContent(uiState = Defaults.HOME_UI_STATE_LIST)
+    HomeScreenContent(
+      pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
+      uiState = Defaults.HOME_UI_STATE_LIST,
+      onSessionClicked = {},
+    )
   }
 }

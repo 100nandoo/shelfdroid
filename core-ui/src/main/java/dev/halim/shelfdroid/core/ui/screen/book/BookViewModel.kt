@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.book
 
-import android.annotation.SuppressLint
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -61,7 +60,6 @@ constructor(
     }
   }
 
-  @SuppressLint("UnsafeOptInUsageError")
   private fun initUiState() {
     viewModelScope.launch {
       repository.item(id).collect { bookUiState -> _uiState.value = bookUiState }
