@@ -13,6 +13,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,30 @@ fun MyIconButton(
     Icon(
       modifier = Modifier.size(size.dp).padding(iconPadding),
       imageVector = icon,
+      contentDescription = contentDescription,
+    )
+  }
+}
+
+@Composable
+fun MyIconButton(
+  modifier: Modifier = Modifier,
+  painter: Painter,
+  contentDescription: String,
+  size: Int = 48,
+  enabled: Boolean = true,
+  onClick: () -> Unit,
+) {
+  require(size >= 48) { "Size must be at least 48" }
+  val iconPadding = (size / 6).dp
+  IconButton(
+    modifier = Modifier.size(size.dp).then(modifier),
+    onClick = onClick,
+    enabled = enabled,
+  ) {
+    Icon(
+      modifier = Modifier.size(size.dp).padding(iconPadding),
+      painter = painter,
       contentDescription = contentDescription,
     )
   }

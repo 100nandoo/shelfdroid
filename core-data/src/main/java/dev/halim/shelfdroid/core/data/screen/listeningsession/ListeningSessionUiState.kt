@@ -5,18 +5,23 @@ import dev.halim.shelfdroid.core.data.GenericState
 data class ListeningSessionUiState(
   val state: GenericState = GenericState.Idle,
   val sessions: List<Session> = emptyList(),
+  val pageInfo: PageInfo = PageInfo(),
 ) {
 
   data class Session(
     val id: String,
-    val pageInfo: PageInfo,
     val item: Item,
     val device: Device,
     val sessionTime: SessionTime,
     val user: User,
   )
 
-  data class PageInfo(val total: Int, val numPages: Int, val page: Int, val itemsPerPage: Int)
+  data class PageInfo(
+    val total: Int = 0,
+    val numPages: Int = 0,
+    val page: Int = 0,
+    val itemsPerPage: Int = 0,
+  )
 
   data class Item(val author: String, val title: String, val narrator: String)
 

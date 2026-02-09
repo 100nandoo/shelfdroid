@@ -265,8 +265,6 @@ object Defaults {
   val LISTENING_SESSION: ListeningSessionUiState.Session =
     ListeningSessionUiState.Session(
       id = "1",
-      pageInfo =
-        ListeningSessionUiState.PageInfo(total = 100, numPages = 2, page = 0, itemsPerPage = 10),
       item =
         ListeningSessionUiState.Item(
           author = "Brandon Sanderson",
@@ -290,4 +288,7 @@ object Defaults {
         ),
       user = ListeningSessionUiState.User(id = "user_12345", username = "Mark Webber Stephen"),
     )
+
+  val LISTENING_SESSIONS =
+    listOf(LISTENING_SESSION, LISTENING_SESSION.copy(id = "2"), LISTENING_SESSION.copy(id = "3"))
 }

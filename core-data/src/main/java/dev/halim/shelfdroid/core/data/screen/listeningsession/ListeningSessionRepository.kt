@@ -8,11 +8,11 @@ class ListeningSessionRepository
 @Inject
 constructor(private val api: ApiService, private val mapper: ListeningSessionMapper) {
 
-  suspend fun item(): ListeningSessionUiState {
-    val response = api.sessions().getOrNull()
+  suspend fun item(page: Int = 0): ListeningSessionUiState {
+    val response = api.sessions(page = page).getOrNull()
     if (response == null)
       return ListeningSessionUiState(state = GenericState.Failure("Get all sessions failed."))
     val result = mapper.map(response)
-    return ListeningSessionUiState(state = GenericState.Success, sessions = result)
+    return result
   }
 }

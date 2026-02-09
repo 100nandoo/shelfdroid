@@ -4,21 +4,27 @@ import dev.halim.core.network.response.MediaType
 import dev.halim.core.network.response.Session
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.libraryitem.BookMetadata
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 
 class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
 
-  fun map(response: SessionsResponse): List<ListeningSessionUiState.Session> {
+  fun map(response: SessionsResponse): ListeningSessionUiState {
+    val pageInfo = pageInfo(response)
+    val sessions = sessions(response)
+    return ListeningSessionUiState(GenericState.Success, sessions, pageInfo)
+  }
+
+  private fun sessions(response: SessionsResponse): List<ListeningSessionUiState.Session> {
     val sessions = response.sessions
     val result =
       sessions.map { session ->
-        val pageInfo = pageInfo(response)
         val item = item(session)
         val device = device(session)
         val sessionTime = sessionTime(session)
         val user = user(session)
-        ListeningSessionUiState.Session(session.id, pageInfo, item, device, sessionTime, user)
+        ListeningSessionUiState.Session(session.id, item, device, sessionTime, user)
       }
     return result
   }
