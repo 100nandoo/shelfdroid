@@ -47,12 +47,14 @@ private fun SettingsPodcastScreenContent(
     if (canDelete) {
       SettingsLabel(text = stringResource(R.string.delete))
       SettingsSwitchItem(
+        modifier = Modifier.padding(start = 8.dp),
         title = stringResource(R.string.user_permanent_deletion),
         checked = uiState.crudPrefs.episodeHardDelete,
         contentDescription = stringResource(R.string.user_permanent_deletion),
         onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHardDelete(it)) },
       )
       SettingsSwitchItem(
+        modifier = Modifier.padding(start = 8.dp),
         title = stringResource(R.string.auto_select_finished_episodes),
         checked = uiState.crudPrefs.episodeAutoSelectFinished,
         contentDescription = stringResource(R.string.auto_select_finished_episodes),
@@ -64,6 +66,7 @@ private fun SettingsPodcastScreenContent(
     if (canAdd) {
       SettingsLabel(text = stringResource(R.string.add_episode))
       SettingsSwitchItem(
+        modifier = Modifier.padding(start = 8.dp),
         title = stringResource(R.string.hide_downloaded_episodes),
         checked = uiState.crudPrefs.addEpisodeHideDownloaded,
         contentDescription = stringResource(R.string.hide_downloaded_episodes),

@@ -265,11 +265,8 @@ object Defaults {
   val LISTENING_SESSION: ListeningSessionUiState.Session =
     ListeningSessionUiState.Session(
       id = "1",
-      pageInfo = ListeningSessionUiState.PageInfo(
-        total = 100,
-        numPages = 2,
-        page = 0,
-        itemsPerPage = 10),
+      pageInfo =
+        ListeningSessionUiState.PageInfo(total = 100, numPages = 2, page = 0, itemsPerPage = 10),
       item =
         ListeningSessionUiState.Item(
           author = "Brandon Sanderson",

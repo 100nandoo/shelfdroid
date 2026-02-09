@@ -29,7 +29,24 @@ guide.
 
 To format all Kotlin files in the project, run:
 
-`ktfmt --google-style .`
+```bash
+find . \( -path './.idea' -o -path './build' \) -prune -o \
+  -name '*.kt' -print | xargs ktfmt --google-style
+```
+
+**Why .idea and build are ignored**
+
+* **.idea/**
+
+  Contains Android Studio / IntelliJ project metadata. These files are IDE-generated, frequently
+  modified automatically, and should not be manually formatted.
+* **build/**
+
+  Contains generated build outputs and intermediate files. Formatting these files is unnecessary and
+  may introduce unwanted changes or slow down the formatting process.
+
+By excluding these directories, ktfmt only formats actual source code, keeping formatting fast,
+safe, and focused on files that matter.
 
 Maintaining a consistent style across the codebase helps improve readability and reduce noise in
 pull requests.

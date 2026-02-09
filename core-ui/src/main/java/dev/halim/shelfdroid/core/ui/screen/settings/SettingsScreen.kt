@@ -68,7 +68,8 @@ fun SettingsScreenContent(
   onEvent: (SettingsEvent) -> Unit = {},
 ) {
   Column(
-    modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
+    modifier =
+      Modifier.fillMaxSize().padding(vertical = 16.dp).verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
     LogoutSection(onEvent, reLogin)
@@ -99,16 +100,19 @@ fun SettingsScreenContent(
 
 @Composable
 private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) -> Unit) {
-  SettingsLabel(text = stringResource(R.string.display))
+  SettingsLabel(
+    modifier = Modifier.padding(horizontal = 16.dp),
+    text = stringResource(R.string.display),
+  )
   SettingsSwitchItem(
-    modifier = Modifier.padding(start = 16.dp),
+    modifier = Modifier.padding(start = 24.dp, end = 16.dp),
     title = stringResource(R.string.dark_mode),
     checked = uiState.isDarkMode,
     contentDescription = stringResource(R.string.dark_mode),
     onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
   )
   SettingsSwitchItem(
-    modifier = Modifier.padding(start = 16.dp),
+    modifier = Modifier.padding(start = 24.dp, end = 16.dp),
     title = stringResource(R.string.dynamic_theme),
     checked = uiState.isDynamicTheme,
     contentDescription = stringResource(R.string.dynamic_theme),
@@ -119,8 +123,11 @@ private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) ->
 
 @Composable
 private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent) -> Unit) {
-  SettingsLabel(Modifier.padding(top = 16.dp), text = stringResource(R.string.home_screen))
-  val paddingStart = Modifier.padding(start = 8.dp)
+  SettingsLabel(
+    Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+    text = stringResource(R.string.home_screen),
+  )
+  val paddingStart = Modifier.padding(start = 24.dp, end = 16.dp)
   SettingsSwitchItem(
     modifier = paddingStart,
     title = stringResource(R.string.list_view),
@@ -147,9 +154,9 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
       onCheckedChange = { onEvent(SettingsEvent.SwitchHardDelete(it)) },
     )
   }
-  val paddingStartTwo = Modifier.padding(start = 16.dp, top = 4.dp)
+  val paddingStartTwo = Modifier.padding(start = 24.dp, top = 4.dp, end = 16.dp)
   SettingsSublabel(
-    Modifier.padding(start = 8.dp, top = 4.dp),
+    Modifier.padding(start = 24.dp, top = 4.dp),
     text = stringResource(R.string.book_library),
   )
   Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -173,7 +180,7 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
   }
 
   SettingsSublabel(
-    Modifier.padding(start = 8.dp, top = 4.dp),
+    Modifier.padding(start = 24.dp, top = 4.dp),
     text = stringResource(R.string.podcast_library),
   )
   Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -201,16 +208,19 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
 
 @Composable
 private fun OthersSection(version: String, user: String, uiState: SettingsUiState) {
-  SettingsLabel(text = stringResource(R.string.others))
+  SettingsLabel(
+    modifier = Modifier.padding(horizontal = 16.dp),
+    text = stringResource(R.string.others),
+  )
   SettingsBody(
-    modifier = Modifier.padding(start = 8.dp),
+    modifier = Modifier.padding(start = 24.dp, end = 16.dp),
     text = stringResource(R.string.args_version, version),
   )
   val userText =
     user +
       if (uiState.isAdmin) stringResource(R.string.is_an_admin)
       else stringResource(R.string.is_not_an_admin)
-  SettingsBody(modifier = Modifier.padding(start = 8.dp), text = userText)
+  SettingsBody(modifier = Modifier.padding(start = 24.dp, end = 16.dp), text = userText)
 }
 
 @Composable
@@ -218,7 +228,7 @@ fun LogoutSection(onEvent: (SettingsEvent) -> Unit = {}, reLogin: () -> Unit) {
   var showLogoutDialog by remember { mutableStateOf(false) }
   var showReLoginDialog by remember { mutableStateOf(false) }
 
-  Row {
+  Row(modifier = Modifier.padding(horizontal = 16.dp)) {
     TextButton(
       onClick = { showLogoutDialog = true },
       modifier = Modifier.weight(1f).padding(vertical = 4.dp),

@@ -29,7 +29,7 @@ fun SettingsClickLabel(
   onClick: () -> Unit = {},
 ) {
   Row(
-    modifier = Modifier.clickable(onClick = onClick).padding(bottom = 10.dp),
+    modifier = Modifier.clickable(onClick = onClick).padding(vertical = 8.dp, horizontal = 16.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Column {

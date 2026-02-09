@@ -24,7 +24,12 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
   }
 
   private fun pageInfo(response: SessionsResponse): ListeningSessionUiState.PageInfo {
-    return ListeningSessionUiState.PageInfo(response.total, response.numPages, response.page, response.itemsPerPage)
+    return ListeningSessionUiState.PageInfo(
+      response.total,
+      response.numPages,
+      response.page,
+      response.itemsPerPage,
+    )
   }
 
   private fun item(session: Session): ListeningSessionUiState.Item {

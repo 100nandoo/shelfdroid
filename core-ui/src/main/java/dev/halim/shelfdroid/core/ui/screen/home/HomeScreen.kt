@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
@@ -121,7 +120,7 @@ fun HomeScreenContent(
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
       }
       if (pagerState.pageCount - 1 == page) {
-        MiscScreen(onSessionClicked)
+        MiscScreen(onSessionClicked, onSettingsClicked)
       } else {
         val library = uiState.librariesUiState[page]
         LibraryContent(
@@ -149,7 +148,6 @@ fun HomeScreenContent(
             onEvent(HomeEvent.HomeDisplayPrefsEvent(DisplayPrefsEvent.PodcastSortOrder(it)))
           },
           onRefresh = { onEvent(HomeEvent.RefreshLibrary(page)) },
-          onSettingsClicked = onSettingsClicked,
           onSearchClicked = onSearchClicked,
           onBookClicked = onBookClicked,
           onPodcastClicked = onPodcastClicked,
@@ -171,7 +169,6 @@ fun LibraryHeader(
   onSortOrderChange: (String) -> Unit,
   onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
-  onSettingsClicked: () -> Unit,
   onSearchClicked: (String) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
@@ -218,12 +215,6 @@ fun LibraryHeader(
       onClick = onRefresh,
       size = 48,
     )
-    MyIconButton(
-      icon = Icons.Default.Settings,
-      contentDescription = stringResource(R.string.settings),
-      onClick = onSettingsClicked,
-      size = 48,
-    )
   }
 }
 
@@ -245,7 +236,6 @@ fun LibraryContent(
   onSortOrderChange: (String) -> Unit,
   onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
-  onSettingsClicked: () -> Unit,
   onSearchClicked: (String) -> Unit,
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
@@ -309,7 +299,6 @@ fun LibraryContent(
         onSortOrderChange = onSortOrderChange,
         onPodcastSortOrderChange = onPodcastSortOrderChange,
         onRefresh = onRefresh,
-        onSettingsClicked = onSettingsClicked,
         onSearchClicked = onSearchClicked,
       )
     }

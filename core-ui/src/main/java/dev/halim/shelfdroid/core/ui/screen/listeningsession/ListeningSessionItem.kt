@@ -18,14 +18,10 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun ListeningSessionItem(session: ListeningSessionUiState.Session) {
   Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .padding(horizontal = 16.dp, vertical = 12.dp),
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Column(modifier = Modifier
-      .weight(3f)
-      .padding(end = 16.dp)) {
+    Column(modifier = Modifier.weight(3f).padding(end = 16.dp)) {
       Text(session.item.title, style = MaterialTheme.typography.titleSmall)
       Text(
         session.item.author,

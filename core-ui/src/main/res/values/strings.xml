@@ -87,6 +87,10 @@
     <string name="delete_from_file_system">Delete from file system</string>
     <!--Home-->
 
+    <!--Misc-->
+    <string name="listening_sessions">Listening Sessions</string>
+    <!--Misc-->
+
     <!--Book-->
     <string name="completed">Completed</string>
     <!--Book-->
