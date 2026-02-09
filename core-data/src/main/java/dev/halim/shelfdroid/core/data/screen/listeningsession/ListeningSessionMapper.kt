@@ -13,13 +13,18 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
     val sessions = response.sessions
     val result =
       sessions.map { session ->
+        val pageInfo = pageInfo(response)
         val item = item(session)
         val device = device(session)
         val sessionTime = sessionTime(session)
         val user = user(session)
-        ListeningSessionUiState.Session(session.id, item, device, sessionTime, user)
+        ListeningSessionUiState.Session(session.id, pageInfo, item, device, sessionTime, user)
       }
     return result
+  }
+
+  private fun pageInfo(response: SessionsResponse): ListeningSessionUiState.PageInfo {
+    return ListeningSessionUiState.PageInfo(response.total, response.numPages, response.page, response.itemsPerPage)
   }
 
   private fun item(session: Session): ListeningSessionUiState.Item {

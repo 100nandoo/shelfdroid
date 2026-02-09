@@ -265,6 +265,11 @@ object Defaults {
   val LISTENING_SESSION: ListeningSessionUiState.Session =
     ListeningSessionUiState.Session(
       id = "1",
+      pageInfo = ListeningSessionUiState.PageInfo(
+        total = 100,
+        numPages = 2,
+        page = 0,
+        itemsPerPage = 10),
       item =
         ListeningSessionUiState.Item(
           author = "Brandon Sanderson",
@@ -286,6 +291,6 @@ object Defaults {
           updatedAt = 1_769_749_628_442,
           timeRange = "10.00–11.00 AM, 30 January 2026",
         ),
-      user = ListeningSessionUiState.User(id = "user_12345", username = "Mark"),
+      user = ListeningSessionUiState.User(id = "user_12345", username = "Mark Webber Stephen"),
     )
 }

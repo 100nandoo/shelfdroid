@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.ui.preview.Defaults.LISTENING_SESSION
@@ -17,10 +18,14 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun ListeningSessionItem(session: ListeningSessionUiState.Session) {
   Row(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+    Column(modifier = Modifier
+      .weight(3f)
+      .padding(end = 16.dp)) {
       Text(session.item.title, style = MaterialTheme.typography.titleSmall)
       Text(
         session.item.author,
@@ -33,7 +38,15 @@ fun ListeningSessionItem(session: ListeningSessionUiState.Session) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
-    Text(session.sessionTime.duration, style = MaterialTheme.typography.titleMedium)
+    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+      Text(
+        session.user.username,
+        style = MaterialTheme.typography.titleSmall,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      Text(session.sessionTime.duration, style = MaterialTheme.typography.bodySmall)
+    }
   }
 }
 

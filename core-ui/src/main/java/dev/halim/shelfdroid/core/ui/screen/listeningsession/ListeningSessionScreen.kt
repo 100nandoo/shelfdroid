@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,7 +38,10 @@ private fun ListeningSessionContent(
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     LazyColumn(modifier = Modifier.weight(1f)) {
-      items(uiState.sessions, key = { it.id }) { session -> ListeningSessionItem(session) }
+      items(uiState.sessions, key = { it.id }) { session ->
+        ListeningSessionItem(session)
+        HorizontalDivider()
+      }
     }
     Spacer(modifier = Modifier.height(16.dp))
   }
