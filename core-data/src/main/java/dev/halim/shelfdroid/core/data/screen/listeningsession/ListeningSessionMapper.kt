@@ -35,6 +35,7 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
       response.numPages,
       response.page,
       response.itemsPerPage,
+      response.page + 1,
     )
   }
 
@@ -67,6 +68,6 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
   }
 
   private fun user(session: Session): ListeningSessionUiState.User {
-    return ListeningSessionUiState.User(session.user.id, session.user.username)
+    return ListeningSessionUiState.User(session.user?.id, session.user?.username)
   }
 }

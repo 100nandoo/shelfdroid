@@ -30,6 +30,9 @@
     <string name="select_folder">Select folder</string>
     <string name="genres">Genres</string>
     <string name="remove_genre">Remove Genre</string>
+    <string name="previous_page">Previous page</string>
+    <string name="next_page">Next page</string>
+    <string name="go_to_page">Go to page</string>
     <!--Content Description-->
 
     <!--Arguments-->
@@ -90,6 +93,11 @@
     <!--Misc-->
     <string name="listening_sessions">Listening Sessions</string>
     <!--Misc-->
+
+    <!--Listening Sessions-->
+    <string name="items_per_page">Items per page</string>
+    <string name="unknown">unknown</string>
+    <!--Listening Sessions-->
 
     <!--Book-->
     <string name="completed">Completed</string>

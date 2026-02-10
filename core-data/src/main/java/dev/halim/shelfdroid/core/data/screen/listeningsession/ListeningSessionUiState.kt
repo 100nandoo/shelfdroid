@@ -1,11 +1,13 @@
 package dev.halim.shelfdroid.core.data.screen.listeningsession
 
+import dev.halim.shelfdroid.core.ListeningSessionPrefs
 import dev.halim.shelfdroid.core.data.GenericState
 
 data class ListeningSessionUiState(
   val state: GenericState = GenericState.Idle,
   val sessions: List<Session> = emptyList(),
   val pageInfo: PageInfo = PageInfo(),
+  val listeningSessionPrefs: ListeningSessionPrefs = ListeningSessionPrefs(),
 ) {
 
   data class Session(
@@ -21,6 +23,7 @@ data class ListeningSessionUiState(
     val numPages: Int = 0,
     val page: Int = 0,
     val itemsPerPage: Int = 0,
+    val inputPage: Int = 1,
   )
 
   data class Item(val author: String, val title: String, val narrator: String)
@@ -40,5 +43,5 @@ data class ListeningSessionUiState(
     val timeRange: String = "",
   )
 
-  data class User(val id: String, val username: String)
+  data class User(val id: String?, val username: String?)
 }

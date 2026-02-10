@@ -17,7 +17,7 @@ data class SessionsResponse(
 @Serializable
 data class Session(
   @SerialName("id") val id: String,
-  @SerialName("userId") val userId: String,
+  @SerialName("userId") val userId: String?,
   @SerialName("libraryId") val libraryId: String?,
   @SerialName("libraryItemId") val libraryItemId: String?,
   @SerialName("bookId") val bookId: String?,
@@ -34,12 +34,12 @@ data class Session(
   @SerialName("deviceInfo") val deviceInfo: DeviceInfo,
   @SerialName("date") val date: String,
   @SerialName("dayOfWeek") val dayOfWeek: String,
-  @SerialName("timeListening") val timeListening: Double,
+  @SerialName("timeListening") val timeListening: Double?,
   @SerialName("startTime") val startTime: Double,
   @SerialName("currentTime") val currentTime: Double,
   @SerialName("startedAt") val startedAt: Long,
   @SerialName("updatedAt") val updatedAt: Long,
-  @SerialName("user") val user: SessionUser,
+  @SerialName("user") val user: SessionUser? = null,
 ) {}
 
 @Serializable
@@ -56,6 +56,6 @@ data class DeviceInfo(
 
 @Serializable
 data class SessionUser(
-  @SerialName("id") val id: String,
+  @SerialName("id") val id: String?,
   @SerialName("username") val username: String,
 )

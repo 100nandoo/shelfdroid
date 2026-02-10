@@ -53,7 +53,8 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
     }
   }
 
-  fun formatDurationShort(seconds: Double): String {
+  fun formatDurationShort(seconds: Double?): String {
+    if (seconds == null) return "0s"
     val totalSeconds = seconds.toLong()
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60

@@ -3,7 +3,12 @@
 ## High Priority
 
 - [ ] Listening session
-- [ ] Server functions
+- [ ] User management
+- [ ] library management
+- [ ] API keys management
+- [ ] Settings management
+- [ ] Logs viewer
+- [ ] Backup management
 - [ ] Widget
 - [ ] Backup Restore
 - [ ] Window Manager
