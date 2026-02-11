@@ -3,17 +3,39 @@ package dev.halim.shelfdroid.core.data.screen.listeningsession
 import dev.halim.core.network.response.MediaType
 import dev.halim.core.network.response.Session
 import dev.halim.core.network.response.SessionsResponse
+import dev.halim.core.network.response.User
 import dev.halim.core.network.response.libraryitem.BookMetadata
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.User.Companion.ALL_USER
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 
 class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
 
-  fun map(response: SessionsResponse): ListeningSessionUiState {
+  fun combine(
+    response: SessionsResponse,
+    users: List<ListeningSessionUiState.User>,
+    userId: String?,
+  ): ListeningSessionUiState {
+    val pageInfo =
+      pageInfo(response).copy(selectedUser = users.firstOrNull { it.id == userId } ?: ALL_USER)
+    val sessions = sessions(response)
+    return ListeningSessionUiState(GenericState.Success, sessions, pageInfo, users = users)
+  }
+
+  fun map(response: SessionsResponse, users: List<User>): ListeningSessionUiState {
     val pageInfo = pageInfo(response)
     val sessions = sessions(response)
-    return ListeningSessionUiState(GenericState.Success, sessions, pageInfo)
+    val users =
+      users
+        .filter { it.id.isNotBlank() }
+        .map { user -> ListeningSessionUiState.User(user.id, user.username) }
+    return ListeningSessionUiState(
+      GenericState.Success,
+      sessions,
+      pageInfo,
+      users = listOf(ListeningSessionUiState.User(null, "All")) + users,
+    )
   }
 
   private fun sessions(response: SessionsResponse): List<ListeningSessionUiState.Session> {

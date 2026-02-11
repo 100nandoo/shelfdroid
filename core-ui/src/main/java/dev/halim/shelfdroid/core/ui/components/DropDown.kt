@@ -28,7 +28,7 @@ fun ChipDropdownMenu(
   modifier: Modifier = Modifier,
   options: List<String> = emptyList(),
   label: String? = null,
-  initialValue: String = "",
+  initialValue: String,
   onClick: (String) -> Unit = {},
 ) {
   var expanded by remember { mutableStateOf(false) }

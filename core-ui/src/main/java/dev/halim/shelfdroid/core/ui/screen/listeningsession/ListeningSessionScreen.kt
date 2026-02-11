@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.ItemsPerPage
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.User.Companion.ALL_USERNAME
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
@@ -59,15 +60,17 @@ private fun ListeningSessionContent(
     VisibilityDown(uiState.state is GenericState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
-    LazyColumn(
-      modifier = Modifier.weight(1f),
-      verticalArrangement = Arrangement.Bottom,
-      reverseLayout = true,
-    ) {
-      item { PageControl(uiState, onEvent) }
-      items(uiState.sessions, key = { it.id }) { session ->
-        HorizontalDivider()
-        ListeningSessionItem(session)
+    if (uiState.state is GenericState.Success) {
+      LazyColumn(
+        modifier = Modifier.weight(1f),
+        verticalArrangement = Arrangement.Bottom,
+        reverseLayout = true,
+      ) {
+        item { PageControl(uiState, onEvent) }
+        items(uiState.sessions, key = { it.id }) { session ->
+          HorizontalDivider()
+          ListeningSessionItem(session)
+        }
       }
     }
   }
@@ -79,40 +82,31 @@ private fun PageControl(
   uiState: ListeningSessionUiState,
   onEvent: (ListeningSessionEvent) -> Unit,
 ) {
+  val totalPageIsNotZero = remember(uiState.pageInfo.numPages) { uiState.pageInfo.numPages != 0 }
   val goToPage =
-    remember(uiState.pageInfo) {
+    remember(uiState.pageInfo.inputPage, uiState.pageInfo.numPages) {
       {
         val value = uiState.pageInfo.inputPage.coerceIn(1, uiState.pageInfo.numPages)
         onEvent(ListeningSessionEvent.ChangeToPage(value - 1))
       }
     }
-  Row(modifier = Modifier.imePadding().padding(horizontal = 16.dp)) {
-    OutlinedTextField(
-      modifier = Modifier.weight(1f).padding(bottom = 12.dp),
-      enabled = true,
-      value = uiState.pageInfo.inputPage.toString(),
-      maxLines = 1,
-      label = { Text(stringResource(R.string.go_to_page)) },
-      trailingIcon = {
-        Icon(
-          painter = painterResource(id = R.drawable.arrow_right),
-          contentDescription = stringResource(R.string.go_to_page),
-          modifier = Modifier.clickable { goToPage() },
-        )
+
+  Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+    ChipDropdownMenu(
+      modifier = Modifier.weight(1f),
+      label = stringResource(R.string.users),
+      options = uiState.users.mapNotNull { it.username },
+      initialValue = uiState.pageInfo.selectedUser.username ?: ALL_USERNAME,
+      onClick = { selected ->
+        val user =
+          uiState.users.firstOrNull { it.username == selected }
+            ?: ListeningSessionUiState.User.ALL_USER
+        onEvent(ListeningSessionEvent.FilterUser(user))
       },
-      onValueChange = { text ->
-        onEvent(ListeningSessionEvent.ChangeInputPage(text.toIntOrNull() ?: 1))
-      },
-      keyboardOptions =
-        KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-      keyboardActions = KeyboardActions(onDone = { goToPage() }),
     )
-    Spacer(Modifier.weight(2f))
-  }
-  Row(
-    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 16.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
+
+    Spacer(Modifier.width(8.dp))
+
     ChipDropdownMenu(
       modifier = Modifier.weight(1f),
       label = stringResource(R.string.items),
@@ -122,20 +116,64 @@ private fun PageControl(
         onEvent(ListeningSessionEvent.ChangeItemsPerPage(ItemsPerPage.fromLabel(it.toInt())))
       },
     )
-    Spacer(Modifier.width(12.dp))
+  }
+  Row(
+    modifier = Modifier.imePadding().padding(horizontal = 16.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    OutlinedTextField(
+      modifier = Modifier.weight(1f).padding(bottom = 12.dp),
+      enabled = totalPageIsNotZero,
+      value = uiState.pageInfo.inputPage.toString(),
+      maxLines = 1,
+      label = { Text(stringResource(R.string.go_to_page)) },
+      trailingIcon = {
+        Icon(
+          painter = painterResource(id = R.drawable.arrow_right),
+          contentDescription = stringResource(R.string.go_to_page),
+          modifier = Modifier.clickable(totalPageIsNotZero) { goToPage() },
+        )
+      },
+      onValueChange = { text ->
+        onEvent(ListeningSessionEvent.ChangeInputPage(text.toIntOrNull() ?: 1))
+      },
+      keyboardOptions =
+        KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+      keyboardActions = KeyboardActions(onDone = { goToPage() }),
+    )
 
+    Spacer(Modifier.width(8.dp))
+
+    PagePrevNextControl(Modifier.weight(1f), uiState, totalPageIsNotZero, onEvent)
+  }
+}
+
+@Composable
+private fun PagePrevNextControl(
+  modifier: Modifier,
+  uiState: ListeningSessionUiState,
+  totalPageIsNotZero: Boolean,
+  onEvent: (ListeningSessionEvent) -> Unit,
+) {
+  val text =
+    if (totalPageIsNotZero) "${uiState.pageInfo.page + 1}/${uiState.pageInfo.numPages}" else "0"
+  Row(
+    modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Center,
+  ) {
     MyIconButton(
-      enabled = uiState.pageInfo.page != 0,
+      enabled = uiState.pageInfo.page != 0 && totalPageIsNotZero,
       painter = painterResource(R.drawable.chevron_left),
       contentDescription = stringResource(R.string.previous_page),
       onClick = { onEvent(ListeningSessionEvent.ChangePage(false)) },
       size = 48,
     )
     Spacer(Modifier.width(8.dp))
-    Text("${uiState.pageInfo.page+1}/${uiState.pageInfo.numPages}")
+    Text(text)
     Spacer(Modifier.width(8.dp))
     MyIconButton(
-      enabled = uiState.pageInfo.page + 1 != uiState.pageInfo.numPages - 1,
+      enabled = uiState.pageInfo.page < uiState.pageInfo.numPages - 1 && totalPageIsNotZero,
       painter = painterResource(R.drawable.chevron_right),
       contentDescription = stringResource(R.string.next_page),
       onClick = { onEvent(ListeningSessionEvent.ChangePage(true)) },

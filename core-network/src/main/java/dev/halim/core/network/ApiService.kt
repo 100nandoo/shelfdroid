@@ -23,6 +23,7 @@ import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.User
+import dev.halim.core.network.response.UsersResponse
 import dev.halim.core.network.response.play.PlayResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -134,12 +135,16 @@ interface ApiService {
     @Query("itemsPerPage") itemsPerPage: Int = 10,
     @Query("page") page: Int = 0,
     @Query("sort") sort: String = "updatedAt",
+    @Query("user") user: String? = null,
     @Query("desc") desc: Int = 1,
   ): Result<SessionsResponse>
 
   // search
   @GET("/api/search/podcast")
   suspend fun searchPodcast(@Query("term") term: String): Result<List<SearchPodcast>>
+
+  // users
+  @GET("/api/users") suspend fun users(): Result<UsersResponse>
 
   // podcasts
   @POST("/api/podcasts/feed")

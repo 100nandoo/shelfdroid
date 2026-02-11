@@ -27,7 +27,7 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
     combine(_uiState, repository.listeningSessionPrefs) { state, prefs ->
         state.copy(listeningSessionPrefs = prefs)
       }
-      .onStart { fetchPage() }
+      .onStart { initialPage() }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), ListeningSessionUiState())
 
   fun onEvent(event: ListeningSessionEvent) {
@@ -50,6 +50,25 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
         _uiState.value =
           _uiState.value.copy(pageInfo = _uiState.value.pageInfo.copy(inputPage = event.page))
       }
+
+      is ListeningSessionEvent.FilterUser -> {
+        _uiState.value =
+          _uiState.value.copy(pageInfo = _uiState.value.pageInfo.copy(selectedUser = event.user))
+        fetchPage(0)
+      }
+    }
+  }
+
+  private fun initialPage() {
+    loadingState()
+    viewModelScope.launch {
+      val result =
+        repository.item(
+          0,
+          repository.listeningSessionPrefs.first().itemsPerPage,
+          uiState.value.pageInfo.selectedUser.id,
+        )
+      _uiState.value = result
     }
   }
 
@@ -57,7 +76,12 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
     loadingState()
     viewModelScope.launch {
       val result =
-        repository.item(targetPage, repository.listeningSessionPrefs.first().itemsPerPage)
+        repository.page(
+          targetPage,
+          repository.listeningSessionPrefs.first().itemsPerPage,
+          uiState.value.pageInfo.selectedUser.id,
+          uiState.value.users,
+        )
       _uiState.value = result
     }
   }
@@ -74,6 +98,8 @@ sealed interface ListeningSessionEvent {
   data class ChangeToPage(val page: Int) : ListeningSessionEvent
 
   data class ChangeInputPage(val page: Int) : ListeningSessionEvent
+
+  data class FilterUser(val user: ListeningSessionUiState.User) : ListeningSessionEvent
 
   data class ChangeItemsPerPage(val itemsPerPage: ItemsPerPage) : ListeningSessionEvent
 }
