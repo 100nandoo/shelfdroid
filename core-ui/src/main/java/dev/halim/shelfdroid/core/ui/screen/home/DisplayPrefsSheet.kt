@@ -3,7 +3,6 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,7 +23,7 @@ import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.ui.R
-import dev.halim.shelfdroid.core.ui.components.ExposedDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.preview.sheetState
@@ -48,41 +47,40 @@ fun DisplayPrefsSheet(
       sheetState = sheetState,
       onDismissRequest = { scope.launch { sheetState.hide() } },
     ) {
-      Column(Modifier.padding(start = 64.dp, end = 64.dp, bottom = 64.dp)) {
-        ExposedDropdownMenu(
+      Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 64.dp)) {
+        MySegmentedButton(
           modifier = Modifier.fillMaxWidth(),
           Filter.entries.map { it.name },
           stringResource(R.string.filter),
           displayPrefs.filter.name,
           onFilterChange,
         )
-        Row {
-          val options =
-            if (isBookLibrary) BookSort.entries.map { it.label }
-            else PodcastSort.entries.map { it.label }
-          val sortInitialValue =
-            if (isBookLibrary) displayPrefs.bookSort.label else displayPrefs.podcastSort.label
-          val onSortChange = if (isBookLibrary) onBookSortChange else onPodcastSortChange
-          ExposedDropdownMenu(
-            modifier = Modifier.weight(1f),
-            options,
-            stringResource(R.string.sort),
-            sortInitialValue,
-            onSortChange,
-          )
 
-          val onSortOrderChange = if (isBookLibrary) onSortOrderChange else onPodcastSortOrderChange
-          val sortOrderInitialValue =
-            if (isBookLibrary) displayPrefs.sortOrder.name else displayPrefs.podcastSortOrder.name
-          Spacer(Modifier.width(8.dp))
-          ExposedDropdownMenu(
-            modifier = Modifier.weight(1f),
-            SortOrder.entries.map { it.name },
-            stringResource(R.string.order),
-            sortOrderInitialValue,
-            onSortOrderChange,
-          )
-        }
+        val onSortOrderChange = if (isBookLibrary) onSortOrderChange else onPodcastSortOrderChange
+        val sortOrderInitialValue =
+          if (isBookLibrary) displayPrefs.sortOrder.name else displayPrefs.podcastSortOrder.name
+        Spacer(Modifier.width(8.dp))
+        MySegmentedButton(
+          modifier = Modifier.fillMaxWidth(),
+          SortOrder.entries.map { it.name },
+          stringResource(R.string.order),
+          sortOrderInitialValue,
+          onSortOrderChange,
+        )
+
+        val options =
+          if (isBookLibrary) BookSort.entries.map { it.label }
+          else PodcastSort.entries.map { it.label }
+        val sortInitialValue =
+          if (isBookLibrary) displayPrefs.bookSort.label else displayPrefs.podcastSort.label
+        val onSortChange = if (isBookLibrary) onBookSortChange else onPodcastSortChange
+        MySegmentedButton(
+          modifier = Modifier.fillMaxWidth(),
+          options,
+          stringResource(R.string.sort),
+          sortInitialValue,
+          onSortChange,
+        )
       }
     }
   }

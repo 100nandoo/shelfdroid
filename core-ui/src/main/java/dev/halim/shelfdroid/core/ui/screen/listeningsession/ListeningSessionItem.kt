@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.Defaults.LISTENING_SESSION
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
@@ -24,26 +25,37 @@ fun ListeningSessionItem(session: ListeningSessionUiState.Session) {
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Column(modifier = Modifier.weight(3f).padding(end = 16.dp)) {
-      Text(session.item.title, style = MaterialTheme.typography.titleSmall)
+      Text(
+        session.item.title,
+        style = MaterialTheme.typography.titleSmall,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
       Text(
         session.item.author,
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
       )
       Text(
         session.sessionTime.timeRange,
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
       Text(
-        session.user.username ?: stringResource(R.string.unknown),
+        text = session.user.username ?: stringResource(R.string.unknown),
         style = MaterialTheme.typography.titleSmall,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )
-      Text(session.sessionTime.duration, style = MaterialTheme.typography.bodySmall)
+      Text(
+        session.sessionTime.duration,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
     }
   }
 }
@@ -51,5 +63,5 @@ fun ListeningSessionItem(session: ListeningSessionUiState.Session) {
 @ShelfDroidPreview
 @Composable
 fun ListeningSessionItemPreview() {
-  ListeningSessionItem(LISTENING_SESSION)
+  PreviewWrapper { ListeningSessionItem(LISTENING_SESSION) }
 }

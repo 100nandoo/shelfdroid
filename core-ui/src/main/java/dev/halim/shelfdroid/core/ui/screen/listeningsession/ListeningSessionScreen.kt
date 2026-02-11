@@ -36,7 +36,7 @@ import dev.halim.shelfdroid.core.ItemsPerPage
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.ui.R
-import dev.halim.shelfdroid.core.ui.components.ExposedDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -80,26 +80,15 @@ private fun PageControl(
   onEvent: (ListeningSessionEvent) -> Unit,
 ) {
   val goToPage =
-    remember(uiState.pageInfo.inputPage) {
+    remember(uiState.pageInfo) {
       {
         val value = uiState.pageInfo.inputPage.coerceIn(1, uiState.pageInfo.numPages)
         onEvent(ListeningSessionEvent.ChangeToPage(value - 1))
       }
     }
   Row(modifier = Modifier.imePadding().padding(horizontal = 16.dp)) {
-    ExposedDropdownMenu(
-      modifier = Modifier.weight(1f),
-      label = stringResource(R.string.items_per_page),
-      options = ItemsPerPage.entries.map { it.label.toString() },
-      initialValue = uiState.listeningSessionPrefs.itemsPerPage.toString(),
-      onClick = {
-        onEvent(ListeningSessionEvent.ChangeItemsPerPage(ItemsPerPage.fromLabel(it.toInt())))
-      },
-    )
-    Spacer(Modifier.width(12.dp))
-
     OutlinedTextField(
-      modifier = Modifier.weight(1f),
+      modifier = Modifier.weight(1f).padding(bottom = 12.dp),
       enabled = true,
       value = uiState.pageInfo.inputPage.toString(),
       maxLines = 1,
@@ -118,12 +107,23 @@ private fun PageControl(
         KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
       keyboardActions = KeyboardActions(onDone = { goToPage() }),
     )
+    Spacer(Modifier.weight(2f))
   }
   Row(
     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 16.dp),
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Center,
   ) {
+    ChipDropdownMenu(
+      modifier = Modifier.weight(1f),
+      label = stringResource(R.string.items),
+      options = ItemsPerPage.entries.map { it.label.toString() },
+      initialValue = uiState.listeningSessionPrefs.itemsPerPage.toString(),
+      onClick = {
+        onEvent(ListeningSessionEvent.ChangeItemsPerPage(ItemsPerPage.fromLabel(it.toInt())))
+      },
+    )
+    Spacer(Modifier.width(12.dp))
+
     MyIconButton(
       enabled = uiState.pageInfo.page != 0,
       painter = painterResource(R.drawable.chevron_left),

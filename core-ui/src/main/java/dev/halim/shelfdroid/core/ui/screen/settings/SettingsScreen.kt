@@ -30,7 +30,7 @@ import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.R
-import dev.halim.shelfdroid.core.ui.components.ExposedDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -160,7 +160,7 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     text = stringResource(R.string.book_library),
   )
   Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-    ExposedDropdownMenu(
+    ChipDropdownMenu(
       modifier = Modifier.weight(1f),
       label = stringResource(R.string.sort),
       options = BookSort.entries.map { it.label },
@@ -168,8 +168,7 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
       onClick = { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it))) },
     )
     Spacer(Modifier.width(8.dp))
-    ExposedDropdownMenu(
-      modifier = Modifier.weight(1f),
+    ChipDropdownMenu(
       label = stringResource(R.string.order),
       options = SortOrder.entries.map { it.name },
       initialValue = uiState.displayPrefs.sortOrder.name,
@@ -184,7 +183,7 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     text = stringResource(R.string.podcast_library),
   )
   Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-    ExposedDropdownMenu(
+    ChipDropdownMenu(
       modifier = Modifier.weight(1f),
       label = stringResource(R.string.sort),
       options = PodcastSort.entries.map { it.label },
@@ -194,8 +193,7 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
       },
     )
     Spacer(Modifier.width(8.dp))
-    ExposedDropdownMenu(
-      modifier = Modifier.weight(1f),
+    ChipDropdownMenu(
       label = stringResource(R.string.order),
       options = SortOrder.entries.map { it.name },
       initialValue = uiState.displayPrefs.podcastSortOrder.name,
