@@ -17,10 +17,18 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
     users: List<ListeningSessionUiState.User>,
     userId: String?,
   ): ListeningSessionUiState {
-    val pageInfo =
-      pageInfo(response).copy(selectedUser = users.firstOrNull { it.id == userId } ?: ALL_USER)
+    val pageInfo = pageInfo(response)
+    val selectedUser = users.firstOrNull { it.id == userId } ?: ALL_USER
+    val userAndCountFilter =
+      ListeningSessionUiState.UserAndCountFilter(selectedUser = selectedUser, users = users)
     val sessions = sessions(response)
-    return ListeningSessionUiState(GenericState.Success, sessions, pageInfo, users = users)
+
+    return ListeningSessionUiState(
+      GenericState.Success,
+      sessions,
+      pageInfo,
+      userAndCountFilter = userAndCountFilter,
+    )
   }
 
   fun map(response: SessionsResponse, users: List<User>): ListeningSessionUiState {
@@ -30,11 +38,15 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
       users
         .filter { it.id.isNotBlank() }
         .map { user -> ListeningSessionUiState.User(user.id, user.username) }
+
+    val combineUsers = listOf(ListeningSessionUiState.User(null, "All")) + users
+    val userAndCountFilter = ListeningSessionUiState.UserAndCountFilter(users = combineUsers)
+
     return ListeningSessionUiState(
       GenericState.Success,
       sessions,
       pageInfo,
-      users = listOf(ListeningSessionUiState.User(null, "All")) + users,
+      userAndCountFilter = userAndCountFilter,
     )
   }
 
@@ -53,11 +65,10 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
 
   private fun pageInfo(response: SessionsResponse): ListeningSessionUiState.PageInfo {
     return ListeningSessionUiState.PageInfo(
-      response.total,
-      response.numPages,
-      response.page,
-      response.itemsPerPage,
-      response.page + 1,
+      total = response.total,
+      numPages = response.numPages,
+      page = response.page,
+      inputPage = response.page + 1,
     )
   }
 

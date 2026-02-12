@@ -98,39 +98,44 @@ fun LazyGridItemScope.HomeItemGrid(
 
 @Composable
 fun ItemDetail(id: String, url: String, title: String, authorName: String, subtitle: String = "") {
-  Spacer(modifier = Modifier.height(16.dp))
-  Cover(
-    Modifier.fillMaxWidth(),
-    cover = url,
-    shape = RoundedCornerShape(8.dp),
-    animationKey = Animations.coverKey(id),
-  )
-  Spacer(modifier = Modifier.height(16.dp))
+  val sharedTransitionScope = LocalSharedTransitionScope.current
 
-  Text(
-    modifier = Modifier.mySharedElement(Animations.titleKey(id, title)),
-    text = title,
-    style = MaterialTheme.typography.headlineLarge,
-    textAlign = TextAlign.Center,
-  )
+  with(sharedTransitionScope) {
+    Spacer(modifier = Modifier.height(16.dp))
+    Cover(
+      Modifier.fillMaxWidth(),
+      cover = url,
+      shape = RoundedCornerShape(8.dp),
+      animationKey = Animations.coverKey(id),
+    )
+    Spacer(modifier = Modifier.height(16.dp))
 
-  if (subtitle.isNotEmpty()) {
     Text(
-      text = subtitle,
-      style = MaterialTheme.typography.titleMedium,
+      modifier = Modifier.mySharedElement(Animations.titleKey(id, title)).skipToLookaheadSize(),
+      text = title,
+      style = MaterialTheme.typography.headlineLarge,
       textAlign = TextAlign.Center,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+    if (subtitle.isNotEmpty()) {
+      Text(
+        text = subtitle,
+        style = MaterialTheme.typography.titleMedium,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+      modifier =
+        Modifier.mySharedElement(Animations.authorKey(id, authorName)).skipToLookaheadSize(),
+      text = authorName,
+      style = MaterialTheme.typography.bodyMedium,
+      color = Color.Gray,
+      textAlign = TextAlign.Center,
     )
   }
-  Spacer(modifier = Modifier.height(8.dp))
-
-  Text(
-    modifier = Modifier.mySharedElement(Animations.authorKey(id, authorName)),
-    text = authorName,
-    style = MaterialTheme.typography.bodyMedium,
-    color = Color.Gray,
-    textAlign = TextAlign.Center,
-  )
 }
 
 @ShelfDroidPreview

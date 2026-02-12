@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.data.screen.listeningsession
 
-import dev.halim.shelfdroid.core.ListeningSessionPrefs
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.User.Companion.ALL_USER
 
@@ -8,8 +7,7 @@ data class ListeningSessionUiState(
   val state: GenericState = GenericState.Idle,
   val sessions: List<Session> = emptyList(),
   val pageInfo: PageInfo = PageInfo(),
-  val listeningSessionPrefs: ListeningSessionPrefs = ListeningSessionPrefs(),
-  val users: List<User> = emptyList(),
+  val userAndCountFilter: UserAndCountFilter = UserAndCountFilter(),
 ) {
 
   data class Session(
@@ -24,9 +22,13 @@ data class ListeningSessionUiState(
     val total: Int = 0,
     val numPages: Int = 0,
     val page: Int = 0,
-    val itemsPerPage: Int = 0,
     val inputPage: Int = 1,
+  )
+
+  data class UserAndCountFilter(
     val selectedUser: User = ALL_USER,
+    val itemsPerPage: Int = 10,
+    val users: List<User> = emptyList(),
   )
 
   data class Item(val author: String, val title: String, val narrator: String)

@@ -6,11 +6,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -20,17 +16,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.navigation.NavResultKey
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
@@ -110,127 +102,109 @@ private fun ColumnScope.NavHostContainer(
   val playerViewModel: PlayerViewModel = hiltViewModel()
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
-  Scaffold(modifier = Modifier.weight(1f)) { paddingValues ->
-    val playerUiState = playerViewModel.uiState.collectAsStateWithLifecycle()
-
-    val bottom =
-      if (playerUiState.value.state == PlayerState.Small) 0.dp
-      else paddingValues.calculateBottomPadding()
-
-    Box(
-      modifier =
-        Modifier.padding(
-          start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
-          top = paddingValues.calculateTopPadding(),
-          end = paddingValues.calculateEndPadding(LocalLayoutDirection.current),
-          bottom = bottom,
+  Box(Modifier.weight(1f)) {
+    SnackbarHost(
+      hostState = snackbarHostState,
+      modifier = Modifier.align(Alignment.TopCenter).imePadding().zIndex(1f),
+    )
+    NavHost(navController = navController, startDestination = startDestination) {
+      composable<Login> {
+        LoginScreen(
+          snackbarHostState = snackbarHostState,
+          onLoginSuccess = {
+            navController.navigate(Home(true)) {
+              launchSingleTop = true
+              popUpTo(0) { inclusive = true }
+            }
+          },
         )
-    ) {
-      SnackbarHost(
-        hostState = snackbarHostState,
-        modifier = Modifier.align(Alignment.TopCenter).imePadding().zIndex(1f),
-      )
-
-      NavHost(navController = navController, startDestination = startDestination) {
-        composable<Login> {
-          LoginScreen(
+      }
+      composable<Home> {
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          HomeScreen(
+            onSettingsClicked = { navController.navigate(Settings) },
+            onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
+            onBookClicked = { id -> navController.navigate(Book(id)) },
+            onSearchClicked = { libraryId -> navController.navigate(SearchPodcast(libraryId)) },
+            onSessionClicked = { navController.navigate(ListeningSession) },
+          )
+        }
+      }
+      composable<Podcast> {
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          PodcastScreen(
+            playerViewModel = playerViewModel,
             snackbarHostState = snackbarHostState,
-            onLoginSuccess = {
-              navController.navigate(Home(true)) {
-                launchSingleTop = true
-                popUpTo(0) { inclusive = true }
-              }
+            onEpisodeClicked = { itemId, episodeId ->
+              navController.navigate(Episode(itemId, episodeId))
+            },
+            onFetchEpisodeSuccess = { id -> navController.navigate(AddEpisode(id)) },
+          )
+        }
+      }
+      composable<AddEpisode> {
+        val message = stringResource(R.string.starting_to_download_episodes)
+
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          AddEpisodeScreen(
+            snackbarHostState = snackbarHostState,
+            onDownloadEpisodeSuccess = {
+              navController.popBackStack()
+              scope.launch { snackbarHostState.showSnackbar(message) }
             },
           )
         }
-        composable<Home> {
-          SharedScreenWrapper(sharedTransitionScope, this@composable) {
-            HomeScreen(
-              onSettingsClicked = { navController.navigate(Settings) },
-              onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
-              onBookClicked = { id -> navController.navigate(Book(id)) },
-              onSearchClicked = { libraryId -> navController.navigate(SearchPodcast(libraryId)) },
-              onSessionClicked = { navController.navigate(ListeningSession) },
-            )
-          }
-        }
-        composable<Podcast> {
-          SharedScreenWrapper(sharedTransitionScope, this@composable) {
-            PodcastScreen(
-              playerViewModel = playerViewModel,
-              snackbarHostState = snackbarHostState,
-              onEpisodeClicked = { itemId, episodeId ->
-                navController.navigate(Episode(itemId, episodeId))
-              },
-              onFetchEpisodeSuccess = { id -> navController.navigate(AddEpisode(id)) },
-            )
-          }
-        }
-        composable<AddEpisode> {
-          val message = stringResource(R.string.starting_to_download_episodes)
-
-          SharedScreenWrapper(sharedTransitionScope, this@composable) {
-            AddEpisodeScreen(
-              snackbarHostState = snackbarHostState,
-              onDownloadEpisodeSuccess = {
-                navController.popBackStack()
-                scope.launch { snackbarHostState.showSnackbar(message) }
-              },
-            )
-          }
-        }
-        composable<Book> {
-          SharedScreenWrapper(sharedTransitionScope, this@composable) {
-            BookScreen(playerViewModel = playerViewModel, snackbarHostState = snackbarHostState)
-          }
-        }
-
-        composable<Episode> {
-          SharedScreenWrapper(sharedTransitionScope, this@composable) {
-            EpisodeScreen(playerViewModel = playerViewModel, snackbarHostState = snackbarHostState)
-          }
-        }
-
-        composable<Settings> {
-          SettingsScreen(
-            onPlaybackClicked = { navController.navigate(SettingsPlayback) },
-            onPodcastClicked = { navController.navigate(SettingsPodcast) },
-            reLogin = { navController.navigate(Login(reLogin = true)) },
-          )
-        }
-
-        composable<SettingsPlayback> { SettingsPlaybackScreen() }
-        composable<SettingsPodcast> { SettingsPodcastScreen() }
-
-        composable<SearchPodcast> { entry ->
-          val result =
-            entry.savedStateHandle.get<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
-          SearchPodcastScreen(
-            result = result,
-            onItemClicked = { payload -> navController.navigate(payload) },
-            onAddedClick = { id -> navController.navigate(Podcast(id)) },
-          )
-          if (result != null) {
-            entry.savedStateHandle.remove<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
-          }
-        }
-        composable<PodcastFeedNavPayload> {
-          val message = stringResource(R.string.podcast_created_successfully)
-
-          AddPodcastScreen(
-            onCreateSuccess = { result ->
-              scope.launch { snackbarHostState.showSnackbar(message) }
-
-              navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.set(NavResultKey.CREATE_PODCAST, result)
-              navController.popBackStack()
-              navController.navigate(Podcast(result.id))
-            }
-          )
-        }
-        composable<ListeningSession> { ListeningSessionScreen() }
       }
+      composable<Book> {
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          BookScreen(playerViewModel = playerViewModel, snackbarHostState = snackbarHostState)
+        }
+      }
+
+      composable<Episode> {
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          EpisodeScreen(playerViewModel = playerViewModel, snackbarHostState = snackbarHostState)
+        }
+      }
+
+      composable<Settings> {
+        SettingsScreen(
+          onPlaybackClicked = { navController.navigate(SettingsPlayback) },
+          onPodcastClicked = { navController.navigate(SettingsPodcast) },
+          reLogin = { navController.navigate(Login(reLogin = true)) },
+        )
+      }
+
+      composable<SettingsPlayback> { SettingsPlaybackScreen() }
+      composable<SettingsPodcast> { SettingsPodcastScreen() }
+
+      composable<SearchPodcast> { entry ->
+        val result = entry.savedStateHandle.get<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
+        SearchPodcastScreen(
+          result = result,
+          onItemClicked = { payload -> navController.navigate(payload) },
+          onAddedClick = { id -> navController.navigate(Podcast(id)) },
+        )
+        if (result != null) {
+          entry.savedStateHandle.remove<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
+        }
+      }
+      composable<PodcastFeedNavPayload> {
+        val message = stringResource(R.string.podcast_created_successfully)
+
+        AddPodcastScreen(
+          onCreateSuccess = { result ->
+            scope.launch { snackbarHostState.showSnackbar(message) }
+
+            navController.previousBackStackEntry
+              ?.savedStateHandle
+              ?.set(NavResultKey.CREATE_PODCAST, result)
+            navController.popBackStack()
+            navController.navigate(Podcast(result.id))
+          }
+        )
+      }
+      composable<ListeningSession> { ListeningSessionScreen() }
     }
   }
 }

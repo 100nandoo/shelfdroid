@@ -25,7 +25,9 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
   private val _uiState = MutableStateFlow(ListeningSessionUiState())
   val uiState: StateFlow<ListeningSessionUiState> =
     combine(_uiState, repository.listeningSessionPrefs) { state, prefs ->
-        state.copy(listeningSessionPrefs = prefs)
+        val userAndCountFilter = state.userAndCountFilter.copy(itemsPerPage = prefs.itemsPerPage)
+
+        state.copy(userAndCountFilter = userAndCountFilter)
       }
       .onStart { initialPage() }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), ListeningSessionUiState())
@@ -53,7 +55,9 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
 
       is ListeningSessionEvent.FilterUser -> {
         _uiState.value =
-          _uiState.value.copy(pageInfo = _uiState.value.pageInfo.copy(selectedUser = event.user))
+          _uiState.value.copy(
+            userAndCountFilter = _uiState.value.userAndCountFilter.copy(selectedUser = event.user)
+          )
         fetchPage(0)
       }
     }
@@ -66,7 +70,7 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
         repository.item(
           0,
           repository.listeningSessionPrefs.first().itemsPerPage,
-          uiState.value.pageInfo.selectedUser.id,
+          uiState.value.userAndCountFilter.selectedUser.id,
         )
       _uiState.value = result
     }
@@ -79,8 +83,8 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
         repository.page(
           targetPage,
           repository.listeningSessionPrefs.first().itemsPerPage,
-          uiState.value.pageInfo.selectedUser.id,
-          uiState.value.users,
+          uiState.value.userAndCountFilter.selectedUser.id,
+          uiState.value.userAndCountFilter.users,
         )
       _uiState.value = result
     }
