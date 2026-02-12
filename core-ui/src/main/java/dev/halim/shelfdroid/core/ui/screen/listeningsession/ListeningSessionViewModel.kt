@@ -66,12 +66,7 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
   private fun initialPage() {
     loadingState()
     viewModelScope.launch {
-      val result =
-        repository.item(
-          0,
-          repository.listeningSessionPrefs.first().itemsPerPage,
-          uiState.value.userAndCountFilter.selectedUser.id,
-        )
+      val result = repository.item(0)
       _uiState.value = result
     }
   }

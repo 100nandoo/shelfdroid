@@ -1,12 +1,19 @@
 package dev.halim.shelfdroid.core.data.screen.listeningsession
 
 import dev.halim.core.network.response.MediaType
-import dev.halim.core.network.response.Session
+import dev.halim.core.network.response.Session as NetworkSession
 import dev.halim.core.network.response.SessionsResponse
-import dev.halim.core.network.response.User
 import dev.halim.core.network.response.libraryitem.BookMetadata
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Device
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Item
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.PageInfo
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Session
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.SessionTime
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.User
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.User.Companion.ALL_USER
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.UserAndCountFilter
+import dev.halim.shelfdroid.core.database.UserEntity
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 
@@ -14,13 +21,12 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
 
   fun combine(
     response: SessionsResponse,
-    users: List<ListeningSessionUiState.User>,
+    users: List<User>,
     userId: String?,
   ): ListeningSessionUiState {
     val pageInfo = pageInfo(response)
     val selectedUser = users.firstOrNull { it.id == userId } ?: ALL_USER
-    val userAndCountFilter =
-      ListeningSessionUiState.UserAndCountFilter(selectedUser = selectedUser, users = users)
+    val userAndCountFilter = UserAndCountFilter(selectedUser = selectedUser, users = users)
     val sessions = sessions(response)
 
     return ListeningSessionUiState(
@@ -31,16 +37,18 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
     )
   }
 
-  fun map(response: SessionsResponse, users: List<User>): ListeningSessionUiState {
+  fun map(
+    response: SessionsResponse,
+    users: List<UserEntity>,
+    userId: String?,
+  ): ListeningSessionUiState {
     val pageInfo = pageInfo(response)
     val sessions = sessions(response)
-    val users =
-      users
-        .filter { it.id.isNotBlank() }
-        .map { user -> ListeningSessionUiState.User(user.id, user.username) }
+    val users = users.filter { it.id.isNotBlank() }.map { user -> User(user.id, user.username) }
 
-    val combineUsers = listOf(ListeningSessionUiState.User(null, "All")) + users
-    val userAndCountFilter = ListeningSessionUiState.UserAndCountFilter(users = combineUsers)
+    val combineUsers = listOf(ALL_USER) + users
+    val selectedUser = users.firstOrNull { it.id == userId } ?: ALL_USER
+    val userAndCountFilter = UserAndCountFilter(users = combineUsers, selectedUser = selectedUser)
 
     return ListeningSessionUiState(
       GenericState.Success,
@@ -50,7 +58,7 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
     )
   }
 
-  private fun sessions(response: SessionsResponse): List<ListeningSessionUiState.Session> {
+  private fun sessions(response: SessionsResponse): List<Session> {
     val sessions = response.sessions
     val result =
       sessions.map { session ->
@@ -58,13 +66,13 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
         val device = device(session)
         val sessionTime = sessionTime(session)
         val user = user(session)
-        ListeningSessionUiState.Session(session.id, item, device, sessionTime, user)
+        Session(session.id, item, device, sessionTime, user)
       }
     return result
   }
 
-  private fun pageInfo(response: SessionsResponse): ListeningSessionUiState.PageInfo {
-    return ListeningSessionUiState.PageInfo(
+  private fun pageInfo(response: SessionsResponse): PageInfo {
+    return PageInfo(
       total = response.total,
       numPages = response.numPages,
       page = response.page,
@@ -72,17 +80,17 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
     )
   }
 
-  private fun item(session: Session): ListeningSessionUiState.Item {
+  private fun item(session: NetworkSession): Item {
     val narrator =
       if (MediaType.isBook(session.mediaType))
         runCatching { (session.mediaMetadata as BookMetadata).narrators.joinToString() }
           .getOrElse { "" }
       else ""
-    return ListeningSessionUiState.Item(session.displayAuthor, session.displayTitle, narrator)
+    return Item(session.displayAuthor, session.displayTitle, narrator)
   }
 
-  private fun device(session: Session): ListeningSessionUiState.Device {
-    return ListeningSessionUiState.Device(
+  private fun device(session: NetworkSession): Device {
+    return Device(
       deviceName = session.deviceInfo.deviceName,
       clientName = session.deviceInfo.clientName,
       clientVersion = session.deviceInfo.clientVersion,
@@ -90,8 +98,8 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
     )
   }
 
-  private fun sessionTime(session: Session): ListeningSessionUiState.SessionTime {
-    return ListeningSessionUiState.SessionTime(
+  private fun sessionTime(session: NetworkSession): SessionTime {
+    return SessionTime(
       helper.formatDurationShort(session.timeListening),
       session.currentTime,
       session.startedAt,
@@ -100,7 +108,7 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
     )
   }
 
-  private fun user(session: Session): ListeningSessionUiState.User {
-    return ListeningSessionUiState.User(session.user?.id, session.user?.username)
+  private fun user(session: NetworkSession): User {
+    return User(session.user?.id, session.user?.username)
   }
 }

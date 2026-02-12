@@ -112,7 +112,7 @@
     <string name="home_screen">Home Screen</string>
     <string name="playback_settings_and_behaviour">Playback settings and behaviour</string>
     <string name="playback">Playback</string>
-    <string name="podcast_screen_settings">Podcast screen settings and behaviour</string>
+    <string name="screen_settings">%s screen settings and behaviour</string>
     <string name="podcast">Podcast</string>
     <string name="book_library">Book Library</string>
     <string name="podcast_library">Podcast Library</string>
@@ -134,6 +134,11 @@
     <string name="hide_downloaded_episodes">Hide downloaded episodes</string>
     <string name="add_episode">Add Episode</string>
     <!--Settings Podcast-->
+
+    <!--Settings Listening Sessions-->
+    <string name="default_user">"Default user: "</string>
+    <string name="default_items_per_page">"Default items per page: "</string>
+    <!--Settings Listening Sessions-->
 
     <!--Podcast Feed-->
     <string name="title">Title</string>

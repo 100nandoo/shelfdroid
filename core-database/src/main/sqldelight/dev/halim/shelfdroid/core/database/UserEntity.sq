@@ -1,0 +1,20 @@
+CREATE TABLE UserEntity(
+  id TEXT PRIMARY KEY NOT NULL,
+  username TEXT NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO UserEntity(id, username)
+VALUES ?;
+
+allIds:
+SELECT id FROM BookmarkEntity;
+
+all:
+SELECT * FROM UserEntity;
+
+deleteById:
+DELETE FROM UserEntity WHERE id = ?;
+
+deleteAll:
+DELETE FROM UserEntity;

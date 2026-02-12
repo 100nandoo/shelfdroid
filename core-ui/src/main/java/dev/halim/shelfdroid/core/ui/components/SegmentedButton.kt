@@ -10,10 +10,6 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -25,11 +21,10 @@ fun MySegmentedButton(
   modifier: Modifier = Modifier,
   options: List<String> = emptyList(),
   label: String? = null,
-  initialValue: String = "",
+  selectedValue: String,
   onClick: (String) -> Unit = {},
 ) {
-  val initialIndex = options.indexOf(initialValue).coerceAtLeast(0)
-  var selectedIndex by remember { mutableIntStateOf(initialIndex) }
+  val selectedIndex = options.indexOf(selectedValue).coerceAtLeast(0)
 
   Column(modifier) {
     if (label != null) {
@@ -41,10 +36,7 @@ fun MySegmentedButton(
         SegmentedButton(
           shape = SegmentedButtonDefaults.itemShape(index, options.size),
           selected = selectedIndex == index,
-          onClick = {
-            selectedIndex = index
-            onClick(option)
-          },
+          onClick = { onClick(option) },
         ) {
           Text(option, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
@@ -62,7 +54,7 @@ private fun MySegmentedButtonPreview() {
     MySegmentedButton(
       label = "Filter: ",
       options = listOf("Option 1", "Option 2", "Option Very Long"),
-      initialValue = "Option Very Long",
+      selectedValue = "Option Very Long",
     )
   }
 }

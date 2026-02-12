@@ -11,10 +11,13 @@ import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.data.response.UserRepo
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 class HomeRepository
 @Inject
@@ -24,8 +27,10 @@ constructor(
   private val progressRepo: ProgressRepo,
   private val bookmarkRepo: BookmarkRepo,
   private val libraryRepo: LibraryRepo,
+  private val userRepo: UserRepo,
   private val mapper: HomeMapper,
   private val prefsRepository: PrefsRepository,
+  private val appScope: CoroutineScope,
 ) {
 
   fun item(): Flow<Pair<Prefs, List<LibraryUiState>>> {
@@ -64,7 +69,14 @@ constructor(
     }
     libraryRepo.remote()
     libraryItemRepo.remote()
+
+    backgroundRemoteSync()
+
     return homeUiState.copy(homeState = HomeState.Success)
+  }
+
+  private fun backgroundRemoteSync() {
+    appScope.launch { userRepo.remote() }
   }
 
   suspend fun getUser() {

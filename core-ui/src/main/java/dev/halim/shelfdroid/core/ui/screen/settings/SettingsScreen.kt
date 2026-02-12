@@ -42,6 +42,7 @@ fun SettingsScreen(
   viewModel: SettingsViewModel = hiltViewModel(),
   onPlaybackClicked: () -> Unit = {},
   onPodcastClicked: () -> Unit = {},
+  onListeningSessionClicked: () -> Unit = {},
   reLogin: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -52,6 +53,7 @@ fun SettingsScreen(
     user = uiState.username,
     onPlaybackClicked = onPlaybackClicked,
     onPodcastClicked = onPodcastClicked,
+    onListeningSessionClicked = onListeningSessionClicked,
     reLogin = reLogin,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
   )
@@ -64,6 +66,7 @@ fun SettingsScreenContent(
   user: String = Defaults.USERNAME,
   onPlaybackClicked: () -> Unit = {},
   onPodcastClicked: () -> Unit = {},
+  onListeningSessionClicked: () -> Unit = {},
   reLogin: () -> Unit = {},
   onEvent: (SettingsEvent) -> Unit = {},
 ) {
@@ -91,10 +94,17 @@ fun SettingsScreenContent(
     if (uiState.canDelete) {
       SettingsClickLabel(
         text = stringResource(R.string.podcast),
-        supportingText = stringResource(R.string.podcast_screen_settings),
+        supportingText = stringResource(R.string.screen_settings, stringResource(R.string.podcast)),
         onClick = onPodcastClicked,
       )
     }
+
+    SettingsClickLabel(
+      text = stringResource(R.string.listening_sessions),
+      supportingText =
+        stringResource(R.string.screen_settings, stringResource(R.string.listening_sessions)),
+      onClick = onListeningSessionClicked,
+    )
   }
 }
 
@@ -271,14 +281,14 @@ fun LogoutSection(onEvent: (SettingsEvent) -> Unit = {}, reLogin: () -> Unit) {
 
 @ShelfDroidPreview
 @Composable
-fun PodcastScreenContentPreview() {
+fun SettingsScreenContentPreview() {
   val uiState = SettingsUiState(canDelete = true)
   PreviewWrapper(dynamicColor = false) { SettingsScreenContent(uiState) }
 }
 
 @ShelfDroidPreview
 @Composable
-fun PodcastScreenContentDynamicPreview() {
+fun SettingsScreenContentDynamicPreview() {
   val isDynamicTheme = true
   val uiState = SettingsUiState(isDynamicTheme = isDynamicTheme)
   PreviewWrapper(dynamicColor = isDynamicTheme) { SettingsScreenContent(uiState) }

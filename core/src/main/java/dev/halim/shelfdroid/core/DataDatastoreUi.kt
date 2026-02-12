@@ -132,4 +132,5 @@ data class PlaybackPrefs(
   val bookKeepSleepTimer: Boolean = true,
 )
 
-@Serializable data class ListeningSessionPrefs(val itemsPerPage: Int = 10)
+@Serializable
+data class ListeningSessionPrefs(val itemsPerPage: Int = 10, val defaultUserId: String? = null)

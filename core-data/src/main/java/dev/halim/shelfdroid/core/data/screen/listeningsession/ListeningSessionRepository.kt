@@ -3,44 +3,36 @@ package dev.halim.shelfdroid.core.data.screen.listeningsession
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
+import dev.halim.shelfdroid.core.data.response.UserRepo
 import javax.inject.Inject
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 
 class ListeningSessionRepository
 @Inject
 constructor(
   private val api: ApiService,
+  private val userRepo: UserRepo,
   private val mapper: ListeningSessionMapper,
   private val prefsRepository: PrefsRepository,
 ) {
   val listeningSessionPrefs = prefsRepository.listeningSessionPrefs
 
-  suspend fun item(
-    page: Int = 0,
-    itemsPerPage: Int = 10,
-    userId: String? = null,
-  ): ListeningSessionUiState = coroutineScope {
-    val sessionsDeferred = async {
-      api.sessions(page = page, itemsPerPage = itemsPerPage, user = userId)
-    }
-    val usersDeferred = async { api.users() }
-
+  suspend fun item(page: Int = 0): ListeningSessionUiState {
+    val listeningSessionPrefs = prefsRepository.listeningSessionPrefs.first()
     val response =
-      sessionsDeferred.await().getOrElse {
-        return@coroutineScope ListeningSessionUiState(state = GenericState.Failure(it.message))
-      }
-
-    val users =
-      usersDeferred
-        .await()
+      api
+        .sessions(
+          page = page,
+          itemsPerPage = listeningSessionPrefs.itemsPerPage,
+          user = listeningSessionPrefs.defaultUserId,
+        )
         .getOrElse {
-          return@coroutineScope ListeningSessionUiState(state = GenericState.Failure(it.message))
+          return ListeningSessionUiState(state = GenericState.Failure(it.message))
         }
-        .users
 
-    mapper.map(response, users)
+    val users = userRepo.all()
+
+    return mapper.map(response, users, listeningSessionPrefs.defaultUserId)
   }
 
   suspend fun page(

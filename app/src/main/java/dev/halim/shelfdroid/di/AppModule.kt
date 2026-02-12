@@ -12,6 +12,9 @@ import dev.halim.shelfdroid.R
 import dev.halim.shelfdroid.core.Device
 import javax.inject.Named
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -43,4 +46,6 @@ object AppModule {
   fun provideIsDebug(): Boolean {
     return BuildConfig.DEBUG
   }
+
+  @Provides fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 }

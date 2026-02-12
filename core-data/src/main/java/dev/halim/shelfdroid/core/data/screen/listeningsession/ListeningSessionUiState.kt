@@ -50,7 +50,7 @@ data class ListeningSessionUiState(
 
   data class User(val id: String?, val username: String?) {
     companion object {
-      const val ALL_USERNAME = "All"
+      const val ALL_USERNAME = "all"
       val ALL_USER = User(null, ALL_USERNAME)
     }
   }

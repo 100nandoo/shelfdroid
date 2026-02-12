@@ -41,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
+import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import kotlinx.coroutines.launch
@@ -55,6 +56,8 @@ import kotlinx.serialization.Serializable
 @Serializable object SettingsPlayback
 
 @Serializable object SettingsPodcast
+
+@Serializable object SettingsListeningSession
 
 @Serializable data class SearchPodcast(val libraryId: String)
 
@@ -171,12 +174,14 @@ private fun ColumnScope.NavHostContainer(
         SettingsScreen(
           onPlaybackClicked = { navController.navigate(SettingsPlayback) },
           onPodcastClicked = { navController.navigate(SettingsPodcast) },
+          onListeningSessionClicked = { navController.navigate(SettingsListeningSession) },
           reLogin = { navController.navigate(Login(reLogin = true)) },
         )
       }
 
       composable<SettingsPlayback> { SettingsPlaybackScreen() }
       composable<SettingsPodcast> { SettingsPodcastScreen() }
+      composable<SettingsListeningSession> { SettingsListeningSessionScreen() }
 
       composable<SearchPodcast> { entry ->
         val result = entry.savedStateHandle.get<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
