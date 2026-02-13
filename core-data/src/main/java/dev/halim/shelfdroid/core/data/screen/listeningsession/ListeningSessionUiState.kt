@@ -16,6 +16,7 @@ data class ListeningSessionUiState(
     val device: Device = Device(),
     val sessionTime: SessionTime = SessionTime(),
     val user: User = User(),
+    val playerInfo: PlayerInfo = PlayerInfo(),
   )
 
   data class PageInfo(
@@ -44,6 +45,8 @@ data class ListeningSessionUiState(
     val browser: String? = null,
     val ip: String? = null,
   )
+
+  data class PlayerInfo(val player: String = "", val method: String = "")
 
   data class SessionTime(
     val duration: String = "",

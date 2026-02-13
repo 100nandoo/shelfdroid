@@ -5,6 +5,7 @@ package dev.halim.shelfdroid.helper
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import java.util.Locale
@@ -18,7 +19,12 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
-class Helper @Inject constructor(private val dataStoreManager: DataStoreManager) {
+class Helper
+@Inject
+constructor(
+  private val dataStoreManager: DataStoreManager,
+  @ApplicationContext private val context: Context,
+) {
 
   private suspend fun getToken(): String =
     withContext(Dispatchers.IO) { dataStoreManager.userPrefs.first().accessToken }
@@ -164,6 +170,18 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
 
   fun createOpenDetailIntent(mediaId: String, context: Context): PendingIntent =
     createGenericIntent(context, ACTION_OPEN_DETAIL, mediaId)
+
+  fun toReadablePlayMethod(method: Int): String {
+    val result =
+      when (method) {
+        0 -> context.getString(R.string.direct_play)
+        1 -> context.getString(R.string.direct_stream)
+        2 -> context.getString(R.string.transcode)
+        3 -> context.getString(R.string.local)
+        else -> context.getString(R.string.unknown)
+      }
+    return result
+  }
 
   private fun createGenericIntent(
     context: Context,

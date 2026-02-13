@@ -299,6 +299,8 @@ object Defaults {
           timeRange = "10.00–11.00 AM, 30 January 2026",
         ),
       user = ListeningSessionUiState.User(id = "user_12345", username = "Mark Webber Stephen"),
+      playerInfo =
+        ListeningSessionUiState.PlayerInfo(player = "media3_1.9.2", method = "Direct Play"),
     )
 
   val LISTENING_SESSIONS =

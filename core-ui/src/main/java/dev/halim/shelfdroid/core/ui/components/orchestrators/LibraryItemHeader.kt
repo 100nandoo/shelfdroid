@@ -33,10 +33,12 @@ fun LibraryItemHeader(
   title: String,
   author: String,
   cover: String,
-  onClick: () -> Unit,
-  onLongClick: () -> Unit,
+  onClick: (() -> Unit)? = null,
+  onLongClick: (() -> Unit)? = null,
   unfinishedEpisodeCount: Int = 0,
 ) {
+  val isClickable = onClick != null && onLongClick != null
+
   val sharedTransitionScope = LocalSharedTransitionScope.current
 
   with(sharedTransitionScope) {
@@ -46,7 +48,11 @@ fun LibraryItemHeader(
           .height(88.dp)
           .fillMaxWidth()
           .mySharedBound(Animations.containerKey(id))
-          .combinedClickable(onLongClick = onLongClick, onClick = onClick)
+          .then(
+            if (isClickable) {
+              Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            } else Modifier
+          )
           .padding(vertical = 12.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {

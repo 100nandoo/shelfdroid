@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--Play Method-->
+    <string name="direct_play">Direct Play</string>
+    <string name="direct_stream">Direct Stream</string>
+    <string name="transcode">Transcode</string>
+    <string name="local">Local</string>
+    <string name="unknown">Unknown</string>
+    <!--Play Method-->
+</resources>

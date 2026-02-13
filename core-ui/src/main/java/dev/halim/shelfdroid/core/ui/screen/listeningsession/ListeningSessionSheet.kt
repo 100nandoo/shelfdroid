@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -23,10 +22,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Device
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.PlayerInfo
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Session
+import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityUp
 import dev.halim.shelfdroid.core.ui.components.orchestrators.LibraryItemHeader
+import dev.halim.shelfdroid.core.ui.extensions.letNotBlank
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.LISTENING_SESSION
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -49,43 +51,43 @@ fun ListeningSessionSheet(sheetState: SheetState, session: Session, onDelete: ()
           session.item.title,
           session.item.author,
           session.item.cover,
-          {},
-          {},
-          0,
         )
 
         HorizontalDivider(Modifier.padding(bottom = 16.dp))
 
-        DevicePlayerSection(session.device)
+        DevicePlayerSection(session.device, session.playerInfo)
 
         Spacer(Modifier.height(16.dp))
 
-        SessionTimeSection(session.sessionTime)
+        SessionTimeSection(session.sessionTime, session.user.username)
+        Spacer(Modifier.height(16.dp))
       }
     }
   }
 }
 
 @Composable
-private fun DevicePlayerSection(device: Device) {
+private fun DevicePlayerSection(device: Device, playerInfo: PlayerInfo) {
   Row {
     Column(Modifier.weight(1f)) {
       TextTitleMedium(text = "Device")
-      device.device?.let { Text(it) }
-      device.client?.let { Text(it) }
-      device.browser?.let { Text(it) }
-      device.ip?.let { Text(it) }
+      device.device?.let { TextLabelSmall(text = it) }
+      device.client?.let { TextLabelSmall(text = it) }
+      device.browser?.let { TextLabelSmall(text = it) }
+      device.ip?.let { TextLabelSmall(text = it) }
     }
     Column(Modifier.weight(1f)) {
       TextTitleMedium(text = "Media Player")
-      Card { Text("admin", modifier = Modifier.padding(8.dp)) }
+      playerInfo.player.letNotBlank { TextLabelSmall(text = it) }
+      playerInfo.method.letNotBlank { TextLabelSmall(text = it) }
     }
   }
 }
 
 @Composable
-fun SessionTimeSection(sessionTime: ListeningSessionUiState.SessionTime) {
+fun SessionTimeSection(sessionTime: ListeningSessionUiState.SessionTime, username: String?) {
   TextTitleMedium(text = "Details")
+  username?.let { SessionTimeDetail("User", username) }
   SessionTimeDetail("Started at", sessionTime.startedAt)
   SessionTimeDetail("Updated at", sessionTime.updatedAt)
   SessionTimeDetail("Start time", sessionTime.startTime)

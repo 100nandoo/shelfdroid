@@ -67,7 +67,8 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
         val device = device(session)
         val sessionTime = sessionTime(session)
         val user = user(session)
-        Session(session.id, item, device, sessionTime, user)
+        val playerInfo = playerInfo(session)
+        Session(session.id, item, device, sessionTime, user, playerInfo)
       }
     return result
   }
@@ -131,5 +132,12 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
 
   private fun user(session: NetworkSession): User {
     return User(session.user?.id, session.user?.username)
+  }
+
+  private fun playerInfo(session: NetworkSession): ListeningSessionUiState.PlayerInfo {
+    return ListeningSessionUiState.PlayerInfo(
+      session.mediaPlayer,
+      helper.toReadablePlayMethod(session.playMethod),
+    )
   }
 }
