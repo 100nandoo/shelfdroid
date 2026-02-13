@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.listeningsession
 
+import dev.halim.core.network.response.DeviceInfo
 import dev.halim.core.network.response.MediaType
 import dev.halim.core.network.response.Session as NetworkSession
 import dev.halim.core.network.response.SessionsResponse
@@ -86,15 +87,33 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
         runCatching { (session.mediaMetadata as BookMetadata).narrators.joinToString() }
           .getOrElse { "" }
       else ""
-    return Item(session.displayAuthor, session.displayTitle, narrator)
+
+    val cover = session.libraryItemId?.let { helper.generateItemCoverUrl(it) } ?: ""
+    return Item(session.displayAuthor, session.displayTitle, narrator, cover)
   }
 
   private fun device(session: NetworkSession): Device {
+    val deviceInfo = session.deviceInfo
+    val isWeb = deviceInfo.browserName != null && deviceInfo.browserVersion != null
+    return if (isWeb) mapWebDevice(deviceInfo) else mapAndroidDevice(deviceInfo)
+  }
+
+  private fun mapWebDevice(deviceInfo: DeviceInfo): Device {
+    val deviceName = "${deviceInfo.osName} ${deviceInfo.osVersion}"
     return Device(
-      deviceName = session.deviceInfo.deviceName,
-      clientName = session.deviceInfo.clientName,
-      clientVersion = session.deviceInfo.clientVersion,
-      ip = session.deviceInfo.ipAddress,
+      device = deviceName,
+      client = "${deviceInfo.clientName} ${deviceInfo.clientVersion}",
+      browser = "${deviceInfo.browserName} ${deviceInfo.browserVersion}",
+      ip = deviceInfo.ipAddress,
+    )
+  }
+
+  private fun mapAndroidDevice(deviceInfo: DeviceInfo): Device {
+    val deviceName = "${deviceInfo.manufacturer} ${deviceInfo.model}"
+    return Device(
+      device = deviceName,
+      client = "${deviceInfo.clientName} ${deviceInfo.clientVersion}",
+      ip = deviceInfo.ipAddress,
     )
   }
 
@@ -102,8 +121,10 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
     return SessionTime(
       helper.formatDurationShort(session.timeListening),
       session.currentTime,
-      session.startedAt,
-      session.updatedAt,
+      helper.toReadableDate(session.startedAt, true),
+      helper.toReadableDate(session.updatedAt, true),
+      helper.formatChapterTime(session.startTime),
+      helper.formatChapterTime(session.currentTime),
       helper.formatSessionTimeRange(session.startedAt, session.updatedAt),
     )
   }

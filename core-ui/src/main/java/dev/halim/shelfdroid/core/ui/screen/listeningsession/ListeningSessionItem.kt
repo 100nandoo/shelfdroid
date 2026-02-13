@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.listeningsession
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,9 +22,16 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun LazyItemScope.ListeningSessionItem(session: ListeningSessionUiState.Session) {
+fun LazyItemScope.ListeningSessionItem(
+  session: ListeningSessionUiState.Session,
+  onClick: (ListeningSessionUiState.Session) -> Unit = {},
+) {
   Row(
-    modifier = Modifier.animateItem().fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+    modifier =
+      Modifier.animateItem()
+        .fillMaxWidth()
+        .clickable { onClick(session) }
+        .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Column(modifier = Modifier.weight(3f).padding(end = 16.dp)) {

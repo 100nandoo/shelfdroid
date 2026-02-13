@@ -90,3 +90,12 @@ fun AutoSizeText(
     style = style.merge(color = textColor, textAlign = textAlign),
   )
 }
+
+@Composable
+fun TextTitleMedium(
+  modifier: Modifier = Modifier,
+  text: String,
+  style: TextStyle = MaterialTheme.typography.titleMedium,
+) {
+  Text(text = text, style = style, modifier = modifier.padding(bottom = 4.dp))
+}

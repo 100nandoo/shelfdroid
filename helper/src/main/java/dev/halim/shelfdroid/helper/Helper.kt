@@ -24,20 +24,38 @@ class Helper @Inject constructor(private val dataStoreManager: DataStoreManager)
     withContext(Dispatchers.IO) { dataStoreManager.userPrefs.first().accessToken }
 
   fun generateItemCoverUrl(itemId: String): String {
-    return "https://${DataStoreManager.Companion.BASE_URL}/api/items/$itemId/cover"
+    return "https://${DataStoreManager.BASE_URL}/api/items/$itemId/cover"
   }
 
   suspend fun generateContentUrl(url: String): String =
-    "https://${DataStoreManager.Companion.BASE_URL}$url?token=${getToken()}"
+    "https://${DataStoreManager.BASE_URL}$url?token=${getToken()}"
 
   fun generateDownloadId(itemId: String, episodeId: String? = null): String =
     episodeId?.let { "$itemId|$it" } ?: itemId
 
-  fun toReadableDate(long: Long): String {
-    val instant = Instant.Companion.fromEpochMilliseconds(long)
-    val dateTime = instant.toLocalDateTime(TimeZone.Companion.currentSystemDefault())
-    return "${dateTime.day} ${dateTime.month.name.lowercase()
-      .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }} ${dateTime.year}"
+  fun toReadableDate(long: Long, includeTime: Boolean = false): String {
+    val instant = Instant.fromEpochMilliseconds(long)
+    val dateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+
+    val month =
+      dateTime.month.name.lowercase().replaceFirstChar { it.titlecase(Locale.getDefault()) }
+
+    val datePart = "${dateTime.day} $month ${dateTime.year}"
+
+    if (!includeTime) return datePart
+
+    val hour12 =
+      when {
+        dateTime.hour == 0 -> 12
+        dateTime.hour > 12 -> dateTime.hour - 12
+        else -> dateTime.hour
+      }
+
+    val amPm = if (dateTime.hour < 12) "AM" else "PM"
+
+    val timePart = "%d:%02d%s".format(hour12, dateTime.minute, amPm)
+
+    return "$datePart $timePart"
   }
 
   fun formatDuration(seconds: Double): String {

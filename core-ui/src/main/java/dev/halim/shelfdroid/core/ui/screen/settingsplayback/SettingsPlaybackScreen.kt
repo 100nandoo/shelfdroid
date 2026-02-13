@@ -17,9 +17,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.settingsplayback.SettingsPlaybackUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.settings.SettingsLabel
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSublabel
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSwitchItem
 
@@ -49,7 +49,7 @@ private fun BehaviourSection(
   uiState: SettingsPlaybackUiState,
   onEvent: (SettingsPlaybackEvent) -> Unit = {},
 ) {
-  SettingsLabel(text = stringResource(R.string.behaviour))
+  TextTitleMedium(text = stringResource(R.string.behaviour))
   Spacer(modifier = Modifier.height(16.dp))
   SettingsSublabel(text = stringResource(R.string.when_switching_between_book_and_podcast))
   val startPadding = Modifier.padding(start = 8.dp)

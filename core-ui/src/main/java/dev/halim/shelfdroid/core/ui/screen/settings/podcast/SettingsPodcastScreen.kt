@@ -19,9 +19,9 @@ import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.screen.settings.podcast.SettingsPodcastUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.settings.SettingsLabel
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSwitchItem
 
 @Composable
@@ -45,7 +45,7 @@ private fun SettingsPodcastScreenContent(
     verticalArrangement = Arrangement.Bottom,
   ) {
     if (canDelete) {
-      SettingsLabel(text = stringResource(R.string.delete))
+      TextTitleMedium(text = stringResource(R.string.delete))
       SettingsSwitchItem(
         modifier = Modifier.padding(start = 8.dp),
         title = stringResource(R.string.user_permanent_deletion),
@@ -64,7 +64,7 @@ private fun SettingsPodcastScreenContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     if (canAdd) {
-      SettingsLabel(text = stringResource(R.string.add_episode))
+      TextTitleMedium(text = stringResource(R.string.add_episode))
       SettingsSwitchItem(
         modifier = Modifier.padding(start = 8.dp),
         title = stringResource(R.string.hide_downloaded_episodes),

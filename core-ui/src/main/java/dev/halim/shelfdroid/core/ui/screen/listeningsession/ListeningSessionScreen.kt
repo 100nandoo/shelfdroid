@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package dev.halim.shelfdroid.core.ui.screen.listeningsession
 
 import androidx.compose.foundation.clickable
@@ -15,15 +17,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -36,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.ItemsPerPage
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Session
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.User.Companion.ALL_USERNAME
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
@@ -45,6 +53,7 @@ import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.LISTENING_SESSIONS
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import kotlinx.coroutines.launch
 
 @Composable
 fun ListeningSessionScreen(viewModel: ListeningSessionViewModel = hiltViewModel()) {
@@ -58,6 +67,17 @@ private fun ListeningSessionContent(
   uiState: ListeningSessionUiState = ListeningSessionUiState(),
   onEvent: (ListeningSessionEvent) -> Unit = {},
 ) {
+  val scope = rememberCoroutineScope()
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  var selectedSession by remember { mutableStateOf(Session("")) }
+
+  val onClick = { session: Session ->
+    scope.launch { sheetState.show() }
+    selectedSession = session
+  }
+
+  ListeningSessionSheet(sheetState, selectedSession)
+
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
     VisibilityDown(uiState.state is GenericState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -70,7 +90,7 @@ private fun ListeningSessionContent(
       item { Control(uiState.userAndCountFilter, uiState.pageInfo, onEvent) }
       items(uiState.sessions, key = { it.id }) { session ->
         HorizontalDivider()
-        ListeningSessionItem(session)
+        ListeningSessionItem(session, onClick)
       }
     }
   }

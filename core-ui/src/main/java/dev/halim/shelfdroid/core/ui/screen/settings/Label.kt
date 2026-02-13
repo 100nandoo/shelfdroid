@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -33,7 +34,7 @@ fun SettingsClickLabel(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Column {
-      SettingsLabel(text = text, modifier = modifier.padding(end = 12.dp))
+      TextTitleMedium(text = text, modifier = modifier.padding(end = 12.dp))
       Text(
         text = supportingText,
         style = MaterialTheme.typography.bodyMedium,
@@ -49,15 +50,6 @@ fun SettingsClickLabel(
       tint = MaterialTheme.colorScheme.primary,
     )
   }
-}
-
-@Composable
-fun SettingsLabel(
-  modifier: Modifier = Modifier,
-  text: String,
-  style: TextStyle = MaterialTheme.typography.titleMedium,
-) {
-  Text(text = text, style = style, modifier = modifier.padding(bottom = 4.dp))
 }
 
 @Composable
@@ -85,14 +77,14 @@ fun SettingsBody(
 
 @ShelfDroidPreview
 @Composable
-fun SettingsLabelPreview() {
+fun LabelPreview() {
   PreviewWrapper {
     Column(Modifier.padding(16.dp)) {
       SettingsClickLabel(
         text = stringResource(R.string.playback),
         supportingText = stringResource(R.string.playback_settings_and_behaviour),
       )
-      SettingsLabel(text = stringResource(R.string.display))
+      TextTitleMedium(text = stringResource(R.string.display))
       SettingsSwitchItem(
         Modifier,
         stringResource(R.string.dark_mode),

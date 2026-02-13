@@ -51,6 +51,8 @@ data class DeviceInfo(
   @SerialName("osVersion") val osVersion: String? = null,
   @SerialName("clientName") val clientName: String? = null,
   @SerialName("clientVersion") val clientVersion: String? = null,
+  @SerialName("manufacturer") val manufacturer: String? = null,
+  @SerialName("model") val model: String? = null,
   @SerialName("deviceName") val deviceName: String? = null,
 )
 

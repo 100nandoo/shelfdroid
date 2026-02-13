@@ -262,6 +262,21 @@ object Defaults {
       )
     }
 
+  val LISTENING_SESSION_DEVICE_ANDROID =
+    ListeningSessionUiState.Device(
+      device = "Samsung S25 Ultra",
+      client = "Shelfdroid 0.2.9",
+      browser = null,
+      ip = "192.168.1.24",
+    )
+  val LISTENING_SESSION_DEVICE_WEB =
+    ListeningSessionUiState.Device(
+      device = "Mac OS 10.15",
+      client = "Abs Web 2.32.1",
+      browser = "Firefox 147",
+      ip = "192.168.1.3",
+    )
+
   val LISTENING_SESSION: ListeningSessionUiState.Session =
     ListeningSessionUiState.Session(
       id = "1",
@@ -270,20 +285,17 @@ object Defaults {
           author = "Brandon Sanderson",
           title = "The Way of Kings",
           narrator = "Michael Kramer",
+          cover = "",
         ),
-      device =
-        ListeningSessionUiState.Device(
-          deviceName = "Samsung S24",
-          clientName = "Shelfdroid",
-          clientVersion = "0.2.9",
-          ip = "192.168.1.24",
-        ),
+      device = LISTENING_SESSION_DEVICE_ANDROID,
       sessionTime =
         ListeningSessionUiState.SessionTime(
           duration = "30s",
           currentTime = 750.0,
-          startedAt = 1_769_748_878_442,
-          updatedAt = 1_769_749_628_442,
+          startedAt = "3 January 2026 09:00AM",
+          updatedAt = "3 January 2026 09:01AM",
+          startTime = "8:30:00",
+          lastTime = "8:30:30",
           timeRange = "10.00–11.00 AM, 30 January 2026",
         ),
       user = ListeningSessionUiState.User(id = "user_12345", username = "Mark Webber Stephen"),
