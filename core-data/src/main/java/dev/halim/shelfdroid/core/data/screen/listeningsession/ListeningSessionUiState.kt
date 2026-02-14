@@ -5,9 +5,11 @@ import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUi
 
 data class ListeningSessionUiState(
   val state: GenericState = GenericState.Idle,
+  val apiState: ListeningSessionApiState = ListeningSessionApiState.Idle,
   val sessions: List<Session> = emptyList(),
   val pageInfo: PageInfo = PageInfo(),
   val userAndCountFilter: UserAndCountFilter = UserAndCountFilter(),
+  val selection: Selection = Selection(),
 ) {
 
   data class Session(
@@ -64,4 +66,17 @@ data class ListeningSessionUiState(
       val ALL_USER = User(null, ALL_USERNAME)
     }
   }
+
+  data class Selection(
+    val isSelectionMode: Boolean = false,
+    val selectedIds: Set<String> = emptySet(),
+  )
+}
+
+sealed interface ListeningSessionApiState {
+  data object Idle : ListeningSessionApiState
+
+  data object DeleteSuccess : ListeningSessionApiState
+
+  data class DeleteFailure(val message: String?) : ListeningSessionApiState
 }

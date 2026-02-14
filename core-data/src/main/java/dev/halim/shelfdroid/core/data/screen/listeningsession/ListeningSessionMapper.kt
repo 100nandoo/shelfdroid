@@ -32,6 +32,7 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
 
     return ListeningSessionUiState(
       GenericState.Success,
+      ListeningSessionApiState.Idle,
       sessions,
       pageInfo,
       userAndCountFilter = userAndCountFilter,
@@ -53,6 +54,7 @@ class ListeningSessionMapper @Inject constructor(private val helper: Helper) {
 
     return ListeningSessionUiState(
       GenericState.Success,
+      ListeningSessionApiState.Idle,
       sessions,
       pageInfo,
       userAndCountFilter = userAndCountFilter,

@@ -1,7 +1,10 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.annotation.PluralsRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -15,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
@@ -81,13 +86,13 @@ private fun SampleMyIconButton(size: Int = 48) {
 
 @ShelfDroidPreview
 @Composable
-fun MyIconButtonPreview() {
+private fun MyIconButtonPreview() {
   PreviewWrapper(content = { SampleMyIconButton(48) })
 }
 
 @ShelfDroidPreview
 @Composable
-fun MyIconButtonLargePreview() {
+private fun MyIconButtonLargePreview() {
   PreviewWrapper(content = { SampleMyIconButton(72) })
 }
 
@@ -111,6 +116,64 @@ fun RowScope.PlayButton(
 
 @ShelfDroidPreview
 @Composable
-fun PlayButtonPreview() {
+private fun PlayButtonPreview() {
   PreviewWrapper(content = { Row { PlayButton(onPlayClicked = {}) } })
+}
+
+@Composable
+fun ListDeleteButton(
+  modifier: Modifier = Modifier,
+  count: Int,
+  @StringRes noneText: Int,
+  @PluralsRes typeText: Int,
+  onClick: () -> Unit,
+) {
+  val type = pluralStringResource(typeText, count)
+  val text =
+    if (count == 0) stringResource(noneText)
+    else stringResource(id = R.string.delete_count_type, count, type)
+  Button(onClick = onClick, modifier = modifier, enabled = count > 0) {
+    Icon(
+      painter = painterResource(R.drawable.delete),
+      contentDescription = stringResource(R.string.delete),
+      modifier = Modifier.padding(end = 8.dp),
+    )
+    Text(text)
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun ListDeleteButtonPreview() {
+  PreviewWrapper(
+    content = {
+      Row {
+        ListDeleteButton(
+          modifier = Modifier.fillMaxWidth(),
+          count = 1,
+          noneText = R.string.no_episodes_selected,
+          typeText = R.plurals.plurals_episode,
+          onClick = {},
+        )
+      }
+    }
+  )
+}
+
+@ShelfDroidPreview
+@Composable
+private fun ListDeleteButtonDisablePreview() {
+  PreviewWrapper(
+    content = {
+      Row {
+        ListDeleteButton(
+          modifier = Modifier.fillMaxWidth(),
+          count = 0,
+          noneText = R.string.no_sessions_selected,
+          typeText = R.plurals.plurals_session,
+          onClick = {},
+        )
+      }
+    }
+  )
 }

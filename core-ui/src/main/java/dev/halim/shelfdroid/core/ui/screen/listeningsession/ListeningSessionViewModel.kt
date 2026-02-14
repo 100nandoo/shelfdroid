@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -34,6 +35,15 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
 
   fun onEvent(event: ListeningSessionEvent) {
     when (event) {
+      ListeningSessionEvent.DeleteSessions -> {
+        viewModelScope.launch {
+          _uiState.update {
+            val ids = it.selection.selectedIds
+            repository.deleteSessions(it, ids)
+          }
+        }
+      }
+
       is ListeningSessionEvent.ChangePage -> {
         val targetPage = uiState.value.pageInfo.page + if (event.isNext) 1 else -1
         fetchPage(targetPage)
@@ -49,16 +59,45 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
       }
 
       is ListeningSessionEvent.ChangeInputPage -> {
-        _uiState.value =
-          _uiState.value.copy(pageInfo = _uiState.value.pageInfo.copy(inputPage = event.page))
+        _uiState.update { it.copy(pageInfo = _uiState.value.pageInfo.copy(inputPage = event.page)) }
       }
 
       is ListeningSessionEvent.FilterUser -> {
-        _uiState.value =
-          _uiState.value.copy(
+        _uiState.update {
+          it.copy(
             userAndCountFilter = _uiState.value.userAndCountFilter.copy(selectedUser = event.user)
           )
+        }
         fetchPage(0)
+      }
+
+      is ListeningSessionEvent.DeleteSession -> {
+        viewModelScope.launch { _uiState.update { repository.deleteSession(it, event.session) } }
+      }
+
+      is ListeningSessionEvent.Select -> {
+        _uiState.update {
+          val selectedIds =
+            if (it.selection.selectedIds.contains(event.id)) {
+              it.selection.selectedIds - event.id
+            } else {
+              it.selection.selectedIds + event.id
+            }
+
+          val selection = it.selection.copy(selectedIds = selectedIds)
+          it.copy(selection = selection)
+        }
+      }
+      is ListeningSessionEvent.SelectionMode -> {
+        _uiState.update { uiState ->
+          val selection =
+            if (event.isSelectionMode) {
+              uiState.selection.copy(isSelectionMode = true, selectedIds = setOf(event.id))
+            } else {
+              uiState.selection.copy(isSelectionMode = false, selectedIds = emptySet())
+            }
+          uiState.copy(selection = selection)
+        }
       }
     }
   }
@@ -92,6 +131,8 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
 
 sealed interface ListeningSessionEvent {
 
+  data object DeleteSessions : ListeningSessionEvent
+
   data class ChangePage(val isNext: Boolean) : ListeningSessionEvent
 
   data class ChangeToPage(val page: Int) : ListeningSessionEvent
@@ -101,4 +142,10 @@ sealed interface ListeningSessionEvent {
   data class FilterUser(val user: ListeningSessionUiState.User) : ListeningSessionEvent
 
   data class ChangeItemsPerPage(val itemsPerPage: ItemsPerPage) : ListeningSessionEvent
+
+  data class DeleteSession(val session: ListeningSessionUiState.Session) : ListeningSessionEvent
+
+  data class SelectionMode(val isSelectionMode: Boolean, val id: String) : ListeningSessionEvent
+
+  data class Select(val id: String) : ListeningSessionEvent
 }

@@ -3,6 +3,7 @@ package dev.halim.core.network
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.CreatePodcastRequest
+import dev.halim.core.network.request.DeleteSessionsRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.PodcastFeedRequest
@@ -138,6 +139,12 @@ interface ApiService {
     @Query("user") user: String? = null,
     @Query("desc") desc: Int = 1,
   ): Result<SessionsResponse>
+
+  @DELETE("/api/sessions/{sessionId}")
+  suspend fun deleteSession(@Path("sessionId") sessionId: String): Result<Unit>
+
+  @POST("/api/sessions/batch/delete")
+  suspend fun deleteSessions(@Body request: DeleteSessionsRequest): Result<Unit>
 
   // search
   @GET("/api/search/podcast")

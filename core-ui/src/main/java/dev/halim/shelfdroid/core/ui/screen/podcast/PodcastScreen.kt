@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -24,7 +22,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,6 +43,7 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
+import dev.halim.shelfdroid.core.ui.components.ListDeleteButton
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
 import dev.halim.shelfdroid.core.ui.components.VisibilityCircular
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -137,12 +134,8 @@ fun PodcastScreenContent(
     else uiState.episodes
   val count = uiState.selectedEpisodeIds.size
 
-  val lazyListState = rememberLazyListState()
-  val fabVisible by remember { derivedStateOf { lazyListState.isScrollInProgress.not() } }
-
   Column(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
-      state = lazyListState,
       modifier = Modifier.weight(1f).mySharedBound(Animations.containerKey(id)),
       reverseLayout = true,
     ) {
@@ -176,7 +169,7 @@ fun PodcastScreenContent(
         }
       }
     }
-    AnimatedVisibility(visible = uiState.isSelectionMode && fabVisible) {
+    AnimatedVisibility(uiState.isSelectionMode) {
       DeleteSection(
         count,
         uiState.prefs.crudPrefs.episodeHardDelete,
@@ -228,11 +221,6 @@ private fun DeleteSection(
   var showDeleteDialog by remember { mutableStateOf(false) }
   var hardDelete by remember { mutableStateOf(initialHardDelete) }
 
-  val isZero = count == 0
-  val text =
-    if (isZero) stringResource(R.string.no_episodes_selected)
-    else pluralStringResource(id = R.plurals.delete_episode_count, count = count, count)
-
   Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
     Row(
       modifier = Modifier.fillMaxWidth(),
@@ -243,20 +231,13 @@ private fun DeleteSection(
       Spacer(modifier = Modifier.width(8.dp))
       Text(text = stringResource(R.string.auto_select_finished_episodes))
     }
-    Row {
-      Button(
-        onClick = { showDeleteDialog = true },
-        modifier = Modifier.weight(1f),
-        enabled = count > 0,
-      ) {
-        Icon(
-          painter = painterResource(R.drawable.delete),
-          contentDescription = stringResource(R.string.delete),
-          modifier = Modifier.padding(end = 8.dp),
-        )
-        Text(text)
-      }
-    }
+    ListDeleteButton(
+      modifier = Modifier.fillMaxWidth(),
+      count = count,
+      noneText = R.string.no_episodes_selected,
+      typeText = R.plurals.plurals_episode,
+      onClick = { showDeleteDialog = true },
+    )
   }
 
   val dialogText =

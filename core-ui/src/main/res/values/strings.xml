@@ -42,19 +42,28 @@
     <string name="args_remaining">%1$s remaining</string>
     <string name="args_version">Version %1$s</string>
 
-
     <!--Plurals-->
+    <plurals name="plurals_episode">
+        <item quantity="one">episode</item>
+        <item quantity="other">episodes</item>
+    </plurals>
+    <plurals name="plurals_session">
+        <item quantity="one">session</item>
+        <item quantity="other">sessions</item>
+    </plurals>
+
     <plurals name="download_episode_count">
         <item quantity="one">Download %d episode</item>
         <item quantity="other">Download %d episodes</item>
     </plurals>
-    <plurals name="delete_episode_count">
-        <item quantity="one">Delete %d episode</item>
-        <item quantity="other">Delete %d episodes</item>
-    </plurals>
     <plurals name="success_delete_episode_count">
         <item quantity="one">Successfully delete %d episode</item>
         <item quantity="other">Successfully delete %d episodes</item>
+    </plurals>
+
+    <plurals name="plurals_delete_warning">
+        <item quantity="one">Are you sure you want to delete this %s?</item>
+        <item quantity="other">Are you sure you want to delete these %s?</item>
     </plurals>
     <!--Plurals-->
 
@@ -70,6 +79,7 @@
     <string name="dialog_delete_podcast">Are you sure you want to delete this podcast?</string>
     <string name="dialog_delete_episode">Are you sure you want to delete this episode?</string>
     <string name="dialog_delete_episodes">Are you sure you want to delete these episodes?</string>
+
     <!--Dialog-->
 
     <!--Dropdown-->
@@ -99,6 +109,8 @@
     <string name="unknown">unknown</string>
     <string name="items">"items: "</string>
     <string name="users">"users: "</string>
+    <string name="no_sessions_selected">No sessions selected</string>
+    <string name="failed_to_delete_session">Session not found</string>
     <!--Listening Sessions-->
 
     <!--Book-->
@@ -189,5 +201,6 @@
     <string name="is_not_an_admin">" is not an admin"</string>
     <string name="clear">Clear</string>
     <string name="filter">Filter</string>
+    <string name="delete_count_type">Delete %d %s</string>
     <!--Others-->
 </resources>

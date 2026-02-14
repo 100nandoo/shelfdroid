@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.listeningsession
 
 import dev.halim.core.network.ApiService
+import dev.halim.core.network.request.DeleteSessionsRequest
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.UserRepo
@@ -51,6 +52,42 @@ constructor(
   suspend fun updateItemsPerPage(itemsPerPage: Int) {
     prefsRepository.updateListeningSessionPrefs(
       listeningSessionPrefs.first().copy(itemsPerPage = itemsPerPage)
+    )
+  }
+
+  suspend fun deleteSession(
+    uiState: ListeningSessionUiState,
+    session: ListeningSessionUiState.Session,
+  ): ListeningSessionUiState {
+    api.deleteSession(session.id).getOrElse {
+      return uiState.copy(apiState = ListeningSessionApiState.DeleteFailure(it.message))
+    }
+
+    val updatedSessions = uiState.sessions.filter { it.id != session.id }
+    val updatedSelection = uiState.selection.copy(selectedIds = emptySet())
+    return uiState.copy(
+      apiState = ListeningSessionApiState.DeleteSuccess,
+      sessions = updatedSessions,
+      selection = updatedSelection,
+    )
+  }
+
+  suspend fun deleteSessions(
+    uiState: ListeningSessionUiState,
+    ids: Set<String>,
+  ): ListeningSessionUiState {
+    val request = DeleteSessionsRequest(ids.toList())
+
+    api.deleteSessions(request).getOrElse {
+      return uiState.copy(apiState = ListeningSessionApiState.DeleteFailure(it.message))
+    }
+
+    val updatedSessions = uiState.sessions.filterNot { ids.contains(it.id) }
+    val updatedSelection = uiState.selection.copy(selectedIds = emptySet())
+    return uiState.copy(
+      apiState = ListeningSessionApiState.DeleteSuccess,
+      sessions = updatedSessions,
+      selection = updatedSelection,
     )
   }
 }

@@ -19,13 +19,14 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun ListItem(
+  modifier: Modifier = Modifier,
   text: String,
   contentDescription: String,
   @DrawableRes icon: Int,
   onClick: () -> Unit,
 ) {
   Row(
-    modifier = Modifier.clickable(onClick = onClick).padding(vertical = 12.dp, horizontal = 16.dp),
+    modifier = Modifier.clickable { onClick() }.then(modifier),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Icon(
@@ -42,8 +43,8 @@ fun ListItem(
 private fun PreviewListItem() {
   PreviewWrapper(false) {
     Column {
-      ListItem("Delete", "Delete", R.drawable.delete, {})
-      ListItem("Edit", "Edit", R.drawable.delete, {})
+      ListItem(modifier = Modifier.padding(16.dp), "Delete", "Delete", R.drawable.delete, {})
+      ListItem(modifier = Modifier.padding(16.dp), "Edit", "Edit", R.drawable.delete, {})
     }
   }
 }

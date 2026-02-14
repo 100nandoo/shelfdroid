@@ -24,6 +24,8 @@ import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUi
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Device
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.PlayerInfo
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Session
+import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.ListItem
 import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityUp
@@ -56,11 +58,20 @@ fun ListeningSessionSheet(sheetState: SheetState, session: Session, onDelete: ()
         HorizontalDivider(Modifier.padding(bottom = 16.dp))
 
         DevicePlayerSection(session.device, session.playerInfo)
-
         Spacer(Modifier.height(16.dp))
 
         SessionTimeSection(session.sessionTime, session.user.username)
         Spacer(Modifier.height(16.dp))
+
+        ListItem(
+          text = "Delete",
+          contentDescription = "Delete",
+          icon = R.drawable.delete,
+          onClick = {
+            scope.launch { sheetState.hide() }
+            onDelete()
+          },
+        )
       }
     }
   }

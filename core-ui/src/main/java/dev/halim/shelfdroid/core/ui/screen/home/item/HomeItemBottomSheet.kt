@@ -85,6 +85,7 @@ fun HomeItemBottomSheet(
     HorizontalDivider(modifier = Modifier.padding(16.dp))
 
     ListItem(
+      Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
       text = "Delete",
       contentDescription = "Delete",
       icon = R.drawable.delete,

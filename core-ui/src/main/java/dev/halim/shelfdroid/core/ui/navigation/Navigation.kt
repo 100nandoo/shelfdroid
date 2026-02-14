@@ -210,7 +210,9 @@ private fun ColumnScope.NavHostContainer(
         )
       }
       composable<ListeningSession> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) { ListeningSessionScreen() }
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          ListeningSessionScreen(snackbarHostState = snackbarHostState)
+        }
       }
     }
   }

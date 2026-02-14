@@ -2,6 +2,8 @@
 
 package dev.halim.shelfdroid.core.ui.screen.listeningsession
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,9 +25,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,11 +48,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.ItemsPerPage
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionApiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Session
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.User.Companion.ALL_USERNAME
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.ListDeleteButton
+import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.extensions.enable
@@ -56,10 +65,25 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @Composable
-fun ListeningSessionScreen(viewModel: ListeningSessionViewModel = hiltViewModel()) {
+fun ListeningSessionScreen(
+  viewModel: ListeningSessionViewModel = hiltViewModel(),
+  snackbarHostState: SnackbarHostState,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
   ListeningSessionContent(uiState = uiState, onEvent = viewModel::onEvent)
+  val scope = rememberCoroutineScope()
+
+  val deleteFailureMessage = stringResource(R.string.failed_to_delete_session)
+
+  LaunchedEffect(uiState.apiState) {
+    when (val state = uiState.apiState) {
+      is ListeningSessionApiState.DeleteFailure -> {
+        scope.launch { snackbarHostState.showSnackbar(state.message ?: deleteFailureMessage) }
+      }
+      else -> Unit
+    }
+  }
 }
 
 @Composable
@@ -67,16 +91,38 @@ private fun ListeningSessionContent(
   uiState: ListeningSessionUiState = ListeningSessionUiState(),
   onEvent: (ListeningSessionEvent) -> Unit = {},
 ) {
+  BackHandler(enabled = uiState.selection.isSelectionMode) {
+    onEvent(ListeningSessionEvent.SelectionMode(false, ""))
+  }
   val scope = rememberCoroutineScope()
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   var selectedSession by remember { mutableStateOf(Session("")) }
 
-  val onClick = { session: Session ->
+  val showSheet = { session: Session ->
     scope.launch { sheetState.show() }
     selectedSession = session
   }
+  val isDeleteDialogShown = remember { mutableStateOf(false) }
+  var isFromSheet by remember { mutableStateOf(false) }
 
-  ListeningSessionSheet(sheetState, selectedSession)
+  ListeningSessionSheet(
+    sheetState,
+    selectedSession,
+    {
+      isFromSheet = true
+      isDeleteDialogShown.value = true
+    },
+  )
+
+  val count = remember(uiState.selection.selectedIds) { uiState.selection.selectedIds.size }
+
+  DeleteDialog(
+    isDeleteDialogShown,
+    count,
+    isFromSheet,
+    { onEvent(ListeningSessionEvent.DeleteSession(selectedSession)) },
+    { onEvent(ListeningSessionEvent.DeleteSessions) },
+  )
 
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
     VisibilityDown(uiState.state is GenericState.Loading) {
@@ -87,23 +133,78 @@ private fun ListeningSessionContent(
       verticalArrangement = Arrangement.Bottom,
       reverseLayout = true,
     ) {
-      item { Control(uiState.userAndCountFilter, uiState.pageInfo, onEvent) }
+      item(key = "control") {
+        AnimatedVisibility(uiState.selection.isSelectionMode.not()) {
+          Control(Modifier.animateItem(), uiState.userAndCountFilter, uiState.pageInfo, onEvent)
+        }
+      }
       items(uiState.sessions, key = { it.id }) { session ->
         HorizontalDivider()
-        ListeningSessionItem(session, onClick)
+        val isSelected =
+          remember(uiState.selection.selectedIds) {
+            uiState.selection.selectedIds.contains(session.id)
+          }
+
+        ListeningSessionItem(
+          session,
+          isSelected,
+          uiState.selection.isSelectionMode,
+          onEvent,
+          showSheet,
+        )
       }
     }
+    AnimatedVisibility(uiState.selection.isSelectionMode) {
+      ListDeleteButton(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        count = count,
+        noneText = R.string.no_sessions_selected,
+        typeText = R.plurals.plurals_session,
+        onClick = {
+          isFromSheet = false
+          isDeleteDialogShown.value = true
+        },
+      )
+    }
   }
+}
+
+@Composable
+private fun DeleteDialog(
+  showDeleteDialog: MutableState<Boolean>,
+  count: Int,
+  fromSheet: Boolean,
+  onDeleteOne: () -> Unit,
+  onDeleteMultiple: () -> Unit,
+) {
+  val isMultiple = count > 1
+  val type =
+    if (isMultiple) "$count ${pluralStringResource(R.plurals.plurals_session, count)}"
+    else pluralStringResource(R.plurals.plurals_session, count)
+  val text = pluralStringResource(R.plurals.plurals_delete_warning, count, type)
+  MyAlertDialog(
+    title = stringResource(R.string.delete),
+    text = text,
+    showDialog = showDeleteDialog.value,
+    confirmText = stringResource(R.string.delete),
+    dismissText = stringResource(R.string.cancel),
+    onConfirm = {
+      if (fromSheet.not()) onDeleteMultiple() else onDeleteOne()
+      showDeleteDialog.value = false
+    },
+    onDismiss = { showDeleteDialog.value = false },
+  )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Control(
+  modifier: Modifier = Modifier,
   userAndCountFilter: ListeningSessionUiState.UserAndCountFilter,
   pageInfo: ListeningSessionUiState.PageInfo,
   onEvent: (ListeningSessionEvent) -> Unit,
 ) {
-  Column(Modifier.imePadding().padding(top = 16.dp)) {
+  Column(modifier.imePadding().padding(top = 16.dp)) {
     PageControl(pageInfo, onEvent)
     UserAndCountFilter(userAndCountFilter, onEvent)
   }
