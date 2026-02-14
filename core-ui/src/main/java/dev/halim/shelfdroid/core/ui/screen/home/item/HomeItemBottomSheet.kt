@@ -34,7 +34,7 @@ import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
-import dev.halim.shelfdroid.core.ui.components.ListItem
+import dev.halim.shelfdroid.core.ui.components.ListItemAction
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -84,7 +84,7 @@ fun HomeItemBottomSheet(
 
     HorizontalDivider(modifier = Modifier.padding(16.dp))
 
-    ListItem(
+    ListItemAction(
       Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
       text = "Delete",
       contentDescription = "Delete",

@@ -49,7 +49,7 @@ fun SmallPlayerContent(
   Column(
     Modifier.fillMaxWidth()
       .mySharedBound(Animations.Companion.Player.containerKey(id))
-      .height(120.dp)
+      .height(100.dp)
       .navigationBarsPadding()
       .pointerInput(Unit) {
         detectVerticalDragGestures { _, dragAmount ->

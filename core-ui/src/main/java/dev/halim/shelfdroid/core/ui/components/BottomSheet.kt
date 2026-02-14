@@ -18,7 +18,7 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun ListItem(
+fun ListItemAction(
   modifier: Modifier = Modifier,
   text: String,
   contentDescription: String,
@@ -40,11 +40,11 @@ fun ListItem(
 
 @ShelfDroidPreview
 @Composable
-private fun PreviewListItem() {
+private fun PreviewListItemAction() {
   PreviewWrapper(false) {
     Column {
-      ListItem(modifier = Modifier.padding(16.dp), "Delete", "Delete", R.drawable.delete, {})
-      ListItem(modifier = Modifier.padding(16.dp), "Edit", "Edit", R.drawable.delete, {})
+      ListItemAction(modifier = Modifier.padding(16.dp), "Delete", "Delete", R.drawable.delete, {})
+      ListItemAction(modifier = Modifier.padding(16.dp), "Edit", "Edit", R.drawable.delete, {})
     }
   }
 }

@@ -44,8 +44,7 @@ fun LibraryItemHeader(
   with(sharedTransitionScope) {
     Row(
       modifier =
-        modifier
-          .height(88.dp)
+        Modifier.height(88.dp)
           .fillMaxWidth()
           .mySharedBound(Animations.containerKey(id))
           .then(
@@ -53,11 +52,12 @@ fun LibraryItemHeader(
               Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
             } else Modifier
           )
+          .then(modifier)
           .padding(vertical = 12.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Cover(
-        Modifier.fillMaxHeight().padding(end = 16.dp),
+        Modifier.fillMaxHeight().padding(end = 12.dp),
         cover = cover,
         shape = RoundedCornerShape(4.dp),
         animationKey = Animations.coverKey(id),

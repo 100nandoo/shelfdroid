@@ -41,15 +41,24 @@
     <string name="args_percent">%1$s%%</string>
     <string name="args_remaining">%1$s remaining</string>
     <string name="args_version">Version %1$s</string>
+    <string name="delete_count_type">Delete %d %s</string>
+    <string name="empty_type">No %s</string>
+    <string name="args_not_found">%s not found</string>
 
     <!--Plurals-->
     <plurals name="plurals_episode">
         <item quantity="one">episode</item>
         <item quantity="other">episodes</item>
     </plurals>
+
     <plurals name="plurals_session">
         <item quantity="one">session</item>
         <item quantity="other">sessions</item>
+    </plurals>
+
+    <plurals name="plurals_open_session">
+        <item quantity="one">open session</item>
+        <item quantity="other">open sessions</item>
     </plurals>
 
     <plurals name="download_episode_count">
@@ -102,6 +111,7 @@
 
     <!--Misc-->
     <string name="listening_sessions">Listening Sessions</string>
+    <string name="open_sessions">Open Sessions</string>
     <!--Misc-->
 
     <!--Listening Sessions-->
@@ -112,6 +122,10 @@
     <string name="no_sessions_selected">No sessions selected</string>
     <string name="failed_to_delete_session">Session not found</string>
     <!--Listening Sessions-->
+
+    <!--Open Sessions-->
+    <string name="close_open_session">Close open session</string>
+    <!--Open Sessions-->
 
     <!--Book-->
     <string name="completed">Completed</string>
@@ -201,6 +215,6 @@
     <string name="is_not_an_admin">" is not an admin"</string>
     <string name="clear">Clear</string>
     <string name="filter">Filter</string>
-    <string name="delete_count_type">Delete %d %s</string>
+
     <!--Others-->
 </resources>

@@ -18,16 +18,28 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun MiscScreen(onListeningSessionClicked: () -> Unit = {}, onSettingsClicked: () -> Unit = {}) {
-  MiscScreenContent(onListeningSessionClicked, onSettingsClicked)
+fun MiscScreen(
+  onOpenSessionClicked: () -> Unit = {},
+  onListeningSessionClicked: () -> Unit = {},
+  onSettingsClicked: () -> Unit = {},
+) {
+  MiscScreenContent(onOpenSessionClicked, onListeningSessionClicked, onSettingsClicked)
 }
 
 @Composable
 private fun MiscScreenContent(
+  onOpenSessionClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   onSettingsClicked: () -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+    TextButton(
+      onClick = onOpenSessionClicked,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+      Text(text = stringResource(R.string.open_sessions))
+    }
+
     TextButton(
       onClick = onListeningSessionClicked,
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),

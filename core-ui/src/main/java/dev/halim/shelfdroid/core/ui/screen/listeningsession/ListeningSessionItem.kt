@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.listeningsession
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,37 +27,38 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun LazyItemScope.ListeningSessionItem(
   session: ListeningSessionUiState.Session,
+  enableSelection: Boolean = false,
   isSelected: Boolean = false,
   isSelectionMode: Boolean = false,
-  onEvent: (ListeningSessionEvent) -> Unit = {},
+  onClickedAction: () -> Unit = {},
+  onLongClickedAction: () -> Unit = {},
   showSheet: (ListeningSessionUiState.Session) -> Unit = {},
 ) {
+  val onClick = {
+    if (isSelectionMode) {
+      onClickedAction()
+    } else {
+      showSheet(session)
+    }
+  }
+  val onLongClick = {
+    if (isSelectionMode.not()) {
+      onLongClickedAction()
+    }
+  }
+  val clickModifier =
+    if (enableSelection) Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
+    else Modifier.clickable { showSheet(session) }
   Row(
     modifier =
       Modifier.animateItem()
         .fillMaxWidth()
-        .combinedClickable(
-          onClick = {
-            if (isSelectionMode) {
-              onEvent(ListeningSessionEvent.Select(session.id))
-            } else {
-              showSheet(session)
-            }
-          },
-          onLongClick = {
-            if (isSelectionMode.not()) {
-              onEvent(ListeningSessionEvent.SelectionMode(true, session.id))
-            }
-          },
-        )
+        .then(clickModifier)
         .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     AnimatedVisibility(isSelectionMode) {
-      Checkbox(
-        checked = isSelected,
-        onCheckedChange = { onEvent(ListeningSessionEvent.Select(session.id)) },
-      )
+      Checkbox(checked = isSelected, onCheckedChange = { onClickedAction() })
     }
     Column(modifier = Modifier.weight(3f).padding(end = 16.dp)) {
       Text(

@@ -55,6 +55,7 @@ import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUi
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.ListDeleteButton
+import dev.halim.shelfdroid.core.ui.components.ListItemAction
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
@@ -109,8 +110,16 @@ private fun ListeningSessionContent(
     sheetState,
     selectedSession,
     {
-      isFromSheet = true
-      isDeleteDialogShown.value = true
+      ListItemAction(
+        text = stringResource(R.string.delete),
+        contentDescription = stringResource(R.string.delete),
+        icon = R.drawable.delete,
+        onClick = {
+          scope.launch { sheetState.hide() }
+          isFromSheet = true
+          isDeleteDialogShown.value = true
+        },
+      )
     },
   )
 
@@ -147,9 +156,11 @@ private fun ListeningSessionContent(
 
         ListeningSessionItem(
           session,
+          true,
           isSelected,
           uiState.selection.isSelectionMode,
-          onEvent,
+          { onEvent(ListeningSessionEvent.Select(session.id)) },
+          { onEvent(ListeningSessionEvent.SelectionMode(true, session.id)) },
           showSheet,
         )
       }

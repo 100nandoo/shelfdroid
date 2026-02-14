@@ -7,5 +7,5 @@ sealed interface GenericState {
 
   data object Success : GenericState
 
-  data class Failure(val errorMessage: String?) : GenericState
+  data class Failure(val errorMessage: String? = null) : GenericState
 }

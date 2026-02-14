@@ -38,6 +38,7 @@ import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
+import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
@@ -70,6 +71,8 @@ import kotlinx.serialization.Serializable
 @Serializable data class AddEpisode(val id: String)
 
 @Serializable object ListeningSession
+
+@Serializable object OpenSession
 
 @Composable
 fun MainNavigation(
@@ -130,6 +133,7 @@ private fun ColumnScope.NavHostContainer(
             onBookClicked = { id -> navController.navigate(Book(id)) },
             onSearchClicked = { libraryId -> navController.navigate(SearchPodcast(libraryId)) },
             onSessionClicked = { navController.navigate(ListeningSession) },
+            onOpenSessionClicked = { navController.navigate(OpenSession) },
           )
         }
       }
@@ -212,6 +216,12 @@ private fun ColumnScope.NavHostContainer(
       composable<ListeningSession> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
           ListeningSessionScreen(snackbarHostState = snackbarHostState)
+        }
+      }
+
+      composable<OpenSession> {
+        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+          OpenSessionScreen(snackbarHostState = snackbarHostState)
         }
       }
     }

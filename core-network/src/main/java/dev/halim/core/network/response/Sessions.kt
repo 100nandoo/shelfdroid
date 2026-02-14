@@ -5,6 +5,8 @@ import dev.halim.core.network.response.libraryitem.Metadata
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Serializable data class OpenSessionsResponse(@SerialName("sessions") val sessions: List<Session>)
+
 @Serializable
 data class SessionsResponse(
   @SerialName("total") val total: Int,

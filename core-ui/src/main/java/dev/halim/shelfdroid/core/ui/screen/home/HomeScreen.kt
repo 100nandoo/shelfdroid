@@ -69,6 +69,7 @@ fun HomeScreen(
   onSettingsClicked: () -> Unit,
   onSearchClicked: (String) -> Unit,
   onSessionClicked: () -> Unit,
+  onOpenSessionClicked: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size + 1
@@ -89,6 +90,7 @@ fun HomeScreen(
     onSettingsClicked,
     onSearchClicked,
     onSessionClicked,
+    onOpenSessionClicked,
   )
 }
 
@@ -104,6 +106,7 @@ fun HomeScreenContent(
   onSettingsClicked: () -> Unit = {},
   onSearchClicked: (String) -> Unit = {},
   onSessionClicked: () -> Unit = {},
+  onOpenSessionClicked: () -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
@@ -120,7 +123,7 @@ fun HomeScreenContent(
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
       }
       if (pagerState.pageCount - 1 == page) {
-        MiscScreen(onSessionClicked, onSettingsClicked)
+        MiscScreen(onOpenSessionClicked, onSessionClicked, onSettingsClicked)
       } else {
         val library = uiState.librariesUiState[page]
         LibraryContent(

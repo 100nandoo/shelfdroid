@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Listening session
 - [ ] User management
 - [ ] library management
 - [ ] API keys management
@@ -67,3 +66,5 @@
 - [x] add, delete episode
 - [x] Add episode filter
 - [x] Delete episode behaviour
+- [x] Listening session
+- [x] open sessions management

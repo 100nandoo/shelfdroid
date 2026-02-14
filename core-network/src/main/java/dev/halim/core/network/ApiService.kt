@@ -19,6 +19,7 @@ import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
+import dev.halim.core.network.response.OpenSessionsResponse
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SessionsResponse
@@ -145,6 +146,11 @@ interface ApiService {
 
   @POST("/api/sessions/batch/delete")
   suspend fun deleteSessions(@Body request: DeleteSessionsRequest): Result<Unit>
+
+  @GET("/api/sessions/open") suspend fun openSessions(): Result<OpenSessionsResponse>
+
+  @POST("/api/session/{sessionId}/close")
+  suspend fun closeSession(@Path("sessionId") sessionId: String): Result<Unit>
 
   // search
   @GET("/api/search/podcast")
