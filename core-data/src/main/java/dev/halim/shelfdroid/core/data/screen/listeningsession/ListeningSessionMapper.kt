@@ -26,10 +26,10 @@ constructor(private val helper: Helper, private val sessionMapper: SessionMapper
     val sessions = sessionMapper.sessions(response.sessions)
 
     return ListeningSessionUiState(
-      GenericState.Success,
-      ListeningSessionApiState.Idle,
-      sessions,
-      pageInfo,
+      state = GenericState.Success,
+      apiState = ListeningSessionApiState.Idle,
+      sessions = sessions,
+      pageInfo = pageInfo,
       userAndCountFilter = userAndCountFilter,
     )
   }
@@ -48,10 +48,10 @@ constructor(private val helper: Helper, private val sessionMapper: SessionMapper
     val userAndCountFilter = UserAndCountFilter(users = combineUsers, selectedUser = selectedUser)
 
     return ListeningSessionUiState(
-      GenericState.Success,
-      ListeningSessionApiState.Idle,
-      sessions,
-      pageInfo,
+      state = GenericState.Success,
+      apiState = ListeningSessionApiState.Idle,
+      sessions = sessions,
+      pageInfo = pageInfo,
       userAndCountFilter = userAndCountFilter,
     )
   }

@@ -32,13 +32,13 @@ fun LazyItemScope.ListeningSessionItem(
   isSelectionMode: Boolean = false,
   onClickedAction: () -> Unit = {},
   onLongClickedAction: () -> Unit = {},
-  showSheet: (ListeningSessionUiState.Session) -> Unit = {},
+  showSheet: () -> Unit = {},
 ) {
   val onClick = {
     if (isSelectionMode) {
       onClickedAction()
     } else {
-      showSheet(session)
+      showSheet()
     }
   }
   val onLongClick = {
@@ -48,7 +48,7 @@ fun LazyItemScope.ListeningSessionItem(
   }
   val clickModifier =
     if (enableSelection) Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
-    else Modifier.clickable { showSheet(session) }
+    else Modifier.clickable { showSheet() }
   Row(
     modifier =
       Modifier.animateItem()

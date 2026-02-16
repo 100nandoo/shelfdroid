@@ -76,12 +76,6 @@ private fun OpenSessionContent(
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   var selectedSession by remember { mutableStateOf(Session("")) }
 
-  val showSheet = { session: Session ->
-    selectedSession = session
-    scope.launch { sheetState.show() }
-    Unit
-  }
-
   ListeningSessionSheet(
     sheetState,
     selectedSession,
@@ -123,7 +117,10 @@ private fun OpenSessionContent(
             enableSelection = false,
             isSelected = false,
             isSelectionMode = false,
-            showSheet = showSheet,
+            showSheet = {
+              selectedSession = session
+              scope.launch { sheetState.show() }
+            },
           )
         }
       }

@@ -99,10 +99,6 @@ private fun ListeningSessionContent(
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   var selectedSession by remember { mutableStateOf(Session("")) }
 
-  val showSheet = { session: Session ->
-    scope.launch { sheetState.show() }
-    selectedSession = session
-  }
   val isDeleteDialogShown = remember { mutableStateOf(false) }
   var isFromSheet by remember { mutableStateOf(false) }
 
@@ -149,11 +145,7 @@ private fun ListeningSessionContent(
       }
       items(uiState.sessions, key = { it.id }) { session ->
         HorizontalDivider()
-        val isSelected =
-          remember(uiState.selection.selectedIds) {
-            uiState.selection.selectedIds.contains(session.id)
-          }
-
+        val isSelected = session.id in uiState.selection.selectedIds
         ListeningSessionItem(
           session,
           true,
@@ -161,7 +153,10 @@ private fun ListeningSessionContent(
           uiState.selection.isSelectionMode,
           { onEvent(ListeningSessionEvent.Select(session.id)) },
           { onEvent(ListeningSessionEvent.SelectionMode(true, session.id)) },
-          showSheet,
+          {
+            selectedSession = session
+            scope.launch { sheetState.show() }
+          },
         )
       }
     }
