@@ -19,11 +19,27 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun MiscScreen(
-  onOpenSessionClicked: () -> Unit = {},
-  onListeningSessionClicked: () -> Unit = {},
   onSettingsClicked: () -> Unit = {},
+  onListeningSessionClicked: () -> Unit = {},
+  onOpenSessionClicked: () -> Unit = {},
+  onUsersClicked: () -> Unit,
+  onLibrariesClicked: () -> Unit,
+  onApiKeysClicked: () -> Unit,
+  onServerSettingsClicked: () -> Unit,
+  onLogsClicked: () -> Unit,
+  onBackupsClicked: () -> Unit,
 ) {
-  MiscScreenContent(onOpenSessionClicked, onListeningSessionClicked, onSettingsClicked)
+  MiscScreenContent(
+    onSettingsClicked = onSettingsClicked,
+    onListeningSessionClicked = onListeningSessionClicked,
+    onOpenSessionClicked = onOpenSessionClicked,
+    onUsersClicked = onUsersClicked,
+    onLibrariesClicked = onLibrariesClicked,
+    onApiKeysClicked = onApiKeysClicked,
+    onServerSettingsClicked = onServerSettingsClicked,
+    onLogsClicked = onLogsClicked,
+    onBackupsClicked = onBackupsClicked,
+  )
 }
 
 @Composable
@@ -31,8 +47,56 @@ private fun MiscScreenContent(
   onOpenSessionClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   onSettingsClicked: () -> Unit = {},
+  onUsersClicked: () -> Unit = {},
+  onLibrariesClicked: () -> Unit = {},
+  onApiKeysClicked: () -> Unit = {},
+  onServerSettingsClicked: () -> Unit = {},
+  onLogsClicked: () -> Unit = {},
+  onBackupsClicked: () -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+    TextButton(
+      onClick = onBackupsClicked,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+      Text(text = stringResource(R.string.backups))
+    }
+
+    TextButton(
+      onClick = onLogsClicked,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+      Text(text = stringResource(R.string.logs))
+    }
+
+    TextButton(
+      onClick = onServerSettingsClicked,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+      Text(text = stringResource(R.string.server_settings))
+    }
+
+    TextButton(
+      onClick = onApiKeysClicked,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+      Text(text = stringResource(R.string.api_keys))
+    }
+
+    TextButton(
+      onClick = onLibrariesClicked,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+      Text(text = stringResource(R.string.libraries))
+    }
+
+    TextButton(
+      onClick = onUsersClicked,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    ) {
+      Text(text = stringResource(R.string.users))
+    }
+
     TextButton(
       onClick = onOpenSessionClicked,
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -60,5 +124,5 @@ private fun MiscScreenContent(
 @ShelfDroidPreview
 @Composable
 fun MiscScreenContentPreview() {
-  AnimatedPreviewWrapper(dynamicColor = true) { MiscScreenContent() }
+  AnimatedPreviewWrapper(dynamicColor = false) { MiscScreenContent() }
 }

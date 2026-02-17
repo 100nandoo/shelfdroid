@@ -70,6 +70,12 @@ fun HomeScreen(
   onSearchClicked: (String) -> Unit,
   onSessionClicked: () -> Unit,
   onOpenSessionClicked: () -> Unit,
+  onUsersClicked: () -> Unit,
+  onLibrariesClicked: () -> Unit,
+  onApiKeysClicked: () -> Unit,
+  onServerSettingsClicked: () -> Unit,
+  onLogsClicked: () -> Unit,
+  onBackupsClicked: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size + 1
@@ -91,6 +97,12 @@ fun HomeScreen(
     onSearchClicked,
     onSessionClicked,
     onOpenSessionClicked,
+    onUsersClicked,
+    onLibrariesClicked,
+    onApiKeysClicked,
+    onServerSettingsClicked,
+    onLogsClicked,
+    onBackupsClicked,
   )
 }
 
@@ -107,6 +119,12 @@ fun HomeScreenContent(
   onSearchClicked: (String) -> Unit = {},
   onSessionClicked: () -> Unit = {},
   onOpenSessionClicked: () -> Unit = {},
+  onUsersClicked: () -> Unit = {},
+  onLibrariesClicked: () -> Unit = {},
+  onApiKeysClicked: () -> Unit = {},
+  onServerSettingsClicked: () -> Unit = {},
+  onLogsClicked: () -> Unit = {},
+  onBackupsClicked: () -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
@@ -123,7 +141,17 @@ fun HomeScreenContent(
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
       }
       if (pagerState.pageCount - 1 == page) {
-        MiscScreen(onOpenSessionClicked, onSessionClicked, onSettingsClicked)
+        MiscScreen(
+          onOpenSessionClicked = onOpenSessionClicked,
+          onListeningSessionClicked = onSessionClicked,
+          onSettingsClicked = onSettingsClicked,
+          onUsersClicked = onUsersClicked,
+          onLibrariesClicked = onLibrariesClicked,
+          onApiKeysClicked = onApiKeysClicked,
+          onServerSettingsClicked = onServerSettingsClicked,
+          onLogsClicked = onLogsClicked,
+          onBackupsClicked = onBackupsClicked,
+        )
       } else {
         val library = uiState.librariesUiState[page]
         LibraryContent(
@@ -388,7 +416,6 @@ fun HomeScreenContentPreview() {
     HomeScreenContent(
       pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
       uiState = Defaults.HOME_UI_STATE,
-      onSessionClicked = {},
     )
   }
 }
@@ -400,7 +427,6 @@ fun HomeScreenContentDynamicPreview() {
     HomeScreenContent(
       pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
       uiState = Defaults.HOME_UI_STATE,
-      onSessionClicked = {},
     )
   }
 }
@@ -412,7 +438,6 @@ fun HomeScreenContentListPreview() {
     HomeScreenContent(
       pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
       uiState = Defaults.HOME_UI_STATE_LIST,
-      onSessionClicked = {},
     )
   }
 }
@@ -424,7 +449,6 @@ fun HomeScreenContentListDynamicPreview() {
     HomeScreenContent(
       pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
       uiState = Defaults.HOME_UI_STATE_LIST,
-      onSessionClicked = {},
     )
   }
 }

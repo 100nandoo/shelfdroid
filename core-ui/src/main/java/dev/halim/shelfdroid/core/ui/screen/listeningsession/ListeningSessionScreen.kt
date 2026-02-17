@@ -268,7 +268,7 @@ private fun UserAndCountFilter(
   Row(modifier = Modifier.padding(horizontal = 16.dp)) {
     ChipDropdownMenu(
       modifier = Modifier.weight(1f),
-      label = stringResource(R.string.users),
+      label = stringResource(R.string.users_semicolon),
       options = userAndCountFilter.users.mapNotNull { it.username },
       initialValue = userAndCountFilter.selectedUser.username ?: ALL_USERNAME,
       onClick = { selected ->

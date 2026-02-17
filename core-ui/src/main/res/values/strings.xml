@@ -112,13 +112,19 @@
     <!--Misc-->
     <string name="listening_sessions">Listening Sessions</string>
     <string name="open_sessions">Open Sessions</string>
+    <string name="users">Users</string>
+    <string name="libraries">Libraries</string>
+    <string name="api_keys">API Keys</string>
+    <string name="server_settings">Server Settings</string>
+    <string name="logs">Logs</string>
+    <string name="backups">Backups</string>
     <!--Misc-->
 
     <!--Listening Sessions-->
     <string name="items_per_page">Items per page</string>
     <string name="unknown">unknown</string>
     <string name="items">"items: "</string>
-    <string name="users">"users: "</string>
+    <string name="users_semicolon">"users: "</string>
     <string name="no_sessions_selected">No sessions selected</string>
     <string name="failed_to_delete_session">Session not found</string>
     <!--Listening Sessions-->

@@ -45,6 +45,7 @@ import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
+import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -73,6 +74,18 @@ import kotlinx.serialization.Serializable
 @Serializable object ListeningSession
 
 @Serializable object OpenSession
+
+@Serializable object UsersSettings
+
+@Serializable object Libraries
+
+@Serializable object ApiKeys
+
+@Serializable object ServerSettings
+
+@Serializable object Logs
+
+@Serializable object Backups
 
 @Composable
 fun MainNavigation(
@@ -134,6 +147,22 @@ private fun ColumnScope.NavHostContainer(
             onSearchClicked = { libraryId -> navController.navigate(SearchPodcast(libraryId)) },
             onSessionClicked = { navController.navigate(ListeningSession) },
             onOpenSessionClicked = { navController.navigate(OpenSession) },
+            onUsersClicked = { navController.navigate(UsersSettings) },
+            onLibrariesClicked = {
+              //              navController.navigate(Libraries)
+            },
+            onApiKeysClicked = {
+              // navController.navigate(ApiKeys)
+            },
+            onServerSettingsClicked = {
+              //              navController.navigate(ServerSettings)
+            },
+            onLogsClicked = {
+              //              navController.navigate(Logs)
+            },
+            onBackupsClicked = {
+              //              navController.navigate(Backups)
+            },
           )
         }
       }
@@ -224,6 +253,8 @@ private fun ColumnScope.NavHostContainer(
           OpenSessionScreen(snackbarHostState = snackbarHostState)
         }
       }
+
+      composable<UsersSettings> { UserSettingsScreen(snackbarHostState = snackbarHostState) }
     }
   }
 }
