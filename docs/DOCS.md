@@ -54,20 +54,40 @@ config:
 theme: dark
 ---
 flowchart LR
+    L[Login]
+    H[Home]
+    S[Settings]
+    SPo[Search Podcast]
+    P[Podcast]
     B[Book]
     E[Episode]
-    H[Home]
-    L[Login]
-    P[Podcast]
+    AE[Add Episode]
+    LS[Listening Session]
+    OS[Open Session]
+    US[Users Settings]
+    AP[Add Podcast]
+    SPB[Settings Playback]
+    STP[Settings Podcast]
+    SLS[Settings Listening Session]
     Pl[Player]
-    S[Settings]
     L --> H
-    H --> P
-    P --> E
-    H --> B
     H --> S
-class B, E, H, P, Pl primary
-classDef primary stroke: #FFC981
+    H --> P
+    H --> B
+    H --> SPo
+    H --> LS
+    H --> OS
+    H --> US
+    P --> E
+    P --> AE
+    SPo --> AP
+    AP --> P
+    S --> SPB
+    S --> STP
+    S --> SLS
+    S --> L
+    class H, P, B, E, Pl primary
+    classDef primary stroke: #FFC981
 ```
 
 </details>
@@ -87,4 +107,3 @@ HomeRepository.kt
 * Related to Data `ProgressRepo.kt`
 
 More documentation will be added in the future.
-

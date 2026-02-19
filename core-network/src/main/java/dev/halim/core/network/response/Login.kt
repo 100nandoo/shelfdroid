@@ -24,6 +24,7 @@ enum class UserType {
 data class User(
   @SerialName("id") val id: String = "",
   @SerialName("username") val username: String = "",
+  @SerialName("email") val email: String? = "",
   @SerialName("type") val type: UserType = UserType.UNKNOWN,
   @SerialName("token") val token: String = "",
   @SerialName("mediaProgress") val mediaProgress: List<MediaProgress> = listOf(),
@@ -39,6 +40,7 @@ data class User(
   @SerialName("itemTagsAccessible") val itemTagsAccessible: List<String> = listOf(),
   @SerialName("refreshToken") val refreshToken: String = "",
   @SerialName("accessToken") val accessToken: String = "",
+  @SerialName("latestSession") val latestSession: Session? = null,
 )
 
 @Serializable
@@ -71,6 +73,7 @@ data class Permissions(
   @SerialName("update") val update: Boolean = false,
   @SerialName("delete") val delete: Boolean = false,
   @SerialName("upload") val upload: Boolean = false,
+  @SerialName("createEreader") val createEreader: Boolean = false,
   @SerialName("accessAllLibraries") val accessAllLibraries: Boolean = false,
   @SerialName("accessAllTags") val accessAllTags: Boolean = false,
   @SerialName("accessExplicitContent") val accessExplicitContent: Boolean = false,

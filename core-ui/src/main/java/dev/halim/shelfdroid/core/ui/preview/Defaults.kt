@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.preview
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.Prefs
+import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
@@ -14,6 +15,7 @@ import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
+import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsUiState
 
 object Defaults {
   const val USERNAME = "testuser"
@@ -305,4 +307,33 @@ object Defaults {
 
   val LISTENING_SESSIONS =
     listOf(LISTENING_SESSION, LISTENING_SESSION.copy(id = "2"), LISTENING_SESSION.copy(id = "3"))
+
+  val USER_SETTINGS_LAST_SESSION =
+    UserSettingsUiState.LastSession(
+      title = "The Way of Kings",
+      timeRange = "10.00–11.00 AM, 30 January 2026",
+    )
+  val USER_SETTINGS_USER_ADMIN =
+    UserSettingsUiState.User(
+      id = "1",
+      username = "Brown",
+      type = UserType.Admin,
+      lastSeen = "36 minutes ago",
+      isActive = true,
+      lastSession = USER_SETTINGS_LAST_SESSION,
+    )
+
+  val USER_SETTINGS_USER_ROOT =
+    UserSettingsUiState.User(
+      id = "0",
+      username = "admin",
+      type = UserType.Root,
+      lastSeen = "about 1 hour ago",
+      isActive = true,
+      lastSession = USER_SETTINGS_LAST_SESSION,
+    )
+
+  val USER_SETTINGS_USERS = listOf(USER_SETTINGS_USER_ROOT, USER_SETTINGS_USER_ADMIN)
+
+  val USER_SETTINGS_UI_STATE = UserSettingsUiState(users = USER_SETTINGS_USERS)
 }

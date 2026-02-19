@@ -157,7 +157,8 @@ interface ApiService {
   suspend fun searchPodcast(@Query("term") term: String): Result<List<SearchPodcast>>
 
   // users
-  @GET("/api/users") suspend fun users(): Result<UsersResponse>
+  @GET("/api/users")
+  suspend fun users(@Query("include") include: String? = null): Result<UsersResponse>
 
   // podcasts
   @POST("/api/podcasts/feed")

@@ -17,20 +17,23 @@ class UserRepo @Inject constructor(db: MyDatabase, private val api: ApiService) 
 
   fun all(): List<UserEntity> = queries.all().executeAsList()
 
-  suspend fun remote() {
-    val response = api.users().getOrNull()
-    if (response != null) {
-      saveAndConvert(response)
-    }
+  suspend fun remote(include: String? = null): Result<UsersResponse> {
+    return fetch(include)
   }
 
-  private fun saveAndConvert(usersResponse: UsersResponse): List<UserEntity> {
+  private suspend fun fetch(include: String? = null): Result<UsersResponse> {
+    val result = api.users(include)
+    val response = result.getOrNull()
+    if (response != null) save(response)
+    return result
+  }
+
+  private fun save(usersResponse: UsersResponse) {
     val entities = usersResponse.users.map { toEntity(it) }
     repoScope.launch {
       cleanup(entities)
       entities.forEach { entity -> queries.insert(entity) }
     }
-    return entities
   }
 
   private fun cleanup(entities: List<UserEntity>) {
