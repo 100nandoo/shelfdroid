@@ -15,6 +15,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -33,8 +34,15 @@ fun UserSettingsScreen(
   viewModel: UserSettingsViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
   onUserClicked: (NavUsersSettingsEditUser) -> Unit = {},
+  result: String? = null,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+  LaunchedEffect(result) {
+    if (result != null) {
+      viewModel.onEvent(UserSettingsEvent.UpdateUser(result))
+    }
+  }
 
   UserSettingsContent(uiState = uiState, onEvent = viewModel::onEvent, onUserClicked)
 }

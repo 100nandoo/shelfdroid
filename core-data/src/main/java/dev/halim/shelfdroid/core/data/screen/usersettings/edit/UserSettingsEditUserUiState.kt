@@ -5,5 +5,6 @@ import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 
 data class UserSettingsEditUserUiState(
   val state: GenericState = GenericState.Loading,
+  val apiState: GenericState = GenericState.Idle,
   val editUser: NavUsersSettingsEditUser = NavUsersSettingsEditUser(),
 )

@@ -62,7 +62,7 @@ fun LazyItemScope.UserSettingsItem(
         Text(
           user.lastSession.title,
           style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          color = MaterialTheme.colorScheme.onSurfaceVariant.enable(user.isActive),
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
         )
@@ -71,7 +71,7 @@ fun LazyItemScope.UserSettingsItem(
         Text(
           user.lastSeen,
           style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          color = MaterialTheme.colorScheme.onSurfaceVariant.enable(user.isActive),
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
         )

@@ -11,6 +11,7 @@ import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
+import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.Episode
@@ -24,6 +25,7 @@ import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
+import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UsersResponse
 import dev.halim.core.network.response.play.PlayResponse
@@ -158,7 +160,13 @@ interface ApiService {
 
   // users
   @GET("/api/users")
-  suspend fun users(@Query("include") include: String? = null): Result<UsersResponse>
+  suspend fun users(@Query("include") include: String? = "latestSession"): Result<UsersResponse>
+
+  @PATCH("/api/users/{userId}")
+  suspend fun updateUser(
+    @Path("userId") userId: String,
+    @Body request: UpdateUserRequest,
+  ): Result<UpdateUserResponse>
 
   // podcasts
   @POST("/api/podcasts/feed")

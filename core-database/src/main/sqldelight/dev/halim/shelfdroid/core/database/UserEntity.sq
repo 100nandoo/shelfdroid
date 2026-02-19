@@ -1,10 +1,23 @@
+import dev.halim.shelfdroid.core.UserType;
+
 CREATE TABLE UserEntity(
   id TEXT PRIMARY KEY NOT NULL,
-  username TEXT NOT NULL
+  username TEXT NOT NULL,
+  email TEXT NOT NULL,
+  type TEXT AS UserType NOT NULL,
+  isActive INTEGER NOT NULL,
+  lastSeen INTEGER,
+  latestSession TEXT,
+  permissions TEXT NOT NULL
 );
 
+byId:
+SELECT *
+FROM UserEntity
+WHERE id = :id;
+
 insert:
-INSERT OR REPLACE INTO UserEntity(id, username)
+INSERT OR REPLACE INTO UserEntity(id, username, email, type, isActive, lastSeen, latestSession, permissions)
 VALUES ?;
 
 allIds:

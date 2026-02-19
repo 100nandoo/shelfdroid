@@ -43,6 +43,8 @@ sqldelight {
 }
 
 dependencies {
+  implementation(project(libs.versions.core.get()))
+
   // Arch Components
   implementation(libs.hilt.android)
   kapt(libs.hilt.compiler)

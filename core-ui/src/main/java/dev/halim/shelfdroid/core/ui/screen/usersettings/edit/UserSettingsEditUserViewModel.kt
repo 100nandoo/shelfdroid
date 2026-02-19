@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class UserSettingsEditUserViewModel
@@ -35,6 +36,13 @@ constructor(
       is UserSettingsEditUserEvent.Update -> {
         _uiState.update { it.copy(editUser = event.transform(it.editUser)) }
       }
+
+      UserSettingsEditUserEvent.Submit -> {
+        viewModelScope.launch {
+          _uiState.update { it.copy(apiState = GenericState.Loading) }
+          _uiState.update { repository.updateUser(_uiState.value) }
+        }
+      }
     }
   }
 
@@ -50,4 +58,6 @@ sealed interface UserSettingsEditUserEvent {
 
   data class Update(val transform: (NavUsersSettingsEditUser) -> NavUsersSettingsEditUser) :
     UserSettingsEditUserEvent
+
+  data object Submit : UserSettingsEditUserEvent
 }

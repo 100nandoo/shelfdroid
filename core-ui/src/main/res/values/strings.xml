@@ -144,7 +144,12 @@
     <string name="access_all_libraries">Access All Libraries</string>
     <string name="access_all_tags">Access All Tags</string>
     <string name="change_root_password">Change Root Password</string>
+    <!--User Settings-->
+
+    <!--User Settings Edit User-->
     <string name="account_type">Account Type</string>
+    <string name="user_updated">User updated.</string>
+    <string name="update_user_failed">Update user failed.</string>
     <!--User Settings-->
 
     <!--Book-->
@@ -238,6 +243,5 @@
     <string name="download">Download</string>
     <string name="delete">Delete</string>
     <string name="enable">Enable</string>
-
     <!--Others-->
 </resources>

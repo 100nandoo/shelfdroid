@@ -6,18 +6,14 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -30,6 +26,7 @@ import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MySnackbarHost
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
@@ -124,10 +121,8 @@ private fun ColumnScope.NavHostContainer(
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
   Box(Modifier.weight(1f)) {
-    SnackbarHost(
-      hostState = snackbarHostState,
-      modifier = Modifier.align(Alignment.TopCenter).imePadding().zIndex(1f),
-    )
+    MySnackbarHost(snackbarHostState = snackbarHostState)
+
     NavHost(navController = navController, startDestination = startDestination) {
       composable<Login> {
         LoginScreen(
@@ -256,14 +251,30 @@ private fun ColumnScope.NavHostContainer(
         }
       }
 
-      composable<UsersSettings> {
+      composable<UsersSettings> { entry ->
+        val result = entry.savedStateHandle.get<String>(NavResultKey.UPDATE_USER)
+
         UserSettingsScreen(
           snackbarHostState = snackbarHostState,
           onUserClicked = { navController.navigate(it) },
+          result = result,
         )
+        if (result != null) {
+          entry.savedStateHandle.remove<String>(NavResultKey.UPDATE_USER)
+        }
       }
 
-      composable<NavUsersSettingsEditUser> { UserSettingsEditUserScreen() }
+      composable<NavUsersSettingsEditUser> {
+        UserSettingsEditUserScreen(
+          snackbarHostState = snackbarHostState,
+          onUpdateSuccess = { userId ->
+            navController.previousBackStackEntry
+              ?.savedStateHandle
+              ?.set(NavResultKey.UPDATE_USER, userId)
+            navController.popBackStack()
+          },
+        )
+      }
     }
   }
 }

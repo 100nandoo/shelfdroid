@@ -13,10 +13,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -33,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.UserType
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.UserSettingsEditUserUiState
 import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 import dev.halim.shelfdroid.core.ui.R
@@ -40,15 +45,40 @@ import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
+import dev.halim.shelfdroid.core.ui.components.VisibilityDown
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
+import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSwitchItem
+import kotlinx.coroutines.launch
 
 @Composable
-fun UserSettingsEditUserScreen(viewModel: UserSettingsEditUserViewModel = hiltViewModel()) {
+fun UserSettingsEditUserScreen(
+  viewModel: UserSettingsEditUserViewModel = hiltViewModel(),
+  snackbarHostState: SnackbarHostState,
+  onUpdateSuccess: (String) -> Unit,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
   UserSettingsEditUserContent(uiState = uiState, onEvent = viewModel::onEvent)
+
+  val scope = rememberCoroutineScope()
+  val successMessage = stringResource(R.string.user_updated)
+  val errorMessage = stringResource(R.string.update_user_failed)
+
+  LaunchedEffect(uiState.apiState) {
+    when (val state = uiState.apiState) {
+      is GenericState.Success -> {
+        scope.launch { snackbarHostState.showSuccessSnackbar(successMessage) }
+        onUpdateSuccess(uiState.editUser.id)
+      }
+      is GenericState.Failure -> {
+        scope.launch { snackbarHostState.showErrorSnackbar(state.errorMessage ?: errorMessage) }
+      }
+      else -> Unit
+    }
+  }
 }
 
 @Composable
@@ -61,6 +91,10 @@ private fun UserSettingsEditUserContent(
   val scrollState = rememberScrollState()
 
   Column(Modifier.padding(horizontal = 16.dp).verticalScroll(scrollState)) {
+    VisibilityDown(uiState.apiState is GenericState.Loading) {
+      LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+    }
+
     InfoSection(uiState, onEvent)
 
     if (isNotRoot) {
@@ -85,9 +119,13 @@ private fun UserSettingsEditUserContent(
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    Button(onClick = {}, modifier = Modifier.align(Alignment.End)) {
+    Button(
+      onClick = { onEvent(UserSettingsEditUserEvent.Submit) },
+      modifier = Modifier.align(Alignment.End),
+    ) {
       Text(stringResource(R.string.submit))
     }
+    Spacer(modifier = Modifier.height(16.dp))
   }
 }
 
