@@ -43,6 +43,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
@@ -60,7 +61,7 @@ fun LoginScreen(
   LaunchedEffect(uiState.loginState) {
     when (val state = uiState.loginState) {
       is GenericState.Failure -> {
-        state.errorMessage?.let { scope.launch { snackbarHostState.showSnackbar(it) } }
+        state.errorMessage?.let { scope.launch { snackbarHostState.showErrorSnackbar(it) } }
         viewModel.onEvent(LoginEvent.ErrorShown)
       }
 

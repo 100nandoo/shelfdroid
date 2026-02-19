@@ -48,6 +48,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
 import dev.halim.shelfdroid.core.ui.components.VisibilityCircular
 import dev.halim.shelfdroid.core.ui.components.VisibilityUp
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.mySharedElement
@@ -71,7 +72,7 @@ fun AddEpisodeScreen(
         onDownloadEpisodeSuccess()
       }
       is Failure -> {
-        state.errorMessage?.let { scope.launch { snackbarHostState.showSnackbar(it) } }
+        state.errorMessage?.let { scope.launch { snackbarHostState.showErrorSnackbar(it) } }
       }
       else -> Unit
     }

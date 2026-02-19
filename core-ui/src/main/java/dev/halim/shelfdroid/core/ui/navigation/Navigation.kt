@@ -27,6 +27,7 @@ import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MySnackbarHost
+import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
@@ -229,7 +230,7 @@ private fun ColumnScope.NavHostContainer(
 
         AddPodcastScreen(
           onCreateSuccess = { result ->
-            scope.launch { snackbarHostState.showSnackbar(message) }
+            scope.launch { snackbarHostState.showSuccessSnackbar(message) }
 
             navController.previousBackStackEntry
               ?.savedStateHandle

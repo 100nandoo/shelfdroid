@@ -59,6 +59,7 @@ import dev.halim.shelfdroid.core.ui.components.ListItemAction
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.LISTENING_SESSIONS
@@ -80,7 +81,7 @@ fun ListeningSessionScreen(
   LaunchedEffect(uiState.apiState) {
     when (val state = uiState.apiState) {
       is ListeningSessionApiState.DeleteFailure -> {
-        scope.launch { snackbarHostState.showSnackbar(state.message ?: deleteFailureMessage) }
+        scope.launch { snackbarHostState.showErrorSnackbar(state.message ?: deleteFailureMessage) }
       }
       else -> Unit
     }

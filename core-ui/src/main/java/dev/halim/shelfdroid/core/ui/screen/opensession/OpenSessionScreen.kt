@@ -36,6 +36,7 @@ import dev.halim.shelfdroid.core.data.screen.opensession.OpenSessionUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ListItemAction
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.LISTENING_SESSIONS
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -60,7 +61,7 @@ fun OpenSessionScreen(
   LaunchedEffect(uiState.apiState) {
     when (uiState.apiState) {
       is OpenSessionApiState.CloseFailure -> {
-        scope.launch { snackbarHostState.showSnackbar(closeFailureMessage) }
+        scope.launch { snackbarHostState.showErrorSnackbar(closeFailureMessage) }
       }
       else -> Unit
     }

@@ -21,6 +21,10 @@
     - [ ] Choose custom Commands
     - [ ] Disable animation
 
+## Tech Debt
+
+- [ ] Use boolean to long and vice versa extension functions
+
 ## Bugs
 
 ## Done

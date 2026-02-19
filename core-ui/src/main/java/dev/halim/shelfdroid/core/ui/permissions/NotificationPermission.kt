@@ -12,6 +12,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
@@ -41,16 +42,14 @@ fun rememberNotificationPermissionHandler(
       }
     }
 
+  val message = stringResource(R.string.permission_required)
+  val actionLabel = stringResource(R.string.go_to_settings)
   return {
     when {
       state == null || state.status == PermissionStatus.Granted -> onPermissionGranted()
       state.status.shouldShowRationale -> {
         scope.launch {
-          val result =
-            snackbarHostState.showSnackbar(
-              message = context.getString(R.string.permission_required),
-              actionLabel = context.getString(R.string.go_to_settings),
-            )
+          val result = snackbarHostState.showSnackbar(message = message, actionLabel = actionLabel)
           if (result == SnackbarResult.ActionPerformed) {
             val intent =
               Intent(

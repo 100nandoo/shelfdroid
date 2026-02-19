@@ -46,6 +46,8 @@ import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.ListDeleteButton
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
 import dev.halim.shelfdroid.core.ui.components.VisibilityCircular
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
+import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
@@ -75,10 +77,10 @@ fun PodcastScreen(
         onFetchEpisodeSuccess(viewModel.id)
       }
       is PodcastApiState.AddFailure -> {
-        scope.launch { snackbarHostState.showSnackbar(state.message) }
+        scope.launch { snackbarHostState.showErrorSnackbar(state.message) }
       }
       is PodcastApiState.DeleteFailure -> {
-        scope.launch { snackbarHostState.showSnackbar(state.message) }
+        scope.launch { snackbarHostState.showErrorSnackbar(state.message) }
         viewModel.onEvent(PodcastEvent.SelectionMode(false, ""))
       }
       is PodcastApiState.DeleteSuccess -> {
@@ -88,7 +90,7 @@ fun PodcastScreen(
             state.size,
             state.size,
           )
-        scope.launch { snackbarHostState.showSnackbar(message) }
+        scope.launch { snackbarHostState.showSuccessSnackbar(message) }
         viewModel.onEvent(PodcastEvent.SelectionMode(false, ""))
       }
       else -> Unit
