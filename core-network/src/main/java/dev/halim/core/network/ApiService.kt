@@ -25,6 +25,7 @@ import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
+import dev.halim.core.network.response.TagsResponse
 import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UsersResponse
@@ -187,4 +188,7 @@ interface ApiService {
     @Path("episodeId") episodeId: String,
     @Query("hard") hard: Int = 0,
   ): Result<Unit>
+
+  // tags
+  @GET("/api/tags") suspend fun tags(): Result<TagsResponse>
 }

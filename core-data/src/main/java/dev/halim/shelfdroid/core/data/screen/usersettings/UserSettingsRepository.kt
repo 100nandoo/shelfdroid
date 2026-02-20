@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.usersettings
 
 import android.text.format.DateUtils
-import dev.halim.core.network.response.Permissions
+import dev.halim.core.network.response.Permissions as NetworkPermissions
 import dev.halim.core.network.response.Session
 import dev.halim.core.network.response.User as NetworkUser
 import dev.halim.shelfdroid.core.UserType
@@ -61,43 +61,32 @@ constructor(private val userRepo: UserRepo, private val helper: Helper, private 
   }
 
   private fun navPayload(user: NetworkUser): NavUsersSettingsEditUser {
+    val permissions = json.encodeToString(NetworkPermissions.serializer(), user.permissions)
     return NavUsersSettingsEditUser(
       id = user.id,
       username = user.username,
       email = user.email ?: "",
       type = UserType.toUserType(user.type.name),
       isActive = user.isActive,
-      download = user.permissions.download,
-      update = user.permissions.update,
-      delete = user.permissions.delete,
-      upload = user.permissions.upload,
-      createEReader = user.permissions.createEreader,
-      accessExplicit = user.permissions.accessExplicitContent,
-      accessAllLibraries = user.permissions.accessAllLibraries,
-      accessAllTags = user.permissions.accessAllTags,
       librariesAccessible = user.librariesAccessible,
       itemTagsAccessible = user.itemTagsSelected,
+      permissions = permissions,
+      invert = user.permissions.selectedTagsNotAccessible,
     )
   }
 
   private fun navPayload(entity: UserEntity): NavUsersSettingsEditUser {
-    val permissions = Json.decodeFromString(Permissions.serializer(), entity.permissions)
+    val permissions = Json.decodeFromString(NetworkPermissions.serializer(), entity.permissions)
     return NavUsersSettingsEditUser(
       id = entity.id,
       username = entity.username,
       email = entity.email,
       type = UserType.toUserType(entity.type.name),
       isActive = entity.isActive.toBoolean(),
-      download = permissions.download,
-      update = permissions.update,
-      delete = permissions.delete,
-      upload = permissions.upload,
-      createEReader = permissions.createEreader,
-      accessExplicit = permissions.accessExplicitContent,
-      accessAllLibraries = permissions.accessAllLibraries,
-      accessAllTags = permissions.accessAllTags,
       librariesAccessible = entity.librariesAccessible,
       itemTagsAccessible = entity.itemTagsAccessible,
+      permissions = entity.permissions,
+      invert = permissions.selectedTagsNotAccessible,
     )
   }
 

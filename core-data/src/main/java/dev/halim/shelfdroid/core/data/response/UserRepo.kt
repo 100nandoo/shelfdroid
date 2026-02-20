@@ -66,6 +66,7 @@ constructor(db: MyDatabase, private val api: ApiService, private val json: Json)
             type = UserType.toUserType(user.type.name),
             isActive = user.isActive.toLong(),
             permissions = permissions,
+            itemTagsAccessible = user.itemTagsSelected,
           )
         queries.insert(new)
       }

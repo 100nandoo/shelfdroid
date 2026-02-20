@@ -77,6 +77,7 @@ data class Permissions(
   @SerialName("accessAllLibraries") val accessAllLibraries: Boolean = false,
   @SerialName("accessAllTags") val accessAllTags: Boolean = false,
   @SerialName("accessExplicitContent") val accessExplicitContent: Boolean = false,
+  @SerialName("selectedTagsNotAccessible") val selectedTagsNotAccessible: Boolean = false,
 )
 
 @Serializable

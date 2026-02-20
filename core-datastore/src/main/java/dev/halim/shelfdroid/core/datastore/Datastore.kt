@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.DisplayPrefs
@@ -37,6 +38,8 @@ private object Keys {
   val PLAYBACK_PREFS = stringPreferencesKey("playback_prefs")
   val CRUD_PREFS = stringPreferencesKey("crud_prefs")
   val LISTENING_SESSION_PREFS = stringPreferencesKey("listening_session_prefs")
+
+  val TAGS = stringSetPreferencesKey("tags")
 }
 
 private fun <T> DataStore<Preferences>.preferenceFlow(
@@ -203,6 +206,10 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
     val updated = userPrefs.first().copy(refreshToken = newToken)
     updateUserPrefs(updated)
   }
+
+  val tags: Flow<Set<String>> = dataStore.preferenceFlow(Keys.TAGS, emptySet())
+
+  suspend fun updateTags(tags: Set<String>) = dataStore.updatePreference(Keys.TAGS, tags)
 
   suspend fun clear() = dataStore.edit { preferences -> preferences.clear() }
 }

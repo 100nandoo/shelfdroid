@@ -22,10 +22,10 @@ import kotlinx.coroutines.launch
 class UserSettingsEditUserViewModel
 @Inject
 constructor(
-  private val savedStateHandle: SavedStateHandle,
+  savedStateHandle: SavedStateHandle,
   private val repository: UserSettingsEditUserRepository,
 ) : ViewModel() {
-  private val _uiState = MutableStateFlow(initUiState())
+  private val _uiState = MutableStateFlow(repository.item(savedStateHandle.toRoute()))
   val uiState: StateFlow<UserSettingsEditUserUiState> =
     _uiState
       .asStateFlow()
@@ -36,6 +36,9 @@ constructor(
       is UserSettingsEditUserEvent.Update -> {
         _uiState.update { it.copy(editUser = event.transform(it.editUser)) }
       }
+      is UserSettingsEditUserEvent.UpdateUiState -> {
+        _uiState.update { event.transform(it) }
+      }
 
       UserSettingsEditUserEvent.Submit -> {
         viewModelScope.launch {
@@ -45,19 +48,16 @@ constructor(
       }
     }
   }
-
-  private fun initUiState(): UserSettingsEditUserUiState {
-    return UserSettingsEditUserUiState(
-      state = GenericState.Success,
-      editUser = savedStateHandle.toRoute(),
-    )
-  }
 }
 
 sealed interface UserSettingsEditUserEvent {
 
   data class Update(val transform: (NavUsersSettingsEditUser) -> NavUsersSettingsEditUser) :
     UserSettingsEditUserEvent
+
+  data class UpdateUiState(
+    val transform: (UserSettingsEditUserUiState) -> UserSettingsEditUserUiState
+  ) : UserSettingsEditUserEvent
 
   data object Submit : UserSettingsEditUserEvent
 }

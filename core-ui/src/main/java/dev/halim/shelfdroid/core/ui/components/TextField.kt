@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -172,7 +173,7 @@ fun DropdownOutlinedTextField(
       onValueChange = {},
       readOnly = true,
       label = { Text(label) },
-      placeholder = if (selectedOptions.isEmpty()) placeholder?.let { { Text(it) } } else null,
+      placeholder = placeholder?.let { { Text(it) } },
       trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
       prefix =
         if (selectedOptions.isNotEmpty()) {
@@ -185,8 +186,9 @@ fun DropdownOutlinedTextField(
                   label = { Text(option) },
                   trailingIcon = {
                     IconButton(
-                      modifier = Modifier.size(18.dp),
-                      onClick = { onOptionRemoved(option) },
+                      modifier =
+                        Modifier.size(18.dp).pointerInput(Unit) { onOptionRemoved(option) },
+                      onClick = {},
                     ) {
                       Icon(
                         painter = painterResource(R.drawable.close),

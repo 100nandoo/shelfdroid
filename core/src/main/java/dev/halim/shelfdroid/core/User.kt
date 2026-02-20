@@ -19,6 +19,14 @@ enum class UserType {
     }
 
     val editTypes = listOf(Admin, User, Guest)
+
+    fun permissions(userType: UserType): Permissions {
+      return when (userType) {
+        UserType.Admin -> Permissions.AdminPermissions
+        UserType.User -> Permissions.UserPermissions
+        else -> Permissions.GuestPermissions
+      }
+    }
   }
 
   fun isAdmin(): Boolean = this == Admin

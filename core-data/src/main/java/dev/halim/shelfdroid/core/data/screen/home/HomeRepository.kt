@@ -11,6 +11,7 @@ import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.data.response.TagRepo
 import dev.halim.shelfdroid.core.data.response.UserRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import javax.inject.Inject
@@ -29,6 +30,7 @@ constructor(
   private val bookmarkRepo: BookmarkRepo,
   private val libraryRepo: LibraryRepo,
   private val userRepo: UserRepo,
+  private val tagRepo: TagRepo,
   private val mapper: HomeMapper,
   private val prefsRepository: PrefsRepository,
   private val appScope: CoroutineScope,
@@ -78,6 +80,7 @@ constructor(
 
   private fun backgroundRemoteSync() {
     appScope.launch { userRepo.remote() }
+    appScope.launch { tagRepo.remote() }
   }
 
   suspend fun getUser() {

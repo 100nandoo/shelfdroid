@@ -192,7 +192,14 @@ private fun NonRootSection(
     stringResource(R.string.account_type),
     uiState.editUser.type.name,
     { selection ->
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(type = UserType.valueOf(selection)) })
+      val userType = UserType.valueOf(selection)
+      val permissions = UserType.permissions(userType)
+      onEvent(
+        UserSettingsEditUserEvent.UpdateUiState {
+          val editUser = it.editUser.copy(type = userType)
+          it.copy(editUser = editUser, permissions = permissions)
+        }
+      )
     },
   )
 
@@ -208,113 +215,174 @@ private fun NonRootSection(
 
   HorizontalDivider(Modifier.padding(vertical = 16.dp))
 
-  PermissionSection(uiState.editUser, onEvent)
+  PermissionSection(uiState, onEvent)
 }
 
 @Composable
 fun PermissionSection(
-  editUser: NavUsersSettingsEditUser,
+  uiState: UserSettingsEditUserUiState,
   onEvent: (UserSettingsEditUserEvent) -> Unit,
 ) {
   TextTitleMedium(text = stringResource(R.string.permissions))
   SettingsSwitchItem(
     title = stringResource(R.string.download),
-    checked = editUser.download,
+    checked = uiState.permissions.download,
     contentDescription = stringResource(R.string.download),
-    onCheckedChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(download = it.download.not()) })
+    onCheckedChange = { checked ->
+      onEvent(
+        UserSettingsEditUserEvent.UpdateUiState {
+          val permissions = it.permissions.copy(download = checked)
+          it.copy(permissions = permissions)
+        }
+      )
     },
   )
   SettingsSwitchItem(
     title = stringResource(R.string.update),
-    checked = editUser.update,
+    checked = uiState.permissions.update,
     contentDescription = stringResource(R.string.update),
-    onCheckedChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(update = it.update.not()) })
+    onCheckedChange = { checked ->
+      onEvent(
+        UserSettingsEditUserEvent.UpdateUiState {
+          val permissions = it.permissions.copy(update = checked)
+          it.copy(permissions = permissions)
+        }
+      )
     },
   )
   SettingsSwitchItem(
     title = stringResource(R.string.delete),
-    checked = editUser.delete,
+    checked = uiState.permissions.delete,
     contentDescription = stringResource(R.string.delete),
-    onCheckedChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(delete = it.delete.not()) })
+    onCheckedChange = { checked ->
+      onEvent(
+        UserSettingsEditUserEvent.UpdateUiState {
+          val permissions = it.permissions.copy(delete = checked)
+          it.copy(permissions = permissions)
+        }
+      )
     },
   )
   SettingsSwitchItem(
     title = stringResource(R.string.upload),
-    checked = editUser.upload,
+    checked = uiState.permissions.upload,
     contentDescription = stringResource(R.string.upload),
-    onCheckedChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(upload = it.upload.not()) })
+    onCheckedChange = { checked ->
+      onEvent(
+        UserSettingsEditUserEvent.UpdateUiState {
+          val permissions = it.permissions.copy(upload = checked)
+          it.copy(permissions = permissions)
+        }
+      )
     },
   )
   SettingsSwitchItem(
     title = stringResource(R.string.create_ereader),
-    checked = editUser.createEReader,
+    checked = uiState.permissions.createEReader,
     contentDescription = stringResource(R.string.create_ereader),
-    onCheckedChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(createEReader = it.createEReader.not()) })
+    onCheckedChange = { checked ->
+      onEvent(
+        UserSettingsEditUserEvent.UpdateUiState {
+          val permissions = it.permissions.copy(createEReader = checked)
+          it.copy(permissions = permissions)
+        }
+      )
     },
   )
   SettingsSwitchItem(
     title = stringResource(R.string.access_explicit_content),
-    checked = editUser.accessExplicit,
+    checked = uiState.permissions.accessExplicit,
     contentDescription = stringResource(R.string.access_explicit_content),
-    onCheckedChange = {
+    onCheckedChange = { checked ->
       onEvent(
-        UserSettingsEditUserEvent.Update { it.copy(accessExplicit = it.accessExplicit.not()) }
+        UserSettingsEditUserEvent.UpdateUiState {
+          val permissions = it.permissions.copy(accessExplicit = checked)
+          it.copy(permissions = permissions)
+        }
       )
     },
   )
   SettingsSwitchItem(
     title = stringResource(R.string.access_all_libraries),
-    checked = editUser.accessAllLibraries,
+    checked = uiState.permissions.accessAllLibraries,
     contentDescription = stringResource(R.string.access_all_libraries),
-    onCheckedChange = {
+    onCheckedChange = { checked ->
       onEvent(
-        UserSettingsEditUserEvent.Update {
-          it.copy(accessAllLibraries = it.accessAllLibraries.not())
+        UserSettingsEditUserEvent.UpdateUiState {
+          val permissions = it.permissions.copy(accessAllLibraries = checked)
+          it.copy(permissions = permissions)
         }
       )
     },
   )
 
-  TagsSection(editUser, onEvent)
+  TagsSection(uiState, onEvent)
 }
 
 @Composable
 private fun TagsSection(
-  editUser: NavUsersSettingsEditUser,
+  uiState: UserSettingsEditUserUiState,
   onEvent: (UserSettingsEditUserEvent) -> Unit,
 ) {
   SettingsSwitchItem(
     title = stringResource(R.string.access_all_tags),
-    checked = editUser.accessAllTags,
+    checked = uiState.permissions.accessAllTags,
     contentDescription = stringResource(R.string.access_all_tags),
-    onCheckedChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(accessAllTags = it.accessAllTags.not()) })
+    onCheckedChange = { selection ->
+      if (selection) {
+        onEvent(
+          UserSettingsEditUserEvent.UpdateUiState {
+            val permissions = it.permissions.copy(accessAllTags = selection)
+            val editUser = it.editUser.copy(itemTagsAccessible = emptyList())
+            it.copy(editUser = editUser, permissions = permissions)
+          }
+        )
+      } else {
+        onEvent(
+          UserSettingsEditUserEvent.UpdateUiState {
+            val permissions = it.permissions.copy(accessAllTags = selection)
+            it.copy(permissions = permissions)
+          }
+        )
+      }
     },
   )
-  AnimatedVisibility(editUser.accessAllTags.not()) {
+  AnimatedVisibility(uiState.permissions.accessAllTags.not()) {
     Column {
-      val options = listOf("Fiction", "Science", "History", "Fantasy")
       DropdownOutlinedTextField(
-        selectedOptions = options,
-        onOptionToggled = {},
-        onOptionRemoved = {},
-        label = "Select Tags",
-        options = options,
+        selectedOptions = uiState.editUser.itemTagsAccessible.sorted(),
+        onOptionToggled = { tag ->
+          onEvent(
+            UserSettingsEditUserEvent.Update { state ->
+              state.copy(
+                itemTagsAccessible =
+                  if (tag in state.itemTagsAccessible) {
+                    state.itemTagsAccessible - tag
+                  } else {
+                    state.itemTagsAccessible + tag
+                  }
+              )
+            }
+          )
+        },
+        onOptionRemoved = { tag ->
+          onEvent(
+            UserSettingsEditUserEvent.Update {
+              it.copy(itemTagsAccessible = it.itemTagsAccessible - tag)
+            }
+          )
+        },
+        label = stringResource(R.string.tags_accessible_to_user),
+        options = uiState.tags,
+        placeholder = stringResource(R.string.select_tags),
       )
 
       SettingsSwitchItem(
         title = stringResource(R.string.invert),
-        checked = editUser.accessAllTags,
+        checked = uiState.editUser.invert,
         contentDescription = stringResource(R.string.invert),
         onCheckedChange = {
-          onEvent(
-            UserSettingsEditUserEvent.Update { it.copy(accessAllTags = it.accessAllTags.not()) }
-          )
+          onEvent(UserSettingsEditUserEvent.Update { it.copy(invert = it.invert.not()) })
         },
       )
     }
