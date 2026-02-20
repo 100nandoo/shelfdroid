@@ -7,6 +7,7 @@ import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
@@ -34,7 +35,7 @@ constructor(
 
     return combine(bookFlow, progressFlow, download) { book, progress, _ ->
       book
-        ?.takeIf { it.isBook == 1L }
+        ?.takeIf { it.isBook.toBoolean() }
         ?.let {
           val media = Json.decodeFromString<Book>(book.media)
           val subtitle = media.metadata.subtitle ?: ""

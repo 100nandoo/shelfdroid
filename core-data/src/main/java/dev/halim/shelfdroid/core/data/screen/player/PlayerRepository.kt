@@ -15,6 +15,7 @@ import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import java.util.UUID
@@ -163,7 +164,7 @@ constructor(
   ): PlayerUiState {
     val result = libraryItemRepo.byId(itemId)
     val progress = progressRepo.episodeById(episodeId)
-    return if (result != null && result.isBook == 0L) {
+    return if (result != null && result.isBook.toBoolean().not()) {
       val media = Json.decodeFromString<Podcast>(result.media)
 
       val episode =
@@ -183,7 +184,8 @@ constructor(
       val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }
       val advancedControl = decideAdvanceControl(existing, changeBehaviour)
 
-      val currentTime = if (progress?.isFinished == 1L) 0.0 else progress?.currentTime ?: 0.0
+      val currentTime =
+        if (progress?.isFinished?.toBoolean() == true) 0.0 else progress?.currentTime ?: 0.0
 
       PlayerUiState(
         state = PlayerState.Small,

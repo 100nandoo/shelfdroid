@@ -11,6 +11,7 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
+import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
@@ -148,7 +149,7 @@ constructor(
         .map { it.id }
     val newEpisodeIds =
       entities
-        .filter { it.isBook == 0L }
+        .filter { it.isBook.toBoolean().not() }
         .map { Json.decodeFromString<Podcast>(it.media) }
         .flatMap { it.episodes }
         .map { it.id }

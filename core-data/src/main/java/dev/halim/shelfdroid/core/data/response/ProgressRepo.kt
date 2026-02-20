@@ -7,6 +7,7 @@ import dev.halim.core.network.response.MediaProgress
 import dev.halim.core.network.response.User
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.ProgressEntity
+import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +52,7 @@ class ProgressRepo @Inject constructor(db: MyDatabase, val helper: Helper) {
   }
 
   fun toggleIsFinishedByEpisodeId(episodeId: String): Boolean =
-    queries.toggleIsFinishedByEpisodeId(episodeId).value == 1L
+    queries.toggleIsFinishedByEpisodeId(episodeId).value.toBoolean()
 
   fun markEpisodeFinished(libraryItemId: String, episodeId: String) {
     val now = helper.nowMilis()

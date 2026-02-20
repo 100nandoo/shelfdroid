@@ -6,6 +6,7 @@ import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import java.util.Locale
@@ -33,7 +34,7 @@ constructor(
 
     return combine(podcastFlow, progressFlow, download) { podcast, progress, download ->
       podcast
-        ?.takeIf { it.isBook == 0L }
+        ?.takeIf { it.isBook.toBoolean().not() }
         ?.let {
           val media = Json.decodeFromString<Podcast>(podcast.media)
 

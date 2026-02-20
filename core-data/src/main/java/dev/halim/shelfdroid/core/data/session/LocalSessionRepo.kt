@@ -27,6 +27,7 @@ import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.LocalSessionEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlin.time.Clock
@@ -136,7 +137,7 @@ constructor(
     if (book == null) return
 
     book
-      .takeIf { it.isBook == 1L }
+      .takeIf { it.isBook.toBoolean() }
       .let {
         val media = json.decodeFromString<Book>(book.media)
         val mediaMetadata = json.encodeToString(media.metadata)

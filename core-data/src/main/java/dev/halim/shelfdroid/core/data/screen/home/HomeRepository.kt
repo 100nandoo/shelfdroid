@@ -12,6 +12,7 @@ import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.extensions.toBoolean
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -46,7 +47,7 @@ constructor(
       progresses ->
       val result =
         libraries.map { (id, name, _, isBookLibrary) ->
-          val isBook = isBookLibrary == 1L
+          val isBook = isBookLibrary.toBoolean()
           val libraryItems = libraryItems.getOrDefault(id, emptyList())
 
           val library =

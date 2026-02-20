@@ -23,7 +23,7 @@
 
 ## Tech Debt
 
-- [ ] Use boolean to long and vice versa extension functions
+- [ ] Migrate player viewmodel to singleton class
 
 ## Bugs
 
