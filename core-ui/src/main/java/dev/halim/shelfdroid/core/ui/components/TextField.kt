@@ -31,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -175,35 +174,26 @@ fun DropdownOutlinedTextField(
       label = { Text(label) },
       placeholder = placeholder?.let { { Text(it) } },
       trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-      prefix =
-        if (selectedOptions.isNotEmpty()) {
-          {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-              selectedOptions.forEach { option ->
-                InputChip(
-                  selected = true,
-                  onClick = {},
-                  label = { Text(option) },
-                  trailingIcon = {
-                    IconButton(
-                      modifier =
-                        Modifier.size(18.dp).pointerInput(Unit) { onOptionRemoved(option) },
-                      onClick = {},
-                    ) {
-                      Icon(
-                        painter = painterResource(R.drawable.close),
-                        contentDescription = "Remove $option",
-                        modifier = Modifier.size(InputChipDefaults.IconSize),
-                      )
-                    }
-                  },
-                )
-              }
-            }
+      prefix = {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          selectedOptions.forEach { option ->
+            InputChip(
+              selected = true,
+              onClick = {},
+              label = { Text(option) },
+              trailingIcon = {
+                IconButton(modifier = Modifier.size(18.dp), onClick = { onOptionRemoved(option) }) {
+                  Icon(
+                    painter = painterResource(R.drawable.close),
+                    contentDescription = "Remove $option",
+                    modifier = Modifier.size(InputChipDefaults.IconSize),
+                  )
+                }
+              },
+            )
           }
-        } else {
-          null
-        },
+        }
+      },
       modifier =
         Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
     )
