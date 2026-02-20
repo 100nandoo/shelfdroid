@@ -1,4 +1,6 @@
 import dev.halim.shelfdroid.core.UserType;
+import kotlin.String;
+import kotlin.collections.List;
 
 CREATE TABLE UserEntity(
   id TEXT PRIMARY KEY NOT NULL,
@@ -8,7 +10,9 @@ CREATE TABLE UserEntity(
   isActive INTEGER NOT NULL,
   lastSeen INTEGER,
   latestSession TEXT,
-  permissions TEXT NOT NULL
+  permissions TEXT NOT NULL,
+  librariesAccessible TEXT AS List<String> NOT NULL,
+  itemTagsAccessible TEXT AS List<String> NOT NULL
 );
 
 byId:
@@ -17,7 +21,7 @@ FROM UserEntity
 WHERE id = :id;
 
 insert:
-INSERT OR REPLACE INTO UserEntity(id, username, email, type, isActive, lastSeen, latestSession, permissions)
+INSERT OR REPLACE INTO UserEntity(id, username, email, type, isActive, lastSeen, latestSession, permissions, librariesAccessible, itemTagsAccessible)
 VALUES ?;
 
 allIds:

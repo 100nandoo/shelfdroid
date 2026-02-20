@@ -95,6 +95,8 @@ constructor(db: MyDatabase, private val api: ApiService, private val json: Json)
         lastSeen = user.lastSeen,
         latestSession = latestSession,
         permissions = permissions,
+        librariesAccessible = user.librariesAccessible,
+        itemTagsAccessible = user.itemTagsSelected,
       )
 
     return result

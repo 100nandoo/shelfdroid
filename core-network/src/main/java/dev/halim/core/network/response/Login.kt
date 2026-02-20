@@ -37,7 +37,7 @@ data class User(
   @SerialName("createdAt") val createdAt: Long = 0,
   @SerialName("permissions") val permissions: Permissions = Permissions(),
   @SerialName("librariesAccessible") val librariesAccessible: List<String> = listOf(),
-  @SerialName("itemTagsAccessible") val itemTagsAccessible: List<String> = listOf(),
+  @SerialName("itemTagsSelected") val itemTagsSelected: List<String> = listOf(),
   @SerialName("refreshToken") val refreshToken: String = "",
   @SerialName("accessToken") val accessToken: String = "",
   @SerialName("latestSession") val latestSession: Session? = null,

@@ -150,6 +150,7 @@
     <string name="account_type">Account Type</string>
     <string name="user_updated">User updated.</string>
     <string name="update_user_failed">Update user failed.</string>
+    <string name="invert">invert</string>
     <!--User Settings-->
 
     <!--Book-->

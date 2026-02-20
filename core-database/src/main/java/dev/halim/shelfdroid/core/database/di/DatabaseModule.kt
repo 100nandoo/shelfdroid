@@ -29,6 +29,18 @@ object DatabaseModule {
   @Provides
   @Singleton
   fun provideSqlDelightAppDatabase(driver: SqlDriver): MyDatabase {
+    val listOfStringsAdapter =
+      object : ColumnAdapter<List<String>, String> {
+        override fun decode(databaseValue: String) =
+          if (databaseValue.isEmpty()) {
+            listOf()
+          } else {
+            databaseValue.split(",")
+          }
+
+        override fun encode(value: List<String>) = value.joinToString(separator = ",")
+      }
+
     val userTypeAdapter =
       object : ColumnAdapter<UserType, String> {
         override fun decode(databaseValue: String) = UserType.valueOf(databaseValue)
@@ -36,6 +48,9 @@ object DatabaseModule {
         override fun encode(value: UserType) = value.name
       }
 
-    return MyDatabase(driver, UserEntity.Adapter(userTypeAdapter))
+    return MyDatabase(
+      driver,
+      UserEntity.Adapter(userTypeAdapter, listOfStringsAdapter, listOfStringsAdapter),
+    )
   }
 }

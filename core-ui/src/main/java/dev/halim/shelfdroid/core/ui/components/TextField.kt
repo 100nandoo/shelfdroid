@@ -1,13 +1,25 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -19,10 +31,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun MyOutlinedTextField(
@@ -131,4 +148,108 @@ fun PasswordTextField(
     keyboardActions =
       KeyboardActions(onNext = onNext?.let { { it() } }, onDone = onDone?.let { { it() } }),
   )
+}
+
+@Composable
+fun DropdownOutlinedTextField(
+  modifier: Modifier = Modifier,
+  selectedOptions: List<String>,
+  onOptionToggled: (String) -> Unit,
+  onOptionRemoved: (String) -> Unit,
+  label: String,
+  options: List<String>,
+  placeholder: String? = null,
+) {
+  var expanded by remember { mutableStateOf(false) }
+
+  ExposedDropdownMenuBox(
+    expanded = expanded,
+    onExpandedChange = { expanded = it },
+    modifier = modifier,
+  ) {
+    OutlinedTextField(
+      value = if (selectedOptions.isEmpty()) "" else " ",
+      onValueChange = {},
+      readOnly = true,
+      label = { Text(label) },
+      placeholder = if (selectedOptions.isEmpty()) placeholder?.let { { Text(it) } } else null,
+      trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+      prefix =
+        if (selectedOptions.isNotEmpty()) {
+          {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+              selectedOptions.forEach { option ->
+                InputChip(
+                  selected = true,
+                  onClick = {},
+                  label = { Text(option) },
+                  trailingIcon = {
+                    IconButton(
+                      modifier = Modifier.size(18.dp),
+                      onClick = { onOptionRemoved(option) },
+                    ) {
+                      Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = "Remove $option",
+                        modifier = Modifier.size(InputChipDefaults.IconSize),
+                      )
+                    }
+                  },
+                )
+              }
+            }
+          }
+        } else {
+          null
+        },
+      modifier =
+        Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+    )
+    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      options.forEach { option ->
+        val isSelected = option in selectedOptions
+        DropdownMenuItem(
+          text = { Text(option) },
+          onClick = { onOptionToggled(option) },
+          trailingIcon =
+            if (isSelected) {
+              { Icon(painter = painterResource(R.drawable.check), contentDescription = "Selected") }
+            } else {
+              null
+            },
+          contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+        )
+      }
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun DropdownOutlinedTextFieldEmptyPreview() {
+  PreviewWrapper {
+    DropdownOutlinedTextField(
+      selectedOptions = emptyList(),
+      onOptionToggled = {},
+      onOptionRemoved = {},
+      label = "Select Tags",
+      options = listOf("Fiction", "Science", "History", "Fantasy"),
+      placeholder = "Choose tags...",
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun DropdownOutlinedTextFieldSelectedPreview() {
+  val options = listOf("Fiction", "Science", "History", "Fantasy")
+  PreviewWrapper {
+    DropdownOutlinedTextField(
+      selectedOptions = options,
+      onOptionToggled = {},
+      onOptionRemoved = {},
+      label = "Select Tags",
+      options = options,
+    )
+  }
 }

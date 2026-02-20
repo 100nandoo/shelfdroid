@@ -2,6 +2,8 @@
 
 package dev.halim.shelfdroid.core.ui.screen.usersettings.edit
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,6 +43,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.UserSettingsEditUserUiState
 import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.DropdownOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
@@ -90,7 +93,10 @@ private fun UserSettingsEditUserContent(
 
   val scrollState = rememberScrollState()
 
-  Column(Modifier.padding(horizontal = 16.dp).verticalScroll(scrollState)) {
+  Column(
+    Modifier.padding(horizontal = 16.dp).verticalScroll(scrollState),
+    verticalArrangement = Arrangement.Bottom,
+  ) {
     VisibilityDown(uiState.apiState is GenericState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
@@ -98,22 +104,8 @@ private fun UserSettingsEditUserContent(
     InfoSection(uiState, onEvent)
 
     if (isNotRoot) {
-      SettingsSwitchItem(
-        modifier = Modifier.padding(start = 8.dp),
-        title = stringResource(R.string.enable),
-        checked = uiState.editUser.isActive,
-        contentDescription = stringResource(R.string.enable),
-        onCheckedChange = {
-          onEvent(UserSettingsEditUserEvent.Update { it.copy(isActive = it.isActive.not()) })
-        },
-      )
-
-      HorizontalDivider(Modifier.padding(vertical = 16.dp))
-
-      PermissionSection(uiState.editUser, onEvent)
+      NonRootSection(uiState, onEvent)
     } else {
-      HorizontalDivider(Modifier.padding(vertical = 16.dp))
-
       RootSection()
     }
 
@@ -180,24 +172,43 @@ private fun InfoSection(
   )
 
   Spacer(Modifier.height(12.dp))
-
-  if (isNotRoot) {
-    val options = remember { UserType.editTypes.map { it.name } }
-    MySegmentedButton(
-      modifier = Modifier.fillMaxWidth(),
-      options,
-      stringResource(R.string.account_type),
-      uiState.editUser.type.name,
-      { selection ->
-        onEvent(UserSettingsEditUserEvent.Update { it.copy(type = UserType.valueOf(selection)) })
-      },
-    )
-  }
 }
 
 @Composable
 private fun RootSection() {
+  HorizontalDivider(Modifier.padding(vertical = 16.dp))
   Button(onClick = {}) { Text(stringResource(R.string.change_root_password)) }
+}
+
+@Composable
+private fun NonRootSection(
+  uiState: UserSettingsEditUserUiState,
+  onEvent: (UserSettingsEditUserEvent) -> Unit,
+) {
+  val options = remember { UserType.editTypes.map { it.name } }
+  MySegmentedButton(
+    modifier = Modifier.fillMaxWidth(),
+    options,
+    stringResource(R.string.account_type),
+    uiState.editUser.type.name,
+    { selection ->
+      onEvent(UserSettingsEditUserEvent.Update { it.copy(type = UserType.valueOf(selection)) })
+    },
+  )
+
+  SettingsSwitchItem(
+    modifier = Modifier.padding(start = 8.dp),
+    title = stringResource(R.string.enable),
+    checked = uiState.editUser.isActive,
+    contentDescription = stringResource(R.string.enable),
+    onCheckedChange = {
+      onEvent(UserSettingsEditUserEvent.Update { it.copy(isActive = it.isActive.not()) })
+    },
+  )
+
+  HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+  PermissionSection(uiState.editUser, onEvent)
 }
 
 @Composable
@@ -268,6 +279,15 @@ fun PermissionSection(
       )
     },
   )
+
+  TagsSection(editUser, onEvent)
+}
+
+@Composable
+private fun TagsSection(
+  editUser: NavUsersSettingsEditUser,
+  onEvent: (UserSettingsEditUserEvent) -> Unit,
+) {
   SettingsSwitchItem(
     title = stringResource(R.string.access_all_tags),
     checked = editUser.accessAllTags,
@@ -276,6 +296,29 @@ fun PermissionSection(
       onEvent(UserSettingsEditUserEvent.Update { it.copy(accessAllTags = it.accessAllTags.not()) })
     },
   )
+  AnimatedVisibility(editUser.accessAllTags.not()) {
+    Column {
+      val options = listOf("Fiction", "Science", "History", "Fantasy")
+      DropdownOutlinedTextField(
+        selectedOptions = options,
+        onOptionToggled = {},
+        onOptionRemoved = {},
+        label = "Select Tags",
+        options = options,
+      )
+
+      SettingsSwitchItem(
+        title = stringResource(R.string.invert),
+        checked = editUser.accessAllTags,
+        contentDescription = stringResource(R.string.invert),
+        onCheckedChange = {
+          onEvent(
+            UserSettingsEditUserEvent.Update { it.copy(accessAllTags = it.accessAllTags.not()) }
+          )
+        },
+      )
+    }
+  }
 }
 
 @ShelfDroidPreview

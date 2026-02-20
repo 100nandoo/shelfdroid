@@ -37,4 +37,7 @@ data class NavUsersSettingsEditUser(
   val accessExplicit: Boolean = false,
   val accessAllLibraries: Boolean = false,
   val accessAllTags: Boolean = false,
+  val librariesAccessible: List<String> = listOf(),
+  val itemTagsAccessible: List<String> = listOf(),
+  val invert: Boolean = false,
 )

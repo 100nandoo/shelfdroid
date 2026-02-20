@@ -52,4 +52,5 @@ dependencies {
   // sqldelight
   implementation(libs.sqldelight.driver)
   implementation(libs.sqldelight.coroutines)
+  implementation(libs.sqldelight.primitives)
 }

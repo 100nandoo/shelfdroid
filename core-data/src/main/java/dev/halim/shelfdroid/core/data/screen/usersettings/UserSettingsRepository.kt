@@ -75,6 +75,8 @@ constructor(private val userRepo: UserRepo, private val helper: Helper, private 
       accessExplicit = user.permissions.accessExplicitContent,
       accessAllLibraries = user.permissions.accessAllLibraries,
       accessAllTags = user.permissions.accessAllTags,
+      librariesAccessible = user.librariesAccessible,
+      itemTagsAccessible = user.itemTagsSelected,
     )
   }
 
@@ -94,6 +96,8 @@ constructor(private val userRepo: UserRepo, private val helper: Helper, private 
       accessExplicit = permissions.accessExplicitContent,
       accessAllLibraries = permissions.accessAllLibraries,
       accessAllTags = permissions.accessAllTags,
+      librariesAccessible = entity.librariesAccessible,
+      itemTagsAccessible = entity.itemTagsAccessible,
     )
   }
 
