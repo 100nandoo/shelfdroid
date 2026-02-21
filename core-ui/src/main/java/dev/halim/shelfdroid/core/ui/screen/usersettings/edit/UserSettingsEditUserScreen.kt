@@ -216,6 +216,10 @@ private fun NonRootSection(
   HorizontalDivider(Modifier.padding(vertical = 16.dp))
 
   PermissionSection(uiState, onEvent)
+
+  LibrariesSection(uiState, onEvent)
+
+  TagsSection(uiState, onEvent)
 }
 
 @Composable
@@ -302,21 +306,6 @@ fun PermissionSection(
       )
     },
   )
-  SettingsSwitchItem(
-    title = stringResource(R.string.access_all_libraries),
-    checked = uiState.permissions.accessAllLibraries,
-    contentDescription = stringResource(R.string.access_all_libraries),
-    onCheckedChange = { checked ->
-      onEvent(
-        UserSettingsEditUserEvent.UpdateUiState {
-          val permissions = it.permissions.copy(accessAllLibraries = checked)
-          it.copy(permissions = permissions)
-        }
-      )
-    },
-  )
-
-  TagsSection(uiState, onEvent)
 }
 
 @Composable
@@ -384,6 +373,79 @@ private fun TagsSection(
         onCheckedChange = {
           onEvent(UserSettingsEditUserEvent.Update { it.copy(invert = it.invert.not()) })
         },
+      )
+    }
+  }
+}
+
+@Composable
+private fun LibrariesSection(
+  uiState: UserSettingsEditUserUiState,
+  onEvent: (UserSettingsEditUserEvent) -> Unit,
+) {
+  SettingsSwitchItem(
+    title = stringResource(R.string.access_all_libraries),
+    checked = uiState.permissions.accessAllLibraries,
+    contentDescription = stringResource(R.string.access_all_libraries),
+    onCheckedChange = { selection ->
+      if (selection) {
+        onEvent(
+          UserSettingsEditUserEvent.UpdateUiState {
+            val permissions = it.permissions.copy(accessAllLibraries = selection)
+            val editUser = it.editUser.copy(librariesAccessible = emptyList())
+            it.copy(editUser = editUser, permissions = permissions)
+          }
+        )
+      } else {
+        onEvent(
+          UserSettingsEditUserEvent.UpdateUiState {
+            val permissions = it.permissions.copy(accessAllLibraries = selection)
+            it.copy(permissions = permissions)
+          }
+        )
+      }
+    },
+  )
+  val selected =
+    remember(uiState.permissions.accessAllLibraries, uiState.editUser.librariesAccessible) {
+      uiState.editUser.librariesAccessible.mapNotNull { id ->
+        uiState.libraries.find { it.id == id }?.name
+      }
+    }
+  AnimatedVisibility(uiState.permissions.accessAllLibraries.not()) {
+    Column {
+      DropdownOutlinedTextField(
+        selectedOptions = selected.sorted(),
+        onOptionToggled = { libraryName ->
+          val library = uiState.libraries.find { it.name == libraryName }
+          library?.let { library ->
+            onEvent(
+              UserSettingsEditUserEvent.Update { state ->
+                state.copy(
+                  librariesAccessible =
+                    if (library.id in state.librariesAccessible) {
+                      state.librariesAccessible - library.id
+                    } else {
+                      state.librariesAccessible + library.id
+                    }
+                )
+              }
+            )
+          }
+        },
+        onOptionRemoved = { libraryName ->
+          val library = uiState.libraries.find { it.name == libraryName }
+          library?.let { library ->
+            onEvent(
+              UserSettingsEditUserEvent.Update {
+                it.copy(librariesAccessible = it.librariesAccessible - library.id)
+              }
+            )
+          }
+        },
+        label = stringResource(R.string.libraries_accessible_to_user),
+        options = uiState.libraries.map { it.name },
+        placeholder = stringResource(R.string.select_libraries),
       )
     }
   }

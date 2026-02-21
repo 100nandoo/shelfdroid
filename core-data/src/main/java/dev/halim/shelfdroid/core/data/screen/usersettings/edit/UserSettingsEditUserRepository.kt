@@ -4,23 +4,34 @@ import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.Permissions as NetworkPermissions
 import dev.halim.shelfdroid.core.Permissions
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.TagRepo
 import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 
 class UserSettingsEditUserRepository
 @Inject
-constructor(private val userRepo: UserRepo, private val tagRepo: TagRepo, private val json: Json) {
+constructor(
+  private val userRepo: UserRepo,
+  private val tagRepo: TagRepo,
+  private val libraryRepo: LibraryRepo,
+) {
 
   fun item(editUser: NavUsersSettingsEditUser): UserSettingsEditUserUiState {
     return UserSettingsEditUserUiState(
       state = GenericState.Success,
       editUser = editUser,
-      tags = tagRepo.localList(),
       permissions = permissions(editUser.permissions),
+      tags = tagRepo.localList(),
+      libraries = libraries(libraryRepo.local()),
     )
+  }
+
+  fun libraries(entities: List<LibraryEntity>): List<UserSettingsEditUserUiState.Library> {
+    return entities.map { UserSettingsEditUserUiState.Library(it.id, it.name) }
   }
 
   suspend fun updateUser(uiState: UserSettingsEditUserUiState): UserSettingsEditUserUiState {

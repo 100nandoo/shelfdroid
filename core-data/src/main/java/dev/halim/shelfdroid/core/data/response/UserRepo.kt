@@ -13,16 +13,18 @@ import dev.halim.shelfdroid.core.database.UserEntity
 import dev.halim.shelfdroid.core.extensions.toLong
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class UserRepo
 @Inject
-constructor(db: MyDatabase, private val api: ApiService, private val json: Json) {
+constructor(
+  db: MyDatabase,
+  private val api: ApiService,
+  private val coroutineScope: CoroutineScope,
+) {
 
   private val queries = db.userEntityQueries
-  private val repoScope = CoroutineScope(Dispatchers.IO)
 
   fun all(): List<UserEntity> = queries.all().executeAsList()
 
@@ -48,7 +50,7 @@ constructor(db: MyDatabase, private val api: ApiService, private val json: Json)
 
   private fun save(usersResponse: UsersResponse) {
     val entities = usersResponse.users.map { toEntity(it) }
-    repoScope.launch {
+    coroutineScope.launch {
       cleanup(entities)
       entities.forEach { entity -> queries.insert(entity) }
     }
@@ -56,7 +58,7 @@ constructor(db: MyDatabase, private val api: ApiService, private val json: Json)
 
   private fun update(user: User) {
     val permissions = Json.encodeToString(Permissions.serializer(), user.permissions)
-    repoScope.launch {
+    coroutineScope.launch {
       queries.transaction {
         val old = queries.byId(user.id).executeAsOne()
         val new =
@@ -67,6 +69,7 @@ constructor(db: MyDatabase, private val api: ApiService, private val json: Json)
             isActive = user.isActive.toLong(),
             permissions = permissions,
             itemTagsAccessible = user.itemTagsSelected,
+            librariesAccessible = user.librariesAccessible,
           )
         queries.insert(new)
       }

@@ -10,15 +10,25 @@ import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
 
 class LibraryRepo
 @Inject
-constructor(private val api: ApiService, db: MyDatabase, private val json: Json) {
+constructor(
+  private val api: ApiService,
+  db: MyDatabase,
+  private val json: Json,
+  private val coroutineScope: CoroutineScope,
+) {
 
   private val queries = db.libraryEntityQueries
+
+  fun local(): List<LibraryEntity> {
+    return queries.all().executeAsList()
+  }
 
   suspend fun remote() {
     val response = api.libraries().getOrNull()

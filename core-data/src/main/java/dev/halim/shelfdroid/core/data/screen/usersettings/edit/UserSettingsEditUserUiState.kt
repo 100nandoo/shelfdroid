@@ -10,4 +10,7 @@ data class UserSettingsEditUserUiState(
   val editUser: NavUsersSettingsEditUser = NavUsersSettingsEditUser(),
   val permissions: Permissions = Permissions(),
   val tags: List<String> = emptyList(),
-)
+  val libraries: List<Library> = emptyList(),
+) {
+  data class Library(val id: String, val name: String)
+}
