@@ -14,6 +14,7 @@ import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BatchLibraryItemsResponse
+import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Episode
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
@@ -168,6 +169,9 @@ interface ApiService {
     @Path("userId") userId: String,
     @Body request: UpdateUserRequest,
   ): Result<UpdateUserResponse>
+
+  @DELETE("/api/users/{userId}")
+  suspend fun deleteUser(@Path("userId") userId: String): Result<DeleteUserResponse>
 
   // podcasts
   @POST("/api/podcasts/feed")

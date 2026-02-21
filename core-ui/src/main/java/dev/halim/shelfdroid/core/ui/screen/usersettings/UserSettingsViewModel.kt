@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.usersettings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsRepository
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsUiState
 import javax.inject.Inject
@@ -31,7 +32,12 @@ class UserSettingsViewModel @Inject constructor(private val repository: UserSett
   fun onEvent(event: UserSettingsEvent) {
     when (event) {
       UserSettingsEvent.AddUser -> TODO()
-      is UserSettingsEvent.DeleteUser -> {}
+      is UserSettingsEvent.DeleteUser -> {
+        viewModelScope.launch {
+          _uiState.update { it.copy(apiState = UserSettingsApiState.Loading) }
+          _uiState.update { repository.deleteUser(event.user.id, it) }
+        }
+      }
       is UserSettingsEvent.UserInfo -> {}
       is UserSettingsEvent.UpdateUser -> {
         viewModelScope.launch { _uiState.update { repository.updateUser(event.userId, it) } }

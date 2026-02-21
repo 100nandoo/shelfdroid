@@ -88,6 +88,7 @@
     <string name="dialog_delete_podcast">Are you sure you want to delete this podcast?</string>
     <string name="dialog_delete_episode">Are you sure you want to delete this episode?</string>
     <string name="dialog_delete_episodes">Are you sure you want to delete these episodes?</string>
+    <string name="dialog_delete_user">Are you sure you want to delete this user?</string>
 
     <!--Dialog-->
 
@@ -149,7 +150,11 @@
     <!--User Settings Edit User-->
     <string name="account_type">Account Type</string>
     <string name="user_updated">User updated.</string>
+    <string name="user_created">User created.</string>
+    <string name="user_deleted">User deleted.</string>
     <string name="update_user_failed">Update user failed.</string>
+    <string name="create_user_failed">Create user failed.</string>
+    <string name="delete_user_failed">Delete user failed.</string>
     <string name="invert">Invert</string>
     <string name="tags_accessible_to_user">Tags Accessible to User</string>
     <string name="libraries_accessible_to_user">Libraries Accessible to User</string>

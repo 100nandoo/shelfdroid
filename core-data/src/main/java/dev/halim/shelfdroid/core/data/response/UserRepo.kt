@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.data.response
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.UpdateUserRequest
+import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Permissions
 import dev.halim.core.network.response.Session
 import dev.halim.core.network.response.UpdateUserResponse
@@ -38,6 +39,13 @@ constructor(
     val result = api.updateUser(id, request)
     val response = result.getOrNull()
     if (response != null) update(response.user)
+    return result
+  }
+
+  suspend fun delete(id: String): Result<DeleteUserResponse> {
+    val result = api.deleteUser(id)
+    val response = result.getOrNull()
+    if (response != null) cleanup(id)
     return result
   }
 
@@ -83,6 +91,10 @@ constructor(
       val toDelete = ids.filter { !newIds.contains(it) }
       toDelete.forEach { queries.deleteById(it) }
     }
+  }
+
+  private fun cleanup(id: String) {
+    queries.deleteById(id)
   }
 
   private fun toEntity(user: User): UserEntity {

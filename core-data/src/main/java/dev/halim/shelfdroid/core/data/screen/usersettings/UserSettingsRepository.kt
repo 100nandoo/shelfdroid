@@ -35,6 +35,14 @@ constructor(private val userRepo: UserRepo, private val helper: Helper, private 
     return uiState.copy(users = users)
   }
 
+  suspend fun deleteUser(userId: String, uiState: UserSettingsUiState): UserSettingsUiState {
+    userRepo.delete(userId).getOrElse {
+      return uiState.copy(apiState = UserSettingsApiState.DeleteFailure(it.message))
+    }
+    val users = uiState.users.filter { it.id != userId }
+    return uiState.copy(users = users, apiState = UserSettingsApiState.DeleteSuccess)
+  }
+
   private fun user(entity: UserEntity): UserSettingsUiState.User {
     val lastSession = entity.latestSession?.let { Json.decodeFromString(Session.serializer(), it) }
     return UserSettingsUiState.User(

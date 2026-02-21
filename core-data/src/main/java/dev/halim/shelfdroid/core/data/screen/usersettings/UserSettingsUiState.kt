@@ -6,6 +6,7 @@ import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 
 data class UserSettingsUiState(
   val state: GenericState = GenericState.Loading,
+  val apiState: UserSettingsApiState = UserSettingsApiState.Idle,
   val users: List<User> = emptyList(),
 ) {
 
@@ -20,4 +21,18 @@ data class UserSettingsUiState(
   )
 
   data class LastSession(val title: String = "", val timeRange: String = "")
+}
+
+sealed interface UserSettingsApiState {
+  data object Idle : UserSettingsApiState
+
+  data object Loading : UserSettingsApiState
+
+  data object AddSuccess : UserSettingsApiState
+
+  data class AddFailure(val message: String?) : UserSettingsApiState
+
+  data object DeleteSuccess : UserSettingsApiState
+
+  data class DeleteFailure(val message: String?) : UserSettingsApiState
 }

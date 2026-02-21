@@ -10,3 +10,5 @@ data class UpdateUserResponse(
   @SerialName("success") val success: Boolean = false,
   @SerialName("user") val user: User = User(),
 )
+
+@Serializable data class DeleteUserResponse(@SerialName("success") val success: Boolean = false)

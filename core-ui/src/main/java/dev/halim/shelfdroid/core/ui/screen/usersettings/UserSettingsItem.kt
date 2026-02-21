@@ -13,6 +13,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -21,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsUiState.User
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.preview.Defaults.USER_SETTINGS_USERS
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -33,6 +38,20 @@ fun LazyItemScope.UserSettingsItem(
   onDeleteClicked: () -> Unit = {},
   onClicked: () -> Unit = {},
 ) {
+  var showDeleteDialog by remember { mutableStateOf(false) }
+  MyAlertDialog(
+    title = stringResource(R.string.delete),
+    text = stringResource(R.string.dialog_delete_user),
+    showDialog = showDeleteDialog,
+    confirmText = stringResource(R.string.delete),
+    dismissText = stringResource(R.string.cancel),
+    onConfirm = {
+      onDeleteClicked()
+      showDeleteDialog = false
+    },
+    onDismiss = { showDeleteDialog = false },
+  )
+
   Row(
     modifier =
       Modifier.animateItem()
@@ -86,7 +105,7 @@ fun LazyItemScope.UserSettingsItem(
     }
     val isDeleteVisible = user.type.isRoot().not()
     if (isDeleteVisible)
-      FilledTonalIconButton(onClick = onDeleteClicked) {
+      FilledTonalIconButton(onClick = { showDeleteDialog = true }) {
         Icon(
           painter = painterResource(id = R.drawable.delete),
           contentDescription = stringResource(R.string.delete),

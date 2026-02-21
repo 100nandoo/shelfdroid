@@ -17,17 +17,24 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsUiState
 import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
+import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.USER_SETTINGS_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import kotlinx.coroutines.launch
 
 @Composable
 fun UserSettingsScreen(
@@ -45,6 +52,22 @@ fun UserSettingsScreen(
   }
 
   UserSettingsContent(uiState = uiState, onEvent = viewModel::onEvent, onUserClicked)
+
+  val scope = rememberCoroutineScope()
+  val successMessage = stringResource(R.string.user_deleted)
+  val errorMessage = stringResource(R.string.delete_user_failed)
+
+  LaunchedEffect(uiState.apiState) {
+    when (val state = uiState.apiState) {
+      is UserSettingsApiState.DeleteSuccess -> {
+        scope.launch { snackbarHostState.showSuccessSnackbar(successMessage) }
+      }
+      is UserSettingsApiState.DeleteFailure -> {
+        scope.launch { snackbarHostState.showErrorSnackbar(state.message ?: errorMessage) }
+      }
+      else -> Unit
+    }
+  }
 }
 
 @Composable
@@ -54,7 +77,9 @@ private fun UserSettingsContent(
   onUserClicked: (NavUsersSettingsEditUser) -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-    VisibilityDown(uiState.state is GenericState.Loading) {
+    VisibilityDown(
+      uiState.state is GenericState.Loading || uiState.apiState is UserSettingsApiState.Loading
+    ) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
 
