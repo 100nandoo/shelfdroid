@@ -2,10 +2,11 @@ package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.LoginResponse
-import dev.halim.core.network.response.UserType
+import dev.halim.core.network.response.UserType as NetworkUserType
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
+import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -132,7 +133,8 @@ constructor(
         UserPrefs(
           id = user.id,
           username = user.username,
-          isAdmin = user.type == UserType.ADMIN || user.type == UserType.ROOT,
+          type = UserType.toUserType(user.type.name),
+          isAdmin = user.type == NetworkUserType.ADMIN || user.type == NetworkUserType.ROOT,
           download = user.permissions.download,
           upload = user.permissions.upload,
           delete = user.permissions.delete,

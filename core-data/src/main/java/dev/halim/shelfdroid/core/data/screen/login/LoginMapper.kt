@@ -1,8 +1,9 @@
 package dev.halim.shelfdroid.core.data.screen.login
 
 import dev.halim.core.network.response.User
-import dev.halim.core.network.response.UserType
+import dev.halim.core.network.response.UserType as NetworkUserType
 import dev.halim.shelfdroid.core.UserPrefs
+import dev.halim.shelfdroid.core.UserType
 import javax.inject.Inject
 
 class LoginMapper @Inject constructor() {
@@ -10,7 +11,8 @@ class LoginMapper @Inject constructor() {
     return UserPrefs(
       id = user.id,
       username = user.username,
-      isAdmin = user.type == UserType.ADMIN || user.type == UserType.ROOT,
+      type = UserType.toUserType(user.type.name),
+      isAdmin = user.type == NetworkUserType.ADMIN || user.type == NetworkUserType.ROOT,
       download = user.permissions.download,
       upload = user.permissions.upload,
       delete = user.permissions.delete,

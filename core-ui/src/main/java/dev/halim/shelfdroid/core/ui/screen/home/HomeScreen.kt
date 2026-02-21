@@ -142,6 +142,7 @@ fun HomeScreenContent(
       }
       if (pagerState.pageCount - 1 == page) {
         MiscScreen(
+          isAdmin = uiState.prefs.userPrefs.isAdmin,
           onOpenSessionClicked = onOpenSessionClicked,
           onListeningSessionClicked = onSessionClicked,
           onSettingsClicked = onSettingsClicked,

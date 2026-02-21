@@ -19,6 +19,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun MiscScreen(
+  isAdmin: Boolean = false,
   onSettingsClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   onOpenSessionClicked: () -> Unit = {},
@@ -30,6 +31,7 @@ fun MiscScreen(
   onBackupsClicked: () -> Unit,
 ) {
   MiscScreenContent(
+    isAdmin = isAdmin,
     onSettingsClicked = onSettingsClicked,
     onListeningSessionClicked = onListeningSessionClicked,
     onOpenSessionClicked = onOpenSessionClicked,
@@ -44,6 +46,7 @@ fun MiscScreen(
 
 @Composable
 private fun MiscScreenContent(
+  isAdmin: Boolean = false,
   onOpenSessionClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   onSettingsClicked: () -> Unit = {},
@@ -55,60 +58,62 @@ private fun MiscScreenContent(
   onBackupsClicked: () -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-    TextButton(
-      onClick = onBackupsClicked,
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
-      Text(text = stringResource(R.string.backups))
-    }
+    if (isAdmin) {
+      TextButton(
+        onClick = onBackupsClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.backups))
+      }
 
-    TextButton(
-      onClick = onLogsClicked,
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
-      Text(text = stringResource(R.string.logs))
-    }
+      TextButton(
+        onClick = onLogsClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.logs))
+      }
 
-    TextButton(
-      onClick = onServerSettingsClicked,
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
-      Text(text = stringResource(R.string.server_settings))
-    }
+      TextButton(
+        onClick = onServerSettingsClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.server_settings))
+      }
 
-    TextButton(
-      onClick = onApiKeysClicked,
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
-      Text(text = stringResource(R.string.api_keys))
-    }
+      TextButton(
+        onClick = onApiKeysClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.api_keys))
+      }
 
-    TextButton(
-      onClick = onLibrariesClicked,
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
-      Text(text = stringResource(R.string.libraries))
-    }
+      TextButton(
+        onClick = onLibrariesClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.libraries))
+      }
 
-    TextButton(
-      onClick = onUsersClicked,
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
-      Text(text = stringResource(R.string.users))
-    }
+      TextButton(
+        onClick = onUsersClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.users))
+      }
 
-    TextButton(
-      onClick = onOpenSessionClicked,
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
-      Text(text = stringResource(R.string.open_sessions))
-    }
+      TextButton(
+        onClick = onOpenSessionClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.open_sessions))
+      }
 
-    TextButton(
-      onClick = onListeningSessionClicked,
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
-      Text(text = stringResource(R.string.listening_sessions))
+      TextButton(
+        onClick = onListeningSessionClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.listening_sessions))
+      }
     }
 
     TextButton(
@@ -125,4 +130,10 @@ private fun MiscScreenContent(
 @Composable
 fun MiscScreenContentPreview() {
   AnimatedPreviewWrapper(dynamicColor = false) { MiscScreenContent() }
+}
+
+@ShelfDroidPreview
+@Composable
+fun MiscScreenContentAdminPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) { MiscScreenContent(isAdmin = true) }
 }

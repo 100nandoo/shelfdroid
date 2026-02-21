@@ -86,6 +86,7 @@ private fun UserSettingsContent(
 
         UserSettingsItem(
           user,
+          isLoginUserRoot = uiState.isLoginUserRoot,
           onInfoClicked = { onEvent(UserSettingsEvent.UserInfo(user)) },
           onDeleteClicked = { onEvent(UserSettingsEvent.DeleteUser(user)) },
           onClicked = { onUserClicked(user.navPayload) },

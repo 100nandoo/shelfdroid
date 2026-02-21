@@ -133,8 +133,8 @@ private fun InfoSection(
   MyOutlinedTextField(
     modifier = Modifier.focusRequester(usernameRef),
     value = uiState.editUser.username,
-    onValueChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(username = it.username.trim()) })
+    onValueChange = { input ->
+      onEvent(UserSettingsEditUserEvent.Update { it.copy(username = input.trim()) })
     },
     label = stringResource(R.string.username),
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
@@ -147,8 +147,8 @@ private fun InfoSection(
     PasswordTextField(
       modifier = Modifier.focusRequester(passwordRef),
       value = uiState.editUser.password,
-      onValueChange = {
-        onEvent(UserSettingsEditUserEvent.Update { it.copy(password = it.password.trim()) })
+      onValueChange = { input ->
+        onEvent(UserSettingsEditUserEvent.Update { it.copy(password = input.trim()) })
       },
       label = stringResource(R.string.change_password),
       keyboardOptions =
@@ -162,8 +162,8 @@ private fun InfoSection(
   MyOutlinedTextField(
     modifier = Modifier.focusRequester(emailRef),
     value = uiState.editUser.email,
-    onValueChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(email = it.email.trim()) })
+    onValueChange = { input ->
+      onEvent(UserSettingsEditUserEvent.Update { it.copy(email = input.trim()) })
     },
     label = stringResource(R.string.email),
     keyboardOptions =

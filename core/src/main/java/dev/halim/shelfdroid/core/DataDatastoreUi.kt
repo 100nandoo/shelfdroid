@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class UserPrefs(
   val id: String = "",
   val username: String = "",
+  val type: UserType = UserType.Unknown,
   val isAdmin: Boolean = false,
   val download: Boolean = false,
   val update: Boolean = false,

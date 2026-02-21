@@ -34,6 +34,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun LazyItemScope.UserSettingsItem(
   user: User,
+  isLoginUserRoot: Boolean = false,
   onInfoClicked: () -> Unit = {},
   onDeleteClicked: () -> Unit = {},
   onClicked: () -> Unit = {},
@@ -52,11 +53,19 @@ fun LazyItemScope.UserSettingsItem(
     onDismiss = { showDeleteDialog = false },
   )
 
+  val isShowingRootUser = user.type.isRoot()
+  val clickableModifier =
+    if ((isShowingRootUser && isLoginUserRoot) || !isShowingRootUser) {
+      Modifier.clickable { onClicked() }
+    } else {
+      Modifier
+    }
+
   Row(
     modifier =
       Modifier.animateItem()
         .fillMaxWidth()
-        .clickable { onClicked() }
+        .then(clickableModifier)
         .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
