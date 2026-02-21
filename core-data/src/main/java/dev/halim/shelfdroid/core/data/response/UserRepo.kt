@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.response
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.DeleteUserResponse
@@ -14,6 +16,8 @@ import dev.halim.shelfdroid.core.database.UserEntity
 import dev.halim.shelfdroid.core.extensions.toLong
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
@@ -26,6 +30,8 @@ constructor(
 ) {
 
   private val queries = db.userEntityQueries
+
+  fun flowAll(): Flow<List<UserEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
 
   fun all(): List<UserEntity> = queries.all().executeAsList()
 

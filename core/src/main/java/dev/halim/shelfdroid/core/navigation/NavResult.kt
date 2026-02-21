@@ -8,5 +8,4 @@ data class CreatePodcastNavResult(val id: String = "", val feedUrl: String = "")
 
 object NavResultKey {
   const val CREATE_PODCAST = "create_podcast"
-  const val UPDATE_USER = "update_user"
 }

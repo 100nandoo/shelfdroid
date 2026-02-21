@@ -41,15 +41,8 @@ fun UserSettingsScreen(
   viewModel: UserSettingsViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
   onUserClicked: (NavUsersSettingsEditUser) -> Unit = {},
-  result: String? = null,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-  LaunchedEffect(result) {
-    if (result != null) {
-      viewModel.onEvent(UserSettingsEvent.UpdateUser(result))
-    }
-  }
 
   UserSettingsContent(uiState = uiState, onEvent = viewModel::onEvent, onUserClicked)
 

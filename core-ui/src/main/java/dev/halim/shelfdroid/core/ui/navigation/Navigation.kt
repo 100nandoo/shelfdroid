@@ -252,28 +252,17 @@ private fun ColumnScope.NavHostContainer(
         }
       }
 
-      composable<UsersSettings> { entry ->
-        val result = entry.savedStateHandle.get<String>(NavResultKey.UPDATE_USER)
-
+      composable<UsersSettings> {
         UserSettingsScreen(
           snackbarHostState = snackbarHostState,
           onUserClicked = { navController.navigate(it) },
-          result = result,
         )
-        if (result != null) {
-          entry.savedStateHandle.remove<String>(NavResultKey.UPDATE_USER)
-        }
       }
 
       composable<NavUsersSettingsEditUser> {
         UserSettingsEditUserScreen(
           snackbarHostState = snackbarHostState,
-          onUpdateSuccess = { userId ->
-            navController.previousBackStackEntry
-              ?.savedStateHandle
-              ?.set(NavResultKey.UPDATE_USER, userId)
-            navController.popBackStack()
-          },
+          onUpdateSuccess = { navController.popBackStack() },
         )
       }
     }

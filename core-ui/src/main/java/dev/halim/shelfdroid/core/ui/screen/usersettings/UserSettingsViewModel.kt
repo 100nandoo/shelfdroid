@@ -10,7 +10,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,14 +19,16 @@ import kotlinx.coroutines.launch
 class UserSettingsViewModel @Inject constructor(private val repository: UserSettingsRepository) :
   ViewModel() {
 
-  private val _uiState = MutableStateFlow(UserSettingsUiState())
+  private val _uiState: MutableStateFlow<UserSettingsApiState> =
+    MutableStateFlow(UserSettingsApiState.Idle)
   val uiState: StateFlow<UserSettingsUiState> =
-    _uiState
-      .asStateFlow()
+    combine(_uiState, repository.item()) { apiState, userSettingsUiState ->
+        userSettingsUiState.copy(apiState = apiState)
+      }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), UserSettingsUiState())
 
   init {
-    viewModelScope.launch { _uiState.value = repository.uiState() }
+    viewModelScope.launch { repository.remote() }
   }
 
   fun onEvent(event: UserSettingsEvent) {
@@ -34,14 +36,11 @@ class UserSettingsViewModel @Inject constructor(private val repository: UserSett
       UserSettingsEvent.AddUser -> TODO()
       is UserSettingsEvent.DeleteUser -> {
         viewModelScope.launch {
-          _uiState.update { it.copy(apiState = UserSettingsApiState.Loading) }
-          _uiState.update { repository.deleteUser(event.user.id, it) }
+          _uiState.update { UserSettingsApiState.Loading }
+          _uiState.update { repository.deleteUser(event.user.id) }
         }
       }
       is UserSettingsEvent.UserInfo -> {}
-      is UserSettingsEvent.UpdateUser -> {
-        viewModelScope.launch { _uiState.update { repository.updateUser(event.userId, it) } }
-      }
     }
   }
 }
@@ -53,6 +52,4 @@ sealed interface UserSettingsEvent {
   data class UserInfo(val user: UserSettingsUiState.User) : UserSettingsEvent
 
   data class DeleteUser(val user: UserSettingsUiState.User) : UserSettingsEvent
-
-  data class UpdateUser(val userId: String) : UserSettingsEvent
 }

@@ -60,7 +60,7 @@ import kotlinx.coroutines.launch
 fun UserSettingsEditUserScreen(
   viewModel: UserSettingsEditUserViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
-  onUpdateSuccess: (String) -> Unit,
+  onUpdateSuccess: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -74,7 +74,7 @@ fun UserSettingsEditUserScreen(
     when (val state = uiState.apiState) {
       is GenericState.Success -> {
         scope.launch { snackbarHostState.showSuccessSnackbar(successMessage) }
-        onUpdateSuccess(uiState.editUser.id)
+        onUpdateSuccess()
       }
       is GenericState.Failure -> {
         scope.launch { snackbarHostState.showErrorSnackbar(state.errorMessage ?: errorMessage) }
