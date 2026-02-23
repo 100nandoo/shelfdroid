@@ -28,7 +28,7 @@ class AppSnackbarVisuals(
   override val duration: SnackbarDuration = SnackbarDuration.Short
 }
 
-suspend fun SnackbarHostState.showSnackbar(message: String) {
+suspend fun SnackbarHostState.showPlainSnackbar(message: String) {
   showSnackbar(AppSnackbarVisuals(message, SnackbarType.GENERIC))
 }
 

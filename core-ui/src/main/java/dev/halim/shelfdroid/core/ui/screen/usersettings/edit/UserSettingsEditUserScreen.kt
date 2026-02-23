@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -39,7 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.UserType
-import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.GenericUiEvent
+import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserState
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.UserSettingsEditUserUiState
 import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 import dev.halim.shelfdroid.core.ui.R
@@ -60,28 +60,13 @@ import kotlinx.coroutines.launch
 fun UserSettingsEditUserScreen(
   viewModel: UserSettingsEditUserViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
-  onUpdateSuccess: () -> Unit,
+  navigateBack: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
   UserSettingsEditUserContent(uiState = uiState, onEvent = viewModel::onEvent)
 
-  val scope = rememberCoroutineScope()
-  val successMessage = stringResource(R.string.user_updated)
-  val errorMessage = stringResource(R.string.update_user_failed)
-
-  LaunchedEffect(uiState.apiState) {
-    when (val state = uiState.apiState) {
-      is GenericState.Success -> {
-        scope.launch { snackbarHostState.showSuccessSnackbar(successMessage) }
-        onUpdateSuccess()
-      }
-      is GenericState.Failure -> {
-        scope.launch { snackbarHostState.showErrorSnackbar(state.errorMessage ?: errorMessage) }
-      }
-      else -> Unit
-    }
-  }
+  SnackbarHandling(viewModel, snackbarHostState, navigateBack)
 }
 
 @Composable
@@ -97,7 +82,7 @@ private fun UserSettingsEditUserContent(
     Modifier.padding(horizontal = 16.dp).verticalScroll(scrollState),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    VisibilityDown(uiState.apiState is GenericState.Loading) {
+    VisibilityDown(uiState.state is EditUserState.Loading) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
 
@@ -118,6 +103,44 @@ private fun UserSettingsEditUserContent(
       Text(stringResource(R.string.submit))
     }
     Spacer(modifier = Modifier.height(16.dp))
+  }
+}
+
+@Composable
+private fun SnackbarHandling(
+  viewModel: UserSettingsEditUserViewModel,
+  snackbarHostState: SnackbarHostState,
+  navigateBack: () -> Unit,
+) {
+  val successMessage = stringResource(R.string.user_updated)
+  val errorMessage = stringResource(R.string.update_user_failed)
+  val tagsErrorMessage = stringResource(R.string.please_select_at_least_one_tag)
+  val librariesErrorMessage = stringResource(R.string.please_select_at_least_one_library)
+  val bothErrorMessage = stringResource(R.string.please_select_at_least_one)
+
+  LaunchedEffect(Unit) {
+    viewModel.events.collect { event ->
+      when (event) {
+        is GenericUiEvent.ShowErrorSnackbar -> {
+          val message =
+            when (viewModel.uiState.value.state) {
+              is EditUserState.LibrariesAndItemTagsFieldError -> bothErrorMessage
+              is EditUserState.ItemTagsFieldError -> tagsErrorMessage
+              is EditUserState.LibrariesFieldError -> librariesErrorMessage
+              is EditUserState.ApiUpdateError -> errorMessage
+              else -> null
+            }
+          launch { message?.let { snackbarHostState.showErrorSnackbar(it) } }
+        }
+
+        is GenericUiEvent.ShowSuccessSnackbar -> {
+          launch { snackbarHostState.showSuccessSnackbar(successMessage) }
+        }
+
+        GenericUiEvent.NavigateBack -> navigateBack()
+        else -> Unit
+      }
+    }
   }
 }
 
@@ -340,6 +363,9 @@ private fun TagsSection(
     Column {
       DropdownOutlinedTextField(
         selectedOptions = uiState.editUser.itemTagsAccessible.sorted(),
+        label = stringResource(R.string.tags_accessible_to_user),
+        options = uiState.tags,
+        placeholder = stringResource(R.string.select_tags),
         onOptionToggled = { tag ->
           onEvent(
             UserSettingsEditUserEvent.Update { state ->
@@ -361,9 +387,6 @@ private fun TagsSection(
             }
           )
         },
-        label = stringResource(R.string.tags_accessible_to_user),
-        options = uiState.tags,
-        placeholder = stringResource(R.string.select_tags),
       )
 
       SettingsSwitchItem(

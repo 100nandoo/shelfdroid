@@ -1,16 +1,32 @@
 package dev.halim.shelfdroid.core.data.screen.usersettings.edit
 
 import dev.halim.shelfdroid.core.Permissions
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 
 data class UserSettingsEditUserUiState(
-  val state: GenericState = GenericState.Loading,
-  val apiState: GenericState = GenericState.Idle,
+  val state: EditUserState = EditUserState.Loading,
   val editUser: NavUsersSettingsEditUser = NavUsersSettingsEditUser(),
   val permissions: Permissions = Permissions(),
   val tags: List<String> = emptyList(),
   val libraries: List<Library> = emptyList(),
 ) {
   data class Library(val id: String, val name: String)
+}
+
+sealed interface EditUserState {
+  data object Loading : EditUserState
+
+  data object Success : EditUserState
+
+  data object ApiUpdateSuccess : EditUserState
+
+  data object ApiUpdateError : EditUserState
+
+  data object Idle : EditUserState
+
+  data object LibrariesFieldError : EditUserState
+
+  data object ItemTagsFieldError : EditUserState
+
+  data object LibrariesAndItemTagsFieldError : EditUserState
 }

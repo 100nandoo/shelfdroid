@@ -3,13 +3,14 @@ package dev.halim.shelfdroid.core.data.screen.usersettings.edit
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.Permissions as NetworkPermissions
 import dev.halim.shelfdroid.core.Permissions
-import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.TagRepo
 import dev.halim.shelfdroid.core.data.response.UserRepo
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.json.Json
 
 class UserSettingsEditUserRepository
@@ -22,7 +23,7 @@ constructor(
 
   fun item(editUser: NavUsersSettingsEditUser): UserSettingsEditUserUiState {
     return UserSettingsEditUserUiState(
-      state = GenericState.Success,
+      state = EditUserState.Success,
       editUser = editUser,
       permissions = permissions(editUser.permissions),
       tags = tagRepo.localList(),
@@ -34,12 +35,18 @@ constructor(
     return entities.map { UserSettingsEditUserUiState.Library(it.id, it.name) }
   }
 
-  suspend fun updateUser(uiState: UserSettingsEditUserUiState): UserSettingsEditUserUiState {
+  suspend fun updateUser(
+    uiState: UserSettingsEditUserUiState,
+    event: MutableSharedFlow<GenericUiEvent>,
+  ): UserSettingsEditUserUiState {
     val request = request(uiState)
     userRepo.update(uiState.editUser.id, request).getOrElse {
-      return uiState.copy(apiState = GenericState.Failure(it.message))
+      event.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
+      return uiState.copy(state = EditUserState.ApiUpdateError)
     }
-    return uiState.copy(apiState = GenericState.Success)
+    event.emit(GenericUiEvent.ShowSuccessSnackbar())
+    event.emit(GenericUiEvent.NavigateBack)
+    return uiState.copy(state = EditUserState.ApiUpdateSuccess)
   }
 
   private fun permissions(permissionsString: String): Permissions {

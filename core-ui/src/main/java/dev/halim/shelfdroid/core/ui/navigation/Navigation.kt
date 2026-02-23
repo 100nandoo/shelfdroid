@@ -262,7 +262,7 @@ private fun ColumnScope.NavHostContainer(
       composable<NavUsersSettingsEditUser> {
         UserSettingsEditUserScreen(
           snackbarHostState = snackbarHostState,
-          onUpdateSuccess = { navController.popBackStack() },
+          navigateBack = { navController.popBackStack() },
         )
       }
     }

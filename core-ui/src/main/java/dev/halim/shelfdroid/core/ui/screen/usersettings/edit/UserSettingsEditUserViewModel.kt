@@ -5,14 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.GenericUiEvent
+import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserState
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.UserSettingsEditUserRepository
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.UserSettingsEditUserUiState
 import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -31,6 +34,9 @@ constructor(
       .asStateFlow()
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), UserSettingsEditUserUiState())
 
+  private val _events = MutableSharedFlow<GenericUiEvent>()
+  val events = _events.asSharedFlow()
+
   fun onEvent(event: UserSettingsEditUserEvent) {
     when (event) {
       is UserSettingsEditUserEvent.Update -> {
@@ -42,10 +48,33 @@ constructor(
 
       UserSettingsEditUserEvent.Submit -> {
         viewModelScope.launch {
-          _uiState.update { it.copy(apiState = GenericState.Loading) }
-          _uiState.update { repository.updateUser(_uiState.value) }
+          _uiState.update { it.copy(state = EditUserState.Loading) }
+
+          val state = validateForm()
+          if (state is EditUserState.Success) {
+            _uiState.update { repository.updateUser(_uiState.value, _events) }
+          } else {
+            _uiState.update { it.copy(state = state) }
+            viewModelScope.launch { _events.emit(GenericUiEvent.ShowErrorSnackbar()) }
+          }
         }
       }
+    }
+  }
+
+  private fun validateForm(): EditUserState {
+    val ui = _uiState.value
+
+    val tagsValid = ui.permissions.accessAllTags || ui.editUser.itemTagsAccessible.isNotEmpty()
+
+    val librariesValid =
+      ui.permissions.accessAllLibraries || ui.editUser.librariesAccessible.isNotEmpty()
+
+    return when {
+      tagsValid && librariesValid -> EditUserState.Success
+      !tagsValid && !librariesValid -> EditUserState.LibrariesAndItemTagsFieldError
+      !tagsValid -> EditUserState.ItemTagsFieldError
+      else -> EditUserState.LibrariesFieldError
     }
   }
 }

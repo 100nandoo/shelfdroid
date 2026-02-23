@@ -3,6 +3,9 @@
 ## High Priority
 
 - [ ] User management
+    - [ ] create user
+    - [ ] listening stats
+    - [ ] saved media progress
 - [ ] library management
 - [ ] API keys management
 - [ ] Settings management
@@ -24,6 +27,9 @@
 ## Tech Debt
 
 - [ ] Migrate player viewmodel to singleton class
+- [ ] saving userPrefs, progresses, bookmarks code got repetition on loginRepo and homeRepo
+- [ ] use sealed interface instead of class for state in uiState class
+- [ ] use ui event for one shot event like snackbar
 
 ## Bugs
 

@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -159,6 +160,8 @@ fun DropdownOutlinedTextField(
   label: String,
   options: List<String>,
   placeholder: String? = null,
+  supportingText: String? = null,
+  isError: Boolean = false,
 ) {
   var expanded by remember { mutableStateOf(false) }
 
@@ -194,6 +197,8 @@ fun DropdownOutlinedTextField(
           }
         }
       },
+      supportingText = { supportingText?.let { Text(it) } },
+      isError = isError,
       modifier =
         Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
     )
@@ -227,6 +232,8 @@ fun DropdownOutlinedTextFieldEmptyPreview() {
       label = "Select Tags",
       options = listOf("Fiction", "Science", "History", "Fantasy"),
       placeholder = "Choose tags...",
+      isError = true,
+      supportingText = stringResource(R.string.please_select_at_least_one_tag),
     )
   }
 }
