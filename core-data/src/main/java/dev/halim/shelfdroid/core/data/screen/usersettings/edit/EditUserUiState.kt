@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.usersettings.edit
 
 import dev.halim.shelfdroid.core.Permissions
-import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 
-data class UserSettingsEditUserUiState(
+data class EditUserUiState(
   val state: EditUserState = EditUserState.Loading,
-  val editUser: NavUsersSettingsEditUser = NavUsersSettingsEditUser(),
+  val editUser: NavEditUser = NavEditUser(),
   val permissions: Permissions = Permissions(),
   val tags: List<String> = emptyList(),
   val libraries: List<Library> = emptyList(),

@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericUiEvent
+import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserRepository
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserState
-import dev.halim.shelfdroid.core.data.screen.usersettings.edit.UserSettingsEditUserRepository
-import dev.halim.shelfdroid.core.data.screen.usersettings.edit.UserSettingsEditUserUiState
-import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
+import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserUiState
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,17 +22,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class UserSettingsEditUserViewModel
+class EditUserViewModel
 @Inject
-constructor(
-  savedStateHandle: SavedStateHandle,
-  private val repository: UserSettingsEditUserRepository,
-) : ViewModel() {
+constructor(savedStateHandle: SavedStateHandle, private val repository: EditUserRepository) :
+  ViewModel() {
   private val _uiState = MutableStateFlow(repository.item(savedStateHandle.toRoute()))
-  val uiState: StateFlow<UserSettingsEditUserUiState> =
+  val uiState: StateFlow<EditUserUiState> =
     _uiState
       .asStateFlow()
-      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), UserSettingsEditUserUiState())
+      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), EditUserUiState())
 
   private val _events = MutableSharedFlow<GenericUiEvent>()
   val events = _events.asSharedFlow()
@@ -81,12 +79,10 @@ constructor(
 
 sealed interface UserSettingsEditUserEvent {
 
-  data class Update(val transform: (NavUsersSettingsEditUser) -> NavUsersSettingsEditUser) :
-    UserSettingsEditUserEvent
+  data class Update(val transform: (NavEditUser) -> NavEditUser) : UserSettingsEditUserEvent
 
-  data class UpdateUiState(
-    val transform: (UserSettingsEditUserUiState) -> UserSettingsEditUserUiState
-  ) : UserSettingsEditUserEvent
+  data class UpdateUiState(val transform: (EditUserUiState) -> EditUserUiState) :
+    UserSettingsEditUserEvent
 
   data object Submit : UserSettingsEditUserEvent
 }

@@ -26,7 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsUiState
-import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 fun UserSettingsScreen(
   viewModel: UserSettingsViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
-  onUserClicked: (NavUsersSettingsEditUser) -> Unit = {},
+  onUserClicked: (NavEditUser) -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -67,7 +67,7 @@ fun UserSettingsScreen(
 private fun UserSettingsContent(
   uiState: UserSettingsUiState = UserSettingsUiState(),
   onEvent: (UserSettingsEvent) -> Unit = {},
-  onUserClicked: (NavUsersSettingsEditUser) -> Unit = {},
+  onUserClicked: (NavEditUser) -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
     VisibilityDown(

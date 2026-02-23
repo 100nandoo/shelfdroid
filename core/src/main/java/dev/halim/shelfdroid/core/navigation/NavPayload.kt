@@ -22,7 +22,7 @@ data class PodcastFeedNavPayload(
 )
 
 @Serializable
-data class NavUsersSettingsEditUser(
+data class NavEditUser(
   val id: String = "",
   val username: String = "",
   val password: String = "",

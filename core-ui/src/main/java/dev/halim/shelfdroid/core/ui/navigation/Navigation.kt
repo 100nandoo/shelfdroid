@@ -20,8 +20,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.core.navigation.NavResultKey
-import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
@@ -45,7 +45,7 @@ import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsLis
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
-import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.UserSettingsEditUserScreen
+import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.EditUserScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -259,8 +259,8 @@ private fun ColumnScope.NavHostContainer(
         )
       }
 
-      composable<NavUsersSettingsEditUser> {
-        UserSettingsEditUserScreen(
+      composable<NavEditUser> {
+        EditUserScreen(
           snackbarHostState = snackbarHostState,
           navigateBack = { navController.popBackStack() },
         )

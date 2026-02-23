@@ -6,7 +6,7 @@ import dev.halim.core.network.response.Session
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.database.UserEntity
 import dev.halim.shelfdroid.core.extensions.toBoolean
-import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
@@ -25,9 +25,9 @@ class UserSettingsMapper @Inject constructor(private val helper: Helper) {
     )
   }
 
-  private fun navPayload(entity: UserEntity): NavUsersSettingsEditUser {
+  private fun navPayload(entity: UserEntity): NavEditUser {
     val permissions = Json.decodeFromString(NetworkPermissions.serializer(), entity.permissions)
-    return NavUsersSettingsEditUser(
+    return NavEditUser(
       id = entity.id,
       username = entity.username,
       email = entity.email,

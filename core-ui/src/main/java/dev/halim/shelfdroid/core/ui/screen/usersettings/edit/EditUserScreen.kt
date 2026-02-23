@@ -40,8 +40,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserState
-import dev.halim.shelfdroid.core.data.screen.usersettings.edit.UserSettingsEditUserUiState
-import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
+import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserUiState
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DropdownOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -57,21 +57,21 @@ import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSwitchItem
 import kotlinx.coroutines.launch
 
 @Composable
-fun UserSettingsEditUserScreen(
-  viewModel: UserSettingsEditUserViewModel = hiltViewModel(),
+fun EditUserScreen(
+  viewModel: EditUserViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
   navigateBack: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  UserSettingsEditUserContent(uiState = uiState, onEvent = viewModel::onEvent)
+  EditUserContent(uiState = uiState, onEvent = viewModel::onEvent)
 
   SnackbarHandling(viewModel, snackbarHostState, navigateBack)
 }
 
 @Composable
-private fun UserSettingsEditUserContent(
-  uiState: UserSettingsEditUserUiState = UserSettingsEditUserUiState(),
+private fun EditUserContent(
+  uiState: EditUserUiState = EditUserUiState(),
   onEvent: (UserSettingsEditUserEvent) -> Unit = {},
 ) {
   val isNotRoot = uiState.editUser.type.isRoot().not()
@@ -108,7 +108,7 @@ private fun UserSettingsEditUserContent(
 
 @Composable
 private fun SnackbarHandling(
-  viewModel: UserSettingsEditUserViewModel,
+  viewModel: EditUserViewModel,
   snackbarHostState: SnackbarHostState,
   navigateBack: () -> Unit,
 ) {
@@ -145,10 +145,7 @@ private fun SnackbarHandling(
 }
 
 @Composable
-private fun InfoSection(
-  uiState: UserSettingsEditUserUiState,
-  onEvent: (UserSettingsEditUserEvent) -> Unit,
-) {
+private fun InfoSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
   val focusManager = LocalFocusManager.current
   val isNotRoot = uiState.editUser.type.isRoot().not()
   val (usernameRef, passwordRef, emailRef) = remember { FocusRequester.createRefs() }
@@ -204,10 +201,7 @@ private fun RootSection() {
 }
 
 @Composable
-private fun NonRootSection(
-  uiState: UserSettingsEditUserUiState,
-  onEvent: (UserSettingsEditUserEvent) -> Unit,
-) {
+private fun NonRootSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
   val options = remember { UserType.editTypes.map { it.name } }
   MySegmentedButton(
     modifier = Modifier.fillMaxWidth(),
@@ -246,10 +240,7 @@ private fun NonRootSection(
 }
 
 @Composable
-fun PermissionSection(
-  uiState: UserSettingsEditUserUiState,
-  onEvent: (UserSettingsEditUserEvent) -> Unit,
-) {
+fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
   TextTitleMedium(text = stringResource(R.string.permissions))
   SettingsSwitchItem(
     title = stringResource(R.string.download),
@@ -332,10 +323,7 @@ fun PermissionSection(
 }
 
 @Composable
-private fun TagsSection(
-  uiState: UserSettingsEditUserUiState,
-  onEvent: (UserSettingsEditUserEvent) -> Unit,
-) {
+private fun TagsSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
   SettingsSwitchItem(
     title = stringResource(R.string.access_all_tags),
     checked = uiState.permissions.accessAllTags,
@@ -403,7 +391,7 @@ private fun TagsSection(
 
 @Composable
 private fun LibrariesSection(
-  uiState: UserSettingsEditUserUiState,
+  uiState: EditUserUiState,
   onEvent: (UserSettingsEditUserEvent) -> Unit,
 ) {
   SettingsSwitchItem(
@@ -476,16 +464,16 @@ private fun LibrariesSection(
 
 @ShelfDroidPreview
 @Composable
-fun UserSettingsEditUserScreenContentPreview() {
-  AnimatedPreviewWrapper(dynamicColor = false) { UserSettingsEditUserContent() }
+fun EditUserScreenContentPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) { EditUserContent() }
 }
 
 @ShelfDroidPreview
 @Composable
-fun UserSettingsEditUserScreenRootUserContentPreview() {
-  val editUser = NavUsersSettingsEditUser(type = UserType.Root)
+fun EditUserScreenRootUserContentPreview() {
+  val editUser = NavEditUser(type = UserType.Root)
 
   AnimatedPreviewWrapper(dynamicColor = false) {
-    UserSettingsEditUserContent(uiState = UserSettingsEditUserUiState().copy(editUser = editUser))
+    EditUserContent(uiState = EditUserUiState().copy(editUser = editUser))
   }
 }

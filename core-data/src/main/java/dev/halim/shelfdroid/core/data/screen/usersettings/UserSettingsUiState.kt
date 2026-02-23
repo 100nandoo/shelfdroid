@@ -2,7 +2,7 @@ package dev.halim.shelfdroid.core.data.screen.usersettings
 
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 
 data class UserSettingsUiState(
   val state: GenericState = GenericState.Loading,
@@ -18,7 +18,7 @@ data class UserSettingsUiState(
     val lastSeen: String = "",
     val isActive: Boolean = false,
     val lastSession: LastSession = LastSession(),
-    val navPayload: NavUsersSettingsEditUser = NavUsersSettingsEditUser(),
+    val navPayload: NavEditUser = NavEditUser(),
   )
 
   data class LastSession(val title: String = "", val timeRange: String = "")

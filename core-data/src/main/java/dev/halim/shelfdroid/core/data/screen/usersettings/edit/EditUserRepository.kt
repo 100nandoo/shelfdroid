@@ -8,12 +8,12 @@ import dev.halim.shelfdroid.core.data.response.LibraryRepo
 import dev.halim.shelfdroid.core.data.response.TagRepo
 import dev.halim.shelfdroid.core.data.response.UserRepo
 import dev.halim.shelfdroid.core.database.LibraryEntity
-import dev.halim.shelfdroid.core.navigation.NavUsersSettingsEditUser
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.json.Json
 
-class UserSettingsEditUserRepository
+class EditUserRepository
 @Inject
 constructor(
   private val userRepo: UserRepo,
@@ -21,8 +21,8 @@ constructor(
   private val libraryRepo: LibraryRepo,
 ) {
 
-  fun item(editUser: NavUsersSettingsEditUser): UserSettingsEditUserUiState {
-    return UserSettingsEditUserUiState(
+  fun item(editUser: NavEditUser): EditUserUiState {
+    return EditUserUiState(
       state = EditUserState.Success,
       editUser = editUser,
       permissions = permissions(editUser.permissions),
@@ -31,14 +31,14 @@ constructor(
     )
   }
 
-  fun libraries(entities: List<LibraryEntity>): List<UserSettingsEditUserUiState.Library> {
-    return entities.map { UserSettingsEditUserUiState.Library(it.id, it.name) }
+  fun libraries(entities: List<LibraryEntity>): List<EditUserUiState.Library> {
+    return entities.map { EditUserUiState.Library(it.id, it.name) }
   }
 
   suspend fun updateUser(
-    uiState: UserSettingsEditUserUiState,
+    uiState: EditUserUiState,
     event: MutableSharedFlow<GenericUiEvent>,
-  ): UserSettingsEditUserUiState {
+  ): EditUserUiState {
     val request = request(uiState)
     userRepo.update(uiState.editUser.id, request).getOrElse {
       event.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
@@ -63,7 +63,7 @@ constructor(
     )
   }
 
-  private fun request(uiState: UserSettingsEditUserUiState): UpdateUserRequest {
+  private fun request(uiState: EditUserUiState): UpdateUserRequest {
     val permissions =
       UpdateUserRequest.Permissions(
         download = uiState.permissions.download,
