@@ -3,6 +3,7 @@ package dev.halim.core.network
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.CreatePodcastRequest
+import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.DeleteSessionsRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.PlayRequest
@@ -14,6 +15,7 @@ import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BatchLibraryItemsResponse
+import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Episode
 import dev.halim.core.network.response.LibrariesResponse
@@ -161,6 +163,9 @@ interface ApiService {
   suspend fun searchPodcast(@Query("term") term: String): Result<List<SearchPodcast>>
 
   // users
+  @POST("/api/users")
+  suspend fun createUser(@Body request: CreateUserRequest): Result<CreateUserResponse>
+
   @GET("/api/users")
   suspend fun users(@Query("include") include: String? = "latestSession"): Result<UsersResponse>
 

@@ -145,6 +145,10 @@
     <string name="access_all_libraries">Access All Libraries</string>
     <string name="access_all_tags">Access All Tags</string>
     <string name="change_root_password">Change Root Password</string>
+    <string name="add_user">Add User</string>
+    <string name="username_cannot_be_empty">Username can\'t be empty</string>
+    <string name="password_cannot_be_empty">Password can\'t be empty</string>
+    <string name="username_and_password_cannot_be_empty">Username and password can\'t be empty</string>
     <!--User Settings-->
 
     <!--User Settings Edit User-->

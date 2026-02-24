@@ -3,7 +3,9 @@ package dev.halim.shelfdroid.core.data.response
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import dev.halim.core.network.ApiService
+import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.UpdateUserRequest
+import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Permissions
 import dev.halim.core.network.response.Session
@@ -36,6 +38,16 @@ constructor(
   fun all(): List<UserEntity> = queries.all().executeAsList()
 
   fun byId(id: String) = queries.byId(id).executeAsOneOrNull()
+
+  suspend fun create(request: CreateUserRequest): Result<CreateUserResponse> {
+    val result = api.createUser(request)
+    val response = result.getOrNull()
+    if (response != null) {
+      val entity = toEntity(response.user)
+      queries.insert(entity)
+    }
+    return result
+  }
 
   suspend fun remote(include: String? = null): Result<UsersResponse> {
     return fetch(include)

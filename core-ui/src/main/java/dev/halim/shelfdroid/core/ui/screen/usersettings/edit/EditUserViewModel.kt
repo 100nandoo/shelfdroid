@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,10 +26,10 @@ class EditUserViewModel
 constructor(savedStateHandle: SavedStateHandle, private val repository: EditUserRepository) :
   ViewModel() {
   private val _uiState = MutableStateFlow(repository.item(savedStateHandle.toRoute()))
+  private val isCreateMode = _uiState.value.editUser.isCreateMode()
+
   val uiState: StateFlow<EditUserUiState> =
-    _uiState
-      .asStateFlow()
-      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), EditUserUiState())
+    _uiState.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), EditUserUiState())
 
   private val _events = MutableSharedFlow<GenericUiEvent>()
   val events = _events.asSharedFlow()
@@ -44,23 +43,39 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditUser
         _uiState.update { event.transform(it) }
       }
 
-      UserSettingsEditUserEvent.Submit -> {
-        viewModelScope.launch {
-          _uiState.update { it.copy(state = EditUserState.Loading) }
-
-          val state = validateForm()
-          if (state is EditUserState.Success) {
-            _uiState.update { repository.updateUser(_uiState.value, _events) }
-          } else {
-            _uiState.update { it.copy(state = state) }
-            viewModelScope.launch { _events.emit(GenericUiEvent.ShowErrorSnackbar()) }
-          }
-        }
-      }
+      UserSettingsEditUserEvent.Submit -> submit()
     }
   }
 
-  private fun validateForm(): EditUserState {
+  private fun submit() =
+    viewModelScope.launch {
+      _uiState.update { it.copy(state = EditUserState.Loading) }
+
+      val validation = validatePermissions()
+      if (validation != EditUserState.Success) {
+        handleValidationError(validation)
+        return@launch
+      }
+
+      if (isCreateMode) {
+        val infoValidation = validateUserInfo()
+        if (infoValidation != EditUserState.Success) {
+          handleValidationError(infoValidation)
+          return@launch
+        }
+
+        _uiState.update { repository.createUser(_uiState.value, _events) }
+      } else {
+        _uiState.update { repository.updateUser(_uiState.value, _events) }
+      }
+    }
+
+  private suspend fun handleValidationError(state: EditUserState) {
+    _uiState.update { it.copy(state = state) }
+    _events.emit(GenericUiEvent.ShowErrorSnackbar())
+  }
+
+  private fun validatePermissions(): EditUserState {
     val ui = _uiState.value
 
     val tagsValid = ui.permissions.accessAllTags || ui.editUser.itemTagsAccessible.isNotEmpty()
@@ -73,6 +88,20 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditUser
       !tagsValid && !librariesValid -> EditUserState.LibrariesAndItemTagsFieldError
       !tagsValid -> EditUserState.ItemTagsFieldError
       else -> EditUserState.LibrariesFieldError
+    }
+  }
+
+  private fun validateUserInfo(): EditUserState {
+    val ui = _uiState.value
+
+    val usernameValid = ui.editUser.username.isNotEmpty()
+    val passwordValid = ui.editUser.password.isNotEmpty()
+
+    return when {
+      usernameValid && passwordValid -> EditUserState.Success
+      !usernameValid && !passwordValid -> EditUserState.UsernameAndPasswordFieldError
+      !passwordValid -> EditUserState.PasswordFieldError
+      else -> EditUserState.PasswordFieldError
     }
   }
 }

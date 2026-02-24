@@ -113,10 +113,15 @@ private fun SnackbarHandling(
   navigateBack: () -> Unit,
 ) {
   val successMessage = stringResource(R.string.user_updated)
+  val createSuccessMessage = stringResource(R.string.user_created)
   val errorMessage = stringResource(R.string.update_user_failed)
+  val createErrorMessage = stringResource(R.string.create_user_failed)
   val tagsErrorMessage = stringResource(R.string.please_select_at_least_one_tag)
   val librariesErrorMessage = stringResource(R.string.please_select_at_least_one_library)
   val bothErrorMessage = stringResource(R.string.please_select_at_least_one)
+  val usernameError = stringResource(R.string.username_cannot_be_empty)
+  val passwordError = stringResource(R.string.password_cannot_be_empty)
+  val usernamePasswordError = stringResource(R.string.username_and_password_cannot_be_empty)
 
   LaunchedEffect(Unit) {
     viewModel.events.collect { event ->
@@ -127,14 +132,26 @@ private fun SnackbarHandling(
               is EditUserState.LibrariesAndItemTagsFieldError -> bothErrorMessage
               is EditUserState.ItemTagsFieldError -> tagsErrorMessage
               is EditUserState.LibrariesFieldError -> librariesErrorMessage
+
+              is EditUserState.UsernameAndPasswordFieldError -> usernamePasswordError
+              is EditUserState.UsernameFieldError -> usernameError
+              is EditUserState.PasswordFieldError -> passwordError
+
               is EditUserState.ApiUpdateError -> errorMessage
+              is EditUserState.ApiCreateError -> createErrorMessage
               else -> null
             }
           launch { message?.let { snackbarHostState.showErrorSnackbar(it) } }
         }
 
         is GenericUiEvent.ShowSuccessSnackbar -> {
-          launch { snackbarHostState.showSuccessSnackbar(successMessage) }
+          val message =
+            when (viewModel.uiState.value.state) {
+              is EditUserState.ApiUpdateSuccess -> successMessage
+              is EditUserState.ApiCreateSuccess -> createSuccessMessage
+              else -> null
+            }
+          launch { message?.let { snackbarHostState.showSuccessSnackbar(it) } }
         }
 
         GenericUiEvent.NavigateBack -> navigateBack()
@@ -146,9 +163,18 @@ private fun SnackbarHandling(
 
 @Composable
 private fun InfoSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
+  val (usernameRef, passwordRef, emailRef) = remember { FocusRequester.createRefs() }
+
+  val needFocus = uiState.editUser.isCreateMode() && uiState.state == EditUserState.Success
+
+  LaunchedEffect(needFocus) {
+    if (needFocus) {
+      usernameRef.requestFocus()
+    }
+  }
+
   val focusManager = LocalFocusManager.current
   val isNotRoot = uiState.editUser.type.isRoot().not()
-  val (usernameRef, passwordRef, emailRef) = remember { FocusRequester.createRefs() }
 
   MyOutlinedTextField(
     modifier = Modifier.focusRequester(usernameRef),

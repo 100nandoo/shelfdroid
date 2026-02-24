@@ -255,7 +255,8 @@ private fun ColumnScope.NavHostContainer(
       composable<UsersSettings> {
         UserSettingsScreen(
           snackbarHostState = snackbarHostState,
-          onUserClicked = { navController.navigate(it) },
+          onUserClicked = { navEditUser -> navController.navigate(navEditUser) },
+          createUserClicked = { navController.navigate(NavEditUser.defaultUser()) },
         )
       }
 

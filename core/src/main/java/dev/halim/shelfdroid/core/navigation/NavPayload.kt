@@ -33,4 +33,10 @@ data class NavEditUser(
   val itemTagsAccessible: List<String> = listOf(),
   val invert: Boolean = false,
   val permissions: String = "",
-)
+) {
+  fun isCreateMode() = username.isEmpty() && password.isEmpty()
+
+  companion object {
+    fun defaultUser() = NavEditUser(type = UserType.User, isActive = true)
+  }
+}

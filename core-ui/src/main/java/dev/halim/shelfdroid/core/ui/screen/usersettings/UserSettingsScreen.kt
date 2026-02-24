@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,10 +44,16 @@ fun UserSettingsScreen(
   viewModel: UserSettingsViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
   onUserClicked: (NavEditUser) -> Unit = {},
+  createUserClicked: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  UserSettingsContent(uiState = uiState, onEvent = viewModel::onEvent, onUserClicked)
+  UserSettingsContent(
+    uiState = uiState,
+    onEvent = viewModel::onEvent,
+    onUserClicked,
+    createUserClicked,
+  )
 
   val scope = rememberCoroutineScope()
   val successMessage = stringResource(R.string.user_deleted)
@@ -68,6 +77,7 @@ private fun UserSettingsContent(
   uiState: UserSettingsUiState = UserSettingsUiState(),
   onEvent: (UserSettingsEvent) -> Unit = {},
   onUserClicked: (NavEditUser) -> Unit = {},
+  createUserClicked: () -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
     VisibilityDown(
@@ -81,6 +91,7 @@ private fun UserSettingsContent(
       verticalArrangement = Arrangement.Bottom,
       reverseLayout = true,
     ) {
+      item(key = "add user") { CreateUserItem(createUserClicked = createUserClicked) }
       items(uiState.users, key = { it.id }) { user ->
         HorizontalDivider()
 
@@ -95,6 +106,13 @@ private fun UserSettingsContent(
     }
 
     Spacer(modifier = Modifier.height(16.dp))
+  }
+}
+
+@Composable
+fun CreateUserItem(createUserClicked: () -> Unit) {
+  TextButton(onClick = createUserClicked, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Text(text = stringResource(R.string.add_user))
   }
 }
 

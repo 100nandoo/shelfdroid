@@ -22,6 +22,10 @@ sealed interface EditUserState {
 
   data object ApiUpdateError : EditUserState
 
+  data object ApiCreateSuccess : EditUserState
+
+  data object ApiCreateError : EditUserState
+
   data object Idle : EditUserState
 
   data object LibrariesFieldError : EditUserState
@@ -29,4 +33,10 @@ sealed interface EditUserState {
   data object ItemTagsFieldError : EditUserState
 
   data object LibrariesAndItemTagsFieldError : EditUserState
+
+  data object UsernameFieldError : EditUserState
+
+  data object PasswordFieldError : EditUserState
+
+  data object UsernameAndPasswordFieldError : EditUserState
 }

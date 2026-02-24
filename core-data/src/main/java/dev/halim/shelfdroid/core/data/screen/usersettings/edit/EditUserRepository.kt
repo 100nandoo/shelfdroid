@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.usersettings.edit
 
+import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.Permissions as NetworkPermissions
 import dev.halim.shelfdroid.core.Permissions
@@ -22,10 +23,13 @@ constructor(
 ) {
 
   fun item(editUser: NavEditUser): EditUserUiState {
+    val isCreateMode = editUser.isCreateMode()
+    val permissions =
+      if (isCreateMode) Permissions.UserPermissions else permissionsFromString(editUser.permissions)
     return EditUserUiState(
       state = EditUserState.Success,
       editUser = editUser,
-      permissions = permissions(editUser.permissions),
+      permissions = permissions,
       tags = tagRepo.localList(),
       libraries = libraries(libraryRepo.local()),
     )
@@ -39,7 +43,7 @@ constructor(
     uiState: EditUserUiState,
     event: MutableSharedFlow<GenericUiEvent>,
   ): EditUserUiState {
-    val request = request(uiState)
+    val request = updateRequest(uiState)
     userRepo.update(uiState.editUser.id, request).getOrElse {
       event.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
       return uiState.copy(state = EditUserState.ApiUpdateError)
@@ -49,7 +53,21 @@ constructor(
     return uiState.copy(state = EditUserState.ApiUpdateSuccess)
   }
 
-  private fun permissions(permissionsString: String): Permissions {
+  suspend fun createUser(
+    uiState: EditUserUiState,
+    event: MutableSharedFlow<GenericUiEvent>,
+  ): EditUserUiState {
+    val request = createRequest(uiState)
+    userRepo.create(request).getOrElse {
+      event.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
+      return uiState.copy(state = EditUserState.ApiCreateError)
+    }
+    event.emit(GenericUiEvent.ShowSuccessSnackbar())
+    event.emit(GenericUiEvent.NavigateBack)
+    return uiState.copy(state = EditUserState.ApiCreateSuccess)
+  }
+
+  private fun permissionsFromString(permissionsString: String): Permissions {
     val permissions = Json.decodeFromString(NetworkPermissions.serializer(), permissionsString)
     return Permissions(
       download = permissions.download,
@@ -63,7 +81,7 @@ constructor(
     )
   }
 
-  private fun request(uiState: EditUserUiState): UpdateUserRequest {
+  private fun permissions(uiState: EditUserUiState): UpdateUserRequest.Permissions {
     val permissions =
       UpdateUserRequest.Permissions(
         download = uiState.permissions.download,
@@ -76,6 +94,11 @@ constructor(
         accessAllTags = uiState.permissions.accessAllTags,
         selectedTagsNotAccessible = uiState.editUser.invert,
       )
+    return permissions
+  }
+
+  private fun updateRequest(uiState: EditUserUiState): UpdateUserRequest {
+    val permissions = permissions(uiState)
 
     val request =
       UpdateUserRequest(
@@ -88,6 +111,24 @@ constructor(
         librariesAccessible = uiState.editUser.librariesAccessible,
         itemTagsSelected = uiState.editUser.itemTagsAccessible,
       )
+    return request
+  }
+
+  private fun createRequest(uiState: EditUserUiState): CreateUserRequest {
+    val permissions = permissions(uiState)
+
+    val request =
+      CreateUserRequest(
+        username = uiState.editUser.username,
+        email = uiState.editUser.email,
+        password = uiState.editUser.password,
+        type = uiState.editUser.type.name.lowercase(),
+        isActive = uiState.editUser.isActive,
+        permissions = permissions,
+        librariesAccessible = uiState.editUser.librariesAccessible,
+        itemTagsAccessible = uiState.editUser.itemTagsAccessible,
+      )
+
     return request
   }
 }

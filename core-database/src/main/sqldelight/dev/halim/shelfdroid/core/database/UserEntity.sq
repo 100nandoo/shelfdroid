@@ -25,7 +25,7 @@ INSERT OR REPLACE INTO UserEntity(id, username, email, type, isActive, lastSeen,
 VALUES ?;
 
 allIds:
-SELECT id FROM BookmarkEntity;
+SELECT id FROM UserEntity;
 
 all:
 SELECT * FROM UserEntity;
