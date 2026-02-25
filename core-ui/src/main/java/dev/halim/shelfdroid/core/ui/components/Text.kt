@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.components
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -13,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
@@ -101,10 +103,21 @@ fun TextTitleMedium(modifier: Modifier = Modifier, text: String) {
 }
 
 @Composable
-fun TextLabelSmall(modifier: Modifier = Modifier, text: String) {
-  Text(
-    modifier = modifier.padding(bottom = 2.dp),
-    text = text,
-    style = MaterialTheme.typography.labelSmall,
-  )
+fun TextLabelSmall(modifier: Modifier = Modifier, text: String, color: Color = Color.Unspecified) {
+  Text(modifier = modifier, text = text, style = MaterialTheme.typography.labelSmall, color = color)
+}
+
+@Composable
+fun TextLabelValue(label: String, value: String, modifier: Modifier = Modifier) {
+  if (value.isNotEmpty()) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+      TextLabelSmall(
+        text = label,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.weight(1f),
+      )
+      TextLabelSmall(text = ": ")
+      TextLabelSmall(modifier = Modifier.weight(3f), text = value)
+    }
+  }
 }

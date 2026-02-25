@@ -2,15 +2,12 @@ package dev.halim.shelfdroid.core.ui.screen.book
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -27,6 +24,7 @@ import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
+import dev.halim.shelfdroid.core.ui.components.TextLabelValue
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
@@ -144,30 +142,12 @@ private fun BookDetail(
     modifier = Modifier.padding(vertical = 8.dp),
     verticalArrangement = Arrangement.spacedBy(4.dp),
   ) {
-    BookDetailRow(stringResource(R.string.duration), duration)
-    BookDetailRow(stringResource(R.string.narrator), narrator)
-    BookDetailRow(stringResource(R.string.publish_year), publishYear)
-    BookDetailRow(stringResource(R.string.publisher), publisher)
-    BookDetailRow(stringResource(R.string.genre), genres)
-    BookDetailRow(stringResource(R.string.language), language)
-  }
-}
-
-@Composable
-private fun BookDetailRow(label: String, value: String) {
-  if (value.isNotEmpty()) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      Text(
-        text = "$label: ",
-        style = MaterialTheme.typography.labelSmall,
-        modifier = Modifier.weight(1f),
-      )
-      Text(
-        text = value,
-        style = MaterialTheme.typography.labelSmall,
-        modifier = Modifier.weight(4f),
-      )
-    }
+    TextLabelValue(stringResource(R.string.duration), duration)
+    TextLabelValue(stringResource(R.string.narrator), narrator)
+    TextLabelValue(stringResource(R.string.publish_year), publishYear)
+    TextLabelValue(stringResource(R.string.publisher), publisher)
+    TextLabelValue(stringResource(R.string.genre), genres)
+    TextLabelValue(stringResource(R.string.language), language)
   }
 }
 
