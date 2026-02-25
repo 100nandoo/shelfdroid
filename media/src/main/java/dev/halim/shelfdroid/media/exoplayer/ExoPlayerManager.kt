@@ -15,10 +15,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-sealed class PlayerEvent {
-  object Pause : PlayerEvent()
+sealed interface PlayerEvent {
+  object Pause : PlayerEvent
 
-  object Resume : PlayerEvent()
+  object Resume : PlayerEvent
 }
 
 @Singleton

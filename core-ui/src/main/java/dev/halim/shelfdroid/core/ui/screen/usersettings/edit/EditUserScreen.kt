@@ -72,7 +72,7 @@ fun EditUserScreen(
 @Composable
 private fun EditUserContent(
   uiState: EditUserUiState = EditUserUiState(),
-  onEvent: (UserSettingsEditUserEvent) -> Unit = {},
+  onEvent: (EditUserEvent) -> Unit = {},
 ) {
   val isNotRoot = uiState.editUser.type.isRoot().not()
 
@@ -96,10 +96,7 @@ private fun EditUserContent(
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    Button(
-      onClick = { onEvent(UserSettingsEditUserEvent.Submit) },
-      modifier = Modifier.align(Alignment.End),
-    ) {
+    Button(onClick = { onEvent(EditUserEvent.Submit) }, modifier = Modifier.align(Alignment.End)) {
       Text(stringResource(R.string.submit))
     }
     Spacer(modifier = Modifier.height(16.dp))
@@ -162,7 +159,7 @@ private fun SnackbarHandling(
 }
 
 @Composable
-private fun InfoSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
+private fun InfoSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit) {
   val (usernameRef, passwordRef, emailRef) = remember { FocusRequester.createRefs() }
 
   val needFocus = uiState.editUser.isCreateMode() && uiState.state == EditUserState.Success
@@ -179,9 +176,7 @@ private fun InfoSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUser
   MyOutlinedTextField(
     modifier = Modifier.focusRequester(usernameRef),
     value = uiState.editUser.username,
-    onValueChange = { input ->
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(username = input.trim()) })
-    },
+    onValueChange = { input -> onEvent(EditUserEvent.Update { it.copy(username = input.trim()) }) },
     label = stringResource(R.string.username),
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
     onNext = { focusManager.moveFocus(FocusDirection.Next) },
@@ -194,7 +189,7 @@ private fun InfoSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUser
       modifier = Modifier.focusRequester(passwordRef),
       value = uiState.editUser.password,
       onValueChange = { input ->
-        onEvent(UserSettingsEditUserEvent.Update { it.copy(password = input.trim()) })
+        onEvent(EditUserEvent.Update { it.copy(password = input.trim()) })
       },
       label = stringResource(R.string.change_password),
       keyboardOptions =
@@ -208,9 +203,7 @@ private fun InfoSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUser
   MyOutlinedTextField(
     modifier = Modifier.focusRequester(emailRef),
     value = uiState.editUser.email,
-    onValueChange = { input ->
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(email = input.trim()) })
-    },
+    onValueChange = { input -> onEvent(EditUserEvent.Update { it.copy(email = input.trim()) }) },
     label = stringResource(R.string.email),
     keyboardOptions =
       KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
@@ -227,7 +220,7 @@ private fun RootSection() {
 }
 
 @Composable
-private fun NonRootSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
+private fun NonRootSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit) {
   val options = remember { UserType.editTypes.map { it.name } }
   MySegmentedButton(
     modifier = Modifier.fillMaxWidth(),
@@ -238,7 +231,7 @@ private fun NonRootSection(uiState: EditUserUiState, onEvent: (UserSettingsEditU
       val userType = UserType.valueOf(selection)
       val permissions = UserType.permissions(userType)
       onEvent(
-        UserSettingsEditUserEvent.UpdateUiState {
+        EditUserEvent.UpdateUiState {
           val editUser = it.editUser.copy(type = userType)
           it.copy(editUser = editUser, permissions = permissions)
         }
@@ -251,9 +244,7 @@ private fun NonRootSection(uiState: EditUserUiState, onEvent: (UserSettingsEditU
     title = stringResource(R.string.enable),
     checked = uiState.editUser.isActive,
     contentDescription = stringResource(R.string.enable),
-    onCheckedChange = {
-      onEvent(UserSettingsEditUserEvent.Update { it.copy(isActive = it.isActive.not()) })
-    },
+    onCheckedChange = { onEvent(EditUserEvent.Update { it.copy(isActive = it.isActive.not()) }) },
   )
 
   HorizontalDivider(Modifier.padding(vertical = 16.dp))
@@ -266,7 +257,7 @@ private fun NonRootSection(uiState: EditUserUiState, onEvent: (UserSettingsEditU
 }
 
 @Composable
-fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
+fun PermissionSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit) {
   TextTitleMedium(text = stringResource(R.string.permissions))
   SettingsSwitchItem(
     title = stringResource(R.string.download),
@@ -274,7 +265,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEv
     contentDescription = stringResource(R.string.download),
     onCheckedChange = { checked ->
       onEvent(
-        UserSettingsEditUserEvent.UpdateUiState {
+        EditUserEvent.UpdateUiState {
           val permissions = it.permissions.copy(download = checked)
           it.copy(permissions = permissions)
         }
@@ -287,7 +278,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEv
     contentDescription = stringResource(R.string.update),
     onCheckedChange = { checked ->
       onEvent(
-        UserSettingsEditUserEvent.UpdateUiState {
+        EditUserEvent.UpdateUiState {
           val permissions = it.permissions.copy(update = checked)
           it.copy(permissions = permissions)
         }
@@ -300,7 +291,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEv
     contentDescription = stringResource(R.string.delete),
     onCheckedChange = { checked ->
       onEvent(
-        UserSettingsEditUserEvent.UpdateUiState {
+        EditUserEvent.UpdateUiState {
           val permissions = it.permissions.copy(delete = checked)
           it.copy(permissions = permissions)
         }
@@ -313,7 +304,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEv
     contentDescription = stringResource(R.string.upload),
     onCheckedChange = { checked ->
       onEvent(
-        UserSettingsEditUserEvent.UpdateUiState {
+        EditUserEvent.UpdateUiState {
           val permissions = it.permissions.copy(upload = checked)
           it.copy(permissions = permissions)
         }
@@ -326,7 +317,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEv
     contentDescription = stringResource(R.string.create_ereader),
     onCheckedChange = { checked ->
       onEvent(
-        UserSettingsEditUserEvent.UpdateUiState {
+        EditUserEvent.UpdateUiState {
           val permissions = it.permissions.copy(createEReader = checked)
           it.copy(permissions = permissions)
         }
@@ -339,7 +330,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEv
     contentDescription = stringResource(R.string.access_explicit_content),
     onCheckedChange = { checked ->
       onEvent(
-        UserSettingsEditUserEvent.UpdateUiState {
+        EditUserEvent.UpdateUiState {
           val permissions = it.permissions.copy(accessExplicit = checked)
           it.copy(permissions = permissions)
         }
@@ -349,7 +340,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEv
 }
 
 @Composable
-private fun TagsSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUserEvent) -> Unit) {
+private fun TagsSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit) {
   SettingsSwitchItem(
     title = stringResource(R.string.access_all_tags),
     checked = uiState.permissions.accessAllTags,
@@ -357,7 +348,7 @@ private fun TagsSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUser
     onCheckedChange = { selection ->
       if (selection) {
         onEvent(
-          UserSettingsEditUserEvent.UpdateUiState {
+          EditUserEvent.UpdateUiState {
             val permissions = it.permissions.copy(accessAllTags = selection)
             val editUser = it.editUser.copy(itemTagsAccessible = emptyList())
             it.copy(editUser = editUser, permissions = permissions)
@@ -365,7 +356,7 @@ private fun TagsSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUser
         )
       } else {
         onEvent(
-          UserSettingsEditUserEvent.UpdateUiState {
+          EditUserEvent.UpdateUiState {
             val permissions = it.permissions.copy(accessAllTags = selection)
             it.copy(permissions = permissions)
           }
@@ -382,7 +373,7 @@ private fun TagsSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUser
         placeholder = stringResource(R.string.select_tags),
         onOptionToggled = { tag ->
           onEvent(
-            UserSettingsEditUserEvent.Update { state ->
+            EditUserEvent.Update { state ->
               state.copy(
                 itemTagsAccessible =
                   if (tag in state.itemTagsAccessible) {
@@ -396,9 +387,7 @@ private fun TagsSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUser
         },
         onOptionRemoved = { tag ->
           onEvent(
-            UserSettingsEditUserEvent.Update {
-              it.copy(itemTagsAccessible = it.itemTagsAccessible - tag)
-            }
+            EditUserEvent.Update { it.copy(itemTagsAccessible = it.itemTagsAccessible - tag) }
           )
         },
       )
@@ -407,19 +396,14 @@ private fun TagsSection(uiState: EditUserUiState, onEvent: (UserSettingsEditUser
         title = stringResource(R.string.invert),
         checked = uiState.editUser.invert,
         contentDescription = stringResource(R.string.invert),
-        onCheckedChange = {
-          onEvent(UserSettingsEditUserEvent.Update { it.copy(invert = it.invert.not()) })
-        },
+        onCheckedChange = { onEvent(EditUserEvent.Update { it.copy(invert = it.invert.not()) }) },
       )
     }
   }
 }
 
 @Composable
-private fun LibrariesSection(
-  uiState: EditUserUiState,
-  onEvent: (UserSettingsEditUserEvent) -> Unit,
-) {
+private fun LibrariesSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit) {
   SettingsSwitchItem(
     title = stringResource(R.string.access_all_libraries),
     checked = uiState.permissions.accessAllLibraries,
@@ -427,7 +411,7 @@ private fun LibrariesSection(
     onCheckedChange = { selection ->
       if (selection) {
         onEvent(
-          UserSettingsEditUserEvent.UpdateUiState {
+          EditUserEvent.UpdateUiState {
             val permissions = it.permissions.copy(accessAllLibraries = selection)
             val editUser = it.editUser.copy(librariesAccessible = emptyList())
             it.copy(editUser = editUser, permissions = permissions)
@@ -435,7 +419,7 @@ private fun LibrariesSection(
         )
       } else {
         onEvent(
-          UserSettingsEditUserEvent.UpdateUiState {
+          EditUserEvent.UpdateUiState {
             val permissions = it.permissions.copy(accessAllLibraries = selection)
             it.copy(permissions = permissions)
           }
@@ -457,7 +441,7 @@ private fun LibrariesSection(
           val library = uiState.libraries.find { it.name == libraryName }
           library?.let { library ->
             onEvent(
-              UserSettingsEditUserEvent.Update { state ->
+              EditUserEvent.Update { state ->
                 state.copy(
                   librariesAccessible =
                     if (library.id in state.librariesAccessible) {
@@ -474,7 +458,7 @@ private fun LibrariesSection(
           val library = uiState.libraries.find { it.name == libraryName }
           library?.let { library ->
             onEvent(
-              UserSettingsEditUserEvent.Update {
+              EditUserEvent.Update {
                 it.copy(librariesAccessible = it.librariesAccessible - library.id)
               }
             )

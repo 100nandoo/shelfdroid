@@ -4,11 +4,11 @@ import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.UserType
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
-import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
@@ -94,10 +94,10 @@ object Defaults {
       ),
     )
   val HOME_UI_STATE =
-    HomeUiState(homeState = HomeState.Success, librariesUiState = HOME_LIBRARY_STATE)
+    HomeUiState(state = GenericState.Success, librariesUiState = HOME_LIBRARY_STATE)
   val HOME_UI_STATE_LIST =
     HomeUiState(
-      homeState = HomeState.Success,
+      state = GenericState.Success,
       prefs = Prefs(),
       librariesUiState = HOME_LIBRARY_STATE,
     )

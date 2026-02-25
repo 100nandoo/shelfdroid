@@ -56,17 +56,16 @@ constructor(private val repository: SettingsPlaybackRepository) : ViewModel() {
   }
 }
 
-sealed class SettingsPlaybackEvent {
-  data class SwitchKeepSpeed(val keepSpeed: Boolean) : SettingsPlaybackEvent()
+sealed interface SettingsPlaybackEvent {
+  data class SwitchKeepSpeed(val keepSpeed: Boolean) : SettingsPlaybackEvent
 
-  data class SwitchKeepSleepTimer(val keepSleepTimer: Boolean) : SettingsPlaybackEvent()
+  data class SwitchKeepSleepTimer(val keepSleepTimer: Boolean) : SettingsPlaybackEvent
 
-  data class SwitchEpisodeKeepSpeed(val episodeKeepSpeed: Boolean) : SettingsPlaybackEvent()
+  data class SwitchEpisodeKeepSpeed(val episodeKeepSpeed: Boolean) : SettingsPlaybackEvent
 
-  data class SwitchEpisodeKeepSleepTimer(val episodeKeepSleepTimer: Boolean) :
-    SettingsPlaybackEvent()
+  data class SwitchEpisodeKeepSleepTimer(val episodeKeepSleepTimer: Boolean) : SettingsPlaybackEvent
 
-  data class SwitchBookKeepSpeed(val bookKeepSpeed: Boolean) : SettingsPlaybackEvent()
+  data class SwitchBookKeepSpeed(val bookKeepSpeed: Boolean) : SettingsPlaybackEvent
 
-  data class SwitchBookKeepSleepTimer(val bookKeepSleepTimer: Boolean) : SettingsPlaybackEvent()
+  data class SwitchBookKeepSleepTimer(val bookKeepSleepTimer: Boolean) : SettingsPlaybackEvent
 }

@@ -183,47 +183,47 @@ constructor(
   }
 }
 
-sealed class PlayerEvent {
-  class PlayBook(val id: String, val isDownloaded: Boolean) : PlayerEvent()
+sealed interface PlayerEvent {
+  class PlayBook(val id: String, val isDownloaded: Boolean) : PlayerEvent
 
   class PlayPodcast(val itemId: String, val episodeId: String, val isDownloaded: Boolean) :
-    PlayerEvent()
+    PlayerEvent
 
-  class ChangeChapter(val target: Int) : PlayerEvent()
+  class ChangeChapter(val target: Int) : PlayerEvent
 
-  class SeekTo(val target: Float) : PlayerEvent()
+  class SeekTo(val target: Float) : PlayerEvent
 
-  class ChangeSpeed(val speed: Float) : PlayerEvent()
+  class ChangeSpeed(val speed: Float) : PlayerEvent
 
-  class SleepTimer(val duration: Duration) : PlayerEvent()
+  class SleepTimer(val duration: Duration) : PlayerEvent
 
-  class GoToBookmark(val time: Long) : PlayerEvent()
+  class GoToBookmark(val time: Long) : PlayerEvent
 
-  data object NewBookmarkTime : PlayerEvent()
+  data object NewBookmarkTime : PlayerEvent
 
-  class CreateBookmark(val time: Long, val title: String) : PlayerEvent()
+  class CreateBookmark(val time: Long, val title: String) : PlayerEvent
 
-  class UpdateBookmark(val bookmark: PlayerBookmark, val title: String) : PlayerEvent()
+  class UpdateBookmark(val bookmark: PlayerBookmark, val title: String) : PlayerEvent
 
-  class DeleteBookmark(val bookmark: PlayerBookmark) : PlayerEvent()
+  class DeleteBookmark(val bookmark: PlayerBookmark) : PlayerEvent
 
-  data object SeekBackButton : PlayerEvent()
+  data object SeekBackButton : PlayerEvent
 
-  data object SeekForwardButton : PlayerEvent()
+  data object SeekForwardButton : PlayerEvent
 
-  data object PlayPauseButton : PlayerEvent()
+  data object PlayPauseButton : PlayerEvent
 
-  data object SkipPreviousButton : PlayerEvent()
+  data object SkipPreviousButton : PlayerEvent
 
-  data object SkipNextButton : PlayerEvent()
+  data object SkipNextButton : PlayerEvent
 
-  data object Logout : PlayerEvent()
+  data object Logout : PlayerEvent
 
-  data object Big : PlayerEvent()
+  data object Big : PlayerEvent
 
-  data object Small : PlayerEvent()
+  data object Small : PlayerEvent
 
-  data object TempHidden : PlayerEvent()
+  data object TempHidden : PlayerEvent
 
-  data object Hidden : PlayerEvent()
+  data object Hidden : PlayerEvent
 }

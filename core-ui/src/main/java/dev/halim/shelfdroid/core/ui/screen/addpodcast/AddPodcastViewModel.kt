@@ -56,26 +56,26 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: AddPodca
   }
 }
 
-sealed class PodcastFeedEvent {
-  data object SubmitButtonPressed : PodcastFeedEvent()
+sealed interface PodcastFeedEvent {
+  data object SubmitButtonPressed : PodcastFeedEvent
 
-  data class TitleChanged(val text: String) : PodcastFeedEvent()
+  data class TitleChanged(val text: String) : PodcastFeedEvent
 
-  data class AuthorChanged(val text: String) : PodcastFeedEvent()
+  data class AuthorChanged(val text: String) : PodcastFeedEvent
 
-  data class FeedUrlChanged(val text: String) : PodcastFeedEvent()
+  data class FeedUrlChanged(val text: String) : PodcastFeedEvent
 
-  data class DescriptionChanged(val text: String) : PodcastFeedEvent()
+  data class DescriptionChanged(val text: String) : PodcastFeedEvent
 
-  data class PathChanged(val text: String) : PodcastFeedEvent()
+  data class PathChanged(val text: String) : PodcastFeedEvent
 
-  data class AutoDownloadChanged(val enabled: Boolean) : PodcastFeedEvent()
+  data class AutoDownloadChanged(val enabled: Boolean) : PodcastFeedEvent
 
-  data class FolderSelected(val folder: PodcastFolder) : PodcastFeedEvent()
+  data class FolderSelected(val folder: PodcastFolder) : PodcastFeedEvent
 
-  data class GenreAdded(val text: String) : PodcastFeedEvent()
+  data class GenreAdded(val text: String) : PodcastFeedEvent
 
-  data class GenreRemoved(val text: String) : PodcastFeedEvent()
+  data class GenreRemoved(val text: String) : PodcastFeedEvent
 
-  data class LanguageChanged(val text: String) : PodcastFeedEvent()
+  data class LanguageChanged(val text: String) : PodcastFeedEvent
 }

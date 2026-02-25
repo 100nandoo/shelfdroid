@@ -1,10 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.shelfdroid.core.Prefs
+import dev.halim.shelfdroid.core.data.GenericState
 import kotlinx.serialization.Serializable
 
 data class HomeUiState(
-  val homeState: HomeState = HomeState.Loading,
+  val state: GenericState = GenericState.Loading,
   val prefs: Prefs = Prefs(),
   val currentPage: Int = 0,
   val librariesUiState: List<LibraryUiState> = emptyList(),
@@ -43,10 +44,10 @@ data class PodcastUiState(
   val unfinishedAndDownloadCount: Int = 0,
 )
 
-sealed class HomeState {
-  data object Loading : HomeState()
+sealed interface HomeState {
+  data object Loading : HomeState
 
-  data object Success : HomeState()
+  data object Success : HomeState
 
-  data class Failure(val errorMessage: String?) : HomeState()
+  data class Failure(val errorMessage: String?) : HomeState
 }

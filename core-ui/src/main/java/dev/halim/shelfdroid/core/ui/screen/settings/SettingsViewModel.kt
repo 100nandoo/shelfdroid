@@ -100,16 +100,16 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
   }
 }
 
-sealed class SettingsEvent {
-  data object LogoutButtonPressed : SettingsEvent()
+sealed interface SettingsEvent {
+  data object LogoutButtonPressed : SettingsEvent
 
-  data class SwitchDarkTheme(val isDarkMode: Boolean) : SettingsEvent()
+  data class SwitchDarkTheme(val isDarkMode: Boolean) : SettingsEvent
 
-  data class SwitchDynamicTheme(val isDynamic: Boolean) : SettingsEvent()
+  data class SwitchDynamicTheme(val isDynamic: Boolean) : SettingsEvent
 
-  data class SwitchListView(val isListView: Boolean) : SettingsEvent()
+  data class SwitchListView(val isListView: Boolean) : SettingsEvent
 
-  data class SwitchHardDelete(val hardDelete: Boolean) : SettingsEvent()
+  data class SwitchHardDelete(val hardDelete: Boolean) : SettingsEvent
 
-  data class SettingsDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : SettingsEvent()
+  data class SettingsDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : SettingsEvent
 }

@@ -14,12 +14,12 @@ data class SettingsUiState(
   val username: String = "",
 )
 
-sealed class SettingsState {
-  data object NotLoggedOut : SettingsState()
+sealed interface SettingsState {
+  data object NotLoggedOut : SettingsState
 
-  data object Loading : SettingsState()
+  data object Loading : SettingsState
 
-  data object Success : SettingsState()
+  data object Success : SettingsState
 
-  data class Failure(val errorMessage: String?) : SettingsState()
+  data class Failure(val errorMessage: String?) : SettingsState
 }

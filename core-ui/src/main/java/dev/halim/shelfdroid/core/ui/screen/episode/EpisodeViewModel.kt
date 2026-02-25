@@ -59,6 +59,6 @@ constructor(
   }
 }
 
-sealed class EpisodeEvent {
-  data class DownloadEvent(val downloadEvent: CommonDownloadEvent) : EpisodeEvent()
+sealed interface EpisodeEvent {
+  data class DownloadEvent(val downloadEvent: CommonDownloadEvent) : EpisodeEvent
 }

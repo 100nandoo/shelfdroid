@@ -45,8 +45,8 @@ import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.SortOrder
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
-import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.ui.R
@@ -126,18 +126,18 @@ fun HomeScreenContent(
   onLogsClicked: () -> Unit = {},
   onBackupsClicked: () -> Unit = {},
 ) {
-  if (libraryCount == 0 && uiState.homeState is HomeState.Success) {
+  if (libraryCount == 0 && uiState.state is GenericState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
   } else {
-    val homeState = uiState.homeState
-    if (homeState is HomeState.Failure) {
+    val homeState = uiState.state
+    if (homeState is GenericState.Failure) {
       GenericMessageScreen(homeState.errorMessage ?: "")
     }
   }
 
   HorizontalPager(state = pagerState) { page ->
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-      VisibilityDown(uiState.homeState is HomeState.Loading) {
+      VisibilityDown(uiState.state is GenericState.Loading) {
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
       }
       if (pagerState.pageCount - 1 == page) {

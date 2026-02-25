@@ -48,8 +48,8 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPo
   }
 }
 
-sealed class SearchPodcastEvent {
-  data class Search(val term: String) : SearchPodcastEvent()
+sealed interface SearchPodcastEvent {
+  data class Search(val term: String) : SearchPodcastEvent
 
-  data class Update(val result: CreatePodcastNavResult) : SearchPodcastEvent()
+  data class Update(val result: CreatePodcastNavResult) : SearchPodcastEvent
 }

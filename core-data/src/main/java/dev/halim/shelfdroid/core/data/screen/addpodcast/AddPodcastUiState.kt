@@ -19,12 +19,12 @@ data class AddPodcastUiState(
   val autoDownload: Boolean = false,
 )
 
-sealed class AddPodcastState {
-  data object Loading : AddPodcastState()
+sealed interface AddPodcastState {
+  data object Loading : AddPodcastState
 
-  data object ApiFeedSuccess : AddPodcastState()
+  data object ApiFeedSuccess : AddPodcastState
 
-  data class ApiCreateSuccess(val result: CreatePodcastNavResult) : AddPodcastState()
+  data class ApiCreateSuccess(val result: CreatePodcastNavResult) : AddPodcastState
 
-  data class Failure(val errorMessage: String?) : AddPodcastState()
+  data class Failure(val errorMessage: String?) : AddPodcastState
 }

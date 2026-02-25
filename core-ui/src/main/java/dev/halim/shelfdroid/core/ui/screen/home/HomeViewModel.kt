@@ -11,9 +11,9 @@ import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
-import dev.halim.shelfdroid.core.data.screen.home.HomeState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
@@ -141,7 +141,7 @@ constructor(
   fun onEvent(event: HomeEvent) {
     when (event) {
       is HomeEvent.RefreshLibrary -> {
-        _uiState.update { it.copy(homeState = HomeState.Loading, currentPage = event.page) }
+        _uiState.update { it.copy(state = GenericState.Loading, currentPage = event.page) }
         viewModelScope.launch { _uiState.update { repository.remoteSync(it) } }
       }
       is HomeEvent.ChangeLibrary -> {
@@ -207,17 +207,17 @@ constructor(
   }
 }
 
-sealed class HomeEvent {
-  data class ChangeLibrary(val page: Int) : HomeEvent()
+sealed interface HomeEvent {
+  data class ChangeLibrary(val page: Int) : HomeEvent
 
-  data class RefreshLibrary(val page: Int) : HomeEvent()
+  data class RefreshLibrary(val page: Int) : HomeEvent
 
-  data class HomeDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : HomeEvent()
+  data class HomeDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : HomeEvent
 
   data class Delete(
     val libraryId: String,
     val itemId: String,
     val isBook: Boolean,
     val hardDelete: Boolean,
-  ) : HomeEvent()
+  ) : HomeEvent
 }

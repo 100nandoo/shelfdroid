@@ -2,30 +2,30 @@ package dev.halim.shelfdroid.core
 
 import kotlin.time.Duration
 
-sealed class PlayerState {
-  class Hidden(error: Error? = null) : PlayerState()
+sealed interface PlayerState {
+  class Hidden(error: Error? = null) : PlayerState
 
-  data object TempHidden : PlayerState()
+  data object TempHidden : PlayerState
 
-  data object Big : PlayerState()
+  data object Big : PlayerState
 
-  data object Small : PlayerState()
+  data object Small : PlayerState
 }
 
-sealed class ExoState {
-  data object Playing : ExoState()
+sealed interface ExoState {
+  data object Playing : ExoState
 
-  data object Pause : ExoState()
+  data object Pause : ExoState
 }
 
-sealed class MediaStructure {
-  data object SingleTrackWithChapters : MediaStructure()
+sealed interface MediaStructure {
+  data object SingleTrackWithChapters : MediaStructure
 
-  data object MultiTrackWithChapters : MediaStructure()
+  data object MultiTrackWithChapters : MediaStructure
 
-  data object SingleTrack : MediaStructure()
+  data object SingleTrack : MediaStructure
 
-  data object MultiTrack : MediaStructure()
+  data object MultiTrack : MediaStructure
 
   fun isSingleTrack() = this is SingleTrack || this is SingleTrackWithChapters
 

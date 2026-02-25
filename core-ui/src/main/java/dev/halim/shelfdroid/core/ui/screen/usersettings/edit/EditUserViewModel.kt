@@ -34,16 +34,16 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditUser
   private val _events = MutableSharedFlow<GenericUiEvent>()
   val events = _events.asSharedFlow()
 
-  fun onEvent(event: UserSettingsEditUserEvent) {
+  fun onEvent(event: EditUserEvent) {
     when (event) {
-      is UserSettingsEditUserEvent.Update -> {
+      is EditUserEvent.Update -> {
         _uiState.update { it.copy(editUser = event.transform(it.editUser)) }
       }
-      is UserSettingsEditUserEvent.UpdateUiState -> {
+      is EditUserEvent.UpdateUiState -> {
         _uiState.update { event.transform(it) }
       }
 
-      UserSettingsEditUserEvent.Submit -> submit()
+      EditUserEvent.Submit -> submit()
     }
   }
 
@@ -106,12 +106,11 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditUser
   }
 }
 
-sealed interface UserSettingsEditUserEvent {
+sealed interface EditUserEvent {
 
-  data class Update(val transform: (NavEditUser) -> NavEditUser) : UserSettingsEditUserEvent
+  data class Update(val transform: (NavEditUser) -> NavEditUser) : EditUserEvent
 
-  data class UpdateUiState(val transform: (EditUserUiState) -> EditUserUiState) :
-    UserSettingsEditUserEvent
+  data class UpdateUiState(val transform: (EditUserUiState) -> EditUserUiState) : EditUserEvent
 
-  data object Submit : UserSettingsEditUserEvent
+  data object Submit : EditUserEvent
 }

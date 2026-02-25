@@ -7,6 +7,7 @@ import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -76,7 +77,7 @@ constructor(
 
     backgroundRemoteSync()
 
-    return homeUiState.copy(homeState = HomeState.Success)
+    return homeUiState.copy(state = GenericState.Success)
   }
 
   private fun backgroundRemoteSync() {

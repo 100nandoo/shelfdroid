@@ -69,14 +69,14 @@ data class LoginUiState(
   val reLogin: Boolean = false,
 )
 
-sealed class LoginEvent {
-  data object LoginButtonPressed : LoginEvent()
+sealed interface LoginEvent {
+  data object LoginButtonPressed : LoginEvent
 
-  data object ErrorShown : LoginEvent()
+  data object ErrorShown : LoginEvent
 
-  data class ServerChanged(val server: String) : LoginEvent()
+  data class ServerChanged(val server: String) : LoginEvent
 
-  data class UsernameChanged(val username: String) : LoginEvent()
+  data class UsernameChanged(val username: String) : LoginEvent
 
-  data class PasswordChanged(val password: String) : LoginEvent()
+  data class PasswordChanged(val password: String) : LoginEvent
 }

@@ -3,7 +3,7 @@
 ## High Priority
 
 - [ ] User management
-    - [ ] create user
+    - [x] create user
     - [ ] listening stats
     - [ ] saved media progress
 - [ ] library management
@@ -27,8 +27,8 @@
 ## Tech Debt
 
 - [ ] Migrate player viewmodel to singleton class
+- [ ] Reduce event count by using transform similar to EditUserEvent
 - [ ] saving userPrefs, progresses, bookmarks code got repetition on loginRepo and homeRepo
-- [ ] use sealed interface instead of class for state in uiState class
 - [ ] use ui event for one shot event like snackbar
 
 ## Bugs
@@ -78,3 +78,4 @@
 - [x] Delete episode behaviour
 - [x] Listening session
 - [x] open sessions management
+- [x] use sealed interface instead of class for state in uiState class

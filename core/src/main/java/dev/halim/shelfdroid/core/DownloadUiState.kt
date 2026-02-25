@@ -12,18 +12,18 @@ data class MultipleTrackDownloadUiState(
   val items: List<DownloadUiState> = emptyList(),
 )
 
-sealed class DownloadState {
-  data object Downloading : DownloadState()
+sealed interface DownloadState {
+  data object Downloading : DownloadState
 
-  data object Completed : DownloadState()
+  data object Completed : DownloadState
 
-  data object Queued : DownloadState()
+  data object Queued : DownloadState
 
-  data object Failed : DownloadState()
+  data object Failed : DownloadState
 
-  data object Incomplete : DownloadState()
+  data object Incomplete : DownloadState
 
-  data object Unknown : DownloadState()
+  data object Unknown : DownloadState
 
   fun isDownloaded() = this is Completed
 }
