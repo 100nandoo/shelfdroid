@@ -21,6 +21,7 @@ import dev.halim.core.network.response.Episode
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
+import dev.halim.core.network.response.ListeningStatResponse
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.OpenSessionsResponse
@@ -177,6 +178,9 @@ interface ApiService {
 
   @DELETE("/api/users/{userId}")
   suspend fun deleteUser(@Path("userId") userId: String): Result<DeleteUserResponse>
+
+  @GET("/api/users/{userId}/listening-stats")
+  suspend fun listeningStats(@Path("userId") userId: String): Result<ListeningStatResponse>
 
   // podcasts
   @POST("/api/podcasts/feed")

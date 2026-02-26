@@ -1,0 +1,31 @@
+import kotlin.Int;
+import kotlin.String;
+import kotlin.collections.Map;
+
+
+CREATE TABLE ListeningStatEntity (
+    userId TEXT PRIMARY KEY NOT NULL,
+    totalTime INTEGER NOT NULL,
+    today INTEGER NOT NULL,
+    days TEXT AS Map<String, Int>,
+    dayOfWeek TEXT AS Map<String, Int>
+);
+
+
+byUserId:
+SELECT *
+FROM ListeningStatEntity
+WHERE userId = :userId;
+
+insert:
+INSERT OR REPLACE INTO ListeningStatEntity(userId, totalTime, today, days, dayOfWeek)
+VALUES ?;
+
+all:
+SELECT * FROM ListeningStatEntity;
+
+deleteById:
+DELETE FROM ListeningStatEntity WHERE userId = ?;
+
+deleteAll:
+DELETE FROM ListeningStatEntity;

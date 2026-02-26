@@ -44,6 +44,7 @@ fun UserSettingsScreen(
   viewModel: UserSettingsViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
   onUserClicked: (NavEditUser) -> Unit = {},
+  onInfoClicked: (String) -> Unit = {},
   createUserClicked: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -52,6 +53,7 @@ fun UserSettingsScreen(
     uiState = uiState,
     onEvent = viewModel::onEvent,
     onUserClicked,
+    onInfoClicked,
     createUserClicked,
   )
 
@@ -77,6 +79,7 @@ private fun UserSettingsContent(
   uiState: UserSettingsUiState = UserSettingsUiState(),
   onEvent: (UserSettingsEvent) -> Unit = {},
   onUserClicked: (NavEditUser) -> Unit = {},
+  onInfoClicked: (String) -> Unit = {},
   createUserClicked: () -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
@@ -98,7 +101,7 @@ private fun UserSettingsContent(
         UserSettingsItem(
           user,
           isLoginUserRoot = uiState.isLoginUserRoot,
-          onInfoClicked = { onEvent(UserSettingsEvent.UserInfo(user)) },
+          onInfoClicked = { onInfoClicked(user.id) },
           onDeleteClicked = { onEvent(UserSettingsEvent.DeleteUser(user)) },
           onClicked = { onUserClicked(user.navPayload) },
         )

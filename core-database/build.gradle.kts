@@ -45,6 +45,9 @@ sqldelight {
 dependencies {
   implementation(project(libs.versions.core.get()))
 
+  // kotlin
+  implementation(libs.kotlinx.serialization)
+
   // Arch Components
   implementation(libs.hilt.android)
   kapt(libs.hilt.compiler)

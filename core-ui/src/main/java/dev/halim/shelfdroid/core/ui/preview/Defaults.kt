@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
+import dev.halim.shelfdroid.core.data.screen.listeningstat.ListeningStatUiState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsUiState
@@ -336,4 +337,7 @@ object Defaults {
   val USER_SETTINGS_USERS = listOf(USER_SETTINGS_USER_ROOT, USER_SETTINGS_USER_ADMIN)
 
   val USER_SETTINGS_UI_STATE = UserSettingsUiState(users = USER_SETTINGS_USERS)
+
+  val LISTENING_STAT_UI_STATE =
+    ListeningStatUiState(today = "2 hour 3 minutes", totalTime = "1 day 1 hour 1 minute 1 second\n")
 }

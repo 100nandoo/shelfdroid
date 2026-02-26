@@ -64,6 +64,35 @@ constructor(
     return "$datePart $timePart"
   }
 
+  fun formatDurationLong(seconds: Long): String {
+    var remaining = seconds
+
+    val years = remaining / 31_536_000
+    remaining %= 31_536_000
+
+    val days = remaining / 86_400
+    remaining %= 86_400
+
+    val hours = remaining / 3_600
+    remaining %= 3_600
+
+    val minutes = remaining / 60
+    remaining %= 60
+
+    val secs = remaining
+
+    val parts =
+      listOfNotNull(
+        years.takeIf { it > 0 }?.let { "$it year${if (it > 1) "s" else ""}" },
+        days.takeIf { it > 0 }?.let { "$it day${if (it > 1) "s" else ""}" },
+        hours.takeIf { it > 0 }?.let { "$it hour${if (it > 1) "s" else ""}" },
+        minutes.takeIf { it > 0 }?.let { "$it minute${if (it > 1) "s" else ""}" },
+        secs.takeIf { it > 0 }?.let { "$it second${if (it > 1) "s" else ""}" },
+      )
+
+    return parts.joinToString(" ")
+  }
+
   fun formatDuration(seconds: Double): String {
     val totalSeconds = seconds.toLong()
     val hours = totalSeconds / 3600

@@ -40,7 +40,6 @@ class UserSettingsViewModel @Inject constructor(private val repository: UserSett
           _uiState.update { repository.deleteUser(event.user.id) }
         }
       }
-      is UserSettingsEvent.UserInfo -> {}
     }
   }
 }
@@ -48,8 +47,6 @@ class UserSettingsViewModel @Inject constructor(private val repository: UserSett
 sealed interface UserSettingsEvent {
 
   data object AddUser : UserSettingsEvent
-
-  data class UserInfo(val user: UserSettingsUiState.User) : UserSettingsEvent
 
   data class DeleteUser(val user: UserSettingsUiState.User) : UserSettingsEvent
 }

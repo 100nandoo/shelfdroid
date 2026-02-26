@@ -10,9 +10,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.halim.shelfdroid.core.UserType
+import dev.halim.shelfdroid.core.database.ListeningStatEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.UserEntity
 import javax.inject.Singleton
+import kotlinx.serialization.json.Json
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -28,7 +30,10 @@ object DatabaseModule {
 
   @Provides
   @Singleton
-  fun provideSqlDelightAppDatabase(driver: SqlDriver): MyDatabase {
+  fun provideSqlDelightAppDatabase(
+    driver: SqlDriver,
+    mapAdapter: ColumnAdapter<Map<String, Int>, String>,
+  ): MyDatabase {
     val listOfStringsAdapter =
       object : ColumnAdapter<List<String>, String> {
         override fun decode(databaseValue: String) =
@@ -50,7 +55,26 @@ object DatabaseModule {
 
     return MyDatabase(
       driver,
+      ListeningStatEntity.Adapter(mapAdapter, mapAdapter),
       UserEntity.Adapter(userTypeAdapter, listOfStringsAdapter, listOfStringsAdapter),
     )
+  }
+
+  @Provides
+  @Singleton
+  fun provideMapAdapter(): ColumnAdapter<Map<String, Int>, String> {
+    return object : ColumnAdapter<Map<String, Int>, String> {
+      override fun decode(databaseValue: String): Map<String, Int> {
+        return if (databaseValue.isEmpty()) {
+          emptyMap()
+        } else {
+          Json.decodeFromString(databaseValue)
+        }
+      }
+
+      override fun encode(value: Map<String, Int>): String {
+        return Json.encodeToString(value)
+      }
+    }
   }
 }

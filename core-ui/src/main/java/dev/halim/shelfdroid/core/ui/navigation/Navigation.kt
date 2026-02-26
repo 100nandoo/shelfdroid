@@ -36,6 +36,7 @@ import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
+import dev.halim.shelfdroid.core.ui.screen.listeningstat.ListeningStatScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
@@ -76,6 +77,8 @@ import kotlinx.serialization.Serializable
 @Serializable object OpenSession
 
 @Serializable object UsersSettings
+
+@Serializable class ListeningStat(val userId: String)
 
 @Serializable object Libraries
 
@@ -256,6 +259,7 @@ private fun ColumnScope.NavHostContainer(
         UserSettingsScreen(
           snackbarHostState = snackbarHostState,
           onUserClicked = { navEditUser -> navController.navigate(navEditUser) },
+          onInfoClicked = { userId -> navController.navigate(ListeningStat(userId)) },
           createUserClicked = { navController.navigate(NavEditUser.defaultUser()) },
         )
       }
@@ -266,6 +270,8 @@ private fun ColumnScope.NavHostContainer(
           navigateBack = { navController.popBackStack() },
         )
       }
+
+      composable<ListeningStat> { ListeningStatScreen() }
     }
   }
 }
