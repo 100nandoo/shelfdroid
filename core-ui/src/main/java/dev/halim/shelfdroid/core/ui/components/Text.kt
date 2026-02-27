@@ -94,10 +94,55 @@ fun AutoSizeText(
 }
 
 @Composable
+fun TextHeadlineLarge(modifier: Modifier = Modifier, text: String) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.headlineLarge,
+    modifier = modifier.padding(bottom = 4.dp),
+  )
+}
+
+@Composable
+fun TextHeadlineMedium(modifier: Modifier = Modifier, text: String) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.headlineMedium,
+    modifier = modifier.padding(bottom = 4.dp),
+  )
+}
+
+@Composable
+fun TextHeadlineSmall(modifier: Modifier = Modifier, text: String) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.headlineSmall,
+    modifier = modifier.padding(bottom = 4.dp),
+  )
+}
+
+@Composable
+fun TextTitleLarge(modifier: Modifier = Modifier, text: String) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.titleLarge,
+    modifier = modifier.padding(bottom = 4.dp),
+  )
+}
+
+@Composable
 fun TextTitleMedium(modifier: Modifier = Modifier, text: String) {
   Text(
     text = text,
     style = MaterialTheme.typography.titleMedium,
+    modifier = modifier.padding(bottom = 4.dp),
+  )
+}
+
+@Composable
+fun TextTitleSmall(modifier: Modifier = Modifier, text: String) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.titleSmall,
     modifier = modifier.padding(bottom = 4.dp),
   )
 }

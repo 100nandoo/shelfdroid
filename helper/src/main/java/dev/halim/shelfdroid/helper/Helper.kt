@@ -64,6 +64,10 @@ constructor(
     return "$datePart $timePart"
   }
 
+  /**
+   * 65 -> 1 minute 5 seconds 86400 -> 1 day 90061 -> 1 day 1 hour 1 minute 1 second 31_536_000 -> 1
+   * year 63_072_000 -> 2 years
+   */
   fun formatDurationLong(seconds: Long): String {
     var remaining = seconds
 

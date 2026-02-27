@@ -169,6 +169,17 @@
     <string name="please_select_at_least_one">Please select at least one library and one tag</string>
     <!--User Settings-->
 
+    <!--Listening Stat-->
+    <string name="minutes_listened">Minutes listened</string>
+    <string name="listening_days">Listening days</string>
+    <string name="most_minutes_in_a_day">Most minutes in a day</string>
+    <string name="current_streak">Current streak</string>
+    <string name="best_streak">Best streak</string>
+    <string name="daily_average_minutes">Daily average minutes</string>
+    <string name="this_week">This Week</string>
+    <string name="all_time">All Time</string>
+    <!--Listening Stat-->
+
     <!--Book-->
     <string name="completed">Completed</string>
     <!--Book-->

@@ -13,8 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 @HiltViewModel
 class ListeningStatViewModel
 @Inject
-constructor(savedStateHandle: SavedStateHandle, private val repository: ListeningStatRepository) :
-  ViewModel() {
+constructor(savedStateHandle: SavedStateHandle, repository: ListeningStatRepository) : ViewModel() {
   val userId: String = checkNotNull(savedStateHandle.get<String>("userId"))
 
   private val _uiState = MutableStateFlow(repository.item(userId))
