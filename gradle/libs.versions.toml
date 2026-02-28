@@ -22,7 +22,7 @@ testApp = ":test-app"
 
 androidGradlePlugin = "8.13.2"
 androidxActivity = "1.12.4"
-androidxComposeBom = "2026.01.01"
+androidxComposeBom = "2026.02.01"
 androidxCore = "1.17.0"
 androidxSplashscreen = "1.2.0"
 androidxDatastore = "1.1.7"
