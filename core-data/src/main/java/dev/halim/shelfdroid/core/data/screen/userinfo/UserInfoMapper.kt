@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package dev.halim.shelfdroid.core.data.screen.listeningstat
+package dev.halim.shelfdroid.core.data.screen.userinfo
 
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.database.ListeningStatEntity
@@ -17,11 +17,11 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 
-class ListeningStatMapper @Inject constructor(private val helper: Helper) {
-  fun toUiState(entity: ListeningStatEntity): ListeningStatUiState {
+class UserInfoMapper @Inject constructor(private val helper: Helper) {
+  fun toUiState(entity: ListeningStatEntity): UserInfoUiState {
     val totalTime = helper.formatDurationLong(entity.totalTime)
     val today = helper.formatDurationLong(entity.today)
-    return ListeningStatUiState(
+    return UserInfoUiState(
       state = GenericState.Success,
       totalTime = totalTime,
       today = today,
@@ -32,14 +32,15 @@ class ListeningStatMapper @Inject constructor(private val helper: Helper) {
     )
   }
 
-  private fun total(entity: ListeningStatEntity): ListeningStatUiState.Total {
+  private fun total(entity: ListeningStatEntity): UserInfoUiState.Total {
     val minutes = (entity.totalTime / 60)
     val string = String.format(Locale.getDefault(), "%,d", minutes)
-    return ListeningStatUiState.Total(days = entity.days?.count().toString(), minutes = string)
+    return UserInfoUiState.Total(days = entity.days?.count().toString(), minutes = string)
   }
 
-  private fun thisWeek(entity: ListeningStatEntity): ListeningStatUiState.ThisWeek {
+  private fun thisWeek(entity: ListeningStatEntity): UserInfoUiState.ThisWeek? {
     val (thisWeek, lastWeek) = splitWeeks(entity.days)
+    if (thisWeek.isEmpty()) return null
 
     val days = thisWeek.count()
     val lastWeekDays = lastWeek.count()
@@ -60,7 +61,7 @@ class ListeningStatMapper @Inject constructor(private val helper: Helper) {
     val dailyAverageDelta =
       ((dailyAverage - lastWeekdailyAverage) / lastWeekdailyAverage * 100).roundToInt().toFloat()
 
-    return ListeningStatUiState.ThisWeek(
+    return UserInfoUiState.ThisWeek(
       days = days.toString(),
       daysDelta = daysDelta,
       minutes = minutes.roundToInt().toString(),

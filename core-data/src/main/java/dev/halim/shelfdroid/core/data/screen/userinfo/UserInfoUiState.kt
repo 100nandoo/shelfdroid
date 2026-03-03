@@ -1,15 +1,15 @@
-package dev.halim.shelfdroid.core.data.screen.listeningstat
+package dev.halim.shelfdroid.core.data.screen.userinfo
 
 import dev.halim.shelfdroid.core.data.GenericState
 
-data class ListeningStatUiState(
+data class UserInfoUiState(
   val state: GenericState = GenericState.Loading,
   val totalTime: String = "",
   val today: String = "",
   val days: Map<String, Int> = emptyMap(),
   val dayOfWeek: Map<String, Int> = emptyMap(),
   val total: Total = Total(),
-  val thisWeek: ThisWeek = ThisWeek(),
+  val thisWeek: ThisWeek? = null,
 ) {
   data class ThisWeek(
     val days: String = "",

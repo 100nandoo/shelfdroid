@@ -178,6 +178,13 @@
     <string name="daily_average_minutes">Daily average minutes</string>
     <string name="this_week">This Week</string>
     <string name="all_time">All Time</string>
+    <string name="server_label">"Server: "</string>
+    <string name="app_label">"App: "</string>
+    <string name="server_this_week_desc">Uses a rolling 7-day window (today and the previous 6 days).</string>
+    <string name="app_this_week_desc">Uses a calendar week (from the start of the week — Sunday or Monday based on your settings — until today).</string>
+    <string name="difference_desc">This difference in time range may cause the values to appear different.</string>
+    <string name="listening_stats">Listening Stats</string>
+    <string name="saved_media_progress">Saved Media Progress</string>
     <!--Listening Stat-->
 
     <!--Book-->

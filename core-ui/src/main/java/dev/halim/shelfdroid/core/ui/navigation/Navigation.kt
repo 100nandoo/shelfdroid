@@ -36,7 +36,6 @@ import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
-import dev.halim.shelfdroid.core.ui.screen.listeningstat.ListeningStatScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
@@ -45,6 +44,7 @@ import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
+import dev.halim.shelfdroid.core.ui.screen.userinfo.UserInfoScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.EditUserScreen
 import kotlinx.coroutines.launch
@@ -78,7 +78,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable object UsersSettings
 
-@Serializable class ListeningStat(val userId: String)
+@Serializable class UserInfo(val userId: String)
 
 @Serializable object Libraries
 
@@ -259,7 +259,7 @@ private fun ColumnScope.NavHostContainer(
         UserSettingsScreen(
           snackbarHostState = snackbarHostState,
           onUserClicked = { navEditUser -> navController.navigate(navEditUser) },
-          onInfoClicked = { userId -> navController.navigate(ListeningStat(userId)) },
+          onInfoClicked = { userId -> navController.navigate(UserInfo(userId)) },
           createUserClicked = { navController.navigate(NavEditUser.defaultUser()) },
         )
       }
@@ -271,7 +271,7 @@ private fun ColumnScope.NavHostContainer(
         )
       }
 
-      composable<ListeningStat> { ListeningStatScreen() }
+      composable<UserInfo> { UserInfoScreen() }
     }
   }
 }

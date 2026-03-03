@@ -4,8 +4,9 @@
 
 - [ ] User management
     - [x] create user
-    - [ ] listening stats
+    - [x] listening stats
     - [ ] saved media progress
+    - [ ] reset root password
 - [ ] library management
 - [ ] API keys management
 - [ ] Settings management
