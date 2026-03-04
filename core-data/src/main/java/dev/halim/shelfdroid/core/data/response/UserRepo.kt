@@ -11,6 +11,7 @@ import dev.halim.core.network.response.Permissions
 import dev.halim.core.network.response.Session
 import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
+import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.database.MyDatabase
@@ -46,6 +47,12 @@ constructor(
       val entity = toEntity(response.user)
       queries.insert(entity)
     }
+    return result
+  }
+
+  suspend fun userWithProgress(userId: String): Result<UserWithMediaProgressDetail> {
+    val result = api.user(userId)
+    val response = result.getOrNull()
     return result
   }
 

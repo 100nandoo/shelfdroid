@@ -32,6 +32,7 @@ import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.TagsResponse
 import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
+import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
 import dev.halim.core.network.response.play.PlayResponse
 import retrofit2.http.Body
@@ -169,6 +170,9 @@ interface ApiService {
 
   @GET("/api/users")
   suspend fun users(@Query("include") include: String? = "latestSession"): Result<UsersResponse>
+
+  @GET("/api/users/{userId}")
+  suspend fun user(@Path("userId") userId: String): Result<UserWithMediaProgressDetail>
 
   @PATCH("/api/users/{userId}")
   suspend fun updateUser(

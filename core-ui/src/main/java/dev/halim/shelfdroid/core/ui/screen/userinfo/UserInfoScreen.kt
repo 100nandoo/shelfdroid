@@ -4,8 +4,6 @@ package dev.halim.shelfdroid.core.ui.screen.userinfo
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,9 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -47,7 +46,7 @@ import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.extensions.appendBold
 import dev.halim.shelfdroid.core.ui.extensions.appendTwoLine
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
-import dev.halim.shelfdroid.core.ui.preview.Defaults.LISTENING_STAT_UI_STATE
+import dev.halim.shelfdroid.core.ui.preview.Defaults.USER_INFO_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -56,88 +55,115 @@ import kotlinx.coroutines.launch
 fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel()) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  ListeningStatContent(uiState = uiState, onEvent = viewModel::onEvent)
+  UserInfoContent(uiState = uiState)
 }
 
 @Composable
-private fun ListeningStatContent(
-  uiState: UserInfoUiState = UserInfoUiState(),
-  onEvent: (ListeningStatEvent) -> Unit = {},
-) {
-  Column(
-    modifier = Modifier.fillMaxSize().padding(16.dp),
+private fun UserInfoContent(uiState: UserInfoUiState = UserInfoUiState()) {
+  val startPadding = Modifier.padding(start = 16.dp)
+  val endPadding = Modifier.padding(end = 16.dp)
+  LazyVerticalGrid(
+    modifier = Modifier.fillMaxSize(),
+    columns = GridCells.Fixed(2),
     verticalArrangement = Arrangement.Bottom,
-  ) {
-    ListeningStatSection(uiState = uiState)
-    SavedMediaProgressSection()
-    Spacer(modifier = Modifier.height(16.dp))
-  }
-}
-
-@Composable
-private fun SavedMediaProgressSection() {
-  TextHeadlineSmall(
-    text = stringResource(R.string.saved_media_progress),
-    modifier = Modifier.padding(bottom = 8.dp),
-  )
-  LazyColumn() {}
-}
-
-@Composable
-private fun ListeningStatSection(uiState: UserInfoUiState = UserInfoUiState()) {
-  TextHeadlineSmall(
-    text = stringResource(R.string.listening_stats),
-    modifier = Modifier.padding(bottom = 8.dp),
-  )
-  TotalSection(uiState.total)
-  uiState.thisWeek?.let { ThisWeekSection(it) }
-  HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-}
-
-@Composable
-private fun TotalSection(total: UserInfoUiState.Total) {
-  TextTitleMedium(text = stringResource(R.string.all_time))
-  LazyVerticalGrid(
-    columns = GridCells.Fixed(2),
     horizontalArrangement = Arrangement.spacedBy(12.dp),
-    contentPadding = PaddingValues(vertical = 12.dp),
   ) {
-    item { StatCard(stringResource(R.string.listening_days), total.days) }
-    item { StatCard(stringResource(R.string.minutes_listened), total.minutes) }
-  }
-}
-
-@Composable
-private fun ThisWeekSection(thisWeek: UserInfoUiState.ThisWeek) {
-  ThisWeekHeader()
-  LazyVerticalGrid(
-    columns = GridCells.Fixed(2),
-    horizontalArrangement = Arrangement.spacedBy(12.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp),
-    contentPadding = PaddingValues(vertical = 12.dp),
-  ) {
-    item { StatCard(stringResource(R.string.listening_days), thisWeek.days, thisWeek.daysDelta) }
-    item {
-      StatCard(stringResource(R.string.minutes_listened), thisWeek.minutes, thisWeek.minutesDelta)
+    item(span = { GridItemSpan(maxLineSpan) }) {
+      TextHeadlineSmall(
+        text = stringResource(R.string.listening_stats),
+        modifier = Modifier.padding(bottom = 8.dp, start = 16.dp, end = 16.dp),
+      )
     }
-    item { StatCard(stringResource(R.string.most_minutes_in_a_day), thisWeek.mostMinutes) }
+    item(span = { GridItemSpan(maxLineSpan) }) {
+      TextTitleMedium(
+        text = stringResource(R.string.all_time),
+        modifier = Modifier.padding(horizontal = 16.dp),
+      )
+    }
     item {
-      StatCard(stringResource(R.string.current_streak), thisWeek.streak, thisWeek.streakDelta)
+      StatCard(modifier = startPadding, stringResource(R.string.listening_days), uiState.total.days)
     }
     item {
       StatCard(
-        stringResource(R.string.daily_average_minutes),
-        thisWeek.dailyAverage,
-        thisWeek.dailyAverageDelta,
+        modifier = endPadding,
+        stringResource(R.string.minutes_listened),
+        uiState.total.minutes,
       )
     }
+
+    uiState.thisWeek?.let { thisWeek ->
+      item(span = { GridItemSpan(maxLineSpan) }) { ThisWeekHeader() }
+
+      item {
+        StatCard(
+          modifier = startPadding,
+          stringResource(R.string.listening_days),
+          thisWeek.days,
+          thisWeek.daysDelta,
+        )
+      }
+      item {
+        StatCard(
+          modifier = endPadding,
+          stringResource(R.string.minutes_listened),
+          thisWeek.minutes,
+          thisWeek.minutesDelta,
+        )
+      }
+      item {
+        StatCard(
+          modifier = startPadding,
+          stringResource(R.string.most_minutes_in_a_day),
+          thisWeek.mostMinutes,
+        )
+      }
+      item {
+        StatCard(
+          modifier = endPadding,
+          stringResource(R.string.current_streak),
+          thisWeek.streak,
+          thisWeek.streakDelta,
+        )
+      }
+      item {
+        StatCard(
+          modifier = startPadding,
+          stringResource(R.string.daily_average_minutes),
+          thisWeek.dailyAverage,
+          thisWeek.dailyAverageDelta,
+        )
+      }
+    }
+
+    if (uiState.mediaProgress.isNotEmpty()) {
+      item(span = { GridItemSpan(maxLineSpan) }) { Spacer(modifier = Modifier.height(16.dp)) }
+      item(span = { GridItemSpan(maxLineSpan) }) {
+        TextHeadlineSmall(
+          text = stringResource(R.string.saved_media_progress),
+          modifier = Modifier.padding(bottom = 8.dp, start = 16.dp, end = 16.dp),
+        )
+      }
+      items(items = uiState.mediaProgress, key = { it.id }, span = { GridItemSpan(maxLineSpan) }) {
+        item ->
+        MediaProgressItem(item)
+        HorizontalDivider()
+      }
+    }
+
+    item(span = { GridItemSpan(maxLineSpan) }) { Spacer(modifier = Modifier.height(16.dp)) }
   }
 }
 
 @Composable
 private fun ThisWeekHeader() {
-  Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(24.dp)) {
-    TextTitleMedium(text = stringResource(R.string.this_week))
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = Modifier.padding(vertical = 12.dp).height(24.dp),
+  ) {
+    TextTitleMedium(
+      text = stringResource(R.string.this_week),
+      modifier = Modifier.padding(start = 16.dp),
+    )
     val state = rememberTooltipState(isPersistent = true)
     val scope = rememberCoroutineScope()
     Spacer(modifier = Modifier.width(8.dp))
@@ -173,8 +199,8 @@ private fun ThisWeekHeader() {
 }
 
 @Composable
-private fun StatCard(label: String, value: String, delta: Number? = null) {
-  ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+private fun StatCard(modifier: Modifier, label: String, value: String, delta: Number? = null) {
+  ElevatedCard(modifier = modifier.fillMaxWidth().padding(bottom = 12.dp)) {
     Row(
       modifier = Modifier.padding(start = 16.dp, top = 16.dp),
       verticalAlignment = Alignment.CenterVertically,
@@ -211,6 +237,6 @@ private fun TextDeltaStat(delta: Number) {
 
 @ShelfDroidPreview
 @Composable
-fun ListeningStatScreenContentPreview() {
-  AnimatedPreviewWrapper(dynamicColor = false) { ListeningStatContent(LISTENING_STAT_UI_STATE) }
+fun UserInfoScreenContentPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) { UserInfoContent(USER_INFO_UI_STATE) }
 }

@@ -5,11 +5,13 @@ package dev.halim.shelfdroid.helper
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.text.format.DateUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.roundToInt
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
@@ -214,6 +216,21 @@ constructor(
         else -> context.getString(R.string.unknown)
       }
     return result
+  }
+
+  fun progress(progress: Double): String {
+    val progressRounded = (progress * 100).roundToInt()
+    return "$progressRounded%"
+  }
+
+  fun getRelativeTimeAndroid(timestampMs: Long?): String {
+    if (timestampMs == null) return ""
+    return DateUtils.getRelativeTimeSpanString(
+        timestampMs,
+        System.currentTimeMillis(),
+        DateUtils.MINUTE_IN_MILLIS,
+      )
+      .toString()
   }
 
   private fun createGenericIntent(

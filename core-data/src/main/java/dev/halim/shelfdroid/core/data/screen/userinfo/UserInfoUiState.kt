@@ -10,6 +10,7 @@ data class UserInfoUiState(
   val dayOfWeek: Map<String, Int> = emptyMap(),
   val total: Total = Total(),
   val thisWeek: ThisWeek? = null,
+  val mediaProgress: List<MediaProgress> = emptyList(),
 ) {
   data class ThisWeek(
     val days: String = "",
@@ -24,4 +25,14 @@ data class UserInfoUiState(
   )
 
   data class Total(val days: String = "", val minutes: String = "")
+
+  data class MediaProgress(
+    val id: String = "",
+    val title: String = "",
+    val cover: String = "",
+    val isFinished: Boolean = false,
+    val progress: String = "",
+    val startAt: String = "",
+    val lastUpdate: String = "",
+  )
 }

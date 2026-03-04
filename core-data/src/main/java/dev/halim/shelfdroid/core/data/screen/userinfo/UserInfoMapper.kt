@@ -2,6 +2,7 @@
 
 package dev.halim.shelfdroid.core.data.screen.userinfo
 
+import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.database.ListeningStatEntity
 import dev.halim.shelfdroid.helper.Helper
@@ -18,9 +19,13 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 
 class UserInfoMapper @Inject constructor(private val helper: Helper) {
-  fun toUiState(entity: ListeningStatEntity): UserInfoUiState {
+  fun toUiState(
+    entity: ListeningStatEntity,
+    mediaProgress: Result<UserWithMediaProgressDetail>,
+  ): UserInfoUiState {
     val totalTime = helper.formatDurationLong(entity.totalTime)
     val today = helper.formatDurationLong(entity.today)
+    val list = mediaProgress(mediaProgress)
     return UserInfoUiState(
       state = GenericState.Success,
       totalTime = totalTime,
@@ -29,6 +34,7 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
       dayOfWeek = entity.dayOfWeek ?: emptyMap(),
       total = total(entity),
       thisWeek = thisWeek(entity),
+      mediaProgress = list,
     )
   }
 
@@ -106,7 +112,7 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
     return thisWeek to lastWeek
   }
 
-  fun calculateStreak(days: Map<String, Int>?): Int {
+  private fun calculateStreak(days: Map<String, Int>?): Int {
     if (days.isNullOrEmpty()) return 0
 
     // Convert all date strings to LocalDate
@@ -125,7 +131,7 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
     return streak
   }
 
-  fun calculateBestStreak(days: Map<String, Int>?): Int {
+  private fun calculateBestStreak(days: Map<String, Int>?): Int {
     if (days.isNullOrEmpty()) return 0
 
     // Convert all date strings to LocalDate and sort
@@ -150,5 +156,29 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
     }
 
     return bestStreak
+  }
+
+  private fun mediaProgress(
+    mediaProgress: Result<UserWithMediaProgressDetail>
+  ): List<UserInfoUiState.MediaProgress> {
+    val response =
+      mediaProgress.getOrElse {
+        return emptyList()
+      }
+    val list =
+      response.mediaProgress
+        .sortedByDescending { it.lastUpdate }
+        .map {
+          UserInfoUiState.MediaProgress(
+            id = it.id,
+            title = it.displayTitle,
+            cover = helper.generateItemCoverUrl(it.libraryItemId),
+            isFinished = it.isFinished,
+            progress = helper.progress(it.progress),
+            startAt = helper.getRelativeTimeAndroid(it.startedAt),
+            lastUpdate = helper.getRelativeTimeAndroid(it.lastUpdate),
+          )
+        }
+    return list
   }
 }

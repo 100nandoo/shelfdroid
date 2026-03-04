@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
+import dev.halim.shelfdroid.core.ui.components.TextTitleSmall
 import dev.halim.shelfdroid.core.ui.preview.Defaults.LISTENING_SESSION
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -61,31 +63,23 @@ fun LazyItemScope.ListeningSessionItem(
       Checkbox(checked = isSelected, onCheckedChange = { onClickedAction() })
     }
     Column(modifier = Modifier.weight(3f).padding(end = 16.dp)) {
-      Text(
-        session.item.title,
-        style = MaterialTheme.typography.titleSmall,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-      )
-      Text(
-        session.item.author,
-        style = MaterialTheme.typography.labelSmall,
+      TextTitleSmall(text = session.item.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+      TextLabelSmall(
+        text = session.item.author,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )
-      Text(
-        session.sessionTime.timeRange,
-        style = MaterialTheme.typography.labelSmall,
+      TextLabelSmall(
+        text = session.sessionTime.timeRange,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )
     }
     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-      Text(
+      TextTitleSmall(
         text = session.user.username ?: stringResource(R.string.unknown),
-        style = MaterialTheme.typography.titleSmall,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )

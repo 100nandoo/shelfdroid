@@ -139,17 +139,39 @@ fun TextTitleMedium(modifier: Modifier = Modifier, text: String) {
 }
 
 @Composable
-fun TextTitleSmall(modifier: Modifier = Modifier, text: String) {
+fun TextTitleSmall(
+  modifier: Modifier = Modifier,
+  text: String,
+  color: Color = Color.Unspecified,
+  maxLines: Int = Int.MAX_VALUE,
+  overflow: TextOverflow = TextOverflow.Clip,
+) {
   Text(
     text = text,
     style = MaterialTheme.typography.titleSmall,
     modifier = modifier.padding(bottom = 4.dp),
+    color = color,
+    maxLines = maxLines,
+    overflow = overflow,
   )
 }
 
 @Composable
-fun TextLabelSmall(modifier: Modifier = Modifier, text: String, color: Color = Color.Unspecified) {
-  Text(modifier = modifier, text = text, style = MaterialTheme.typography.labelSmall, color = color)
+fun TextLabelSmall(
+  modifier: Modifier = Modifier,
+  text: String,
+  color: Color = Color.Unspecified,
+  maxLines: Int = Int.MAX_VALUE,
+  overflow: TextOverflow = TextOverflow.Clip,
+) {
+  Text(
+    modifier = modifier,
+    text = text,
+    style = MaterialTheme.typography.labelSmall,
+    color = color,
+    maxLines = maxLines,
+    overflow = overflow,
+  )
 }
 
 @Composable

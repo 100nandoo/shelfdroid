@@ -2,11 +2,7 @@
 
 ## High Priority
 
-- [ ] User management
-    - [x] create user
-    - [x] listening stats
-    - [ ] saved media progress
-    - [ ] reset root password
+- [ ] change password screen
 - [ ] library management
 - [ ] API keys management
 - [ ] Settings management
@@ -15,6 +11,7 @@
 - [ ] Widget
 - [ ] Backup Restore
 - [ ] Window Manager
+- [ ] Create release build with https://github.com/ilharp/sign-android-release
 
 ## Low Priority
 
@@ -80,3 +77,7 @@
 - [x] Listening session
 - [x] open sessions management
 - [x] use sealed interface instead of class for state in uiState class
+- [x] User management
+    - [x] create user
+    - [x] listening stats
+    - [x] saved media progress

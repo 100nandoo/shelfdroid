@@ -1,6 +1,5 @@
 package dev.halim.shelfdroid.core.data.screen.usersettings
 
-import android.text.format.DateUtils
 import dev.halim.core.network.response.Permissions as NetworkPermissions
 import dev.halim.core.network.response.Session
 import dev.halim.shelfdroid.core.UserType
@@ -18,7 +17,7 @@ class UserSettingsMapper @Inject constructor(private val helper: Helper) {
       id = entity.id,
       username = entity.username,
       type = UserType.toUserType(entity.type.name),
-      lastSeen = getRelativeTimeAndroid(entity.lastSeen),
+      lastSeen = helper.getRelativeTimeAndroid(entity.lastSeen),
       isActive = entity.isActive.toBoolean(),
       lastSession = lastSession(lastSession),
       navPayload = navPayload(entity),
@@ -38,16 +37,6 @@ class UserSettingsMapper @Inject constructor(private val helper: Helper) {
       permissions = entity.permissions,
       invert = permissions.selectedTagsNotAccessible,
     )
-  }
-
-  private fun getRelativeTimeAndroid(timestampMs: Long?): String {
-    if (timestampMs == null) return ""
-    return DateUtils.getRelativeTimeSpanString(
-        timestampMs,
-        System.currentTimeMillis(),
-        DateUtils.MINUTE_IN_MILLIS,
-      )
-      .toString()
   }
 
   private fun lastSession(session: Session?): UserSettingsUiState.LastSession {

@@ -338,10 +338,25 @@ object Defaults {
 
   val USER_SETTINGS_UI_STATE = UserSettingsUiState(users = USER_SETTINGS_USERS)
 
-  val LISTENING_STAT_UI_STATE =
+  val USER_INFO_MEDIA_PROGRESS =
+    UserInfoUiState.MediaProgress(
+      id = "3",
+      title = "Running on Empty",
+      cover = "",
+      progress = "13%",
+      startAt = "3 days ago",
+      lastUpdate = "20 Jan 2026",
+    )
+
+  val USER_INFO_UI_STATE =
     UserInfoUiState(
       today = "2 hour 3 minutes",
       totalTime = "1 day 1 hour 1 minute 1 second\n",
       thisWeek = UserInfoUiState.ThisWeek(),
+      mediaProgress =
+        listOf(
+          USER_INFO_MEDIA_PROGRESS,
+          USER_INFO_MEDIA_PROGRESS.copy(id = "2", title = "The Way of Kings"),
+        ),
     )
 }
