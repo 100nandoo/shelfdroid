@@ -4,10 +4,11 @@ on:
   workflow_dispatch:
   push:
     tags:
-      - '*'
+      - "*"
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build:
@@ -45,29 +46,42 @@ jobs:
           git config --global user.email "actions@github.com"
           git add .
 
-      - uses: stefanzweifel/git-auto-commit-action@v7
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
         with:
-          branch: main
-          commit_message: 🎊🎉 Release version ${{ github.ref_name }} 🎉🎊
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 🎊🎉 Release version ${{ github.ref_name }} 🎉🎊
+          branch: release/${{ github.ref_name }}
+          title: 🚀 Release ${{ github.ref_name }}
+          body: |
+            Automated version bump for release ${{ github.ref_name }}.
+          base: main
 
       - name: Build with Gradle
-        run: ./gradlew :app:assembleDebug
+        run: ./gradlew :app:assembleRelease
+
+      - name: Sign app APK
+        uses: ilharp/sign-android-release@v2
+        id: sign_app
+        with:
+          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: List APK output
-        run: ls -al ./app/build/outputs/apk/debug/
+        run: ls -al ./app/build/outputs/apk/release/
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v7
         with:
           name: shelfdroid-${{ github.ref_name }}.apk
           path: |
-            ./app/build/outputs/apk/debug/
-            
+            ./app/build/outputs/apk/release/
       - name: Rename APK with tag name
         run: |
-          mv ./app/build/outputs/apk/debug/app-debug.apk ./app/build/outputs/apk/debug/shelfdroid-${{ github.ref_name }}.apk
-
+          mv ${{ steps.sign_app.outputs.signedFile }} ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./app/build/outputs/apk/debug/shelfdroid-${{ github.ref_name }}.apk
+          files: ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk
