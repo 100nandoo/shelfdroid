@@ -2,7 +2,9 @@
 
 ## High Priority
 
-- [ ] change password screen
+- [ ] close playback implementation
+    - [ ] library item finished
+    - [ ] exoplayer/service stop
 - [ ] library management
 - [ ] API keys management
 - [ ] Settings management
@@ -81,3 +83,4 @@
     - [x] create user
     - [x] listening stats
     - [x] saved media progress
+    - [x] change password screen

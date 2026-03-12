@@ -46,6 +46,7 @@ import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScree
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import dev.halim.shelfdroid.core.ui.screen.userinfo.UserInfoScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
+import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePasswordScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.EditUserScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -79,6 +80,8 @@ import kotlinx.serialization.Serializable
 @Serializable object UsersSettings
 
 @Serializable class UserInfo(val userId: String)
+
+@Serializable object ChangePassword
 
 @Serializable object Libraries
 
@@ -210,6 +213,7 @@ private fun ColumnScope.NavHostContainer(
           onPodcastClicked = { navController.navigate(SettingsPodcast) },
           onListeningSessionClicked = { navController.navigate(SettingsListeningSession) },
           reLogin = { navController.navigate(Login(reLogin = true)) },
+          changePassword = { navController.navigate(ChangePassword) },
         )
       }
 
@@ -268,10 +272,17 @@ private fun ColumnScope.NavHostContainer(
         EditUserScreen(
           snackbarHostState = snackbarHostState,
           navigateBack = { navController.popBackStack() },
+          changePassword = { navController.navigate(ChangePassword) },
         )
       }
 
       composable<UserInfo> { UserInfoScreen() }
+      composable<ChangePassword> {
+        ChangePasswordScreen(
+          snackbarHostState = snackbarHostState,
+          finish = { navController.popBackStack() },
+        )
+      }
     }
   }
 }

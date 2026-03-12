@@ -169,6 +169,15 @@
     <string name="please_select_at_least_one">Please select at least one library and one tag</string>
     <!--User Settings-->
 
+    <!--Change Password-->
+    <string name="old_password">Old Password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="passwords_do_not_match">Passwords do not match</string>
+    <string name="passwords_changed_successfully">Passwords changed succcessfully</string>
+    <string name="invalid_password">Invalid password</string>
+    <!--Change Password-->
+
     <!--Listening Stat-->
     <string name="minutes_listened">Minutes listened</string>
     <string name="listening_days">Listening days</string>

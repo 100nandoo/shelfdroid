@@ -45,6 +45,7 @@ fun SettingsScreen(
   onPodcastClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   reLogin: () -> Unit = {},
+  changePassword: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val version = remember { viewModel.version }
@@ -56,6 +57,7 @@ fun SettingsScreen(
     onPodcastClicked = onPodcastClicked,
     onListeningSessionClicked = onListeningSessionClicked,
     reLogin = reLogin,
+    changePassword = changePassword,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
   )
 }
@@ -69,6 +71,7 @@ fun SettingsScreenContent(
   onPodcastClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   reLogin: () -> Unit = {},
+  changePassword: () -> Unit = {},
   onEvent: (SettingsEvent) -> Unit = {},
 ) {
   Column(
@@ -76,7 +79,7 @@ fun SettingsScreenContent(
       Modifier.fillMaxSize().padding(vertical = 16.dp).verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    LogoutSection(onEvent, reLogin)
+    LogoutSection(onEvent, reLogin, changePassword)
     Spacer(modifier = Modifier.height(16.dp))
 
     OthersSection(version, user, uiState)
@@ -233,9 +236,22 @@ private fun OthersSection(version: String, user: String, uiState: SettingsUiStat
 }
 
 @Composable
-fun LogoutSection(onEvent: (SettingsEvent) -> Unit = {}, reLogin: () -> Unit) {
+fun LogoutSection(
+  onEvent: (SettingsEvent) -> Unit = {},
+  reLogin: () -> Unit,
+  changePassword: () -> Unit,
+) {
   var showLogoutDialog by remember { mutableStateOf(false) }
   var showReLoginDialog by remember { mutableStateOf(false) }
+
+  Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+    TextButton(
+      onClick = { changePassword() },
+      modifier = Modifier.weight(1f).padding(vertical = 4.dp),
+    ) {
+      Text(stringResource(R.string.change_password))
+    }
+  }
 
   Row(modifier = Modifier.padding(horizontal = 16.dp)) {
     TextButton(

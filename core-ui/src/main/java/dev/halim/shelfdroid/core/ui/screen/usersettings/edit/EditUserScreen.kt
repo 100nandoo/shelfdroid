@@ -61,10 +61,11 @@ fun EditUserScreen(
   viewModel: EditUserViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
   navigateBack: () -> Unit,
+  changePassword: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  EditUserContent(uiState = uiState, onEvent = viewModel::onEvent)
+  EditUserContent(uiState = uiState, changePassword = changePassword, onEvent = viewModel::onEvent)
 
   SnackbarHandling(viewModel, snackbarHostState, navigateBack)
 }
@@ -72,6 +73,7 @@ fun EditUserScreen(
 @Composable
 private fun EditUserContent(
   uiState: EditUserUiState = EditUserUiState(),
+  changePassword: () -> Unit = {},
   onEvent: (EditUserEvent) -> Unit = {},
 ) {
   val isNotRoot = uiState.editUser.type.isRoot().not()
@@ -91,7 +93,7 @@ private fun EditUserContent(
     if (isNotRoot) {
       NonRootSection(uiState, onEvent)
     } else {
-      RootSection()
+      RootSection(changePassword)
     }
 
     Spacer(modifier = Modifier.height(12.dp))
@@ -214,9 +216,9 @@ private fun InfoSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Un
 }
 
 @Composable
-private fun RootSection() {
+private fun RootSection(changePassword: () -> Unit) {
   HorizontalDivider(Modifier.padding(vertical = 16.dp))
-  Button(onClick = {}) { Text(stringResource(R.string.change_root_password)) }
+  Button(onClick = changePassword) { Text(stringResource(R.string.change_root_password)) }
 }
 
 @Composable

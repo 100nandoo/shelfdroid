@@ -2,6 +2,7 @@ package dev.halim.core.network
 
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.BookmarkRequest
+import dev.halim.core.network.request.ChangePasswordRequest
 import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.DeleteSessionsRequest
@@ -123,6 +124,9 @@ interface ApiService {
 
   @DELETE("/api/me/item/{itemId}/bookmark/{time}")
   suspend fun deleteBookmark(@Path("itemId") itemId: String, @Path("time") time: Int): Result<Unit>
+
+  @PATCH("/api/me/password")
+  suspend fun changePassword(@Body request: ChangePasswordRequest): Result<Unit>
 
   // session
 
