@@ -42,7 +42,7 @@ hilt = "2.58"
 junit = "4.13.2"
 kotlin = "2.3.10"
 kotlinSerialization = "1.10.0"
-sqldelight = "2.2.1"
+sqldelight = "2.3.1"
 
 # 3rd party
 accompanist = "0.37.3"
