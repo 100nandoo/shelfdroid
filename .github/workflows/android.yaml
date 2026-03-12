@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -39,12 +42,6 @@ jobs:
         run: |
           chmod +x ./update_version.sh
           sh ./update_version.sh ${{ github.ref_name }}
-
-      - name: Stage version file changes
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add .
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
@@ -72,15 +69,17 @@ jobs:
       - name: List APK output
         run: ls -al ./app/build/outputs/apk/release/
 
+      - name: Rename APK with tag name
+        run: |
+          mv ${{ steps.sign_app.outputs.signedFile }} ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk
+
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v7
         with:
           name: shelfdroid-${{ github.ref_name }}.apk
           path: |
             ./app/build/outputs/apk/release/
-      - name: Rename APK with tag name
-        run: |
-          mv ${{ steps.sign_app.outputs.signedFile }} ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
