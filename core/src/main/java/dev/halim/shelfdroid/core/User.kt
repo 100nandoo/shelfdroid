@@ -1,5 +1,10 @@
 package dev.halim.shelfdroid.core
 
+import androidx.annotation.Keep
+import kotlinx.serialization.Serializable
+
+@Keep
+@Serializable
 enum class UserType {
   Admin,
   User,
