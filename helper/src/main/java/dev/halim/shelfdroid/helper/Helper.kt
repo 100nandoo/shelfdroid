@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 
 class Helper
@@ -194,6 +195,46 @@ constructor(
       // Different days: Only show the date for the updatedAt (end) time
       "${start.formatTime()} ${start.amPm()} – ${end.formatTime()} ${end.amPm()}, ${end.formatDate()}"
     }
+  }
+
+  fun toLocalDateTime(timestamp: String): LocalDateTime? {
+    val format =
+      LocalDateTime.Format {
+        year()
+        char('-')
+        monthNumber()
+        char('-')
+        day()
+        char(' ')
+        hour()
+        char(':')
+        minute()
+        char(':')
+        second()
+        char('.')
+        secondFraction(3)
+      }
+
+    val result = runCatching { LocalDateTime.parse(timestamp, format) }.getOrNull()
+    return result
+  }
+
+  /**
+   * Convert kotlin LocalDateTime to 12 hour format
+   * * Examples:
+   * - 12:00 AM
+   * - 03:00 PM
+   */
+  fun formatHour(dateTime: LocalDateTime): String {
+    val hour = dateTime.hour
+    val ampm = if (hour < 12) "AM" else "PM"
+    val hour12 =
+      when {
+        hour == 0 -> 12
+        hour > 12 -> hour - 12
+        else -> hour
+      }
+    return "$hour12 $ampm"
   }
 
   fun nowMilis(): Long {

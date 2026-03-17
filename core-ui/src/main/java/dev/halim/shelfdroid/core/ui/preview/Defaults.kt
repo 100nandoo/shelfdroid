@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.preview
 
+import dev.halim.shelfdroid.core.LogLevel
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.Prefs
@@ -13,6 +14,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
+import dev.halim.shelfdroid.core.data.screen.logs.LogsUiState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.data.screen.userinfo.UserInfoUiState
@@ -358,5 +360,21 @@ object Defaults {
           USER_INFO_MEDIA_PROGRESS,
           USER_INFO_MEDIA_PROGRESS.copy(id = "2", title = "The Way of Kings"),
         ),
+    )
+
+  val LOG_LOG =
+    LogsUiState.LogItem.Log(
+      1,
+      LogLevel.WARNING,
+      "[PodcastManager] runEpisodeCheck: \"The Diary Of A CEO with Steven Bartlett\" | Last check: Sat Mar 07 2026 08:30:18 GMT+0800 (Singapore Standard Time) | Latest episode pubDate: Fri Mar 06 2026 14:00:00 GMT+0800 (Singapore Standard Time)",
+      "07:58:30",
+    )
+
+  val LOG_HOUR_HEADER = LogsUiState.LogItem.HourHeader(2, "11 PM")
+
+  val LOG_UI_STATE =
+    LogsUiState(
+      state = GenericState.Success,
+      logs = listOf(LOG_HOUR_HEADER, LOG_LOG, LOG_LOG.copy(id = 2)),
     )
 }

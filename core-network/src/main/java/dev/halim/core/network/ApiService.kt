@@ -13,6 +13,7 @@ import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
+import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BatchLibraryItemsResponse
@@ -25,9 +26,11 @@ import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.ListeningStatResponse
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
+import dev.halim.core.network.response.LogsResponse
 import dev.halim.core.network.response.OpenSessionsResponse
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.SearchPodcast
+import dev.halim.core.network.response.ServerSettingsResponse
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.TagsResponse
@@ -212,4 +215,13 @@ interface ApiService {
 
   // tags
   @GET("/api/tags") suspend fun tags(): Result<TagsResponse>
+
+  // settings
+  @PATCH("/api/settings")
+  suspend fun updateSettings(
+    @Body request: UpdateServerSettingsRequest
+  ): Result<ServerSettingsResponse>
+
+  // logger
+  @GET("/api/logger-data") suspend fun logs(): Result<LogsResponse>
 }

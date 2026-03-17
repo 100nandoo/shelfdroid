@@ -37,6 +37,7 @@ import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
+import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
@@ -161,9 +162,7 @@ private fun ColumnScope.NavHostContainer(
             onServerSettingsClicked = {
               //              navController.navigate(ServerSettings)
             },
-            onLogsClicked = {
-              //              navController.navigate(Logs)
-            },
+            onLogsClicked = { navController.navigate(Logs) },
             onBackupsClicked = {
               //              navController.navigate(Backups)
             },
@@ -277,12 +276,15 @@ private fun ColumnScope.NavHostContainer(
       }
 
       composable<UserInfo> { UserInfoScreen() }
+
       composable<ChangePassword> {
         ChangePasswordScreen(
           snackbarHostState = snackbarHostState,
           finish = { navController.popBackStack() },
         )
       }
+
+      composable<Logs> { LogsScreen(snackbarHostState = snackbarHostState) }
     }
   }
 }

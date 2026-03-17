@@ -157,6 +157,60 @@ fun TextTitleSmall(
 }
 
 @Composable
+fun TextLabelLarge(
+  modifier: Modifier = Modifier,
+  text: String,
+  color: Color = Color.Unspecified,
+  maxLines: Int = Int.MAX_VALUE,
+  overflow: TextOverflow = TextOverflow.Clip,
+) {
+  Text(
+    modifier = modifier,
+    text = text,
+    style = MaterialTheme.typography.labelLarge,
+    color = color,
+    maxLines = maxLines,
+    overflow = overflow,
+  )
+}
+
+@Composable
+fun TextLabelMedium(
+  modifier: Modifier = Modifier,
+  text: AnnotatedString,
+  color: Color = Color.Unspecified,
+  maxLines: Int = Int.MAX_VALUE,
+  overflow: TextOverflow = TextOverflow.Clip,
+) {
+  Text(
+    modifier = modifier,
+    text = text,
+    style = MaterialTheme.typography.labelMedium,
+    color = color,
+    maxLines = maxLines,
+    overflow = overflow,
+  )
+}
+
+@Composable
+fun TextLabelMedium(
+  modifier: Modifier = Modifier,
+  text: String,
+  color: Color = Color.Unspecified,
+  maxLines: Int = Int.MAX_VALUE,
+  overflow: TextOverflow = TextOverflow.Clip,
+) {
+  Text(
+    modifier = modifier,
+    text = text,
+    style = MaterialTheme.typography.labelMedium,
+    color = color,
+    maxLines = maxLines,
+    overflow = overflow,
+  )
+}
+
+@Composable
 fun TextLabelSmall(
   modifier: Modifier = Modifier,
   text: String,
