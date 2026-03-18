@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenuItem
@@ -8,6 +9,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -18,7 +20,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -28,6 +33,7 @@ fun ChipDropdownMenu(
   modifier: Modifier = Modifier,
   options: List<String> = emptyList(),
   label: String? = null,
+  labelOnTop: Boolean = false,
   initialValue: String,
   onClick: (String) -> Unit = {},
 ) {
@@ -39,15 +45,24 @@ fun ChipDropdownMenu(
     expanded = expanded,
     onExpandedChange = { expanded = it },
   ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      if (label != null) {
-        Text(
-          text = label,
-          style = MaterialTheme.typography.labelSmall,
-          color = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
-          modifier = Modifier.padding(end = 8.dp),
-        )
+    val labelComposable: @Composable (() -> Unit)? =
+      label?.let {
+        {
+          Text(
+            text = it,
+            style = MaterialTheme.typography.labelSmall,
+            color = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
+            modifier =
+              if (labelOnTop) {
+                Modifier
+              } else {
+                Modifier.padding(end = 8.dp)
+              },
+          )
+        }
       }
+
+    val chipComposable: @Composable () -> Unit = {
       FilterChip(
         modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         selected = expanded,
@@ -57,14 +72,36 @@ fun ChipDropdownMenu(
       )
     }
 
+    if (labelOnTop) {
+      Column {
+        labelComposable?.invoke()
+        chipComposable()
+      }
+    } else {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        labelComposable?.invoke()
+        chipComposable()
+      }
+    }
+
     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
       options.forEach { option ->
+        val isSelected = option == selected
+
         DropdownMenuItem(
           text = { Text(option) },
           onClick = {
             selected = option
             expanded = false
             onClick(option)
+          },
+          trailingIcon = {
+            if (isSelected) {
+              Icon(
+                painter = painterResource(id = R.drawable.check),
+                contentDescription = stringResource(R.string.selected),
+              )
+            }
           },
         )
       }
@@ -79,6 +116,19 @@ fun ChipDropdownMenuPreview() {
     ChipDropdownMenu(
       options = listOf("Option 1", "Option 2", "Option 3"),
       label = "Label",
+      initialValue = "Option 1",
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun ChipDropdownMenuLabelTopPreview() {
+  PreviewWrapper {
+    ChipDropdownMenu(
+      options = listOf("Option 1", "Option 2", "Option 3"),
+      label = "Label",
+      labelOnTop = true,
       initialValue = "Option 1",
     )
   }

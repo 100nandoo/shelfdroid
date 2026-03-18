@@ -16,7 +16,7 @@ data class UserPrefs(
   val refreshToken: String = "",
 )
 
-@Serializable data class ServerPrefs(val version: String = "")
+@Serializable data class ServerPrefs(val version: String = "", val logLevel: Int = 1)
 
 enum class Filter {
   All,

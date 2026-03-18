@@ -95,7 +95,7 @@ interface ApiService {
   ): PlayResponse
 
   @DELETE("/api/items/{itemId}")
-  suspend fun deleteItem(@Path("itemId") itemId: String, @Query(" ") hard: Int = 0): Result<Unit>
+  suspend fun deleteItem(@Path("itemId") itemId: String, @Query("hard") hard: Int = 0): Result<Unit>
 
   //  me
   @GET("/api/me") suspend fun me(): Result<User>

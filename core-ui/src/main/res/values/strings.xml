@@ -196,6 +196,11 @@
     <string name="saved_media_progress">Saved Media Progress</string>
     <!--Listening Stat-->
 
+    <!--Logs-->
+    <string name="server_log_level">Server Log Level</string>
+    <string name="filter_log_level">Filter Log Level</string>
+    <!--Logs-->
+
     <!--Book-->
     <string name="completed">Completed</string>
     <!--Book-->
@@ -287,5 +292,6 @@
     <string name="download">Download</string>
     <string name="delete">Delete</string>
     <string name="enable">Enable</string>
+    <string name="selected">selected</string>
     <!--Others-->
 </resources>

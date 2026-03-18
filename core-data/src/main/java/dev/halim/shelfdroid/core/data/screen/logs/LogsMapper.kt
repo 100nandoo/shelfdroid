@@ -24,7 +24,7 @@ class LogsMapper @Inject constructor(val helper: Helper) {
       result.add(log(nextId++, log, dateTime))
     }
 
-    return result
+    return result.reversed()
   }
 
   private fun hourHeader(id: Int, hour: String): LogsUiState.LogItem.HourHeader {

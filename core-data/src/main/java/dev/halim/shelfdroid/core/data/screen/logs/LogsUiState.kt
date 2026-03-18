@@ -6,6 +6,8 @@ import dev.halim.shelfdroid.core.data.GenericState
 data class LogsUiState(
   val state: GenericState = GenericState.Loading,
   val logs: List<LogItem> = emptyList(),
+  val logLevel: LogLevel = LogLevel.DEBUG,
+  val filterLogLevel: LogLevel = LogLevel.DEBUG,
 ) {
 
   sealed interface LogItem {

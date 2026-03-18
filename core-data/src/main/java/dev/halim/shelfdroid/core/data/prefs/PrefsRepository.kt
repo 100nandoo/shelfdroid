@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.prefs
 
+import dev.halim.core.network.response.ServerSettings
 import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.ListeningSessionPrefs
 import dev.halim.shelfdroid.core.PlaybackPrefs
@@ -32,6 +33,11 @@ class PrefsRepository @Inject constructor(private val dataStoreManager: DataStor
   }
 
   suspend fun updateServerPrefs(serverPrefs: ServerPrefs) {
+    dataStoreManager.updateServerPrefs(serverPrefs)
+  }
+
+  suspend fun updateServerPrefs(server: ServerSettings) {
+    val serverPrefs = ServerPrefs(version = server.version, logLevel = server.logLevel)
     dataStoreManager.updateServerPrefs(serverPrefs)
   }
 

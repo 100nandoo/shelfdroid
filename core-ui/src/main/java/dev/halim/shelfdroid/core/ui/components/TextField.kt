@@ -210,7 +210,7 @@ fun DropdownOutlinedTextField(
           onClick = { onOptionToggled(option) },
           trailingIcon =
             if (isSelected) {
-              { Icon(painter = painterResource(R.drawable.check), contentDescription = "Selected") }
+              { Icon(painter = painterResource(R.drawable.check), contentDescription = stringResource(R.string.selected)) }
             } else {
               null
             },
