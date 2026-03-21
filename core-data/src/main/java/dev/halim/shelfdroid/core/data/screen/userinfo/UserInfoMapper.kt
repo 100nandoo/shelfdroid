@@ -161,10 +161,9 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
   private fun mediaProgress(
     mediaProgress: Result<UserWithMediaProgressDetail>
   ): List<UserInfoUiState.MediaProgress> {
-    val response =
-      mediaProgress.getOrElse {
-        return emptyList()
-      }
+    val response = mediaProgress.getOrElse {
+      return emptyList()
+    }
     val list =
       response.mediaProgress
         .sortedByDescending { it.lastUpdate }

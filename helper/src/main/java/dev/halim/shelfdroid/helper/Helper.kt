@@ -198,22 +198,21 @@ constructor(
   }
 
   fun toLocalDateTime(timestamp: String): LocalDateTime? {
-    val format =
-      LocalDateTime.Format {
-        year()
-        char('-')
-        monthNumber()
-        char('-')
-        day()
-        char(' ')
-        hour()
-        char(':')
-        minute()
-        char(':')
-        second()
-        char('.')
-        secondFraction(3)
-      }
+    val format = LocalDateTime.Format {
+      year()
+      char('-')
+      monthNumber()
+      char('-')
+      day()
+      char(' ')
+      hour()
+      char(':')
+      minute()
+      char(':')
+      second()
+      char('.')
+      secondFraction(3)
+    }
 
     val result = runCatching { LocalDateTime.parse(timestamp, format) }.getOrNull()
     return result

@@ -108,16 +108,15 @@ constructor(
 
   private fun startSyncJob() {
     syncJob?.cancel()
-    syncJob =
-      syncScope.launch {
-        while (true) {
-          delay(1.seconds)
-          duration += 1.seconds
-          val syncThreshold = if (isMetered) SYNC_LONG_INTERVAL else SYNC_SHORT_INTERVAL
-          if (duration >= syncThreshold.seconds) {
-            sync()
-          }
+    syncJob = syncScope.launch {
+      while (true) {
+        delay(1.seconds)
+        duration += 1.seconds
+        val syncThreshold = if (isMetered) SYNC_LONG_INTERVAL else SYNC_SHORT_INTERVAL
+        if (duration >= syncThreshold.seconds) {
+          sync()
         }
       }
+    }
   }
 }

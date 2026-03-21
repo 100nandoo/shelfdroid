@@ -19,11 +19,10 @@ constructor(
 
   suspend fun item(event: MutableSharedFlow<LogsUiEvent>): LogsUiState {
     val response = api.logs()
-    val result =
-      response.getOrElse {
-        event.emit(LogsUiEvent.GetLogDataError)
-        return LogsUiState(GenericState.Failure(it.message))
-      }
+    val result = response.getOrElse {
+      event.emit(LogsUiEvent.GetLogDataError)
+      return LogsUiState(GenericState.Failure(it.message))
+    }
     val logs = logsMapper.items(result)
     val logLevel =
       prefs.serverPrefs.firstOrNull()?.logLevel?.let { LogLevel.from(it) } ?: LogLevel.DEBUG

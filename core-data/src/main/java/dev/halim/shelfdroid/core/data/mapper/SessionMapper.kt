@@ -16,15 +16,14 @@ import javax.inject.Inject
 class SessionMapper @Inject constructor(private val helper: Helper) {
 
   fun sessions(sessions: List<NetworkSession>): List<Session> {
-    val result =
-      sessions.map { session ->
-        val item = item(session)
-        val device = device(session)
-        val sessionTime = sessionTime(session)
-        val user = user(session)
-        val playerInfo = playerInfo(session)
-        Session(session.id, item, device, sessionTime, user, playerInfo)
-      }
+    val result = sessions.map { session ->
+      val item = item(session)
+      val device = device(session)
+      val sessionTime = sessionTime(session)
+      val user = user(session)
+      val playerInfo = playerInfo(session)
+      Session(session.id, item, device, sessionTime, user, playerInfo)
+    }
     return result
   }
 

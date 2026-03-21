@@ -47,28 +47,27 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditUser
     }
   }
 
-  private fun submit() =
-    viewModelScope.launch {
-      _uiState.update { it.copy(state = EditUserState.Loading) }
+  private fun submit() = viewModelScope.launch {
+    _uiState.update { it.copy(state = EditUserState.Loading) }
 
-      val validation = validatePermissions()
-      if (validation != EditUserState.Success) {
-        handleValidationError(validation)
+    val validation = validatePermissions()
+    if (validation != EditUserState.Success) {
+      handleValidationError(validation)
+      return@launch
+    }
+
+    if (isCreateMode) {
+      val infoValidation = validateUserInfo()
+      if (infoValidation != EditUserState.Success) {
+        handleValidationError(infoValidation)
         return@launch
       }
 
-      if (isCreateMode) {
-        val infoValidation = validateUserInfo()
-        if (infoValidation != EditUserState.Success) {
-          handleValidationError(infoValidation)
-          return@launch
-        }
-
-        _uiState.update { repository.createUser(_uiState.value, _events) }
-      } else {
-        _uiState.update { repository.updateUser(_uiState.value, _events) }
-      }
+      _uiState.update { repository.createUser(_uiState.value, _events) }
+    } else {
+      _uiState.update { repository.updateUser(_uiState.value, _events) }
     }
+  }
 
   private suspend fun handleValidationError(state: EditUserState) {
     _uiState.update { it.copy(state = state) }

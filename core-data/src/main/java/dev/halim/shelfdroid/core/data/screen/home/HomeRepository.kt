@@ -51,21 +51,20 @@ constructor(
       libraryItems,
       prefs,
       progresses ->
-      val result =
-        libraries.map { (id, name, _, isBookLibrary) ->
-          val isBook = isBookLibrary.toBoolean()
-          val libraryItems = libraryItems.getOrDefault(id, emptyList())
+      val result = libraries.map { (id, name, _, isBookLibrary) ->
+        val isBook = isBookLibrary.toBoolean()
+        val libraryItems = libraryItems.getOrDefault(id, emptyList())
 
-          val library =
-            if (isBook) {
-              val books = libraryItems.map { mapper.toBookUiState(it) }
-              LibraryUiState(id, name, true, books = books)
-            } else {
-              val podcasts = libraryItems.map { mapper.toPodcastUiState(it) }
-              LibraryUiState(id, name, false, podcasts = podcasts)
-            }
-          library
-        }
+        val library =
+          if (isBook) {
+            val books = libraryItems.map { mapper.toBookUiState(it) }
+            LibraryUiState(id, name, true, books = books)
+          } else {
+            val podcasts = libraryItems.map { mapper.toPodcastUiState(it) }
+            LibraryUiState(id, name, false, podcasts = podcasts)
+          }
+        library
+      }
       prefs to result
     }
   }

@@ -55,20 +55,19 @@ class TimerManager @Inject constructor(private val exoPlayerManager: ExoPlayerMa
 
   private fun startSleepJob() {
     sleepJob?.cancel()
-    sleepJob =
-      syncScope.launch {
-        while (duration.value.inWholeSeconds > 0) {
-          delay(1.seconds)
-          if (exoPlayerManager.isPlayingSafe()) {
-            duration.value -= 1.seconds
-          }
-        }
-
-        withContext(Dispatchers.Main) {
-          timerFinished()
-          timerFinished = {}
-          sleepJob?.cancel()
+    sleepJob = syncScope.launch {
+      while (duration.value.inWholeSeconds > 0) {
+        delay(1.seconds)
+        if (exoPlayerManager.isPlayingSafe()) {
+          duration.value -= 1.seconds
         }
       }
+
+      withContext(Dispatchers.Main) {
+        timerFinished()
+        timerFinished = {}
+        sleepJob?.cancel()
+      }
+    }
   }
 }

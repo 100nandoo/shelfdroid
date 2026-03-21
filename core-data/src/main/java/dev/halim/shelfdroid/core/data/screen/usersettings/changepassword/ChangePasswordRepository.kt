@@ -15,12 +15,11 @@ class ChangePasswordRepository @Inject constructor(private val api: ApiService) 
   ): ChangePasswordUiState {
     val request = ChangePasswordRequest(uiState.old, uiState.new)
     val response = api.changePassword(request)
-    val result =
-      response.getOrElse {
-        val isInvalid = if (it is HttpException) it.code() == 400 else false
-        event.emit(ChangePasswordUiEvent.ApiError(isInvalid, it.message))
-        return uiState.copy(state = GenericState.Failure())
-      }
+    val result = response.getOrElse {
+      val isInvalid = if (it is HttpException) it.code() == 400 else false
+      event.emit(ChangePasswordUiEvent.ApiError(isInvalid, it.message))
+      return uiState.copy(state = GenericState.Failure())
+    }
     event.emit(ChangePasswordUiEvent.Success)
     return uiState.copy(state = GenericState.Success, old = "", new = "", confirm = "")
   }

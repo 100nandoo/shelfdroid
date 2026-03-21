@@ -35,8 +35,9 @@ constructor(
   private val _downloads = MutableStateFlow(fetch())
   val downloads: StateFlow<List<Download>> = _downloads.asStateFlow()
 
-  val completedDownloads =
-    downloads.map { downloads -> downloads.filter { it.state == Download.STATE_COMPLETED } }
+  val completedDownloads = downloads.map { downloads ->
+    downloads.filter { it.state == Download.STATE_COMPLETED }
+  }
 
   init {
     downloadManager.addListener(
@@ -74,8 +75,9 @@ constructor(
       1 -> id in downloadedIds
       0 -> false
       else -> {
-        val ids =
-          trackIndexes.map { trackIndex -> helper.generateDownloadId(id, trackIndex.toString()) }
+        val ids = trackIndexes.map { trackIndex ->
+          helper.generateDownloadId(id, trackIndex.toString())
+        }
         ids.all { id -> id in downloadedIds }
       }
     }
@@ -112,19 +114,18 @@ constructor(
   ): MultipleTrackDownloadUiState {
     val titleShort = if (title.length > 27) title.take(27) + "..." else title
     val size = tracks.size
-    val items =
-      tracks.map { track ->
-        val downloadId = helper.generateDownloadId(itemId, track.index.toString())
-        val download = downloadById(downloadId)
-        val downloadState = downloadMapper.toDownloadState(download?.state)
-        val downloadUrl = helper.generateContentUrl(track.contentUrl)
-        DownloadUiState(
-          state = downloadState,
-          id = downloadId,
-          url = downloadUrl,
-          title = "$titleShort ${track.index}/$size",
-        )
-      }
+    val items = tracks.map { track ->
+      val downloadId = helper.generateDownloadId(itemId, track.index.toString())
+      val download = downloadById(downloadId)
+      val downloadState = downloadMapper.toDownloadState(download?.state)
+      val downloadUrl = helper.generateContentUrl(track.contentUrl)
+      DownloadUiState(
+        state = downloadState,
+        id = downloadId,
+        url = downloadUrl,
+        title = "$titleShort ${track.index}/$size",
+      )
+    }
 
     val state =
       when {

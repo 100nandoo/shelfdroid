@@ -45,22 +45,21 @@ fun ChipDropdownMenu(
     expanded = expanded,
     onExpandedChange = { expanded = it },
   ) {
-    val labelComposable: @Composable (() -> Unit)? =
-      label?.let {
-        {
-          Text(
-            text = it,
-            style = MaterialTheme.typography.labelSmall,
-            color = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
-            modifier =
-              if (labelOnTop) {
-                Modifier
-              } else {
-                Modifier.padding(end = 8.dp)
-              },
-          )
-        }
+    val labelComposable: @Composable (() -> Unit)? = label?.let {
+      {
+        Text(
+          text = it,
+          style = MaterialTheme.typography.labelSmall,
+          color = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
+          modifier =
+            if (labelOnTop) {
+              Modifier
+            } else {
+              Modifier.padding(end = 8.dp)
+            },
+        )
       }
+    }
 
     val chipComposable: @Composable () -> Unit = {
       FilterChip(

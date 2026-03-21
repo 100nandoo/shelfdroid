@@ -13,15 +13,14 @@ class SearchPodcastMapper @Inject constructor() {
   ): List<SearchPodcastUi> {
     return response.map { podcast ->
       var id = ""
-      val isAdded =
-        podcastInfoList.any { podcastInfo ->
-          val found =
-            podcastInfo.itunesId == podcast.id ||
-              podcastInfo.feedUrl == podcast.feedUrl ||
-              (podcastInfo.title == podcast.title && podcastInfo.artist == podcast.artistName)
-          id = podcastInfo.id
-          found
-        }
+      val isAdded = podcastInfoList.any { podcastInfo ->
+        val found =
+          podcastInfo.itunesId == podcast.id ||
+            podcastInfo.feedUrl == podcast.feedUrl ||
+            (podcastInfo.title == podcast.title && podcastInfo.artist == podcast.artistName)
+        id = podcastInfo.id
+        found
+      }
 
       val result =
         SearchPodcastUi(

@@ -74,30 +74,29 @@ constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoad
         .setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK)
         .build()
 
-    val mediaItems =
-      tracks.mapIndexed { index: Int, track: PlayerTrack ->
-        val mediaIdWrapper = MediaIdWrapper(uiState.id, track.index.toString())
-        val mediaId = mediaIdWrapper.toMediaId()
+    val mediaItems = tracks.mapIndexed { index: Int, track: PlayerTrack ->
+      val mediaIdWrapper = MediaIdWrapper(uiState.id, track.index.toString())
+      val mediaId = mediaIdWrapper.toMediaId()
 
-        val clip = MediaItem.ClippingConfiguration.Builder()
-        if (index == 0) {
-          val start = currentChapter.startTimeSeconds - track.startOffset
-          clip.setStartPositionMs((start * 1000).toLong())
-        }
-        if (index == tracks.size - 1) {
-          val trackEndTime = track.startOffset + track.duration
-          val diff = trackEndTime - currentChapter.endTimeSeconds
-          val end = trackEndTime - diff
-          clip.setEndPositionMs((end * 1000).toLong())
-        }
-        MediaItem.Builder()
-          .setUri(track.url)
-          .setMediaId(mediaId)
-          .setCustomCacheKey(mediaId)
-          .setMediaMetadata(mediaMetadata)
-          .setClippingConfiguration(clip.build())
-          .build()
+      val clip = MediaItem.ClippingConfiguration.Builder()
+      if (index == 0) {
+        val start = currentChapter.startTimeSeconds - track.startOffset
+        clip.setStartPositionMs((start * 1000).toLong())
       }
+      if (index == tracks.size - 1) {
+        val trackEndTime = track.startOffset + track.duration
+        val diff = trackEndTime - currentChapter.endTimeSeconds
+        val end = trackEndTime - diff
+        clip.setEndPositionMs((end * 1000).toLong())
+      }
+      MediaItem.Builder()
+        .setUri(track.url)
+        .setMediaId(mediaId)
+        .setCustomCacheKey(mediaId)
+        .setMediaMetadata(mediaMetadata)
+        .setClippingConfiguration(clip.build())
+        .build()
+    }
 
     return mediaItems
   }
