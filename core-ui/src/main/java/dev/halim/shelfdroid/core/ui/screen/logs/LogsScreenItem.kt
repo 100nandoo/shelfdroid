@@ -25,9 +25,9 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults.LOG_LOG
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun LogItem(log: LogsUiState.LogItem.Log) {
+fun LogItem(log: LogsUiState.LogItem.Log, modifier: Modifier = Modifier) {
   Row(
-    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp),
+    modifier = modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     TextLabelMedium(
@@ -43,8 +43,8 @@ fun LogItem(log: LogsUiState.LogItem.Log) {
 }
 
 @Composable
-fun HourHeader(hourHeader: LogsUiState.LogItem.HourHeader) {
-  Column {
+fun HourHeader(hourHeader: LogsUiState.LogItem.HourHeader, modifier: Modifier = Modifier) {
+  Column(modifier = modifier) {
     TextTitleLarge(
       text = hourHeader.hour,
       modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),

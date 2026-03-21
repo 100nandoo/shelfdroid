@@ -1,23 +1,45 @@
 package dev.halim.shelfdroid.core.ui.screen.logs
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,8 +73,8 @@ private fun LogsContent(uiState: LogsUiState = LogsUiState(), onEvent: (LogsEven
 
       items(filterLogs(uiState), key = { it.id }) { logItem ->
         when (logItem) {
-          is LogsUiState.LogItem.HourHeader -> HourHeader(logItem)
-          is LogsUiState.LogItem.Log -> LogItem(logItem)
+          is LogsUiState.LogItem.HourHeader -> HourHeader(logItem, Modifier.animateItem())
+          is LogsUiState.LogItem.Log -> LogItem(logItem, Modifier.animateItem())
         }
       }
     }
@@ -63,11 +85,15 @@ private fun LogsContent(uiState: LogsUiState = LogsUiState(), onEvent: (LogsEven
 private fun filterLogs(uiState: LogsUiState): List<LogsUiState.LogItem> {
   val filtered = mutableListOf<LogsUiState.LogItem>()
   val pendingLogs = mutableListOf<LogsUiState.LogItem.Log>()
+  val query = uiState.searchQuery.trim()
 
   for (item in uiState.logs) {
     when (item) {
       is LogsUiState.LogItem.Log -> {
-        if (item.level >= uiState.filterLogLevel) {
+        val matchesLevel = item.level >= uiState.filterLogLevel
+        val matchesQuery = query.isBlank() || item.message.contains(query, ignoreCase = true)
+
+        if (matchesLevel && matchesQuery) {
           pendingLogs.add(item)
         }
       }
@@ -119,8 +145,90 @@ private fun Control(
         },
       )
     }
+    Spacer(modifier = Modifier.height(16.dp))
+    SearchBar(uiState, onEvent)
   }
   HorizontalDivider(modifier = Modifier.padding(top = 16.dp))
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+private fun SearchBar(uiState: LogsUiState, onEvent: (LogsEvent) -> Unit) {
+  val logSuggestions = remember(uiState.logs) { extractLogSuggestions(uiState.logs) }
+  val suggestionQuery = uiState.searchQuery.trim()
+  val filteredSuggestions =
+    remember(logSuggestions, suggestionQuery) {
+      logSuggestions.filter {
+        suggestionQuery.isBlank() || it.contains(suggestionQuery, ignoreCase = true)
+      }
+    }
+  val isKeyboardVisible = WindowInsets.isImeVisible
+  val showSuggestions = isKeyboardVisible && filteredSuggestions.isNotEmpty()
+
+  var textFieldValue by
+    remember(suggestionQuery) {
+      mutableStateOf(TextFieldValue(suggestionQuery, TextRange(suggestionQuery.length)))
+    }
+
+  ExposedDropdownMenuBox(
+    expanded = showSuggestions,
+    onExpandedChange = {},
+    modifier = Modifier.fillMaxWidth().imePadding(),
+  ) {
+    OutlinedTextField(
+      value = textFieldValue,
+      onValueChange = {
+        onEvent(LogsEvent.UpdateUiState { state -> state.copy(searchQuery = it.text) })
+      },
+      modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
+      placeholder = { Text(stringResource(R.string.search_logs)) },
+      leadingIcon = {
+        Icon(
+          painter = painterResource(id = R.drawable.search),
+          contentDescription = stringResource(R.string.search_logs),
+        )
+      },
+      trailingIcon = {
+        AnimatedVisibility(uiState.searchQuery.isNotEmpty()) {
+          IconButton(
+            onClick = { onEvent(LogsEvent.UpdateUiState { state -> state.copy(searchQuery = "") }) }
+          ) {
+            Icon(
+              painter = painterResource(id = R.drawable.close),
+              contentDescription = stringResource(R.string.clear_log_search),
+            )
+          }
+        }
+      },
+      singleLine = true,
+      keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+      keyboardActions = KeyboardActions(onSearch = {}),
+    )
+    ExposedDropdownMenu(expanded = showSuggestions, onDismissRequest = {}) {
+      filteredSuggestions.forEach { suggestion ->
+        DropdownMenuItem(
+          text = { Text(suggestion) },
+          onClick = {
+            onEvent(LogsEvent.UpdateUiState { state -> state.copy(searchQuery = suggestion) })
+          },
+          contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+        )
+      }
+    }
+  }
+}
+
+private fun extractLogSuggestions(logs: List<LogsUiState.LogItem>): List<String> {
+  val regex = "^\\s*\\[([^\\]]+)]".toRegex()
+
+  return logs
+    .asSequence()
+    .filterIsInstance<LogsUiState.LogItem.Log>()
+    .mapNotNull { log -> regex.find(log.message)?.groupValues?.getOrNull(1)?.trim() }
+    .filter { it.isNotBlank() }
+    .distinct()
+    .sorted()
+    .toList()
 }
 
 @ShelfDroidPreview

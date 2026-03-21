@@ -34,7 +34,9 @@ class LogsViewModel @Inject constructor(private val repository: LogsRepository) 
   fun onEvent(event: LogsEvent) {
     when (event) {
       is LogsEvent.ChangeLogLevel -> {
-        viewModelScope.launch { repository.changeServerLogLevel(_uiState.value, _events, event.logLevel) }
+        viewModelScope.launch {
+          repository.changeServerLogLevel(_uiState.value, _events, event.logLevel)
+        }
       }
       is LogsEvent.UpdateUiState -> _uiState.update { event.transform(it) }
     }

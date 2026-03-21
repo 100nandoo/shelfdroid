@@ -199,6 +199,8 @@
     <!--Logs-->
     <string name="server_log_level">Server Log Level</string>
     <string name="filter_log_level">Filter Log Level</string>
+    <string name="search_logs">Search logs</string>
+    <string name="clear_log_search">Clear log search</string>
     <!--Logs-->
 
     <!--Book-->

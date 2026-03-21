@@ -8,6 +8,7 @@ data class LogsUiState(
   val logs: List<LogItem> = emptyList(),
   val logLevel: LogLevel = LogLevel.DEBUG,
   val filterLogLevel: LogLevel = LogLevel.DEBUG,
+  val searchQuery: String = "",
 ) {
 
   sealed interface LogItem {
