@@ -229,16 +229,22 @@ fun TextLabelSmall(
 }
 
 @Composable
-fun TextLabelValue(label: String, value: String, modifier: Modifier = Modifier) {
+fun TextLabelValue(
+  label: String,
+  value: String,
+  modifier: Modifier = Modifier,
+  labelWeight: Float = 1f,
+  valueWeight: Float = 3f,
+) {
   if (value.isNotEmpty()) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
       TextLabelSmall(
         text = label,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.weight(1f),
+        modifier = Modifier.weight(labelWeight),
       )
       TextLabelSmall(text = ": ")
-      TextLabelSmall(modifier = Modifier.weight(3f), text = value)
+      TextLabelSmall(modifier = Modifier.weight(valueWeight), text = value)
     }
   }
 }

@@ -203,6 +203,13 @@
     <string name="clear_log_search">Clear log search</string>
     <!--Logs-->
 
+    <!--API Keys-->
+    <string name="api_key_owner">Owner</string>
+    <string name="api_key_expires_at">Expired at</string>
+    <string name="api_key_last_used">Last used</string>
+    <string name="api_key_never_used">Never</string>
+    <!--API Keys-->
+
     <!--Book-->
     <string name="completed">Completed</string>
     <!--Book-->

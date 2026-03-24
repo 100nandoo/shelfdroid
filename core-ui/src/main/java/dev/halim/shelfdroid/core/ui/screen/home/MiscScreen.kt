@@ -60,6 +60,7 @@ private fun MiscScreenContent(
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
     if (isAdmin) {
       TextButton(
+        enabled = false,
         onClick = onBackupsClicked,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       ) {
@@ -74,6 +75,7 @@ private fun MiscScreenContent(
       }
 
       TextButton(
+        enabled = false,
         onClick = onServerSettingsClicked,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       ) {
@@ -88,6 +90,7 @@ private fun MiscScreenContent(
       }
 
       TextButton(
+        enabled = false,
         onClick = onLibrariesClicked,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       ) {

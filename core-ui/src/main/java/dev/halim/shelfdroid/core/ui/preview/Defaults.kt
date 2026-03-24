@@ -9,6 +9,8 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
+import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeyUi
+import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysUiState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
@@ -339,6 +341,28 @@ object Defaults {
   val USER_SETTINGS_USERS = listOf(USER_SETTINGS_USER_ROOT, USER_SETTINGS_USER_ADMIN)
 
   val USER_SETTINGS_UI_STATE = UserSettingsUiState(users = USER_SETTINGS_USERS)
+
+  val API_KEYS =
+    listOf(
+      ApiKeyUi(
+        id = "1",
+        name = "Mobile Client",
+        owner = "admin",
+        expiresAt = "31 December 2026 11:59PM",
+        lastUsedAt = "24 March 2026 6:45AM",
+        isActive = true,
+      ),
+      ApiKeyUi(
+        id = "2",
+        name = "Tablet Reader",
+        owner = "root",
+        expiresAt = "1 June 2026 8:00AM",
+        lastUsedAt = null,
+        isActive = false,
+      ),
+    )
+
+  val API_KEYS_UI_STATE = ApiKeysUiState(state = GenericState.Success, apiKeys = API_KEYS)
 
   val USER_INFO_MEDIA_PROGRESS =
     UserInfoUiState.MediaProgress(

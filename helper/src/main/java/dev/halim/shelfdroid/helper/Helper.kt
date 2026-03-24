@@ -14,6 +14,7 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlin.time.Instant.Companion.parse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -65,6 +66,23 @@ constructor(
     val timePart = "%d:%02d%s".format(hour12, dateTime.minute, amPm)
 
     return "$datePart $timePart"
+  }
+
+  /**
+   * Converts an ISO-8601 timestamp string into a readable local date/time string.
+   *
+   * Examples:
+   * - toReadableDate("2026-03-24T06:45:00Z", true) -> "24 March 2026 2:45PM"
+   * - toReadableDate("2026-03-24T06:45:00Z") -> "24 March 2026"
+   * - toReadableDate(null, true) -> null
+   */
+  fun toReadableDate(timestamp: String?, includeTime: Boolean = false): String? {
+    if (timestamp.isNullOrBlank()) return null
+    return runCatching {
+        val instant = parse(timestamp)
+        toReadableDate(instant.toEpochMilliseconds(), includeTime)
+      }
+      .getOrNull() ?: timestamp
   }
 
   /**

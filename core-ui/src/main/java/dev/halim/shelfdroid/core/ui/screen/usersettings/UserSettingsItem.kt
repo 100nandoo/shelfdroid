@@ -69,7 +69,7 @@ fun LazyItemScope.UserSettingsItem(
         .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Column(modifier = Modifier.weight(3f).padding(end = 16.dp)) {
+    Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
       Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
           user.username + " ∙ ",
