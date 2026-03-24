@@ -18,6 +18,7 @@ import dev.halim.shelfdroid.core.data.response.TagRepo
 import dev.halim.shelfdroid.core.data.response.UserRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import javax.inject.Inject
+import javax.inject.Named
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -37,7 +38,7 @@ constructor(
   private val listeningStatRepo: ListeningStatRepo,
   private val mapper: HomeMapper,
   private val prefsRepository: PrefsRepository,
-  private val appScope: CoroutineScope,
+  @Named("io") private val ioScope: CoroutineScope,
 ) {
 
   fun item(): Flow<Pair<Prefs, List<LibraryUiState>>> {
@@ -82,9 +83,9 @@ constructor(
   }
 
   private fun backgroundRemoteSync() {
-    appScope.launch { listeningStatRepo.remote() }
-    appScope.launch { userRepo.remote() }
-    appScope.launch { tagRepo.remote() }
+    ioScope.launch { listeningStatRepo.remote() }
+    ioScope.launch { userRepo.remote() }
+    ioScope.launch { tagRepo.remote() }
   }
 
   suspend fun getUser() {

@@ -23,9 +23,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.MainNavigation
 import dev.halim.shelfdroid.core.ui.navigation.NavRequest
+import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.media.di.MediaControllerManager
+import dev.halim.shelfdroid.media.service.PlayerStore
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -39,6 +41,8 @@ class MainActivity : ComponentActivity() {
 
   @Inject lateinit var settingsRepository: SettingsRepository
   @Inject lateinit var mediaControllerManager: Lazy<MediaControllerManager>
+  @Inject lateinit var playerStore: PlayerStore
+  @Inject lateinit var playerController: PlayerController
 
   private var navRequest by mutableStateOf<NavRequest>(NavRequest())
 
@@ -64,6 +68,8 @@ class MainActivity : ComponentActivity() {
         ) {
           MainNavigation(
             isLoggedIn = token.isBlank().not(),
+            playerStore = playerStore,
+            playerController = playerController,
             navRequest = navRequest,
             onNavRequestComplete = { navRequest = NavRequest() },
           )

@@ -27,22 +27,24 @@ import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
 import dev.halim.shelfdroid.core.ui.components.TextLabelValue
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
-import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
+import dev.halim.shelfdroid.media.service.PlayerStore
 
 @Composable
 fun BookScreen(
   viewModel: BookViewModel = hiltViewModel(),
-  playerViewModel: PlayerViewModel,
+  playerStore: PlayerStore,
+  playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
 ) {
   InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+  val playerUiState by playerStore.uiState.collectAsStateWithLifecycle()
   val downloadState = if (uiState.isSingleTrack) uiState.download.state else uiState.downloads.state
   if (uiState.state == GenericState.Success) {
     BookScreenContent(
@@ -71,7 +73,7 @@ fun BookScreen(
         viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.DeleteDownload))
       },
       onPlayClicked = {
-        playerViewModel.onEvent(PlayerEvent.PlayBook(viewModel.id, downloadState.isDownloaded()))
+        playerController.onEvent(PlayerEvent.PlayBook(viewModel.id, downloadState.isDownloaded()))
       },
     )
   }

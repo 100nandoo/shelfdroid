@@ -20,17 +20,14 @@ import dev.halim.shelfdroid.core.extensions.toLong
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
-class UserRepo
-@Inject
-constructor(
-  db: MyDatabase,
-  private val api: ApiService,
-  private val coroutineScope: CoroutineScope,
-) {
+class UserRepo @Inject constructor(db: MyDatabase, private val api: ApiService) {
+
+  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
   private val queries = db.userEntityQueries
 
@@ -83,7 +80,7 @@ constructor(
 
   private fun save(usersResponse: UsersResponse) {
     val entities = usersResponse.users.map { toEntity(it) }
-    coroutineScope.launch {
+    scope.launch {
       cleanup(entities)
       entities.forEach { entity -> queries.insert(entity) }
     }
@@ -91,7 +88,7 @@ constructor(
 
   private fun update(user: User) {
     val permissions = Json.encodeToString(Permissions.serializer(), user.permissions)
-    coroutineScope.launch {
+    scope.launch {
       queries.transaction {
         val old = queries.byId(user.id).executeAsOne()
         val new =

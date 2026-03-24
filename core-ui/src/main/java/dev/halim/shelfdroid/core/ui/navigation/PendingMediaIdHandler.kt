@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.ui.navigation
 
 import androidx.navigation.NavHostController
+import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
-import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.media.mediaitem.MediaIdWrapper
 
 data class NavRequest(val mediaId: String? = null, val isOpenPlayer: Boolean = true)
@@ -12,7 +12,7 @@ fun handlePendingMediaId(
   isLoggedIn: Boolean,
   navController: NavHostController,
   onNavRequestComplete: () -> Unit,
-  viewModel: PlayerViewModel,
+  playerController: PlayerController,
 ) {
   if (navRequest.mediaId == null || !isLoggedIn) return
   val mediaId = navRequest.mediaId
@@ -28,7 +28,7 @@ fun handlePendingMediaId(
   }
 
   if (navRequest.isOpenPlayer) {
-    viewModel.onEvent(PlayerEvent.Big)
+    playerController.onEvent(PlayerEvent.Big)
   }
 
   onNavRequestComplete()

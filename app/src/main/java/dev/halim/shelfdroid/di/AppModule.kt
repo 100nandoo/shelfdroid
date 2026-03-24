@@ -47,5 +47,11 @@ object AppModule {
     return BuildConfig.DEBUG
   }
 
-  @Provides fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+  @Provides
+  @Named("io")
+  fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+  @Provides
+  @Named("main")
+  fun provideMainScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 }

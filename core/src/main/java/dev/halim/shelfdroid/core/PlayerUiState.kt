@@ -27,8 +27,6 @@ sealed interface MediaStructure {
 
   data object MultiTrack : MediaStructure
 
-  fun isSingleTrack() = this is SingleTrack || this is SingleTrackWithChapters
-
   companion object {
     fun from(hasChapter: Boolean, multipleTrack: Boolean): MediaStructure {
       return when {

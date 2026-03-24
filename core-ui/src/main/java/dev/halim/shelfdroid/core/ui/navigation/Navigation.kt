@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,8 +27,8 @@ import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MySnackbarHost
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
-import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
@@ -49,6 +48,7 @@ import dev.halim.shelfdroid.core.ui.screen.userinfo.UserInfoScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePasswordScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.EditUserScreen
+import dev.halim.shelfdroid.media.service.PlayerStore
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -97,7 +97,8 @@ import kotlinx.serialization.Serializable
 @Composable
 fun MainNavigation(
   isLoggedIn: Boolean,
-  viewModel: PlayerViewModel = hiltViewModel(),
+  playerStore: PlayerStore,
+  playerController: PlayerController,
   navRequest: NavRequest,
   onNavRequestComplete: () -> Unit = {},
 ) {
@@ -106,15 +107,28 @@ fun MainNavigation(
     val startDestination = if (isLoggedIn) Home(false) else Login()
 
     LaunchedEffect(navRequest.mediaId) {
-      handlePendingMediaId(navRequest, isLoggedIn, navController, onNavRequestComplete, viewModel)
+      handlePendingMediaId(
+        navRequest,
+        isLoggedIn,
+        navController,
+        onNavRequestComplete,
+        playerController,
+      )
     }
     Column {
       NavHostContainer(
         navController = navController,
         startDestination = startDestination,
         sharedTransitionScope = this@SharedTransitionLayout,
+        playerStore = playerStore,
+        playerController = playerController,
       )
-      PlayerHandler(navController, this@SharedTransitionLayout)
+      PlayerHandler(
+        navController = navController,
+        sharedTransitionScope = this@SharedTransitionLayout,
+        playerStore = playerStore,
+        playerController = playerController,
+      )
     }
   }
 }
@@ -124,8 +138,9 @@ private fun ColumnScope.NavHostContainer(
   navController: NavHostController,
   startDestination: Any,
   sharedTransitionScope: SharedTransitionScope,
+  playerStore: PlayerStore,
+  playerController: PlayerController,
 ) {
-  val playerViewModel: PlayerViewModel = hiltViewModel()
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
   Box(Modifier.weight(1f)) {
@@ -172,7 +187,7 @@ private fun ColumnScope.NavHostContainer(
       composable<Podcast> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
           PodcastScreen(
-            playerViewModel = playerViewModel,
+            playerController = playerController,
             snackbarHostState = snackbarHostState,
             onEpisodeClicked = { itemId, episodeId ->
               navController.navigate(Episode(itemId, episodeId))
@@ -196,13 +211,21 @@ private fun ColumnScope.NavHostContainer(
       }
       composable<Book> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
-          BookScreen(playerViewModel = playerViewModel, snackbarHostState = snackbarHostState)
+          BookScreen(
+            playerStore = playerStore,
+            playerController = playerController,
+            snackbarHostState = snackbarHostState,
+          )
         }
       }
 
       composable<Episode> {
         SharedScreenWrapper(sharedTransitionScope, this@composable) {
-          EpisodeScreen(playerViewModel = playerViewModel, snackbarHostState = snackbarHostState)
+          EpisodeScreen(
+            playerStore = playerStore,
+            playerController = playerController,
+            snackbarHostState = snackbarHostState,
+          )
         }
       }
 

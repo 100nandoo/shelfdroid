@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Singleton
-class StateHolder
+class PlayerStore
 @Inject
 constructor(
   private val playerEventListener: Lazy<PlayerEventListener>,
@@ -97,6 +97,8 @@ constructor(
   fun clearTimer() {
     timerManager.clear()
   }
+
+  fun emptyState(): PlayerUiState = PlayerUiState()
 
   fun syncSession() {
     sessionManager.start(uiState.value)

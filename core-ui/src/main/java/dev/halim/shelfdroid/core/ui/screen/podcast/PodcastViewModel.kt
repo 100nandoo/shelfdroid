@@ -14,7 +14,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteSucce
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.download.DownloadRepo
-import dev.halim.shelfdroid.media.service.StateHolder
+import dev.halim.shelfdroid.media.service.PlayerStore
 import dev.halim.socketio.SocketManager
 import dev.halim.socketio.SocketManager.Event.Episode as SocketEpisode
 import dev.halim.socketio.model.PodcastEpisodeDownload
@@ -40,7 +40,7 @@ constructor(
   private val downloadRepo: DownloadRepo,
   private val socketManager: SocketManager,
   private val json: Json,
-  stateHolder: StateHolder,
+  playerStore: PlayerStore,
   savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
   val id: String = checkNotNull(savedStateHandle.get<String>("id"))
@@ -60,7 +60,7 @@ constructor(
   val uiState: StateFlow<PodcastUiState> =
     combine(
         repository.item(id),
-        stateHolder.uiState,
+        playerStore.uiState,
         apiState,
         selectionMode,
         selectedEpisodeIds,

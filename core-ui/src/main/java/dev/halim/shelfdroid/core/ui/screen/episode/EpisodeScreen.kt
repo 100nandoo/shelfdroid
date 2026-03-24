@@ -20,21 +20,23 @@ import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
-import dev.halim.shelfdroid.core.ui.player.PlayerViewModel
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.media.service.PlayerStore
 
 @Composable
 fun EpisodeScreen(
   viewModel: EpisodeViewModel = hiltViewModel(),
-  playerViewModel: PlayerViewModel,
+  playerStore: PlayerStore,
+  playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
 ) {
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  val playerUiState by playerViewModel.uiState.collectAsStateWithLifecycle()
+  val playerUiState by playerStore.uiState.collectAsStateWithLifecycle()
   val isPlaying =
     viewModel.episodeId == playerUiState.episodeId && playerUiState.exoState == ExoState.Playing
 
@@ -56,7 +58,7 @@ fun EpisodeScreen(
         viewModel.onEvent(EpisodeEvent.DownloadEvent(CommonDownloadEvent.DeleteDownload))
       },
       onPlayClicked = {
-        playerViewModel.onEvent(
+        playerController.onEvent(
           PlayerEvent.PlayPodcast(
             viewModel.itemId,
             viewModel.episodeId,
