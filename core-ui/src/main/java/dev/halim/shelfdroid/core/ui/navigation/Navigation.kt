@@ -31,6 +31,7 @@ import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
+import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
@@ -171,9 +172,7 @@ private fun ColumnScope.NavHostContainer(
             onLibrariesClicked = {
               //              navController.navigate(Libraries)
             },
-            onApiKeysClicked = {
-              // navController.navigate(ApiKeys)
-            },
+            onApiKeysClicked = { navController.navigate(ApiKeys) },
             onServerSettingsClicked = {
               //              navController.navigate(ServerSettings)
             },
@@ -307,7 +306,9 @@ private fun ColumnScope.NavHostContainer(
         )
       }
 
-      composable<Logs> { LogsScreen(snackbarHostState = snackbarHostState) }
+      composable<Logs> { LogsScreen() }
+
+      composable<ApiKeys> { ApiKeysScreen() }
     }
   }
 }

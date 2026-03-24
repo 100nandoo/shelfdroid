@@ -27,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,7 +54,7 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults.LOG_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun LogsScreen(viewModel: LogsViewModel = hiltViewModel(), snackbarHostState: SnackbarHostState) {
+fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
   LogsContent(uiState = uiState, onEvent = viewModel::onEvent)

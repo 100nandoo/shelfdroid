@@ -8,7 +8,6 @@
 - [ ] library management
 - [ ] API keys management
 - [ ] Settings management
-- [ ] Logs viewer
 - [ ] Backup management
 - [ ] Widget
 - [ ] Backup Restore
@@ -26,7 +25,7 @@
 
 ## Tech Debt
 
-- [ ] Migrate player viewmodel to singleton class
+- [ ] Use xml icon resources instead of compose image vectors
 - [ ] Reduce event count by using transform similar to EditUserEvent
 - [ ] saving userPrefs, progresses, bookmarks code got repetition on loginRepo and homeRepo
 - [ ] use ui event for one shot event like snackbar
@@ -84,3 +83,5 @@
     - [x] listening stats
     - [x] saved media progress
     - [x] change password screen
+- [x] Migrate player viewmodel to singleton class
+- [x] Logs viewer

@@ -3,6 +3,7 @@ package dev.halim.core.network
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.ChangePasswordRequest
+import dev.halim.core.network.request.CreateApiKeyRequest
 import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.DeleteSessionsRequest
@@ -13,10 +14,13 @@ import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
+import dev.halim.core.network.request.UpdateApiKeyRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
+import dev.halim.core.network.response.ApiKeysResponse
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BatchLibraryItemsResponse
+import dev.halim.core.network.response.CreateUpdateApiKeyResponse
 import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Episode
@@ -49,6 +53,23 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
+
+  // api keys
+  @GET("api/api-keys") suspend fun apiKeys(): Result<ApiKeysResponse>
+
+  @POST("api/api-keys")
+  suspend fun createApiKey(@Body request: CreateApiKeyRequest): Result<CreateUpdateApiKeyResponse>
+
+  @PATCH("api/api-keys/{apiKeyId}")
+  suspend fun updateApiKey(
+    @Path("apiKeyId") apiKeyId: String,
+    @Body request: UpdateApiKeyRequest,
+  ): Result<CreateUpdateApiKeyResponse>
+
+  @DELETE("api/api-keys/{apiKeyId}")
+  suspend fun updateApiKey(@Path("apiKeyId") apiKeyId: String): Result<Unit>
+
+  //  auth
   @POST("login")
   suspend fun login(
     @Body request: LoginRequest,
