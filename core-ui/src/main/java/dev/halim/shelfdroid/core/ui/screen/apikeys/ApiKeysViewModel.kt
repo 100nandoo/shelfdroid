@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.apikeys
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysApiState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysRepository
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysUiState
 import javax.inject.Inject
@@ -26,6 +27,12 @@ class ApiKeysViewModel @Inject constructor(private val repository: ApiKeysReposi
 
   fun onEvent(event: ApiKeysEvent) {
     when (event) {
+      is ApiKeysEvent.DeleteApiKey -> {
+        viewModelScope.launch {
+          _uiState.update { it.copy(apiState = ApiKeysApiState.Loading) }
+          _uiState.update { repository.deleteApiKey(event.id, it) }
+        }
+      }
       ApiKeysEvent.OnInit -> initialPage()
     }
   }
@@ -38,4 +45,6 @@ class ApiKeysViewModel @Inject constructor(private val repository: ApiKeysReposi
 sealed interface ApiKeysEvent {
 
   data object OnInit : ApiKeysEvent
+
+  data class DeleteApiKey(val id: String) : ApiKeysEvent
 }

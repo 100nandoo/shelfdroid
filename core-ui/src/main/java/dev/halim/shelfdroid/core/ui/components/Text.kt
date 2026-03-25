@@ -233,18 +233,15 @@ fun TextLabelValue(
   label: String,
   value: String,
   modifier: Modifier = Modifier,
+  color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
   labelWeight: Float = 1f,
   valueWeight: Float = 3f,
 ) {
   if (value.isNotEmpty()) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
-      TextLabelSmall(
-        text = label,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.weight(labelWeight),
-      )
-      TextLabelSmall(text = ": ")
-      TextLabelSmall(modifier = Modifier.weight(valueWeight), text = value)
+      TextLabelSmall(text = label, color = color, modifier = Modifier.weight(labelWeight))
+      TextLabelSmall(text = ": ", color = color)
+      TextLabelSmall(modifier = Modifier.weight(valueWeight), text = value, color = color)
     }
   }
 }

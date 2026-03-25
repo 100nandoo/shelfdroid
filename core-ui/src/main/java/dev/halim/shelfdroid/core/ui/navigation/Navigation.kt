@@ -308,7 +308,7 @@ private fun ColumnScope.NavHostContainer(
 
       composable<Logs> { LogsScreen() }
 
-      composable<ApiKeys> { ApiKeysScreen() }
+      composable<ApiKeys> { ApiKeysScreen(snackbarHostState = snackbarHostState) }
     }
   }
 }

@@ -206,8 +206,11 @@
     <!--API Keys-->
     <string name="api_key_owner">Owner</string>
     <string name="api_key_expires_at">Expired at</string>
+    <string name="api_key_expired">Expired</string>
     <string name="api_key_last_used">Last used</string>
     <string name="api_key_never_used">Never</string>
+    <string name="api_key_deleted">API key deleted.</string>
+    <string name="delete_api_key_failed">Delete API key failed.</string>
     <!--API Keys-->
 
     <!--Book-->

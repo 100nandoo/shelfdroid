@@ -67,7 +67,7 @@ interface ApiService {
   ): Result<CreateUpdateApiKeyResponse>
 
   @DELETE("api/api-keys/{apiKeyId}")
-  suspend fun updateApiKey(@Path("apiKeyId") apiKeyId: String): Result<Unit>
+  suspend fun deleteApiKey(@Path("apiKeyId") apiKeyId: String): Result<Unit>
 
   //  auth
   @POST("login")

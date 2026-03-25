@@ -82,12 +82,16 @@ fun LazyItemScope.ApiKeyItem(
         label = stringResource(R.string.api_key_last_used),
         value = apiKey.lastUsedAt ?: stringResource(R.string.api_key_never_used),
         modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.onSurfaceVariant.enable(apiKey.isActive),
         labelWeight = 2f,
         valueWeight = 5f,
       )
       TextLabelValue(
         label = stringResource(R.string.api_key_expires_at),
-        value = apiKey.expiresAt ?: stringResource(R.string.unknown),
+        value =
+          if (apiKey.isExpired) stringResource(R.string.api_key_expired)
+          else apiKey.expiresAt ?: stringResource(R.string.unknown),
+        color = MaterialTheme.colorScheme.onSurfaceVariant.enable(apiKey.isActive),
         modifier = Modifier.fillMaxWidth(),
         labelWeight = 2f,
         valueWeight = 5f,

@@ -350,6 +350,7 @@ object Defaults {
         owner = "admin",
         expiresAt = "31 December 2026 11:59PM",
         lastUsedAt = "24 March 2026 6:45AM",
+        isExpired = false,
         isActive = true,
       ),
       ApiKeyUi(
@@ -358,6 +359,7 @@ object Defaults {
         owner = "root",
         expiresAt = "1 June 2026 8:00AM",
         lastUsedAt = null,
+        isExpired = true,
         isActive = false,
       ),
     )
