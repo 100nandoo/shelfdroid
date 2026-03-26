@@ -40,3 +40,11 @@ data class NavEditUser(
     fun defaultUser() = NavEditUser(type = UserType.User, isActive = true)
   }
 }
+
+@Serializable
+data class NavEditApiKeys(
+  val id: String = "",
+  val userId: String = "",
+  val name: String = "",
+  val isActive: Boolean = true,
+)

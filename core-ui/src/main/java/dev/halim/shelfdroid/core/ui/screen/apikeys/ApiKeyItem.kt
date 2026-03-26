@@ -57,7 +57,7 @@ fun LazyItemScope.ApiKeyItem(
     modifier =
       Modifier.animateItem()
         .fillMaxWidth()
-        .clickable(onClick = onEditClicked)
+        .clickable(enabled = !apiKey.isExpired, onClick = onEditClicked)
         .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {

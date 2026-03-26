@@ -32,6 +32,7 @@ import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
+import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -118,14 +119,14 @@ private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) ->
     modifier = Modifier.padding(horizontal = 16.dp),
     text = stringResource(R.string.display),
   )
-  SettingsSwitchItem(
+  MySwitch(
     modifier = Modifier.padding(start = 24.dp, end = 16.dp),
     title = stringResource(R.string.dark_mode),
     checked = uiState.isDarkMode,
     contentDescription = stringResource(R.string.dark_mode),
     onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
   )
-  SettingsSwitchItem(
+  MySwitch(
     modifier = Modifier.padding(start = 24.dp, end = 16.dp),
     title = stringResource(R.string.dynamic_theme),
     checked = uiState.isDynamicTheme,
@@ -142,14 +143,14 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     text = stringResource(R.string.home_screen),
   )
   val paddingStart = Modifier.padding(start = 24.dp, end = 16.dp)
-  SettingsSwitchItem(
+  MySwitch(
     modifier = paddingStart,
     title = stringResource(R.string.list_view),
     checked = uiState.displayPrefs.listView,
     contentDescription = stringResource(R.string.list_view),
     onCheckedChange = { onEvent(SettingsEvent.SwitchListView(it)) },
   )
-  SettingsSwitchItem(
+  MySwitch(
     modifier = paddingStart,
     title = stringResource(R.string.show_only_downloaded),
     checked = uiState.displayPrefs.filter.isDownloaded(),
@@ -160,7 +161,7 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
     },
   )
   if (uiState.canDelete) {
-    SettingsSwitchItem(
+    MySwitch(
       modifier = paddingStart,
       title = stringResource(R.string.user_permanent_delete),
       checked = uiState.crudPrefs.hardDelete,

@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -85,7 +86,7 @@ fun LabelPreview() {
         supportingText = stringResource(R.string.playback_settings_and_behaviour),
       )
       TextTitleMedium(text = stringResource(R.string.display))
-      SettingsSwitchItem(
+      MySwitch(
         Modifier,
         stringResource(R.string.dark_mode),
         true,
@@ -94,7 +95,7 @@ fun LabelPreview() {
         {},
       )
       SettingsSublabel(text = stringResource(R.string.home_screen))
-      SettingsSwitchItem(
+      MySwitch(
         Modifier,
         stringResource(R.string.list_view),
         true,

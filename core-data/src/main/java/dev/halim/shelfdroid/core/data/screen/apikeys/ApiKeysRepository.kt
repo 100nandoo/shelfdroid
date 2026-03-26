@@ -24,6 +24,7 @@ constructor(private val api: ApiService, private val helper: Helper) {
         response.apiKeys.map { apiKey ->
           ApiKeyUi(
             id = apiKey.id,
+            userId = apiKey.userId,
             name = apiKey.name,
             owner = apiKey.user.username,
             expiresAt = helper.toReadableDate(apiKey.expiresAt, true),

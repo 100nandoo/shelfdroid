@@ -17,11 +17,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.settingsplayback.SettingsPlaybackUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSublabel
-import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSwitchItem
 
 @Composable
 fun SettingsPlaybackScreen(viewModel: SettingsPlaybackViewModel = hiltViewModel()) {
@@ -53,14 +53,14 @@ private fun BehaviourSection(
   Spacer(modifier = Modifier.height(16.dp))
   SettingsSublabel(text = stringResource(R.string.when_switching_between_book_and_podcast))
   val startPadding = Modifier.padding(start = 8.dp)
-  SettingsSwitchItem(
+  MySwitch(
     modifier = startPadding,
     title = stringResource(R.string.keep_playback_speed),
     checked = uiState.keepSpeed,
     contentDescription = stringResource(R.string.keep_playback_speed),
     onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchKeepSpeed(it)) },
   )
-  SettingsSwitchItem(
+  MySwitch(
     modifier = startPadding,
     title = stringResource(R.string.keep_sleep_timer),
     checked = uiState.keepSleepTimer,
@@ -69,14 +69,14 @@ private fun BehaviourSection(
   )
   Spacer(modifier = Modifier.height(12.dp))
   SettingsSublabel(text = stringResource(R.string.when_switching_between_podcast_episodes))
-  SettingsSwitchItem(
+  MySwitch(
     modifier = startPadding,
     title = stringResource(R.string.keep_playback_speed),
     checked = uiState.episodeKeepSpeed,
     contentDescription = stringResource(R.string.keep_playback_speed),
     onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchEpisodeKeepSpeed(it)) },
   )
-  SettingsSwitchItem(
+  MySwitch(
     modifier = startPadding,
     title = stringResource(R.string.keep_sleep_timer),
     checked = uiState.episodeKeepSleepTimer,
@@ -86,14 +86,14 @@ private fun BehaviourSection(
 
   Spacer(modifier = Modifier.height(12.dp))
   SettingsSublabel(text = stringResource(R.string.when_switching_between_books))
-  SettingsSwitchItem(
+  MySwitch(
     modifier = startPadding,
     title = stringResource(R.string.keep_playback_speed),
     checked = uiState.bookKeepSpeed,
     contentDescription = stringResource(R.string.keep_playback_speed),
     onCheckedChange = { onEvent(SettingsPlaybackEvent.SwitchBookKeepSpeed(it)) },
   )
-  SettingsSwitchItem(
+  MySwitch(
     modifier = startPadding,
     title = stringResource(R.string.keep_sleep_timer),
     checked = uiState.bookKeepSleepTimer,

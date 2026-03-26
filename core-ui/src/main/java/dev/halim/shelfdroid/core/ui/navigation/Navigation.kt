@@ -19,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
+import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.core.navigation.NavResultKey
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
@@ -32,6 +33,7 @@ import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
+import dev.halim.shelfdroid.core.ui.screen.apikeys.edit.EditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
@@ -87,7 +89,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable object Libraries
 
-@Serializable object ApiKeys
+@Serializable object NavApiKeys
 
 @Serializable object ServerSettings
 
@@ -172,7 +174,7 @@ private fun ColumnScope.NavHostContainer(
             onLibrariesClicked = {
               //              navController.navigate(Libraries)
             },
-            onApiKeysClicked = { navController.navigate(ApiKeys) },
+            onApiKeysClicked = { navController.navigate(NavApiKeys) },
             onServerSettingsClicked = {
               //              navController.navigate(ServerSettings)
             },
@@ -308,7 +310,19 @@ private fun ColumnScope.NavHostContainer(
 
       composable<Logs> { LogsScreen() }
 
-      composable<ApiKeys> { ApiKeysScreen(snackbarHostState = snackbarHostState) }
+      composable<NavApiKeys> {
+        ApiKeysScreen(
+          snackbarHostState = snackbarHostState,
+          onEditClicked = { payload -> navController.navigate(payload) },
+        )
+      }
+
+      composable<NavEditApiKeys> {
+        EditApiKeysScreen(
+          snackbarHostState = snackbarHostState,
+          navigateBack = { navController.popBackStack() },
+        )
+      }
     }
   }
 }

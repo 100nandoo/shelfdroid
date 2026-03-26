@@ -10,6 +10,7 @@ data class ApiKeysUiState(
 
 data class ApiKeyUi(
   val id: String,
+  val userId: String,
   val name: String,
   val owner: String,
   val expiresAt: String?,

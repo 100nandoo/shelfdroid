@@ -11,6 +11,7 @@ import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeyUi
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysUiState
+import dev.halim.shelfdroid.core.data.screen.apikeys.edit.EditApiKeysUiState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
@@ -346,6 +347,7 @@ object Defaults {
     listOf(
       ApiKeyUi(
         id = "1",
+        userId = "user-1",
         name = "Mobile Client",
         owner = "admin",
         expiresAt = "31 December 2026 11:59PM",
@@ -355,6 +357,7 @@ object Defaults {
       ),
       ApiKeyUi(
         id = "2",
+        userId = "user-2",
         name = "Tablet Reader",
         owner = "root",
         expiresAt = "1 June 2026 8:00AM",
@@ -403,4 +406,9 @@ object Defaults {
       state = GenericState.Success,
       logs = listOf(LOG_HOUR_HEADER, LOG_LOG, LOG_LOG.copy(id = 2)),
     )
+
+  val EDIT_API_KEYS_UI_STATE_ACTIVE =
+    EditApiKeysUiState(state = GenericState.Success, "123", "asdf", isActive = true)
+  val EDIT_API_KEYS_UI_STATE_INACTIVE =
+    EditApiKeysUiState(state = GenericState.Success, "124", "qwer", isActive = false)
 }

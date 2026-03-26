@@ -46,6 +46,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DropdownOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
+import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
@@ -53,7 +54,6 @@ import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSwitchItem
 import kotlinx.coroutines.launch
 
 @Composable
@@ -241,7 +241,7 @@ private fun NonRootSection(uiState: EditUserUiState, onEvent: (EditUserEvent) ->
     },
   )
 
-  SettingsSwitchItem(
+  MySwitch(
     modifier = Modifier.padding(start = 8.dp),
     title = stringResource(R.string.enable),
     checked = uiState.editUser.isActive,
@@ -261,7 +261,7 @@ private fun NonRootSection(uiState: EditUserUiState, onEvent: (EditUserEvent) ->
 @Composable
 fun PermissionSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit) {
   TextTitleMedium(text = stringResource(R.string.permissions))
-  SettingsSwitchItem(
+  MySwitch(
     title = stringResource(R.string.download),
     checked = uiState.permissions.download,
     contentDescription = stringResource(R.string.download),
@@ -274,7 +274,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit
       )
     },
   )
-  SettingsSwitchItem(
+  MySwitch(
     title = stringResource(R.string.update),
     checked = uiState.permissions.update,
     contentDescription = stringResource(R.string.update),
@@ -287,7 +287,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit
       )
     },
   )
-  SettingsSwitchItem(
+  MySwitch(
     title = stringResource(R.string.delete),
     checked = uiState.permissions.delete,
     contentDescription = stringResource(R.string.delete),
@@ -300,7 +300,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit
       )
     },
   )
-  SettingsSwitchItem(
+  MySwitch(
     title = stringResource(R.string.upload),
     checked = uiState.permissions.upload,
     contentDescription = stringResource(R.string.upload),
@@ -313,7 +313,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit
       )
     },
   )
-  SettingsSwitchItem(
+  MySwitch(
     title = stringResource(R.string.create_ereader),
     checked = uiState.permissions.createEReader,
     contentDescription = stringResource(R.string.create_ereader),
@@ -326,7 +326,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit
       )
     },
   )
-  SettingsSwitchItem(
+  MySwitch(
     title = stringResource(R.string.access_explicit_content),
     checked = uiState.permissions.accessExplicit,
     contentDescription = stringResource(R.string.access_explicit_content),
@@ -343,7 +343,7 @@ fun PermissionSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit
 
 @Composable
 private fun TagsSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit) {
-  SettingsSwitchItem(
+  MySwitch(
     title = stringResource(R.string.access_all_tags),
     checked = uiState.permissions.accessAllTags,
     contentDescription = stringResource(R.string.access_all_tags),
@@ -394,7 +394,7 @@ private fun TagsSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Un
         },
       )
 
-      SettingsSwitchItem(
+      MySwitch(
         title = stringResource(R.string.invert),
         checked = uiState.editUser.invert,
         contentDescription = stringResource(R.string.invert),
@@ -406,7 +406,7 @@ private fun TagsSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Un
 
 @Composable
 private fun LibrariesSection(uiState: EditUserUiState, onEvent: (EditUserEvent) -> Unit) {
-  SettingsSwitchItem(
+  MySwitch(
     title = stringResource(R.string.access_all_libraries),
     checked = uiState.permissions.accessAllLibraries,
     contentDescription = stringResource(R.string.access_all_libraries),

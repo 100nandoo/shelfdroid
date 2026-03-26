@@ -211,6 +211,9 @@
     <string name="api_key_never_used">Never</string>
     <string name="api_key_deleted">API key deleted.</string>
     <string name="delete_api_key_failed">Delete API key failed.</string>
+    <string name="api_key_updated">API key updated.</string>
+    <string name="update_api_key_failed">Update API key failed.</string>
+    <string name="owner_semicolon">Owner: </string>
     <!--API Keys-->
 
     <!--Book-->

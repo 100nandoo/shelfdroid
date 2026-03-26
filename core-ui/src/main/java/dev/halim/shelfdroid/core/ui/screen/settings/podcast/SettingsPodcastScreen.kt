@@ -19,10 +19,10 @@ import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.screen.settings.podcast.SettingsPodcastUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSwitchItem
 
 @Composable
 fun SettingsPodcastScreen(viewModel: SettingsPodcastViewModel = hiltViewModel()) {
@@ -46,14 +46,14 @@ private fun SettingsPodcastScreenContent(
   ) {
     if (canDelete) {
       TextTitleMedium(text = stringResource(R.string.delete))
-      SettingsSwitchItem(
+      MySwitch(
         modifier = Modifier.padding(start = 8.dp),
         title = stringResource(R.string.user_permanent_deletion),
         checked = uiState.crudPrefs.episodeHardDelete,
         contentDescription = stringResource(R.string.user_permanent_deletion),
         onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHardDelete(it)) },
       )
-      SettingsSwitchItem(
+      MySwitch(
         modifier = Modifier.padding(start = 8.dp),
         title = stringResource(R.string.auto_select_finished_episodes),
         checked = uiState.crudPrefs.episodeAutoSelectFinished,
@@ -65,7 +65,7 @@ private fun SettingsPodcastScreenContent(
 
     if (canAdd) {
       TextTitleMedium(text = stringResource(R.string.add_episode))
-      SettingsSwitchItem(
+      MySwitch(
         modifier = Modifier.padding(start = 8.dp),
         title = stringResource(R.string.hide_downloaded_episodes),
         checked = uiState.crudPrefs.addEpisodeHideDownloaded,

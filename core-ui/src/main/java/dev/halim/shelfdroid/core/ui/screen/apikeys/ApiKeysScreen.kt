@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysApiState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysUiState
+import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
@@ -36,7 +37,7 @@ import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 fun ApiKeysScreen(
   viewModel: ApiKeysViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
-  onEditClicked: (String) -> Unit = {},
+  onEditClicked: (NavEditApiKeys) -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -48,7 +49,7 @@ fun ApiKeysScreen(
 private fun ApiKeysContent(
   uiState: ApiKeysUiState = ApiKeysUiState(),
   onEvent: (ApiKeysEvent) -> Unit = {},
-  onEditClicked: (String) -> Unit = {},
+  onEditClicked: (NavEditApiKeys) -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
     VisibilityDown(
@@ -76,7 +77,16 @@ private fun ApiKeysContent(
           HorizontalDivider()
           ApiKeyItem(
             apiKey = apiKey,
-            onEditClicked = { onEditClicked(apiKey.id) },
+            onEditClicked = {
+              onEditClicked(
+                NavEditApiKeys(
+                  id = apiKey.id,
+                  userId = apiKey.userId,
+                  name = apiKey.name,
+                  isActive = apiKey.isActive,
+                )
+              )
+            },
             onDeleteClicked = { onEvent(ApiKeysEvent.DeleteApiKey(apiKey.id)) },
           )
         }

@@ -34,7 +34,7 @@ data class ApiKeysResponse(@SerialName("apiKeys") val apiKeys: List<ApiKey>) {
 data class CreateUpdateApiKeyResponse(@SerialName("apiKey") val apiKey: ApiKey) {
   @Serializable
   data class ApiKey(
-    @SerialName("apiKey") val apiKey: String,
+    @SerialName("apiKey") val apiKey: String? = null,
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("expiresAt") val expiresAt: String,

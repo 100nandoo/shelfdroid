@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.screen.settings
+package dev.halim.shelfdroid.core.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +18,7 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun SettingsSwitchItem(
+fun MySwitch(
   modifier: Modifier = Modifier,
   title: String,
   checked: Boolean,
@@ -48,21 +48,21 @@ fun SettingsSwitchItem(
 @Composable
 private fun SampleSettingsSwitchItems() {
   Column {
-    SettingsSwitchItem(
+    MySwitch(
       title = "Dark Mode",
       checked = true,
       onCheckedChange = {},
       contentDescription = "Toggle Dark Mode",
       enabled = true,
     )
-    SettingsSwitchItem(
+    MySwitch(
       title = "Dynamic Theme",
       checked = false,
       onCheckedChange = {},
       contentDescription = "Toggle Dynamic Theme",
       enabled = true,
     )
-    SettingsSwitchItem(
+    MySwitch(
       title = "List View",
       checked = false,
       onCheckedChange = {},
@@ -74,6 +74,6 @@ private fun SampleSettingsSwitchItems() {
 
 @ShelfDroidPreview
 @Composable
-fun SettingsSwitchItemPreview() {
+fun MySwitchPreview() {
   PreviewWrapper(content = { SampleSettingsSwitchItems() })
 }
