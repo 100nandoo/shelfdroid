@@ -6,7 +6,6 @@
     - [ ] library item finished
     - [ ] exoplayer/service stop
 - [ ] library management
-- [ ] API keys management
 - [ ] Settings management
 - [ ] Backup management
 - [ ] Widget
@@ -85,3 +84,4 @@
     - [x] change password screen
 - [x] Migrate player viewmodel to singleton class
 - [x] Logs viewer
+- [x] API keys management

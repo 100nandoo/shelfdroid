@@ -1,17 +1,19 @@
 package dev.halim.shelfdroid.core.ui.screen.apikeys
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,14 +37,27 @@ import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 
 @Composable
 fun ApiKeysScreen(
+  result: Boolean? = null,
   viewModel: ApiKeysViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
   onEditClicked: (NavEditApiKeys) -> Unit = {},
+  createApiKeyClicked: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+  LaunchedEffect(result) {
+    if (result == true) {
+      viewModel.onEvent(ApiKeysEvent.Refresh)
+    }
+  }
+
   HandleApiKeysSnackbar(uiState, snackbarHostState)
-  ApiKeysContent(uiState = uiState, onEvent = viewModel::onEvent, onEditClicked = onEditClicked)
+  ApiKeysContent(
+    uiState = uiState,
+    onEvent = viewModel::onEvent,
+    onEditClicked = onEditClicked,
+    createApiKeyClicked = createApiKeyClicked,
+  )
 }
 
 @Composable
@@ -50,6 +65,7 @@ private fun ApiKeysContent(
   uiState: ApiKeysUiState = ApiKeysUiState(),
   onEvent: (ApiKeysEvent) -> Unit = {},
   onEditClicked: (NavEditApiKeys) -> Unit = {},
+  createApiKeyClicked: () -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
     VisibilityDown(
@@ -63,37 +79,48 @@ private fun ApiKeysContent(
       GenericMessageScreen(state.errorMessage ?: "")
     }
 
-    AnimatedVisibility(uiState.apiKeys.isEmpty() && uiState.state is GenericState.Success) {
-      GenericMessageScreen(stringResource(R.string.empty_type, stringResource(R.string.api_keys)))
-    }
+    LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      verticalArrangement = Arrangement.Bottom,
+      reverseLayout = true,
+    ) {
+      item(key = "add api key") { CreateApiKeyItem(createApiKeyClicked = createApiKeyClicked) }
 
-    AnimatedVisibility(uiState.apiKeys.isNotEmpty()) {
-      LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Bottom,
-        reverseLayout = true,
-      ) {
-        items(uiState.apiKeys, key = { it.id }) { apiKey ->
-          HorizontalDivider()
-          ApiKeyItem(
-            apiKey = apiKey,
-            onEditClicked = {
-              onEditClicked(
-                NavEditApiKeys(
-                  id = apiKey.id,
-                  userId = apiKey.userId,
-                  name = apiKey.name,
-                  isActive = apiKey.isActive,
-                )
-              )
-            },
-            onDeleteClicked = { onEvent(ApiKeysEvent.DeleteApiKey(apiKey.id)) },
+      if (uiState.apiKeys.isEmpty() && uiState.state is GenericState.Success) {
+        item(key = "empty") {
+          GenericMessageScreen(
+            stringResource(R.string.empty_type, stringResource(R.string.api_keys))
           )
         }
+      }
+
+      items(uiState.apiKeys, key = { it.id }) { apiKey ->
+        HorizontalDivider()
+        ApiKeyItem(
+          apiKey = apiKey,
+          onEditClicked = {
+            onEditClicked(
+              NavEditApiKeys(
+                id = apiKey.id,
+                userId = apiKey.userId,
+                name = apiKey.name,
+                isActive = apiKey.isActive,
+              )
+            )
+          },
+          onDeleteClicked = { onEvent(ApiKeysEvent.DeleteApiKey(apiKey.id)) },
+        )
       }
     }
 
     Spacer(modifier = Modifier.height(16.dp))
+  }
+}
+
+@Composable
+fun CreateApiKeyItem(createApiKeyClicked: () -> Unit) {
+  TextButton(onClick = createApiKeyClicked, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Text(text = stringResource(R.string.add_api_key))
   }
 }
 

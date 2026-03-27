@@ -33,7 +33,7 @@ class ApiKeysViewModel @Inject constructor(private val repository: ApiKeysReposi
           _uiState.update { repository.deleteApiKey(event.id, it) }
         }
       }
-      ApiKeysEvent.OnInit -> initialPage()
+      ApiKeysEvent.Refresh -> initialPage()
     }
   }
 
@@ -44,7 +44,7 @@ class ApiKeysViewModel @Inject constructor(private val repository: ApiKeysReposi
 
 sealed interface ApiKeysEvent {
 
-  data object OnInit : ApiKeysEvent
+  data object Refresh : ApiKeysEvent
 
   data class DeleteApiKey(val id: String) : ApiKeysEvent
 }

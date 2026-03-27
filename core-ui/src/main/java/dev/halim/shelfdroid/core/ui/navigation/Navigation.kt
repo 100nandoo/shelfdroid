@@ -33,7 +33,7 @@ import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
-import dev.halim.shelfdroid.core.ui.screen.apikeys.edit.EditApiKeysScreen
+import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
@@ -310,17 +310,28 @@ private fun ColumnScope.NavHostContainer(
 
       composable<Logs> { LogsScreen() }
 
-      composable<NavApiKeys> {
+      composable<NavApiKeys> { entry ->
+        val result = entry.savedStateHandle.get<Boolean>(NavResultKey.API_KEY_CHANGED)
         ApiKeysScreen(
+          result = result,
           snackbarHostState = snackbarHostState,
           onEditClicked = { payload -> navController.navigate(payload) },
+          createApiKeyClicked = { navController.navigate(NavEditApiKeys()) },
         )
+        if (result != null) {
+          entry.savedStateHandle.remove<Boolean>(NavResultKey.API_KEY_CHANGED)
+        }
       }
 
       composable<NavEditApiKeys> {
-        EditApiKeysScreen(
+        CreateEditApiKeysScreen(
           snackbarHostState = snackbarHostState,
-          navigateBack = { navController.popBackStack() },
+          navigateBack = {
+            navController.previousBackStackEntry
+              ?.savedStateHandle
+              ?.set(NavResultKey.API_KEY_CHANGED, true)
+            navController.popBackStack()
+          },
         )
       }
     }

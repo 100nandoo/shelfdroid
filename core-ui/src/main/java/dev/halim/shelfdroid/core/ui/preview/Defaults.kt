@@ -11,7 +11,7 @@ import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeyUi
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysUiState
-import dev.halim.shelfdroid.core.data.screen.apikeys.edit.EditApiKeysUiState
+import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateEditApiKeysUiState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
@@ -408,7 +408,17 @@ object Defaults {
     )
 
   val EDIT_API_KEYS_UI_STATE_ACTIVE =
-    EditApiKeysUiState(state = GenericState.Success, "123", "asdf", isActive = true)
+    CreateEditApiKeysUiState(
+      state = GenericState.Success,
+      apiKeyId = "123",
+      name = "asdf",
+      isActive = true,
+    )
   val EDIT_API_KEYS_UI_STATE_INACTIVE =
-    EditApiKeysUiState(state = GenericState.Success, "124", "qwer", isActive = false)
+    CreateEditApiKeysUiState(
+      state = GenericState.Success,
+      apiKeyId = "124",
+      name = "qwer",
+      isActive = false,
+    )
 }

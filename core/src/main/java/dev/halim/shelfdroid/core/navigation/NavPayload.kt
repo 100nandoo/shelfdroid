@@ -47,4 +47,6 @@ data class NavEditApiKeys(
   val userId: String = "",
   val name: String = "",
   val isActive: Boolean = true,
-)
+) {
+  fun isCreateMode() = id.isEmpty()
+}

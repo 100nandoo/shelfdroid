@@ -9,6 +9,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -35,6 +36,7 @@ fun ChipDropdownMenu(
   label: String? = null,
   labelOnTop: Boolean = false,
   initialValue: String,
+  isError: Boolean = false,
   onClick: (String) -> Unit = {},
 ) {
   var expanded by remember { mutableStateOf(false) }
@@ -62,11 +64,29 @@ fun ChipDropdownMenu(
     }
 
     val chipComposable: @Composable () -> Unit = {
+      val errorBorder =
+        if (isError) {
+          FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = false,
+            borderColor = MaterialTheme.colorScheme.error,
+            selectedBorderColor = MaterialTheme.colorScheme.error,
+          )
+        } else {
+          FilterChipDefaults.filterChipBorder(enabled = true, selected = false)
+        }
       FilterChip(
         modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         selected = expanded,
         onClick = {},
-        label = { Text(text = selected.ifEmpty { label ?: "" }) },
+        label = {
+          Text(
+            text = selected.ifEmpty { label ?: "" },
+            color =
+              if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+          )
+        },
+        border = errorBorder,
         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
       )
     }

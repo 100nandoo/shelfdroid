@@ -208,11 +208,21 @@
     <string name="api_key_expires_at">Expired at</string>
     <string name="api_key_expired">Expired</string>
     <string name="api_key_last_used">Last used</string>
-    <string name="api_key_never_used">Never</string>
+    <string name="never">Never</string>
     <string name="api_key_deleted">API key deleted.</string>
     <string name="delete_api_key_failed">Delete API key failed.</string>
     <string name="api_key_updated">API key updated.</string>
     <string name="update_api_key_failed">Update API key failed.</string>
+    <string name="api_key_created">API key created.</string>
+    <string name="create_api_key_failed">Create API key failed.</string>
+    <string name="add_api_key">Add API Key</string>
+    <string name="name">Name</string>
+    <string name="select_user">Select user</string>
+    <string name="never_expires">Never expires</string>
+    <string name="name_cannot_be_empty">Name can\'t be empty</string>
+    <string name="user_must_be_selected">User must be selected</string>
+    <string name="expires_at_must_be_selected">Expiration date must be selected</string>
+    <string name="expires_at">Expires at</string>
     <string name="owner_semicolon">Owner: </string>
     <!--API Keys-->
 
