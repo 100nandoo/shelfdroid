@@ -10,10 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -26,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -129,7 +126,10 @@ fun EpisodeItem(
           onClick = { onEvent(PodcastEvent.ToggleIsFinished(episode)) },
           colors = checkButtonColors,
         ) {
-          Icon(Icons.Default.Check, contentDescription = stringResource(R.string.mark_as_finished))
+          Icon(
+            painter = painterResource(R.drawable.check),
+            contentDescription = stringResource(R.string.mark_as_finished),
+          )
         }
         DownloadButton(
           episode.download.state,
@@ -145,11 +145,13 @@ fun EpisodeItem(
             onPlayClicked(itemId, episode.episodeId, episode.download.state.isDownloaded())
           }
         ) {
-          val icon = if (episode.isPlaying.not()) Icons.Default.PlayArrow else Icons.Default.Pause
+          val icon =
+            if (episode.isPlaying.not()) painterResource(R.drawable.play_arrow)
+            else painterResource(R.drawable.pause)
           val contentDescription =
             if (episode.isPlaying.not()) stringResource(R.string.play)
             else stringResource(R.string.pause)
-          Icon(icon, contentDescription)
+          Icon(painter = icon, contentDescription = contentDescription)
         }
       }
     }

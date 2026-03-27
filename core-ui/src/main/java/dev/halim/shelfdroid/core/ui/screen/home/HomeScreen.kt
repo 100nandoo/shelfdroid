@@ -16,10 +16,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
@@ -35,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -228,21 +225,21 @@ fun LibraryHeader(
     )
     if (showAddPodcast) {
       MyIconButton(
-        icon = Icons.Filled.Add,
+        painter = painterResource(R.drawable.add),
         contentDescription = stringResource(R.string.add_podcast),
         onClick = { onSearchClicked(id) },
         size = 48,
       )
     }
     MyIconButton(
-      icon = Icons.AutoMirrored.Filled.Sort,
+      painter = painterResource(R.drawable.sort),
       contentDescription = stringResource(R.string.sort_and_filter),
       onClick = { scope.launch { displayPrefsSheetState.show() } },
       size = 48,
     )
 
     MyIconButton(
-      icon = Icons.Filled.Refresh,
+      painter = painterResource(R.drawable.refresh),
       contentDescription = stringResource(R.string.refresh),
       onClick = onRefresh,
       size = 48,

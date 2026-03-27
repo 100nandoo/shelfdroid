@@ -3,15 +3,14 @@ package dev.halim.shelfdroid.core.ui.components
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -21,7 +20,7 @@ fun MyFilledTonalIconButton(
   size: Int = 48,
   enabled: Boolean,
   onClick: () -> Unit,
-  icon: ImageVector,
+  painter: Painter,
   contentDescription: String,
 ) {
   require(size >= 48) { "Size must be at least 48" }
@@ -34,7 +33,7 @@ fun MyFilledTonalIconButton(
   ) {
     Icon(
       modifier = Modifier.size(size.dp).padding(iconPadding.dp),
-      imageVector = icon,
+      painter = painter,
       contentDescription = contentDescription,
     )
   }
@@ -51,13 +50,13 @@ fun MyFilledTonalIconButtonPreview() {
           enabled = true,
           size = 72,
           onClick = {},
-          icon = Icons.Default.PlayArrow,
+          painter = painterResource(R.drawable.play_arrow),
           contentDescription = "",
         )
         MyFilledTonalIconButton(
           enabled = true,
           onClick = {},
-          icon = Icons.Default.Pause,
+          painter = painterResource(R.drawable.pause),
           contentDescription = "",
         )
       }

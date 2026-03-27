@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -138,11 +135,13 @@ fun PasswordTextField(
     visualTransformation =
       if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
     trailingIcon = {
-      val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+      val image =
+        if (passwordVisible) painterResource(R.drawable.visibility)
+        else painterResource(R.drawable.visibility_off)
       val description = if (passwordVisible) "Hide password" else "Show password"
 
       IconButton(onClick = { passwordVisible = !passwordVisible }) {
-        Icon(imageVector = image, contentDescription = description)
+        Icon(painter = image, contentDescription = description)
       }
     },
     modifier = modifier.fillMaxWidth(),

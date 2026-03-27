@@ -3,10 +3,6 @@ package dev.halim.shelfdroid.core.ui.components
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.DownloadDone
-import androidx.compose.material.icons.filled.FileDownloadOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -18,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.DownloadState
@@ -77,19 +74,19 @@ fun DownloadButton(
       }
       DownloadState.Incomplete -> {
         Icon(
-          imageVector = Icons.Default.FileDownloadOff,
+          painter = painterResource(R.drawable.file_download_off),
           contentDescription = stringResource(R.string.download_incomplete),
         )
       }
       DownloadState.Completed -> {
         Icon(
-          imageVector = Icons.Default.DownloadDone,
+          painter = painterResource(R.drawable.download_done),
           contentDescription = stringResource(R.string.downloaded),
         )
       }
       else -> {
         Icon(
-          imageVector = Icons.Default.Download,
+          painter = painterResource(R.drawable.download),
           contentDescription = stringResource(R.string.download),
         )
       }

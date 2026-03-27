@@ -24,7 +24,6 @@
 
 ## Tech Debt
 
-- [ ] Use xml icon resources instead of compose image vectors
 - [ ] Reduce event count by using transform similar to EditUserEvent
 - [ ] saving userPrefs, progresses, bookmarks code got repetition on loginRepo and homeRepo
 - [ ] use ui event for one shot event like snackbar
@@ -85,3 +84,4 @@
 - [x] Migrate player viewmodel to singleton class
 - [x] Logs viewer
 - [x] API keys management
+- [x] Use xml icon resources instead of compose image vectors

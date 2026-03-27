@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -47,6 +44,7 @@ import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component7
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -267,7 +265,7 @@ private fun GenreChip(genre: String, onRemove: (String) -> Unit, onEdit: (String
     modifier = Modifier.padding(end = 4.dp),
     trailingIcon = {
       Icon(
-        imageVector = Icons.Default.Close,
+        painter = painterResource(R.drawable.close),
         contentDescription = stringResource(R.string.remove_genre, genre),
         modifier = Modifier.clickable { onRemove(genre) },
       )
@@ -287,7 +285,7 @@ private fun PathDropdown(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Icon(
-      imageVector = Icons.Default.ArrowDropDown,
+      painter = painterResource(R.drawable.arrow_drop_down),
       contentDescription = stringResource(R.string.select_folder),
     )
     Text(uiState.selectedFolder.path + "/", color = MaterialTheme.colorScheme.primary)

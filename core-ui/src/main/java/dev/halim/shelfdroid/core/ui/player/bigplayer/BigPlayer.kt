@@ -13,11 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Bookmarks
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -34,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -196,7 +192,7 @@ fun BasicPlayerControl(
     modifier = Modifier.fillMaxWidth(),
   ) {
     MyIconButton(
-      icon = Icons.Default.SkipPrevious,
+      painter = painterResource(R.drawable.skip_previous),
       contentDescription = stringResource(R.string.previous_chapter),
       onClick = { onEvent(PlayerEvent.SkipPreviousButton) },
     )
@@ -205,7 +201,7 @@ fun BasicPlayerControl(
     SeekForwardButton({ onEvent(PlayerEvent.SeekForwardButton) }, multipleButtonState, id)
 
     MyIconButton(
-      icon = Icons.Default.SkipNext,
+      painter = painterResource(R.drawable.skip_next),
       contentDescription = stringResource(R.string.next_chapter),
       onClick = { onEvent(PlayerEvent.SkipNextButton) },
       enabled = currentChapter?.chapterPosition != ChapterPosition.Last && currentChapter != null,
@@ -262,7 +258,7 @@ fun BookmarkAndChapter(
 
   Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
     MyIconButton(
-      icon = Icons.Default.Bookmarks,
+      painter = painterResource(R.drawable.bookmarks),
       contentDescription = stringResource(R.string.bookmarks),
       enabled = isBook,
       onClick = {
@@ -272,7 +268,7 @@ fun BookmarkAndChapter(
     )
 
     MyIconButton(
-      icon = Icons.AutoMirrored.Filled.List,
+      painter = painterResource(R.drawable.list),
       contentDescription = stringResource(R.string.chapters),
       enabled = chapters.isNotEmpty(),
       onClick = { scope.launch { chapterSheetState.show() } },

@@ -14,10 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.ModeEdit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -37,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -116,7 +113,7 @@ fun NewBookmarkRow(newBookmarkTime: PlayerBookmark, onEvent: (PlayerEvent) -> Un
       onClick = { onEvent(PlayerEvent.CreateBookmark(newBookmarkTime.time, textFieldValue.text)) }
     ) {
       Icon(
-        Icons.AutoMirrored.Filled.Send,
+        painter = painterResource(R.drawable.send),
         contentDescription = stringResource(R.string.create_bookmark),
       )
     }
@@ -162,13 +159,16 @@ private fun BookmarkRow(
 
     FilledTonalIconButton(onClick = { onDeleteBookmark() }) {
       Icon(
-        Icons.Default.DeleteOutline,
+        painter = painterResource(R.drawable.delete),
         contentDescription = stringResource(R.string.delete_bookmark),
       )
     }
 
     FilledTonalIconButton(onClick = { onUpdateBookmark() }) {
-      Icon(Icons.Default.ModeEdit, contentDescription = stringResource(R.string.edit_bookmark))
+      Icon(
+        painter = painterResource(R.drawable.edit),
+        contentDescription = stringResource(R.string.edit_bookmark),
+      )
     }
   }
 }

@@ -2,13 +2,9 @@ package dev.halim.shelfdroid.core.ui.player
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import dev.halim.shelfdroid.core.MultipleButtonState
 import dev.halim.shelfdroid.core.ui.Animations
@@ -26,7 +22,9 @@ fun PlayPauseButton(
   id: String,
   size: Int = 48,
 ) {
-  val icon = if (multipleButtonState.showPlay) Icons.Default.PlayArrow else Icons.Default.Pause
+  val icon =
+    if (multipleButtonState.showPlay) painterResource(R.drawable.play_arrow)
+    else painterResource(R.drawable.pause)
   val contentDescription =
     if (multipleButtonState.showPlay) stringResource(R.string.play)
     else stringResource(R.string.pause)
@@ -35,7 +33,7 @@ fun PlayPauseButton(
     enabled = multipleButtonState.playPauseEnabled,
     onClick = { onClick() },
     contentDescription = contentDescription,
-    icon = icon,
+    painter = icon,
     size = size,
   )
 }
@@ -44,7 +42,7 @@ fun PlayPauseButton(
 fun SeekBackButton(onClick: () -> Unit, state: MultipleButtonState, id: String, size: Int = 48) {
   MyIconButton(
     modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
-    icon = Icons.Default.FastRewind,
+    painter = painterResource(R.drawable.fast_rewind),
     size = size,
     contentDescription = stringResource(R.string.seek_back),
     onClick = { onClick() },
@@ -56,7 +54,7 @@ fun SeekBackButton(onClick: () -> Unit, state: MultipleButtonState, id: String, 
 fun SeekForwardButton(onClick: () -> Unit, state: MultipleButtonState, id: String, size: Int = 48) {
   MyIconButton(
     modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
-    icon = Icons.Default.FastForward,
+    painter = painterResource(R.drawable.fast_forward),
     size = size,
     contentDescription = stringResource(R.string.seek_forward),
     onClick = { onClick() },

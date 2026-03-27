@@ -10,15 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Explicit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,7 +58,7 @@ fun SearchPodcastItem(
         if (model.explicit) {
           Icon(
             modifier = Modifier.padding(start = 4.dp).size(16.dp),
-            imageVector = Icons.Filled.Explicit,
+            painter = painterResource(R.drawable.explicit),
             contentDescription = stringResource(R.string.explicit),
             tint = MaterialTheme.colorScheme.onErrorContainer,
           )
@@ -68,7 +66,7 @@ fun SearchPodcastItem(
         if (model.isAdded) {
           Icon(
             modifier = Modifier.padding(start = 4.dp).size(16.dp),
-            imageVector = Icons.Filled.CheckCircle,
+            painter = painterResource(R.drawable.check_circle),
             contentDescription = stringResource(R.string.already_in_library),
             tint = MaterialTheme.colorScheme.tertiaryContainer,
           )
