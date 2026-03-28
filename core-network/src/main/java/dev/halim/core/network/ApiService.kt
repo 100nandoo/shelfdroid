@@ -19,6 +19,7 @@ import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.ApiKeysResponse
 import dev.halim.core.network.response.AudioBookmark
+import dev.halim.core.network.response.BackupsResponse
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.CreateUpdateApiKeyResponse
 import dev.halim.core.network.response.CreateUserResponse
@@ -43,12 +44,15 @@ import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
 import dev.halim.core.network.response.play.PlayResponse
+import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -86,6 +90,21 @@ interface ApiService {
 
   @POST("logout")
   suspend fun logout(@Header("x-refresh-token") refreshToken: String): Result<LogoutResponse>
+
+  // backups
+  @GET("/api/backups") suspend fun backups(): Result<BackupsResponse>
+
+  @POST("/api/backups") suspend fun createBackup(): Result<BackupsResponse>
+
+  @DELETE("/api/backups/{backupId}")
+  suspend fun deleteBackup(@Path("backupId") backupId: String): Result<BackupsResponse>
+
+  @GET("/api/backups/{backupId}/apply")
+  suspend fun applyBackup(@Path("backupId") backupId: String): Result<Unit>
+
+  @Multipart
+  @POST("/api/backups/upload")
+  suspend fun uploadBackup(@Part backup: MultipartBody.Part): Result<Unit>
 
   //  libraries
   @GET("api/libraries") suspend fun libraries(): Result<LibrariesResponse>

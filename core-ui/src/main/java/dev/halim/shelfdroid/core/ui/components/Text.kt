@@ -130,9 +130,10 @@ fun TextTitleLarge(modifier: Modifier = Modifier, text: String) {
 }
 
 @Composable
-fun TextTitleMedium(modifier: Modifier = Modifier, text: String) {
+fun TextTitleMedium(modifier: Modifier = Modifier, text: String, color: Color = Color.Unspecified) {
   Text(
     text = text,
+    color = color,
     style = MaterialTheme.typography.titleMedium,
     modifier = modifier.padding(bottom = 4.dp),
   )

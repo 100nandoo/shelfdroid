@@ -93,6 +93,7 @@ data class ServerSettings(
   @SerialName("metadataFileFormat") val metadataFileFormat: String = "",
   @SerialName("rateLimitLoginRequests") val rateLimitLoginRequests: Int = 0,
   @SerialName("rateLimitLoginWindow") val rateLimitLoginWindow: Int = 0,
+  @SerialName("backupPath") val backupPath: String = "",
   @SerialName("backupSchedule") val backupSchedule: String = "",
   @SerialName("backupsToKeep") val backupsToKeep: Int = 0,
   @SerialName("maxBackupSize") val maxBackupSize: Int = 0,

@@ -12,6 +12,7 @@ import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeyUi
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysUiState
 import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateEditApiKeysUiState
+import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
@@ -405,6 +406,36 @@ object Defaults {
     LogsUiState(
       state = GenericState.Success,
       logs = listOf(LOG_HOUR_HEADER, LOG_LOG, LOG_LOG.copy(id = 2)),
+    )
+
+  val BACKUPS_UI_STATE =
+    BackupsUiState(
+      state = GenericState.Success,
+      backupLocation = "/metadata/backups",
+      autoBackupEnabled = true,
+      backupSchedule = "10 2 * * *",
+      nextBackupDate = "28 March 2026 2:10AM",
+      backupsToKeep = 2,
+      maxBackupSize = 1,
+      backups =
+        listOf(
+          BackupsUiState.BackupItem(
+            id = "2026-03-27T1839",
+            filename = "2026-03-27T1839.audiobookshelf",
+            fileSize = "1.35 MB",
+            createdAt = "27 March 2026 6:39PM",
+            serverVersion = "2.33.1",
+            downloadUrl = "",
+          ),
+          BackupsUiState.BackupItem(
+            id = "2026-03-27T1834",
+            filename = "2026-03-27T1834.audiobookshelf",
+            fileSize = "1.35 MB",
+            createdAt = "27 March 2026 6:34PM",
+            serverVersion = "2.33.1",
+            downloadUrl = "",
+          ),
+        ),
     )
 
   val EDIT_API_KEYS_UI_STATE_ACTIVE =

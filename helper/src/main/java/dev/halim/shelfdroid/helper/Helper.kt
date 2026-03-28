@@ -18,9 +18,12 @@ import kotlin.time.Instant.Companion.parse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.char
+import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
 class Helper
@@ -39,6 +42,9 @@ constructor(
 
   suspend fun generateContentUrl(url: String): String =
     "https://${DataStoreManager.BASE_URL}$url?token=${getToken()}"
+
+  suspend fun generateBackupDownloadUrl(backupId: String): String =
+    "https://$DataStoreManager.BASE_URL/api/backups/${backupId}/download?token=${getToken()}"
 
   fun generateDownloadId(itemId: String, episodeId: String? = null): String =
     episodeId?.let { "$itemId|$it" } ?: itemId
@@ -252,6 +258,62 @@ constructor(
         else -> hour
       }
     return "$hour12 $ampm"
+  }
+
+  fun formatFileSize(bytes: Long): String {
+    return when {
+      bytes >= 1_000_000_000 -> "%.2f GB".format(bytes / 1_000_000_000.0)
+      bytes >= 1_000_000 -> "%.2f MB".format(bytes / 1_000_000.0)
+      bytes >= 1_000 -> "%.2f KB".format(bytes / 1_000.0)
+      else -> "$bytes B"
+    }
+  }
+
+  /**
+   * Calculates the next occurrence of a cron schedule from now. Supports standard 5-field cron:
+   * minute hour dom month dow
+   * - "*" wildcards supported for dom, month
+   * - Specific day-of-week (0=Sun, 1=Mon, ... 6=Sat) supported Returns a readable date string, or
+   *   empty string if the expression is invalid.
+   */
+  fun nextCronDate(cronExpression: String): String {
+    if (cronExpression.isBlank()) return ""
+    val parts = cronExpression.trim().split("\\s+".toRegex())
+    if (parts.size < 5) return ""
+    val minute = parts[0].toIntOrNull() ?: return ""
+    val hour = parts[1].toIntOrNull() ?: return ""
+    val dowStr = parts[4]
+
+    val tz = TimeZone.currentSystemDefault()
+    val nowInstant = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+    val now = nowInstant.toLocalDateTime(tz)
+
+    // Start candidate at today's target time
+    var candidate = LocalDateTime(now.year, now.monthNumber, now.dayOfMonth, hour, minute, 0, 0)
+
+    // If that time is in the past, advance by 1 day
+    if (
+      !candidate.toInstant(tz).toEpochMilliseconds().let { it > nowInstant.toEpochMilliseconds() }
+    ) {
+      val nextDate = candidate.date.plus(1, DateTimeUnit.DAY)
+      candidate = LocalDateTime(nextDate.year, nextDate.month, nextDate.day, hour, minute, 0, 0)
+    }
+
+    // If a specific day-of-week is required, advance until we hit it
+    if (dowStr != "*") {
+      val targetCronDow = dowStr.toIntOrNull() ?: return ""
+      // Cron: 0=Sun..6=Sat  →  kotlinx ordinal: Mon=0..Sun=6
+      // Formula: (cronDow + 6) % 7
+      val targetOrdinal = (targetCronDow + 6) % 7
+      var attempts = 0
+      while (candidate.dayOfWeek.ordinal != targetOrdinal && attempts < 8) {
+        val nextDate = candidate.date.plus(1, DateTimeUnit.DAY)
+        candidate = LocalDateTime(nextDate.year, nextDate.month, nextDate.day, hour, minute, 0, 0)
+        attempts++
+      }
+    }
+
+    return toReadableDate(candidate.toInstant(tz).toEpochMilliseconds(), includeTime = true)
   }
 
   fun nowMilis(): Long {
