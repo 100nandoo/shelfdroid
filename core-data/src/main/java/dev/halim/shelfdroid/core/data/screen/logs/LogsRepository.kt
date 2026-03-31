@@ -34,7 +34,7 @@ constructor(
     event: MutableSharedFlow<LogsUiEvent>,
     logLevel: LogLevel,
   ): LogsUiState {
-    val request = UpdateServerSettingsRequest(logLevel.value)
+    val request = UpdateServerSettingsRequest(logLevel = logLevel.value)
     val response = api.updateSettings(request)
     response.getOrElse {
       event.emit(LogsUiEvent.ChangeLogLevelError)

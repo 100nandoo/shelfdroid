@@ -35,6 +35,7 @@ import dev.halim.core.network.response.LogsResponse
 import dev.halim.core.network.response.OpenSessionsResponse
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.SearchPodcast
+import dev.halim.core.network.response.SearchProvidersResponse
 import dev.halim.core.network.response.ServerSettingsResponse
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
@@ -261,6 +262,14 @@ interface ApiService {
   suspend fun updateSettings(
     @Body request: UpdateServerSettingsRequest
   ): Result<ServerSettingsResponse>
+
+  // search providers
+  @GET("/api/search/providers") suspend fun searchProviders(): Result<SearchProvidersResponse>
+
+  // cache
+  @POST("/api/cache/purge") suspend fun purgeCache(): Result<Unit>
+
+  @POST("/api/cache/items/purge") suspend fun purgeItemsCache(): Result<Unit>
 
   // logger
   @GET("/api/logger-data") suspend fun logs(): Result<LogsResponse>

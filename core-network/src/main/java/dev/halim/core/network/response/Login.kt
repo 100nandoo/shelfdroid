@@ -104,8 +104,11 @@ data class ServerSettings(
   @SerialName("sortingIgnorePrefix") val sortingIgnorePrefix: Boolean = false,
   @SerialName("sortingPrefixes") val sortingPrefixes: List<String> = listOf(),
   @SerialName("chromecastEnabled") val chromecastEnabled: Boolean = false,
+  @SerialName("allowIframe") val allowIframe: Boolean = false,
   @SerialName("dateFormat") val dateFormat: String = "",
+  @SerialName("timeFormat") val timeFormat: String = "HH:mm",
   @SerialName("language") val language: String = "",
+  @SerialName("podcastEpisodeSchedule") val podcastEpisodeSchedule: String = "",
   @SerialName("logLevel") val logLevel: Int = 0,
   @SerialName("version") val version: String = "",
 )

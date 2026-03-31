@@ -74,18 +74,24 @@ private fun MiscScreenContent(
       }
 
       TextButton(
-        enabled = false,
-        onClick = onServerSettingsClicked,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-      ) {
-        Text(text = stringResource(R.string.server_settings))
-      }
-
-      TextButton(
         onClick = onApiKeysClicked,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       ) {
         Text(text = stringResource(R.string.api_keys))
+      }
+
+      TextButton(
+        onClick = onUsersClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.users))
+      }
+
+      TextButton(
+        onClick = onServerSettingsClicked,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      ) {
+        Text(text = stringResource(R.string.server_settings))
       }
 
       TextButton(
@@ -94,13 +100,6 @@ private fun MiscScreenContent(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       ) {
         Text(text = stringResource(R.string.libraries))
-      }
-
-      TextButton(
-        onClick = onUsersClicked,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-      ) {
-        Text(text = stringResource(R.string.users))
       }
 
       TextButton(

@@ -44,6 +44,7 @@ import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
+import dev.halim.shelfdroid.core.ui.screen.serversettings.ServerSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
@@ -176,9 +177,7 @@ private fun ColumnScope.NavHostContainer(
               //              navController.navigate(Libraries)
             },
             onApiKeysClicked = { navController.navigate(NavApiKeys) },
-            onServerSettingsClicked = {
-              //              navController.navigate(ServerSettings)
-            },
+            onServerSettingsClicked = { navController.navigate(ServerSettings) },
             onLogsClicked = { navController.navigate(Logs) },
             onBackupsClicked = { navController.navigate(Backups) },
           )
@@ -310,6 +309,8 @@ private fun ColumnScope.NavHostContainer(
       composable<Logs> { LogsScreen() }
 
       composable<Backups> { BackupsScreen(snackbarHostState = snackbarHostState) }
+
+      composable<ServerSettings> { ServerSettingsScreen(snackbarHostState = snackbarHostState) }
 
       composable<NavApiKeys> { entry ->
         val result = entry.savedStateHandle.get<Boolean>(NavResultKey.API_KEY_CHANGED)

@@ -152,6 +152,35 @@
     <string name="gb_value">%d GB</string>
     <!--Backups-->
 
+    <!--Server Settings-->
+    <string name="general">General</string>
+    <string name="scanner">Scanner</string>
+    <string name="web_client">Web Client</string>
+    <string name="cache">Cache</string>
+    <string name="store_covers_with_item">Store covers with item</string>
+    <string name="store_metadata_with_item">Store metadata with item</string>
+    <string name="ignore_prefixes_when_sorting">Ignore prefixes when sorting</string>
+    <string name="parse_subtitles">Parse subtitles</string>
+    <string name="find_covers">Find covers</string>
+    <string name="cover_provider">Cover Provider</string>
+    <string name="prefer_matched_metadata">Prefer matched metadata</string>
+    <string name="watch_for_changes">Watch for changes</string>
+    <string name="chromecast_support">Chromecast support</string>
+    <string name="allow_iframe">Allow embedding in an iframe</string>
+    <string name="home_bookshelf_view">Home page use bookshelf view</string>
+    <string name="library_bookshelf_view">Library use bookshelf view</string>
+    <string name="date_format">Date Format</string>
+    <string name="time_format">Time Format</string>
+    <string name="default_language">Default Server Language</string>
+    <string name="purge_all_cache">Purge All Cache</string>
+    <string name="purge_items_cache">Purge Items Cache</string>
+    <string name="cache_purged">Cache purged.</string>
+    <string name="items_cache_purged">Items cache purged.</string>
+    <string name="purge_cache_failed">Failed to purge cache.</string>
+    <string name="purge_items_cache_failed">Failed to purge items cache.</string>
+    <string name="save">Save</string>
+    <!--Server Settings-->
+
     <!--Listening Sessions-->
     <string name="items_per_page">Items per page</string>
     <string name="unknown">unknown</string>
