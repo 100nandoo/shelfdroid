@@ -40,7 +40,6 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.ListDeleteButton
@@ -65,7 +64,6 @@ fun PodcastScreen(
   onEpisodeClicked: (String, String) -> Unit,
   onFetchEpisodeSuccess: (String) -> Unit,
 ) {
-  InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
   val context = LocalContext.current

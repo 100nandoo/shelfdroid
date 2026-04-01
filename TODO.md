@@ -5,17 +5,20 @@
 - [ ] close playback implementation
     - [ ] library item finished
     - [ ] exoplayer/service stop
+- [ ] Edit Media Item
 - [ ] library management
-- [ ] Settings management
-- [ ] Backup management
 - [ ] Widget
+- [ ] Android Auto
+- [ ] Amoled theme
+- [ ] Auto download podcast/book
+- [ ] Podcast queue
 - [ ] Backup Restore
 - [ ] Window Manager
-- [ ] Create release build with https://github.com/ilharp/sign-android-release
 
 ## Low Priority
 
 - [ ] Preview for all UI component
+- [ ] small player animation improvement
 - [ ] Settings
     - [ ] Episode screen, default expand/shrink description state
     - [ ] Onclick notification, (big/small)
@@ -85,3 +88,6 @@
 - [x] Logs viewer
 - [x] API keys management
 - [x] Use xml icon resources instead of compose image vectors
+- [x] Backup management
+- [x] Settings management
+- [x] Create release build with https://github.com/ilharp/sign-android-release

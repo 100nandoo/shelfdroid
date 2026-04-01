@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.media.service
 
 import android.content.Intent
-import android.os.Process
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
@@ -68,13 +67,13 @@ class PlaybackService : MediaLibraryService() {
     mediaLibrarySession.release()
     playerManager.get().clearAndStop()
     stopForeground(STOP_FOREGROUND_REMOVE)
-    stopSelf()
-    Process.killProcess(Process.myPid())
     super.onDestroy()
   }
 
   @OptIn(UnstableApi::class)
   override fun onTaskRemoved(rootIntent: Intent?) {
-    pauseAllPlayersAndStopSelf()
+    if (!playerManager.get().isPlaying()) {
+      pauseAllPlayersAndStopSelf()
+    }
   }
 }

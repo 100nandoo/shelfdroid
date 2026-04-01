@@ -7,7 +7,6 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.google.common.util.concurrent.ListenableFuture
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,19 +27,14 @@ object ActivityModule {
   fun provideSessionToken(@ApplicationContext context: Context): SessionToken {
     return SessionToken(context, ComponentName(context, PlaybackService::class.java))
   }
-
-  @Provides
-  fun provideMediaControllerFuture(
-    @ApplicationContext context: Context,
-    sessionToken: SessionToken,
-  ): ListenableFuture<MediaController> {
-    return MediaController.Builder(context, sessionToken).buildAsync()
-  }
 }
 
 class MediaControllerManager
 @Inject
-constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
+constructor(
+  @ApplicationContext private val context: Context,
+  private val sessionToken: SessionToken,
+) {
 
   var mediaController: MediaController? = null
     private set
@@ -56,7 +50,8 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
     scope.launch {
       runCatching {
           mediaController?.release()
-          mediaController = mediaControllerFuture.await()
+          val future = MediaController.Builder(context, sessionToken).buildAsync()
+          mediaController = future.await()
           Log.d("media3", "MediaController connected=${mediaController?.isConnected}")
         }
         .onFailure { Log.e("media3", "Failed to init MediaController", it) }
