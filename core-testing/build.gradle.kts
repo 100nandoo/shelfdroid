@@ -1,13 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-@Suppress(
-  "DSL_SCOPE_VIOLATION"
-) // Remove when fixed https://youtrack.jetbrains.com/issue/KTIJ-19369
-plugins {
-  alias(libs.plugins.android.library)
-  alias(libs.plugins.kotlin.android)
-  alias(libs.plugins.kotlin.kapt)
-}
+plugins { alias(libs.plugins.android.library) }
 
 android {
   namespace = "${libs.versions.namespace.get()}.core.testing"
@@ -21,9 +14,7 @@ android {
   }
 
   buildFeatures {
-    aidl = false
     buildConfig = false
-    renderScript = false
     shaders = false
   }
 

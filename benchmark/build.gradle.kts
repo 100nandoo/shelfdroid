@@ -1,9 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-plugins {
-  alias(libs.plugins.android.test)
-  alias(libs.plugins.kotlin.android)
-}
+plugins { alias(libs.plugins.android.test) }
 
 android {
   namespace = "dev.halim.benchmark"

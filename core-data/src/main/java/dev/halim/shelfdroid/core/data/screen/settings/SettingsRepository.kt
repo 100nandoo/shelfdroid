@@ -10,8 +10,8 @@ import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
+import dev.halim.shelfdroid.core.data.di.DatabaseModule.DATABASE_NAME
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.database.di.DatabaseModule.DATABASE_NAME
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.io.File
 import javax.inject.Inject
