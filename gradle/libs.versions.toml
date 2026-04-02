@@ -41,6 +41,7 @@ coroutines = "1.10.2"
 hilt = "2.59.2"
 junit = "4.13.2"
 kotlin = "2.3.20"
+ksp = "2.3.6"
 kotlinSerialization = "1.10.0"
 sqldelight = "2.3.2"
 
@@ -51,9 +52,7 @@ retrofit = "3.0.0"
 retrofit-result = "1.1.0"
 socketioClient = "2.1.2"
 process-phoenix = "3.0.0"
-kotlinGradlePlugin = "2.2.0"
 espressoCore = "3.7.0"
-kotlinGradlePluginVersion = "2.3.20"
 appcompat = "1.7.1"
 material = "1.13.0"
 
@@ -116,7 +115,6 @@ sqldelight-driver = { module = "app.cash.sqldelight:android-driver", version.ref
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 sqldelight-primitives = { module = "app.cash.sqldelight:primitive-adapters", version.ref = "sqldelight" }
 
-kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlinGradlePluginVersion" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
@@ -126,8 +124,7 @@ android-library = { id = "com.android.library", version.ref = "androidGradlePlug
 android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

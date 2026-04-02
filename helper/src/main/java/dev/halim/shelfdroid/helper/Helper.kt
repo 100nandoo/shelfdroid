@@ -289,7 +289,7 @@ constructor(
     val now = nowInstant.toLocalDateTime(tz)
 
     // Start candidate at today's target time
-    var candidate = LocalDateTime(now.year, now.monthNumber, now.dayOfMonth, hour, minute, 0, 0)
+    var candidate = LocalDateTime(now.year, now.month, now.day, hour, minute, 0, 0)
 
     // If that time is in the past, advance by 1 day
     if (

@@ -2,9 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   alias(libs.plugins.android.library)
-  alias(libs.plugins.kotlin.android)
+  alias(libs.plugins.ksp)
   alias(libs.plugins.kotlin.serialization)
-  alias(libs.plugins.kotlin.kapt)
 }
 
 android {
@@ -19,9 +18,7 @@ android {
   }
 
   buildFeatures {
-    aidl = false
     buildConfig = false
-    renderScript = false
     shaders = false
   }
 
@@ -40,7 +37,7 @@ dependencies {
 
   // hilt
   implementation(libs.hilt.android)
-  kapt(libs.hilt.compiler)
+  ksp(libs.hilt.compiler)
 
   // socket.io
   implementation(libs.socketio.client) { exclude(group = "org.json", module = "json") }

@@ -1,12 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-@Suppress(
-  "DSL_SCOPE_VIOLATION"
-) // Remove when fixed https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
   alias(libs.plugins.android.library)
-  alias(libs.plugins.kotlin.android)
-  alias(libs.plugins.kotlin.kapt)
+  alias(libs.plugins.ksp)
   alias(libs.plugins.kotlin.serialization)
 }
 
@@ -22,9 +18,7 @@ android {
   }
 
   buildFeatures {
-    aidl = false
     buildConfig = false
-    renderScript = false
     shaders = false
   }
 
@@ -46,9 +40,9 @@ dependencies {
 
   implementation(libs.kotlinx.serialization)
 
-  // Arch Components
+  // Hilt Components
   implementation(libs.hilt.android)
-  kapt(libs.hilt.compiler)
+  ksp(libs.hilt.compiler)
 
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.datetime)
@@ -63,6 +57,7 @@ dependencies {
   implementation(libs.process.phoenix)
 
   // sqldelight
+  implementation(libs.sqldelight.driver)
   implementation(libs.sqldelight.coroutines)
 
   implementation(libs.retrofit)

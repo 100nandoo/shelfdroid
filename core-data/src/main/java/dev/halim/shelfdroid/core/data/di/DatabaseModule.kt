@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.database.di
+package dev.halim.shelfdroid.core.data.di
 
 import android.content.Context
 import app.cash.sqldelight.ColumnAdapter

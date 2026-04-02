@@ -1,13 +1,9 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-@Suppress(
-  "DSL_SCOPE_VIOLATION"
-) // Remove when fixed https://youtrack.jetbrains.com/issue/KTIJ-19369
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.hilt.gradle)
-  alias(libs.plugins.kotlin.android)
-  alias(libs.plugins.kotlin.kapt)
+  alias(libs.plugins.ksp)
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.compose.compiler)
 }
@@ -25,9 +21,7 @@ android {
 
   buildFeatures {
     compose = true
-    aidl = false
     buildConfig = false
-    renderScript = false
     shaders = false
   }
 
@@ -75,7 +69,7 @@ dependencies {
 
   // Hilt Dependency Injection
   implementation(libs.hilt.android)
-  kapt(libs.hilt.compiler)
+  ksp(libs.hilt.compiler)
 
   /// 3rd party
 
