@@ -20,6 +20,7 @@ import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
@@ -41,6 +42,7 @@ fun BookScreen(
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
 ) {
+  InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerStore.uiState.collectAsStateWithLifecycle()
   val downloadState = if (uiState.isSingleTrack) uiState.download.state else uiState.downloads.state

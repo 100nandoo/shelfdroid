@@ -46,11 +46,6 @@ class MainActivity : ComponentActivity() {
 
   private var navRequest by mutableStateOf<NavRequest>(NavRequest())
 
-  override fun onStart() {
-    super.onStart()
-    initMediaController()
-  }
-
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
