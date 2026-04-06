@@ -11,8 +11,9 @@ import com.google.common.util.concurrent.ListenableFuture
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
+import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 import dev.halim.shelfdroid.media.service.PlaybackService
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -21,15 +22,17 @@ import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 @Module
-@InstallIn(ActivityComponent::class)
+@InstallIn(ActivityRetainedComponent::class)
 object ActivityModule {
 
   @Provides
+  @ActivityRetainedScoped
   fun provideSessionToken(@ApplicationContext context: Context): SessionToken {
     return SessionToken(context, ComponentName(context, PlaybackService::class.java))
   }
 
   @Provides
+  @ActivityRetainedScoped
   fun provideMediaControllerFuture(
     @ApplicationContext context: Context,
     sessionToken: SessionToken,
@@ -38,6 +41,7 @@ object ActivityModule {
   }
 }
 
+@ActivityRetainedScoped
 class MediaControllerManager
 @Inject
 constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
@@ -46,6 +50,7 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
     private set
 
   fun init(scope: CoroutineScope) {
+    Log.d("media3", "MediaController init called.")
     if (mediaController?.isConnected == true) {
       Log.d("media3", "MediaController already connected")
       return
@@ -63,7 +68,24 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
     }
   }
 
+  fun seekBack() {
+    mediaController?.seekBack()
+  }
+
+  fun seekForward() {
+    mediaController?.seekForward()
+  }
+
+  fun playPause() {
+    if (mediaController?.isPlaying == true) {
+      mediaController?.pause()
+    } else {
+      mediaController?.play()
+    }
+  }
+
   fun release() {
+    Log.d("media3", "MediaController release.")
     mediaController?.release()
     mediaController = null
   }

@@ -15,7 +15,7 @@ fun InitMediaControllerIfMainActivity() {
 
   DisposableEffect(lifecycleOwner) {
     val observer = LifecycleEventObserver { _, event ->
-      if (event == Lifecycle.Event.ON_START && context is MainActivity) {
+      if (event == Lifecycle.Event.ON_RESUME && context is MainActivity) {
         context.initMediaController()
       }
     }

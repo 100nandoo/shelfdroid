@@ -7,21 +7,21 @@ import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
+import dev.halim.shelfdroid.media.di.MediaControllerManager
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.service.PlayerStore
 import javax.inject.Inject
 import javax.inject.Named
-import javax.inject.Singleton
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@Singleton
 class PlayerController
 @Inject
 constructor(
   private val playerManager: Lazy<ExoPlayerManager>,
+  private val mediaControl: Lazy<MediaControllerManager>,
   private val playerRepository: PlayerRepository,
   private val playerStore: PlayerStore,
   @Named("io") private val scope: CoroutineScope,
@@ -80,12 +80,9 @@ constructor(
         uiState.update { playerRepository.changeChapter(uiState.value, event.target) }
         playerStore.playContent()
       }
-      PlayerEvent.SeekBackButton -> playerManager.get().seekBack()
-      PlayerEvent.SeekForwardButton -> playerManager.get().seekForward()
-      PlayerEvent.PlayPauseButton -> {
-        if (uiState.value.exoState == ExoState.Playing) playerManager.get().pause()
-        else playerManager.get().resume()
-      }
+      PlayerEvent.SeekBackButton -> mediaControl.get().seekBack()
+      PlayerEvent.SeekForwardButton -> mediaControl.get().seekForward()
+      PlayerEvent.PlayPauseButton -> mediaControl.get().playPause()
       is PlayerEvent.SeekTo -> {
         uiState.update { playerRepository.seekTo(uiState.value, event.target) }
         val positionMs = uiState.value.currentTime.toLong() * 1000
