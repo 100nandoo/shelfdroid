@@ -44,7 +44,7 @@ constructor(
     "https://${DataStoreManager.BASE_URL}$url?token=${getToken()}"
 
   suspend fun generateBackupDownloadUrl(backupId: String): String =
-    "https://$DataStoreManager.BASE_URL/api/backups/${backupId}/download?token=${getToken()}"
+    "https://${DataStoreManager.BASE_URL}/api/backups/$backupId/download?token=${getToken()}"
 
   fun generateDownloadId(itemId: String, episodeId: String? = null): String =
     episodeId?.let { "$itemId|$it" } ?: itemId

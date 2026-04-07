@@ -137,6 +137,7 @@
     <string name="restore_backup_confirm">Are you sure you want to restore this backup? This will overwrite current server data.</string>
     <string name="backup_uploaded">Backup uploaded successfully.</string>
     <string name="upload_backup_failed">Upload backup failed.</string>
+    <string name="invalid_backup_file">Please select a .audiobookshelf backup file.</string>
     <string name="backup_location">Backup Location</string>
     <string name="backup_schedule">Backup Schedule</string>
     <string name="cron_expression_hint">Cron expression (e.g. 0 2 * * *)</string>

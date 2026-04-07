@@ -29,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,10 +49,12 @@ import dev.halim.shelfdroid.core.ui.components.TextLabelMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.extensions.getFilename
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun BackupsScreen(
@@ -60,12 +63,19 @@ fun BackupsScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val context = LocalContext.current
+  val scope = rememberCoroutineScope()
+  val invalidBackupFile = stringResource(R.string.invalid_backup_file)
 
   val filePicker =
     rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
       uri?.let {
+        val filename = context.contentResolver.getFilename(it)
+        if (!filename.endsWith(BACKUP_FILE_EXTENSION, ignoreCase = true)) {
+          scope.launch { snackbarHostState.showErrorSnackbar(invalidBackupFile) }
+          return@rememberLauncherForActivityResult
+        }
+
         val bytes = context.contentResolver.openInputStream(it)?.use { s -> s.readBytes() }
-        val filename = it.lastPathSegment ?: "backup.audiobookshelf"
         if (bytes != null) viewModel.onEvent(BackupsEvent.UploadBackup(filename, bytes))
       }
     }
@@ -317,3 +327,5 @@ fun BackupsScreenContentPreview() {
     BackupsContent(uiState = Defaults.BACKUPS_UI_STATE)
   }
 }
+
+private const val BACKUP_FILE_EXTENSION = ".audiobookshelf"

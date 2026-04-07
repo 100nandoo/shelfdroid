@@ -102,9 +102,9 @@ constructor(private val api: ApiService, private val backupsMapper: BackupsMappe
     bytes: ByteArray,
   ): BackupsUiState {
     val requestBody = bytes.toRequestBody("application/octet-stream".toMediaTypeOrNull())
-    val part = MultipartBody.Part.createFormData("backup", filename, requestBody)
+    val file = MultipartBody.Part.createFormData("file", filename, requestBody)
 
-    api.uploadBackup(part).getOrElse {
+    api.uploadBackup(file).getOrElse {
       return uiState.copy(apiState = BackupsApiState.UploadFailure(it.message))
     }
 

@@ -105,7 +105,7 @@ interface ApiService {
 
   @Multipart
   @POST("/api/backups/upload")
-  suspend fun uploadBackup(@Part backup: MultipartBody.Part): Result<Unit>
+  suspend fun uploadBackup(@Part file: MultipartBody.Part): Result<Unit>
 
   //  libraries
   @GET("api/libraries") suspend fun libraries(): Result<LibrariesResponse>
