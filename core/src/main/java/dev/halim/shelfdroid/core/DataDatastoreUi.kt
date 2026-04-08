@@ -98,9 +98,9 @@ enum class SortOrder {
 data class DisplayPrefs(
   val listView: Boolean = true,
   val filter: Filter = Filter.All,
-  val bookSort: BookSort = BookSort.AddedAt,
+  val bookSort: BookSort = BookSort.Progress,
   val podcastSort: PodcastSort = PodcastSort.AddedAt,
-  val sortOrder: SortOrder = SortOrder.Asc,
+  val sortOrder: SortOrder = SortOrder.Desc,
   val podcastSortOrder: SortOrder = SortOrder.Asc,
 )
 
