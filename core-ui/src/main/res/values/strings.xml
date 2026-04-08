@@ -298,12 +298,19 @@
     <string name="home_screen">Home Screen</string>
     <string name="playback_settings_and_behaviour">Playback settings and behaviour</string>
     <string name="playback">Playback</string>
+    <string name="notification">Notification</string>
+    <string name="notification_settings_supporting">Media notification settings</string>
+    <string name="minutes">Minutes</string>
     <string name="screen_settings">%s screen settings and behaviour</string>
     <string name="podcast">Podcast</string>
     <string name="book_library">Book Library</string>
     <string name="podcast_library">Podcast Library</string>
     <string name="re_login">Re-login</string>
     <!--Settings-->
+
+    <!--Settings Notification-->
+    <string name="default_sleep_timer">Default sleep timer</string>
+    <!--Settings Notification-->
 
     <!--Settings Playback-->
     <string name="behaviour">Behaviour</string>

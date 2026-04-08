@@ -12,6 +12,7 @@ import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.DisplayPrefs
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.ListeningSessionPrefs
+import dev.halim.shelfdroid.core.NotificationPrefs
 import dev.halim.shelfdroid.core.PlaybackPrefs
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.ServerPrefs
@@ -36,6 +37,7 @@ private object Keys {
   val SERVER_PREFS = stringPreferencesKey("server_prefs")
   val DISPLAY_PREFS = stringPreferencesKey("display_prefs")
   val PLAYBACK_PREFS = stringPreferencesKey("playback_prefs")
+  val NOTIFICATION_PREFS = stringPreferencesKey("notification_prefs")
   val CRUD_PREFS = stringPreferencesKey("crud_prefs")
   val LISTENING_SESSION_PREFS = stringPreferencesKey("listening_session_prefs")
 
@@ -140,6 +142,18 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   suspend fun updatePlaybackPrefs(playbackPrefs: PlaybackPrefs) {
     val json = Json.encodeToString(playbackPrefs)
     dataStore.edit { prefs -> prefs[Keys.PLAYBACK_PREFS] = json }
+  }
+
+  val notificationPrefs: Flow<NotificationPrefs> =
+    dataStore.data.map { prefs ->
+      prefs[Keys.NOTIFICATION_PREFS]?.let { json ->
+        runCatching { Json.decodeFromString<NotificationPrefs>(json) }.getOrNull()
+      } ?: NotificationPrefs()
+    }
+
+  suspend fun updateNotificationPrefs(notificationPrefs: NotificationPrefs) {
+    val json = Json.encodeToString(notificationPrefs)
+    dataStore.edit { prefs -> prefs[Keys.NOTIFICATION_PREFS] = json }
   }
 
   val crudPrefs: Flow<CrudPrefs> =

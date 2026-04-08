@@ -11,12 +11,14 @@ import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import com.google.common.collect.ImmutableList
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.media.R
 import javax.inject.Inject
 import javax.inject.Singleton
 
 const val CUSTOM_BACK = "CUSTOM_BACK"
 const val CUSTOM_FORWARD = "CUSTOM_FORWARD"
+const val CUSTOM_SLEEP_TIMER = "CUSTOM_SLEEP_TIMER"
 
 @UnstableApi
 @Singleton
@@ -34,12 +36,20 @@ class CustomMediaNotificationProvider @Inject constructor(context: Context) :
     actionFactory: MediaNotification.ActionFactory,
   ): IntArray {
     val playPauseButton = mediaButtons.firstOrNull { it.playerCommand == Player.COMMAND_PLAY_PAUSE }
+    val sleepTimerButton =
+      mediaButtons.firstOrNull { it.sessionCommand?.customAction == CUSTOM_SLEEP_TIMER }
+        ?: SLEEP_TIMER_OFF_BUTTON
 
     val notificationButtons =
       if (playPauseButton != null) {
         playPauseButton.extras.putInt(COMMAND_KEY_COMPACT_VIEW_INDEX, 1)
 
-        ImmutableList.of(BACK_COMMAND_BUTTON, playPauseButton, FORWARD_COMMAND_BUTTON)
+        ImmutableList.of(
+          BACK_COMMAND_BUTTON,
+          playPauseButton,
+          FORWARD_COMMAND_BUTTON,
+          sleepTimerButton,
+        )
       } else {
         mediaButtons
       }
@@ -62,6 +72,22 @@ class CustomMediaNotificationProvider @Inject constructor(context: Context) :
         .setSessionCommand(SessionCommand(CUSTOM_FORWARD, Bundle.EMPTY))
         .setDisplayName("Forward 10s")
         .setExtras(Bundle().apply { putInt(COMMAND_KEY_COMPACT_VIEW_INDEX, 2) })
+        .build()
+
+    @UnstableApi
+    val SLEEP_TIMER_OFF_BUTTON: CommandButton =
+      CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+        .setCustomIconResId(CoreR.drawable.timer_off)
+        .setSessionCommand(SessionCommand(CUSTOM_SLEEP_TIMER, Bundle.EMPTY))
+        .setDisplayName("Start sleep timer")
+        .build()
+
+    @UnstableApi
+    val SLEEP_TIMER_ON_BUTTON: CommandButton =
+      CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+        .setCustomIconResId(CoreR.drawable.timer)
+        .setSessionCommand(SessionCommand(CUSTOM_SLEEP_TIMER, Bundle.EMPTY))
+        .setDisplayName("Cancel sleep timer")
         .build()
   }
 }

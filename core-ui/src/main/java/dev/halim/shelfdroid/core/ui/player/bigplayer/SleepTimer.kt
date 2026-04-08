@@ -32,6 +32,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.R as CoreR
+import dev.halim.shelfdroid.core.SLEEP_TIMER_PRESET_MINUTES
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.extensions.toSleepTimerText
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
@@ -66,7 +68,7 @@ fun SleepTimer(sleepTimeLeft: Duration, onEvent: (PlayerEvent) -> Unit) {
         Icon(
           modifier = Modifier.size(36.dp).align(Alignment.Center),
           tint = MaterialTheme.colorScheme.onSecondaryContainer,
-          painter = painterResource(R.drawable.timer),
+          painter = painterResource(CoreR.drawable.timer),
           contentDescription = stringResource(R.string.timer),
         )
       }
@@ -80,16 +82,9 @@ fun SleepTimerBottomSheet(sheetState: SheetState, onEvent: (PlayerEvent) -> Unit
   val scope = rememberCoroutineScope()
 
   val sleepTimerOptions =
-    listOf(
-      stringResource(R.string.timer_minute, 60) to 60,
-      stringResource(R.string.timer_minute, 45) to 45,
-      stringResource(R.string.timer_minute, 30) to 30,
-      stringResource(R.string.timer_minute, 15) to 15,
-      stringResource(R.string.timer_minute, 10) to 10,
-      stringResource(R.string.timer_minute, 5) to 5,
-      stringResource(R.string.timer_minute, 1) to 1,
-      stringResource(R.string.clear) to 0,
-    )
+    SLEEP_TIMER_PRESET_MINUTES.reversed().map { minutes ->
+      stringResource(R.string.timer_minute, minutes) to minutes
+    } + (stringResource(R.string.clear) to 0)
   if (sheetState.isVisible) {
     ModalBottomSheet(
       sheetState = sheetState,

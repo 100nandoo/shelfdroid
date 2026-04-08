@@ -9,6 +9,7 @@ import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.MediaStructure
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.exoplayer.PlayerEvent
@@ -20,14 +21,17 @@ import dev.halim.shelfdroid.media.misc.TimerManager
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Singleton
 class PlayerStore
@@ -40,6 +44,7 @@ constructor(
   private val timerManager: TimerManager,
   private val sessionManager: SessionManager,
   private val state: PlayerInternalStateHolder,
+  private val prefsRepository: PrefsRepository,
 ) {
   val uiState = MutableStateFlow(PlayerUiState())
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -96,6 +101,11 @@ constructor(
 
   fun clearTimer() {
     timerManager.clear()
+  }
+
+  fun startDefaultSleepTimer() {
+    val minutes = runBlocking { prefsRepository.notificationPrefs.first().sleepTimerMinutes }
+    sleepTimer(minutes.minutes)
   }
 
   fun emptyState(): PlayerUiState = PlayerUiState()

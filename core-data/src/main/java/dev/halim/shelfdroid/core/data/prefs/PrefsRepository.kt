@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.prefs
 import dev.halim.core.network.response.ServerSettings
 import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.ListeningSessionPrefs
+import dev.halim.shelfdroid.core.NotificationPrefs
 import dev.halim.shelfdroid.core.PlaybackPrefs
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.ServerPrefs
@@ -19,6 +20,7 @@ class PrefsRepository @Inject constructor(private val dataStoreManager: DataStor
   val userPrefs = dataStoreManager.userPrefs
   val displayPrefs = dataStoreManager.displayPrefs
   val playbackPrefs = dataStoreManager.playbackPrefs
+  val notificationPrefs = dataStoreManager.notificationPrefs
   val crudPrefs = dataStoreManager.crudPrefs
   val listeningSessionPrefs = dataStoreManager.listeningSessionPrefs
 
@@ -43,6 +45,10 @@ class PrefsRepository @Inject constructor(private val dataStoreManager: DataStor
 
   suspend fun updatePlaybackPrefs(playbackPrefs: PlaybackPrefs) {
     dataStoreManager.updatePlaybackPrefs(playbackPrefs)
+  }
+
+  suspend fun updateNotificationPrefs(notificationPrefs: NotificationPrefs) {
+    dataStoreManager.updateNotificationPrefs(notificationPrefs)
   }
 
   suspend fun updateCrudPrefs(crudPrefs: CrudPrefs) {

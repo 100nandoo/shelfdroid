@@ -29,6 +29,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,10 +37,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.halim.shelfdroid.media.service.CUSTOM_BACK
 import dev.halim.shelfdroid.media.service.CUSTOM_FORWARD
+import dev.halim.shelfdroid.media.service.CUSTOM_SLEEP_TIMER
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
+import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.SLEEP_TIMER_OFF_BUTTON
+import dev.halim.shelfdroid.media.service.PlayerStore
 import javax.inject.Singleton
+import kotlin.time.Duration
 
 @OptIn(UnstableApi::class)
 @Module
@@ -123,9 +128,11 @@ object PlayerModule {
 
   @Singleton
   @Provides
-  fun provideMediaLibrarySessionCallback(): MediaLibrarySession.Callback {
+  fun provideMediaLibrarySessionCallback(
+    playerStore: Lazy<PlayerStore>
+  ): MediaLibrarySession.Callback {
 
-    val commandButtons = listOf(BACK_COMMAND_BUTTON, FORWARD_COMMAND_BUTTON)
+    val commandButtons = listOf(BACK_COMMAND_BUTTON, FORWARD_COMMAND_BUTTON, SLEEP_TIMER_OFF_BUTTON)
     val sessionCommands =
       MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
         .apply {
@@ -153,6 +160,14 @@ object PlayerModule {
         when (customCommand.customAction) {
           CUSTOM_BACK -> session.player.seekTo(session.player.currentPosition - 10000)
           CUSTOM_FORWARD -> session.player.seekTo(session.player.currentPosition + 10000)
+          CUSTOM_SLEEP_TIMER -> {
+            val store = playerStore.get()
+            if (store.uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO) {
+              store.clearTimer()
+            } else {
+              store.startDefaultSleepTimer()
+            }
+          }
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
       }

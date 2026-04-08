@@ -8,11 +8,24 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import com.google.common.collect.ImmutableList
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
+import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
+import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
+import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.SLEEP_TIMER_OFF_BUTTON
+import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.SLEEP_TIMER_ON_BUTTON
 import javax.inject.Inject
+import kotlin.time.Duration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
@@ -23,6 +36,10 @@ class PlaybackService : MediaLibraryService() {
   @Inject lateinit var mediaNotificationProvider: Lazy<CustomMediaNotificationProvider>
   @Inject lateinit var mediaLibrarySessionCallback: Lazy<MediaLibrarySession.Callback>
   @Inject lateinit var helper: Lazy<Helper>
+  @Inject lateinit var playerStore: Lazy<PlayerStore>
+
+  private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+  private var sleepTimerObserverJob: Job? = null
 
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession {
     return mediaLibrarySession
@@ -43,6 +60,24 @@ class PlaybackService : MediaLibraryService() {
     setupPlayerListener()
     playerManager.get().addDefaultListener()
     setMediaNotificationProvider(mediaNotificationProvider.get())
+    observeSleepTimerState()
+  }
+
+  private fun observeSleepTimerState() {
+    sleepTimerObserverJob?.cancel()
+    sleepTimerObserverJob = serviceScope.launch {
+      playerStore
+        .get()
+        .uiState
+        .map { it.advancedControl.sleepTimerLeft > Duration.ZERO }
+        .distinctUntilChanged()
+        .collect { isActive ->
+          val sleepButton = if (isActive) SLEEP_TIMER_ON_BUTTON else SLEEP_TIMER_OFF_BUTTON
+          mediaLibrarySession.setMediaButtonPreferences(
+            ImmutableList.of(BACK_COMMAND_BUTTON, FORWARD_COMMAND_BUTTON, sleepButton)
+          )
+        }
+    }
   }
 
   private fun setupPlayerListener() {
@@ -65,6 +100,7 @@ class PlaybackService : MediaLibraryService() {
   }
 
   override fun onDestroy() {
+    sleepTimerObserverJob?.cancel()
     mediaLibrarySession.release()
     playerManager.get().clearAndStop()
     stopForeground(STOP_FOREGROUND_REMOVE)
