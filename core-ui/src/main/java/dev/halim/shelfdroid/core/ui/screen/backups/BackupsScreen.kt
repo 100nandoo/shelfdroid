@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -50,6 +51,7 @@ import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.extensions.getFilename
+import dev.halim.shelfdroid.core.ui.permissions.rememberNotificationPermissionHandler
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -80,11 +82,24 @@ fun BackupsScreen(
       }
     }
 
+  var pendingDownload by remember { mutableStateOf<BackupsUiState.BackupItem?>(null) }
+  val handleDownloadPermission =
+    rememberNotificationPermissionHandler(
+      snackbarHostState = snackbarHostState,
+      onPermissionGranted = {
+        pendingDownload?.let { viewModel.backupDownloader.download(it) }
+        pendingDownload = null
+      },
+    )
+
   HandleBackupsSnackbar(uiState, snackbarHostState)
   BackupsContent(
     uiState = uiState,
     onEvent = viewModel::onEvent,
-    onDownload = { backup -> viewModel.backupDownloader.download(backup) },
+    onDownload = { backup ->
+      pendingDownload = backup
+      handleDownloadPermission()
+    },
     onUpload = { filePicker.launch("*/*") },
   )
 }
@@ -96,7 +111,7 @@ private fun BackupsContent(
   onDownload: (BackupsUiState.BackupItem) -> Unit = {},
   onUpload: () -> Unit = {},
 ) {
-  Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+  Column(modifier = Modifier.fillMaxSize().imePadding(), verticalArrangement = Arrangement.Bottom) {
     VisibilityDown(
       uiState.state is GenericState.Loading || uiState.apiState is BackupsApiState.Loading
     ) {
