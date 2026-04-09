@@ -42,7 +42,7 @@ hilt = "2.59.2"
 junit = "4.13.2"
 kotlin = "2.3.20"
 ksp = "2.3.6"
-kotlinSerialization = "1.10.0"
+kotlinSerialization = "1.11.0"
 sqldelight = "2.3.2"
 
 # 3rd party
