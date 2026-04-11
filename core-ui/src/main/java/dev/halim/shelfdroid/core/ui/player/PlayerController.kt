@@ -2,13 +2,11 @@ package dev.halim.shelfdroid.core.ui.player
 
 import dagger.Lazy
 import dev.halim.shelfdroid.core.ChangeBehaviour
-import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.di.MediaControllerManager
-import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.service.PlayerStore
 import javax.inject.Inject
 import javax.inject.Named
@@ -20,7 +18,6 @@ import kotlinx.coroutines.launch
 class PlayerController
 @Inject
 constructor(
-  private val playerManager: Lazy<ExoPlayerManager>,
   private val mediaControl: Lazy<MediaControllerManager>,
   private val playerRepository: PlayerRepository,
   private val playerStore: PlayerStore,
@@ -49,8 +46,7 @@ constructor(
               }
               playerStore.playContent()
             }
-            uiState.value.exoState == ExoState.Playing -> playerManager.get().pause()
-            else -> playerManager.get().resume()
+            else -> mediaControl.get().playPause()
           }
         }
       }
@@ -71,8 +67,7 @@ constructor(
               }
               playerStore.playContent()
             }
-            uiState.value.exoState == ExoState.Playing -> playerManager.get().pause()
-            else -> playerManager.get().resume()
+            else -> mediaControl.get().playPause()
           }
         }
       }
@@ -86,11 +81,11 @@ constructor(
       is PlayerEvent.SeekTo -> {
         uiState.update { playerRepository.seekTo(uiState.value, event.target) }
         val positionMs = uiState.value.currentTime.toLong() * 1000
-        playerManager.get().seekTo(positionMs)
+        mediaControl.get().seekTo(positionMs)
       }
       is PlayerEvent.ChangeSpeed -> {
         uiState.update { playerRepository.changeSpeed(uiState.value, event.speed) }
-        playerManager.get().changeSpeed(event.speed)
+        mediaControl.get().changeSpeed(event.speed)
       }
       is PlayerEvent.SleepTimer -> {
         if (event.duration != Duration.ZERO) {
@@ -100,7 +95,7 @@ constructor(
         }
       }
       PlayerEvent.NewBookmarkTime -> {
-        val currentTimeInSeconds = playerManager.get().currentTime() / 1000
+        val currentTimeInSeconds = mediaControl.get().currentPosition() / 1000
         uiState.update { playerRepository.newBookmarkTime(uiState.value, currentTimeInSeconds) }
       }
 
@@ -136,7 +131,7 @@ constructor(
             uiState.value.currentChapter?.isFirst() == true ||
             uiState.value.currentChapter == null
         ) {
-          playerManager.get().seekTo(0)
+          mediaControl.get().seekTo(0)
         } else {
           uiState.update { playerRepository.previousNextChapter(uiState.value, true) }
           playerStore.playContent()
@@ -169,7 +164,7 @@ constructor(
 
   private fun logout() {
     uiState.update { playerStore.emptyState() }
-    playerManager.get().clearAndStop()
+    mediaControl.get().clearAndStop()
   }
 }
 

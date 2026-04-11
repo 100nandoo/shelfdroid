@@ -101,8 +101,8 @@ class PlaybackService : MediaLibraryService() {
 
   override fun onDestroy() {
     sleepTimerObserverJob?.cancel()
+    stopAndClear()
     mediaLibrarySession.release()
-    playerManager.get().clearAndStop()
     stopForeground(STOP_FOREGROUND_REMOVE)
     stopSelf()
     Process.killProcess(Process.myPid())
@@ -112,5 +112,12 @@ class PlaybackService : MediaLibraryService() {
   @OptIn(UnstableApi::class)
   override fun onTaskRemoved(rootIntent: Intent?) {
     pauseAllPlayersAndStopSelf()
+  }
+
+  private fun stopAndClear() {
+    mediaLibrarySession.player.run {
+      stop()
+      clearMediaItems()
+    }
   }
 }
