@@ -30,6 +30,7 @@ import dev.halim.shelfdroid.core.data.screen.serversettings.ServerSettingsApiSta
 import dev.halim.shelfdroid.core.data.screen.serversettings.ServerSettingsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
@@ -297,7 +298,7 @@ private fun DisplaySection(uiState: ServerSettingsUiState, onEvent: (ServerSetti
     ChipDropdownMenu(
       modifier = Modifier.weight(1f),
       label = stringResource(R.string.date_format),
-      labelOnTop = true,
+      labelPosition = LabelPosition.Top,
       options = DATE_FORMATS,
       initialValue = current.dateFormat,
       onClick = { value ->
@@ -311,7 +312,7 @@ private fun DisplaySection(uiState: ServerSettingsUiState, onEvent: (ServerSetti
     Spacer(Modifier.width(8.dp))
     ChipDropdownMenu(
       label = stringResource(R.string.time_format),
-      labelOnTop = true,
+      labelPosition = LabelPosition.Top,
       options = TIME_FORMATS.map { it.second },
       initialValue =
         TIME_FORMATS.find { it.first == current.timeFormat }?.second ?: current.timeFormat,
@@ -331,7 +332,7 @@ private fun DisplaySection(uiState: ServerSettingsUiState, onEvent: (ServerSetti
   ChipDropdownMenu(
     modifier = startPadding,
     label = stringResource(R.string.default_language),
-    labelOnTop = true,
+    labelPosition = LabelPosition.Top,
     options = LANGUAGES.map { it.second },
     initialValue = LANGUAGES.find { it.first == current.language }?.second ?: current.language,
     onClick = { selectedDisplay ->

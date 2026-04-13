@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.screen.settingsnotification
+package dev.halim.shelfdroid.core.data.screen.settings.notification
 
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import javax.inject.Inject

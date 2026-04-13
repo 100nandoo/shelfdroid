@@ -47,6 +47,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.logs.LogsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.extensions.capitalized
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -124,7 +125,7 @@ private fun Control(
       ChipDropdownMenu(
         modifier = Modifier.weight(1f),
         label = stringResource(R.string.server_log_level),
-        labelOnTop = true,
+        labelPosition = LabelPosition.Top,
         options = options,
         initialValue = uiState.logLevel.name.capitalized(),
         onClick = { selected ->
@@ -136,7 +137,7 @@ private fun Control(
         modifier = Modifier.weight(1f),
         label = stringResource(R.string.filter_log_level),
         options = options,
-        labelOnTop = true,
+        labelPosition = LabelPosition.Top,
         initialValue = uiState.filterLogLevel.name.capitalized(),
         onClick = { selected ->
           val logLevel = LogLevel.valueOf(selected.uppercase())

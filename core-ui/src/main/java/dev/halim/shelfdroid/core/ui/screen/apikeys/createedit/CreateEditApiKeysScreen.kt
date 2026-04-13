@@ -29,6 +29,7 @@ import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateEditApiKey
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.DatePickerTextField
+import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
@@ -74,7 +75,7 @@ private fun CreateApiKeysContent(
     ChipDropdownMenu(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       label = stringResource(R.string.owner_semicolon),
-      labelOnTop = false,
+      labelPosition = LabelPosition.Expand,
       options = uiState.users.map { it.username },
       initialValue = selectedUsername,
       isError = uiState.fieldError.userNotSelected,
@@ -185,7 +186,7 @@ private fun EditApiKeysContent(
     ChipDropdownMenu(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       label = stringResource(R.string.owner_semicolon),
-      labelOnTop = false,
+      labelPosition = LabelPosition.Expand,
       options = uiState.users.map { it.username },
       initialValue = selectedUsername,
       onClick = { username ->

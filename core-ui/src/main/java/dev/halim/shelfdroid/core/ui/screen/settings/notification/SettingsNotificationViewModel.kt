@@ -1,10 +1,10 @@
-package dev.halim.shelfdroid.core.ui.screen.settingsnotification
+package dev.halim.shelfdroid.core.ui.screen.settings.notification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.screen.settingsnotification.SettingsNotificationRepository
-import dev.halim.shelfdroid.core.data.screen.settingsnotification.SettingsNotificationUiState
+import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationRepository
+import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

@@ -14,11 +14,11 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +32,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.PlayerChapter
+import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
+import dev.halim.shelfdroid.core.ui.components.TextLabelMedium
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -45,6 +47,7 @@ fun ChapterBottomSheet(
   sheetState: SheetState,
   chapters: List<PlayerChapter>,
   currentChapter: PlayerChapter?,
+  chapterTitleLine: Int = 2,
   onEvent: (PlayerEvent) -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
@@ -59,7 +62,18 @@ fun ChapterBottomSheet(
     ) {
       LazyColumn(state = state, reverseLayout = true) {
         itemsIndexed(chapters, key = { _, chapter -> chapter.id }) { index, playerChapter ->
-          ChapterRow(index, scope, sheetState, playerChapter, currentChapter, onEvent)
+          ChapterRow(
+            index,
+            scope,
+            sheetState,
+            playerChapter,
+            currentChapter,
+            chapterTitleLine,
+            onEvent,
+          )
+          if (chapterTitleLine != 1) {
+            HorizontalDivider()
+          }
         }
       }
     }
@@ -73,6 +87,7 @@ private fun ChapterRow(
   sheetState: SheetState,
   playerChapter: PlayerChapter,
   currentChapter: PlayerChapter?,
+  chapterTitleLine: Int = 2,
   onEvent: (PlayerEvent) -> Unit = {},
 ) {
   val currentOnEvent by rememberUpdatedState(onEvent)
@@ -95,17 +110,15 @@ private fun ChapterRow(
         }
         .padding(horizontal = 16.dp, vertical = 8.dp),
   ) {
-    Text(
-      playerChapter.title,
-      style = MaterialTheme.typography.bodyMedium,
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis,
+    TextBodyMedium(
       modifier = Modifier.weight(1f),
+      text = playerChapter.title,
+      maxLines = chapterTitleLine,
+      overflow = TextOverflow.Ellipsis,
     )
     Spacer(modifier = Modifier.width(8.dp))
-    Text(
-      "${playerChapter.startFormattedTime} - ${playerChapter.endFormattedTime}",
-      style = MaterialTheme.typography.labelMedium,
+    TextLabelMedium(
+      text = "${playerChapter.startFormattedTime} - ${playerChapter.endFormattedTime}"
     )
   }
 }

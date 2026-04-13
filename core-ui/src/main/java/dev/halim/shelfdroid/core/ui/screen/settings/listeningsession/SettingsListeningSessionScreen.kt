@@ -20,6 +20,7 @@ import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUi
 import dev.halim.shelfdroid.core.data.screen.settings.listeningsession.SettingsListeningSessionUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -43,6 +44,7 @@ private fun SettingsListeningSessionContent(
     ChipDropdownMenu(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       label = stringResource(R.string.default_user),
+      labelPosition = LabelPosition.Expand,
       options = uiState.users.mapNotNull { it.username },
       initialValue = defaultUser.username ?: ALL_USERNAME,
       onClick = { selected ->

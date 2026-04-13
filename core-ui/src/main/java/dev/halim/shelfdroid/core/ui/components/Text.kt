@@ -158,6 +158,60 @@ fun TextTitleSmall(
 }
 
 @Composable
+fun TextBodyLarge(
+  modifier: Modifier = Modifier,
+  text: String,
+  color: Color = Color.Unspecified,
+  maxLines: Int = Int.MAX_VALUE,
+  overflow: TextOverflow = TextOverflow.Clip,
+) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.bodyLarge,
+    modifier = modifier,
+    color = color,
+    maxLines = maxLines,
+    overflow = overflow,
+  )
+}
+
+@Composable
+fun TextBodyMedium(
+  modifier: Modifier = Modifier,
+  text: String,
+  color: Color = Color.Unspecified,
+  maxLines: Int = Int.MAX_VALUE,
+  overflow: TextOverflow = TextOverflow.Clip,
+) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.bodyMedium,
+    modifier = modifier,
+    color = color,
+    maxLines = maxLines,
+    overflow = overflow,
+  )
+}
+
+@Composable
+fun TextBodySmall(
+  modifier: Modifier = Modifier,
+  text: String,
+  color: Color = Color.Unspecified,
+  maxLines: Int = Int.MAX_VALUE,
+  overflow: TextOverflow = TextOverflow.Clip,
+) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.bodySmall,
+    modifier = modifier,
+    color = color,
+    maxLines = maxLines,
+    overflow = overflow,
+  )
+}
+
+@Composable
 fun TextLabelLarge(
   modifier: Modifier = Modifier,
   text: String,

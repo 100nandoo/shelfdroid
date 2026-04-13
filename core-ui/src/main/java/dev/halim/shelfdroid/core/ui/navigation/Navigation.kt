@@ -47,8 +47,9 @@ import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.serversettings.ServerSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsListeningSessionScreen
+import dev.halim.shelfdroid.core.ui.screen.settings.notification.SettingsNotificationScreen
+import dev.halim.shelfdroid.core.ui.screen.settings.player.SettingsPlayerScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
-import dev.halim.shelfdroid.core.ui.screen.settingsnotification.SettingsNotificationScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import dev.halim.shelfdroid.core.ui.screen.userinfo.UserInfoScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
@@ -65,6 +66,8 @@ import kotlinx.serialization.Serializable
 @Serializable object Settings
 
 @Serializable object SettingsPlayback
+
+@Serializable object SettingsPlayer
 
 @Serializable object SettingsNotification
 
@@ -233,6 +236,7 @@ private fun ColumnScope.NavHostContainer(
 
       composable<Settings> {
         SettingsScreen(
+          onPlayerClicked = { navController.navigate(SettingsPlayer) },
           onPlaybackClicked = { navController.navigate(SettingsPlayback) },
           onNotificationClicked = { navController.navigate(SettingsNotification) },
           onPodcastClicked = { navController.navigate(SettingsPodcast) },
@@ -243,6 +247,7 @@ private fun ColumnScope.NavHostContainer(
       }
 
       composable<SettingsPlayback> { SettingsPlaybackScreen() }
+      composable<SettingsPlayer> { SettingsPlayerScreen() }
       composable<SettingsNotification> { SettingsNotificationScreen() }
       composable<SettingsPodcast> { SettingsPodcastScreen() }
       composable<SettingsListeningSession> { SettingsListeningSessionScreen() }

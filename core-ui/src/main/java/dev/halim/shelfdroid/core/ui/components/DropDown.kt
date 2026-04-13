@@ -28,13 +28,19 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
+enum class LabelPosition {
+  Top,
+  Side,
+  Expand,
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChipDropdownMenu(
   modifier: Modifier = Modifier,
   options: List<String> = emptyList(),
   label: String? = null,
-  labelOnTop: Boolean = false,
+  labelPosition: LabelPosition = LabelPosition.Side,
   initialValue: String,
   isError: Boolean = false,
   onClick: (String) -> Unit = {},
@@ -47,18 +53,16 @@ fun ChipDropdownMenu(
     expanded = expanded,
     onExpandedChange = { expanded = it },
   ) {
-    val labelComposable: @Composable (() -> Unit)? = label?.let {
-      {
+    val labelComposable: @Composable ((Modifier) -> Unit)? = label?.let {
+      { mod: Modifier ->
         Text(
           text = it,
           style = MaterialTheme.typography.labelSmall,
           color = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
           modifier =
-            if (labelOnTop) {
-              Modifier
-            } else {
-              Modifier.padding(end = 8.dp)
-            },
+            mod.then(
+              if (labelPosition == LabelPosition.Top) Modifier else Modifier.padding(end = 8.dp)
+            ),
         )
       }
     }
@@ -91,15 +95,24 @@ fun ChipDropdownMenu(
       )
     }
 
-    if (labelOnTop) {
-      Column {
-        labelComposable?.invoke()
-        chipComposable()
+    when (labelPosition) {
+      LabelPosition.Top -> {
+        Column {
+          labelComposable?.invoke(Modifier)
+          chipComposable()
+        }
       }
-    } else {
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        labelComposable?.invoke()
-        chipComposable()
+      LabelPosition.Side -> {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          labelComposable?.invoke(Modifier)
+          chipComposable()
+        }
+      }
+      LabelPosition.Expand -> {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          labelComposable?.invoke(Modifier.weight(1f))
+          chipComposable()
+        }
       }
     }
 
@@ -142,12 +155,25 @@ fun ChipDropdownMenuPreview() {
 
 @ShelfDroidPreview
 @Composable
+fun ChipDropdownMenuLabelExpandPreview() {
+  PreviewWrapper {
+    ChipDropdownMenu(
+      options = listOf("Option 1", "Option 2", "Option 3"),
+      label = "Label",
+      initialValue = "Option 1",
+      labelPosition = LabelPosition.Expand,
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
 fun ChipDropdownMenuLabelTopPreview() {
   PreviewWrapper {
     ChipDropdownMenu(
       options = listOf("Option 1", "Option 2", "Option 3"),
       label = "Label",
-      labelOnTop = true,
+      labelPosition = LabelPosition.Top,
       initialValue = "Option 1",
     )
   }

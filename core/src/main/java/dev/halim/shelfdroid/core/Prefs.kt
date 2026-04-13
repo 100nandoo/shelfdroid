@@ -2,6 +2,61 @@ package dev.halim.shelfdroid.core
 
 import kotlinx.serialization.Serializable
 
+enum class SortOrder {
+  Asc,
+  Desc,
+}
+
+@Serializable
+data class DisplayPrefs(
+  val listView: Boolean = true,
+  val filter: Filter = Filter.All,
+  val bookSort: BookSort = BookSort.Progress,
+  val podcastSort: PodcastSort = PodcastSort.AddedAt,
+  val sortOrder: SortOrder = SortOrder.Desc,
+  val podcastSortOrder: SortOrder = SortOrder.Asc,
+)
+
+@Serializable
+data class CrudPrefs(
+  // Library item
+  val hardDelete: Boolean = true,
+  // Episode
+  // * delete
+  val episodeHardDelete: Boolean = true,
+  val episodeAutoSelectFinished: Boolean = true,
+  // * add
+  val addEpisodeHideDownloaded: Boolean = true,
+)
+
+@Serializable
+data class Prefs(
+  val userPrefs: UserPrefs = UserPrefs(),
+  val displayPrefs: DisplayPrefs = DisplayPrefs(),
+  val crudPrefs: CrudPrefs = CrudPrefs(),
+)
+
+@Serializable
+data class PlaybackPrefs(
+  val keepSpeed: Boolean = false,
+  val keepSleepTimer: Boolean = false,
+  val episodeKeepSpeed: Boolean = true,
+  val episodeKeepSleepTimer: Boolean = true,
+  val bookKeepSpeed: Boolean = true,
+  val bookKeepSleepTimer: Boolean = true,
+)
+
+@Serializable data class NotificationPrefs(val sleepTimerMinutes: Int = 1)
+
+val CHAPTER_TITLE_PRESET_LINE: List<Int> = listOf(1, 2, 3)
+
+@Serializable data class PlayerPrefs(val chapterTitleLine: Int = 2)
+
+val SLEEP_TIMER_PRESET_MINUTES: List<Int> = listOf(1, 5, 10, 15, 30, 45, 60)
+
+@Serializable
+data class ListeningSessionPrefs(val itemsPerPage: Int = 10, val defaultUserId: String? = null)
+
 @Serializable
 data class UserPrefs(
   val id: String = "",
@@ -88,54 +143,3 @@ enum class ItemsPerPage(val label: Int) {
     }
   }
 }
-
-enum class SortOrder {
-  Asc,
-  Desc,
-}
-
-@Serializable
-data class DisplayPrefs(
-  val listView: Boolean = true,
-  val filter: Filter = Filter.All,
-  val bookSort: BookSort = BookSort.Progress,
-  val podcastSort: PodcastSort = PodcastSort.AddedAt,
-  val sortOrder: SortOrder = SortOrder.Desc,
-  val podcastSortOrder: SortOrder = SortOrder.Asc,
-)
-
-@Serializable
-data class CrudPrefs(
-  // Library item
-  val hardDelete: Boolean = true,
-  // Episode
-  // * delete
-  val episodeHardDelete: Boolean = true,
-  val episodeAutoSelectFinished: Boolean = true,
-  // * add
-  val addEpisodeHideDownloaded: Boolean = true,
-)
-
-@Serializable
-data class Prefs(
-  val userPrefs: UserPrefs = UserPrefs(),
-  val displayPrefs: DisplayPrefs = DisplayPrefs(),
-  val crudPrefs: CrudPrefs = CrudPrefs(),
-)
-
-@Serializable
-data class PlaybackPrefs(
-  val keepSpeed: Boolean = false,
-  val keepSleepTimer: Boolean = false,
-  val episodeKeepSpeed: Boolean = true,
-  val episodeKeepSleepTimer: Boolean = true,
-  val bookKeepSpeed: Boolean = true,
-  val bookKeepSleepTimer: Boolean = true,
-)
-
-@Serializable data class NotificationPrefs(val sleepTimerMinutes: Int = 1)
-
-val SLEEP_TIMER_PRESET_MINUTES: List<Int> = listOf(1, 5, 10, 15, 30, 45, 60)
-
-@Serializable
-data class ListeningSessionPrefs(val itemsPerPage: Int = 10, val defaultUserId: String? = null)

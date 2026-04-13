@@ -56,6 +56,11 @@ constructor(
         uiState.update { it.copy(exoState = exoState) }
       }
     }
+    syncScope.launch {
+      prefsRepository.playerPrefs.collect { prefs ->
+        uiState.update { it.copy(chapterTitleLine = prefs.chapterTitleLine) }
+      }
+    }
   }
 
   fun playContent() {

@@ -168,7 +168,7 @@ object Defaults {
   val DEFAULT_PLAYER_CHAPTER =
     PlayerChapter(
       id = 1,
-      title = "Chapter 1: The Unexpected Journey",
+      title = "Chapter 1: The Unexpected and Very Long Journey",
       startFormattedTime = "00:00",
       endFormattedTime = "00:10",
     )

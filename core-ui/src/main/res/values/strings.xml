@@ -45,6 +45,10 @@
     <string name="delete_count_type">Delete %d %s</string>
     <string name="empty_type">No %s</string>
     <string name="args_not_found">%s not found</string>
+    <string name="next_backup_date">Next backup: %s</string>
+    <string name="gb_value">%d GB</string>
+    <string name="screen_settings">%s screen settings and behaviour</string>
+    <string name="settings_and_behaviour">%s settings and behaviour</string>
 
     <!--Plurals-->
     <plurals name="plurals_episode">
@@ -145,12 +149,10 @@
     <string name="backups_to_keep">Number of Backups to Keep</string>
     <string name="max_backup_size">Maximum Backup Size (GB)</string>
     <string name="max_backup_size_hint">0 for unlimited</string>
-    <string name="next_backup_date">Next backup: %s</string>
     <string name="settings_saved">Settings saved.</string>
     <string name="settings_save_failed">Failed to save settings.</string>
     <string name="not_set">Not set</string>
     <string name="unlimited">Unlimited</string>
-    <string name="gb_value">%d GB</string>
     <!--Backups-->
 
     <!--Server Settings-->
@@ -297,20 +299,21 @@
     <string name="user_permanent_delete">Use permanent delete by default</string>
     <string name="home_screen">Home Screen</string>
     <string name="playback_settings_and_behaviour">Playback settings and behaviour</string>
+    <string name="player">Player</string>
     <string name="playback">Playback</string>
     <string name="notification">Notification</string>
     <string name="notification_settings_supporting">Media notification settings</string>
     <string name="minutes">Minutes</string>
-    <string name="screen_settings">%s screen settings and behaviour</string>
     <string name="podcast">Podcast</string>
     <string name="book_library">Book Library</string>
     <string name="podcast_library">Podcast Library</string>
     <string name="re_login">Re-login</string>
     <!--Settings-->
 
-    <!--Settings Notification-->
-    <string name="default_sleep_timer">Default sleep timer</string>
-    <!--Settings Notification-->
+    <!--Settings Player-->
+    <string name="chapter_title_max_lines">Chapter title max lines: </string>
+    <string name="chapter">Chapter</string>
+    <!--Settings Player-->
 
     <!--Settings Playback-->
     <string name="behaviour">Behaviour</string>
@@ -321,6 +324,10 @@
     <string name="when_switching_between_books">When switching between books:</string>
     <!--Settings Playback-->
 
+    <!--Settings Notification-->
+    <string name="default_sleep_timer">Default sleep timer: </string>
+    <!--Settings Notification-->
+
     <!--Settings Podcast-->
     <string name="user_permanent_deletion">Use permanent deletion for episodes</string>
     <string name="auto_select_finished_episodes">Auto select finished episodes</string>
@@ -329,7 +336,7 @@
     <!--Settings Podcast-->
 
     <!--Settings Listening Sessions-->
-    <string name="default_user">"Default user: "</string>
+    <string name="default_user">Default user: </string>
     <string name="default_items_per_page">"Default items per page: "</string>
     <!--Settings Listening Sessions-->
 

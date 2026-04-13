@@ -66,6 +66,7 @@ fun BigPlayerContent(
   progress: PlaybackProgress = PlaybackProgress(),
   advancedControl: AdvancedControl = AdvancedControl(),
   chapters: List<PlayerChapter> = emptyList(),
+  chapterTitleLine: Int = 2,
   currentChapter: PlayerChapter? = PlayerChapter(),
   bookmarks: List<PlayerBookmark> = emptyList(),
   newBookmarkTime: PlayerBookmark = PlayerBookmark(),
@@ -93,7 +94,15 @@ fun BigPlayerContent(
   ) {
     BasicPlayerContent(id, author, title, cover)
 
-    BookmarkAndChapter(isBook, chapters, currentChapter, bookmarks, newBookmarkTime, onEvent)
+    BookmarkAndChapter(
+      isBook,
+      chapters,
+      currentChapter,
+      chapterTitleLine,
+      bookmarks,
+      newBookmarkTime,
+      onEvent,
+    )
 
     PlayerProgress(id, progress, multipleButtonState, onEvent)
     BasicPlayerControl(multipleButtonState, id, currentChapter, onEvent)
@@ -244,6 +253,7 @@ fun BookmarkAndChapter(
   isBook: Boolean,
   chapters: List<PlayerChapter>,
   currentChapter: PlayerChapter?,
+  chapterTitleLine: Int = 2,
   bookmarks: List<PlayerBookmark>,
   newBookmarkTime: PlayerBookmark,
   onEvent: (PlayerEvent) -> Unit,
@@ -274,7 +284,7 @@ fun BookmarkAndChapter(
       onClick = { scope.launch { chapterSheetState.show() } },
     )
   }
-  ChapterBottomSheet(chapterSheetState, chapters, currentChapter, onEvent)
+  ChapterBottomSheet(chapterSheetState, chapters, currentChapter, chapterTitleLine, onEvent)
   BookmarkBottomSheet(
     bookmarkSheetState,
     bookmarks,
