@@ -17,13 +17,14 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
   override fun intercept(chain: Interceptor.Chain): Response {
 
     var request = chain.request()
-    if (request.url.host.contains("mzstatic.com")) {
+    val absHost: String = DataStoreManager.BASE_URL
+    val isAbsRequest = request.url.host == "www.audiobookshelf.org" || request.url.host == absHost
+
+    if (!isAbsRequest) {
       return chain.proceed(request)
     }
 
-    val host: String = DataStoreManager.BASE_URL
-
-    val result = runCatching { request.url.newBuilder().host(host).build() }
+    val result = runCatching { request.url.newBuilder().host(absHost).build() }
     if (result.isSuccess) {
       val newUrl = result.getOrThrow()
       val token = dataStoreManager.accessToken()

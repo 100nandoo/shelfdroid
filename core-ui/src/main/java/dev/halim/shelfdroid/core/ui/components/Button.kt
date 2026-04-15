@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -42,6 +44,20 @@ fun MyIconButton(
       modifier = Modifier.size(size.dp).padding(iconPadding),
       painter = painter,
       contentDescription = contentDescription,
+    )
+  }
+}
+
+@Composable
+fun MyTonalIconButton(
+  @DrawableRes painterResId: Int,
+  @StringRes contentDescriptionResId: Int,
+  onClick: () -> Unit,
+) {
+  FilledTonalIconButton(onClick = onClick) {
+    Icon(
+      painter = painterResource(painterResId),
+      contentDescription = stringResource(contentDescriptionResId),
     )
   }
 }

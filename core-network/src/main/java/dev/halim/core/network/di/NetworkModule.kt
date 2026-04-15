@@ -28,6 +28,7 @@ object NetworkModule {
       ignoreUnknownKeys = true
       isLenient = true
       prettyPrint = true
+      explicitNulls = false
     }
   }
 

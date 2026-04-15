@@ -6,8 +6,6 @@
     - [ ] library item finished
     - [ ] exoplayer/service stop
 - [ ] library management
-- [ ] Settings management
-- [ ] Backup management
 - [ ] Widget
 - [ ] Backup Restore
 - [ ] Window Manager
@@ -85,3 +83,5 @@
 - [x] Logs viewer
 - [x] API keys management
 - [x] Use xml icon resources instead of compose image vectors
+- [x] Backup management
+- [x] Settings management

@@ -32,7 +32,7 @@
     <string name="previous_page">Previous page</string>
     <string name="next_page">Next page</string>
     <string name="go_to_page">Go to page</string>
-    <string name="edit">edit</string>
+    <string name="edit">Edit</string>
     <string name="info">info</string>
     <!--Content Description-->
 
@@ -359,6 +359,55 @@
     <string name="search">Search</string>
     <string name="search_in">Search in:</string>
     <!--Add Episode-->
+
+    <!--Edit Item-->
+    <string name="edit_item_failed_to_load">Failed to load</string>
+    <string name="edit_item_subtitle">Subtitle</string>
+    <string name="edit_item_authors">Authors</string>
+    <string name="edit_item_narrators">Narrators</string>
+    <string name="edit_item_series">Series</string>
+    <string name="edit_item_series_name">Name</string>
+    <string name="edit_item_series_sequence">Sequence</string>
+    <string name="edit_item_series_add">Add Series</string>
+    <string name="edit_item_publish_year">Publish Year</string>
+    <string name="edit_item_tags">Tags</string>
+    <string name="edit_item_isbn">ISBN</string>
+    <string name="edit_item_asin">ASIN</string>
+    <string name="edit_item_explicit">Explicit</string>
+    <string name="edit_item_abridged">Abridged</string>
+    <string name="edit_item_quick_match">Quick Match</string>
+    <string name="edit_item_saved">Item saved</string>
+    <string name="edit_item_rescan">Re-Scan</string>
+    <string name="edit_item_save_and_close">Save &amp; Close</string>
+
+    <string name="edit_item_upload_cover">Upload Cover</string>
+    <string name="edit_item_image_url_from_web">Image URL from the web</string>
+    <string name="edit_item_search_for_cover">Search for cover</string>
+    <string name="edit_item_provider">Provider</string>
+
+    <string name="edit_item_remove_chip">Remove %1$s</string>
+    <string name="edit_item_add_chip">Add %1$s…</string>
+
+    <string name="edit_item_chapters_count">Chapters (%1$d)</string>
+    <string name="edit_item_chapter_number">#</string>
+    <string name="edit_item_chapter_start">Start</string>
+    <string name="edit_item_chapter_end">End</string>
+
+    <string name="edit_item_library_files_count">Library Files (%1$d)</string>
+    <string name="edit_item_size">Size</string>
+    <string name="edit_item_type">Type</string>
+
+    <string name="edit_item_search_title">Search Title</string>
+    <string name="edit_item_match_by_author">by %1$s</string>
+
+    <string name="edit_item_tools_title">Audiobook File Management Tools</string>
+    <string name="edit_item_make_m4b_title">Make M4B Audiobook File</string>
+    <string name="edit_item_make_m4b_desc">Generate a .M4B audiobook file with embedded metadata, cover image, and chapters.</string>
+    <string name="edit_item_open_manager">Open Manager</string>
+    <string name="edit_item_embed_metadata_title">Embed Metadata</string>
+    <string name="edit_item_embed_metadata_desc">Embed metadata into audio files including cover image and chapters.</string>
+    <string name="edit_item_quick_embed">Quick Embed</string>
+    <!--Edit Item-->
 
     <string name="ok">OK</string>
     <string name="no_cover">No cover</string>

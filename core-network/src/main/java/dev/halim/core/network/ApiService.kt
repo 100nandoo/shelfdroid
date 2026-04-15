@@ -3,11 +3,13 @@ package dev.halim.core.network
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.ChangePasswordRequest
+import dev.halim.core.network.request.CoverFromUrlRequest
 import dev.halim.core.network.request.CreateApiKeyRequest
 import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.DeleteSessionsRequest
 import dev.halim.core.network.request.LoginRequest
+import dev.halim.core.network.request.MatchLibraryItemRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.core.network.request.ProgressRequest
@@ -15,6 +17,7 @@ import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateApiKeyRequest
+import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.ApiKeysResponse
@@ -28,16 +31,21 @@ import dev.halim.core.network.response.Episode
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
+import dev.halim.core.network.response.LibrarySeriesResponse
 import dev.halim.core.network.response.ListeningStatResponse
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.LogsResponse
+import dev.halim.core.network.response.MatchItemResult
 import dev.halim.core.network.response.OpenSessionsResponse
 import dev.halim.core.network.response.PodcastFeed
+import dev.halim.core.network.response.SearchBookMatchResponse
+import dev.halim.core.network.response.SearchCoversResponse
 import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SearchProvidersResponse
 import dev.halim.core.network.response.ServerSettingsResponse
 import dev.halim.core.network.response.SessionsResponse
+import dev.halim.core.network.response.SetItemCoverResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.TagsResponse
 import dev.halim.core.network.response.UpdateUserResponse
@@ -113,6 +121,15 @@ interface ApiService {
   @GET("/api/libraries/{libraryId}/items")
   suspend fun libraryItems(@Path("libraryId") libraryId: String): Result<LibraryItemsResponse>
 
+  @GET("/api/libraries/{libraryId}/series")
+  suspend fun librarySeries(
+    @Path("libraryId") libraryId: String,
+    @Query("limit") limit: Int = 100,
+    @Query("page") page: Int = 0,
+    @Query("sort") sort: String = "name",
+    @Query("desc") desc: Int = 0,
+  ): Result<LibrarySeriesResponse>
+
   //  items
   @GET("/api/items/{itemId}")
   suspend fun item(
@@ -137,6 +154,55 @@ interface ApiService {
 
   @DELETE("/api/items/{itemId}")
   suspend fun deleteItem(@Path("itemId") itemId: String, @Query("hard") hard: Int = 0): Result<Unit>
+
+  @PATCH("/api/items/{itemId}/media")
+  suspend fun updateItemMedia(
+    @Path("itemId") itemId: String,
+    @Body request: UpdateLibraryItemMediaRequest,
+  ): Result<Unit>
+
+  @POST("/api/items/{itemId}/match")
+  suspend fun matchItem(
+    @Path("itemId") itemId: String,
+    @Body request: MatchLibraryItemRequest,
+  ): Result<MatchItemResult>
+
+  @POST("/api/items/{itemId}/scan")
+  suspend fun reScanItem(@Path("itemId") itemId: String): Result<Unit>
+
+  @Multipart
+  @POST("/api/items/{itemId}/cover")
+  suspend fun uploadItemCover(
+    @Path("itemId") itemId: String,
+    @Part cover: MultipartBody.Part,
+  ): Result<LibraryItem>
+
+  @POST("/api/items/{itemId}/cover")
+  suspend fun setItemCoverFromUrl(
+    @Path("itemId") itemId: String,
+    @Body request: CoverFromUrlRequest,
+  ): Result<SetItemCoverResponse>
+
+  @DELETE("/api/items/{itemId}/cover")
+  suspend fun deleteItemCover(@Path("itemId") itemId: String): Result<Unit>
+
+  @POST("/api/tools/item/{itemId}/embed-metadata")
+  suspend fun embedItemMetadata(@Path("itemId") itemId: String): Result<Unit>
+
+  @GET("/api/search/books")
+  suspend fun searchBooks(
+    @Query("provider") provider: String,
+    @Query("title") title: String,
+    @Query("author") author: String? = null,
+  ): Result<List<SearchBookMatchResponse>>
+
+  @GET("/api/search/covers")
+  suspend fun searchCovers(
+    @Query("title") title: String,
+    @Query("author") author: String? = null,
+    @Query("provider") provider: String? = null,
+    @Query("podcast") podcast: Int = 0,
+  ): Result<SearchCoversResponse>
 
   //  me
   @GET("/api/me") suspend fun me(): Result<User>

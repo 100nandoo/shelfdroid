@@ -5,6 +5,7 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
@@ -24,6 +25,7 @@ constructor(
   private val progressRepo: ProgressRepo,
   private val downloadRepo: DownloadRepo,
   private val helper: Helper,
+  private val prefsRepository: PrefsRepository,
 ) {
 
   @SuppressLint("UnsafeOptInUsageError")
@@ -32,8 +34,10 @@ constructor(
     val progressFlow = progressRepo.flowBookById(id)
     val download =
       downloadRepo.downloads.map { downloads -> downloads.find { it.request.id == id } }
+    val userPrefsFlow = prefsRepository.userPrefs
 
-    return combine(bookFlow, progressFlow, download) { book, progress, _ ->
+    return combine(bookFlow, progressFlow, download, userPrefsFlow) { book, progress, _, userPrefs
+      ->
       book
         ?.takeIf { it.isBook.toBoolean() }
         ?.let {
@@ -87,6 +91,7 @@ constructor(
             language = language,
             progress = formattedProgress,
             isSingleTrack = isSingleTrack,
+            canEdit = userPrefs.update,
             download = download,
             downloads = downloads,
           )

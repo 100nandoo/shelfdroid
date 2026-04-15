@@ -73,6 +73,7 @@ fun HomeScreen(
   onServerSettingsClicked: () -> Unit,
   onLogsClicked: () -> Unit,
   onBackupsClicked: () -> Unit,
+  onEditItemClicked: (String) -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size + 1
@@ -100,6 +101,7 @@ fun HomeScreen(
     onServerSettingsClicked,
     onLogsClicked,
     onBackupsClicked,
+    onEditItemClicked,
   )
 }
 
@@ -122,6 +124,7 @@ fun HomeScreenContent(
   onServerSettingsClicked: () -> Unit = {},
   onLogsClicked: () -> Unit = {},
   onBackupsClicked: () -> Unit = {},
+  onEditItemClicked: (String) -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.state is GenericState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
@@ -180,6 +183,7 @@ fun HomeScreenContent(
           onSearchClicked = onSearchClicked,
           onBookClicked = onBookClicked,
           onPodcastClicked = onPodcastClicked,
+          onEditItemClicked = onEditItemClicked,
         )
       }
     }
@@ -266,6 +270,7 @@ fun LibraryContent(
   onPodcastSortOrderChange: (String) -> Unit,
   onRefresh: () -> Unit,
   onSearchClicked: (String) -> Unit,
+  onEditItemClicked: (String) -> Unit = {},
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
   val displayPrefs = prefs.displayPrefs
@@ -283,9 +288,10 @@ fun LibraryContent(
   var isBook by remember { mutableStateOf(false) }
 
   val canDelete = prefs.userPrefs.delete
+  val canEdit = prefs.userPrefs.update
 
   fun onLongClick(book: BookUiState?, podcast: PodcastUiState?) {
-    if (canDelete.not()) return
+    if (canDelete.not() && canEdit.not()) return
     if (book != null) {
       selectedBook = book
     } else if (podcast != null) {
@@ -302,9 +308,15 @@ fun LibraryContent(
       selectedBook = selectedBook,
       selectedPodcast = selectedPodcast,
       initialHardDelete = prefs.crudPrefs.hardDelete,
+      canEdit = canEdit,
+      canDelete = canDelete,
       onDelete = {
         val itemId = if (isBook) selectedBook.id else selectedPodcast.id
         onEvent(HomeEvent.Delete(id, itemId, isBook, it))
+      },
+      onEdit = {
+        val itemId = if (isBook) selectedBook.id else selectedPodcast.id
+        onEditItemClicked(itemId)
       },
     )
   }

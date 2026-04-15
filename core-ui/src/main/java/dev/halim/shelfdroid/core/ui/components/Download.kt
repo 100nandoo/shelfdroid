@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.permissions.rememberNotificationPermissionHandler
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun DownloadButton(
@@ -95,13 +98,15 @@ fun DownloadButton(
 }
 
 @Composable
-fun PlayAndDownload(
+fun PlayDownloadAndEdit(
   isPlaying: Boolean,
   downloadState: DownloadState,
   snackbarHostState: SnackbarHostState,
   onPlayClicked: () -> Unit,
   onDownloadClicked: () -> Unit,
   onDeleteDownloadClicked: () -> Unit,
+  canEdit: Boolean = false,
+  onEditClicked: () -> Unit = {},
 ) {
   Row(Modifier.padding(vertical = 8.dp)) {
     PlayButton(modifier = Modifier.padding(end = 8.dp), isPlaying = isPlaying) { onPlayClicked() }
@@ -111,5 +116,51 @@ fun PlayAndDownload(
       onDownloadClicked = onDownloadClicked,
       onDeleteDownloadClicked = onDeleteDownloadClicked,
     )
+    if (canEdit) {
+      MyTonalIconButton(
+        painterResId = R.drawable.edit,
+        contentDescriptionResId = R.string.edit,
+        onClick = onEditClicked,
+      )
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun PlayDownloadAndEditPreview() {
+  PreviewWrapper {
+    Column {
+      PlayDownloadAndEdit(
+        isPlaying = false,
+        downloadState = DownloadState.Unknown,
+        snackbarHostState = remember { SnackbarHostState() },
+        onPlayClicked = {},
+        onDownloadClicked = {},
+        onDeleteDownloadClicked = {},
+        canEdit = true,
+        onEditClicked = {},
+      )
+      PlayDownloadAndEdit(
+        isPlaying = true,
+        downloadState = DownloadState.Completed,
+        snackbarHostState = remember { SnackbarHostState() },
+        onPlayClicked = {},
+        onDownloadClicked = {},
+        onDeleteDownloadClicked = {},
+        canEdit = false,
+        onEditClicked = {},
+      )
+      PlayDownloadAndEdit(
+        isPlaying = false,
+        downloadState = DownloadState.Downloading,
+        snackbarHostState = remember { SnackbarHostState() },
+        onPlayClicked = {},
+        onDownloadClicked = {},
+        onDeleteDownloadClicked = {},
+        canEdit = true,
+        onEditClicked = {},
+      )
+    }
   }
 }

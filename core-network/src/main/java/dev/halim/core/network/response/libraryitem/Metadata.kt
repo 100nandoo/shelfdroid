@@ -65,6 +65,7 @@ data class Author(
 data class Series(
   @SerialName("id") val id: String = "",
   @SerialName("name") val name: String = "",
+  @SerialName("sequence") val sequence: String? = null,
   @SerialName("description") val description: String? = "",
   @SerialName("addedAt") val addedAt: Long = 0,
   @SerialName("updatedAt") val updatedAt: Long = 0,

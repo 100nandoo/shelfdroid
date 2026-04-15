@@ -36,6 +36,7 @@ import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
+import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
@@ -80,6 +81,8 @@ import kotlinx.serialization.Serializable
 @Serializable data class Podcast(val id: String)
 
 @Serializable data class Book(val id: String)
+
+@Serializable data class EditItem(val itemId: String)
 
 @Serializable data class Episode(val itemId: String, val episodeId: String)
 
@@ -186,6 +189,7 @@ private fun ColumnScope.NavHostContainer(
             onServerSettingsClicked = { navController.navigate(ServerSettings) },
             onLogsClicked = { navController.navigate(Logs) },
             onBackupsClicked = { navController.navigate(Backups) },
+            onEditItemClicked = { id -> navController.navigate(EditItem(id)) },
           )
         }
       }
@@ -220,8 +224,16 @@ private fun ColumnScope.NavHostContainer(
             playerStore = playerStore,
             playerController = playerController,
             snackbarHostState = snackbarHostState,
+            onEditClicked = { id -> navController.navigate(EditItem(id)) },
           )
         }
+      }
+
+      composable<EditItem> {
+        EditItemScreen(
+          snackbarHostState = snackbarHostState,
+          navigateBack = { navController.popBackStack() },
+        )
       }
 
       composable<Episode> {

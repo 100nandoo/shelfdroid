@@ -13,6 +13,15 @@ import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeyUi
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysUiState
 import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateEditApiKeysUiState
 import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.ChapterRow
+import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
+import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
+import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
+import dev.halim.shelfdroid.core.data.screen.edititem.MatchProvider
+import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
+import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
+import dev.halim.shelfdroid.core.data.screen.edititem.SeriesEntry
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
@@ -435,6 +444,95 @@ object Defaults {
             serverVersion = "2.33.1",
             downloadUrl = "",
           ),
+        ),
+    )
+
+  // Edit Item
+  val EDIT_ITEM_DETAILS_FORM =
+    DetailsForm(
+      title = BOOK_TITLE,
+      subtitle = BOOK_SUBTITLE,
+      authors = listOf(BOOK_AUTHOR),
+      narrators = listOf(BOOK_NARRATOR),
+      series = listOf(SeriesEntry("The Lord of the Rings", "1")),
+      genres = listOf("Fantasy", "Adventure"),
+      tags = listOf("epic", "classic"),
+      publishedYear = BOOK_PUBLISH_YEAR,
+      publisher = BOOK_PUBLISHER,
+      description = BOOK_DESCRIPTION.trimIndent(),
+      isbn = "978-0261103573",
+      asin = "B007978NPG",
+      language = BOOK_LANGUAGE,
+      explicit = false,
+      abridged = false,
+    )
+
+  val EDIT_ITEM_CHAPTERS =
+    listOf(
+      ChapterRow(id = 1, title = "A Long-expected Party", start = 0.0, end = 1832.0),
+      ChapterRow(id = 2, title = "The Shadow of the Past", start = 1832.0, end = 4105.0),
+      ChapterRow(id = 3, title = "Three is Company", start = 4105.0, end = 6240.0),
+    )
+
+  val EDIT_ITEM_FILES =
+    listOf(
+      LibraryFileRow(
+        path = "/audiobooks/The Fellowship of the Ring/fellowship.m4b",
+        size = 524_288_000,
+        fileType = "audio/mp4",
+      ),
+      LibraryFileRow(
+        path = "/audiobooks/The Fellowship of the Ring/cover.jpg",
+        size = 245_000,
+        fileType = "image/jpeg",
+      ),
+    )
+
+  val EDIT_ITEM_MATCH_PROVIDERS =
+    listOf(
+      MatchProvider(value = "google", text = "Google Books"),
+      MatchProvider(value = "openlibrary", text = "Open Library"),
+      MatchProvider(value = "audible", text = "Audible"),
+    )
+
+  val EDIT_ITEM_MATCH_RESULTS =
+    listOf(
+      MatchResultRow(
+        cover = "",
+        title = "The Fellowship of the Ring",
+        author = "J. R. R. Tolkien",
+        description = "The first volume of The Lord of the Rings.",
+      ),
+      MatchResultRow(
+        cover = "",
+        title = "The Two Towers",
+        author = "J. R. R. Tolkien",
+        description = "The second volume of The Lord of the Rings.",
+      ),
+    )
+
+  val EDIT_ITEM_UI_STATE =
+    EditItemUiState(
+      state = GenericState.Success,
+      itemId = BOOK_ID,
+      coverUrl = BOOK_COVER,
+      webBaseUrl = "http://localhost:13378",
+      details = EDIT_ITEM_DETAILS_FORM,
+      chapters = EDIT_ITEM_CHAPTERS,
+      libraryFiles = EDIT_ITEM_FILES,
+      match =
+        MatchState(
+          providers = EDIT_ITEM_MATCH_PROVIDERS,
+          selectedProvider = "google",
+          title = BOOK_TITLE,
+          author = BOOK_AUTHOR,
+          results = EDIT_ITEM_MATCH_RESULTS,
+        ),
+      coverSearch =
+        CoverSearchState(
+          providers = EDIT_ITEM_MATCH_PROVIDERS,
+          title = BOOK_TITLE,
+          author = BOOK_AUTHOR,
         ),
     )
 

@@ -17,7 +17,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
-import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
+import dev.halim.shelfdroid.core.ui.components.PlayDownloadAndEdit
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.player.PlayerController
@@ -94,7 +94,7 @@ fun EpisodeScreenContent(
     verticalArrangement = Arrangement.Bottom,
   ) {
     item {
-      PlayAndDownload(
+      PlayDownloadAndEdit(
         isPlaying = isPlaying,
         downloadState = downloadUiState.state,
         snackbarHostState = snackbarHostState,

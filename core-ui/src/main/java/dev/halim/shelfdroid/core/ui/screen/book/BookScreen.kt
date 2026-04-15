@@ -23,7 +23,7 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
-import dev.halim.shelfdroid.core.ui.components.PlayAndDownload
+import dev.halim.shelfdroid.core.ui.components.PlayDownloadAndEdit
 import dev.halim.shelfdroid.core.ui.components.TextLabelValue
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -41,6 +41,7 @@ fun BookScreen(
   playerStore: PlayerStore,
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
+  onEditClicked: (String) -> Unit = {},
 ) {
   InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -62,6 +63,7 @@ fun BookScreen(
       genres = uiState.genres,
       language = uiState.language,
       progress = uiState.progress,
+      canEdit = uiState.canEdit,
       downloadState = downloadState,
       currentItemId = playerUiState.id,
       exoState = playerUiState.exoState,
@@ -75,6 +77,7 @@ fun BookScreen(
       onPlayClicked = {
         playerController.onEvent(PlayerEvent.PlayBook(viewModel.id, downloadState.isDownloaded()))
       },
+      onEditClicked = { onEditClicked(viewModel.id) },
     )
   }
 }
@@ -95,6 +98,7 @@ fun BookScreenContent(
   genres: String = Defaults.BOOK_GENRES,
   language: String = Defaults.BOOK_LANGUAGE,
   progress: Int = Defaults.PROGRESS_PERCENT,
+  canEdit: Boolean = false,
   downloadState: DownloadState = DownloadState.Unknown,
   currentItemId: String = Defaults.BOOK_ID,
   exoState: ExoState = ExoState.Pause,
@@ -102,6 +106,7 @@ fun BookScreenContent(
   onDownloadClicked: () -> Unit = {},
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit,
+  onEditClicked: () -> Unit = {},
 ) {
   val isPlaying = currentItemId == id && exoState == ExoState.Playing
 
@@ -113,20 +118,20 @@ fun BookScreenContent(
   ) {
     item {
       Spacer(modifier = Modifier.height(16.dp))
-      PlayAndDownload(
+      PlayDownloadAndEdit(
         isPlaying = isPlaying,
         downloadState = downloadState,
         snackbarHostState = snackbarHostState,
         onDownloadClicked = onDownloadClicked,
         onDeleteDownloadClicked = onDeleteDownloadClicked,
         onPlayClicked = onPlayClicked,
+        canEdit = canEdit,
+        onEditClicked = onEditClicked,
       )
       ProgressRow(progress, remaining)
       ExpandShrinkText(text = description)
       BookDetail(duration, narrator, publishYear, publisher, genres, language)
-      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ItemDetail(id, cover, title, author, subtitle = subtitle)
-      }
+      ItemDetail(id, cover, title, author, subtitle = subtitle)
     }
   }
 }

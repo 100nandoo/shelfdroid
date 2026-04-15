@@ -49,7 +49,10 @@ fun HomeItemBottomSheet(
   selectedBook: BookUiState,
   selectedPodcast: PodcastUiState,
   initialHardDelete: Boolean = false,
+  canDelete: Boolean = false,
+  canEdit: Boolean = false,
   onDelete: (Boolean) -> Unit = {},
+  onEdit: () -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
   var showDeleteDialog by remember { mutableStateOf(false) }
@@ -82,15 +85,29 @@ fun HomeItemBottomSheet(
     Spacer(modifier = Modifier.height(16.dp))
     ItemDetail(isBook, selectedBook, selectedPodcast)
 
-    HorizontalDivider(modifier = Modifier.padding(16.dp))
+    if (canEdit) {
+      HorizontalDivider(modifier = Modifier.padding(16.dp))
 
-    ListItemAction(
-      Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
-      text = "Delete",
-      contentDescription = "Delete",
-      icon = R.drawable.delete,
-      { showDeleteDialog = true },
-    )
+      ListItemAction(
+        Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
+        text = stringResource(R.string.edit),
+        contentDescription = stringResource(R.string.edit),
+        icon = R.drawable.edit,
+        {
+          scope.launch { sheetState.hide() }
+          onEdit()
+        },
+      )
+    }
+    if (canDelete) {
+      ListItemAction(
+        Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
+        text = "Delete",
+        contentDescription = "Delete",
+        icon = R.drawable.delete,
+        { showDeleteDialog = true },
+      )
+    }
     Spacer(modifier = Modifier.height(32.dp))
   }
 }
