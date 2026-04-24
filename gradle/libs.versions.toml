@@ -2,7 +2,7 @@
 namespace = "dev.halim.shelfdroid"
 versionCode = "13"
 versionName = "0.4.0"
-minSdk = "24"
+minSdk = "29"
 targetSdk = "36"
 
 # Modules
@@ -55,6 +55,7 @@ process-phoenix = "3.0.0"
 espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.13.0"
+acra = "5.13.1"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
@@ -110,6 +111,9 @@ retrofit-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-ko
 retrofit-result = { module = "com.github.skydoves:retrofit-adapters-result", version.ref = "retrofit-result" }
 
 process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "process-phoenix" }
+
+acra-core = { module = "ch.acra:acra-core", version.ref = "acra" }
+acra-toast = { module = "ch.acra:acra-toast", version.ref = "acra" }
 
 sqldelight-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }

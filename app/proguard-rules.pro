@@ -21,3 +21,5 @@
 #-renamesourcefileattribute SourceFile
 
 -keep public class kotlin.Result { *; }
+-keep class org.acra.** { *; }
+-keep class dev.halim.shelfdroid.crash.** { *; }

@@ -115,4 +115,8 @@ dependencies {
   // Coil
   implementation(libs.coil)
   implementation(libs.coil.okhttp)
+
+  // ACRA crash reporting
+  implementation(libs.acra.core)
+  implementation(libs.acra.toast)
 }

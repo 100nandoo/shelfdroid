@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ShelfDroid</string>
+    <string name="acra_crash_toast">App crashed. Report saved to Downloads/ShelfDroid.</string>
 </resources>
