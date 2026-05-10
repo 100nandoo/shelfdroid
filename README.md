@@ -79,6 +79,27 @@ suggest new features!
 
 ---
 
+## ⭐ Star History
+
+<a href="https://www.star-history.com/#100nandoo/shelfdroid&Date">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="https://api.star-history.com/svg?repos=100nandoo/shelfdroid&type=Date&theme=dark"
+    />
+    <source
+      media="(prefers-color-scheme: light)"
+      srcset="https://api.star-history.com/svg?repos=100nandoo/shelfdroid&type=Date"
+    />
+    <img
+      alt="Star History Chart for 100nandoo/shelfdroid"
+      src="https://api.star-history.com/svg?repos=100nandoo/shelfdroid&type=Date"
+    />
+  </picture>
+</a>
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! If you'd like to contribute, please follow these steps:
@@ -117,4 +138,3 @@ For more details on using and extending this project, check out the [Documentati
 **Fernando Fransisco Halim**  
 GitHub: [100nandoo](https://github.com/100nandoo)  
 Project Link: [ShelfDroid Repository](https://github.com/100nandoo/shelfdroid)
-
