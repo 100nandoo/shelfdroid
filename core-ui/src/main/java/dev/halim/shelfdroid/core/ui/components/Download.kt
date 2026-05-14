@@ -30,10 +30,11 @@ fun DownloadButton(
   snackbarHostState: SnackbarHostState,
   onDownloadClicked: () -> Unit,
   onDeleteDownloadClicked: () -> Unit,
+  initialShowDeleteDialog: Boolean = false,
 ) {
   val isDownloading = downloadState == DownloadState.Downloading
   val isDownloaded = downloadState.isDownloaded()
-  var showDeleteDialog by remember { mutableStateOf(false) }
+  var showDeleteDialog by remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
 
   MyAlertDialog(
     title = stringResource(R.string.delete),
@@ -160,6 +161,32 @@ private fun PlayDownloadAndEditPreview() {
         onDeleteDownloadClicked = {},
         canEdit = true,
         onEditClicked = {},
+      )
+      PlayDownloadAndEdit(
+        isPlaying = false,
+        downloadState = DownloadState.Incomplete,
+        snackbarHostState = remember { SnackbarHostState() },
+        onPlayClicked = {},
+        onDownloadClicked = {},
+        onDeleteDownloadClicked = {},
+        canEdit = false,
+        onEditClicked = {},
+      )
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun DownloadButtonDeleteDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    Row {
+      DownloadButton(
+        downloadState = DownloadState.Completed,
+        snackbarHostState = remember { SnackbarHostState() },
+        onDownloadClicked = {},
+        onDeleteDownloadClicked = {},
+        initialShowDeleteDialog = true,
       )
     }
   }

@@ -49,13 +49,14 @@ fun HomeItemBottomSheet(
   selectedBook: BookUiState,
   selectedPodcast: PodcastUiState,
   initialHardDelete: Boolean = false,
+  initialShowDeleteDialog: Boolean = false,
   canDelete: Boolean = false,
   canEdit: Boolean = false,
   onDelete: (Boolean) -> Unit = {},
   onEdit: () -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
-  var showDeleteDialog by remember { mutableStateOf(false) }
+  var showDeleteDialog by remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
   var hardDelete by remember { mutableStateOf(initialHardDelete) }
 
   val text =
@@ -182,6 +183,26 @@ private fun PreviewHomeItemBottomSheet() {
       isBook = true,
       selectedBook = BookUiState(),
       selectedPodcast = PodcastUiState(),
+    )
+    LaunchedEffect(Unit) { sheetState.show() }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun PreviewHomeItemBottomSheetDeleteDialog() {
+  PreviewWrapper(false) {
+    val density = LocalDensity.current
+    val sheetState = sheetState(density)
+
+    HomeItemBottomSheet(
+      sheetState = sheetState,
+      isBook = false,
+      selectedBook = BookUiState(),
+      selectedPodcast = PodcastUiState(),
+      initialHardDelete = true,
+      initialShowDeleteDialog = true,
+      canDelete = true,
     )
     LaunchedEffect(Unit) { sheetState.show() }
   }

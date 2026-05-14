@@ -216,11 +216,12 @@ private fun Header(
 private fun DeleteSection(
   count: Int,
   initialHardDelete: Boolean,
+  initialShowDeleteDialog: Boolean = false,
   autoSelectFinished: Boolean = false,
   onDeleteClick: (Boolean) -> Unit,
   onAutoSelectFinishedChange: (Boolean) -> Unit,
 ) {
-  var showDeleteDialog by remember { mutableStateOf(false) }
+  var showDeleteDialog by remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
   var hardDelete by remember { mutableStateOf(initialHardDelete) }
 
   Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -272,4 +273,19 @@ fun PodcastScreenContentPreview() {
 @Composable
 fun PodcastScreenContentDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) { PodcastScreenContent() }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun DeleteSectionDialogPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    DeleteSection(
+      count = 2,
+      initialHardDelete = true,
+      initialShowDeleteDialog = true,
+      autoSelectFinished = true,
+      onDeleteClick = {},
+      onAutoSelectFinishedChange = {},
+    )
+  }
 }

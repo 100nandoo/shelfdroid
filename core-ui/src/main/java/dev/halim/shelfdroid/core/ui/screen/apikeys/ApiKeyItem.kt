@@ -40,6 +40,25 @@ fun LazyItemScope.ApiKeyItem(
   onDeleteClicked: () -> Unit = {},
 ) {
   var showDeleteDialog by remember { mutableStateOf(false) }
+  ApiKeyItemContent(
+    modifier = Modifier.animateItem(),
+    apiKey = apiKey,
+    showDeleteDialog = showDeleteDialog,
+    onShowDeleteDialogChange = { showDeleteDialog = it },
+    onEditClicked = onEditClicked,
+    onDeleteClicked = onDeleteClicked,
+  )
+}
+
+@Composable
+private fun ApiKeyItemContent(
+  modifier: Modifier = Modifier,
+  apiKey: ApiKeyUi,
+  showDeleteDialog: Boolean,
+  onShowDeleteDialogChange: (Boolean) -> Unit,
+  onEditClicked: () -> Unit = {},
+  onDeleteClicked: () -> Unit = {},
+) {
   MyAlertDialog(
     title = stringResource(R.string.delete),
     text = stringResource(R.string.dialog_delete_text),
@@ -48,15 +67,14 @@ fun LazyItemScope.ApiKeyItem(
     dismissText = stringResource(R.string.cancel),
     onConfirm = {
       onDeleteClicked()
-      showDeleteDialog = false
+      onShowDeleteDialogChange(false)
     },
-    onDismiss = { showDeleteDialog = false },
+    onDismiss = { onShowDeleteDialogChange(false) },
   )
 
   Row(
     modifier =
-      Modifier.animateItem()
-        .fillMaxWidth()
+      modifier.fillMaxWidth()
         .clickable(enabled = !apiKey.isExpired, onClick = onEditClicked)
         .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
@@ -98,7 +116,7 @@ fun LazyItemScope.ApiKeyItem(
       )
     }
 
-    FilledTonalIconButton(onClick = { showDeleteDialog = true }) {
+    FilledTonalIconButton(onClick = { onShowDeleteDialogChange(true) }) {
       Icon(
         painter = painterResource(id = R.drawable.delete),
         contentDescription = stringResource(R.string.delete),
@@ -111,4 +129,16 @@ fun LazyItemScope.ApiKeyItem(
 @Composable
 private fun ApiKeyItemPreview() {
   PreviewWrapper { LazyColumn { items(API_KEYS, key = { it.id }) { ApiKeyItem(apiKey = it) } } }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun ApiKeyItemDeleteDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    ApiKeyItemContent(
+      apiKey = API_KEYS.first(),
+      showDeleteDialog = true,
+      onShowDeleteDialogChange = {},
+    )
+  }
 }
