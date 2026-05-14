@@ -25,6 +25,9 @@ import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
 import dev.halim.shelfdroid.core.ui.components.TextTitleSmall
+import dev.halim.shelfdroid.core.ui.preview.Defaults.BACKUPS_UI_STATE
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun BackupItem(
@@ -34,16 +37,37 @@ fun BackupItem(
 ) {
   var showDeleteDialog by remember { mutableStateOf(false) }
   var showRestoreDialog by remember { mutableStateOf(false) }
+  BackupItemContent(
+    backup = backup,
+    showDeleteDialog = showDeleteDialog,
+    showRestoreDialog = showRestoreDialog,
+    onShowDeleteDialogChange = { showDeleteDialog = it },
+    onShowRestoreDialogChange = { showRestoreDialog = it },
+    onEvent = onEvent,
+    onDownload = onDownload,
+  )
+}
+
+@Composable
+private fun BackupItemContent(
+  backup: BackupsUiState.BackupItem,
+  showDeleteDialog: Boolean,
+  showRestoreDialog: Boolean,
+  onShowDeleteDialogChange: (Boolean) -> Unit,
+  onShowRestoreDialogChange: (Boolean) -> Unit,
+  onEvent: (BackupsEvent) -> Unit = {},
+  onDownload: (BackupsUiState.BackupItem) -> Unit = {},
+) {
 
   if (showDeleteDialog) {
     ConfirmDialog(
       title = stringResource(R.string.delete_backup_title),
       text = stringResource(R.string.delete_backup_confirm),
       onConfirm = {
-        showDeleteDialog = false
+        onShowDeleteDialogChange(false)
         onEvent(BackupsEvent.DeleteBackup(backup.id))
       },
-      onDismiss = { showDeleteDialog = false },
+      onDismiss = { onShowDeleteDialogChange(false) },
     )
   }
 
@@ -52,10 +76,10 @@ fun BackupItem(
       title = stringResource(R.string.restore_backup_title),
       text = stringResource(R.string.restore_backup_confirm),
       onConfirm = {
-        showRestoreDialog = false
+        onShowRestoreDialogChange(false)
         onEvent(BackupsEvent.RestoreBackup(backup.id))
       },
-      onDismiss = { showRestoreDialog = false },
+      onDismiss = { onShowRestoreDialogChange(false) },
     )
   }
 
@@ -78,7 +102,7 @@ fun BackupItem(
         overflow = TextOverflow.Ellipsis,
       )
     }
-    FilledTonalIconButton(onClick = { showRestoreDialog = true }) {
+    FilledTonalIconButton(onClick = { onShowRestoreDialogChange(true) }) {
       Icon(
         painter = painterResource(R.drawable.refresh),
         contentDescription = stringResource(R.string.restore),
@@ -90,7 +114,7 @@ fun BackupItem(
         contentDescription = stringResource(R.string.download),
       )
     }
-    FilledTonalIconButton(onClick = { showDeleteDialog = true }) {
+    FilledTonalIconButton(onClick = { onShowDeleteDialogChange(true) }) {
       Icon(
         painter = painterResource(R.drawable.delete),
         contentDescription = stringResource(R.string.delete),
@@ -108,4 +132,38 @@ fun ConfirmDialog(title: String, text: String, onConfirm: () -> Unit, onDismiss:
     confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.ok)) } },
     dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
   )
+}
+
+@ShelfDroidPreview
+@Composable
+private fun BackupItemPreview() {
+  PreviewWrapper(dynamicColor = false) { BackupItem(backup = BACKUPS_UI_STATE.backups.first()) }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun BackupItemRestoreDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    BackupItemContent(
+      backup = BACKUPS_UI_STATE.backups.first(),
+      showDeleteDialog = false,
+      showRestoreDialog = true,
+      onShowDeleteDialogChange = {},
+      onShowRestoreDialogChange = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun BackupItemDeleteDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    BackupItemContent(
+      backup = BACKUPS_UI_STATE.backups.first(),
+      showDeleteDialog = true,
+      showRestoreDialog = false,
+      onShowDeleteDialogChange = {},
+      onShowRestoreDialogChange = {},
+    )
+  }
 }

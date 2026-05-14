@@ -1,9 +1,11 @@
 package dev.halim.shelfdroid.core.ui.components
 
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -12,6 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
+import androidx.compose.material3.Text
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 enum class SnackbarType {
   SUCCESS,
@@ -41,27 +46,59 @@ suspend fun SnackbarHostState.showSuccessSnackbar(message: String) {
 }
 
 @Composable
+private fun AppSnackbar(data: SnackbarData, type: SnackbarType?) {
+  Snackbar(
+    snackbarData = data,
+    containerColor = snackbarContainerColor(type),
+    contentColor = snackbarContentColor(type),
+  )
+}
+
+@Composable
+private fun PreviewSnackbar(message: String, type: SnackbarType) {
+  Snackbar(
+    containerColor = snackbarContainerColor(type),
+    contentColor = snackbarContentColor(type),
+  ) {
+    Text(message)
+  }
+}
+
+@Composable
+private fun snackbarContainerColor(type: SnackbarType?): androidx.compose.ui.graphics.Color =
+  when (type) {
+    SnackbarType.SUCCESS -> MaterialTheme.colorScheme.tertiary
+    SnackbarType.ERROR -> MaterialTheme.colorScheme.error
+    else -> MaterialTheme.colorScheme.inverseSurface
+  }
+
+@Composable
+private fun snackbarContentColor(type: SnackbarType?): androidx.compose.ui.graphics.Color =
+  when (type) {
+    SnackbarType.SUCCESS -> MaterialTheme.colorScheme.onTertiary
+    SnackbarType.ERROR -> MaterialTheme.colorScheme.onError
+    else -> MaterialTheme.colorScheme.inverseOnSurface
+  }
+
+@Composable
 fun BoxScope.MySnackbarHost(snackbarHostState: SnackbarHostState) {
   SnackbarHost(
     hostState = snackbarHostState,
     modifier = Modifier.align(Alignment.TopCenter).imePadding().zIndex(1f),
   ) { data ->
     val type = (data.visuals as? AppSnackbarVisuals)?.type
+    AppSnackbar(data = data, type = type)
+  }
+}
 
-    val containerColor =
-      when (type) {
-        SnackbarType.SUCCESS -> MaterialTheme.colorScheme.tertiary
-        SnackbarType.ERROR -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.inverseSurface
-      }
-
-    val contentColor =
-      when (type) {
-        SnackbarType.SUCCESS -> MaterialTheme.colorScheme.onTertiary
-        SnackbarType.ERROR -> MaterialTheme.colorScheme.onError
-        else -> MaterialTheme.colorScheme.inverseOnSurface
-      }
-
-    Snackbar(snackbarData = data, containerColor = containerColor, contentColor = contentColor)
+@ShelfDroidPreview
+@Composable
+private fun MySnackbarHostPreview() {
+  PreviewWrapper {
+    Column {
+      PreviewSnackbar(message = "Generic message", type = SnackbarType.GENERIC)
+      PreviewSnackbar(message = "Success message", type = SnackbarType.SUCCESS)
+      PreviewSnackbar(message = "Error message", type = SnackbarType.ERROR)
+    }
   }
 }

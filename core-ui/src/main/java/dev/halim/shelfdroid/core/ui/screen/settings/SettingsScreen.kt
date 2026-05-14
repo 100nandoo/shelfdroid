@@ -260,9 +260,12 @@ fun LogoutSection(
   onEvent: (SettingsEvent) -> Unit = {},
   reLogin: () -> Unit,
   changePassword: () -> Unit,
+  initialShowLogoutDialog: Boolean = false,
+  initialShowReLoginDialog: Boolean = false,
 ) {
-  var showLogoutDialog by remember { mutableStateOf(false) }
-  var showReLoginDialog by remember { mutableStateOf(false) }
+  var showLogoutDialog by remember(initialShowLogoutDialog) { mutableStateOf(initialShowLogoutDialog) }
+  var showReLoginDialog by
+    remember(initialShowReLoginDialog) { mutableStateOf(initialShowReLoginDialog) }
 
   Row(modifier = Modifier.padding(horizontal = 16.dp)) {
     TextButton(
@@ -329,4 +332,28 @@ fun SettingsScreenContentDynamicPreview() {
   val isDynamicTheme = true
   val uiState = SettingsUiState(isDynamicTheme = isDynamicTheme)
   PreviewWrapper(dynamicColor = isDynamicTheme) { SettingsScreenContent(uiState) }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun LogoutSectionLogoutDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    LogoutSection(
+      reLogin = {},
+      changePassword = {},
+      initialShowLogoutDialog = true,
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun LogoutSectionReLoginDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    LogoutSection(
+      reLogin = {},
+      changePassword = {},
+      initialShowReLoginDialog = true,
+    )
+  }
 }

@@ -40,6 +40,29 @@ fun LazyItemScope.UserSettingsItem(
   onClicked: () -> Unit = {},
 ) {
   var showDeleteDialog by remember { mutableStateOf(false) }
+  UserSettingsItemContent(
+    modifier = Modifier.animateItem(),
+    user = user,
+    isLoginUserRoot = isLoginUserRoot,
+    showDeleteDialog = showDeleteDialog,
+    onShowDeleteDialogChange = { showDeleteDialog = it },
+    onInfoClicked = onInfoClicked,
+    onDeleteClicked = onDeleteClicked,
+    onClicked = onClicked,
+  )
+}
+
+@Composable
+private fun UserSettingsItemContent(
+  modifier: Modifier = Modifier,
+  user: User,
+  isLoginUserRoot: Boolean = false,
+  showDeleteDialog: Boolean,
+  onShowDeleteDialogChange: (Boolean) -> Unit,
+  onInfoClicked: () -> Unit = {},
+  onDeleteClicked: () -> Unit = {},
+  onClicked: () -> Unit = {},
+) {
   MyAlertDialog(
     title = stringResource(R.string.delete),
     text = stringResource(R.string.dialog_delete_user),
@@ -48,9 +71,9 @@ fun LazyItemScope.UserSettingsItem(
     dismissText = stringResource(R.string.cancel),
     onConfirm = {
       onDeleteClicked()
-      showDeleteDialog = false
+      onShowDeleteDialogChange(false)
     },
-    onDismiss = { showDeleteDialog = false },
+    onDismiss = { onShowDeleteDialogChange(false) },
   )
 
   val isShowingRootUser = user.type.isRoot()
@@ -63,8 +86,7 @@ fun LazyItemScope.UserSettingsItem(
 
   Row(
     modifier =
-      Modifier.animateItem()
-        .fillMaxWidth()
+      modifier.fillMaxWidth()
         .then(clickableModifier)
         .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
@@ -114,7 +136,7 @@ fun LazyItemScope.UserSettingsItem(
     }
     val isDeleteVisible = user.type.isRoot().not()
     if (isDeleteVisible)
-      FilledTonalIconButton(onClick = { showDeleteDialog = true }) {
+      FilledTonalIconButton(onClick = { onShowDeleteDialogChange(true) }) {
         Icon(
           painter = painterResource(id = R.drawable.delete),
           contentDescription = stringResource(R.string.delete),
@@ -128,5 +150,17 @@ fun LazyItemScope.UserSettingsItem(
 fun UserSettingsItemPreview() {
   PreviewWrapper {
     LazyColumn { items(USER_SETTINGS_USERS, key = { it.id }) { UserSettingsItem(it) } }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun UserSettingsItemDeleteDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    UserSettingsItemContent(
+      user = USER_SETTINGS_USERS.last(),
+      showDeleteDialog = true,
+      onShowDeleteDialogChange = {},
+    )
   }
 }

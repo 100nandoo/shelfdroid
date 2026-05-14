@@ -334,3 +334,17 @@ fun ListeningSessionScreenContentPreview() {
   val uiState = ListeningSessionUiState(state = GenericState.Success, sessions = LISTENING_SESSIONS)
   AnimatedPreviewWrapper(dynamicColor = false) { ListeningSessionContent(uiState = uiState) }
 }
+
+@ShelfDroidPreview
+@Composable
+private fun ListeningSessionDeleteDialogPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    DeleteDialog(
+      showDeleteDialog = remember { mutableStateOf(true) },
+      count = 2,
+      fromSheet = false,
+      onDeleteOne = {},
+      onDeleteMultiple = {},
+    )
+  }
+}
