@@ -25,6 +25,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import java.util.Date
 
 @Composable
@@ -33,9 +35,10 @@ fun DatePickerTextField(
   label: String,
   selectedDateMillis: Long?,
   isError: Boolean = false,
+  initiallyShowDatePicker: Boolean = false,
   onDateSelected: (Long) -> Unit,
 ) {
-  var showDatePicker by remember { mutableStateOf(false) }
+  var showDatePicker by remember { mutableStateOf(initiallyShowDatePicker) }
   val todayMillis = remember {
     val now = System.currentTimeMillis()
     now - now % (24 * 60 * 60 * 1000)
@@ -95,5 +98,33 @@ fun DatePickerTextField(
     ) {
       DatePicker(state = datePickerState)
     }
+  }
+}
+
+private const val PreviewExpiryDateMillis = 3471292800000L
+
+@ShelfDroidPreview
+@Composable
+private fun DatePickerTextFieldPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    DatePickerTextField(
+      label = "Expiration date",
+      selectedDateMillis = PreviewExpiryDateMillis,
+      onDateSelected = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun DatePickerTextFieldDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    DatePickerTextField(
+      label = "Expiration date",
+      selectedDateMillis = null,
+      isError = true,
+      initiallyShowDatePicker = true,
+      onDateSelected = {},
+    )
   }
 }

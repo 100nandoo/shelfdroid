@@ -35,6 +35,9 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.mySharedElement
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun Cover(
@@ -70,8 +73,9 @@ fun CoverNoAnimation(
   fontSize: TextUnit = 14.sp,
   coverUrl: String,
   shape: Shape = RoundedCornerShape(8.dp),
+  showFallback: Boolean = false,
 ) {
-  var imageLoadFailed by remember { mutableStateOf(false) }
+  var imageLoadFailed by remember { mutableStateOf(showFallback) }
   if (imageLoadFailed) {
     Box(
       modifier = modifier.aspectRatio(1f).background(background, shape = shape),
@@ -90,6 +94,33 @@ fun CoverNoAnimation(
       model = ImageRequest.Builder(LocalContext.current).data(coverUrl).build(),
       contentDescription = stringResource(R.string.library_item_cover_image),
       onError = { imageLoadFailed = true },
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun CoverNoAnimationFallbackPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    CoverNoAnimation(
+      modifier = Modifier.padding(16.dp),
+      coverUrl = "",
+      showFallback = true,
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun CoverWithTitlePreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    CoverWithTitle(
+      cover = "",
+      coverAnimationKey = "preview-cover",
+      title = "The Fellowship of the Ring",
+      titleAnimationKey = "preview-title",
+      subtitle = "J. R. R. Tolkien",
+      subtitleAnimationKey = "preview-subtitle",
     )
   }
 }

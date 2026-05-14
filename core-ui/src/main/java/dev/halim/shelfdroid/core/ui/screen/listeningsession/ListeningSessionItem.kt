@@ -97,3 +97,26 @@ fun LazyItemScope.ListeningSessionItem(
 fun ListeningSessionItemPreview() {
   PreviewWrapper { LazyColumn { item { ListeningSessionItem(LISTENING_SESSION) } } }
 }
+
+@ShelfDroidPreview
+@Composable
+fun ListeningSessionItemOverflowPreview() {
+  val overflowSession =
+    LISTENING_SESSION.copy(
+      item =
+        LISTENING_SESSION.item.copy(
+          title = "An Extremely Long Listening Session Item Title That Should Be Trimmed In One Line",
+          author = "Author With A Long Compound Name And Extra Context",
+        ),
+      sessionTime =
+        LISTENING_SESSION.sessionTime.copy(
+          timeRange = "Wednesday 14 May 2026, 11:00 PM to Thursday 15 May 2026, 1:30 AM",
+        ),
+      user =
+        LISTENING_SESSION.user.copy(
+          username = "listener-with-a-very-long-username@example.com",
+        ),
+    )
+
+  PreviewWrapper { LazyColumn { item { ListeningSessionItem(overflowSession) } } }
+}

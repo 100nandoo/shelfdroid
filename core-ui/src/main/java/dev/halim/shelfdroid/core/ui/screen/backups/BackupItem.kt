@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.backups
 
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -137,7 +138,11 @@ fun ConfirmDialog(title: String, text: String, onConfirm: () -> Unit, onDismiss:
 @ShelfDroidPreview
 @Composable
 private fun BackupItemPreview() {
-  PreviewWrapper(dynamicColor = false) { BackupItem(backup = BACKUPS_UI_STATE.backups.first()) }
+  val backup = BACKUPS_UI_STATE.backups.first()
+
+  PreviewWrapper(dynamicColor = false) {
+    LazyColumn { item { BackupItem(backup = backup) } }
+  }
 }
 
 @ShelfDroidPreview
@@ -164,6 +169,19 @@ private fun BackupItemDeleteDialogPreview() {
       showRestoreDialog = false,
       onShowDeleteDialogChange = {},
       onShowRestoreDialogChange = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun ConfirmDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    ConfirmDialog(
+      title = "Delete backup",
+      text = "This backup will be permanently removed from the server.",
+      onConfirm = {},
+      onDismiss = {},
     )
   }
 }
