@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun GenericMessageScreen(message: String) {
@@ -21,6 +23,22 @@ fun GenericMessageScreen(message: String) {
       style =
         if (isMessageLong) MaterialTheme.typography.titleLarge
         else MaterialTheme.typography.headlineSmall,
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun GenericMessageScreenShortPreview() {
+  PreviewWrapper(dynamicColor = false) { GenericMessageScreen(message = "No backups found") }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun GenericMessageScreenLongPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    GenericMessageScreen(
+      message = "No API keys are available for this server yet. Create one to continue.",
     )
   }
 }

@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
@@ -9,9 +11,13 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 enum class SnackbarType {
   SUCCESS,
@@ -64,4 +70,27 @@ fun BoxScope.MySnackbarHost(snackbarHostState: SnackbarHostState) {
 
     Snackbar(snackbarData = data, containerColor = containerColor, contentColor = contentColor)
   }
+}
+
+@Composable
+private fun SnackbarPreview(type: SnackbarType, message: String) {
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  LaunchedEffect(message, type) { snackbarHostState.showSnackbar(AppSnackbarVisuals(message, type)) }
+
+  PreviewWrapper(dynamicColor = false) {
+    Box(modifier = Modifier.fillMaxSize()) { MySnackbarHost(snackbarHostState = snackbarHostState) }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun ErrorSnackbarPreview() {
+  SnackbarPreview(type = SnackbarType.ERROR, message = "Connection to the server failed")
+}
+
+@ShelfDroidPreview
+@Composable
+private fun SuccessSnackbarPreview() {
+  SnackbarPreview(type = SnackbarType.SUCCESS, message = "Backup restored successfully")
 }

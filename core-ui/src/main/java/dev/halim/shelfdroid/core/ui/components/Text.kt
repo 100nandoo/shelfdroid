@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun ExpandShrinkText(
@@ -298,5 +300,52 @@ fun TextLabelValue(
       TextLabelSmall(text = ": ", color = color)
       TextLabelSmall(modifier = Modifier.weight(valueWeight), text = value, color = color)
     }
+  }
+}
+
+private const val PreviewExpandableText =
+  "<p>ShelfDroid keeps previews close to the composables they exercise so UI review stays fast.</p>"
+
+@ShelfDroidPreview
+@Composable
+private fun TextHelpersPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      TextHeadlineSmall(text = "Headline small")
+      TextTitleLarge(text = "Title large")
+      TextTitleMedium(text = "Title medium")
+      TextTitleSmall(
+        text = "Title small with a longer line that should truncate cleanly",
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      TextBodyLarge(text = "Body large text")
+      TextBodyMedium(text = "Body medium text")
+      TextBodySmall(text = "Body small text")
+      TextLabelLarge(text = "Label large")
+      TextLabelMedium(text = "Label medium")
+      TextLabelSmall(text = "Label small")
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        TextBodyMedium(text = "Auto size text:")
+        AutoSizeText(
+          modifier = Modifier.padding(start = 8.dp),
+          text = "Audiobookshelf server backup restored successfully",
+          maxLines = 1,
+          style = MaterialTheme.typography.titleMedium,
+        )
+      }
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun ExpandShrinkTextPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    ExpandShrinkText(
+      modifier = Modifier.padding(16.dp),
+      text = PreviewExpandableText,
+      expanded = true,
+    )
   }
 }

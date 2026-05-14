@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.backups
 
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,9 @@ import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
 import dev.halim.shelfdroid.core.ui.components.TextTitleSmall
+import dev.halim.shelfdroid.core.ui.preview.Defaults
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun BackupItem(
@@ -108,4 +112,27 @@ fun ConfirmDialog(title: String, text: String, onConfirm: () -> Unit, onDismiss:
     confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.ok)) } },
     dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
   )
+}
+
+@ShelfDroidPreview
+@Composable
+private fun BackupItemPreview() {
+  val backup = Defaults.BACKUPS_UI_STATE.backups.first()
+
+  PreviewWrapper(dynamicColor = false) {
+    LazyColumn { item { BackupItem(backup = backup) } }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun ConfirmDialogPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    ConfirmDialog(
+      title = "Delete backup",
+      text = "This backup will be permanently removed from the server.",
+      onConfirm = {},
+      onDismiss = {},
+    )
+  }
 }
