@@ -36,6 +36,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.components.ListItemAction
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
+import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.preview.sheetState
@@ -182,6 +183,28 @@ private fun PreviewHomeItemBottomSheet() {
       isBook = true,
       selectedBook = BookUiState(),
       selectedPodcast = PodcastUiState(),
+    )
+    LaunchedEffect(Unit) { sheetState.show() }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun PreviewHomeItemBottomSheetOverflow() {
+  PreviewWrapper(false) {
+    val density = LocalDensity.current
+    val sheetState = sheetState(density)
+    val selectedPodcast =
+      Defaults.HOME_PODCASTS.first().copy(
+        title = "A Podcast Episode Collection With A Very Long Title Designed To Exercise Bottom Sheet Overflow",
+        author = "A Host Name With Multiple Contributors And A Long Subtitle",
+      )
+
+    HomeItemBottomSheet(
+      sheetState = sheetState,
+      isBook = false,
+      selectedBook = BookUiState(),
+      selectedPodcast = selectedPodcast,
     )
     LaunchedEffect(Unit) { sheetState.show() }
   }

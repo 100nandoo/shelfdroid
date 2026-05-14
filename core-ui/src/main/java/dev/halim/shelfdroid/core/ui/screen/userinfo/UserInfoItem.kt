@@ -75,3 +75,18 @@ private fun MediaProgressItemPreview() {
     LazyColumn() { item { MediaProgressItem(mediaProgress = USER_INFO_MEDIA_PROGRESS) } }
   }
 }
+
+@ShelfDroidPreview
+@Composable
+private fun MediaProgressItemOverflowPreview() {
+  val overflowMediaProgress =
+    USER_INFO_MEDIA_PROGRESS.copy(
+      title = "A Very Long Audiobook Title That Should Truncate Cleanly In The User Progress Row",
+      startAt = "Started on Wednesday, 14 May 2026 at 10:00 PM",
+      lastUpdate = "Last listened on Thursday, 15 May 2026 at 1:25 AM with a delayed sync",
+    )
+
+  PreviewWrapper(dynamicColor = false) {
+    LazyColumn { item { MediaProgressItem(mediaProgress = overflowMediaProgress) } }
+  }
+}
