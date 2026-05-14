@@ -30,6 +30,9 @@ import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.preview.Defaults.EDIT_ITEM_UI_STATE
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChaptersTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.CoverTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.DetailsTab
@@ -58,6 +61,14 @@ fun EditItemScreen(
     }
   }
 
+  EditItemScreenStateContent(uiState = uiState, onEvent = viewModel::onEvent)
+}
+
+@Composable
+private fun EditItemScreenStateContent(
+  uiState: EditItemUiState,
+  onEvent: (EditItemEvent) -> Unit,
+) {
   when (val state = uiState.state) {
     GenericState.Loading,
     GenericState.Idle -> {
@@ -71,7 +82,7 @@ fun EditItemScreen(
       }
     }
     GenericState.Success -> {
-      EditItemContent(uiState = uiState, onEvent = viewModel::onEvent)
+      EditItemContent(uiState = uiState, onEvent = onEvent)
     }
   }
 }
@@ -112,5 +123,44 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
         )
       }
     }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun EditItemScreenContentPreview() {
+  PreviewWrapper { EditItemScreenStateContent(uiState = EDIT_ITEM_UI_STATE, onEvent = {}) }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun EditItemScreenSavingPreview() {
+  PreviewWrapper {
+    EditItemScreenStateContent(
+      uiState = EDIT_ITEM_UI_STATE.copy(isSaving = true, currentTab = EditItemTab.Tools),
+      onEvent = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun EditItemScreenLoadingPreview() {
+  PreviewWrapper {
+    EditItemScreenStateContent(
+      uiState = EDIT_ITEM_UI_STATE.copy(state = GenericState.Loading),
+      onEvent = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun EditItemScreenFailurePreview() {
+  PreviewWrapper {
+    EditItemScreenStateContent(
+      uiState = EDIT_ITEM_UI_STATE.copy(state = GenericState.Failure("Failed to load item")),
+      onEvent = {},
+    )
   }
 }
