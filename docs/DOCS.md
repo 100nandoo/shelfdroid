@@ -107,3 +107,7 @@ HomeRepository.kt
 * Related to Data `ProgressRepo.kt`
 
 More documentation will be added in the future.
+
+## 🎨 UI Development
+
+- [Compose Preview Policy](./ui-previews.md)
