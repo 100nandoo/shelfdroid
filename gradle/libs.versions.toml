@@ -54,7 +54,7 @@ socketioClient = "2.1.2"
 process-phoenix = "3.0.0"
 espressoCore = "3.7.0"
 appcompat = "1.7.1"
-material = "1.13.0"
+material = "1.14.0"
 acra = "5.13.1"
 
 [libraries]
