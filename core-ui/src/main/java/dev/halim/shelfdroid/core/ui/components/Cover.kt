@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,6 +77,7 @@ fun CoverNoAnimation(
   showFallback: Boolean = false,
 ) {
   var imageLoadFailed by remember { mutableStateOf(showFallback) }
+  LaunchedEffect(coverUrl, showFallback) { imageLoadFailed = showFallback || coverUrl.isBlank() }
   if (imageLoadFailed) {
     Box(
       modifier = modifier.aspectRatio(1f).background(background, shape = shape),

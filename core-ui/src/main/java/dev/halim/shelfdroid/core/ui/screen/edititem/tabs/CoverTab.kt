@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -22,12 +24,12 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +51,9 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 fun CoverTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val context = LocalContext.current
   var url by remember { mutableStateOf("") }
+  val coverSearch = uiState.coverSearch
+  var wasLoadingResults by remember { mutableStateOf(false) }
+  val resultsBringIntoViewRequester = remember { BringIntoViewRequester() }
 
   val pickLauncher =
     rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -57,120 +62,126 @@ fun CoverTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
       }
     }
 
-  Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-    Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
-      CoverNoAnimation(modifier = Modifier.fillMaxWidth(), coverUrl = uiState.coverUrl)
-      if (uiState.isCoverWorking) {
-        CircularProgressIndicator()
-      }
+  LaunchedEffect(coverSearch.state, coverSearch.results) {
+    val isLoadingResults = coverSearch.state.isLoading()
+    if (wasLoadingResults && !isLoadingResults && coverSearch.results.isNotEmpty()) {
+      resultsBringIntoViewRequester.bringIntoView()
     }
+    wasLoadingResults = isLoadingResults
+  }
 
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      Button(onClick = { pickLauncher.launch("image/*") }, enabled = !uiState.isCoverWorking) {
-        Text(stringResource(R.string.edit_item_upload_cover))
-      }
-      OutlinedButton(
-        onClick = { onEvent(EditItemEvent.DeleteCover) },
-        enabled = !uiState.isCoverWorking,
-      ) {
-        Text(stringResource(R.string.delete))
-      }
-    }
-
-    OutlinedTextField(
-      value = url,
-      onValueChange = { url = it },
-      label = { Text(stringResource(R.string.edit_item_image_url_from_web)) },
-      modifier = Modifier.fillMaxWidth(),
-      singleLine = true,
-    )
-    Button(
-      onClick = {
-        if (url.isNotBlank()) {
-          onEvent(EditItemEvent.SetCoverUrl(url))
-          url = ""
+  Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+      Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
+        CoverNoAnimation(modifier = Modifier.fillMaxWidth(), coverUrl = uiState.coverUrl)
+        if (uiState.isCoverWorking) {
+          CircularProgressIndicator()
         }
-      },
-      enabled = !uiState.isCoverWorking && url.isNotBlank(),
-    ) {
-      Text(stringResource(R.string.submit))
-    }
+      }
 
-    HorizontalDivider()
-    Text(
-      stringResource(R.string.edit_item_search_for_cover),
-      style = MaterialTheme.typography.titleMedium,
-    )
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(onClick = { pickLauncher.launch("image/*") }, enabled = !uiState.isCoverWorking) {
+          Text(stringResource(R.string.edit_item_upload_cover))
+        }
+        OutlinedButton(
+          onClick = { onEvent(EditItemEvent.DeleteCover) },
+          enabled = !uiState.isCoverWorking,
+        ) {
+          Text(stringResource(R.string.delete))
+        }
+      }
 
-    val coverSearch = uiState.coverSearch
-    var providerExpanded by remember { mutableStateOf(false) }
-    val providerText =
-      coverSearch.providers.find { it.value == coverSearch.provider }?.text ?: coverSearch.provider
-    ExposedDropdownMenuBox(
-      expanded = providerExpanded,
-      onExpandedChange = { providerExpanded = it },
-    ) {
       OutlinedTextField(
-        value = providerText,
-        onValueChange = {},
-        readOnly = true,
-        label = { Text(stringResource(R.string.edit_item_provider)) },
-        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = providerExpanded) },
-        modifier =
-          Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+        value = url,
+        onValueChange = { url = it },
+        label = { Text(stringResource(R.string.edit_item_image_url_from_web)) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
       )
-      ExposedDropdownMenu(
-        expanded = providerExpanded,
-        onDismissRequest = { providerExpanded = false },
+      Button(
+        onClick = {
+          if (url.isNotBlank()) {
+            onEvent(EditItemEvent.SetCoverUrl(url))
+            url = ""
+          }
+        },
+        enabled = !uiState.isCoverWorking && url.isNotBlank(),
       ) {
-        coverSearch.providers.forEach { provider ->
-          DropdownMenuItem(
-            text = { Text(provider.text) },
-            onClick = {
-              onEvent(EditItemEvent.UpdateCoverSearchProvider(provider.value))
-              providerExpanded = false
-            },
-          )
+        Text(stringResource(R.string.submit))
+      }
+
+      HorizontalDivider()
+      Text(
+        stringResource(R.string.edit_item_search_for_cover),
+        style = MaterialTheme.typography.titleMedium,
+      )
+
+      var providerExpanded by remember { mutableStateOf(false) }
+      val providerText =
+        coverSearch.providers.find { it.value == coverSearch.provider }?.text
+          ?: coverSearch.provider
+      ExposedDropdownMenuBox(
+        expanded = providerExpanded,
+        onExpandedChange = { providerExpanded = it },
+      ) {
+        OutlinedTextField(
+          value = providerText,
+          onValueChange = {},
+          readOnly = true,
+          label = { Text(stringResource(R.string.edit_item_provider)) },
+          trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = providerExpanded) },
+          modifier =
+            Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+        )
+        ExposedDropdownMenu(
+          expanded = providerExpanded,
+          onDismissRequest = { providerExpanded = false },
+        ) {
+          coverSearch.providers.forEach { provider ->
+            DropdownMenuItem(
+              text = { Text(provider.text) },
+              onClick = {
+                onEvent(EditItemEvent.UpdateCoverSearchProvider(provider.value))
+                providerExpanded = false
+              },
+            )
+          }
         }
       }
-    }
-    OutlinedTextField(
-      value = coverSearch.title,
-      onValueChange = { onEvent(EditItemEvent.UpdateCoverSearchTitle(it)) },
-      label = { Text(stringResource(R.string.search)) },
-      modifier = Modifier.fillMaxWidth(),
-      singleLine = true,
-    )
-    OutlinedTextField(
-      value = coverSearch.author,
-      onValueChange = { onEvent(EditItemEvent.UpdateCoverSearchAuthor(it)) },
-      label = { Text(stringResource(R.string.author)) },
-      modifier = Modifier.fillMaxWidth(),
-      singleLine = true,
-    )
-    Button(
-      onClick = { onEvent(EditItemEvent.RunCoverSearch) },
-      enabled = !coverSearch.state.isLoading() && coverSearch.title.isNotBlank(),
-    ) {
-      Text(stringResource(R.string.search))
-    }
-
-    if (coverSearch.state.isLoading()) {
-      LinearProgressIndicator()
-    }
-
-    if (coverSearch.results.isNotEmpty()) {
-      FlowRow(
+      OutlinedTextField(
+        value = coverSearch.title,
+        onValueChange = { onEvent(EditItemEvent.UpdateCoverSearchTitle(it)) },
+        label = { Text(stringResource(R.string.search)) },
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        singleLine = true,
+      )
+      OutlinedTextField(
+        value = coverSearch.author,
+        onValueChange = { onEvent(EditItemEvent.UpdateCoverSearchAuthor(it)) },
+        label = { Text(stringResource(R.string.author)) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+      )
+      Button(
+        onClick = { onEvent(EditItemEvent.RunCoverSearch) },
+        enabled = !coverSearch.state.isLoading() && coverSearch.title.isNotBlank(),
       ) {
-        coverSearch.results.forEach { coverUrl ->
-          CoverNoAnimation(
-            modifier =
-              Modifier.size(120.dp).clickable { onEvent(EditItemEvent.SetCoverUrl(coverUrl)) },
-            coverUrl = coverUrl,
-          )
+        Text(stringResource(R.string.search))
+      }
+
+      if (coverSearch.results.isNotEmpty()) {
+        FlowRow(
+          modifier = Modifier.fillMaxWidth().bringIntoViewRequester(resultsBringIntoViewRequester),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          coverSearch.results.forEach { coverUrl ->
+            CoverNoAnimation(
+              modifier =
+                Modifier.size(120.dp).clickable { onEvent(EditItemEvent.SetCoverUrl(coverUrl)) },
+              coverUrl = coverUrl,
+            )
+          }
         }
       }
     }

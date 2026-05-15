@@ -66,6 +66,10 @@ constructor(
     queries.insert(entity)
   }
 
+  fun updateItem(item: LibraryItem) {
+    queries.insert(toEntity(item, item.libraryId))
+  }
+
   fun byId(id: String): LibraryItemEntity? {
     return queries.byId(id).executeAsOneOrNull()
   }
@@ -168,7 +172,8 @@ constructor(
         title = media.metadata.title ?: "",
         description = media.metadata.description ?: "",
         author = media.metadata.authors.joinToString { it.name },
-        cover = helper.generateItemCoverUrl(item.id),
+        cover = helper.generateItemCoverUrl(item.id, item.updatedAt),
+        updatedAt = item.updatedAt,
         duration = helper.formatDuration(media.duration ?: 0.0),
         isBook = 1,
         media = json.encodeToString(media),
@@ -183,7 +188,8 @@ constructor(
         title = media.metadata.title ?: "",
         description = media.metadata.description ?: "",
         author = media.metadata.author ?: "",
-        cover = helper.generateItemCoverUrl(item.id),
+        cover = helper.generateItemCoverUrl(item.id, item.updatedAt),
+        updatedAt = item.updatedAt,
         duration = "",
         isBook = 0,
         media = json.encodeToString(media),

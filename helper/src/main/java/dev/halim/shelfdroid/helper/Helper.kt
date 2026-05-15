@@ -36,8 +36,9 @@ constructor(
   private suspend fun getToken(): String =
     withContext(Dispatchers.IO) { dataStoreManager.userPrefs.first().accessToken }
 
-  fun generateItemCoverUrl(itemId: String): String {
-    return "https://${DataStoreManager.BASE_URL}/api/items/$itemId/cover"
+  fun generateItemCoverUrl(itemId: String, updatedAt: Long? = null): String {
+    val baseUrl = "https://${DataStoreManager.BASE_URL}/api/items/$itemId/cover"
+    return updatedAt?.takeIf { it > 0 }?.let { "$baseUrl?v=$it" } ?: baseUrl
   }
 
   suspend fun generateContentUrl(url: String): String =

@@ -11,6 +11,7 @@ import dev.halim.core.network.response.MatchItemResult
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
+import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
@@ -21,7 +22,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class EditItemRepository
 @Inject
-constructor(private val api: ApiService, private val helper: Helper) {
+constructor(
+  private val api: ApiService,
+  private val helper: Helper,
+  private val libraryItemRepo: LibraryItemRepo,
+) {
 
   suspend fun load(itemId: String): EditItemUiState {
     val item =
@@ -89,7 +94,7 @@ constructor(private val api: ApiService, private val helper: Helper) {
     return EditItemUiState(
       state = GenericState.Success,
       itemId = item.id,
-      coverUrl = helper.generateItemCoverUrl(item.id),
+      coverUrl = helper.generateItemCoverUrl(item.id, item.updatedAt),
       webBaseUrl = "https://${DataStoreManager.BASE_URL}",
       details = details,
       originalDetails = details,
@@ -135,6 +140,7 @@ constructor(private val api: ApiService, private val helper: Helper) {
         events.emit(GenericUiEvent.ShowSuccessSnackbar())
         return state.copy(isSaving = false)
       }
+    libraryItemRepo.updateItem(updated)
     events.emit(GenericUiEvent.ShowSuccessSnackbar())
     return mergeUpdated(state, updated).copy(isSaving = false)
   }
@@ -180,7 +186,8 @@ constructor(private val api: ApiService, private val helper: Helper) {
   }
 
   private fun mergeUpdated(state: EditItemUiState, item: LibraryItem): EditItemUiState {
-    return mapToUiState(
+    val updatedState =
+      mapToUiState(
         item,
         state.match.providers,
         state.match.selectedProvider,
@@ -188,7 +195,21 @@ constructor(private val api: ApiService, private val helper: Helper) {
         state.coverSearch.provider,
         state.seriesSuggestions,
       )
-      .copy(currentTab = state.currentTab)
+    return updatedState.copy(
+      currentTab = state.currentTab,
+      coverSearch =
+        state.coverSearch.copy(
+          title = updatedState.coverSearch.title,
+          author = updatedState.coverSearch.author,
+          provider = updatedState.coverSearch.provider,
+          providers = updatedState.coverSearch.providers,
+        ),
+      match =
+        state.match.copy(
+          providers = updatedState.match.providers,
+          selectedProvider = updatedState.match.selectedProvider,
+        ),
+    )
   }
 
   suspend fun quickMatch(
@@ -212,6 +233,7 @@ constructor(private val api: ApiService, private val helper: Helper) {
         state.copy(isSaving = false)
       }
       is MatchItemResult.Success -> {
+        libraryItemRepo.updateItem(result.libraryItem)
         events.emit(GenericUiEvent.ShowSuccessSnackbar())
         mergeUpdated(state, result.libraryItem).copy(isSaving = false)
       }
@@ -249,6 +271,7 @@ constructor(private val api: ApiService, private val helper: Helper) {
         events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
         return state.copy(isCoverWorking = false)
       }
+    libraryItemRepo.updateItem(updated)
     events.emit(GenericUiEvent.ShowSuccessSnackbar())
     return mergeUpdated(state, updated).copy(isCoverWorking = false)
   }
@@ -267,8 +290,14 @@ constructor(private val api: ApiService, private val helper: Helper) {
       events.emit(GenericUiEvent.ShowErrorSnackbar())
       return state.copy(isCoverWorking = false)
     }
+    val updated =
+      api.item(state.itemId).getOrElse {
+        events.emit(GenericUiEvent.ShowSuccessSnackbar())
+        return state.copy(isCoverWorking = false)
+      }
+    libraryItemRepo.updateItem(updated)
     events.emit(GenericUiEvent.ShowSuccessSnackbar())
-    return state.copy(isCoverWorking = false)
+    return mergeUpdated(state, updated).copy(isCoverWorking = false)
   }
 
   suspend fun deleteCover(
@@ -279,8 +308,14 @@ constructor(private val api: ApiService, private val helper: Helper) {
       events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
       return state.copy(isCoverWorking = false)
     }
+    val updated =
+      api.item(state.itemId).getOrElse {
+        events.emit(GenericUiEvent.ShowSuccessSnackbar())
+        return state.copy(isCoverWorking = false)
+      }
+    libraryItemRepo.updateItem(updated)
     events.emit(GenericUiEvent.ShowSuccessSnackbar())
-    return state.copy(isCoverWorking = false)
+    return mergeUpdated(state, updated).copy(isCoverWorking = false)
   }
 
   suspend fun searchMatches(

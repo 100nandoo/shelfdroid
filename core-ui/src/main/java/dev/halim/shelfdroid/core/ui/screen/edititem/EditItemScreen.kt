@@ -87,7 +87,7 @@ private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditI
 @Composable
 private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   Column(modifier = Modifier.fillMaxSize()) {
-    if (uiState.isSaving) {
+    if (uiState.isSaving || uiState.coverSearch.state.isLoading()) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     Box(
