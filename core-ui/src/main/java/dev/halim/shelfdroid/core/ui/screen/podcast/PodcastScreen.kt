@@ -221,7 +221,8 @@ private fun DeleteSection(
   onDeleteClick: (Boolean) -> Unit,
   onAutoSelectFinishedChange: (Boolean) -> Unit,
 ) {
-  var showDeleteDialog by remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
+  var showDeleteDialog by
+    remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
   var hardDelete by remember { mutableStateOf(initialHardDelete) }
 
   Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {

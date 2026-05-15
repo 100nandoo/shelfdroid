@@ -263,7 +263,8 @@ fun LogoutSection(
   initialShowLogoutDialog: Boolean = false,
   initialShowReLoginDialog: Boolean = false,
 ) {
-  var showLogoutDialog by remember(initialShowLogoutDialog) { mutableStateOf(initialShowLogoutDialog) }
+  var showLogoutDialog by
+    remember(initialShowLogoutDialog) { mutableStateOf(initialShowLogoutDialog) }
   var showReLoginDialog by
     remember(initialShowReLoginDialog) { mutableStateOf(initialShowReLoginDialog) }
 
@@ -338,11 +339,7 @@ fun SettingsScreenContentDynamicPreview() {
 @Composable
 private fun LogoutSectionLogoutDialogPreview() {
   PreviewWrapper(dynamicColor = false) {
-    LogoutSection(
-      reLogin = {},
-      changePassword = {},
-      initialShowLogoutDialog = true,
-    )
+    LogoutSection(reLogin = {}, changePassword = {}, initialShowLogoutDialog = true)
   }
 }
 
@@ -350,10 +347,6 @@ private fun LogoutSectionLogoutDialogPreview() {
 @Composable
 private fun LogoutSectionReLoginDialogPreview() {
   PreviewWrapper(dynamicColor = false) {
-    LogoutSection(
-      reLogin = {},
-      changePassword = {},
-      initialShowReLoginDialog = true,
-    )
+    LogoutSection(reLogin = {}, changePassword = {}, initialShowReLoginDialog = true)
   }
 }

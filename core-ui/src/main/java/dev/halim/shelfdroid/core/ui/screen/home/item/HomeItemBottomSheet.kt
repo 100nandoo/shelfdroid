@@ -57,7 +57,8 @@ fun HomeItemBottomSheet(
   onEdit: () -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
-  var showDeleteDialog by remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
+  var showDeleteDialog by
+    remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
   var hardDelete by remember { mutableStateOf(initialHardDelete) }
 
   val text =
@@ -216,10 +217,12 @@ private fun PreviewHomeItemBottomSheetOverflow() {
     val density = LocalDensity.current
     val sheetState = sheetState(density)
     val selectedPodcast =
-      Defaults.HOME_PODCASTS.first().copy(
-        title = "A Podcast Episode Collection With A Very Long Title Designed To Exercise Bottom Sheet Overflow",
-        author = "A Host Name With Multiple Contributors And A Long Subtitle",
-      )
+      Defaults.HOME_PODCASTS.first()
+        .copy(
+          title =
+            "A Podcast Episode Collection With A Very Long Title Designed To Exercise Bottom Sheet Overflow",
+          author = "A Host Name With Multiple Contributors And A Long Subtitle",
+        )
 
     HomeItemBottomSheet(
       sheetState = sheetState,

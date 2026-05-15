@@ -86,9 +86,7 @@ private fun UserSettingsItemContent(
 
   Row(
     modifier =
-      modifier.fillMaxWidth()
-        .then(clickableModifier)
-        .padding(horizontal = 16.dp, vertical = 12.dp),
+      modifier.fillMaxWidth().then(clickableModifier).padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {

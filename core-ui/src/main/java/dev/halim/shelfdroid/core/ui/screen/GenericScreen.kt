@@ -38,7 +38,7 @@ private fun GenericMessageScreenShortPreview() {
 private fun GenericMessageScreenLongPreview() {
   PreviewWrapper(dynamicColor = false) {
     GenericMessageScreen(
-      message = "No API keys are available for this server yet. Create one to continue.",
+      message = "No API keys are available for this server yet. Create one to continue."
     )
   }
 }

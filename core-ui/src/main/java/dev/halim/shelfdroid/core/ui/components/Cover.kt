@@ -102,11 +102,7 @@ fun CoverNoAnimation(
 @Composable
 private fun CoverNoAnimationFallbackPreview() {
   PreviewWrapper(dynamicColor = false) {
-    CoverNoAnimation(
-      modifier = Modifier.padding(16.dp),
-      coverUrl = "",
-      showFallback = true,
-    )
+    CoverNoAnimation(modifier = Modifier.padding(16.dp), coverUrl = "", showFallback = true)
   }
 }
 

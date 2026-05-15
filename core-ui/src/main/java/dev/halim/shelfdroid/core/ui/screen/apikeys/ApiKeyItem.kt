@@ -74,7 +74,8 @@ private fun ApiKeyItemContent(
 
   Row(
     modifier =
-      modifier.fillMaxWidth()
+      modifier
+        .fillMaxWidth()
         .clickable(enabled = !apiKey.isExpired, onClick = onEditClicked)
         .padding(horizontal = 16.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
@@ -147,12 +148,13 @@ private fun ApiKeyItemDeleteDialogPreview() {
 @Composable
 private fun ApiKeyItemOverflowPreview() {
   val overflowApiKey =
-    API_KEYS.first().copy(
-      name = "Production Sync Token For Audiobookshelf Staging And Long-Running Imports",
-      owner = "Fernando With An Extremely Long Owner Name",
-      lastUsedAt = "Wednesday, 14 May 2026 at 11:48:13 PM GMT+08:00",
-      expiresAt = "Thursday, 31 December 2026 at 11:59:59 PM GMT+08:00",
-    )
+    API_KEYS.first()
+      .copy(
+        name = "Production Sync Token For Audiobookshelf Staging And Long-Running Imports",
+        owner = "Fernando With An Extremely Long Owner Name",
+        lastUsedAt = "Wednesday, 14 May 2026 at 11:48:13 PM GMT+08:00",
+        expiresAt = "Thursday, 31 December 2026 at 11:59:59 PM GMT+08:00",
+      )
 
   PreviewWrapper { LazyColumn { item { ApiKeyItem(apiKey = overflowApiKey) } } }
 }

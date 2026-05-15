@@ -17,6 +17,7 @@ import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.response.TagRepo
 import dev.halim.shelfdroid.core.data.response.UserRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
+import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import javax.inject.Named
 import kotlinx.coroutines.CoroutineScope
@@ -38,6 +39,7 @@ constructor(
   private val listeningStatRepo: ListeningStatRepo,
   private val mapper: HomeMapper,
   private val prefsRepository: PrefsRepository,
+  private val downloadRepo: DownloadRepo,
   @Named("io") private val ioScope: CoroutineScope,
 ) {
 
@@ -46,12 +48,14 @@ constructor(
     val libraryItems = libraryItemRepo.flowEntities()
     val progresses = progressRepo.flowAll()
     val prefs = prefsRepository.prefsFlow()
+    val downloads = downloadRepo.completedDownloads
 
-    return combine(libraries, libraryItems, prefs, progresses) {
+    return combine(libraries, libraryItems, prefs, progresses, downloads) {
       libraries,
       libraryItems,
       prefs,
-      progresses ->
+      _,
+      _ ->
       val result = libraries.map { (id, name, _, isBookLibrary) ->
         val isBook = isBookLibrary.toBoolean()
         val libraryItems = libraryItems.getOrDefault(id, emptyList())

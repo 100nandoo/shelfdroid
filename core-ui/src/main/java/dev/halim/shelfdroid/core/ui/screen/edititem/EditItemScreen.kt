@@ -65,10 +65,7 @@ fun EditItemScreen(
 }
 
 @Composable
-private fun EditItemScreenStateContent(
-  uiState: EditItemUiState,
-  onEvent: (EditItemEvent) -> Unit,
-) {
+private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   when (val state = uiState.state) {
     GenericState.Loading,
     GenericState.Idle -> {

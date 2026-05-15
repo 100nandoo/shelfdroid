@@ -12,9 +12,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarVisuals
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -111,7 +111,9 @@ private fun MySnackbarHostPreview() {
 private fun SnackbarPreview(type: SnackbarType, message: String) {
   val snackbarHostState = remember { SnackbarHostState() }
 
-  LaunchedEffect(message, type) { snackbarHostState.showSnackbar(AppSnackbarVisuals(message, type)) }
+  LaunchedEffect(message, type) {
+    snackbarHostState.showSnackbar(AppSnackbarVisuals(message, type))
+  }
 
   PreviewWrapper(dynamicColor = false) {
     Box(modifier = Modifier.fillMaxSize()) { MySnackbarHost(snackbarHostState = snackbarHostState) }

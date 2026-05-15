@@ -1,10 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.backups
 
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -140,9 +140,7 @@ fun ConfirmDialog(title: String, text: String, onConfirm: () -> Unit, onDismiss:
 private fun BackupItemPreview() {
   val backup = BACKUPS_UI_STATE.backups.first()
 
-  PreviewWrapper(dynamicColor = false) {
-    LazyColumn { item { BackupItem(backup = backup) } }
-  }
+  PreviewWrapper(dynamicColor = false) { LazyColumn { item { BackupItem(backup = backup) } } }
 }
 
 @ShelfDroidPreview

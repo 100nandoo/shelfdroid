@@ -1,25 +1,19 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import android.annotation.SuppressLint
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.Download
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
-import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
-import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
-import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,8 +30,6 @@ class HomeViewModel
 constructor(
   savedStateHandle: SavedStateHandle,
   private val repository: HomeRepository,
-  private val progressRepo: ProgressRepo,
-  private val downloadRepo: DownloadRepo,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
   val fromLogin: Boolean = checkNotNull(savedStateHandle.get<Boolean>("fromLogin"))
@@ -51,91 +43,6 @@ constructor(
 
   init {
     viewModelScope.launch { _uiState.update { repository.remoteSync(it, fromLogin) } }
-
-    viewModelScope.launch {
-      progressRepo.finishedEpisodeIdsGroupedByLibraryItemId().collect {
-        progress: Map<String, List<String>> ->
-        _uiState.update { state ->
-          if (_uiState.value.librariesUiState.isEmpty()) return@collect
-
-          val updatedLibraries =
-            state.librariesUiState.map { libraryUiState ->
-              val updatedPodcasts =
-                libraryUiState.podcasts.map { podcast ->
-                  val finishedIds = progress[podcast.id] ?: emptyList()
-                  if (finishedIds.isEmpty()) return@map podcast
-                  val downloadedIds =
-                    downloadRepo.fetchPodcast(podcast.id).map { it.request.id.substringAfter("|") }
-
-                  val finishedEpisodesCount = finishedIds.count()
-                  val unfinishedEpisodeCount = podcast.episodeCount - finishedEpisodesCount
-                  val downloadedAndFinishedCount = finishedIds.count { it in downloadedIds }
-                  val unfinishedAndDownloadCount =
-                    podcast.downloadedCount - downloadedAndFinishedCount
-                  podcast.copy(
-                    unfinishedCount = unfinishedEpisodeCount,
-                    unfinishedAndDownloadCount = unfinishedAndDownloadCount,
-                  )
-                }
-              libraryUiState.copy(podcasts = updatedPodcasts)
-            }
-          state.copy(librariesUiState = updatedLibraries)
-        }
-      }
-    }
-
-    viewModelScope.launch {
-      downloadRepo.completedDownloads.collect { downloads: List<Download> ->
-        if (_uiState.value.librariesUiState.isEmpty()) return@collect
-
-        _uiState.update { state ->
-          val updatedLibraries =
-            state.librariesUiState.map { libraryUiState ->
-              if (libraryUiState.isBookLibrary) {
-                updateLibraryWithBooks(libraryUiState)
-              } else {
-                updateLibraryWithPodcasts(libraryUiState, downloads)
-              }
-            }
-          state.copy(librariesUiState = updatedLibraries)
-        }
-      }
-    }
-  }
-
-  private fun updateLibraryWithBooks(libraryUiState: LibraryUiState): LibraryUiState {
-    val updatedBooks =
-      libraryUiState.books.map { book ->
-        book.copy(isDownloaded = downloadRepo.isBookDownloaded(book.id, book.trackIndexes))
-      }
-    return libraryUiState.copy(books = updatedBooks)
-  }
-
-  @SuppressLint("UnsafeOptInUsageError")
-  private fun updateLibraryWithPodcasts(
-    libraryUiState: LibraryUiState,
-    downloads: List<Download>,
-  ): LibraryUiState {
-    val updatedPodcasts =
-      libraryUiState.podcasts.map { podcast -> updateCounts(podcast, downloads) }
-    return libraryUiState.copy(podcasts = updatedPodcasts)
-  }
-
-  @SuppressLint("UnsafeOptInUsageError")
-  private fun updateCounts(podcast: PodcastUiState, downloads: List<Download>): PodcastUiState {
-    val finishedIds = progressRepo.finishedEpisodeIdsByLibraryItemId(podcast.id)
-    val downloadedIds =
-      downloads
-        .filter { it.request.id.substringBefore("|") == podcast.id }
-        .map { it.request.id.substringAfter("|") }
-
-    val downloadedCount = downloadedIds.size
-    val downloadedAndFinishedCount = finishedIds.count { it in downloadedIds }
-    val unfinishedAndDownloadCount = downloadedCount - downloadedAndFinishedCount
-    return podcast.copy(
-      downloadedCount = downloadedCount,
-      unfinishedAndDownloadCount = unfinishedAndDownloadCount,
-    )
   }
 
   fun onEvent(event: HomeEvent) {

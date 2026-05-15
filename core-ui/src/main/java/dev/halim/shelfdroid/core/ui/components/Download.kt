@@ -34,7 +34,8 @@ fun DownloadButton(
 ) {
   val isDownloading = downloadState == DownloadState.Downloading
   val isDownloaded = downloadState.isDownloaded()
-  var showDeleteDialog by remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
+  var showDeleteDialog by
+    remember(initialShowDeleteDialog) { mutableStateOf(initialShowDeleteDialog) }
 
   MyAlertDialog(
     title = stringResource(R.string.delete),
