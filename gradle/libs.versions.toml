@@ -41,7 +41,7 @@ coroutines = "1.10.2"
 hilt = "2.59.2"
 junit = "4.13.2"
 kotlin = "2.3.21"
-ksp = "2.3.6"
+ksp = "2.3.8"
 kotlinSerialization = "1.11.0"
 sqldelight = "2.3.2"
 
