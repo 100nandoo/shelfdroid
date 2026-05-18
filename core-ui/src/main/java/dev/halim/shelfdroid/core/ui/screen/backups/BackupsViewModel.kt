@@ -3,7 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.backups
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.screen.backups.BackupDownloader
+import dev.halim.shelfdroid.core.data.download.ManagedDownloadManager
 import dev.halim.shelfdroid.core.data.screen.backups.BackupsApiState
 import dev.halim.shelfdroid.core.data.screen.backups.BackupsRepository
 import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
@@ -19,7 +19,10 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class BackupsViewModel
 @Inject
-constructor(private val repository: BackupsRepository, val backupDownloader: BackupDownloader) :
+constructor(
+  private val repository: BackupsRepository,
+  private val managedDownloadManager: ManagedDownloadManager,
+) :
   ViewModel() {
 
   private val _uiState = MutableStateFlow(BackupsUiState())
@@ -92,6 +95,10 @@ constructor(private val repository: BackupsRepository, val backupDownloader: Bac
         }
       }
     }
+  }
+
+  fun downloadBackup(backup: BackupsUiState.BackupItem) {
+    managedDownloadManager.enqueue(backup.toManagedDownload())
   }
 
   private fun initialPage() {

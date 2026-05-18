@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.backups
 
+import dev.halim.shelfdroid.core.data.download.ManagedDownload
 import dev.halim.shelfdroid.core.data.GenericState
 
 data class BackupsUiState(
@@ -22,7 +23,11 @@ data class BackupsUiState(
     val createdAt: String,
     val serverVersion: String,
     val downloadUrl: String,
-  )
+  ) {
+    fun toManagedDownload(): ManagedDownload {
+      return ManagedDownload(url = downloadUrl, title = filename, filename = filename)
+    }
+  }
 }
 
 sealed interface BackupsApiState {

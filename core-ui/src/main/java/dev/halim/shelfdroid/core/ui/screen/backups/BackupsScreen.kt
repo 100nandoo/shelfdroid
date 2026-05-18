@@ -87,7 +87,7 @@ fun BackupsScreen(
     rememberNotificationPermissionHandler(
       snackbarHostState = snackbarHostState,
       onPermissionGranted = {
-        pendingDownload?.let { viewModel.backupDownloader.download(it) }
+        pendingDownload?.let(viewModel::downloadBackup)
         pendingDownload = null
       },
     )
