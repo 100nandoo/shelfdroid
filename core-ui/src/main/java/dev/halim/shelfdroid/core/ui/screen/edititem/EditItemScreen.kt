@@ -97,7 +97,7 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
           .weight(1f)
           .fillMaxWidth()
           .imePadding()
-          .padding(16.dp),
+          .padding(horizontal = 16.dp),
     ) {
       when (uiState.currentTab) {
         EditItemTab.Details -> DetailsTab(uiState.details, onEvent, uiState.seriesSuggestions)

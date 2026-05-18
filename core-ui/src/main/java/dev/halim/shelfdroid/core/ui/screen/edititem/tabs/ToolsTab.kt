@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,9 +31,11 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 @Composable
 fun ToolsTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val context = LocalContext.current
-  fun openManager(tool: String) {
+  val openManager = remember(context, uiState.webBaseUrl, uiState.itemId) {
+    { tool: String ->
     val url = "${uiState.webBaseUrl}/audiobookshelf/audiobook/${uiState.itemId}/manage?tool=$tool"
     context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+    }
   }
 
   Column(
@@ -44,47 +47,57 @@ fun ToolsTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
       style = MaterialTheme.typography.titleMedium,
     )
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-      Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-          stringResource(R.string.edit_item_make_m4b_title),
-          style = MaterialTheme.typography.titleSmall,
-        )
-        Text(
-          stringResource(R.string.edit_item_make_m4b_desc),
-          style = MaterialTheme.typography.bodySmall,
-        )
-        OutlinedButton(onClick = { openManager("m4b") }) {
-          Text(stringResource(R.string.edit_item_open_manager))
-        }
+    ToolCard(
+      title = stringResource(R.string.edit_item_make_m4b_title),
+      description = stringResource(R.string.edit_item_make_m4b_desc),
+    ) {
+      OutlinedButton(onClick = { openManager("m4b") }) {
+        Text(stringResource(R.string.edit_item_open_manager))
       }
     }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-      Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-          stringResource(R.string.edit_item_embed_metadata_title),
-          style = MaterialTheme.typography.titleSmall,
-        )
-        Text(
-          stringResource(R.string.edit_item_embed_metadata_desc),
-          style = MaterialTheme.typography.bodySmall,
-        )
-        Row(
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-          verticalAlignment = Alignment.CenterVertically,
+    ToolCard(
+      title = stringResource(R.string.edit_item_embed_metadata_title),
+      description = stringResource(R.string.edit_item_embed_metadata_desc),
+    ) {
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        OutlinedButton(onClick = { openManager("embed") }) {
+          Text(stringResource(R.string.edit_item_open_manager))
+        }
+        Button(
+          onClick = { onEvent(EditItemEvent.EmbedMetadata) },
+          enabled = !uiState.isToolWorking,
         ) {
-          OutlinedButton(onClick = { openManager("embed") }) {
-            Text(stringResource(R.string.edit_item_open_manager))
-          }
-          Button(
-            onClick = { onEvent(EditItemEvent.EmbedMetadata) },
-            enabled = !uiState.isToolWorking,
-          ) {
-            Text(stringResource(R.string.edit_item_quick_embed))
-          }
+          Text(stringResource(R.string.edit_item_quick_embed))
         }
       }
+    }
+  }
+}
+
+@Composable
+private fun ToolCard(
+  title: String,
+  description: String,
+  actions: @Composable () -> Unit,
+) {
+  Card(modifier = Modifier.fillMaxWidth()) {
+    Column(
+      modifier = Modifier.padding(12.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+      )
+      Text(
+        text = description,
+        style = MaterialTheme.typography.bodySmall,
+      )
+      actions()
     }
   }
 }

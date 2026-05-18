@@ -6,7 +6,6 @@ package dev.halim.shelfdroid.core.ui.screen.edititem.tabs
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -29,7 +27,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -50,10 +47,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
+import dev.halim.shelfdroid.core.ui.components.SectionCard
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -102,238 +101,267 @@ fun CoverTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
       .verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.spacedBy(20.dp),
   ) {
-    Column(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      Box(modifier = Modifier.size(220.dp), contentAlignment = Alignment.Center) {
-        Surface(
-          modifier =
-            Modifier
-              .fillMaxSize()
-              .clickable(enabled = !uiState.isCoverWorking) {
-                pickLauncher.launch("image/*")
-              },
-          shape = MaterialTheme.shapes.large,
-          border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-          tonalElevation = 2.dp,
-        ) {
-          CoverNoAnimation(
-            modifier = Modifier.fillMaxSize(),
-            coverUrl = uiState.coverUrl,
-            showFallback = true,
-          )
-        }
+    CoverPreviewSection(
+      coverUrl = uiState.coverUrl,
+      isCoverWorking = uiState.isCoverWorking,
+      onPickFromDevice = { pickLauncher.launch("image/*") },
+      onDeleteCover = { showDeleteDialog = true },
+    )
 
-        if (uiState.isCoverWorking) {
-          CircularProgressIndicator()
+    CoverUrlSection(
+      url = url,
+      isCoverWorking = uiState.isCoverWorking,
+      onUrlChange = { url = it },
+      onFetchCover = {
+        if (url.isNotBlank()) {
+          onEvent(EditItemEvent.SetCoverUrl(url))
+          url = ""
         }
-      }
-
-      Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Button(onClick = { pickLauncher.launch("image/*") }, enabled = !uiState.isCoverWorking) {
-          Text(stringResource(R.string.edit_item_upload_cover_from_device))
-        }
-
-        if (uiState.coverUrl.isNotBlank()) {
-          TextButton(
-            onClick = { showDeleteDialog = true },
-            enabled = !uiState.isCoverWorking,
-          ) {
-            Text(stringResource(R.string.edit_item_remove_cover))
-          }
-        }
-      }
-    }
-
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-      Column(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-      ) {
-        Text(
-          stringResource(R.string.edit_item_use_image_url),
-          style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-          stringResource(R.string.edit_item_use_image_url_help),
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        OutlinedTextField(
-          value = url,
-          onValueChange = { url = it },
-          label = { Text(stringResource(R.string.edit_item_image_url)) },
-          modifier = Modifier.fillMaxWidth(),
-          singleLine = true,
-        )
-        Button(
-          onClick = {
-            if (url.isNotBlank()) {
-              onEvent(EditItemEvent.SetCoverUrl(url))
-              url = ""
-            }
-          },
-          enabled = !uiState.isCoverWorking && url.isNotBlank(),
-        ) {
-          Text(stringResource(R.string.edit_item_fetch_cover))
-        }
-      }
-    }
+      },
+    )
 
     HorizontalDivider()
 
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-      Column(
+    CoverSearchSection(
+      coverSearch = coverSearch,
+      onTitleChange = { onEvent(EditItemEvent.UpdateCoverSearchTitle(it)) },
+      onAuthorChange = { onEvent(EditItemEvent.UpdateCoverSearchAuthor(it)) },
+      onProviderChange = { onEvent(EditItemEvent.UpdateCoverSearchProvider(it)) },
+      onRunSearch = { onEvent(EditItemEvent.RunCoverSearch) },
+    )
+
+    if (coverSearch.results.isNotEmpty()) {
+      CoverResultsSection(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+          .bringIntoViewRequester(resultsBringIntoViewRequester),
+        results = coverSearch.results,
+        isCoverWorking = uiState.isCoverWorking,
+        onSelectCover = { onEvent(EditItemEvent.SetCoverUrl(it)) },
+      )
+    }
+  }
+}
+
+@Composable
+private fun CoverPreviewSection(
+  coverUrl: String,
+  isCoverWorking: Boolean,
+  onPickFromDevice: () -> Unit,
+  onDeleteCover: () -> Unit,
+) {
+  Column(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    Box(modifier = Modifier.size(220.dp), contentAlignment = Alignment.Center) {
+      CoverNoAnimation(
+        modifier = Modifier.fillMaxSize(),
+        coverUrl = coverUrl,
+        showFallback = true,
+      )
+      if (isCoverWorking) {
+        CircularProgressIndicator()
+      }
+    }
+
+    Row(
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Button(onClick = onPickFromDevice, enabled = !isCoverWorking) {
+        Text(stringResource(R.string.edit_item_upload_cover_from_device))
+      }
+
+      if (coverUrl.isNotBlank()) {
+        TextButton(onClick = onDeleteCover, enabled = !isCoverWorking) {
+          Text(stringResource(R.string.edit_item_remove_cover))
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun CoverUrlSection(
+  url: String,
+  isCoverWorking: Boolean,
+  onUrlChange: (String) -> Unit,
+  onFetchCover: () -> Unit,
+) {
+  SectionCard {
+    Text(
+      stringResource(R.string.edit_item_use_image_url),
+      style = MaterialTheme.typography.titleMedium,
+    )
+    Text(
+      stringResource(R.string.edit_item_use_image_url_help),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    OutlinedTextField(
+      value = url,
+      onValueChange = onUrlChange,
+      label = { Text(stringResource(R.string.edit_item_image_url)) },
+      modifier = Modifier.fillMaxWidth(),
+      singleLine = true,
+    )
+    Button(onClick = onFetchCover, enabled = !isCoverWorking && url.isNotBlank()) {
+      Text(stringResource(R.string.edit_item_fetch_cover))
+    }
+  }
+}
+
+@Composable
+private fun CoverSearchSection(
+  coverSearch: CoverSearchState,
+  onTitleChange: (String) -> Unit,
+  onAuthorChange: (String) -> Unit,
+  onProviderChange: (String) -> Unit,
+  onRunSearch: () -> Unit,
+) {
+  var providerExpanded by remember { mutableStateOf(false) }
+  val providerText =
+    coverSearch.providers.find { it.value == coverSearch.provider }?.text ?: coverSearch.provider
+
+  SectionCard {
+    Text(
+      stringResource(R.string.edit_item_search_for_cover),
+      style = MaterialTheme.typography.titleMedium,
+    )
+    Text(
+      stringResource(R.string.edit_item_search_for_cover_help),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+    OutlinedTextField(
+      value = coverSearch.title,
+      onValueChange = onTitleChange,
+      label = { Text(stringResource(R.string.edit_item_title)) },
+      modifier = Modifier.fillMaxWidth(),
+      singleLine = true,
+    )
+    OutlinedTextField(
+      value = coverSearch.author,
+      onValueChange = onAuthorChange,
+      label = { Text(stringResource(R.string.author)) },
+      modifier = Modifier.fillMaxWidth(),
+      singleLine = true,
+    )
+
+    ExposedDropdownMenuBox(
+      expanded = providerExpanded,
+      onExpandedChange = { providerExpanded = it },
+    ) {
+      OutlinedTextField(
+        value = providerText,
+        onValueChange = {},
+        readOnly = true,
+        label = { Text(stringResource(R.string.edit_item_provider)) },
+        trailingIcon = {
+          ExposedDropdownMenuDefaults.TrailingIcon(expanded = providerExpanded)
+        },
+        modifier =
+          Modifier
+            .fillMaxWidth()
+            .menuAnchor(
+              ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+            ),
+      )
+      ExposedDropdownMenu(
+        expanded = providerExpanded,
+        onDismissRequest = { providerExpanded = false },
       ) {
-        Text(
-          stringResource(R.string.edit_item_search_for_cover),
-          style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-          stringResource(R.string.edit_item_search_for_cover_help),
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        OutlinedTextField(
-          value = coverSearch.title,
-          onValueChange = { onEvent(EditItemEvent.UpdateCoverSearchTitle(it)) },
-          label = { Text(stringResource(R.string.edit_item_title)) },
-          modifier = Modifier.fillMaxWidth(),
-          singleLine = true,
-        )
-        OutlinedTextField(
-          value = coverSearch.author,
-          onValueChange = { onEvent(EditItemEvent.UpdateCoverSearchAuthor(it)) },
-          label = { Text(stringResource(R.string.author)) },
-          modifier = Modifier.fillMaxWidth(),
-          singleLine = true,
-        )
-
-        var providerExpanded by remember { mutableStateOf(false) }
-        val providerText =
-          coverSearch.providers.find { it.value == coverSearch.provider }?.text
-            ?: coverSearch.provider
-        ExposedDropdownMenuBox(
-          expanded = providerExpanded,
-          onExpandedChange = { providerExpanded = it },
-        ) {
-          OutlinedTextField(
-            value = providerText,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.edit_item_provider)) },
-            trailingIcon = {
-              ExposedDropdownMenuDefaults.TrailingIcon(expanded = providerExpanded)
+        coverSearch.providers.forEach { provider ->
+          DropdownMenuItem(
+            text = { Text(provider.text) },
+            onClick = {
+              onProviderChange(provider.value)
+              providerExpanded = false
             },
-            modifier =
-              Modifier
-                .fillMaxWidth()
-                .menuAnchor(
-                  ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                ),
           )
-          ExposedDropdownMenu(
-            expanded = providerExpanded,
-            onDismissRequest = { providerExpanded = false },
-          ) {
-            coverSearch.providers.forEach { provider ->
-              DropdownMenuItem(
-                text = { Text(provider.text) },
-                onClick = {
-                  onEvent(EditItemEvent.UpdateCoverSearchProvider(provider.value))
-                  providerExpanded = false
-                },
-              )
-            }
-          }
-        }
-
-        Button(
-          onClick = { onEvent(EditItemEvent.RunCoverSearch) },
-          enabled = !coverSearch.state.isLoading() && coverSearch.title.isNotBlank(),
-        ) {
-          Text(stringResource(R.string.search))
-        }
-
-        if (coverSearch.state.isLoading()) {
-          Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-            Text(
-              stringResource(R.string.edit_item_searching_for_covers),
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
         }
       }
     }
 
-    if (coverSearch.results.isNotEmpty()) {
-      Column(
-        modifier = Modifier
-          .fillMaxWidth()
-          .bringIntoViewRequester(resultsBringIntoViewRequester),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+    Button(
+      onClick = onRunSearch,
+      enabled = !coverSearch.state.isLoading() && coverSearch.title.isNotBlank(),
+    ) {
+      Text(stringResource(R.string.search))
+    }
+
+    if (coverSearch.state.isLoading()) {
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
       ) {
+        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
         Text(
-          stringResource(R.string.edit_item_cover_results),
-          style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-          stringResource(R.string.edit_item_cover_results_help),
+          stringResource(R.string.edit_item_searching_for_covers),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-          val columns = 3
-          val spacing = 12.dp
-          val rowCount = (coverSearch.results.size + columns - 1) / columns
-          val itemSize = (maxWidth - spacing * (columns - 1)) / columns
-          val gridHeight = itemSize * rowCount + spacing * (rowCount - 1).coerceAtLeast(0)
+      }
+    }
+  }
+}
 
-          LazyVerticalGrid(
-            columns = GridCells.Fixed(columns),
-            modifier = Modifier
-              .fillMaxWidth()
-              .height(gridHeight),
-            horizontalArrangement = Arrangement.spacedBy(spacing),
-            verticalArrangement = Arrangement.spacedBy(spacing),
-            userScrollEnabled = false,
+@Composable
+private fun CoverResultsSection(
+  modifier: Modifier = Modifier,
+  results: List<String>,
+  isCoverWorking: Boolean,
+  onSelectCover: (String) -> Unit,
+) {
+  Column(
+    modifier = modifier,
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    Text(
+      stringResource(R.string.edit_item_cover_results),
+      style = MaterialTheme.typography.titleMedium,
+    )
+    Text(
+      stringResource(R.string.edit_item_cover_results_help),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+      val columns = 3
+      val spacing = 12.dp
+      val rowCount = (results.size + columns - 1) / columns
+      val itemSize = (maxWidth - spacing * (columns - 1)) / columns
+      val gridHeight = itemSize * rowCount + spacing * (rowCount - 1).coerceAtLeast(0)
+
+      LazyVerticalGrid(
+        columns = GridCells.Fixed(columns),
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(gridHeight),
+        horizontalArrangement = Arrangement.spacedBy(spacing),
+        verticalArrangement = Arrangement.spacedBy(spacing),
+        userScrollEnabled = false,
+      ) {
+        items(results) { coverUrl ->
+          Surface(
+            modifier =
+              Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clickable(enabled = !isCoverWorking) {
+                  onSelectCover(coverUrl)
+                },
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 1.dp,
           ) {
-            items(coverSearch.results) { coverUrl ->
-              Surface(
-                modifier =
-                  Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clickable(enabled = !uiState.isCoverWorking) {
-                      onEvent(EditItemEvent.SetCoverUrl(coverUrl))
-                    },
-                shape = MaterialTheme.shapes.medium,
-                tonalElevation = 1.dp,
-              ) {
-                CoverNoAnimation(
-                  modifier = Modifier.fillMaxSize(),
-                  coverUrl = coverUrl,
-                  showFallback = true,
-                )
-              }
-            }
+            CoverNoAnimation(
+              modifier = Modifier.fillMaxSize(),
+              coverUrl = coverUrl,
+              showFallback = true,
+            )
           }
         }
       }
