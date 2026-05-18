@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data
 
+import dev.halim.shelfdroid.core.data.download.ManagedDownload
+
 sealed interface GenericUiEvent {
   data class ShowErrorSnackbar(val message: String = "") : GenericUiEvent
 
@@ -7,7 +9,7 @@ sealed interface GenericUiEvent {
 
   data class ShowPlainSnackbar(val message: String = "") : GenericUiEvent
 
-  data class OpenUrl(val url: String) : GenericUiEvent
+  data class RequestManagedDownload(val download: ManagedDownload) : GenericUiEvent
 
   data object NavigateBack : GenericUiEvent
 }

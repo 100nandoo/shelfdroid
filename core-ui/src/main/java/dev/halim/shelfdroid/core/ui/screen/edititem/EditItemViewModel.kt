@@ -9,7 +9,11 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
+import dev.halim.shelfdroid.core.data.download.ManagedDownload
+import dev.halim.shelfdroid.core.data.download.ManagedDownloadManager
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
+import dev.halim.shelfdroid.core.data.screen.edititem.EditItemLibraryFileDownloadResult
+import dev.halim.shelfdroid.core.data.screen.edititem.EditItemLibraryFileDownloadUseCase
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
@@ -29,7 +33,12 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class EditItemViewModel
 @Inject
-constructor(savedStateHandle: SavedStateHandle, private val repository: EditItemRepository) :
+constructor(
+  savedStateHandle: SavedStateHandle,
+  private val repository: EditItemRepository,
+  private val managedDownloadManager: ManagedDownloadManager,
+  private val libraryFileDownloadUseCase: EditItemLibraryFileDownloadUseCase,
+) :
   ViewModel() {
 
   private val route: EditItem = savedStateHandle.toRoute()
@@ -136,9 +145,20 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditItem
 
   private fun downloadLibraryFile(ino: String) = viewModelScope.launch {
     _uiState.update { it.copy(activeFileActionIno = ino) }
-    val url = repository.downloadUrl(_uiState.value.itemId, ino)
-    _events.emit(GenericUiEvent.OpenUrl(url))
-    _uiState.update { it.copy(activeFileActionIno = null) }
+    when (val result = libraryFileDownloadUseCase.prepare(_uiState.value, ino)) {
+      is EditItemLibraryFileDownloadResult.Success -> {
+        _uiState.value = result.state
+        _events.emit(GenericUiEvent.RequestManagedDownload(result.download))
+      }
+      is EditItemLibraryFileDownloadResult.Failure -> {
+        _uiState.value = result.state
+        _events.emit(GenericUiEvent.ShowErrorSnackbar(result.message))
+      }
+    }
+  }
+
+  fun enqueueManagedDownload(download: ManagedDownload) {
+    managedDownloadManager.enqueue(download)
   }
 
   private fun deleteLibraryFile() = viewModelScope.launch {

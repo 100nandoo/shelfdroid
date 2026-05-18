@@ -320,8 +320,6 @@ constructor(
     return mergeUpdated(state, updated).copy(isCoverWorking = false)
   }
 
-  suspend fun downloadUrl(itemId: String, ino: String): String = helper.fileDownloadUrl(itemId, ino)
-
   suspend fun deleteFile(
     state: EditItemUiState,
     ino: String,
