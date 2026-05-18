@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,7 +41,10 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 @Composable
 fun MatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val match = uiState.match
-  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+  Column(
+    modifier = Modifier.verticalScroll(rememberScrollState()),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedText =
       match.providers.find { it.value == match.selectedProvider }?.text ?: match.selectedProvider

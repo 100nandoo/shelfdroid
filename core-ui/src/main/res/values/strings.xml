@@ -381,9 +381,24 @@
     <string name="edit_item_save_and_close">Save &amp; Close</string>
 
     <string name="edit_item_upload_cover">Upload Cover</string>
+    <string name="edit_item_upload_cover_from_device">Upload from device</string>
+    <string name="edit_item_current_cover">Current cover</string>
+    <string name="edit_item_no_cover_selected">No cover selected</string>
+    <string name="edit_item_cover_help">Tap the cover to replace it, or use one of the options below.</string>
+    <string name="edit_item_use_image_url">Use image URL</string>
+    <string name="edit_item_use_image_url_help">Paste a direct image link to fetch a new cover.</string>
+    <string name="edit_item_image_url">Image URL</string>
     <string name="edit_item_image_url_from_web">Image URL from the web</string>
+    <string name="edit_item_fetch_cover">Fetch cover</string>
+    <string name="edit_item_remove_cover">Remove cover</string>
+    <string name="edit_item_remove_cover_confirm">Remove the current cover from this item?</string>
     <string name="edit_item_search_for_cover">Search for cover</string>
+    <string name="edit_item_search_for_cover_help">Search by title and author to find a better cover.</string>
+    <string name="edit_item_searching_for_covers">Searching covers…</string>
+    <string name="edit_item_cover_results">Cover results</string>
+    <string name="edit_item_cover_results_help">Tap a result to use it as the current cover.</string>
     <string name="edit_item_provider">Provider</string>
+    <string name="edit_item_title">Title</string>
 
     <string name="edit_item_remove_chip">Remove %1$s</string>
     <string name="edit_item_add_chip">Add %1$s…</string>

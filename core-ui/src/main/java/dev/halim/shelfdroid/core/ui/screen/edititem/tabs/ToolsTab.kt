@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +35,10 @@ fun ToolsTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
     context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
   }
 
-  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+  Column(
+    modifier = Modifier.verticalScroll(rememberScrollState()),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
     Text(
       text = stringResource(R.string.edit_item_tools_title),
       style = MaterialTheme.typography.titleMedium,

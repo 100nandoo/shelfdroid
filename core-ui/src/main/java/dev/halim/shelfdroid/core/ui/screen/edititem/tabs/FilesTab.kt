@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,7 +22,10 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun FilesTab(uiState: EditItemUiState) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  Column(
+    modifier = Modifier.verticalScroll(rememberScrollState()),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
     Text(
       text = stringResource(R.string.edit_item_library_files_count, uiState.libraryFiles.size),
       style = MaterialTheme.typography.titleMedium,

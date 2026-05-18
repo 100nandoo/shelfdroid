@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SecondaryScrollableTabRow
@@ -54,6 +52,7 @@ fun EditItemScreen(
       when (event) {
         is GenericUiEvent.ShowSuccessSnackbar ->
           snackbarHostState.showSuccessSnackbar(event.message.ifBlank { savedMessage })
+
         is GenericUiEvent.ShowErrorSnackbar -> snackbarHostState.showErrorSnackbar(event.message)
         is GenericUiEvent.ShowPlainSnackbar -> snackbarHostState.showSnackbar(event.message)
         GenericUiEvent.NavigateBack -> navigateBack()
@@ -73,11 +72,13 @@ private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditI
         CircularProgressIndicator()
       }
     }
+
     is GenericState.Failure -> {
       Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(state.errorMessage ?: stringResource(R.string.edit_item_failed_to_load))
       }
     }
+
     GenericState.Success -> {
       EditItemContent(uiState = uiState, onEvent = onEvent)
     }
@@ -87,16 +88,16 @@ private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditI
 @Composable
 private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   Column(modifier = Modifier.fillMaxSize()) {
-    if (uiState.isSaving || uiState.coverSearch.state.isLoading()) {
+    if (uiState.isSaving) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     Box(
       modifier =
-        Modifier.weight(1f)
+        Modifier
+          .weight(1f)
           .fillMaxWidth()
           .imePadding()
-          .verticalScroll(rememberScrollState())
-          .padding(16.dp)
+          .padding(16.dp),
     ) {
       when (uiState.currentTab) {
         EditItemTab.Details -> DetailsTab(uiState.details, onEvent, uiState.seriesSuggestions)

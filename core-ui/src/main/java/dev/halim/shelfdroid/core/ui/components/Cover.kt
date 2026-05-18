@@ -76,8 +76,8 @@ fun CoverNoAnimation(
   shape: Shape = RoundedCornerShape(8.dp),
   showFallback: Boolean = false,
 ) {
-  var imageLoadFailed by remember { mutableStateOf(showFallback) }
-  LaunchedEffect(coverUrl, showFallback) { imageLoadFailed = showFallback || coverUrl.isBlank() }
+  var imageLoadFailed by remember { mutableStateOf(coverUrl.isBlank()) }
+  LaunchedEffect(coverUrl) { imageLoadFailed = coverUrl.isBlank() }
   if (imageLoadFailed) {
     Box(
       modifier = modifier.aspectRatio(1f).background(background, shape = shape),
