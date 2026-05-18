@@ -103,8 +103,10 @@ constructor(
       libraryFiles =
         item.libraryFiles.map {
           LibraryFileRow(
+            ino = it.ino,
             path = it.metadata.path,
-            size = it.metadata.size.toLong(),
+            filename = it.metadata.filename,
+            sizeText = helper.humanReadableFileSize(it.metadata.size.toLong()),
             fileType = it.fileType,
           )
         },
@@ -316,6 +318,28 @@ constructor(
     libraryItemRepo.updateItem(updated)
     events.emit(GenericUiEvent.ShowSuccessSnackbar())
     return mergeUpdated(state, updated).copy(isCoverWorking = false)
+  }
+
+  suspend fun downloadUrl(itemId: String, ino: String): String = helper.fileDownloadUrl(itemId, ino)
+
+  suspend fun deleteFile(
+    state: EditItemUiState,
+    ino: String,
+    events: MutableSharedFlow<GenericUiEvent>,
+  ): EditItemUiState {
+    api.deleteItemFile(state.itemId, ino).getOrElse {
+      events.emit(GenericUiEvent.ShowErrorSnackbar(it.message ?: "Failed to delete file"))
+      return state.copy(activeFileActionIno = null, pendingDeleteFile = null)
+    }
+
+    val updated =
+      api.item(state.itemId).getOrElse {
+        events.emit(GenericUiEvent.ShowSuccessSnackbar("File deleted"))
+        return state.copy(activeFileActionIno = null, pendingDeleteFile = null)
+      }
+    libraryItemRepo.updateItem(updated)
+    events.emit(GenericUiEvent.ShowSuccessSnackbar("File deleted"))
+    return mergeUpdated(state, updated).copy(activeFileActionIno = null, pendingDeleteFile = null)
   }
 
   suspend fun searchMatches(

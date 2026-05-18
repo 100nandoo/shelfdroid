@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.edititem
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,8 +18,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
@@ -46,6 +49,7 @@ fun EditItemScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val savedMessage = stringResource(R.string.edit_item_saved)
+  val context = LocalContext.current
 
   LaunchedEffect(Unit) {
     viewModel.events.collect { event ->
@@ -55,6 +59,8 @@ fun EditItemScreen(
 
         is GenericUiEvent.ShowErrorSnackbar -> snackbarHostState.showErrorSnackbar(event.message)
         is GenericUiEvent.ShowPlainSnackbar -> snackbarHostState.showSnackbar(event.message)
+        is GenericUiEvent.OpenUrl ->
+          context.startActivity(Intent(Intent.ACTION_VIEW, event.url.toUri()))
         GenericUiEvent.NavigateBack -> navigateBack()
       }
     }
@@ -91,19 +97,12 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
     if (uiState.isSaving) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
-    Box(
-      modifier =
-        Modifier
-          .weight(1f)
-          .fillMaxWidth()
-          .imePadding()
-          .padding(horizontal = 16.dp),
-    ) {
+    Box(modifier = Modifier.weight(1f).fillMaxWidth().imePadding().padding(horizontal = 16.dp)) {
       when (uiState.currentTab) {
         EditItemTab.Details -> DetailsTab(uiState.details, onEvent, uiState.seriesSuggestions)
         EditItemTab.Cover -> CoverTab(uiState, onEvent)
         EditItemTab.Chapters -> ChaptersTab(uiState)
-        EditItemTab.Files -> FilesTab(uiState)
+        EditItemTab.Files -> FilesTab(uiState, onEvent)
         EditItemTab.Match -> MatchTab(uiState, onEvent)
         EditItemTab.Tools -> ToolsTab(uiState, onEvent)
       }

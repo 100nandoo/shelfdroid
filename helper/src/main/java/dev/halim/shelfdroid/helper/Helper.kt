@@ -47,6 +47,18 @@ constructor(
   suspend fun generateBackupDownloadUrl(backupId: String): String =
     "https://${DataStoreManager.BASE_URL}/api/backups/$backupId/download?token=${getToken()}"
 
+  suspend fun fileDownloadUrl(itemId: String, ino: String): String =
+    "https://${DataStoreManager.BASE_URL}/api/items/$itemId/file/$ino/download?token=${getToken()}"
+
+  fun humanReadableFileSize(bytes: Long): String {
+    return when {
+      bytes >= 1_000_000_000 -> "%.2f GB".format(bytes / 1_000_000_000.0)
+      bytes >= 1_000_000 -> "%.2f MB".format(bytes / 1_000_000.0)
+      bytes >= 1_000 -> "%.2f KB".format(bytes / 1_000.0)
+      else -> "$bytes B"
+    }
+  }
+
   fun generateDownloadId(itemId: String, episodeId: String? = null): String =
     episodeId?.let { "$itemId|$it" } ?: itemId
 

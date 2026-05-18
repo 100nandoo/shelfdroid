@@ -17,13 +17,26 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun MyFilledTonalIconButton(
   modifier: Modifier = Modifier,
-  size: Int = 48,
   enabled: Boolean,
   onClick: () -> Unit,
   painter: Painter,
   contentDescription: String,
 ) {
-  require(size >= 48) { "Size must be at least 48" }
+
+  FilledTonalIconButton(modifier = modifier, enabled = enabled, onClick = { onClick() }) {
+    Icon(modifier = Modifier, painter = painter, contentDescription = contentDescription)
+  }
+}
+
+@Composable
+fun MyFilledTonalIconButton(
+  modifier: Modifier = Modifier,
+  size: Int = 40,
+  enabled: Boolean,
+  onClick: () -> Unit,
+  painter: Painter,
+  contentDescription: String,
+) {
   val iconPadding = size / 6
 
   FilledTonalIconButton(

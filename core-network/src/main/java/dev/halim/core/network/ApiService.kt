@@ -155,6 +155,9 @@ interface ApiService {
   @DELETE("/api/items/{itemId}")
   suspend fun deleteItem(@Path("itemId") itemId: String, @Query("hard") hard: Int = 0): Result<Unit>
 
+  @DELETE("/api/items/{itemId}/file/{ino}")
+  suspend fun deleteItemFile(@Path("itemId") itemId: String, @Path("ino") ino: String): Result<Unit>
+
   @PATCH("/api/items/{itemId}/media")
   suspend fun updateItemMedia(
     @Path("itemId") itemId: String,

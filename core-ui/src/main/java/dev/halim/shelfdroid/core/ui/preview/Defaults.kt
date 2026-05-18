@@ -477,13 +477,17 @@ object Defaults {
   val EDIT_ITEM_FILES =
     listOf(
       LibraryFileRow(
+        ino = "1",
         path = "/audiobooks/The Fellowship of the Ring/fellowship.m4b",
-        size = 524_288_000,
+        filename = "fellowship.m4b",
+        sizeText = "524.29 MB",
         fileType = "audio/mp4",
       ),
       LibraryFileRow(
+        ino = "2",
         path = "/audiobooks/The Fellowship of the Ring/cover.jpg",
-        size = 245_000,
+        filename = "cover.jpg",
+        sizeText = "245.00 KB",
         fileType = "image/jpeg",
       ),
     )

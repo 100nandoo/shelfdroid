@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
 import dev.halim.shelfdroid.core.ui.navigation.EditItem
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -78,6 +79,12 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditItem
         _uiState.update { it.copy(coverSearch = it.coverSearch.copy(author = event.author)) }
       EditItemEvent.RunCoverSearch -> runCoverSearch()
       EditItemEvent.EmbedMetadata -> embedMetadata()
+      is EditItemEvent.DownloadLibraryFile -> downloadLibraryFile(event.ino)
+      is EditItemEvent.PromptDeleteLibraryFile ->
+        _uiState.update { it.copy(pendingDeleteFile = event.file) }
+      EditItemEvent.DismissDeleteLibraryFile ->
+        _uiState.update { it.copy(pendingDeleteFile = null, activeFileActionIno = null) }
+      EditItemEvent.ConfirmDeleteLibraryFile -> deleteLibraryFile()
     }
   }
 
@@ -126,6 +133,19 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditItem
     _uiState.update { it.copy(isToolWorking = true) }
     _uiState.value = repository.embedMetadata(_uiState.value, _events)
   }
+
+  private fun downloadLibraryFile(ino: String) = viewModelScope.launch {
+    _uiState.update { it.copy(activeFileActionIno = ino) }
+    val url = repository.downloadUrl(_uiState.value.itemId, ino)
+    _events.emit(GenericUiEvent.OpenUrl(url))
+    _uiState.update { it.copy(activeFileActionIno = null) }
+  }
+
+  private fun deleteLibraryFile() = viewModelScope.launch {
+    val target = _uiState.value.pendingDeleteFile ?: return@launch
+    _uiState.update { it.copy(activeFileActionIno = target.ino) }
+    _uiState.value = repository.deleteFile(_uiState.value, target.ino, _events)
+  }
 }
 
 sealed interface EditItemEvent {
@@ -164,4 +184,12 @@ sealed interface EditItemEvent {
   data object RunCoverSearch : EditItemEvent
 
   data object EmbedMetadata : EditItemEvent
+
+  data class DownloadLibraryFile(val ino: String) : EditItemEvent
+
+  data class PromptDeleteLibraryFile(val file: LibraryFileRow) : EditItemEvent
+
+  data object ConfirmDeleteLibraryFile : EditItemEvent
+
+  data object DismissDeleteLibraryFile : EditItemEvent
 }

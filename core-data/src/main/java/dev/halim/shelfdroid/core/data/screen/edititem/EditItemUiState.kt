@@ -18,6 +18,8 @@ data class EditItemUiState(
   val isSaving: Boolean = false,
   val isCoverWorking: Boolean = false,
   val isToolWorking: Boolean = false,
+  val activeFileActionIno: String? = null,
+  val pendingDeleteFile: LibraryFileRow? = null,
   val seriesSuggestions: List<String> = emptyList(),
 )
 
@@ -32,7 +34,13 @@ data class CoverSearchState(
 
 data class ChapterRow(val id: Int, val title: String, val start: Double, val end: Double)
 
-data class LibraryFileRow(val path: String, val size: Long, val fileType: String)
+data class LibraryFileRow(
+  val ino: String,
+  val path: String,
+  val filename: String,
+  val sizeText: String,
+  val fileType: String,
+)
 
 data class MatchResultRow(
   val cover: String,

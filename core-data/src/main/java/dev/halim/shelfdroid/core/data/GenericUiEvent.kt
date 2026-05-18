@@ -7,5 +7,7 @@ sealed interface GenericUiEvent {
 
   data class ShowPlainSnackbar(val message: String = "") : GenericUiEvent
 
+  data class OpenUrl(val url: String) : GenericUiEvent
+
   data object NavigateBack : GenericUiEvent
 }

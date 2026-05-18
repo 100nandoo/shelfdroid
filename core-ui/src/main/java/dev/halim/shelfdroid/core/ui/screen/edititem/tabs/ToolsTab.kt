@@ -31,12 +31,14 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 @Composable
 fun ToolsTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val context = LocalContext.current
-  val openManager = remember(context, uiState.webBaseUrl, uiState.itemId) {
-    { tool: String ->
-    val url = "${uiState.webBaseUrl}/audiobookshelf/audiobook/${uiState.itemId}/manage?tool=$tool"
-    context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+  val openManager =
+    remember(context, uiState.webBaseUrl, uiState.itemId) {
+      { tool: String ->
+        val url =
+          "${uiState.webBaseUrl}/audiobookshelf/audiobook/${uiState.itemId}/manage?tool=$tool"
+        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+      }
     }
-  }
 
   Column(
     modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -79,24 +81,11 @@ fun ToolsTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
 }
 
 @Composable
-private fun ToolCard(
-  title: String,
-  description: String,
-  actions: @Composable () -> Unit,
-) {
+private fun ToolCard(title: String, description: String, actions: @Composable () -> Unit) {
   Card(modifier = Modifier.fillMaxWidth()) {
-    Column(
-      modifier = Modifier.padding(12.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-      )
-      Text(
-        text = description,
-        style = MaterialTheme.typography.bodySmall,
-      )
+    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Text(text = title, style = MaterialTheme.typography.titleSmall)
+      Text(text = description, style = MaterialTheme.typography.bodySmall)
       actions()
     }
   }

@@ -1,6 +1,4 @@
-@file:OptIn(
-  androidx.compose.material3.ExperimentalMaterial3Api::class,
-)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package dev.halim.shelfdroid.core.ui.screen.edititem.tabs
 
@@ -96,9 +94,7 @@ fun CoverTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   )
 
   Column(
-    modifier = Modifier
-      .fillMaxWidth()
-      .verticalScroll(rememberScrollState()),
+    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.spacedBy(20.dp),
   ) {
     CoverPreviewSection(
@@ -132,9 +128,7 @@ fun CoverTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
 
     if (coverSearch.results.isNotEmpty()) {
       CoverResultsSection(
-        modifier = Modifier
-          .fillMaxWidth()
-          .bringIntoViewRequester(resultsBringIntoViewRequester),
+        modifier = Modifier.fillMaxWidth().bringIntoViewRequester(resultsBringIntoViewRequester),
         results = coverSearch.results,
         isCoverWorking = uiState.isCoverWorking,
         onSelectCover = { onEvent(EditItemEvent.SetCoverUrl(it)) },
@@ -156,11 +150,7 @@ private fun CoverPreviewSection(
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
     Box(modifier = Modifier.size(220.dp), contentAlignment = Alignment.Center) {
-      CoverNoAnimation(
-        modifier = Modifier.fillMaxSize(),
-        coverUrl = coverUrl,
-        showFallback = true,
-      )
+      CoverNoAnimation(modifier = Modifier.fillMaxSize(), coverUrl = coverUrl, showFallback = true)
       if (isCoverWorking) {
         CircularProgressIndicator()
       }
@@ -260,15 +250,9 @@ private fun CoverSearchSection(
         onValueChange = {},
         readOnly = true,
         label = { Text(stringResource(R.string.edit_item_provider)) },
-        trailingIcon = {
-          ExposedDropdownMenuDefaults.TrailingIcon(expanded = providerExpanded)
-        },
+        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = providerExpanded) },
         modifier =
-          Modifier
-            .fillMaxWidth()
-            .menuAnchor(
-              ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-            ),
+          Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
       )
       ExposedDropdownMenu(
         expanded = providerExpanded,
@@ -316,10 +300,7 @@ private fun CoverResultsSection(
   isCoverWorking: Boolean,
   onSelectCover: (String) -> Unit,
 ) {
-  Column(
-    modifier = modifier,
-    verticalArrangement = Arrangement.spacedBy(12.dp),
-  ) {
+  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
     Text(
       stringResource(R.string.edit_item_cover_results),
       style = MaterialTheme.typography.titleMedium,
@@ -338,9 +319,7 @@ private fun CoverResultsSection(
 
       LazyVerticalGrid(
         columns = GridCells.Fixed(columns),
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(gridHeight),
+        modifier = Modifier.fillMaxWidth().height(gridHeight),
         horizontalArrangement = Arrangement.spacedBy(spacing),
         verticalArrangement = Arrangement.spacedBy(spacing),
         userScrollEnabled = false,
@@ -348,12 +327,9 @@ private fun CoverResultsSection(
         items(results) { coverUrl ->
           Surface(
             modifier =
-              Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .clickable(enabled = !isCoverWorking) {
-                  onSelectCover(coverUrl)
-                },
+              Modifier.fillMaxWidth().aspectRatio(1f).clickable(enabled = !isCoverWorking) {
+                onSelectCover(coverUrl)
+              },
             shape = MaterialTheme.shapes.medium,
             tonalElevation = 1.dp,
           ) {

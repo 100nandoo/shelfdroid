@@ -411,6 +411,7 @@
     <string name="edit_item_library_files_count">Library Files (%1$d)</string>
     <string name="edit_item_size">Size</string>
     <string name="edit_item_type">Type</string>
+    <string name="edit_item_delete_file_confirm">This will delete the file from your server. Are you sure?</string>
 
     <string name="edit_item_search_title">Search Title</string>
     <string name="edit_item_match_by_author">by %1$s</string>

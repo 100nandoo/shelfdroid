@@ -14,9 +14,7 @@ import androidx.compose.ui.unit.dp
 fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
   ElevatedCard(modifier = Modifier.fillMaxWidth()) {
     Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
+      modifier = Modifier.fillMaxWidth().padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(12.dp),
       content = content,
     )
