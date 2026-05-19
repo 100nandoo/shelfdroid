@@ -403,9 +403,9 @@
     <string name="edit_item_remove_chip">Remove %1$s</string>
     <string name="edit_item_add_chip">Add %1$s…</string>
 
-    <string name="edit_item_chapters_count">Chapters (%1$d)</string>
     <string name="edit_item_chapter_number">#</string>
     <string name="edit_item_chapter_start">Start</string>
+    <string name="edit_item_edit_chapters">Edit Chapters</string>
     <string name="edit_item_chapter_end">End</string>
 
     <string name="edit_item_library_files_count">Library Files (%1$d)</string>

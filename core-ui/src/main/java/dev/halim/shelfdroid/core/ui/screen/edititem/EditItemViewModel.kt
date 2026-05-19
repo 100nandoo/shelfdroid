@@ -38,8 +38,7 @@ constructor(
   private val repository: EditItemRepository,
   private val managedDownloadManager: ManagedDownloadManager,
   private val libraryFileDownloadUseCase: EditItemLibraryFileDownloadUseCase,
-) :
-  ViewModel() {
+) : ViewModel() {
 
   private val route: EditItem = savedStateHandle.toRoute()
 

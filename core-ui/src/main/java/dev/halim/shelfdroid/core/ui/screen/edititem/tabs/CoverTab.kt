@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -94,7 +95,8 @@ fun CoverTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   )
 
   Column(
-    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+    modifier =
+      Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
     verticalArrangement = Arrangement.spacedBy(20.dp),
   ) {
     CoverPreviewSection(

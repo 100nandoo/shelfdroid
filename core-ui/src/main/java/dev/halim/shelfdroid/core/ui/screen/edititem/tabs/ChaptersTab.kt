@@ -1,66 +1,63 @@
 package dev.halim.shelfdroid.core.ui.screen.edititem.tabs
 
+import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.player.bigplayer.ChapterRow
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun ChaptersTab(uiState: EditItemUiState) {
-  Column(
-    modifier = Modifier.verticalScroll(rememberScrollState()),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    Text(
-      text = stringResource(R.string.edit_item_chapters_count, uiState.chapters.size),
-      style = MaterialTheme.typography.titleMedium,
-    )
-    HorizontalDivider()
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-      Text(
-        stringResource(R.string.edit_item_chapter_number),
-        modifier = Modifier.weight(0.5f),
-        style = MaterialTheme.typography.labelMedium,
-      )
-      Text(
-        stringResource(R.string.title),
-        modifier = Modifier.weight(3f),
-        style = MaterialTheme.typography.labelMedium,
-      )
-      Text(
-        stringResource(R.string.edit_item_chapter_start),
-        modifier = Modifier.weight(1f),
-        style = MaterialTheme.typography.labelMedium,
-      )
-      Text(
-        stringResource(R.string.edit_item_chapter_end),
-        modifier = Modifier.weight(1f),
-        style = MaterialTheme.typography.labelMedium,
-      )
-    }
-    HorizontalDivider()
-    uiState.chapters.forEach { chapter ->
-      Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        Text("${chapter.id}", modifier = Modifier.weight(0.5f))
-        Text(chapter.title, modifier = Modifier.weight(3f))
-        Text(formatSeconds(chapter.start), modifier = Modifier.weight(1f))
-        Text(formatSeconds(chapter.end), modifier = Modifier.weight(1f))
+  val context = LocalContext.current
+  val openChapterEditor =
+    remember(context, uiState.webBaseUrl, uiState.itemId) {
+      {
+        val url = "${uiState.webBaseUrl}/audiobookshelf/audiobook/${uiState.itemId}/chapters"
+        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
       }
+    }
+
+  Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+      modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      uiState.chapters.forEachIndexed { index, chapter ->
+        ChapterRow(
+          title = chapter.title,
+          timeRange = "${formatSeconds(chapter.start)} - ${formatSeconds(chapter.end)}",
+          modifier =
+            Modifier.background(MaterialTheme.colorScheme.surface).padding(horizontal = 16.dp),
+          chapterTitleLine = 2,
+        )
+        if (index < uiState.chapters.lastIndex) {
+          HorizontalDivider()
+        }
+      }
+    }
+    Button(onClick = openChapterEditor, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+      Text(stringResource(R.string.edit_item_edit_chapters))
     }
   }
 }

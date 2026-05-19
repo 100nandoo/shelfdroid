@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SecondaryScrollableTabRow
@@ -109,7 +108,7 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
     if (uiState.isSaving) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
-    Box(modifier = Modifier.weight(1f).fillMaxWidth().imePadding().padding(horizontal = 16.dp)) {
+    Box(modifier = Modifier.weight(1f).fillMaxWidth().imePadding()) {
       when (uiState.currentTab) {
         EditItemTab.Details -> DetailsTab(uiState.details, onEvent, uiState.seriesSuggestions)
         EditItemTab.Cover -> CoverTab(uiState, onEvent)

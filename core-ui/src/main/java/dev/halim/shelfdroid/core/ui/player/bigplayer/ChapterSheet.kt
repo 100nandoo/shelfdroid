@@ -62,7 +62,7 @@ fun ChapterBottomSheet(
     ) {
       LazyColumn(state = state, reverseLayout = true) {
         itemsIndexed(chapters, key = { _, chapter -> chapter.id }) { index, playerChapter ->
-          ChapterRow(
+          PlayerChapterRow(
             index,
             scope,
             sheetState,
@@ -81,7 +81,35 @@ fun ChapterBottomSheet(
 }
 
 @Composable
-private fun ChapterRow(
+fun ChapterRow(
+  modifier: Modifier = Modifier,
+  title: String,
+  timeRange: String,
+  selected: Boolean = false,
+  chapterTitleLine: Int = 2,
+  onClick: (() -> Unit)? = null,
+) {
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceBetween,
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .then(if (onClick != null) Modifier.selectable(selected, onClick = onClick) else Modifier),
+  ) {
+    TextBodyMedium(
+      modifier = Modifier.weight(1f),
+      text = title,
+      maxLines = chapterTitleLine,
+      overflow = TextOverflow.Ellipsis,
+    )
+    Spacer(modifier = Modifier.width(8.dp))
+    TextLabelMedium(text = timeRange)
+  }
+}
+
+@Composable
+private fun PlayerChapterRow(
   index: Int,
   scope: CoroutineScope,
   sheetState: SheetState,
@@ -97,29 +125,15 @@ private fun ChapterRow(
   val background =
     if (selected) MaterialTheme.colorScheme.surfaceVariant
     else MaterialTheme.colorScheme.surfaceContainerLow
-
-  Row(
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.SpaceBetween,
-    modifier =
-      Modifier.fillMaxWidth()
-        .background(background)
-        .selectable(selected) {
-          currentOnEvent(PlayerEvent.ChangeChapter(index))
-          scope.launch { sheetState.hide() }
-        }
-        .padding(horizontal = 16.dp, vertical = 8.dp),
+  ChapterRow(
+    title = playerChapter.title,
+    timeRange = "${playerChapter.startFormattedTime} - ${playerChapter.endFormattedTime}",
+    selected = selected,
+    chapterTitleLine = chapterTitleLine,
+    modifier = Modifier.background(background).padding(horizontal = 16.dp, vertical = 8.dp),
   ) {
-    TextBodyMedium(
-      modifier = Modifier.weight(1f),
-      text = playerChapter.title,
-      maxLines = chapterTitleLine,
-      overflow = TextOverflow.Ellipsis,
-    )
-    Spacer(modifier = Modifier.width(8.dp))
-    TextLabelMedium(
-      text = "${playerChapter.startFormattedTime} - ${playerChapter.endFormattedTime}"
-    )
+    currentOnEvent(PlayerEvent.ChangeChapter(index))
+    scope.launch { sheetState.hide() }
   }
 }
 
@@ -129,7 +143,7 @@ private fun PreviewChapterRow() {
   val chapterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
   PreviewWrapper {
-    ChapterRow(
+    PlayerChapterRow(
       index = 0,
       scope = rememberCoroutineScope(),
       sheetState = chapterSheetState,

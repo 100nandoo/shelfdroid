@@ -41,7 +41,7 @@ fun ToolsTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
     }
 
   Column(
-    modifier = Modifier.verticalScroll(rememberScrollState()),
+    modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
     Text(

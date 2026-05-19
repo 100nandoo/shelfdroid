@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.backups
 
-import dev.halim.shelfdroid.core.data.download.ManagedDownload
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.download.ManagedDownload
 
 data class BackupsUiState(
   val state: GenericState = GenericState.Loading,

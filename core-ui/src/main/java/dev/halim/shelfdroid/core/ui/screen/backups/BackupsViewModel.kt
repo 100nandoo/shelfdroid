@@ -22,8 +22,7 @@ class BackupsViewModel
 constructor(
   private val repository: BackupsRepository,
   private val managedDownloadManager: ManagedDownloadManager,
-) :
-  ViewModel() {
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow(BackupsUiState())
   val uiState: StateFlow<BackupsUiState> =

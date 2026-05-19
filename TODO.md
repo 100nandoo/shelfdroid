@@ -5,9 +5,10 @@
 - [ ] close playback implementation
     - [ ] library item finished
     - [ ] exoplayer/service stop
-- [ ] library management
-    - [ ] download/delete files
-    - [ ] Edit chapter go to web
+- [x] library management
+    - [ ] edit podcast
+    - [x] download/delete files
+    - [x] Edit chapter go to web
 - [ ] Widget
 - [ ] Backup Restore
 - [ ] Window Manager

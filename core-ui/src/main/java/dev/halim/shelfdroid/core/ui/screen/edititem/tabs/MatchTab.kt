@@ -42,7 +42,7 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 fun MatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val match = uiState.match
   Column(
-    modifier = Modifier.verticalScroll(rememberScrollState()),
+    modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
     var expanded by remember { mutableStateOf(false) }

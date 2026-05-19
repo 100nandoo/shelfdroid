@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -40,16 +41,16 @@ fun FilesTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
     modifier = Modifier.verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    Text(
-      text = stringResource(R.string.edit_item_library_files_count, uiState.libraryFiles.size),
-      style = MaterialTheme.typography.titleMedium,
-    )
-    HorizontalDivider()
     uiState.libraryFiles.forEach { file ->
       val isBusy = uiState.activeFileActionIno == file.ino
       Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(text = file.filename, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Text(
+          text = file.filename,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+          modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
           Text(
             text = "${file.sizeText} ∙ ${file.fileType}",
             style = MaterialTheme.typography.bodySmall,
