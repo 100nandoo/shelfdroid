@@ -50,7 +50,17 @@ data class PlaybackPrefs(
 
 val CHAPTER_TITLE_PRESET_LINE: List<Int> = listOf(1, 2, 3)
 
-@Serializable data class PlayerPrefs(val chapterTitleLine: Int = 2)
+enum class ChapterTimeDisplay {
+  TimeRange,
+  Duration,
+  DurationShort,
+}
+
+@Serializable
+data class PlayerPrefs(
+  val chapterTitleLine: Int = 2,
+  val chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.TimeRange,
+)
 
 val SLEEP_TIMER_PRESET_MINUTES: List<Int> = listOf(1, 5, 10, 15, 30, 45, 60)
 

@@ -46,7 +46,7 @@ fun ChaptersTab(uiState: EditItemUiState) {
       uiState.chapters.forEachIndexed { index, chapter ->
         ChapterRow(
           title = chapter.title,
-          timeRange = "${formatSeconds(chapter.start)} - ${formatSeconds(chapter.end)}",
+          chapterTime = "${formatSeconds(chapter.start)} - ${formatSeconds(chapter.end)}",
           modifier =
             Modifier.background(MaterialTheme.colorScheme.surface).padding(horizontal = 16.dp),
           chapterTitleLine = 2,

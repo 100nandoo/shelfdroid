@@ -177,6 +177,8 @@ object Defaults {
   val DEFAULT_PLAYER_CHAPTER =
     PlayerChapter(
       id = 1,
+      startTimeSeconds = 0.0,
+      endTimeSeconds = 10.0,
       title = "Chapter 1: The Unexpected and Very Long Journey",
       startFormattedTime = "00:00",
       endFormattedTime = "00:10",
@@ -186,12 +188,16 @@ object Defaults {
       DEFAULT_PLAYER_CHAPTER,
       PlayerChapter(
         id = 2,
+        startTimeSeconds = 10.0,
+        endTimeSeconds = 20.0,
         title = "Chapter 2: Whispers of the Past",
         startFormattedTime = "00:10",
         endFormattedTime = "00:20",
       ),
       PlayerChapter(
         id = 3,
+        startTimeSeconds = 20.0,
+        endTimeSeconds = 30.0,
         title = "Chapter 3: The Council of Elrond",
         startFormattedTime = "00:20",
         endFormattedTime = "00:30",
@@ -202,6 +208,8 @@ object Defaults {
     (1..25).map {
       PlayerChapter(
         id = it,
+        startTimeSeconds = ((it - 1) * 5).toDouble(),
+        endTimeSeconds = (it * 5).toDouble(),
         title = "Chapter $it: A Long Title to Test Ellipsis and Wrapping Behavior in UI Components",
         startFormattedTime = String.format("%02d:%02d", (it - 1) * 5 / 60, (it - 1) * 5 % 60),
         endFormattedTime = String.format("%02d:%02d", it * 5 / 60, it * 5 % 60),

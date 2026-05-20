@@ -9,6 +9,11 @@
     - [ ] edit podcast
     - [x] download/delete files
     - [x] Edit chapter go to web
+- [ ] Loading state for player
+- [ ] Search episode filter, show date
+- [ ] Refactor player state
+- [ ] Socket implementation
+    - [ ] Handle download event
 - [ ] Widget
 - [ ] Backup Restore
 - [ ] Window Manager
@@ -16,7 +21,6 @@
 
 ## Low Priority
 
-- [ ] Preview for all UI component
 - [ ] Settings
     - [ ] Episode screen, default expand/shrink description state
     - [ ] Onclick notification, (big/small)
@@ -88,3 +92,4 @@
 - [x] Use xml icon resources instead of compose image vectors
 - [x] Backup management
 - [x] Settings management
+- [x] Preview for all UI component

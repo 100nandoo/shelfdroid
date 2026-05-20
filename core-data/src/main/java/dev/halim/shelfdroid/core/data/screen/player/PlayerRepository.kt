@@ -106,6 +106,7 @@ constructor(
     val progress = progressRepo.bookById(id)
     val bookmarks = bookmarkRepo.byLibraryItemId(id)
     val playerBookmarks = bookmarks.map { mapper.toPlayerBookmark(it) }
+    val playerPrefs = prefsRepository.playerPrefs.first()
     return if (result != null) {
       val media = Json.decodeFromString<Book>(result.media)
       val chapters =
@@ -152,6 +153,8 @@ constructor(
         playerBookmarks = playerBookmarks,
         downloadState = downloadState,
         advancedControl = advancedControl,
+        chapterTitleLine = playerPrefs.chapterTitleLine,
+        chapterTimeDisplay = playerPrefs.chapterTimeDisplay,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
@@ -164,6 +167,7 @@ constructor(
   ): PlayerUiState {
     val result = libraryItemRepo.byId(itemId)
     val progress = progressRepo.episodeById(episodeId)
+    val playerPrefs = prefsRepository.playerPrefs.first()
     return if (result != null && result.isBook.toBoolean().not()) {
       val media = Json.decodeFromString<Podcast>(result.media)
 
@@ -199,6 +203,8 @@ constructor(
         currentTime = currentTime,
         downloadState = downloadState,
         advancedControl = advancedControl,
+        chapterTitleLine = playerPrefs.chapterTitleLine,
+        chapterTimeDisplay = playerPrefs.chapterTimeDisplay,
       )
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }

@@ -58,7 +58,12 @@ constructor(
     }
     syncScope.launch {
       prefsRepository.playerPrefs.collect { prefs ->
-        uiState.update { it.copy(chapterTitleLine = prefs.chapterTitleLine) }
+        uiState.update {
+          it.copy(
+            chapterTitleLine = prefs.chapterTitleLine,
+            chapterTimeDisplay = prefs.chapterTimeDisplay,
+          )
+        }
       }
     }
   }

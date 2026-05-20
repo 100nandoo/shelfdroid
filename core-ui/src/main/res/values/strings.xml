@@ -311,8 +311,11 @@
     <!--Settings-->
 
     <!--Settings Player-->
+    <string name="chapter_time_display">Chapter time display: </string>
     <string name="chapter_title_max_lines">Chapter title max lines: </string>
     <string name="chapter">Chapter</string>
+    <string name="time_range">Time range</string>
+    <string name="duration_short">Duration (short)</string>
     <!--Settings Player-->
 
     <!--Settings Playback-->

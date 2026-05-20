@@ -73,6 +73,7 @@ fun Player(
               advancedControl = uiState.value.advancedControl,
               chapters = uiState.value.playerChapters,
               chapterTitleLine = uiState.value.chapterTitleLine,
+              chapterTimeDisplay = uiState.value.chapterTimeDisplay,
               bookmarks = uiState.value.playerBookmarks,
               newBookmarkTime = uiState.value.newBookmarkTime,
               currentChapter = uiState.value.currentChapter,

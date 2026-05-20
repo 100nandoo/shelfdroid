@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.CHAPTER_TITLE_PRESET_LINE
+import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.data.screen.settings.player.SettingsPlayerUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
@@ -46,6 +47,28 @@ private fun SettingsPlayerContent(
 @Composable
 private fun ChapterSection(uiState: SettingsPlayerUiState, onEvent: (SettingsPlayerEvent) -> Unit) {
   TextTitleMedium(text = stringResource(R.string.chapter))
+  val timeRangeLabel = stringResource(R.string.time_range)
+  val durationLabel = stringResource(R.string.duration)
+  val durationShortLabel = stringResource(R.string.duration_short)
+  val chapterTimeDisplayOptions =
+    mapOf(
+      ChapterTimeDisplay.TimeRange to timeRangeLabel,
+      ChapterTimeDisplay.Duration to durationLabel,
+      ChapterTimeDisplay.DurationShort to durationShortLabel,
+    )
+  ChipDropdownMenu(
+    modifier = Modifier.fillMaxWidth(),
+    label = stringResource(R.string.chapter_time_display),
+    labelPosition = LabelPosition.Expand,
+    options = chapterTimeDisplayOptions.values.toList(),
+    initialValue = chapterTimeDisplayOptions.getValue(uiState.chapterTimeDisplay),
+    onClick = { selected ->
+      chapterTimeDisplayOptions.entries
+        .firstOrNull { it.value == selected }
+        ?.key
+        ?.let { onEvent(SettingsPlayerEvent.ChangeChapterTimeDisplay(it)) }
+    },
+  )
   ChipDropdownMenu(
     modifier = Modifier.fillMaxWidth(),
     label = stringResource(R.string.chapter_title_max_lines),

@@ -59,6 +59,7 @@ data class PlayerUiState(
   val newBookmarkTime: PlayerBookmark = PlayerBookmark(),
   val downloadState: DownloadState = DownloadState.Unknown,
   val chapterTitleLine: Int = 2,
+  val chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.TimeRange,
 )
 
 data class PlayerTrack(

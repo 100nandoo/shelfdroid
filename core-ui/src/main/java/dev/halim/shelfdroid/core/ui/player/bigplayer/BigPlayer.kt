@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.AdvancedControl
 import dev.halim.shelfdroid.core.ChapterPosition
+import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.MultipleButtonState
 import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.PlayerBookmark
@@ -67,6 +68,7 @@ fun BigPlayerContent(
   advancedControl: AdvancedControl = AdvancedControl(),
   chapters: List<PlayerChapter> = emptyList(),
   chapterTitleLine: Int = 2,
+  chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.TimeRange,
   currentChapter: PlayerChapter? = PlayerChapter(),
   bookmarks: List<PlayerBookmark> = emptyList(),
   newBookmarkTime: PlayerBookmark = PlayerBookmark(),
@@ -99,6 +101,7 @@ fun BigPlayerContent(
       chapters,
       currentChapter,
       chapterTitleLine,
+      chapterTimeDisplay,
       bookmarks,
       newBookmarkTime,
       onEvent,
@@ -254,6 +257,7 @@ fun BookmarkAndChapter(
   chapters: List<PlayerChapter>,
   currentChapter: PlayerChapter?,
   chapterTitleLine: Int = 2,
+  chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.TimeRange,
   bookmarks: List<PlayerBookmark>,
   newBookmarkTime: PlayerBookmark,
   onEvent: (PlayerEvent) -> Unit,
@@ -284,7 +288,14 @@ fun BookmarkAndChapter(
       onClick = { scope.launch { chapterSheetState.show() } },
     )
   }
-  ChapterBottomSheet(chapterSheetState, chapters, currentChapter, chapterTitleLine, onEvent)
+  ChapterBottomSheet(
+    chapterSheetState,
+    chapters,
+    currentChapter,
+    chapterTitleLine,
+    chapterTimeDisplay,
+    onEvent,
+  )
   BookmarkBottomSheet(
     bookmarkSheetState,
     bookmarks,

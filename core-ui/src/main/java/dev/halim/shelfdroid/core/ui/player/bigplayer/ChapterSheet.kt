@@ -31,7 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.PlayerChapter
+import dev.halim.shelfdroid.core.extensions.formatChapterTime
+import dev.halim.shelfdroid.core.extensions.formatDurationShort
 import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
 import dev.halim.shelfdroid.core.ui.components.TextLabelMedium
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
@@ -48,6 +51,7 @@ fun ChapterBottomSheet(
   chapters: List<PlayerChapter>,
   currentChapter: PlayerChapter?,
   chapterTitleLine: Int = 2,
+  chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.TimeRange,
   onEvent: (PlayerEvent) -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
@@ -69,6 +73,7 @@ fun ChapterBottomSheet(
             playerChapter,
             currentChapter,
             chapterTitleLine,
+            chapterTimeDisplay,
             onEvent,
           )
           if (chapterTitleLine != 1) {
@@ -84,7 +89,7 @@ fun ChapterBottomSheet(
 fun ChapterRow(
   modifier: Modifier = Modifier,
   title: String,
-  timeRange: String,
+  chapterTime: String,
   selected: Boolean = false,
   chapterTitleLine: Int = 2,
   onClick: (() -> Unit)? = null,
@@ -104,7 +109,7 @@ fun ChapterRow(
       overflow = TextOverflow.Ellipsis,
     )
     Spacer(modifier = Modifier.width(8.dp))
-    TextLabelMedium(text = timeRange)
+    TextLabelMedium(text = chapterTime)
   }
 }
 
@@ -116,6 +121,7 @@ private fun PlayerChapterRow(
   playerChapter: PlayerChapter,
   currentChapter: PlayerChapter?,
   chapterTitleLine: Int = 2,
+  chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.TimeRange,
   onEvent: (PlayerEvent) -> Unit = {},
 ) {
   val currentOnEvent by rememberUpdatedState(onEvent)
@@ -125,9 +131,18 @@ private fun PlayerChapterRow(
   val background =
     if (selected) MaterialTheme.colorScheme.surfaceVariant
     else MaterialTheme.colorScheme.surfaceContainerLow
+  val chapterTime =
+    when (chapterTimeDisplay) {
+      ChapterTimeDisplay.TimeRange ->
+        "${playerChapter.startFormattedTime} - ${playerChapter.endFormattedTime}"
+      ChapterTimeDisplay.Duration ->
+        (playerChapter.endTimeSeconds - playerChapter.startTimeSeconds).formatChapterTime()
+      ChapterTimeDisplay.DurationShort ->
+        (playerChapter.endTimeSeconds - playerChapter.startTimeSeconds).formatDurationShort()
+    }
   ChapterRow(
     title = playerChapter.title,
-    timeRange = "${playerChapter.startFormattedTime} - ${playerChapter.endFormattedTime}",
+    chapterTime = chapterTime,
     selected = selected,
     chapterTitleLine = chapterTitleLine,
     modifier = Modifier.background(background).padding(horizontal = 16.dp, vertical = 8.dp),
@@ -148,7 +163,7 @@ private fun PreviewChapterRow() {
       scope = rememberCoroutineScope(),
       sheetState = chapterSheetState,
       playerChapter = Defaults.DEFAULT_PLAYER_CHAPTER,
-      currentChapter = Defaults.DEFAULT_PLAYER_CHAPTER_LIST[1],
+      currentChapter = Defaults.DEFAULT_PLAYER_CHAPTER_LIST.getOrNull(1),
     )
   }
 }
@@ -171,6 +186,54 @@ private fun PreviewChapterBottomSheet() {
       chapterSheetState,
       chapters = Defaults.DEFAULT_PLAYER_CHAPTER_LIST,
       currentChapter = Defaults.DEFAULT_PLAYER_CHAPTER,
+    )
+    LaunchedEffect(Unit) { chapterSheetState.show() }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun PreviewChapterBottomSheetDuration() {
+  PreviewWrapper(false) {
+    val density = LocalDensity.current
+    val chapterSheetState =
+      SheetState(
+        skipPartiallyExpanded = true,
+        initialValue = SheetValue.Expanded,
+        positionalThreshold = { with(density) { 56.dp.toPx() } },
+        velocityThreshold = { with(density) { 125.dp.toPx() } },
+      )
+
+    chapterSheetState.isVisible
+    ChapterBottomSheet(
+      chapterSheetState,
+      chapters = Defaults.DEFAULT_PLAYER_CHAPTER_LIST,
+      currentChapter = Defaults.DEFAULT_PLAYER_CHAPTER,
+      chapterTimeDisplay = ChapterTimeDisplay.Duration,
+    )
+    LaunchedEffect(Unit) { chapterSheetState.show() }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun PreviewChapterBottomSheetDurationShort() {
+  PreviewWrapper(false) {
+    val density = LocalDensity.current
+    val chapterSheetState =
+      SheetState(
+        skipPartiallyExpanded = true,
+        initialValue = SheetValue.Expanded,
+        positionalThreshold = { with(density) { 56.dp.toPx() } },
+        velocityThreshold = { with(density) { 125.dp.toPx() } },
+      )
+
+    chapterSheetState.isVisible
+    ChapterBottomSheet(
+      chapterSheetState,
+      chapters = Defaults.DEFAULT_PLAYER_CHAPTER_LIST,
+      currentChapter = Defaults.DEFAULT_PLAYER_CHAPTER,
+      chapterTimeDisplay = ChapterTimeDisplay.DurationShort,
     )
     LaunchedEffect(Unit) { chapterSheetState.show() }
   }
@@ -203,7 +266,7 @@ private fun PreviewManyChaptersBottomSheet() {
     ChapterBottomSheet(
       chapterSheetState,
       chapters = Defaults.MANY_PLAYER_CHAPTERS_LIST,
-      currentChapter = Defaults.MANY_PLAYER_CHAPTERS_LIST[10],
+      currentChapter = Defaults.MANY_PLAYER_CHAPTERS_LIST.getOrNull(10),
     )
   }
 }

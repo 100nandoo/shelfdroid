@@ -9,6 +9,7 @@ import android.text.format.DateUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
+import dev.halim.shelfdroid.core.extensions.formatDurationShort
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -151,19 +152,7 @@ constructor(
   }
 
   fun formatDurationShort(seconds: Double?): String {
-    if (seconds == null) return "0s"
-    val totalSeconds = seconds.toLong()
-    val h = totalSeconds / 3600
-    val m = (totalSeconds % 3600) / 60
-    val s = totalSeconds % 60
-
-    return listOfNotNull(
-        if (h > 0) "${h}h" else null,
-        if (m > 0) "${m}m" else null,
-        // Only show seconds if there are no minutes and no hours
-        if ((h == 0L && m == 0L) || (s > 0 && h == 0L && m == 0L)) "${s}s" else null,
-      )
-      .joinToString(" ")
+    return seconds?.formatDurationShort() ?: "0s"
   }
 
   /**
