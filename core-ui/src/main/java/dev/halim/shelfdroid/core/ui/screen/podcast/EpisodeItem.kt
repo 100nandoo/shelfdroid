@@ -41,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun EpisodeItem(
   itemId: String,
+  podcastTitle: String,
   episode: Episode,
   isSelected: Boolean,
   canDelete: Boolean,
@@ -135,7 +136,14 @@ fun EpisodeItem(
           episode.download.state,
           snackbarHostState,
           {
-            onEvent(PodcastEvent.Download(episode.download.id, episode.download.url, episode.title))
+            onEvent(
+              PodcastEvent.Download(
+                episode.download.id,
+                episode.download.url,
+                episode.title,
+                podcastTitle,
+              )
+            )
           },
           { onEvent(PodcastEvent.DeleteDownload(episode.download.id)) },
         )
@@ -168,6 +176,7 @@ fun EpisodeItemPreview() {
         item {
           EpisodeItem(
             "",
+            Defaults.TITLE,
             episode,
             true,
             true,
@@ -193,6 +202,7 @@ fun EpisodeItemDynamicPreview() {
         item {
           EpisodeItem(
             "",
+            Defaults.TITLE,
             episode,
             false,
             false,

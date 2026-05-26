@@ -56,6 +56,7 @@ constructor(
               episodeId = episodeId,
               url = episode.audioTrack.contentUrl,
               title = episode.title,
+              secondaryLabel = podcast.title,
             )
 
           EpisodeUiState(

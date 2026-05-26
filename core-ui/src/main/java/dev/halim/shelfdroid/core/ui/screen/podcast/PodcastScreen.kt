@@ -147,6 +147,7 @@ fun PodcastScreenContent(
         HorizontalDivider()
         EpisodeItem(
           id,
+          uiState.title,
           episode,
           isSelected,
           uiState.canDeleteEpisode,

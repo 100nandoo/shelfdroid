@@ -59,7 +59,12 @@ constructor(
           val download =
             if (isSingleTrack) {
               val url = media.audioTracks.first().contentUrl
-              downloadRepo.item(itemId = id, url = url, title = book.title)
+              downloadRepo.item(
+                itemId = id,
+                url = url,
+                title = book.title,
+                secondaryLabel = book.author,
+              )
             } else {
               DownloadUiState()
             }

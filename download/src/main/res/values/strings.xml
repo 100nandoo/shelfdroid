@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="downloads">Downloads</string>
+    <string name="download_book_batch_title">Downloading %1$s</string>
+    <string name="download_book_batch_status">%1$d/%2$d completed • %3$s</string>
+    <plurals name="download_book_batch_parallel_downloads">
+        <item quantity="one">%d parallel download</item>
+        <item quantity="other">%d parallel downloads</item>
+    </plurals>
 </resources>

@@ -37,6 +37,7 @@ dependencies {
 
   // Kotlinx
   implementation(libs.kotlinx.coroutines.android)
+  implementation(libs.androidx.core.ktx)
 
   // Hilt Dependency Injection
   implementation(libs.hilt.android)

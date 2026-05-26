@@ -48,6 +48,10 @@ _Avoid_: Chapter, episode
 A local copy of server media or a server-exported file that ShelfDroid stores on the Android device for offline access.
 _Avoid_: Stream, library file
 
+**Book download batch**:
+One user-initiated download of a **Book**, which may enqueue multiple **Track** downloads but should be presented as a single book-scoped download operation in the UI and notifications, with progress represented at the batch level such as completed tracks over total tracks.
+_Avoid_: Track download, file batch
+
 **Progress**:
 The listener's current completion state for a playable media unit.
 _Avoid_: Position, status
@@ -88,6 +92,7 @@ _Avoid_: Preferences, app settings
 - A **Book** may be backed by one or more **Tracks**
 - A **Library item** may have one or more **Library files**
 - A **Download** is derived from server media or a server file and belongs to a device, not to the server catalog
+- A **Book download batch** belongs to one **Book** and may enqueue one or more **Track** downloads
 - A **Listening session** belongs to one **User** and one server-reported media context
 - An **Open session** is the currently active subset of **Listening sessions**
 - One **Audiobookshelf server** may have many **Open sessions** at the same time

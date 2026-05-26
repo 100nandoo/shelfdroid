@@ -93,7 +93,7 @@ constructor(
         viewModelScope.launch { repository.toggleIsFinished(id, event.episode) }
       }
       is PodcastEvent.Download -> {
-        downloadRepo.download(event.downloadId, event.url, event.message)
+        downloadRepo.download(event.downloadId, event.url, event.message, event.secondaryLabel)
       }
       is PodcastEvent.DeleteDownload -> {
         downloadRepo.delete(event.downloadId)
@@ -188,7 +188,12 @@ constructor(
 sealed interface PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent
 
-  data class Download(val downloadId: String, val url: String, val message: String) : PodcastEvent
+  data class Download(
+    val downloadId: String,
+    val url: String,
+    val message: String,
+    val secondaryLabel: String = "",
+  ) : PodcastEvent
 
   data class DeleteDownload(val downloadId: String) : PodcastEvent
 

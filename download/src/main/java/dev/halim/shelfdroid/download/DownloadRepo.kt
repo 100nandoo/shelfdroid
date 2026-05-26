@@ -98,13 +98,20 @@ constructor(
     episodeId: String? = null,
     url: String,
     title: String,
+    secondaryLabel: String = "",
   ): DownloadUiState {
     val downloadId = helper.generateDownloadId(itemId, episodeId)
     val download = downloadById(downloadId)
     val downloadState = downloadMapper.toDownloadState(download?.state)
     val downloadUrl = helper.generateContentUrl(url)
 
-    return DownloadUiState(state = downloadState, id = downloadId, url = downloadUrl, title = title)
+    return DownloadUiState(
+      state = downloadState,
+      id = downloadId,
+      url = downloadUrl,
+      title = title,
+      secondaryLabel = secondaryLabel,
+    )
   }
 
   suspend fun multipleTrackItem(
@@ -139,12 +146,48 @@ constructor(
     return MultipleTrackDownloadUiState(state = state, items = items)
   }
 
-  fun download(id: String, url: String, message: String) {
+  fun download(id: String, url: String, message: String, secondaryLabel: String? = null) {
+    val payload =
+      DownloadNotificationPayload.single(
+        title = message,
+        openDetailId = id,
+        secondaryLabel = secondaryLabel,
+      )
+    enqueueDownload(id = id, url = url, payload = payload, foreground = true)
+  }
+
+  fun downloadBook(
+    itemId: String,
+    title: String,
+    author: String? = null,
+    tracks: List<DownloadUiState>,
+  ) {
+    if (tracks.isEmpty()) return
+
+    val payload =
+      DownloadNotificationPayload.bookBatchTrack(
+        bookId = itemId,
+        bookTitle = title,
+        author = author,
+        trackCount = tracks.size,
+      )
+
+    tracks.forEachIndexed { index, track ->
+      enqueueDownload(id = track.id, url = track.url, payload = payload, foreground = index == 0)
+    }
+  }
+
+  private fun enqueueDownload(
+    id: String,
+    url: String,
+    payload: DownloadNotificationPayload,
+    foreground: Boolean,
+  ) {
     DownloadService.sendAddDownload(
       context,
       ShelfDownloadService::class.java,
-      toDownloadRequest(id, url, message),
-      true,
+      toDownloadRequest(id, url, payload),
+      foreground,
     )
   }
 
@@ -164,10 +207,14 @@ constructor(
     toDelete.forEach { delete(it) }
   }
 
-  private fun toDownloadRequest(id: String, url: String, message: String): DownloadRequest {
+  private fun toDownloadRequest(
+    id: String,
+    url: String,
+    payload: DownloadNotificationPayload,
+  ): DownloadRequest {
     return DownloadRequest.Builder(id, url.toUri())
       .setCustomCacheKey(id)
-      .setData(message.toByteArray())
+      .setData(payload.encode())
       .build()
   }
 
