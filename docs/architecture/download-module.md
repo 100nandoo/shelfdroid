@@ -23,7 +23,7 @@ It is responsible for:
 - exposing app-facing download state to the rest of the codebase
 - attaching semantic metadata to download requests so notifications and post-processing can recover intent
 - rendering progress notifications for in-flight downloads
-- materializing completed podcast episode downloads into durable shared storage
+- materializing completed book and podcast playback downloads into durable shared storage
 
 It is not responsible for:
 
@@ -36,7 +36,7 @@ Those responsibilities live in `core-data`, `core-ui`, `media`, and the managed-
 
 ## Architecture
 
-At a high level, the module is a facade over Media3 download primitives with one podcast-specific durable-storage extension:
+At a high level, the module is a facade over Media3 download primitives with durable shared-storage export for books and podcasts:
 
 ```text
 UI / repositories
@@ -46,7 +46,7 @@ UI / repositories
   -> on podcast completion: export cache -> shared storage
 ```
 
-The most important design choice is that podcast episodes still download through Media3 first. ShelfDroid keeps Media3's existing progress and notification behavior, then exports completed podcast episodes into shared storage so they survive app-data clear. That tradeoff is documented in ADR 0001.
+The most important design choice is that books and podcast episodes still download through Media3 first. ShelfDroid keeps Media3's existing progress and notification behavior, then exports completed playback media into shared storage so it survives app-data clear. That tradeoff is documented in ADR 0001.
 
 ## Main Components
 
@@ -62,7 +62,7 @@ It owns:
 - podcast-specific enqueue/delete behavior
 - translating Media3 `Download` entries into app `DownloadUiState`
 - exposing reactive download invalidation signals
-- interpreting durable podcast files as the source of truth for completed podcast downloads
+- interpreting durable shared files as the source of truth for completed playback downloads
 
 The rest of the app should treat this class as the public API of the module.
 
@@ -122,42 +122,43 @@ If the current active downloads are not one book batch, the service falls back t
 
 File: `download/src/main/java/dev/halim/shelfdroid/download/ReadableStoragePolicy.kt`
 
-This class owns the durable podcast path policy:
+This class owns the durable playback path policy:
 
 - folder root under public downloads
+- `ShelfDroid/books/<title>_<author>/`
 - `ShelfDroid/podcasts/<podcast-title>/`
 - readable path sanitization rules
 
 This keeps storage naming decisions out of the exporter and repositories.
 
-### `PodcastDurableDownloadCatalog`
+### `BookDurableDownloadCatalog` and `PodcastDurableDownloadCatalog`
 
 File: `download/src/main/java/dev/halim/shelfdroid/download/PodcastDurableDownloadCatalog.kt`
 
-This is the shared-storage CRUD boundary for durable podcast files.
+These are the shared-storage CRUD boundaries for durable playback files.
 
-It owns:
+They own:
 
 - exact-path lookup in `MediaStore.Downloads`
-- deleting an existing durable podcast file
+- deleting an existing durable file or readable book folder contents
 - writing a durable shared-storage file
 - emitting a simple invalidation signal when durable files change
 
-It does not know anything about Media3 cache internals or UI state. It only manages durable podcast files in shared storage.
+They do not know anything about Media3 cache internals or UI state. They only manage durable files in shared storage.
 
-### `PodcastDurableDownloadExporter`
+### `BookDurableDownloadExporter` and `PodcastDurableDownloadExporter`
 
 File: `download/src/main/java/dev/halim/shelfdroid/download/PodcastDurableDownloadExporter.kt`
 
-This is the bridge from Media3 completion into durable shared storage.
+These are the bridges from Media3 completion into durable shared storage.
 
 It listens to `DownloadManager` changes and, for completed podcast episode downloads:
 
 - reads the semantic payload
 - copies the completed bytes out of Media3 cache
-- writes the file through `PodcastDurableDownloadCatalog`
+- writes the file through the corresponding durable catalog
 - removes the temporary Media3 cached resource
-- removes the Media3 download entry afterward
+- for podcasts, removes the Media3 download entry afterward
 
 This is what converts "completed Media3 cache entry" into "durable shared file that survives app-data clear".
 
@@ -194,7 +195,7 @@ These are important to mention because the download behavior is spread across mo
 4. `ShelfDownloadService` and `BookBatchProgressNotificationBuilder` aggregate active progress into a single batch notification.
 5. `TerminalStateNotificationHelper` emits one final batch terminal notification after all tracks reach a terminal state.
 
-Books currently remain Media3-managed downloads. They do not use the durable shared-storage export path.
+Books now export completed track files into durable shared storage and use those readable files for offline recovery and playback.
 
 ### Delete flow
 
@@ -215,7 +216,7 @@ Instead, repositories combine:
 
 - domain data such as item metadata and progress
 - Media3 download invalidations
-- durable podcast storage invalidations
+- durable playback storage invalidations
 
 Then they call back into `DownloadRepo.item(...)` to compute the current `DownloadUiState`.
 
@@ -241,7 +242,7 @@ The app exposes download state through ShelfDroid's `DownloadState`, not Media3 
 Important distinction:
 
 - for books, a completed Media3 entry is the completion signal
-- for podcast episodes, the durable shared file is the completion signal
+- for books and podcast episodes, the durable shared file is the completion signal
 
 That distinction is deliberate. A Media3 entry that completed but has not yet been materialized into shared storage must not be treated as a durable offline podcast file.
 
@@ -250,8 +251,9 @@ That distinction is deliberate. A Media3 entry that completed but has not yet be
 The module relies on a few rules that should remain true unless the design changes deliberately:
 
 - user-visible download notification text must remain stable
+- book durable files live under `Download/ShelfDroid/books/<title>_<author>/<server-filename>`
 - podcast durable files live under `Download/ShelfDroid/podcasts/<podcast-title>/<server-filename>`
-- podcast download completion is defined by durable shared file existence
+- playback download completion is defined by durable shared file existence
 - starting a new podcast episode download may delete the previous durable file first
 - destructive replacement must be refused while the target podcast episode is actively playing
 - book and podcast download flows intentionally use different storage semantics

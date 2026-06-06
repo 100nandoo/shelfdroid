@@ -8,6 +8,13 @@ class ReadableStoragePolicyTest {
   private val policy = ReadableStoragePolicy()
 
   @Test
+  fun `bookRelativePath keeps readable folder tree under downloads`() {
+    val relativePath = policy.bookRelativePath("Dune", "Frank Herbert")
+
+    assertTrue(relativePath.endsWith("/ShelfDroid/books/Dune_Frank Herbert/"))
+  }
+
+  @Test
   fun `podcastRelativePath keeps readable folder tree under downloads`() {
     val relativePath = policy.podcastRelativePath("The Daily")
 

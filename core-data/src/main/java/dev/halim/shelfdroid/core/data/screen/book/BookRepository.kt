@@ -15,7 +15,6 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
 class BookRepository
@@ -32,12 +31,15 @@ constructor(
   fun item(id: String): Flow<BookUiState> {
     val bookFlow = libraryItemRepo.flowById(id)
     val progressFlow = progressRepo.flowBookById(id)
-    val download =
-      downloadRepo.downloads.map { downloads -> downloads.find { it.request.id == id } }
     val userPrefsFlow = prefsRepository.userPrefs
 
-    return combine(bookFlow, progressFlow, download, userPrefsFlow) { book, progress, _, userPrefs
-      ->
+    return combine(
+      bookFlow,
+      progressFlow,
+      downloadRepo.downloads,
+      downloadRepo.durableDownloads,
+      userPrefsFlow,
+    ) { book, progress, _, _, userPrefs ->
       book
         ?.takeIf { it.isBook.toBoolean() }
         ?.let {
@@ -58,12 +60,11 @@ constructor(
 
           val download =
             if (isSingleTrack) {
-              val url = media.audioTracks.first().contentUrl
-              downloadRepo.item(
+              downloadRepo.bookItem(
                 itemId = id,
-                url = url,
-                title = book.title,
-                secondaryLabel = book.author,
+                bookTitle = book.title,
+                author = book.author,
+                track = media.audioTracks.first(),
               )
             } else {
               DownloadUiState()
@@ -74,6 +75,7 @@ constructor(
               downloadRepo.multipleTrackItem(
                 itemId = id,
                 title = book.title,
+                author = book.author,
                 tracks = media.audioTracks,
               )
             } else {

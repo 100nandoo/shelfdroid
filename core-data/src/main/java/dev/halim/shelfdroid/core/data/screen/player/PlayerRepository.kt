@@ -114,7 +114,11 @@ constructor(
           mapper.toPlayerChapter(i, bookChapter, media.chapters.size)
         }
       val isSingleTrack = media.audioTracks.size == 1
-      val playerTracks = media.audioTracks.map { mapper.toPlayerTrack(it) }
+      val localTrackUris = downloadRepo.localBookTrackUris(result.title, result.author, media.audioTracks)
+      val playerTracks =
+        media.audioTracks.map { track ->
+          mapper.toPlayerTrack(track, localTrackUris[track.index])
+        }
       val currentTrack = finder.trackFromChapter(playerTracks, progress?.currentTime ?: 0.0)
       val currentChapter = finder.playerChapter(chapters, progress?.currentTime ?: 0.0)
       val currentTime =
@@ -123,15 +127,13 @@ constructor(
 
       val downloadState =
         if (isSingleTrack) {
-          val url = media.audioTracks.first().contentUrl
-          downloadRepo
-            .item(itemId = id, url = url, title = currentChapter?.title ?: result.title)
-            .state
+          downloadRepo.bookItem(id, result.title, result.author, media.audioTracks.first()).state
         } else {
           downloadRepo
             .multipleTrackItem(
               itemId = id,
-              title = currentChapter?.title ?: result.title,
+              title = result.title,
+              author = result.author,
               tracks = media.audioTracks,
             )
             .state

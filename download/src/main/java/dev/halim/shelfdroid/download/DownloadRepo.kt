@@ -17,11 +17,19 @@ import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+
+data class BookCleanupRequest(
+  val itemId: String,
+  val title: String,
+  val author: String?,
+  val filenames: List<String>,
+)
 
 @SuppressLint("UnsafeOptInUsageError")
 @Singleton
@@ -31,14 +39,20 @@ constructor(
   private val downloadManager: DownloadManager,
   private val helper: Helper,
   private val downloadMapper: DownloadMapper,
+  private val bookDurableDownloadCatalog: BookDurableDownloadCatalog,
   private val podcastDurableDownloadCatalog: PodcastDurableDownloadCatalog,
   private val playerState: PlayerInternalStateHolder,
   @ApplicationContext private val context: Context,
 ) {
 
   private val _downloads = MutableStateFlow(fetch())
-  val downloads: StateFlow<List<Download>> = _downloads.asStateFlow()
-  val durableDownloads: StateFlow<Int> = podcastDurableDownloadCatalog.changes
+  val downloads = _downloads.asStateFlow()
+  val durableDownloads: Flow<Int> =
+    combine(bookDurableDownloadCatalog.changes, podcastDurableDownloadCatalog.changes) {
+      bookChanges,
+      podcastChanges ->
+      bookChanges + podcastChanges
+    }
 
   val completedDownloads = downloads.map { downloads ->
     downloads.filter { it.state == Download.STATE_COMPLETED }
@@ -72,20 +86,16 @@ constructor(
     }
   }
 
-  fun isBookDownloaded(id: String, trackIndexes: List<Int>): Boolean {
-    val downloadedIds =
-      downloads.value.filter { it.state == Download.STATE_COMPLETED }.map { it.request.id }
+  fun isBookDownloaded(
+    title: String,
+    author: String?,
+    tracks: List<AudioTrack>,
+  ): Boolean {
+    if (tracks.isEmpty()) return false
 
-    return when (trackIndexes.size) {
-      1 -> id in downloadedIds
-      0 -> false
-      else -> {
-        val ids = trackIndexes.map { trackIndex ->
-          helper.generateDownloadId(id, trackIndex.toString())
-        }
-        ids.all { id -> id in downloadedIds }
-      }
-    }
+    val localTrackUris =
+      bookDurableDownloadCatalog.trackUris(title, author, tracks.map { it.metadata.filename })
+    return tracks.all { track -> track.metadata.filename in localTrackUris }
   }
 
   fun podcastDownloadedEpisodeIds(
@@ -140,23 +150,54 @@ constructor(
     )
   }
 
+  suspend fun bookItem(
+    itemId: String,
+    bookTitle: String,
+    author: String?,
+    track: AudioTrack,
+  ): DownloadUiState {
+    val downloadId = itemId
+    val download = downloadById(downloadId)
+    val localTrackUri =
+      bookDurableDownloadCatalog.trackUris(bookTitle, author, listOf(track.metadata.filename))[
+        track.metadata.filename
+      ]
+    val downloadState = trackDownloadState(download, localTrackUri != null)
+    val downloadUrl = helper.generateContentUrl(track.contentUrl)
+
+    return DownloadUiState(
+      state = downloadState,
+      id = downloadId,
+      url = downloadUrl,
+      title = bookTitle,
+      secondaryLabel = author.orEmpty(),
+      filename = track.metadata.filename,
+    )
+  }
+
   suspend fun multipleTrackItem(
     itemId: String,
     title: String,
+    author: String?,
     tracks: List<AudioTrack>,
   ): MultipleTrackDownloadUiState {
     val titleShort = if (title.length > 27) title.take(27) + "..." else title
     val size = tracks.size
+    val localTrackUris =
+      bookDurableDownloadCatalog.trackUris(title, author, tracks.map { it.metadata.filename })
     val items = tracks.map { track ->
       val downloadId = helper.generateDownloadId(itemId, track.index.toString())
       val download = downloadById(downloadId)
-      val downloadState = downloadMapper.toDownloadState(download?.state)
+      val downloadState =
+        trackDownloadState(download, track.metadata.filename in localTrackUris)
       val downloadUrl = helper.generateContentUrl(track.contentUrl)
       DownloadUiState(
         state = downloadState,
         id = downloadId,
         url = downloadUrl,
         title = "$titleShort ${track.index}/$size",
+        secondaryLabel = author.orEmpty(),
+        filename = track.metadata.filename,
       )
     }
 
@@ -219,15 +260,30 @@ constructor(
   ) {
     if (tracks.isEmpty()) return
 
-    val payload =
-      DownloadNotificationPayload.bookBatchTrack(
-        bookId = itemId,
-        bookTitle = title,
-        author = author,
-        trackCount = tracks.size,
-      )
+    val filenames = tracks.map { it.filename }.filter { it.isNotBlank() }
+    val relativePath = bookDurableDownloadCatalog.resolveRelativePath(title, author, filenames)
+
+    if (isActiveBook(itemId) && localBookTrackUrisByFilename(title, author, filenames).isNotEmpty()) {
+      return
+    }
+
+    bookDurableDownloadCatalog.deleteBookFolderContents(relativePath)
+    tracks.forEach { track ->
+      if (downloadById(track.id) != null) {
+        downloadManager.removeDownload(track.id)
+      }
+    }
 
     tracks.forEachIndexed { index, track ->
+      val payload =
+        DownloadNotificationPayload.bookBatchTrack(
+          bookId = itemId,
+          bookTitle = title,
+          author = author,
+          trackCount = tracks.size,
+          filename = track.filename,
+          relativePath = relativePath,
+        )
       enqueueDownload(id = track.id, url = track.url, payload = payload, foreground = index == 0)
     }
   }
@@ -257,10 +313,27 @@ constructor(
     delete(download.id)
   }
 
-  fun cleanupBook(ids: List<String>) {
-    val toDelete = downloads.value.map { it.request.id }.filter { it.substringBefore("|") in ids }
+  fun deleteBook(
+    title: String,
+    author: String?,
+    tracks: List<DownloadUiState>,
+  ) {
+    if (tracks.isEmpty()) return
 
-    toDelete.forEach { delete(it) }
+    val filenames = tracks.map { it.filename }.filter { it.isNotBlank() }
+    bookDurableDownloadCatalog.deleteBook(title, author, filenames)
+    tracks.forEach { delete(it.id) }
+  }
+
+  fun cleanupBooks(books: List<BookCleanupRequest>) {
+    books.forEach { book ->
+      bookDurableDownloadCatalog.deleteBook(book.title, book.author, book.filenames)
+      val toDelete =
+        downloads.value
+          .map { it.request.id }
+          .filter { it == book.itemId || it.substringBefore("|") == book.itemId }
+      toDelete.forEach { delete(it) }
+    }
   }
 
   fun cleanupEpisode(ids: List<String>) {
@@ -288,11 +361,48 @@ constructor(
     return podcastDurableDownloadCatalog.findEpisodeUri(podcastTitle, filename)?.toString()
   }
 
+  fun localBookTrackUris(
+    title: String,
+    author: String?,
+    tracks: List<AudioTrack>,
+  ): Map<Int, String> {
+    val localTrackUris =
+      bookDurableDownloadCatalog.trackUris(title, author, tracks.map { it.metadata.filename })
+    return tracks.mapNotNull { track ->
+      localTrackUris[track.metadata.filename]?.toString()?.let { uri -> track.index to uri }
+    }.toMap()
+  }
+
+  private fun localBookTrackUrisByFilename(
+    title: String,
+    author: String?,
+    filenames: List<String>,
+  ): Map<String, String> {
+    return bookDurableDownloadCatalog
+      .trackUris(title, author, filenames)
+      .mapValues { (_, uri) -> uri.toString() }
+  }
+
   private fun isPodcastEpisodeDownloaded(
     podcastTitle: String,
     filename: String,
   ): Boolean {
     return podcastDurableDownloadCatalog.findEpisodeUri(podcastTitle, filename) != null
+  }
+
+  private fun trackDownloadState(download: Download?, durableUriExists: Boolean): DownloadState {
+    return if (durableUriExists) {
+      DownloadState.Completed
+    } else if (download?.state == Download.STATE_COMPLETED) {
+      DownloadState.Unknown
+    } else {
+      downloadMapper.toDownloadState(download?.state)
+    }
+  }
+
+  private fun isActiveBook(itemId: String): Boolean {
+    if (!playerState.isBook() || !playerState.isPlaying()) return false
+    return playerState.itemId() == itemId
   }
 
   private fun isActivePodcastEpisode(downloadId: String): Boolean {
