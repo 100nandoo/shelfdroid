@@ -1,5 +1,18 @@
 # Download Module
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Architecture](#architecture)
+- [Main Components](#main-components)
+- [External Collaborators](#external-collaborators)
+- [Runtime Flows](#runtime-flows)
+- [Notification Model](#notification-model)
+- [State Model](#state-model)
+- [Invariants](#invariants)
+- [Testing and Gaps](#testing-and-gaps)
+- [Recommended Documentation Pattern](#recommended-documentation-pattern)
+
 ## Purpose
 
 The `download` Gradle module owns ShelfDroid's Media3-based offline download pipeline.
