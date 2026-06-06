@@ -74,9 +74,7 @@ fun BookScreen(
       onDeleteDownloadClicked = {
         viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.DeleteDownload))
       },
-      onPlayClicked = {
-        playerController.onEvent(PlayerEvent.PlayBook(viewModel.id, downloadState.isDownloaded()))
-      },
+      onPlayClicked = { playerController.onEvent(PlayerEvent.PlayBook(viewModel.id)) },
       onEditClicked = { onEditClicked(viewModel.id) },
     )
   }

@@ -39,7 +39,6 @@ constructor(
               uiState.update {
                 playerRepository.playBook(
                   event.id,
-                  event.isDownloaded,
                   advancedControl,
                   changeBehaviour,
                 )
@@ -60,7 +59,6 @@ constructor(
                 playerRepository.playPodcast(
                   event.itemId,
                   event.episodeId,
-                  event.isDownloaded,
                   advancedControl,
                   changeBehaviour,
                 )
@@ -169,10 +167,9 @@ constructor(
 }
 
 sealed interface PlayerEvent {
-  class PlayBook(val id: String, val isDownloaded: Boolean) : PlayerEvent
+  class PlayBook(val id: String) : PlayerEvent
 
-  class PlayPodcast(val itemId: String, val episodeId: String, val isDownloaded: Boolean) :
-    PlayerEvent
+  class PlayPodcast(val itemId: String, val episodeId: String) : PlayerEvent
 
   class ChangeChapter(val target: Int) : PlayerEvent
 

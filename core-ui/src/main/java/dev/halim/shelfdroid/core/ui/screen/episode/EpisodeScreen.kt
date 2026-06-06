@@ -58,13 +58,7 @@ fun EpisodeScreen(
         viewModel.onEvent(EpisodeEvent.DownloadEvent(CommonDownloadEvent.DeleteDownload))
       },
       onPlayClicked = {
-        playerController.onEvent(
-          PlayerEvent.PlayPodcast(
-            viewModel.itemId,
-            viewModel.episodeId,
-            uiState.download.state.isDownloaded(),
-          )
-        )
+        playerController.onEvent(PlayerEvent.PlayPodcast(viewModel.itemId, viewModel.episodeId))
       },
     )
   }
