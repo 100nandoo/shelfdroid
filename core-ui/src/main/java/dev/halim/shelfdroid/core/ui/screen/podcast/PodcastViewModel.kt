@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteFailu
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteSuccess
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
+import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.service.PlayerStore
 import dev.halim.socketio.SocketManager
@@ -93,10 +94,10 @@ constructor(
         viewModelScope.launch { repository.toggleIsFinished(id, event.episode) }
       }
       is PodcastEvent.Download -> {
-        downloadRepo.download(event.downloadId, event.url, event.message, event.secondaryLabel)
+        downloadRepo.downloadPodcastEpisode(event.download)
       }
       is PodcastEvent.DeleteDownload -> {
-        downloadRepo.delete(event.downloadId)
+        downloadRepo.deletePodcastEpisode(event.download)
       }
       is PodcastEvent.SelectionMode -> {
         selectionMode.update { event.isSelectionMode }
@@ -189,13 +190,10 @@ sealed interface PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent
 
   data class Download(
-    val downloadId: String,
-    val url: String,
-    val message: String,
-    val secondaryLabel: String = "",
+    val download: DownloadUiState,
   ) : PodcastEvent
 
-  data class DeleteDownload(val downloadId: String) : PodcastEvent
+  data class DeleteDownload(val download: DownloadUiState) : PodcastEvent
 
   data class SelectionMode(val isSelectionMode: Boolean, val itemId: String) : PodcastEvent
 

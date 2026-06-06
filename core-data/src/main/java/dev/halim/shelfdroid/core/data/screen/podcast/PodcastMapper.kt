@@ -12,6 +12,7 @@ class PodcastMapper
 constructor(private val helper: Helper, private val downloadRepository: DownloadRepo) {
 
   suspend fun mapEpisodes(
+    podcastTitle: String,
     episodes: List<PodcastEpisode>,
     progresses: List<ProgressEntity>,
   ): List<Episode> =
@@ -26,6 +27,8 @@ constructor(private val helper: Helper, private val downloadRepository: Download
             episodeId = podcastEpisode.id,
             url = podcastEpisode.audioTrack.contentUrl,
             title = podcastEpisode.title,
+            secondaryLabel = podcastTitle,
+            filename = podcastEpisode.audioTrack.metadata.filename,
           )
         Episode(
           episodeId = podcastEpisode.id,

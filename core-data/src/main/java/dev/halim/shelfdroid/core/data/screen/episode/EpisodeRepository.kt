@@ -28,11 +28,11 @@ constructor(
   fun item(itemId: String, episodeId: String): Flow<EpisodeUiState> {
     val podcastFlow = libraryItemRepo.flowById(itemId)
     val progressFlow = progressRepo.flowEpisodeById(episodeId)
-    val downloadId = helper.generateDownloadId(itemId, episodeId)
-    val download =
-      downloadRepo.downloads.map { downloads -> downloads.find { it.request.id == downloadId } }
-
-    return combine(podcastFlow, progressFlow, download) { podcast, progress, download ->
+    return combine(podcastFlow, progressFlow, downloadRepo.downloads, downloadRepo.durableDownloads) {
+      podcast,
+      progress,
+      _,
+      _ ->
       podcast
         ?.takeIf { it.isBook.toBoolean().not() }
         ?.let {
@@ -57,6 +57,7 @@ constructor(
               url = episode.audioTrack.contentUrl,
               title = episode.title,
               secondaryLabel = podcast.title,
+              filename = episode.audioTrack.metadata.filename,
             )
 
           EpisodeUiState(

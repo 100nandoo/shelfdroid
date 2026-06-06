@@ -53,6 +53,7 @@ constructor(
     syncScope.launch {
       playerManager.events.distinctUntilChanged().collect { event ->
         val exoState = if (event == PlayerEvent.Resume) ExoState.Playing else ExoState.Pause
+        state.setPlaying(exoState == ExoState.Playing)
         uiState.update { it.copy(exoState = exoState) }
       }
     }

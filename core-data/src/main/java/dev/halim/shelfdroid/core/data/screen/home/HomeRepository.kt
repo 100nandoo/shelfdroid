@@ -49,8 +49,9 @@ constructor(
     val progresses = progressRepo.flowAll()
     val prefs = prefsRepository.prefsFlow()
     val downloads = downloadRepo.completedDownloads
+    val downloadSignals = combine(downloads, downloadRepo.durableDownloads) { _, _ -> Unit }
 
-    return combine(libraries, libraryItems, prefs, progresses, downloads) {
+    return combine(libraries, libraryItems, prefs, progresses, downloadSignals) {
       libraries,
       libraryItems,
       prefs,

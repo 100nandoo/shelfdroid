@@ -28,8 +28,8 @@ constructor(
   private val state: PlayerInternalStateHolder,
 ) {
 
-  suspend fun toPlayerTrack(audioTrack: AudioTrack): PlayerTrack {
-    val url = helper.generateContentUrl(audioTrack.contentUrl)
+  suspend fun toPlayerTrack(audioTrack: AudioTrack, localUri: String? = null): PlayerTrack {
+    val url = localUri ?: helper.generateContentUrl(audioTrack.contentUrl)
     return PlayerTrack(audioTrack.index, url, audioTrack.duration, audioTrack.startOffset)
   }
 

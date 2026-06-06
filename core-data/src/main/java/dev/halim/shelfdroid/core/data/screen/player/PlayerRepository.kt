@@ -182,10 +182,14 @@ constructor(
             episodeId = episodeId,
             url = episode.audioTrack.contentUrl,
             title = episode.title,
+            secondaryLabel = result.title,
+            filename = episode.audioTrack.metadata.filename,
           )
           .state
 
-      val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }
+      val localUri =
+        downloadRepo.localPodcastEpisodeUri(result.title, episode.audioTrack.metadata.filename)
+      val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it, localUri) }
       val advancedControl = decideAdvanceControl(existing, changeBehaviour)
 
       val currentTime =

@@ -137,15 +137,10 @@ fun EpisodeItem(
           snackbarHostState,
           {
             onEvent(
-              PodcastEvent.Download(
-                episode.download.id,
-                episode.download.url,
-                episode.title,
-                podcastTitle,
-              )
+              PodcastEvent.Download(episode.download)
             )
           },
-          { onEvent(PodcastEvent.DeleteDownload(episode.download.id)) },
+          { onEvent(PodcastEvent.DeleteDownload(episode.download)) },
         )
 
         FilledTonalIconButton(

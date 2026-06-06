@@ -7,11 +7,13 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
+import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,11 +31,14 @@ constructor(
   private val downloadManager: DownloadManager,
   private val helper: Helper,
   private val downloadMapper: DownloadMapper,
+  private val podcastDurableDownloadCatalog: PodcastDurableDownloadCatalog,
+  private val playerState: PlayerInternalStateHolder,
   @ApplicationContext private val context: Context,
 ) {
 
   private val _downloads = MutableStateFlow(fetch())
   val downloads: StateFlow<List<Download>> = _downloads.asStateFlow()
+  val durableDownloads: StateFlow<Int> = podcastDurableDownloadCatalog.changes
 
   val completedDownloads = downloads.map { downloads ->
     downloads.filter { it.state == Download.STATE_COMPLETED }
@@ -83,13 +88,19 @@ constructor(
     }
   }
 
-  fun podcastDownloadedEpisodeIds(id: String): Set<String> {
-    return downloads.value
+  fun podcastDownloadedEpisodeIds(
+    podcastTitle: String,
+    episodes: List<PodcastEpisode>,
+  ): Set<String> {
+    return episodes
       .asSequence()
-      .filter { it.state == Download.STATE_COMPLETED }
-      .map { it.request.id }
-      .filter { it.contains(id) }
-      .map { it.substringAfter("|") }
+      .filter { episode ->
+        isPodcastEpisodeDownloaded(
+          podcastTitle = podcastTitle,
+          filename = episode.audioTrack.metadata.filename,
+        )
+      }
+      .map { it.id }
       .toSet()
   }
 
@@ -99,10 +110,24 @@ constructor(
     url: String,
     title: String,
     secondaryLabel: String = "",
+    filename: String = "",
   ): DownloadUiState {
     val downloadId = helper.generateDownloadId(itemId, episodeId)
     val download = downloadById(downloadId)
-    val downloadState = downloadMapper.toDownloadState(download?.state)
+    val durableEpisodeUri =
+      if (episodeId != null && secondaryLabel.isNotBlank() && filename.isNotBlank()) {
+        podcastDurableDownloadCatalog.findEpisodeUri(secondaryLabel, filename)
+      } else {
+        null
+      }
+    val downloadState =
+      if (durableEpisodeUri != null) {
+        DownloadState.Completed
+      } else if (episodeId != null && download?.state == Download.STATE_COMPLETED) {
+        DownloadState.Unknown
+      } else {
+        downloadMapper.toDownloadState(download?.state)
+      }
     val downloadUrl = helper.generateContentUrl(url)
 
     return DownloadUiState(
@@ -111,6 +136,7 @@ constructor(
       url = downloadUrl,
       title = title,
       secondaryLabel = secondaryLabel,
+      filename = filename,
     )
   }
 
@@ -156,6 +182,33 @@ constructor(
     enqueueDownload(id = id, url = url, payload = payload, foreground = true)
   }
 
+  fun downloadPodcastEpisode(download: DownloadUiState) {
+    val podcastTitle = download.secondaryLabel
+    val filename = download.filename
+    if (podcastTitle.isBlank() || filename.isBlank()) {
+      download(download.id, download.url, download.title, download.secondaryLabel)
+      return
+    }
+
+    if (isActivePodcastEpisode(download.id) && localPodcastEpisodeUri(podcastTitle, filename) != null) {
+      return
+    }
+
+    podcastDurableDownloadCatalog.deleteEpisode(podcastTitle, filename)
+    if (downloadById(download.id) != null) {
+      downloadManager.removeDownload(download.id)
+    }
+
+    val payload =
+      DownloadNotificationPayload.podcastEpisode(
+        title = download.title,
+        openDetailId = download.id,
+        podcastTitle = podcastTitle,
+        filename = filename,
+      )
+    enqueueDownload(id = download.id, url = download.url, payload = payload, foreground = true)
+  }
+
   fun downloadBook(
     itemId: String,
     title: String,
@@ -195,6 +248,13 @@ constructor(
     DownloadService.sendRemoveDownload(context, ShelfDownloadService::class.java, id, false)
   }
 
+  fun deletePodcastEpisode(download: DownloadUiState) {
+    if (download.secondaryLabel.isNotBlank() && download.filename.isNotBlank()) {
+      podcastDurableDownloadCatalog.deleteEpisode(download.secondaryLabel, download.filename)
+    }
+    delete(download.id)
+  }
+
   fun cleanupBook(ids: List<String>) {
     val toDelete = downloads.value.map { it.request.id }.filter { it.substringBefore("|") in ids }
 
@@ -220,6 +280,22 @@ constructor(
 
   private fun downloadById(id: String): Download? {
     return _downloads.value.find { it.request.id == id }
+  }
+
+  fun localPodcastEpisodeUri(podcastTitle: String, filename: String): String? {
+    return podcastDurableDownloadCatalog.findEpisodeUri(podcastTitle, filename)?.toString()
+  }
+
+  private fun isPodcastEpisodeDownloaded(
+    podcastTitle: String,
+    filename: String,
+  ): Boolean {
+    return podcastDurableDownloadCatalog.findEpisodeUri(podcastTitle, filename) != null
+  }
+
+  private fun isActivePodcastEpisode(downloadId: String): Boolean {
+    if (playerState.isBook() || !playerState.isPlaying()) return false
+    return helper.generateDownloadId(playerState.itemId(), playerState.episodeId()) == downloadId
   }
 
   private fun updateDownloadsIfChanged() {
