@@ -18,7 +18,6 @@ import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
-import java.util.UUID
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.first
@@ -37,11 +36,11 @@ constructor(
   private val downloadRepo: DownloadRepo,
   private val state: PlayerInternalStateHolder,
   private val prefsRepository: PrefsRepository,
+  private val playbackSessionResolver: PlaybackSessionResolver,
 ) {
 
   suspend fun playBook(
     id: String,
-    isDownloaded: Boolean,
     advancedControl: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
   ): PlayerUiState {
@@ -49,17 +48,14 @@ constructor(
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
-    var sessionId: String
     val result =
       runCatching {
-          if (isDownloaded) {
-            sessionId = UUID.randomUUID().toString()
-          } else {
-            val request = mapper.toPlayRequest()
-            val response = apiService.playBook(id, request)
-            sessionId = response.id
-          }
-
+          val sessionId =
+            playbackSessionResolver.resolve(playerUiState.downloadState) {
+              val request = mapper.toPlayRequest()
+              val response = apiService.playBook(id, request)
+              response.id
+            }
           state.changeMedia(playerUiState, sessionId)
           playerUiState
         }
@@ -71,7 +67,6 @@ constructor(
   suspend fun playPodcast(
     itemId: String,
     episodeId: String,
-    isDownloaded: Boolean,
     advancedControl: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
   ): PlayerUiState {
@@ -79,17 +74,14 @@ constructor(
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
-    var sessionId: String
     val result =
       runCatching {
-          if (isDownloaded) {
-            sessionId = UUID.randomUUID().toString()
-          } else {
-            val request = mapper.toPlayRequest()
-            val response = apiService.playPodcast(itemId, episodeId, request)
-            sessionId = response.id
-          }
-
+          val sessionId =
+            playbackSessionResolver.resolve(playerUiState.downloadState) {
+              val request = mapper.toPlayRequest()
+              val response = apiService.playPodcast(itemId, episodeId, request)
+              response.id
+            }
           state.changeMedia(playerUiState, sessionId)
           playerUiState
         }

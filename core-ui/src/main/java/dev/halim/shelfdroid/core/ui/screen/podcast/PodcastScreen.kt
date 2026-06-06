@@ -104,8 +104,8 @@ fun PodcastScreen(
       snackbarHostState = snackbarHostState,
       onEvent = viewModel::onEvent,
       onEpisodeClicked = onEpisodeClicked,
-      onPlayClicked = { itemId, episodeId, isDownloaded ->
-        playerController.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId, isDownloaded))
+      onPlayClicked = { itemId, episodeId, _ ->
+        playerController.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId))
       },
     )
   }
