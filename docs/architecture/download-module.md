@@ -4,6 +4,7 @@
 
 - [Purpose](#purpose)
 - [Architecture](#architecture)
+- [Package Layout](#package-layout)
 - [Main Components](#main-components)
 - [External Collaborators](#external-collaborators)
 - [Runtime Flows](#runtime-flows)
@@ -43,10 +44,40 @@ UI / repositories
   -> DownloadRepo
   -> Media3 DownloadService + DownloadManager
   -> notifications during transfer
-  -> on podcast completion: export cache -> shared storage
+  -> on playback completion: export cache -> shared storage
 ```
 
 The most important design choice is that books and podcast episodes still download through Media3 first. ShelfDroid keeps Media3's existing progress and notification behavior, then exports completed playback media into shared storage so it survives app-data clear. That tradeoff is documented in ADR 0001.
+
+## Package Layout
+
+The module is now split by seam instead of keeping every adapter in one flat package:
+
+- `dev.halim.shelfdroid.download`
+  - module facade and state mapping
+  - `DownloadRepo`
+  - `DownloadMapper`
+- `dev.halim.shelfdroid.download.notification`
+  - notification payload and progress aggregation
+  - `DownloadNotificationPayload`
+  - `BookBatchProgressNotificationBuilder`
+- `dev.halim.shelfdroid.download.service`
+  - Media3 foreground service adapter
+  - `ShelfDownloadService`
+- `dev.halim.shelfdroid.download.storage`
+  - shared readable-path policy
+  - `ReadableStoragePolicy`
+- `dev.halim.shelfdroid.download.storage.book`
+  - durable book storage adapters
+  - `BookFolderSelectionPolicy`
+  - `BookDurableDownloadCatalog`
+  - `BookDurableDownloadExporter`
+- `dev.halim.shelfdroid.download.storage.podcast`
+  - durable podcast storage adapters
+  - `PodcastDurableDownloadCatalog`
+  - `PodcastDurableDownloadExporter`
+
+This layout improves locality: notification changes stay in `notification`, Media3 service wiring stays in `service`, and shared-storage rules stay under `storage`.
 
 ## Main Components
 
@@ -92,7 +123,7 @@ It carries:
 - detail target id
 - secondary label such as author or podcast title
 - grouping metadata for book batches
-- filename metadata for durable podcast export
+- filename and readable-path metadata for durable shared-storage export
 
 Without this payload, later stages would only see a raw Media3 download id and URL. The payload lets notifications and the exporter recover what kind of download completed and how it should be handled.
 
@@ -149,6 +180,8 @@ They own:
 
 They do not know anything about Media3 cache internals or UI state. They only manage durable files in shared storage.
 
+The book side also includes `BookFolderSelectionPolicy`, which keeps the readable folder stable when book metadata changes but the existing on-disk track set still matches the current Book.
+
 ### `BookDurableDownloadExporter` and `PodcastDurableDownloadExporter`
 
 Files:
@@ -158,7 +191,7 @@ Files:
 
 These are the bridges from Media3 completion into durable shared storage.
 
-It listens to `DownloadManager` changes and, for completed podcast episode downloads:
+They listen to `DownloadManager` changes and, for completed playback downloads:
 
 - reads the semantic payload
 - copies the completed bytes out of Media3 cache
@@ -196,18 +229,22 @@ These are important to mention because the download behavior is spread across mo
 ### Book batch download
 
 1. The UI triggers `DownloadRepo.downloadBook(...)`.
-2. One Media3 request is enqueued per book track.
-3. Each track carries batch metadata in `DownloadNotificationPayload`.
-4. `ShelfDownloadService` and `BookBatchProgressNotificationBuilder` aggregate active progress into a single batch notification.
-5. `TerminalStateNotificationHelper` emits one final batch terminal notification after all tracks reach a terminal state.
+2. `DownloadRepo` resolves the readable destination folder, reusing an existing folder when metadata changed but the current track set still matches it.
+3. Existing durable folder contents are deleted before the new Book download batch starts, unless that local Book is actively playing.
+4. One Media3 request is enqueued per book track.
+5. Each track carries batch metadata in `DownloadNotificationPayload`.
+6. `ShelfDownloadService` and `BookBatchProgressNotificationBuilder` aggregate active progress into a single batch notification.
+7. When each track completes, `BookDurableDownloadExporter` copies the cached bytes into the readable shared-storage folder.
+8. `TerminalStateNotificationHelper` emits one final batch terminal notification after all tracks reach a terminal state.
 
-Books now export completed track files into durable shared storage and use those readable files for offline recovery and playback.
+Books use the durable shared files for offline recovery and playback.
 
 ### Delete flow
 
 For books:
 
-- `DownloadRepo.delete(...)` removes the Media3 download entry.
+- `DownloadRepo.deleteBook(...)` removes durable shared files first
+- then removes any matching Media3 download entries
 
 For podcasts:
 
@@ -247,10 +284,9 @@ The app exposes download state through ShelfDroid's `DownloadState`, not Media3 
 
 Important distinction:
 
-- for books, a completed Media3 entry is the completion signal
 - for books and podcast episodes, the durable shared file is the completion signal
 
-That distinction is deliberate. A Media3 entry that completed but has not yet been materialized into shared storage must not be treated as a durable offline podcast file.
+That distinction is deliberate. A Media3 entry that completed but has not yet been materialized into shared storage must not be treated as a durable offline playback file.
 
 ## Invariants
 
@@ -270,7 +306,7 @@ Current coverage in this module includes focused unit testing for readable path 
 
 Current gaps:
 
-- on-device notification verification is still required for full acceptance of the durable podcast migration
+- on-device notification verification is still required for full acceptance of the durable shared-storage playback migration
 - the durable export path itself is not unit tested in isolation
 - cross-module integration behavior still relies mainly on compile verification and manual/runtime validation
 
