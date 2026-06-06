@@ -11,7 +11,22 @@ class PlaybackSessionResolverTest {
   private val resolver = PlaybackSessionResolver()
 
   @Test
-  fun resolve_whenDownloadIsRecovered_usesLocalSessionWithoutCallingRemote() = runTest {
+  fun resolve_whenRecoveredBookDownloadExists_usesLocalSessionWithoutCallingRemote() = runTest {
+    var remoteCalls = 0
+
+    val sessionId =
+      resolver.resolve(DownloadState.Completed) {
+        remoteCalls += 1
+        "remote-session"
+      }
+
+    assertEquals(0, remoteCalls)
+    assertTrue(sessionId.isNotBlank())
+    assertTrue(sessionId != "remote-session")
+  }
+
+  @Test
+  fun resolve_whenRecoveredEpisodeDownloadExists_usesLocalSessionWithoutCallingRemote() = runTest {
     var remoteCalls = 0
 
     val sessionId =

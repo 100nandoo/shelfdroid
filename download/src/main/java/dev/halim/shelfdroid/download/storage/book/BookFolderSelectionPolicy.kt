@@ -30,10 +30,6 @@ internal class BookFolderSelectionPolicy {
       return fullMatches.keys.first()
     }
 
-    if (groupedMatches.size == 1) {
-      return groupedMatches.keys.first()
-    }
-
     return exactRelativePath
   }
 }

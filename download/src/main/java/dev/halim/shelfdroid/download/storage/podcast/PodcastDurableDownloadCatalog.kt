@@ -24,16 +24,30 @@ constructor(
   private val readableStoragePolicy: ReadableStoragePolicy,
 ) {
   private val resolver = context.contentResolver
+  private val folderSelectionPolicy = PodcastFolderSelectionPolicy()
   private val _changes = MutableStateFlow(0)
   val changes: StateFlow<Int> = _changes.asStateFlow()
 
   fun findEpisodeUri(podcastTitle: String, filename: String): Uri? {
     if (podcastTitle.isBlank() || filename.isBlank()) return null
 
+    val resolvedRelativePath =
+      folderSelectionPolicy.resolveRelativePath(
+        exactRelativePath = readableStoragePolicy.podcastRelativePath(podcastTitle),
+        filename = filename,
+        matches = queryRelativePathMatches(filename),
+      ) ?: return null
+
+    return findEpisodeUriAtPath(resolvedRelativePath, filename)
+  }
+
+  private fun findEpisodeUriAtPath(relativePath: String, filename: String): Uri? {
+    if (relativePath.isBlank() || filename.isBlank()) return null
+
     val projection = arrayOf(MediaStore.Downloads._ID)
     val selection =
       "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.DISPLAY_NAME}=?"
-    val selectionArgs = arrayOf(readableStoragePolicy.podcastRelativePath(podcastTitle), filename)
+    val selectionArgs = arrayOf(relativePath, filename)
 
     resolver
       .query(
@@ -50,6 +64,34 @@ constructor(
       }
 
     return null
+  }
+
+  private fun queryRelativePathMatches(filename: String): List<String> {
+    if (filename.isBlank()) return emptyList()
+
+    val projection = arrayOf(MediaStore.MediaColumns.RELATIVE_PATH)
+    val selection =
+      "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND " +
+        "${MediaStore.MediaColumns.DISPLAY_NAME}=?"
+    val selectionArgs =
+      arrayOf("${readableStoragePolicy.podcastsRootRelativePath()}%", filename)
+
+    val matches = mutableListOf<String>()
+    resolver
+      .query(
+        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+        projection,
+        selection,
+        selectionArgs,
+        null,
+      )
+      ?.use { cursor ->
+        val relativePathIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.RELATIVE_PATH)
+        while (cursor.moveToNext()) {
+          matches += cursor.getString(relativePathIndex)
+        }
+      }
+    return matches
   }
 
   fun deleteEpisode(podcastTitle: String, filename: String): Boolean {

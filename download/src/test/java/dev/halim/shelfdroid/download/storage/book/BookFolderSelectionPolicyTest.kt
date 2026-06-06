@@ -50,4 +50,17 @@ class BookFolderSelectionPolicyTest {
 
     assertEquals("Download/ShelfDroid/books/Dune Messiah_Frank Herbert/", resolved)
   }
+
+  @Test
+  fun `falls back to current metadata path when only a partial folder match exists`() {
+    val resolved =
+      policy.resolveRelativePath(
+        exactRelativePath = "Download/ShelfDroid/books/Dune Messiah_Frank Herbert/",
+        filenames = listOf("01.mp3", "02.mp3"),
+        matches =
+          listOf(BookFolderMatch("Download/ShelfDroid/books/Dune_Frank Herbert/", "01.mp3")),
+      )
+
+    assertEquals("Download/ShelfDroid/books/Dune Messiah_Frank Herbert/", resolved)
+  }
 }

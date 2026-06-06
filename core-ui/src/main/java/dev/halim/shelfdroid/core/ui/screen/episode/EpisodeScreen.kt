@@ -8,6 +8,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -15,8 +16,10 @@ import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
+import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
+import dev.halim.shelfdroid.core.ui.components.OfflineDownloadRecoveryNote
 import dev.halim.shelfdroid.core.ui.components.PlayDownloadAndEdit
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
@@ -95,6 +98,10 @@ fun EpisodeScreenContent(
         onDownloadClicked = onDownloadClicked,
         onDeleteDownloadClicked = onDeleteDownloadClicked,
         onPlayClicked = onPlayClicked,
+      )
+      OfflineDownloadRecoveryNote(
+        text = stringResource(R.string.offline_download_podcasts_rule),
+        modifier = Modifier.padding(top = 8.dp),
       )
     }
     item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }
