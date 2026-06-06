@@ -10,6 +10,7 @@ import androidx.media3.common.C
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -58,10 +59,12 @@ object PlayerModule {
     okhttpDataSourceFactory: DataSource.Factory,
     cache: Cache,
   ): MediaSource.Factory {
+    val upstreamDataSourceFactory =
+      DefaultDataSource.Factory(context, okhttpDataSourceFactory)
     val cacheDataSourceFactory =
       CacheDataSource.Factory()
         .setCache(cache)
-        .setUpstreamDataSourceFactory(okhttpDataSourceFactory)
+        .setUpstreamDataSourceFactory(upstreamDataSourceFactory)
 
     return DefaultMediaSourceFactory(context).setDataSourceFactory(cacheDataSourceFactory)
   }
