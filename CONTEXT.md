@@ -48,10 +48,6 @@ _Avoid_: Chapter, episode
 A local copy of server media or a server-exported file that ShelfDroid stores on the Android device for offline access.
 _Avoid_: Stream, library file
 
-**Queued download**:
-A **Download** that has been accepted by ShelfDroid but has not started transferring yet.
-_Avoid_: Pending download
-
 **Book download batch**:
 One user-initiated download of a **Book**, which may enqueue multiple **Track** downloads but should be presented as a single book-scoped download operation in the UI and notifications, with progress represented at the batch level such as completed tracks over total tracks.
 _Avoid_: Track download, file batch
