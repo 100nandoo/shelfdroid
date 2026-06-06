@@ -10,7 +10,7 @@
 
     <application>
         <service
-            android:name="dev.halim.shelfdroid.download.ShelfDownloadService"
+            android:name="dev.halim.shelfdroid.download.service.ShelfDownloadService"
             android:exported="false"
             android:foregroundServiceType="dataSync">
             <intent-filter>

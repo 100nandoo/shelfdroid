@@ -14,6 +14,10 @@ import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
+import dev.halim.shelfdroid.download.notification.DownloadNotificationPayload
+import dev.halim.shelfdroid.download.service.ShelfDownloadService
+import dev.halim.shelfdroid.download.storage.book.BookDurableDownloadCatalog
+import dev.halim.shelfdroid.download.storage.podcast.PodcastDurableDownloadCatalog
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -159,9 +163,8 @@ constructor(
     val downloadId = itemId
     val download = downloadById(downloadId)
     val localTrackUri =
-      bookDurableDownloadCatalog.trackUris(bookTitle, author, listOf(track.metadata.filename))[
-        track.metadata.filename
-      ]
+      bookDurableDownloadCatalog
+        .trackUris(bookTitle, author, listOf(track.metadata.filename))[track.metadata.filename]
     val downloadState = trackDownloadState(download, localTrackUri != null)
     val downloadUrl = helper.generateContentUrl(track.contentUrl)
 
@@ -188,8 +191,7 @@ constructor(
     val items = tracks.map { track ->
       val downloadId = helper.generateDownloadId(itemId, track.index.toString())
       val download = downloadById(downloadId)
-      val downloadState =
-        trackDownloadState(download, track.metadata.filename in localTrackUris)
+      val downloadState = trackDownloadState(download, track.metadata.filename in localTrackUris)
       val downloadUrl = helper.generateContentUrl(track.contentUrl)
       DownloadUiState(
         state = downloadState,
@@ -263,7 +265,9 @@ constructor(
     val filenames = tracks.map { it.filename }.filter { it.isNotBlank() }
     val relativePath = bookDurableDownloadCatalog.resolveRelativePath(title, author, filenames)
 
-    if (isActiveBook(itemId) && localBookTrackUrisByFilename(title, author, filenames).isNotEmpty()) {
+    if (
+      isActiveBook(itemId) && localBookTrackUrisByFilename(title, author, filenames).isNotEmpty()
+    ) {
       return
     }
 
@@ -368,9 +372,11 @@ constructor(
   ): Map<Int, String> {
     val localTrackUris =
       bookDurableDownloadCatalog.trackUris(title, author, tracks.map { it.metadata.filename })
-    return tracks.mapNotNull { track ->
-      localTrackUris[track.metadata.filename]?.toString()?.let { uri -> track.index to uri }
-    }.toMap()
+    return tracks
+      .mapNotNull { track ->
+        localTrackUris[track.metadata.filename]?.toString()?.let { uri -> track.index to uri }
+      }
+      .toMap()
   }
 
   private fun localBookTrackUrisByFilename(
@@ -378,9 +384,9 @@ constructor(
     author: String?,
     filenames: List<String>,
   ): Map<String, String> {
-    return bookDurableDownloadCatalog
-      .trackUris(title, author, filenames)
-      .mapValues { (_, uri) -> uri.toString() }
+    return bookDurableDownloadCatalog.trackUris(title, author, filenames).mapValues { (_, uri) ->
+      uri.toString()
+    }
   }
 
   private fun isPodcastEpisodeDownloaded(

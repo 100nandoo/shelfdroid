@@ -17,9 +17,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.halim.shelfdroid.download.BookDurableDownloadExporter
-import dev.halim.shelfdroid.download.PodcastDurableDownloadExporter
-import dev.halim.shelfdroid.download.ShelfDownloadService.Companion.DOWNLOAD_NOTIFICATION_CHANNEL_ID
+import dev.halim.shelfdroid.download.service.ShelfDownloadService.Companion.DOWNLOAD_NOTIFICATION_CHANNEL_ID
+import dev.halim.shelfdroid.download.storage.book.BookDurableDownloadExporter
+import dev.halim.shelfdroid.download.storage.podcast.PodcastDurableDownloadExporter
 import dev.halim.shelfdroid.media.download.TerminalStateNotificationHelper
 import java.io.File
 import java.util.concurrent.Executors

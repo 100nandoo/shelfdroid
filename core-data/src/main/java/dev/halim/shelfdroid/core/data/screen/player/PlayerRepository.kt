@@ -114,7 +114,8 @@ constructor(
           mapper.toPlayerChapter(i, bookChapter, media.chapters.size)
         }
       val isSingleTrack = media.audioTracks.size == 1
-      val localTrackUris = downloadRepo.localBookTrackUris(result.title, result.author, media.audioTracks)
+      val localTrackUris =
+        downloadRepo.localBookTrackUris(result.title, result.author, media.audioTracks)
       val playerTracks =
         media.audioTracks.map { track ->
           mapper.toPlayerTrack(track, localTrackUris[track.index])

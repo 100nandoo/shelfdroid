@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.storage.podcast
 
 import android.content.ContentUris
 import android.content.ContentValues
@@ -6,6 +6,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.halim.shelfdroid.download.storage.ReadableStoragePolicy
 import java.io.IOException
 import java.io.OutputStream
 import java.net.URLConnection

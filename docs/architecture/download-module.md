@@ -68,7 +68,7 @@ The rest of the app should treat this class as the public API of the module.
 
 ### `ShelfDownloadService`
 
-File: `download/src/main/java/dev/halim/shelfdroid/download/ShelfDownloadService.kt`
+File: `download/src/main/java/dev/halim/shelfdroid/download/service/ShelfDownloadService.kt`
 
 This is the Media3 `DownloadService` implementation.
 
@@ -82,7 +82,7 @@ It does not decide terminal notifications. That is delegated to `TerminalStateNo
 
 ### `DownloadNotificationPayload`
 
-File: `download/src/main/java/dev/halim/shelfdroid/download/DownloadNotificationPayload.kt`
+File: `download/src/main/java/dev/halim/shelfdroid/download/notification/DownloadNotificationPayload.kt`
 
 This class is the semantic contract attached to each `DownloadRequest`.
 
@@ -106,7 +106,7 @@ It intentionally keeps the app insulated from raw Media3 constants.
 
 ### `BookBatchProgressNotificationBuilder`
 
-File: `download/src/main/java/dev/halim/shelfdroid/download/BookBatchProgressNotificationBuilder.kt`
+File: `download/src/main/java/dev/halim/shelfdroid/download/notification/BookBatchProgressNotificationBuilder.kt`
 
 Book downloads are special because one user action may enqueue many track downloads.
 
@@ -120,7 +120,7 @@ If the current active downloads are not one book batch, the service falls back t
 
 ### `ReadableStoragePolicy`
 
-File: `download/src/main/java/dev/halim/shelfdroid/download/ReadableStoragePolicy.kt`
+File: `download/src/main/java/dev/halim/shelfdroid/download/storage/ReadableStoragePolicy.kt`
 
 This class owns the durable playback path policy:
 
@@ -133,7 +133,10 @@ This keeps storage naming decisions out of the exporter and repositories.
 
 ### `BookDurableDownloadCatalog` and `PodcastDurableDownloadCatalog`
 
-File: `download/src/main/java/dev/halim/shelfdroid/download/PodcastDurableDownloadCatalog.kt`
+Files:
+
+- `download/src/main/java/dev/halim/shelfdroid/download/storage/book/BookDurableDownloadCatalog.kt`
+- `download/src/main/java/dev/halim/shelfdroid/download/storage/podcast/PodcastDurableDownloadCatalog.kt`
 
 These are the shared-storage CRUD boundaries for durable playback files.
 
@@ -148,7 +151,10 @@ They do not know anything about Media3 cache internals or UI state. They only ma
 
 ### `BookDurableDownloadExporter` and `PodcastDurableDownloadExporter`
 
-File: `download/src/main/java/dev/halim/shelfdroid/download/PodcastDurableDownloadExporter.kt`
+Files:
+
+- `download/src/main/java/dev/halim/shelfdroid/download/storage/book/BookDurableDownloadExporter.kt`
+- `download/src/main/java/dev/halim/shelfdroid/download/storage/podcast/PodcastDurableDownloadExporter.kt`
 
 These are the bridges from Media3 completion into durable shared storage.
 

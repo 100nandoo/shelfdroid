@@ -115,7 +115,9 @@ constructor(
         tracks =
           book.audioTracks.map { track ->
             dev.halim.shelfdroid.core.DownloadUiState(
-              id = if (book.audioTracks.size == 1) entity.id else helper.generateDownloadId(entity.id, track.index.toString()),
+              id =
+                if (book.audioTracks.size == 1) entity.id
+                else helper.generateDownloadId(entity.id, track.index.toString()),
               filename = track.metadata.filename,
             )
           },
@@ -149,7 +151,8 @@ constructor(
 
   private fun cleanupBooks(libraryId: String, entities: List<LibraryItemEntity>) {
     queries.transaction {
-      val existingEntities = queries.byLibraryId(libraryId).executeAsList().filter { it.isBook == 1L }
+      val existingEntities =
+        queries.byLibraryId(libraryId).executeAsList().filter { it.isBook == 1L }
       val newIds = entities.map { it.id }.toSet()
       val toDelete = existingEntities.filter { it.id !in newIds }
 

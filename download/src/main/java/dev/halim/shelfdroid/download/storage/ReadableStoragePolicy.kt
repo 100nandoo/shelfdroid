@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.storage
 
 import android.os.Environment
 import javax.inject.Inject

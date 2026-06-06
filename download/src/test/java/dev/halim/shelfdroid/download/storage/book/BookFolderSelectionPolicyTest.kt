@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.storage.book
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -13,9 +13,7 @@ class BookFolderSelectionPolicyTest {
         exactRelativePath = "Download/ShelfDroid/books/Dune_Frank Herbert/",
         filenames = listOf("01.mp3", "02.mp3"),
         matches =
-          listOf(
-            BookFolderMatch("Download/ShelfDroid/books/Dune_Frank Herbert/", "01.mp3"),
-          ),
+          listOf(BookFolderMatch("Download/ShelfDroid/books/Dune_Frank Herbert/", "01.mp3")),
       )
 
     assertEquals("Download/ShelfDroid/books/Dune_Frank Herbert/", resolved)

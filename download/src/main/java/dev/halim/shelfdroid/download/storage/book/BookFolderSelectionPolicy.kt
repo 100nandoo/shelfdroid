@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.storage.book
 
 internal data class BookFolderMatch(val relativePath: String, val filename: String)
 
@@ -23,10 +23,9 @@ internal class BookFolderSelectionPolicy {
       return exactRelativePath
     }
 
-    val fullMatches =
-      groupedMatches.filterValues { matchedFilenames ->
-        matchedFilenames.containsAll(requestedFilenames)
-      }
+    val fullMatches = groupedMatches.filterValues { matchedFilenames ->
+      matchedFilenames.containsAll(requestedFilenames)
+    }
     if (fullMatches.size == 1) {
       return fullMatches.keys.first()
     }

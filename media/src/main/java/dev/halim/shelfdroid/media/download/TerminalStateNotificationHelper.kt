@@ -7,8 +7,8 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.halim.shelfdroid.download.DownloadNotificationPayload
-import dev.halim.shelfdroid.download.ShelfDownloadService.Companion.FOREGROUND_NOTIFICATION_ID
+import dev.halim.shelfdroid.download.notification.DownloadNotificationPayload
+import dev.halim.shelfdroid.download.service.ShelfDownloadService.Companion.FOREGROUND_NOTIFICATION_ID
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.media.R
 import javax.inject.Inject

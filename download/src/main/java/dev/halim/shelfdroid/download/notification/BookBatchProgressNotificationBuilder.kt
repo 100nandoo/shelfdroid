@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.notification
 
 import android.app.Notification
 import android.content.Context
@@ -7,6 +7,7 @@ import androidx.core.app.NotificationCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
+import dev.halim.shelfdroid.download.R
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 

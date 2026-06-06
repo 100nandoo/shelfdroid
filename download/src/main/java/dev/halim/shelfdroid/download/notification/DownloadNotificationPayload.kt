@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.notification
 
 import androidx.media3.exoplayer.offline.Download
 import org.json.JSONObject

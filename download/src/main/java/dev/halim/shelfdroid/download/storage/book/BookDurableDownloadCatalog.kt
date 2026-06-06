@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.storage.book
 
 import android.content.ContentUris
 import android.content.ContentValues
@@ -6,6 +6,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.halim.shelfdroid.download.storage.ReadableStoragePolicy
 import java.io.IOException
 import java.io.OutputStream
 import java.net.URLConnection
@@ -52,9 +53,11 @@ constructor(
     if (requestedFilenames.isEmpty()) return emptyMap()
 
     val relativePath = resolveRelativePath(bookTitle, author, requestedFilenames)
-    return requestedFilenames.mapNotNull { filename ->
-      findTrackUri(relativePath, filename)?.let { filename to it }
-    }.toMap()
+    return requestedFilenames
+      .mapNotNull { filename ->
+        findTrackUri(relativePath, filename)?.let { filename to it }
+      }
+      .toMap()
   }
 
   fun findTrackUri(relativePath: String, filename: String): Uri? {

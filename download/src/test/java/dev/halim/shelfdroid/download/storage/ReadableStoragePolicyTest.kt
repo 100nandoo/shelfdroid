@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.storage
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
