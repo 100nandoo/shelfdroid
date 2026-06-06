@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
@@ -13,7 +14,6 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteFailu
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteSuccess
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
-import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.service.PlayerStore
 import dev.halim.socketio.SocketManager
@@ -189,9 +189,7 @@ constructor(
 sealed interface PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent
 
-  data class Download(
-    val download: DownloadUiState,
-  ) : PodcastEvent
+  data class Download(val download: DownloadUiState) : PodcastEvent
 
   data class DeleteDownload(val download: DownloadUiState) : PodcastEvent
 

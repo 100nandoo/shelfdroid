@@ -74,7 +74,9 @@ fun DetailsTab(
       label = stringResource(R.string.edit_item_authors),
       values = details.authors,
       onAdd = { v -> onEvent(EditItemEvent.UpdateDetails { it.copy(authors = it.authors + v) }) },
-      onRemove = { v -> onEvent(EditItemEvent.UpdateDetails { it.copy(authors = it.authors - v) }) },
+      onRemove = { v ->
+        onEvent(EditItemEvent.UpdateDetails { it.copy(authors = it.authors - v) })
+      },
     )
 
     ChipInput(

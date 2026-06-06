@@ -7,8 +7,8 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.DownloadUiState
@@ -190,7 +190,9 @@ constructor(
       return
     }
 
-    if (isActivePodcastEpisode(download.id) && localPodcastEpisodeUri(podcastTitle, filename) != null) {
+    if (
+      isActivePodcastEpisode(download.id) && localPodcastEpisodeUri(podcastTitle, filename) != null
+    ) {
       return
     }
 

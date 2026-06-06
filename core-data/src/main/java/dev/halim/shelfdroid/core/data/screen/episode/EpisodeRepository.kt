@@ -13,7 +13,6 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
 class EpisodeRepository
@@ -28,11 +27,12 @@ constructor(
   fun item(itemId: String, episodeId: String): Flow<EpisodeUiState> {
     val podcastFlow = libraryItemRepo.flowById(itemId)
     val progressFlow = progressRepo.flowEpisodeById(episodeId)
-    return combine(podcastFlow, progressFlow, downloadRepo.downloads, downloadRepo.durableDownloads) {
-      podcast,
-      progress,
-      _,
-      _ ->
+    return combine(
+      podcastFlow,
+      progressFlow,
+      downloadRepo.downloads,
+      downloadRepo.durableDownloads,
+    ) { podcast, progress, _, _ ->
       podcast
         ?.takeIf { it.isBook.toBoolean().not() }
         ?.let {

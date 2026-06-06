@@ -40,12 +40,13 @@ constructor(
     val progresses = progressRepo.flowByLibraryItemId(id)
     val prefs = prefsRepository.prefsFlow()
 
-    return combine(entity, progresses, downloadRepo.downloads, downloadRepo.durableDownloads, prefs) {
+    return combine(
       entity,
       progresses,
-      _,
-      _,
-      prefs ->
+      downloadRepo.downloads,
+      downloadRepo.durableDownloads,
+      prefs,
+    ) { entity, progresses, _, _, prefs ->
       entity?.let {
         podcast = Json.decodeFromString<Podcast>(it.media)
         val episodes = mapper.mapEpisodes(it.title, podcast?.episodes ?: emptyList(), progresses)

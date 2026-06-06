@@ -136,9 +136,7 @@ fun EpisodeItem(
           episode.download.state,
           snackbarHostState,
           {
-            onEvent(
-              PodcastEvent.Download(episode.download)
-            )
+            onEvent(PodcastEvent.Download(episode.download))
           },
           { onEvent(PodcastEvent.DeleteDownload(episode.download)) },
         )

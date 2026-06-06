@@ -44,7 +44,11 @@ constructor(
 
     scope.launch {
       try {
-        exportFromCache(download.request.customCacheKey ?: download.request.id, podcastTitle, filename)
+        exportFromCache(
+          download.request.customCacheKey ?: download.request.id,
+          podcastTitle,
+          filename,
+        )
         cache.removeResource(download.request.customCacheKey ?: download.request.id)
         downloadManager.removeDownload(download.request.id)
       } finally {

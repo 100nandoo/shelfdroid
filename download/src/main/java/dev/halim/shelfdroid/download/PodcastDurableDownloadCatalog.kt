@@ -71,7 +71,10 @@ constructor(
     val values =
       ContentValues().apply {
         put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-        put(MediaStore.MediaColumns.RELATIVE_PATH, readableStoragePolicy.podcastRelativePath(podcastTitle))
+        put(
+          MediaStore.MediaColumns.RELATIVE_PATH,
+          readableStoragePolicy.podcastRelativePath(podcastTitle),
+        )
         put(MediaStore.MediaColumns.IS_PENDING, 1)
         URLConnection.guessContentTypeFromName(filename)?.let {
           put(MediaStore.MediaColumns.MIME_TYPE, it)
