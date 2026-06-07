@@ -1,23 +1,19 @@
 package dev.halim.shelfdroid.core.ui.components
 
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -132,27 +128,6 @@ fun PlayDownloadAndEdit(
   }
 }
 
-@Composable
-fun OfflineDownloadRecoveryNote(
-  text: String,
-  modifier: Modifier = Modifier,
-) {
-  Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-    Icon(
-      painter = painterResource(R.drawable.info),
-      contentDescription = stringResource(R.string.info),
-      modifier = Modifier.size(16.dp),
-      tint = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(modifier = Modifier.width(8.dp))
-    TextLabelSmall(
-      modifier = Modifier.weight(1f),
-      text = text,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-  }
-}
-
 @ShelfDroidPreview
 @Composable
 private fun PlayDownloadAndEditPreview() {
@@ -206,19 +181,13 @@ private fun PlayDownloadAndEditPreview() {
 @Composable
 private fun DownloadButtonDeleteDialogPreview() {
   PreviewWrapper(dynamicColor = false) {
-    Column {
-      Row {
-        DownloadButton(
-          downloadState = DownloadState.Completed,
-          snackbarHostState = remember { SnackbarHostState() },
-          onDownloadClicked = {},
-          onDeleteDownloadClicked = {},
-          initialShowDeleteDialog = true,
-        )
-      }
-      OfflineDownloadRecoveryNote(
-        text = "Keep offline files inside Downloads/ShelfDroid/books so ShelfDroid can recover them after app data is cleared.",
-        modifier = Modifier.padding(top = 8.dp),
+    Row {
+      DownloadButton(
+        downloadState = DownloadState.Completed,
+        snackbarHostState = remember { SnackbarHostState() },
+        onDownloadClicked = {},
+        onDeleteDownloadClicked = {},
+        initialShowDeleteDialog = true,
       )
     }
   }

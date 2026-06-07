@@ -23,7 +23,6 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
-import dev.halim.shelfdroid.core.ui.components.OfflineDownloadRecoveryNote
 import dev.halim.shelfdroid.core.ui.components.PlayDownloadAndEdit
 import dev.halim.shelfdroid.core.ui.components.TextLabelValue
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
@@ -126,10 +125,6 @@ fun BookScreenContent(
         onPlayClicked = onPlayClicked,
         canEdit = canEdit,
         onEditClicked = onEditClicked,
-      )
-      OfflineDownloadRecoveryNote(
-        text = stringResource(R.string.offline_download_books_rule),
-        modifier = Modifier.padding(top = 8.dp),
       )
       ProgressRow(progress, remaining)
       ExpandShrinkText(text = description)

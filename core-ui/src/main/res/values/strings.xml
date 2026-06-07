@@ -93,8 +93,6 @@
     <string name="dialog_delete_episode">Are you sure you want to delete this episode?</string>
     <string name="dialog_delete_episodes">Are you sure you want to delete these episodes?</string>
     <string name="dialog_delete_user">Are you sure you want to delete this user?</string>
-    <string name="offline_download_books_rule">Keep offline files inside Downloads/ShelfDroid/books so ShelfDroid can recover them after app data is cleared.</string>
-    <string name="offline_download_podcasts_rule">Keep offline files inside Downloads/ShelfDroid/podcasts so ShelfDroid can recover them after app data is cleared.</string>
 
     <!--Dialog-->
 

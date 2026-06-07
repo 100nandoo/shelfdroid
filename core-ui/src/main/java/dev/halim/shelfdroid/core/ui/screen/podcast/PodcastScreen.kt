@@ -45,7 +45,6 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.ListDeleteButton
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
-import dev.halim.shelfdroid.core.ui.components.OfflineDownloadRecoveryNote
 import dev.halim.shelfdroid.core.ui.components.VisibilityCircular
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
@@ -164,10 +163,6 @@ fun PodcastScreenContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
-        OfflineDownloadRecoveryNote(
-          text = stringResource(R.string.offline_download_podcasts_rule),
-          modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
 
         Column(
           horizontalAlignment = Alignment.CenterHorizontally,
