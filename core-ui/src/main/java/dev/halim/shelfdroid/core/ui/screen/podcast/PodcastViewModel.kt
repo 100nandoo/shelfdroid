@@ -94,10 +94,10 @@ constructor(
         viewModelScope.launch { repository.toggleIsFinished(id, event.episode) }
       }
       is PodcastEvent.Download -> {
-        downloadRepo.downloadPodcastEpisode(event.download)
+        viewModelScope.launch { downloadRepo.downloadPodcastEpisode(event.download) }
       }
       is PodcastEvent.DeleteDownload -> {
-        downloadRepo.deletePodcastEpisode(event.download)
+        viewModelScope.launch { downloadRepo.deletePodcastEpisode(event.download) }
       }
       is PodcastEvent.SelectionMode -> {
         selectionMode.update { event.isSelectionMode }

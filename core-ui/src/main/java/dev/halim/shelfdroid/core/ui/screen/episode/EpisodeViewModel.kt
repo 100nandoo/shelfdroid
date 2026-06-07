@@ -40,10 +40,10 @@ constructor(
       is EpisodeEvent.DownloadEvent -> {
         when (event.downloadEvent) {
           is CommonDownloadEvent.Download -> {
-            downloadRepo.downloadPodcastEpisode(download)
+            viewModelScope.launch { downloadRepo.downloadPodcastEpisode(download) }
           }
           is CommonDownloadEvent.DeleteDownload -> {
-            downloadRepo.deletePodcastEpisode(download)
+            viewModelScope.launch { downloadRepo.deletePodcastEpisode(download) }
           }
         }
       }

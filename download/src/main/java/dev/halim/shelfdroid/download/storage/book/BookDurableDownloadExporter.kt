@@ -58,7 +58,7 @@ constructor(
   }
 
   @Throws(IOException::class)
-  private fun exportFromCache(cacheKey: String, relativePath: String, filename: String) {
+  private suspend fun exportFromCache(cacheKey: String, relativePath: String, filename: String) {
     val spans = cache.getCachedSpans(cacheKey).sortedBy { it.position }
     if (spans.isEmpty()) throw IOException("No cached spans found for $cacheKey")
 

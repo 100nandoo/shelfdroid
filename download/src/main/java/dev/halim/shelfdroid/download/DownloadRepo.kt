@@ -90,7 +90,7 @@ constructor(
     }
   }
 
-  fun isBookDownloaded(
+  suspend fun isBookDownloaded(
     title: String,
     author: String?,
     tracks: List<AudioTrack>,
@@ -102,20 +102,22 @@ constructor(
     return tracks.all { track -> track.metadata.filename in localTrackUris }
   }
 
-  fun podcastDownloadedEpisodeIds(
+  suspend fun podcastDownloadedEpisodeIds(
     podcastTitle: String,
     episodes: List<PodcastEpisode>,
   ): Set<String> {
-    return episodes
-      .asSequence()
-      .filter { episode ->
+    val downloadedIds = mutableSetOf<String>()
+    for (episode in episodes) {
+      if (
         isPodcastEpisodeDownloaded(
           podcastTitle = podcastTitle,
           filename = episode.audioTrack.metadata.filename,
         )
+      ) {
+        downloadedIds += episode.id
       }
-      .map { it.id }
-      .toSet()
+    }
+    return downloadedIds
   }
 
   suspend fun item(
@@ -225,7 +227,7 @@ constructor(
     enqueueDownload(id = id, url = url, payload = payload, foreground = true)
   }
 
-  fun downloadPodcastEpisode(download: DownloadUiState) {
+  suspend fun downloadPodcastEpisode(download: DownloadUiState) {
     val podcastTitle = download.secondaryLabel
     val filename = download.filename
     if (podcastTitle.isBlank() || filename.isBlank()) {
@@ -254,7 +256,7 @@ constructor(
     enqueueDownload(id = download.id, url = download.url, payload = payload, foreground = true)
   }
 
-  fun downloadBook(
+  suspend fun downloadBook(
     itemId: String,
     title: String,
     author: String? = null,
@@ -310,14 +312,14 @@ constructor(
     DownloadService.sendRemoveDownload(context, ShelfDownloadService::class.java, id, false)
   }
 
-  fun deletePodcastEpisode(download: DownloadUiState) {
+  suspend fun deletePodcastEpisode(download: DownloadUiState) {
     if (download.secondaryLabel.isNotBlank() && download.filename.isNotBlank()) {
       podcastDurableDownloadCatalog.deleteEpisode(download.secondaryLabel, download.filename)
     }
     delete(download.id)
   }
 
-  fun deleteBook(
+  suspend fun deleteBook(
     title: String,
     author: String?,
     tracks: List<DownloadUiState>,
@@ -329,8 +331,8 @@ constructor(
     tracks.forEach { delete(it.id) }
   }
 
-  fun cleanupBooks(books: List<BookCleanupRequest>) {
-    books.forEach { book ->
+  suspend fun cleanupBooks(books: List<BookCleanupRequest>) {
+    for (book in books) {
       bookDurableDownloadCatalog.deleteBook(book.title, book.author, book.filenames)
       val toDelete =
         downloads.value
@@ -361,11 +363,11 @@ constructor(
     return _downloads.value.find { it.request.id == id }
   }
 
-  fun localPodcastEpisodeUri(podcastTitle: String, filename: String): String? {
+  suspend fun localPodcastEpisodeUri(podcastTitle: String, filename: String): String? {
     return podcastDurableDownloadCatalog.findEpisodeUri(podcastTitle, filename)?.toString()
   }
 
-  fun localBookTrackUris(
+  suspend fun localBookTrackUris(
     title: String,
     author: String?,
     tracks: List<AudioTrack>,
@@ -379,7 +381,7 @@ constructor(
       .toMap()
   }
 
-  private fun localBookTrackUrisByFilename(
+  private suspend fun localBookTrackUrisByFilename(
     title: String,
     author: String?,
     filenames: List<String>,
@@ -389,7 +391,7 @@ constructor(
     }
   }
 
-  private fun isPodcastEpisodeDownloaded(
+  private suspend fun isPodcastEpisodeDownloaded(
     podcastTitle: String,
     filename: String,
   ): Boolean {

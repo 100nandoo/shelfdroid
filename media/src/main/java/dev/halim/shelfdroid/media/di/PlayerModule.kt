@@ -59,8 +59,7 @@ object PlayerModule {
     okhttpDataSourceFactory: DataSource.Factory,
     cache: Cache,
   ): MediaSource.Factory {
-    val upstreamDataSourceFactory =
-      DefaultDataSource.Factory(context, okhttpDataSourceFactory)
+    val upstreamDataSourceFactory = DefaultDataSource.Factory(context, okhttpDataSourceFactory)
     val cacheDataSourceFactory =
       CacheDataSource.Factory()
         .setCache(cache)

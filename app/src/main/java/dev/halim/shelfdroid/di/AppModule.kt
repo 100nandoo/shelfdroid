@@ -12,6 +12,7 @@ import dev.halim.shelfdroid.R
 import dev.halim.shelfdroid.core.Device
 import javax.inject.Named
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -50,6 +51,8 @@ object AppModule {
   @Provides
   @Named("io")
   fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+  @Provides @Named("ioDispatcher") fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
 
   @Provides
   @Named("main")

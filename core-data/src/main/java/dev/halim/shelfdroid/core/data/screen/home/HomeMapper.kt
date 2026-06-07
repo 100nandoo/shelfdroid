@@ -14,7 +14,7 @@ class HomeMapper
 @Inject
 constructor(private val progressRepo: ProgressRepo, private val downloadRepo: DownloadRepo) {
 
-  fun toBookUiState(item: LibraryItemEntity): BookUiState {
+  suspend fun toBookUiState(item: LibraryItemEntity): BookUiState {
     val progress = progressRepo.bookById(item.id)
     val book = Json.decodeFromString<Book>(item.media)
     val trackIndexes = book.audioTracks.map { it.index }
@@ -32,7 +32,7 @@ constructor(private val progressRepo: ProgressRepo, private val downloadRepo: Do
     )
   }
 
-  fun toPodcastUiState(item: LibraryItemEntity): PodcastUiState {
+  suspend fun toPodcastUiState(item: LibraryItemEntity): PodcastUiState {
     val podcast = Json.decodeFromString<Podcast>(item.media)
     val downloadedIds = downloadRepo.podcastDownloadedEpisodeIds(item.title, podcast.episodes)
 

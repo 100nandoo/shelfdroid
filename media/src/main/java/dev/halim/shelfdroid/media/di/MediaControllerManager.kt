@@ -94,6 +94,8 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
 
   fun release() {
     Log.d("media3", "MediaController release.")
-    mediaController.release()
+    if (::mediaController.isInitialized) {
+      mediaController.release()
+    }
   }
 }

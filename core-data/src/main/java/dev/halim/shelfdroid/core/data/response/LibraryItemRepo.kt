@@ -105,7 +105,7 @@ constructor(
     }
   }
 
-  fun cleanupItem(id: String) {
+  suspend fun cleanupItem(id: String) {
     val entity = queries.byId(id).executeAsOneOrNull()
     if (entity?.isBook == 1L) {
       val book = Json.decodeFromString<Book>(entity.media)
@@ -149,27 +149,25 @@ constructor(
     return entities
   }
 
-  private fun cleanupBooks(libraryId: String, entities: List<LibraryItemEntity>) {
-    queries.transaction {
-      val existingEntities =
-        queries.byLibraryId(libraryId).executeAsList().filter { it.isBook == 1L }
-      val newIds = entities.map { it.id }.toSet()
-      val toDelete = existingEntities.filter { it.id !in newIds }
+  private suspend fun cleanupBooks(libraryId: String, entities: List<LibraryItemEntity>) {
+    val existingEntities = queries.byLibraryId(libraryId).executeAsList().filter { it.isBook == 1L }
+    val newIds = entities.map { it.id }.toSet()
+    val toDelete = existingEntities.filter { it.id !in newIds }
+    if (toDelete.isEmpty()) return
 
-      downloadRepo.cleanupBooks(
-        toDelete.map { entity ->
-          val book = Json.decodeFromString<Book>(entity.media)
-          BookCleanupRequest(
-            itemId = entity.id,
-            title = entity.title,
-            author = entity.author,
-            filenames = book.audioTracks.map { it.metadata.filename },
-          )
-        }
-      )
+    downloadRepo.cleanupBooks(
+      toDelete.map { entity ->
+        val book = Json.decodeFromString<Book>(entity.media)
+        BookCleanupRequest(
+          itemId = entity.id,
+          title = entity.title,
+          author = entity.author,
+          filenames = book.audioTracks.map { it.metadata.filename },
+        )
+      }
+    )
 
-      toDelete.forEach { queries.deleteById(it.id) }
-    }
+    queries.transaction { toDelete.forEach { queries.deleteById(it.id) } }
   }
 
   private fun cleanupPodcasts(libraryId: String, entities: List<LibraryItemEntity>) {
