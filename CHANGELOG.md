@@ -8,6 +8,30 @@
 
 - **LocalSync**: request using wrong play method, change the way timeListened being calculate
 
+## 0.4.2 (2026-06-07)
+
+### Feat
+
+- **Download**: store podcast downloads in readable shared storage for durable offline playback
+- **Download**: store book download batches in readable shared storage for durable offline playback
+- **Download**: recover downloaded books and podcasts after app-data clear
+- **Download**: add best-effort rediscovery for durable offline playback
+- **Download**: improve managed download flow for backups and library files
+- **Download**: improve progress text and reduce offline recovery noise
+- **Media-Notification**: add timer button
+- **ChapterSheet**: add chapter time display options
+- **SettingsPlayer**: add chapter title max line preference
+- **EditItem**: improve edit screen, cover search, files tab, and chapter tools
+
+### Fix
+
+- **DownloadRepo**: fix slow first start caused by book and podcast catalog initialization
+- **Player**: improve play pause reliability after the app is backgrounded
+- **PlayerModule**: use the default data source for local and recovered playback
+- **MetadataSerializer**: improve logic to avoid crash
+- **BackupScreen**: fix backup upload and download flow, plus notification permission and IME
+  padding issues
+
 ## 0.2.4 (2025-08-09)
 
 ### Feat
@@ -105,7 +129,8 @@
 - **deps**: update dependency androidx.navigation:navigation-compose to v2.9.2
 - **BigPlayer**: fix create bookmark wrong starttime
 - **Player**: clip media item so it only start and end based on chapter
-- **PlayerViewModel**: ui state not in the right state when activity finish but there is ongoing playback
+- **PlayerViewModel**: ui state not in the right state when activity finish but there is ongoing
+  playback
 - **deps**: update dependency androidx.navigation:navigation-compose to v2.9.1
 - **Player**: auto change chapter when book only have one file
 - **deps**: update dependency org.jetbrains.kotlinx:kotlinx-serialization-json to v1.9.0
@@ -161,7 +186,8 @@
 
 ### Fix
 
-- **PlayResponse**: fix crash calling play api, somehow can't be wrap with `Result` adapter on `ApiService`
+- **PlayResponse**: fix crash calling play api, somehow can't be wrap with `Result` adapter on
+  `ApiService`
 - **HomeScreen**: show progress only if progress at least at 1%
 - **BookScreen**: percentage progress
 - **deps**: update dependency androidx.compose:compose-bom to v2025.06.00
