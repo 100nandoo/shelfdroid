@@ -74,6 +74,7 @@ The module is now split by seam instead of keeping every adapter in one flat pac
   - `BookDurableDownloadExporter`
 - `dev.halim.shelfdroid.download.storage.podcast`
   - durable podcast storage adapters
+  - `PodcastFolderSelectionPolicy`
   - `PodcastDurableDownloadCatalog`
   - `PodcastDurableDownloadExporter`
 
@@ -174,13 +175,16 @@ These are the shared-storage CRUD boundaries for durable playback files.
 They own:
 
 - exact-path lookup in `MediaStore.Downloads`
+- best-effort scan fallback inside the `ShelfDroid` tree when exact lookup fails
 - deleting an existing durable file or readable book folder contents
 - writing a durable shared-storage file
 - emitting a simple invalidation signal when durable files change
 
 They do not know anything about Media3 cache internals or UI state. They only manage durable files in shared storage.
 
-The book side also includes `BookFolderSelectionPolicy`, which keeps the readable folder stable when book metadata changes but the existing on-disk track set still matches the current Book.
+The book side also includes `BookFolderSelectionPolicy`, which keeps the readable folder stable when book metadata changes but the existing on-disk track set still matches the current Book. Recovery is intentionally strict: a Book only reuses an old folder when the exact expected folder exists or one candidate folder contains the full requested Track set. A partial single-folder match is not enough.
+
+The podcast side now includes `PodcastFolderSelectionPolicy`, which follows the same philosophy for Episodes. Recovery first tries the exact readable path, then scans `ShelfDroid/podcasts/` for the requested filename, and only reattaches the local file when there is exactly one plausible match.
 
 ### `BookDurableDownloadExporter` and `PodcastDurableDownloadExporter`
 
@@ -251,6 +255,21 @@ For podcasts:
 - `DownloadRepo.deletePodcastEpisode(...)` removes the durable shared file first
 - then removes any remaining Media3 download entry
 
+### Durable recovery after app-data clear
+
+Recovery is lazy and on-demand. The app does not run a one-time startup migration over `MediaStore.Downloads`.
+
+Instead:
+
+1. Repositories recompute download state when screens load or when durable storage invalidation fires.
+2. Book detail flows call `DownloadRepo.bookItem(...)` or `DownloadRepo.multipleTrackItem(...)`, which may recover durable Book files.
+3. Podcast list and Episode detail flows call `DownloadRepo.item(...)`, which may recover a durable Episode file.
+4. Playback startup calls `DownloadRepo.localBookTrackUris(...)` or `DownloadRepo.localPodcastEpisodeUri(...)` again, so recovery also happens when the user presses play.
+5. Every recovery attempt tries the exact readable path first and only falls back to a best-effort scan if that lookup fails.
+6. Books recover only when one candidate folder unambiguously contains the full requested Track set. Podcasts recover only when one candidate readable path unambiguously contains the requested filename.
+7. If recovery remains ambiguous, the app leaves the `DownloadState` as unknown and does not attach a local playback URI to the wrong Library item.
+8. If recovery succeeds, `PlaybackSessionResolver` keeps the resulting playback on the local-session path instead of opening a remote server session.
+
 ### State recomputation flow
 
 Most callers do not read raw Media3 download values directly.
@@ -264,6 +283,8 @@ Instead, repositories combine:
 Then they call back into `DownloadRepo.item(...)` to compute the current `DownloadUiState`.
 
 This is why some `combine(...)` calls include download-related flows even when their values are ignored. The flows are used as recomputation triggers, not as direct data inputs.
+
+That same recomputation path is what triggers durable recovery after app-data clear. Recovery happens when the UI asks for current download state, not through a dedicated background scan.
 
 ## Notification Model
 
@@ -303,6 +324,12 @@ The module relies on a few rules that should remain true unless the design chang
 ## Testing and Gaps
 
 Current coverage in this module includes focused unit testing for readable path policy.
+
+That now includes:
+
+- book-folder ambiguity and full-track matching rules
+- podcast rediscovery ambiguity rules
+- player-side local-session routing when a recovered local file is present
 
 Current gaps:
 
