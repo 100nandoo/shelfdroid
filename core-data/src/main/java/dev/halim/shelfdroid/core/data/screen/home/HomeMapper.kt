@@ -18,7 +18,7 @@ constructor(private val progressRepo: ProgressRepo, private val downloadRepo: Do
     val progress = progressRepo.bookById(item.id)
     val book = Json.decodeFromString<Book>(item.media)
     val trackIndexes = book.audioTracks.map { it.index }
-    val isDownloaded = downloadRepo.isBookDownloaded(item.id, trackIndexes)
+    val isDownloaded = downloadRepo.isBookDownloaded(item.title, item.author, book.audioTracks)
     return BookUiState(
       id = item.id,
       author = item.author,
@@ -33,13 +33,14 @@ constructor(private val progressRepo: ProgressRepo, private val downloadRepo: Do
   }
 
   fun toPodcastUiState(item: LibraryItemEntity): PodcastUiState {
-    val downloadedIds = downloadRepo.podcastDownloadedEpisodeIds(item.id)
+    val podcast = Json.decodeFromString<Podcast>(item.media)
+    val downloadedIds = downloadRepo.podcastDownloadedEpisodeIds(item.title, podcast.episodes)
 
     val finished = progressRepo.byLibraryItemIdAndFinished(item.id)
     val finishedIds = finished.map { it.id }
     val finishedCount = finished.count()
 
-    val episodeCount = Json.decodeFromString<Podcast>(item.media).episodes.count()
+    val episodeCount = podcast.episodes.count()
     val unfinishedCount = episodeCount - finishedCount
 
     val downloadedCount = downloadedIds.count()

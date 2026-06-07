@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.download
+package dev.halim.shelfdroid.download.service
 
 import android.app.Notification
 import androidx.media3.common.util.UnstableApi
@@ -10,6 +10,9 @@ import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import dev.halim.shelfdroid.download.R
+import dev.halim.shelfdroid.download.notification.BookBatchProgressNotificationBuilder
+import dev.halim.shelfdroid.download.notification.DownloadNotificationPayload
 import javax.inject.Inject
 
 @UnstableApi

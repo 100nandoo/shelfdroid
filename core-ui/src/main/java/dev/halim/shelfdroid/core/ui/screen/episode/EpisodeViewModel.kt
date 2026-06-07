@@ -40,15 +40,10 @@ constructor(
       is EpisodeEvent.DownloadEvent -> {
         when (event.downloadEvent) {
           is CommonDownloadEvent.Download -> {
-            downloadRepo.download(
-              download.id,
-              download.url,
-              download.title,
-              download.secondaryLabel,
-            )
+            downloadRepo.downloadPodcastEpisode(download)
           }
           is CommonDownloadEvent.DeleteDownload -> {
-            downloadRepo.delete(download.id)
+            downloadRepo.deletePodcastEpisode(download)
           }
         }
       }

@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
@@ -93,10 +94,10 @@ constructor(
         viewModelScope.launch { repository.toggleIsFinished(id, event.episode) }
       }
       is PodcastEvent.Download -> {
-        downloadRepo.download(event.downloadId, event.url, event.message, event.secondaryLabel)
+        downloadRepo.downloadPodcastEpisode(event.download)
       }
       is PodcastEvent.DeleteDownload -> {
-        downloadRepo.delete(event.downloadId)
+        downloadRepo.deletePodcastEpisode(event.download)
       }
       is PodcastEvent.SelectionMode -> {
         selectionMode.update { event.isSelectionMode }
@@ -188,14 +189,9 @@ constructor(
 sealed interface PodcastEvent {
   data class ToggleIsFinished(val episode: Episode) : PodcastEvent
 
-  data class Download(
-    val downloadId: String,
-    val url: String,
-    val message: String,
-    val secondaryLabel: String = "",
-  ) : PodcastEvent
+  data class Download(val download: DownloadUiState) : PodcastEvent
 
-  data class DeleteDownload(val downloadId: String) : PodcastEvent
+  data class DeleteDownload(val download: DownloadUiState) : PodcastEvent
 
   data class SelectionMode(val isSelectionMode: Boolean, val itemId: String) : PodcastEvent
 

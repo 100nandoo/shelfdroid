@@ -199,7 +199,9 @@ private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent)
       label = stringResource(R.string.sort),
       options = BookSort.entries.map { it.label },
       initialValue = uiState.displayPrefs.bookSort.label,
-      onClick = { onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it))) },
+      onClick = {
+        onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it)))
+      },
     )
     Spacer(Modifier.width(8.dp))
     ChipDropdownMenu(

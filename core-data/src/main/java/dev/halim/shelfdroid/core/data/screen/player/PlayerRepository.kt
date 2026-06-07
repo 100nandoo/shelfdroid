@@ -18,7 +18,6 @@ import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
-import java.util.UUID
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.first
@@ -37,11 +36,11 @@ constructor(
   private val downloadRepo: DownloadRepo,
   private val state: PlayerInternalStateHolder,
   private val prefsRepository: PrefsRepository,
+  private val playbackSessionResolver: PlaybackSessionResolver,
 ) {
 
   suspend fun playBook(
     id: String,
-    isDownloaded: Boolean,
     advancedControl: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
   ): PlayerUiState {
@@ -49,17 +48,14 @@ constructor(
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
-    var sessionId: String
     val result =
       runCatching {
-          if (isDownloaded) {
-            sessionId = UUID.randomUUID().toString()
-          } else {
-            val request = mapper.toPlayRequest()
-            val response = apiService.playBook(id, request)
-            sessionId = response.id
-          }
-
+          val sessionId =
+            playbackSessionResolver.resolve(playerUiState.downloadState) {
+              val request = mapper.toPlayRequest()
+              val response = apiService.playBook(id, request)
+              response.id
+            }
           state.changeMedia(playerUiState, sessionId)
           playerUiState
         }
@@ -71,7 +67,6 @@ constructor(
   suspend fun playPodcast(
     itemId: String,
     episodeId: String,
-    isDownloaded: Boolean,
     advancedControl: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
   ): PlayerUiState {
@@ -79,17 +74,14 @@ constructor(
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
-    var sessionId: String
     val result =
       runCatching {
-          if (isDownloaded) {
-            sessionId = UUID.randomUUID().toString()
-          } else {
-            val request = mapper.toPlayRequest()
-            val response = apiService.playPodcast(itemId, episodeId, request)
-            sessionId = response.id
-          }
-
+          val sessionId =
+            playbackSessionResolver.resolve(playerUiState.downloadState) {
+              val request = mapper.toPlayRequest()
+              val response = apiService.playPodcast(itemId, episodeId, request)
+              response.id
+            }
           state.changeMedia(playerUiState, sessionId)
           playerUiState
         }
@@ -114,7 +106,12 @@ constructor(
           mapper.toPlayerChapter(i, bookChapter, media.chapters.size)
         }
       val isSingleTrack = media.audioTracks.size == 1
-      val playerTracks = media.audioTracks.map { mapper.toPlayerTrack(it) }
+      val localTrackUris =
+        downloadRepo.localBookTrackUris(result.title, result.author, media.audioTracks)
+      val playerTracks =
+        media.audioTracks.map { track ->
+          mapper.toPlayerTrack(track, localTrackUris[track.index])
+        }
       val currentTrack = finder.trackFromChapter(playerTracks, progress?.currentTime ?: 0.0)
       val currentChapter = finder.playerChapter(chapters, progress?.currentTime ?: 0.0)
       val currentTime =
@@ -123,15 +120,13 @@ constructor(
 
       val downloadState =
         if (isSingleTrack) {
-          val url = media.audioTracks.first().contentUrl
-          downloadRepo
-            .item(itemId = id, url = url, title = currentChapter?.title ?: result.title)
-            .state
+          downloadRepo.bookItem(id, result.title, result.author, media.audioTracks.first()).state
         } else {
           downloadRepo
             .multipleTrackItem(
               itemId = id,
-              title = currentChapter?.title ?: result.title,
+              title = result.title,
+              author = result.author,
               tracks = media.audioTracks,
             )
             .state
@@ -182,10 +177,14 @@ constructor(
             episodeId = episodeId,
             url = episode.audioTrack.contentUrl,
             title = episode.title,
+            secondaryLabel = result.title,
+            filename = episode.audioTrack.metadata.filename,
           )
           .state
 
-      val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it) }
+      val localUri =
+        downloadRepo.localPodcastEpisodeUri(result.title, episode.audioTrack.metadata.filename)
+      val playerTrack = episode.audioTrack.let { mapper.toPlayerTrack(it, localUri) }
       val advancedControl = decideAdvanceControl(existing, changeBehaviour)
 
       val currentTime =

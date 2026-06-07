@@ -6,6 +6,7 @@ data class DownloadUiState(
   val url: String = "",
   val title: String = "",
   val secondaryLabel: String = "",
+  val filename: String = "",
 )
 
 data class MultipleTrackDownloadUiState(

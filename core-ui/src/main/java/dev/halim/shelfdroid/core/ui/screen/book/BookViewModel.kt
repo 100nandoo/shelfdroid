@@ -40,28 +40,19 @@ constructor(
       is BookEvent.DownloadEvent -> {
         when (event.downloadEvent) {
           is CommonDownloadEvent.Download -> {
-            if (isSingleTrack) {
-              downloadRepo.download(
-                id = download.id,
-                url = download.url,
-                message = download.title,
-                secondaryLabel = download.secondaryLabel,
-              )
-            } else {
-              downloadRepo.downloadBook(
-                itemId = id,
-                title = _uiState.value.title,
-                author = _uiState.value.author,
-                tracks = _uiState.value.downloads.items,
-              )
-            }
+            downloadRepo.downloadBook(
+              itemId = id,
+              title = _uiState.value.title,
+              author = _uiState.value.author,
+              tracks = if (isSingleTrack) listOf(download) else _uiState.value.downloads.items,
+            )
           }
           is CommonDownloadEvent.DeleteDownload -> {
-            if (isSingleTrack) {
-              downloadRepo.delete(download.id)
-            } else {
-              _uiState.value.downloads.items.forEach { downloadRepo.delete(id = it.id) }
-            }
+            downloadRepo.deleteBook(
+              title = _uiState.value.title,
+              author = _uiState.value.author,
+              tracks = if (isSingleTrack) listOf(download) else _uiState.value.downloads.items,
+            )
           }
         }
       }

@@ -45,4 +45,6 @@ dependencies {
 
   // Media3
   implementation(libs.androidx.media3.exoplayer)
+
+  testImplementation(libs.junit)
 }

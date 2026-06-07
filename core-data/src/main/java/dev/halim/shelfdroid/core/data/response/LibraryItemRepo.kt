@@ -12,6 +12,7 @@ import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.extensions.toBoolean
+import dev.halim.shelfdroid.download.BookCleanupRequest
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
@@ -105,8 +106,26 @@ constructor(
   }
 
   fun cleanupItem(id: String) {
+    val entity = queries.byId(id).executeAsOneOrNull()
+    if (entity?.isBook == 1L) {
+      val book = Json.decodeFromString<Book>(entity.media)
+      downloadRepo.deleteBook(
+        title = entity.title,
+        author = entity.author,
+        tracks =
+          book.audioTracks.map { track ->
+            dev.halim.shelfdroid.core.DownloadUiState(
+              id =
+                if (book.audioTracks.size == 1) entity.id
+                else helper.generateDownloadId(entity.id, track.index.toString()),
+              filename = track.metadata.filename,
+            )
+          },
+      )
+    } else {
+      downloadRepo.delete(id)
+    }
     queries.deleteById(id)
-    downloadRepo.delete(id)
     progressRepo.deleteItem(id)
   }
 
@@ -132,13 +151,24 @@ constructor(
 
   private fun cleanupBooks(libraryId: String, entities: List<LibraryItemEntity>) {
     queries.transaction {
-      val ids = queries.idsByLibraryId(libraryId).executeAsList()
-      val newIds = entities.map { it.id }
-      val toDelete = ids.filter { !newIds.contains(it) }
+      val existingEntities =
+        queries.byLibraryId(libraryId).executeAsList().filter { it.isBook == 1L }
+      val newIds = entities.map { it.id }.toSet()
+      val toDelete = existingEntities.filter { it.id !in newIds }
 
-      downloadRepo.cleanupBook(toDelete)
+      downloadRepo.cleanupBooks(
+        toDelete.map { entity ->
+          val book = Json.decodeFromString<Book>(entity.media)
+          BookCleanupRequest(
+            itemId = entity.id,
+            title = entity.title,
+            author = entity.author,
+            filenames = book.audioTracks.map { it.metadata.filename },
+          )
+        }
+      )
 
-      toDelete.forEach { queries.deleteById(it) }
+      toDelete.forEach { queries.deleteById(it.id) }
     }
   }
 

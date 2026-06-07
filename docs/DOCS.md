@@ -111,3 +111,7 @@ More documentation will be added in the future.
 ## 🎨 UI Development
 
 - [Compose Preview Policy](./ui-previews.md)
+
+## 🧱 Architecture
+
+- [Download Module](./architecture/download-module.md)

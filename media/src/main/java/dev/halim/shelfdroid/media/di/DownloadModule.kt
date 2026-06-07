@@ -17,7 +17,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.halim.shelfdroid.download.ShelfDownloadService.Companion.DOWNLOAD_NOTIFICATION_CHANNEL_ID
+import dev.halim.shelfdroid.download.service.ShelfDownloadService.Companion.DOWNLOAD_NOTIFICATION_CHANNEL_ID
+import dev.halim.shelfdroid.download.storage.book.BookDurableDownloadExporter
+import dev.halim.shelfdroid.download.storage.podcast.PodcastDurableDownloadExporter
 import dev.halim.shelfdroid.media.download.TerminalStateNotificationHelper
 import java.io.File
 import java.util.concurrent.Executors
@@ -70,6 +72,8 @@ object DownloadModule {
     cache: Cache,
     okhttpDataSourceFactory: DataSource.Factory,
     terminalStateNotificationHelper: TerminalStateNotificationHelper,
+    bookDurableDownloadExporter: BookDurableDownloadExporter,
+    podcastDurableDownloadExporter: PodcastDurableDownloadExporter,
   ): DownloadManager {
     val downloadManager =
       DownloadManager(
@@ -80,6 +84,8 @@ object DownloadModule {
         Executors.newFixedThreadPool(6),
       )
     downloadManager.addListener(terminalStateNotificationHelper)
+    downloadManager.addListener(bookDurableDownloadExporter)
+    downloadManager.addListener(podcastDurableDownloadExporter)
     return downloadManager
   }
 }

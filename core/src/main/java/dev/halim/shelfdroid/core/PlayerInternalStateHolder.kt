@@ -8,9 +8,12 @@ import kotlinx.coroutines.flow.update
 data class PlayerInternalState(
   val mediaStructure: MediaStructure = MediaStructure.SingleTrack,
   val sessionId: String = "",
+  val itemId: String = "",
+  val episodeId: String = "",
   val startOffset: Double = 0.0,
   val duration: Double = 0.0,
   val isBook: Boolean = true,
+  val isPlaying: Boolean = false,
 )
 
 @Singleton
@@ -38,6 +41,8 @@ class PlayerInternalStateHolder @Inject constructor() {
       it.copy(
         mediaStructure = mediaStructure,
         sessionId = sessionId,
+        itemId = uiState.id,
+        episodeId = uiState.episodeId,
         startOffset = startOffset,
         duration = duration,
         isBook = uiState.episodeId.isBlank(),
@@ -54,9 +59,19 @@ class PlayerInternalStateHolder @Inject constructor() {
 
   fun sessionId() = _internalState.value.sessionId
 
+  fun itemId() = _internalState.value.itemId
+
+  fun episodeId() = _internalState.value.episodeId
+
   fun startOffset() = _internalState.value.startOffset
 
   fun duration() = _internalState.value.duration
 
   fun isBook() = _internalState.value.isBook
+
+  fun isPlaying() = _internalState.value.isPlaying
+
+  fun setPlaying(isPlaying: Boolean) {
+    _internalState.update { it.copy(isPlaying = isPlaying) }
+  }
 }
