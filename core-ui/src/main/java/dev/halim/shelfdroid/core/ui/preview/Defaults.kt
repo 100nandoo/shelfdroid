@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.preview
 
 import dev.halim.shelfdroid.core.LogLevel
+import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.Prefs
@@ -153,7 +154,14 @@ object Defaults {
     """<p>Welcome to Now in Android, your ongoing guide to what's new and notable in the world of Android development. In this episode, Dan Galpin covers part one of the biggest announcements from Google I/O 2025. From Material Design’s latest evolution, to building with on-device and cloud AI, to updates for wearables, automotive, XR, and more.</p> <p>Stay tuned for part 2, where Dan covers Android Jetpack, Jetpack Compose, and Android Studio. </p> <p>Resources:</p> <p>Google I/O '25 Developer Keynote → <a href="https://goo.gle/4keiQ3b">https://goo.gle/4keiQ3b</a> </p> <p>16 things to know for Android developers at Google I/O 2025 → <a href="https://goo.gle/43Sx5Fe">https://goo.gle/43Sx5Fe</a> </p> <p>Start building with Material 3 Expressive → <a href="https://goo.gle/4dCUvlj">https://goo.gle/4dCUvlj</a> </p> <p>What’s new in Wear OS 6 → <a href="https://goo.gle/3FvI6TF">https://goo.gle/3FvI6TF</a> </p> <p>New in-car app experiences → <a href="https://goo.gle/3Zzh0li">https://goo.gle/3Zzh0li</a> </p> <p>Engage users on Google TV with excellent TV apps → <a href="https://goo.gle/4mR5M5Q">https://goo.gle/4mR5M5Q</a> </p> <p>Build adaptive Android apps that shine across form factors → <a href="https://goo.gle/4jqMOQA">https://goo.gle/4jqMOQA</a> </p> <p>On-device GenAI APIs as part of ML Kit help you easily build with Gemini Nano → </p> <p><a href="https://goo.gle/4dAUXQV">https://goo.gle/4dAUXQV</a> </p> <p>Updates to the Android XR SDK: Introducing Developer Preview 2 → <a href="https://goo.gle/4dz28ck">https://goo.gle/4dz28ck</a> </p> <p> </p>"""
   val EPISODES =
     listOf(
-      Episode("1", "Episode 1: The Beginning", "10 January 2024", 0.75f, false, isPlaying = true),
+      Episode(
+        "1",
+        "Episode 1: The Beginning",
+        "10 January 2024",
+        0.75f,
+        false,
+        playPause = PlayPauseControlState(enabled = true, isPlaying = true, showPlayIcon = false),
+      ),
       Episode("2", "Episode 2: Rising Action", "30 May 2024", 0.5f, false),
       Episode("3", "Episode 3: The Climax", "10 October 2024", 0.2f, false),
       Episode(

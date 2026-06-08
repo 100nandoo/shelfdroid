@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.DownloadState
+import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
@@ -28,6 +29,7 @@ import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
+import dev.halim.shelfdroid.core.ui.player.forItemAction
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -64,8 +66,7 @@ fun BookScreen(
       progress = uiState.progress,
       canEdit = uiState.canEdit,
       downloadState = downloadState,
-      currentItemId = playerUiState.id,
-      isPlayerPlaying = playerUiState.playPause.isPlaying,
+      playPause = playerUiState.playPause.forItemAction(playerUiState.id == viewModel.id),
       snackbarHostState = snackbarHostState,
       onDownloadClicked = {
         viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.Download))
@@ -97,16 +98,13 @@ fun BookScreenContent(
   progress: Int = Defaults.PROGRESS_PERCENT,
   canEdit: Boolean = false,
   downloadState: DownloadState = DownloadState.Unknown,
-  currentItemId: String = Defaults.BOOK_ID,
-  isPlayerPlaying: Boolean = false,
+  playPause: PlayPauseControlState = PlayPauseControlState(enabled = true),
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onDownloadClicked: () -> Unit = {},
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit,
   onEditClicked: () -> Unit = {},
 ) {
-  val isPlaying = currentItemId == id && isPlayerPlaying
-
   LazyColumn(
     modifier =
       Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize().padding(horizontal = 16.dp),
@@ -116,7 +114,7 @@ fun BookScreenContent(
     item {
       Spacer(modifier = Modifier.height(16.dp))
       PlayDownloadAndEdit(
-        isPlaying = isPlaying,
+        playPause = playPause,
         downloadState = downloadState,
         snackbarHostState = snackbarHostState,
         onDownloadClicked = onDownloadClicked,
@@ -165,4 +163,20 @@ fun BookScreenContentPreview() {
 @Composable
 fun BookScreenContentDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) { BookScreenContent(onPlayClicked = {}) }
+}
+
+@ShelfDroidPreview
+@Composable
+fun BookScreenContentLoadingPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    BookScreenContent(
+      playPause =
+        PlayPauseControlState(
+          enabled = true,
+          showPlayIcon = false,
+          showLoadingIndicator = true,
+        ),
+      onPlayClicked = {},
+    )
+  }
 }

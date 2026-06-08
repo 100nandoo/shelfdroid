@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -107,7 +109,7 @@ fun EpisodeItem(
             overflow = TextOverflow.Ellipsis,
           )
           Spacer(modifier = Modifier.weight(1f))
-          VisibilityUp(episode.isFinished.not() || episode.isPlaying) {
+          VisibilityUp(episode.isFinished.not() || episode.playPause.isPlaying) {
             val currentProgress =
               when {
                 !episode.isFinished -> episode.progress
@@ -144,15 +146,20 @@ fun EpisodeItem(
         FilledTonalIconButton(
           onClick = {
             onPlayClicked(itemId, episode.episodeId, episode.download.state.isDownloaded())
-          }
+          },
+          enabled = episode.playPause.enabled,
         ) {
-          val icon =
-            if (episode.isPlaying.not()) painterResource(R.drawable.play_arrow)
-            else painterResource(R.drawable.pause)
-          val contentDescription =
-            if (episode.isPlaying.not()) stringResource(R.string.play)
-            else stringResource(R.string.pause)
-          Icon(painter = icon, contentDescription = contentDescription)
+          if (episode.playPause.showLoadingIndicator) {
+            CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+          } else {
+            val icon =
+              if (episode.playPause.showPlayIcon) painterResource(R.drawable.play_arrow)
+              else painterResource(R.drawable.pause)
+            val contentDescription =
+              if (episode.playPause.showPlayIcon) stringResource(R.string.play)
+              else stringResource(R.string.pause)
+            Icon(painter = icon, contentDescription = contentDescription)
+          }
         }
       }
     }
@@ -206,6 +213,36 @@ fun EpisodeItemDynamicPreview() {
             false,
           )
         }
+      }
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun EpisodeItemLoadingPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    LazyColumn(reverseLayout = true) {
+      item { Spacer(modifier = Modifier.height(12.dp)) }
+      item {
+        EpisodeItem(
+          "",
+          Defaults.TITLE,
+          Defaults.EPISODES.first().copy(
+            playPause =
+              Defaults.EPISODES.first().playPause.copy(
+                showPlayIcon = false,
+                showLoadingIndicator = true,
+              )
+          ),
+          false,
+          false,
+          {},
+          { _, _ -> },
+          { _, _, _ -> },
+          SnackbarHostState(),
+          false,
+        )
       }
     }
   }

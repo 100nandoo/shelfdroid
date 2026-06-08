@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteFailu
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteSuccess
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
+import dev.halim.shelfdroid.core.ui.player.forItemAction
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.service.PlayerStore
 import dev.halim.socketio.SocketManager
@@ -70,9 +71,9 @@ constructor(
             if (episode.episodeId == playerState.episodeId) {
               episode.copy(
                 progress = playerState.playbackProgress.progress,
-                isPlaying = playerState.playPause.isPlaying,
+                playPause = playerState.playPause.forItemAction(true),
               )
-            } else episode
+            } else episode.copy(playPause = playerState.playPause.forItemAction(false))
           }
         podcast.copy(
           episodes = updatedEpisodes,
