@@ -164,12 +164,13 @@ fun PodcastScreenContent(
 
         ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
 
-        Column(
-          horizontalAlignment = Alignment.CenterHorizontally,
+        ItemDetail(
+          id,
+          uiState.cover,
+          uiState.title,
+          uiState.author,
           modifier = Modifier.padding(horizontal = 16.dp),
-        ) {
-          ItemDetail(id, uiState.cover, uiState.title, uiState.author)
-        }
+        )
       }
     }
     AnimatedVisibility(uiState.isSelectionMode) {

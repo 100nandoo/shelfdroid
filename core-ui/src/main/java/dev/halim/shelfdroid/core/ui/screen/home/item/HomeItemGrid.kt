@@ -97,43 +97,70 @@ fun LazyGridItemScope.HomeItemGrid(
 }
 
 @Composable
-fun ItemDetail(id: String, url: String, title: String, authorName: String, subtitle: String = "") {
+fun ItemDetail(
+  id: String,
+  url: String,
+  title: String,
+  authorName: String,
+  subtitle: String = "",
+  modifier: Modifier = Modifier,
+) {
   val sharedTransitionScope = LocalSharedTransitionScope.current
 
   with(sharedTransitionScope) {
-    Spacer(modifier = Modifier.height(16.dp))
-    Cover(
-      Modifier.fillMaxWidth(),
-      cover = url,
-      shape = RoundedCornerShape(8.dp),
-      animationKey = Animations.coverKey(id),
-    )
-    Spacer(modifier = Modifier.height(16.dp))
+    Column(
+      modifier = modifier.fillMaxWidth(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      Spacer(modifier = Modifier.height(16.dp))
+      Cover(
+        Modifier.fillMaxWidth(),
+        cover = url,
+        shape = RoundedCornerShape(8.dp),
+        animationKey = Animations.coverKey(id),
+      )
+      Spacer(modifier = Modifier.height(16.dp))
 
-    Text(
-      modifier = Modifier.mySharedElement(Animations.titleKey(id, title)).skipToLookaheadSize(),
-      text = title,
-      style = MaterialTheme.typography.headlineLarge,
-      textAlign = TextAlign.Center,
-    )
-
-    if (subtitle.isNotEmpty()) {
       Text(
-        text = subtitle,
-        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.mySharedElement(Animations.titleKey(id, title)).skipToLookaheadSize(),
+        text = title,
+        style = MaterialTheme.typography.headlineLarge,
         textAlign = TextAlign.Center,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+
+      if (subtitle.isNotEmpty()) {
+        Text(
+          text = subtitle,
+          style = MaterialTheme.typography.titleMedium,
+          textAlign = TextAlign.Center,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      Spacer(modifier = Modifier.height(8.dp))
+
+      Text(
+        modifier =
+          Modifier.mySharedElement(Animations.authorKey(id, authorName)).skipToLookaheadSize(),
+        text = authorName,
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.Gray,
+        textAlign = TextAlign.Center,
       )
     }
-    Spacer(modifier = Modifier.height(8.dp))
+  }
+}
 
-    Text(
-      modifier =
-        Modifier.mySharedElement(Animations.authorKey(id, authorName)).skipToLookaheadSize(),
-      text = authorName,
-      style = MaterialTheme.typography.bodyMedium,
-      color = Color.Gray,
-      textAlign = TextAlign.Center,
+@ShelfDroidPreview
+@Composable
+private fun PreviewItemDetail() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    ItemDetail(
+      id = "preview-book",
+      url = "",
+      title = "The Fellowship of the Ring",
+      authorName = "J. R. R. Tolkien",
+      subtitle = "Lord of the Rings, Book 1",
+      modifier = Modifier.padding(16.dp),
     )
   }
 }
