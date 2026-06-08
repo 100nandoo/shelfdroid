@@ -1,0 +1,3 @@
+# Compose Preview Screenshot Testing In Core UI
+
+ShelfDroid will introduce phase-one Compose Preview Screenshot Testing in `:core-ui` only, using dedicated composables in `core-ui/src/screenshotTest/` rather than reusing the existing Studio preview functions, and it will check the generated reference images into git. We chose this because `core-ui` already owns the reusable Compose surfaces, the existing preview helpers intentionally mix animation and convenience layouts that are unstable as screenshot baselines, and a local-machine-owned workflow is the smallest reversible step before we decide whether broader coverage or CI ownership is worth the added churn.

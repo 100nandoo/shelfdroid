@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   alias(libs.plugins.android.library)
+  alias(libs.plugins.compose.screenshot)
   alias(libs.plugins.hilt.gradle)
   alias(libs.plugins.ksp)
   alias(libs.plugins.kotlin.serialization)
@@ -18,6 +19,8 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     consumerProguardFiles("consumer-rules.pro")
   }
+
+  experimentalProperties["android.experimental.enableScreenshotTest"] = true
 
   buildFeatures {
     compose = true
@@ -43,6 +46,7 @@ dependencies {
   val composeBom = platform(libs.androidx.compose.bom)
   implementation(composeBom)
   androidTestImplementation(composeBom)
+  screenshotTestImplementation(composeBom)
 
   implementation(libs.kotlinx.serialization)
 
@@ -66,6 +70,8 @@ dependencies {
 
   // Tooling
   debugImplementation(libs.androidx.compose.ui.tooling)
+  screenshotTestImplementation(libs.androidx.compose.ui.tooling)
+  screenshotTestImplementation(libs.screenshot.validation.api)
 
   // Hilt Dependency Injection
   implementation(libs.hilt.android)

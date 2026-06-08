@@ -14,6 +14,8 @@
 - [ ] Socket implementation
     - [ ] Handle download event
 - [ ] Widget
+- [ ] Expand Compose screenshot coverage
+    - [ ] Follow plan: `docs/plan/compose-screenshot-coverage-expansion.md`
 - [ ] Backup Restore
 - [ ] Window Manager
 - [ ] Create release build with https://github.com/ilharp/sign-android-release
