@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -30,8 +31,7 @@ fun PlayPauseButton(
     if (playPause.showPlayIcon) painterResource(R.drawable.play_arrow)
     else painterResource(R.drawable.pause)
   val contentDescription =
-    if (playPause.showPlayIcon) stringResource(R.string.play)
-    else stringResource(R.string.pause)
+    if (playPause.showPlayIcon) stringResource(R.string.play) else stringResource(R.string.pause)
   FilledTonalIconButton(
     modifier = Modifier.size(size.dp).mySharedBound(Animations.Companion.Player.playKey(id)),
     enabled = playPause.enabled,
@@ -40,7 +40,7 @@ fun PlayPauseButton(
     if (playPause.showLoadingIndicator) {
       CircularProgressIndicator(modifier = Modifier.size((size / 2).dp), strokeWidth = 2.dp)
     } else {
-      androidx.compose.material3.Icon(painter = icon, contentDescription = contentDescription)
+      Icon(painter = icon, contentDescription = contentDescription)
     }
   }
 }
@@ -107,7 +107,11 @@ fun PlayPauseButtonLargePreview() {
           PlayPauseButton({}, PlayPauseControlState(enabled = false, showPlayIcon = true), "7")
           PlayPauseButton(
             {},
-            PlayPauseControlState(enabled = true, showPlayIcon = false, showLoadingIndicator = true),
+            PlayPauseControlState(
+              enabled = true,
+              showPlayIcon = false,
+              showLoadingIndicator = true,
+            ),
             "8",
           )
         }

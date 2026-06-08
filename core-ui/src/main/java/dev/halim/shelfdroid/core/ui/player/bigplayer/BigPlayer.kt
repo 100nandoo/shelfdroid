@@ -36,8 +36,8 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.AdvancedControl
 import dev.halim.shelfdroid.core.ChapterPosition
 import dev.halim.shelfdroid.core.ChapterTimeDisplay
-import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.PlayPauseControlState
+import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.SeekControlsState
