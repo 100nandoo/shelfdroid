@@ -228,13 +228,16 @@ fun EpisodeItemLoadingPreview() {
         EpisodeItem(
           "",
           Defaults.TITLE,
-          Defaults.EPISODES.first().copy(
-            playPause =
-              Defaults.EPISODES.first().playPause.copy(
-                showPlayIcon = false,
-                showLoadingIndicator = true,
-              )
-          ),
+          Defaults.EPISODES.first()
+            .copy(
+              playPause =
+                Defaults.EPISODES.first()
+                  .playPause
+                  .copy(
+                    showPlayIcon = false,
+                    showLoadingIndicator = true,
+                  )
+            ),
           false,
           false,
           {},

@@ -3,18 +3,24 @@ package dev.halim.shelfdroid.core.ui.components
 import androidx.annotation.DrawableRes
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -102,16 +108,33 @@ fun RowScope.PlayButton(
     modifier = modifier.weight(1f),
     enabled = playPause.enabled,
   ) {
-    if (playPause.showLoadingIndicator) {
-      CircularProgressIndicator(modifier = Modifier.size(18.dp).padding(end = 8.dp), strokeWidth = 2.dp)
-    } else {
-      Icon(
-        painter = icon,
-        contentDescription = contentDescription,
-        modifier = Modifier.padding(end = 8.dp),
-      )
+    Row(
+      horizontalArrangement = Arrangement.Center,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(
+        modifier = Modifier.size(24.dp),
+        contentAlignment = Alignment.Center,
+      ) {
+        if (playPause.showLoadingIndicator) {
+          CircularProgressIndicator(
+            modifier = Modifier.size(18.dp),
+            color = LocalContentColor.current,
+            strokeWidth = 2.dp,
+          )
+        } else {
+          Icon(
+            painter = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(24.dp),
+          )
+        }
+      }
+      if (playPause.showLoadingIndicator) {
+        Spacer(Modifier.width(4.dp))
+      }
+      Text(contentDescription)
     }
-    Text(contentDescription)
   }
 }
 
