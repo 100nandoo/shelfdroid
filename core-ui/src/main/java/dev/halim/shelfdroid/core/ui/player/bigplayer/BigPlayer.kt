@@ -36,10 +36,11 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.AdvancedControl
 import dev.halim.shelfdroid.core.ChapterPosition
 import dev.halim.shelfdroid.core.ChapterTimeDisplay
-import dev.halim.shelfdroid.core.MultipleButtonState
 import dev.halim.shelfdroid.core.PlaybackProgress
+import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
+import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.R
@@ -72,7 +73,8 @@ fun BigPlayerContent(
   currentChapter: PlayerChapter? = PlayerChapter(),
   bookmarks: List<PlayerBookmark> = emptyList(),
   newBookmarkTime: PlayerBookmark = PlayerBookmark(),
-  multipleButtonState: MultipleButtonState = MultipleButtonState(),
+  playPause: PlayPauseControlState = PlayPauseControlState(),
+  seekControls: SeekControlsState = SeekControlsState(),
   onSwipeUp: () -> Unit = {},
   onSwipeDown: () -> Unit = {},
   onEvent: (PlayerEvent) -> Unit = {},
@@ -107,8 +109,8 @@ fun BigPlayerContent(
       onEvent,
     )
 
-    PlayerProgress(id, progress, multipleButtonState, onEvent)
-    BasicPlayerControl(multipleButtonState, id, currentChapter, onEvent)
+    PlayerProgress(id, progress, seekControls, onEvent)
+    BasicPlayerControl(playPause, seekControls, id, currentChapter, onEvent)
     AdvancedPlayerControl(advancedControl, onEvent)
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -146,7 +148,7 @@ fun BasicPlayerContent(id: String, author: String, title: String, cover: String)
 fun PlayerProgress(
   id: String = "",
   progress: PlaybackProgress = PlaybackProgress(),
-  multipleButtonState: MultipleButtonState,
+  seekControls: SeekControlsState,
   onEvent: (PlayerEvent) -> Unit,
 ) {
   var isDragging by remember { mutableStateOf(false) }
@@ -179,7 +181,7 @@ fun PlayerProgress(
       isDragging = false
       onEvent(PlayerEvent.SeekTo(target))
     },
-    enabled = multipleButtonState.seekSliderEnabled,
+    enabled = seekControls.seekSliderEnabled,
     track = { sliderState ->
       SliderDefaults.Track(sliderState = sliderState, drawStopIndicator = {})
     },
@@ -193,7 +195,8 @@ fun PlayerProgress(
 
 @Composable
 fun BasicPlayerControl(
-  multipleButtonState: MultipleButtonState,
+  playPause: PlayPauseControlState,
+  seekControls: SeekControlsState,
   id: String = "",
   currentChapter: PlayerChapter? = PlayerChapter(),
   onEvent: (PlayerEvent) -> Unit,
@@ -208,9 +211,9 @@ fun BasicPlayerControl(
       contentDescription = stringResource(R.string.previous_chapter),
       onClick = { onEvent(PlayerEvent.SkipPreviousButton) },
     )
-    SeekBackButton({ onEvent(PlayerEvent.SeekBackButton) }, multipleButtonState, id)
-    PlayPauseButton({ onEvent(PlayerEvent.PlayPauseButton) }, multipleButtonState, id, 72)
-    SeekForwardButton({ onEvent(PlayerEvent.SeekForwardButton) }, multipleButtonState, id)
+    SeekBackButton({ onEvent(PlayerEvent.SeekBackButton) }, seekControls, id)
+    PlayPauseButton({ onEvent(PlayerEvent.PlayPauseButton) }, playPause, id, 72)
+    SeekForwardButton({ onEvent(PlayerEvent.SeekForwardButton) }, seekControls, id)
 
     MyIconButton(
       painter = painterResource(R.drawable.skip_next),
@@ -342,4 +345,25 @@ fun BigPlayerContentPreview() {
 @Composable
 fun BigPlayerContentDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) { BigPlayerContent() }
+}
+
+@ShelfDroidPreview
+@Composable
+fun BigPlayerContentLoadingPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    BigPlayerContent(
+      playPause =
+        PlayPauseControlState(
+          enabled = true,
+          showPlayIcon = false,
+          showLoadingIndicator = true,
+        ),
+      seekControls =
+        SeekControlsState(
+          seekBackEnabled = true,
+          seekForwardEnabled = true,
+          seekSliderEnabled = true,
+        ),
+    )
+  }
 }

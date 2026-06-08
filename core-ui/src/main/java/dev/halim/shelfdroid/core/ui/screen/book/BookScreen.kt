@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.DownloadState
-import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
@@ -66,7 +65,7 @@ fun BookScreen(
       canEdit = uiState.canEdit,
       downloadState = downloadState,
       currentItemId = playerUiState.id,
-      exoState = playerUiState.exoState,
+      isPlayerPlaying = playerUiState.playPause.isPlaying,
       snackbarHostState = snackbarHostState,
       onDownloadClicked = {
         viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.Download))
@@ -99,14 +98,14 @@ fun BookScreenContent(
   canEdit: Boolean = false,
   downloadState: DownloadState = DownloadState.Unknown,
   currentItemId: String = Defaults.BOOK_ID,
-  exoState: ExoState = ExoState.Pause,
+  isPlayerPlaying: Boolean = false,
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onDownloadClicked: () -> Unit = {},
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit,
   onEditClicked: () -> Unit = {},
 ) {
-  val isPlaying = currentItemId == id && exoState == ExoState.Playing
+  val isPlaying = currentItemId == id && isPlayerPlaying
 
   LazyColumn(
     modifier =

@@ -44,7 +44,7 @@ All widget code lives inside the existing **`:app`** module (it already depends 
 | Field | Source |
 |-------|--------|
 | `title`, `author`, `cover` | `PlayerUiState` via `PlayerStore` (`StateFlow`) |
-| Play / Pause state | `PlayerUiState.exoState` (`ExoState.Playing` / `ExoState.Pause`) |
+| Play / Pause state | `PlayerUiState.playPause` (`PlayPauseControlState`) |
 | Sleep timer remaining | `PlayerUiState.advancedControl.sleepTimerLeft` (`Duration`) |
 | Transport commands | `MediaController` bound to `PlaybackService` inside each `ActionCallback` |
 
@@ -68,7 +68,7 @@ Row {
         Text(author)
         Row {
             Button(rewind 30s)
-            Button(play / pause)      // icon swaps on exoState
+            Button(play / pause)      // icon swaps on playPause.showPlayIcon
             Button(fast-forward 30s)
             Button(sleep timer)       // shows "12 min" when active, clock icon otherwise
         }

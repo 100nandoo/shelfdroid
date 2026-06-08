@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.DownloadUiState
-import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState
@@ -71,7 +70,7 @@ constructor(
             if (episode.episodeId == playerState.episodeId) {
               episode.copy(
                 progress = playerState.playbackProgress.progress,
-                isPlaying = playerState.exoState == ExoState.Playing,
+                isPlaying = playerState.playPause.isPlaying,
               )
             } else episode
           }

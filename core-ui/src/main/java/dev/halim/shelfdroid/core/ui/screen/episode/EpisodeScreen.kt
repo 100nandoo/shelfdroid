@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.DownloadUiState
-import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
@@ -38,7 +37,7 @@ fun EpisodeScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerStore.uiState.collectAsStateWithLifecycle()
   val isPlaying =
-    viewModel.episodeId == playerUiState.episodeId && playerUiState.exoState == ExoState.Playing
+    viewModel.episodeId == playerUiState.episodeId && playerUiState.playPause.isPlaying
 
   if (uiState.state == GenericState.Success) {
     EpisodeScreenContent(
