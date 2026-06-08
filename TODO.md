@@ -9,7 +9,6 @@
     - [ ] edit podcast
     - [x] download/delete files
     - [x] Edit chapter go to web
-- [ ] Loading state for player
 - [ ] Search episode filter, show date
 - [ ] Refactor player state
 - [ ] Socket implementation
@@ -93,3 +92,4 @@
 - [x] Backup management
 - [x] Settings management
 - [x] Preview for all UI component
+- [x] Loading state for player

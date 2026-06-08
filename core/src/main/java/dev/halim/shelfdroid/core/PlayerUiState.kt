@@ -12,12 +12,6 @@ sealed interface PlayerState {
   data object Small : PlayerState
 }
 
-sealed interface ExoState {
-  data object Playing : ExoState
-
-  data object Pause : ExoState
-}
-
 sealed interface MediaStructure {
   data object SingleTrackWithChapters : MediaStructure
 
@@ -41,8 +35,8 @@ sealed interface MediaStructure {
 
 data class PlayerUiState(
   val state: PlayerState = PlayerState.Hidden(),
-  val exoState: ExoState = ExoState.Pause,
-  val multipleButtonState: MultipleButtonState = MultipleButtonState(),
+  val playPause: PlayPauseControlState = PlayPauseControlState(),
+  val seekControls: SeekControlsState = SeekControlsState(),
   val id: String = "",
   val episodeId: String = "",
   val author: String = "",
@@ -105,11 +99,16 @@ data class AdvancedControl(
 
 data class PlayerBookmark(val title: String = "", val readableTime: String = "", val time: Long = 0)
 
-data class MultipleButtonState(
+data class PlayPauseControlState(
+  val isPlaying: Boolean = false,
+  val enabled: Boolean = false,
+  val showPlayIcon: Boolean = true,
+  val showLoadingIndicator: Boolean = false,
+)
+
+data class SeekControlsState(
   val seekBackEnabled: Boolean = false,
   val seekForwardEnabled: Boolean = false,
-  val playPauseEnabled: Boolean = false,
-  val showPlay: Boolean = true,
   val seekSliderEnabled: Boolean = false,
 )
 

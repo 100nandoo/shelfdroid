@@ -5,14 +5,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import dagger.Lazy
-import dev.halim.shelfdroid.core.ExoState
 import dev.halim.shelfdroid.core.MediaStructure
+import dev.halim.shelfdroid.core.PlayPauseControlStateHolder
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
-import dev.halim.shelfdroid.media.exoplayer.PlayerEvent
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
 import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
 import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper
@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,6 +38,8 @@ class PlayerStore
 constructor(
   private val playerEventListener: Lazy<PlayerEventListener>,
   private val playerManager: ExoPlayerManager,
+  private val playPauseControlStateHolder: PlayPauseControlStateHolder,
+  private val playPauseControlStateMapper: PlayPauseControlStateMapper,
   private val playerRepository: PlayerRepository,
   private val mediaItemMapper: MediaItemMapper,
   private val timerManager: TimerManager,
@@ -50,13 +51,6 @@ constructor(
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
   init {
-    syncScope.launch {
-      playerManager.events.distinctUntilChanged().collect { event ->
-        val exoState = if (event == PlayerEvent.Resume) ExoState.Playing else ExoState.Pause
-        state.setPlaying(exoState == ExoState.Playing)
-        uiState.update { it.copy(exoState = exoState) }
-      }
-    }
     syncScope.launch {
       prefsRepository.playerPrefs.collect { prefs ->
         uiState.update {
@@ -119,7 +113,10 @@ constructor(
     sleepTimer(minutes.minutes)
   }
 
-  fun emptyState(): PlayerUiState = PlayerUiState()
+  fun emptyState(): PlayerUiState {
+    playPauseControlStateHolder.update(playPauseControlStateMapper.map(emptyControlSnapshot()))
+    return PlayerUiState()
+  }
 
   fun syncSession() {
     sessionManager.start(uiState.value)
@@ -144,16 +141,17 @@ constructor(
             handlePlayPauseState(events)
           },
         )
+    syncControlStates()
   }
 
   private fun handleSeekSliderState(events: Player.Events) {
     with(playerManager.player.get()) {
       if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
-        val multipleButtonState =
-          uiState.value.multipleButtonState.copy(
+        val seekControls =
+          uiState.value.seekControls.copy(
             seekSliderEnabled = isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
           )
-        uiState.update { it.copy(multipleButtonState = multipleButtonState) }
+        uiState.update { it.copy(seekControls = seekControls) }
       }
     }
   }
@@ -161,11 +159,11 @@ constructor(
   private fun handleSeekBackState(events: Player.Events) {
     with(playerManager.player.get()) {
       if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
-        val multipleButtonState =
-          uiState.value.multipleButtonState.copy(
+        val seekControls =
+          uiState.value.seekControls.copy(
             seekBackEnabled = isCommandAvailable(Player.COMMAND_SEEK_BACK)
           )
-        uiState.update { it.copy(multipleButtonState = multipleButtonState) }
+        uiState.update { it.copy(seekControls = seekControls) }
       }
     }
   }
@@ -173,11 +171,11 @@ constructor(
   private fun handleSeekForwardState(events: Player.Events) {
     with(playerManager.player.get()) {
       if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
-        val multipleButtonState =
-          uiState.value.multipleButtonState.copy(
+        val seekControls =
+          uiState.value.seekControls.copy(
             seekForwardEnabled = isCommandAvailable(Player.COMMAND_SEEK_FORWARD)
           )
-        uiState.update { it.copy(multipleButtonState = multipleButtonState) }
+        uiState.update { it.copy(seekControls = seekControls) }
       }
     }
   }
@@ -189,18 +187,61 @@ constructor(
         events.containsAny(
           Player.EVENT_PLAYBACK_STATE_CHANGED,
           Player.EVENT_PLAY_WHEN_READY_CHANGED,
+          Player.EVENT_IS_LOADING_CHANGED,
+          Player.EVENT_IS_PLAYING_CHANGED,
           Player.EVENT_AVAILABLE_COMMANDS_CHANGED,
         )
       ) {
-        val multipleButtonState =
-          uiState.value.multipleButtonState.copy(
-            playPauseEnabled = Util.shouldEnablePlayPauseButton(this),
-            showPlay = Util.shouldShowPlayButton(this),
+        val playPause =
+          playPauseControlStateMapper.map(
+            PlayerControlSnapshot(
+              isPlaying = isPlaying,
+              playWhenReady = playWhenReady,
+              isLoading = isLoading,
+              playbackState = playbackState,
+              playPauseEnabled = Util.shouldEnablePlayPauseButton(this),
+              showPlayIcon = Util.shouldShowPlayButton(this),
+            )
           )
-        uiState.update { it.copy(multipleButtonState = multipleButtonState) }
+        playPauseControlStateHolder.update(playPause)
+        uiState.update { it.copy(playPause = playPause) }
       }
     }
   }
+
+  private fun syncControlStates() {
+    with(playerManager.player.get()) {
+      val playPause =
+        playPauseControlStateMapper.map(
+          PlayerControlSnapshot(
+            isPlaying = isPlaying,
+            playWhenReady = playWhenReady,
+            isLoading = isLoading,
+            playbackState = playbackState,
+            playPauseEnabled = Util.shouldEnablePlayPauseButton(this),
+            showPlayIcon = Util.shouldShowPlayButton(this),
+          )
+        )
+      val seekControls =
+        SeekControlsState(
+          seekBackEnabled = isCommandAvailable(Player.COMMAND_SEEK_BACK),
+          seekForwardEnabled = isCommandAvailable(Player.COMMAND_SEEK_FORWARD),
+          seekSliderEnabled = isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM),
+        )
+      playPauseControlStateHolder.update(playPause)
+      uiState.update { it.copy(playPause = playPause, seekControls = seekControls) }
+    }
+  }
+
+  private fun emptyControlSnapshot() =
+    PlayerControlSnapshot(
+      isPlaying = false,
+      playWhenReady = false,
+      isLoading = false,
+      playbackState = Player.STATE_IDLE,
+      playPauseEnabled = false,
+      showPlayIcon = true,
+    )
 
   private fun changeChapterCallback() = {
     uiState.update { playerRepository.previousNextChapter(uiState.value, false) }

@@ -15,9 +15,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 sealed interface PlayerEvent {
-  object Pause : PlayerEvent
+  data object Pause : PlayerEvent
 
-  object Resume : PlayerEvent
+  data object Resume : PlayerEvent
 }
 
 @Singleton

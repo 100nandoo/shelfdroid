@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.DownloadState
+import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.permissions.rememberNotificationPermissionHandler
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -101,7 +102,7 @@ fun DownloadButton(
 
 @Composable
 fun PlayDownloadAndEdit(
-  isPlaying: Boolean,
+  playPause: PlayPauseControlState,
   downloadState: DownloadState,
   snackbarHostState: SnackbarHostState,
   onPlayClicked: () -> Unit,
@@ -111,7 +112,7 @@ fun PlayDownloadAndEdit(
   onEditClicked: () -> Unit = {},
 ) {
   Row(Modifier.padding(vertical = 8.dp)) {
-    PlayButton(modifier = Modifier.padding(end = 8.dp), isPlaying = isPlaying) { onPlayClicked() }
+    PlayButton(modifier = Modifier.padding(end = 8.dp), playPause = playPause) { onPlayClicked() }
     DownloadButton(
       downloadState = downloadState,
       snackbarHostState = snackbarHostState,
@@ -134,7 +135,7 @@ private fun PlayDownloadAndEditPreview() {
   PreviewWrapper {
     Column {
       PlayDownloadAndEdit(
-        isPlaying = false,
+        playPause = PlayPauseControlState(enabled = true),
         downloadState = DownloadState.Unknown,
         snackbarHostState = remember { SnackbarHostState() },
         onPlayClicked = {},
@@ -144,7 +145,7 @@ private fun PlayDownloadAndEditPreview() {
         onEditClicked = {},
       )
       PlayDownloadAndEdit(
-        isPlaying = true,
+        playPause = PlayPauseControlState(enabled = true, isPlaying = true, showPlayIcon = false),
         downloadState = DownloadState.Completed,
         snackbarHostState = remember { SnackbarHostState() },
         onPlayClicked = {},
@@ -154,7 +155,12 @@ private fun PlayDownloadAndEditPreview() {
         onEditClicked = {},
       )
       PlayDownloadAndEdit(
-        isPlaying = false,
+        playPause =
+          PlayPauseControlState(
+            enabled = true,
+            showPlayIcon = false,
+            showLoadingIndicator = true,
+          ),
         downloadState = DownloadState.Downloading,
         snackbarHostState = remember { SnackbarHostState() },
         onPlayClicked = {},
@@ -164,7 +170,7 @@ private fun PlayDownloadAndEditPreview() {
         onEditClicked = {},
       )
       PlayDownloadAndEdit(
-        isPlaying = false,
+        playPause = PlayPauseControlState(enabled = true),
         downloadState = DownloadState.Incomplete,
         snackbarHostState = remember { SnackbarHostState() },
         onPlayClicked = {},

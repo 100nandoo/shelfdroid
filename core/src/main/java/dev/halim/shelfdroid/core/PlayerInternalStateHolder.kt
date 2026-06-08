@@ -13,7 +13,6 @@ data class PlayerInternalState(
   val startOffset: Double = 0.0,
   val duration: Double = 0.0,
   val isBook: Boolean = true,
-  val isPlaying: Boolean = false,
 )
 
 @Singleton
@@ -68,10 +67,4 @@ class PlayerInternalStateHolder @Inject constructor() {
   fun duration() = _internalState.value.duration
 
   fun isBook() = _internalState.value.isBook
-
-  fun isPlaying() = _internalState.value.isPlaying
-
-  fun setPlaying(isPlaying: Boolean) {
-    _internalState.update { it.copy(isPlaying = isPlaying) }
-  }
 }

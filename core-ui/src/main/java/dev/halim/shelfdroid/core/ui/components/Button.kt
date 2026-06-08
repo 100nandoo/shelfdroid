@@ -3,23 +3,31 @@ package dev.halim.shelfdroid.core.ui.components
 import androidx.annotation.DrawableRes
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -87,27 +95,68 @@ private fun MyIconButtonLargePreview() {
 @Composable
 fun RowScope.PlayButton(
   modifier: Modifier = Modifier,
-  isPlaying: Boolean = false,
+  playPause: PlayPauseControlState = PlayPauseControlState(enabled = true),
   onPlayClicked: () -> Unit,
 ) {
   val icon =
-    if (isPlaying.not()) painterResource(R.drawable.play_arrow)
+    if (playPause.showPlayIcon) painterResource(R.drawable.play_arrow)
     else painterResource(R.drawable.pause)
-  val contentDescription = if (isPlaying.not()) "Play" else "Pause"
-  Button(onClick = { onPlayClicked() }, modifier = modifier.weight(1f)) {
-    Icon(
-      painter = icon,
-      contentDescription = contentDescription,
-      modifier = Modifier.padding(end = 8.dp),
-    )
-    Text(contentDescription)
+  val contentDescription =
+    if (playPause.showPlayIcon) stringResource(R.string.play) else stringResource(R.string.pause)
+  Button(
+    onClick = { onPlayClicked() },
+    modifier = modifier.weight(1f),
+    enabled = playPause.enabled,
+  ) {
+    Row(
+      horizontalArrangement = Arrangement.Center,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(
+        modifier = Modifier.size(24.dp),
+        contentAlignment = Alignment.Center,
+      ) {
+        if (playPause.showLoadingIndicator) {
+          CircularProgressIndicator(
+            modifier = Modifier.size(18.dp),
+            color = LocalContentColor.current,
+            strokeWidth = 2.dp,
+          )
+        } else {
+          Icon(
+            painter = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(24.dp),
+          )
+        }
+      }
+      if (playPause.showLoadingIndicator) {
+        Spacer(Modifier.width(4.dp))
+      }
+      Text(contentDescription)
+    }
   }
 }
 
 @ShelfDroidPreview
 @Composable
 private fun PlayButtonPreview() {
-  PreviewWrapper(content = { Row { PlayButton(onPlayClicked = {}) } })
+  PreviewWrapper(
+    content = {
+      Row {
+        PlayButton(onPlayClicked = {})
+        PlayButton(
+          playPause =
+            PlayPauseControlState(
+              enabled = true,
+              showPlayIcon = false,
+              showLoadingIndicator = true,
+            ),
+          onPlayClicked = {},
+        )
+      }
+    }
+  )
 }
 
 @Composable

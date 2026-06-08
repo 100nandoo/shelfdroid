@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.podcast
 
 import dev.halim.shelfdroid.core.DownloadUiState
+import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.GenericState
 
@@ -25,7 +26,7 @@ data class Episode(
   val publishedAt: String = "",
   val progress: Float = 0f,
   val isFinished: Boolean = false,
-  val isPlaying: Boolean = false,
+  val playPause: PlayPauseControlState = PlayPauseControlState(enabled = true),
   val download: DownloadUiState = DownloadUiState(),
 )
 

@@ -22,7 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.halim.shelfdroid.core.MultipleButtonState
+import dev.halim.shelfdroid.core.PlayPauseControlState
+import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText
 import dev.halim.shelfdroid.core.ui.components.Cover
@@ -38,7 +39,8 @@ fun SmallPlayerContent(
   title: String = Defaults.BOOK_TITLE,
   cover: String = Defaults.BOOK_COVER,
   progress: Float = Defaults.PROGRESS,
-  multipleButtonState: MultipleButtonState = MultipleButtonState(),
+  playPause: PlayPauseControlState = PlayPauseControlState(),
+  seekControls: SeekControlsState = SeekControlsState(),
   onSeekBackClick: () -> Unit = {},
   onSeekForwardClick: () -> Unit = {},
   onPlayPauseClick: () -> Unit = {},
@@ -79,7 +81,8 @@ fun SmallPlayerContent(
       SmallPlayerInfo(Modifier.padding(8.dp).weight(1f, true), author, title)
 
       SmallPlayerControls(
-        multipleButtonState,
+        playPause,
+        seekControls,
         onSeekBackClick,
         onSeekForwardClick,
         onPlayPauseClick,
@@ -118,15 +121,16 @@ private fun SmallPlayerInfo(
 
 @Composable
 private fun SmallPlayerControls(
-  multipleButtonState: MultipleButtonState,
+  playPause: PlayPauseControlState,
+  seekControls: SeekControlsState,
   onSeekBackClick: () -> Unit,
   onSeekForwardClick: () -> Unit,
   onPlayPauseClick: () -> Unit,
   id: String = "",
 ) {
-  SeekBackButton(onSeekBackClick, multipleButtonState, id)
-  PlayPauseButton(onPlayPauseClick, multipleButtonState, id, 48)
-  SeekForwardButton(onSeekForwardClick, multipleButtonState, id)
+  SeekBackButton(onSeekBackClick, seekControls, id)
+  PlayPauseButton(onPlayPauseClick, playPause, id, 48)
+  SeekForwardButton(onSeekForwardClick, seekControls, id)
 }
 
 @ShelfDroidPreview
@@ -147,6 +151,33 @@ fun SmallPlayerContentDynamicPreview() {
     Column {
       Box(modifier = Modifier.weight(1f))
       SmallPlayerContent(onClicked = {}, onSwipeUp = {}, onSwipeDown = {})
+    }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun SmallPlayerContentLoadingPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    Column {
+      Box(modifier = Modifier.weight(1f))
+      SmallPlayerContent(
+        playPause =
+          PlayPauseControlState(
+            enabled = true,
+            showPlayIcon = false,
+            showLoadingIndicator = true,
+          ),
+        seekControls =
+          SeekControlsState(
+            seekBackEnabled = true,
+            seekForwardEnabled = true,
+            seekSliderEnabled = true,
+          ),
+        onClicked = {},
+        onSwipeUp = {},
+        onSwipeDown = {},
+      )
     }
   }
 }

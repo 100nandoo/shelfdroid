@@ -210,7 +210,7 @@ This is what converts "completed Media3 cache entry" into "durable shared file t
 The module depends on a few collaborators outside the module:
 
 - `Helper` generates signed content URLs and open-detail intents
-- `PlayerInternalStateHolder` tells podcast re-download logic whether the target episode is currently playing
+- `PlayerInternalStateHolder` and `PlayPauseControlStateHolder` together tell podcast re-download logic whether the target episode is currently active and currently playing
 - `TerminalStateNotificationHelper` from the `media` module renders completed/failed notifications
 - `DownloadModule` in the `media` module wires `DownloadManager`, `Cache`, and listeners together
 

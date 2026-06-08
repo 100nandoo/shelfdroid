@@ -79,4 +79,6 @@ dependencies {
   // Coil
   implementation(libs.coil)
   implementation(libs.coil.okhttp)
+
+  testImplementation(libs.junit)
 }

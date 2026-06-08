@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.DownloadUiState
-import dev.halim.shelfdroid.core.ExoState
+import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
@@ -22,6 +22,7 @@ import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
+import dev.halim.shelfdroid.core.ui.player.forItemAction
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -37,8 +38,8 @@ fun EpisodeScreen(
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerStore.uiState.collectAsStateWithLifecycle()
-  val isPlaying =
-    viewModel.episodeId == playerUiState.episodeId && playerUiState.exoState == ExoState.Playing
+  val playPause =
+    playerUiState.playPause.forItemAction(viewModel.episodeId == playerUiState.episodeId)
 
   if (uiState.state == GenericState.Success) {
     EpisodeScreenContent(
@@ -48,7 +49,7 @@ fun EpisodeScreen(
       title = uiState.title,
       publishedAt = uiState.publishedAt,
       description = uiState.description,
-      isPlaying = isPlaying,
+      playPause = playPause,
       downloadUiState = uiState.download,
       snackbarHostState = snackbarHostState,
       onDownloadClicked = {
@@ -72,7 +73,7 @@ fun EpisodeScreenContent(
   title: String = Defaults.EPISODE_TITLE,
   publishedAt: String = Defaults.EPISODE_PUBLISHED_AT,
   description: String = Defaults.EPISODE_DESCRIPTION,
-  isPlaying: Boolean = false,
+  playPause: PlayPauseControlState = PlayPauseControlState(enabled = true),
   downloadUiState: DownloadUiState = DownloadUiState(),
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onDownloadClicked: () -> Unit = {},
@@ -89,7 +90,7 @@ fun EpisodeScreenContent(
   ) {
     item {
       PlayDownloadAndEdit(
-        isPlaying = isPlaying,
+        playPause = playPause,
         downloadState = downloadUiState.state,
         snackbarHostState = snackbarHostState,
         onDownloadClicked = onDownloadClicked,
@@ -121,4 +122,19 @@ fun EpisodeScreenContentPreview() {
 @Composable
 fun EpisodeScreenContentDynamicPreview() {
   AnimatedPreviewWrapper(dynamicColor = true) { EpisodeScreenContent() }
+}
+
+@ShelfDroidPreview
+@Composable
+fun EpisodeScreenContentLoadingPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    EpisodeScreenContent(
+      playPause =
+        PlayPauseControlState(
+          enabled = true,
+          showPlayIcon = false,
+          showLoadingIndicator = true,
+        )
+    )
+  }
 }

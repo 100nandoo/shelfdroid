@@ -13,6 +13,7 @@ import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
+import dev.halim.shelfdroid.core.PlayPauseControlStateHolder
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.download.notification.DownloadNotificationPayload
 import dev.halim.shelfdroid.download.service.ShelfDownloadService
@@ -45,6 +46,7 @@ constructor(
   private val downloadMapper: DownloadMapper,
   private val bookDurableDownloadCatalog: BookDurableDownloadCatalog,
   private val podcastDurableDownloadCatalog: PodcastDurableDownloadCatalog,
+  private val playPauseControlStateHolder: PlayPauseControlStateHolder,
   private val playerState: PlayerInternalStateHolder,
   @ApplicationContext private val context: Context,
 ) {
@@ -409,12 +411,12 @@ constructor(
   }
 
   private fun isActiveBook(itemId: String): Boolean {
-    if (!playerState.isBook() || !playerState.isPlaying()) return false
+    if (!playerState.isBook() || !playPauseControlStateHolder.isPlaying()) return false
     return playerState.itemId() == itemId
   }
 
   private fun isActivePodcastEpisode(downloadId: String): Boolean {
-    if (playerState.isBook() || !playerState.isPlaying()) return false
+    if (playerState.isBook() || !playPauseControlStateHolder.isPlaying()) return false
     return helper.generateDownloadId(playerState.itemId(), playerState.episodeId()) == downloadId
   }
 
