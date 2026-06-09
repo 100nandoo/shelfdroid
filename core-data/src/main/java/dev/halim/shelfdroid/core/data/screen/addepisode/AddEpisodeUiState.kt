@@ -16,21 +16,16 @@ data class AddEpisode(
   val episodeId: String,
   val title: String,
   val description: String,
-  val pubDate: String,
+  val publishedDate: String,
   val publishedAt: Long,
   val url: String,
   val state: AddEpisodeDownloadState,
 )
 
-enum class TextFilter {
-  TITLE,
-  PUBLISHED,
-  BOTH,
-}
-
 data class AddEpisodeFilterState(
-  val text: String = "",
-  val textFilter: TextFilter = TextFilter.TITLE,
+  val titleQuery: String = "",
+  val publishedStartDateMillis: Long? = null,
+  val publishedEndDateMillis: Long? = null,
   val hideDownloaded: Boolean = true,
 )
 

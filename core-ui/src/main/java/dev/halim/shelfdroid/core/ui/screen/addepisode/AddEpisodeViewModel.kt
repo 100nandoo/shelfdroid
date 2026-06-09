@@ -10,7 +10,6 @@ import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeFilterState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeUiState
-import dev.halim.shelfdroid.core.data.screen.addepisode.TextFilter
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,9 +37,9 @@ constructor(
         uiState,
         crudPrefs,
         downloadState ->
-        uiState.copy(
-          downloadEpisodeState = downloadState,
-          filterState = AddEpisodeFilterState(hideDownloaded = crudPrefs.addEpisodeHideDownloaded),
+        uiState.withFilterPreferences(
+          hideDownloaded = crudPrefs.addEpisodeHideDownloaded,
+          downloadState = downloadState,
         )
       }
       .stateIn(
@@ -80,12 +79,27 @@ constructor(
       AddEpisodeEvent.ResetDownloadEpisodeState -> {
         downloadEpisodeState.update { GenericState.Idle }
       }
-      is AddEpisodeEvent.FilterEvent.TextChanged -> {
-        _uiState.update { it.copy(filterState = it.filterState.copy(text = event.text)) }
-      }
-      is AddEpisodeEvent.FilterEvent.TextFilterChanged -> {
+      is AddEpisodeEvent.FilterEvent.TitleChanged -> {
         _uiState.update {
-          it.copy(filterState = it.filterState.copy(textFilter = event.textFilter))
+          it.copy(filterState = it.filterState.copy(titleQuery = event.titleQuery))
+        }
+      }
+      is AddEpisodeEvent.FilterEvent.PublishedDateRangeChanged -> {
+        _uiState.update {
+          it.copy(
+            filterState =
+              it.filterState.copy(
+                publishedStartDateMillis = event.startDateMillis,
+                publishedEndDateMillis = event.endDateMillis,
+              )
+          )
+        }
+      }
+      AddEpisodeEvent.FilterEvent.ResetFilters -> {
+        _uiState.update {
+          it.copy(
+            filterState = AddEpisodeFilterState(hideDownloaded = it.filterState.hideDownloaded)
+          )
         }
       }
       is AddEpisodeEvent.FilterEvent.HideDownloadedChanged -> {
@@ -103,10 +117,22 @@ sealed interface AddEpisodeEvent {
   data object ResetDownloadEpisodeState : AddEpisodeEvent
 
   sealed interface FilterEvent : AddEpisodeEvent {
-    data class TextChanged(val text: String) : FilterEvent
+    data class TitleChanged(val titleQuery: String) : FilterEvent
 
-    data class TextFilterChanged(val textFilter: TextFilter) : FilterEvent
+    data class PublishedDateRangeChanged(val startDateMillis: Long?, val endDateMillis: Long?) :
+      FilterEvent
+
+    data object ResetFilters : FilterEvent
 
     data class HideDownloadedChanged(val hideDownloaded: Boolean) : FilterEvent
   }
 }
+
+internal fun AddEpisodeUiState.withFilterPreferences(
+  hideDownloaded: Boolean,
+  downloadState: GenericState,
+): AddEpisodeUiState =
+  copy(
+    downloadEpisodeState = downloadState,
+    filterState = filterState.copy(hideDownloaded = hideDownloaded),
+  )

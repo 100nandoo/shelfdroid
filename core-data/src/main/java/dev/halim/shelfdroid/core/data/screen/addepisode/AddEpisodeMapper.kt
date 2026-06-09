@@ -22,7 +22,7 @@ class AddEpisodeMapper @Inject constructor(private val helper: Helper) {
         episodeId = dbEpisode?.id.orEmpty(),
         title = feedEpisode.title,
         description = feedEpisode.descriptionPlain.trim(),
-        pubDate = helper.toReadableDate(feedEpisode.publishedAt),
+        publishedDate = helper.toReadableDate(feedEpisode.publishedAt),
         publishedAt = feedEpisode.publishedAt,
         url = url,
         state =
