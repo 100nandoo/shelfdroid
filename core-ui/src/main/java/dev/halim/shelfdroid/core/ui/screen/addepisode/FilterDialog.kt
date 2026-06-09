@@ -94,7 +94,7 @@ fun MultiChoiceSegmentedButton(
   onEvent: (AddEpisodeEvent.FilterEvent) -> Unit,
 ) {
   val selectedOptions = textFilter.toSelectionList()
-  val options = listOf(stringResource(R.string.title), stringResource(R.string.description))
+  val options = listOf(stringResource(R.string.title), stringResource(R.string.published))
   Text(
     stringResource(R.string.search_in),
     style = MaterialTheme.typography.titleMedium,
@@ -121,11 +121,11 @@ fun MultiChoiceSegmentedButton(
 }
 
 private fun List<Boolean>.toTextFilter(): TextFilter {
-  val (titleSelected, descriptionSelected) = this
+  val (titleSelected, publishedSelected) = this
   return when {
-    titleSelected && descriptionSelected -> TextFilter.BOTH
+    titleSelected && publishedSelected -> TextFilter.BOTH
     titleSelected -> TextFilter.TITLE
-    descriptionSelected -> TextFilter.DESCRIPTION
+    publishedSelected -> TextFilter.PUBLISHED
     else -> TextFilter.TITLE
   }
 }
@@ -133,7 +133,7 @@ private fun List<Boolean>.toTextFilter(): TextFilter {
 private fun TextFilter.toSelectionList(): SnapshotStateList<Boolean> =
   when (this) {
     TextFilter.TITLE -> mutableStateListOf(true, false)
-    TextFilter.DESCRIPTION -> mutableStateListOf(false, true)
+    TextFilter.PUBLISHED -> mutableStateListOf(false, true)
     TextFilter.BOTH -> mutableStateListOf(true, true)
   }
 

@@ -289,8 +289,8 @@ object Defaults {
         episodeId = it.toString(),
         title = "Episode $it",
         description = "Description of Episode $it",
-        pubDate = "2023-01-01",
-        publishedAt = 1672531200,
+        pubDate = "1 January 2023",
+        publishedAt = 1672531200000,
         url = "https://example.com/episode$it",
         state = state,
       )
