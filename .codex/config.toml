@@ -1,0 +1,9 @@
+[features]
+apps = false
+computer_use = false
+
+[mcp_servers.node_repl]
+enabled = false
+
+[mcp_servers.notion]
+enabled = false

@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,10 +50,10 @@ import dev.halim.shelfdroid.core.ui.components.CoverWithTitle
 import dev.halim.shelfdroid.core.ui.components.VisibilityCircular
 import dev.halim.shelfdroid.core.ui.components.VisibilityUp
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
-import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
@@ -71,9 +72,11 @@ fun AddEpisodeScreen(
         viewModel.onEvent(AddEpisodeEvent.ResetDownloadEpisodeState)
         onDownloadEpisodeSuccess()
       }
+
       is Failure -> {
         state.errorMessage?.let { scope.launch { snackbarHostState.showErrorSnackbar(it) } }
       }
+
       else -> Unit
     }
   }
@@ -200,18 +203,24 @@ private fun AddEpisodeItem(episode: AddEpisode, onCheckedChange: (Boolean) -> Un
     Column(modifier = Modifier.weight(1f)) {
       Text(
         modifier =
-          Modifier.mySharedElement(Animations.Companion.Episode.titleKey(episode.episodeId)),
+          Modifier.mySharedElement(Animations.Companion.Episode.titleKey(episode.episodeId))
+            .alpha(enabled.enableAlpha()),
         text = episode.title,
+        style = MaterialTheme.typography.bodyLarge,
         maxLines = 2,
-        color = MaterialTheme.colorScheme.onSurface.enable(enabled),
+        overflow = TextOverflow.Ellipsis,
       )
+      Spacer(modifier = Modifier.height(4.dp))
       Text(
-        episode.description,
-        modifier = Modifier.alpha(enabled.enableAlpha()),
-        style = MaterialTheme.typography.labelSmall,
+        modifier =
+          Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episode.episodeId))
+            .alpha(enabled.enableAlpha()),
+        text = episode.pubDate,
+        style = MaterialTheme.typography.labelMedium,
         maxLines = 2,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
+      Spacer(modifier = Modifier.height(2.dp))
     }
   }
 }
@@ -219,5 +228,39 @@ private fun AddEpisodeItem(episode: AddEpisode, onCheckedChange: (Boolean) -> Un
 @ShelfDroidPreview
 @Composable
 fun AddEpisodeScreenContentPreview() {
-  AnimatedPreviewWrapper(dynamicColor = false) { AddEpisodeScreenContent() }
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    AddEpisodeScreenContent(
+      itemId = "podcast-1",
+      uiState =
+        AddEpisodeUiState(
+          state = GenericState.Success,
+          author = Defaults.AUTHOR_NAME,
+          title = Defaults.EPISODE_PODCAST,
+          cover = Defaults.IMAGE_URL,
+          episodes = Defaults.ADD_EPISODE_EPISODES,
+          filterState = AddEpisodeFilterState(hideDownloaded = false),
+        ),
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AddEpisodeItemPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    LazyColumn(modifier = Modifier.padding(horizontal = 16.dp)) {
+      items(
+        items =
+          listOf(
+            Defaults.ADD_EPISODE_EPISODES[0],
+            Defaults.ADD_EPISODE_EPISODES[1],
+            Defaults.ADD_EPISODE_EPISODES[4],
+          ),
+        key = { it.url },
+      ) { episode ->
+        AddEpisodeItem(episode = episode, onCheckedChange = {})
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+      }
+    }
+  }
 }

@@ -24,7 +24,7 @@ data class AddEpisode(
 
 enum class TextFilter {
   TITLE,
-  DESCRIPTION,
+  PUBLISHED,
   BOTH,
 }
 

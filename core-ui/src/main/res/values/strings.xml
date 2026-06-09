@@ -361,6 +361,7 @@
     <string name="hide_downloaded_episode">Hide downloaded episodes</string>
     <string name="search">Search</string>
     <string name="search_in">Search in:</string>
+    <string name="published">Published</string>
     <!--Add Episode-->
 
     <!--Edit Item-->

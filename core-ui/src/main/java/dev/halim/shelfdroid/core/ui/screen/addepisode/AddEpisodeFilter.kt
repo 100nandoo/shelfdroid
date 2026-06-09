@@ -16,11 +16,11 @@ fun filter(episodes: List<AddEpisode>, filterState: AddEpisodeFilterState): List
       when (filterState.textFilter) {
         TextFilter.TITLE -> episode.title.contains(query, ignoreCase = true)
 
-        TextFilter.DESCRIPTION -> episode.description.contains(query, ignoreCase = true)
+        TextFilter.PUBLISHED -> episode.pubDate.contains(query, ignoreCase = true)
 
         TextFilter.BOTH ->
           episode.title.contains(query, ignoreCase = true) ||
-            episode.description.contains(query, ignoreCase = true)
+            episode.pubDate.contains(query, ignoreCase = true)
       }
 
     passesDownloaded && passesText
