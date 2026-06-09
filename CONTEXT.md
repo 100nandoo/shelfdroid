@@ -30,6 +30,10 @@ _Avoid_: Show, channel
 A playable unit inside a podcast.
 _Avoid_: Track, chapter
 
+**Episode published date**:
+The date on which a podcast **Episode** was published.
+_Avoid_: pubDate, published timestamp
+
 **Chapter**:
 A named segment inside a book.
 _Avoid_: Track, episode

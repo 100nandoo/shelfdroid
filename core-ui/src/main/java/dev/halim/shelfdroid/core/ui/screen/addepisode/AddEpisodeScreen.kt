@@ -215,7 +215,7 @@ private fun AddEpisodeItem(episode: AddEpisode, onCheckedChange: (Boolean) -> Un
         modifier =
           Modifier.mySharedElement(Animations.Companion.Episode.publishedAtKey(episode.episodeId))
             .alpha(enabled.enableAlpha()),
-        text = episode.pubDate,
+        text = episode.publishedDate,
         style = MaterialTheme.typography.labelMedium,
         maxLines = 2,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
