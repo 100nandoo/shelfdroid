@@ -2,14 +2,10 @@
 
 ## High Priority
 
-- [ ] close playback implementation
-    - [ ] library item finished
-    - [ ] exoplayer/service stop
 - [x] library management
     - [ ] edit podcast
     - [x] download/delete files
     - [x] Edit chapter go to web
-- [ ] Search episode filter, show date
 - [ ] Refactor player state
 - [ ] Socket implementation
     - [ ] Handle download event
@@ -19,6 +15,9 @@
 - [ ] Backup Restore
 - [ ] Window Manager
 - [ ] Create release build with https://github.com/ilharp/sign-android-release
+- [ ] close playback implementation
+    - [ ] library item finished
+    - [ ] exoplayer/service stop
 
 ## Low Priority
 
@@ -95,3 +94,4 @@
 - [x] Settings management
 - [x] Preview for all UI component
 - [x] Loading state for player
+- [x] Search episode filter, show date
