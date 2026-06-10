@@ -3,4 +3,8 @@
     <string name="playback_widget_description">Quick access to ShelfDroid playback</string>
     <string name="playback_widget_empty_title">Nothing playing</string>
     <string name="playback_widget_open_app">Open app</string>
+    <string name="playback_widget_cover_art">Current playback cover art</string>
+    <string name="playback_widget_loading">Loading</string>
+    <string name="playback_widget_paused">Paused</string>
+    <string name="playback_widget_playing">Playing</string>
 </resources>

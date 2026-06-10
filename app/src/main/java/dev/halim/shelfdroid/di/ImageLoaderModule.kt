@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.di
+package dev.halim.shelfdroid.di
 
 import android.content.Context
 import coil3.ImageLoader
@@ -19,9 +19,9 @@ import okhttp3.OkHttpClient
 
 @Module
 @InstallIn(SingletonComponent::class)
-object UiModule {
+object ImageLoaderModule {
 
-  const val DISK_CACHE_DIR = "image_cache"
+  private const val DISK_CACHE_DIR = "image_cache"
 
   @Singleton
   @Provides

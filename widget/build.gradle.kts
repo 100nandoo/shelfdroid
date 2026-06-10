@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   alias(libs.plugins.android.library)
+  alias(libs.plugins.ksp)
   alias(libs.plugins.compose.compiler)
 }
 
@@ -29,6 +30,22 @@ android {
 }
 
 dependencies {
+  implementation(project(libs.versions.core.get()))
+  implementation(project(libs.versions.coreData.get()))
+  implementation(project(libs.versions.media.get()))
+
+  val composeBom = platform(libs.androidx.compose.bom)
+  implementation(composeBom)
+
+  implementation(libs.androidx.compose.material3)
+  implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.glance.appwidget)
   implementation(libs.androidx.glance.material3)
+
+  implementation(libs.coil)
+
+  implementation(libs.hilt.android)
+  ksp(libs.hilt.compiler)
+
+  implementation(libs.kotlinx.coroutines.android)
 }
