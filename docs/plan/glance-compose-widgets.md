@@ -68,7 +68,11 @@ dependencies {
 
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.coil)
+    implementation(libs.coil.okhttp)
     implementation(libs.hilt.android)
+    implementation(libs.kotlinx.coroutines.guava)
     ksp(libs.hilt.compiler)
 }
 ```
@@ -87,6 +91,7 @@ Notes:
 - Keep `glance-appwidget` and `glance-material3` separate. `glance-material3` alone is not enough for widgets.
 - If periodic background refresh remains in scope, add WorkManager setup separately. No existing `CoroutineWorker`, `WorkManager`, or `@HiltWorker` wiring was found in the repo.
 - Use an Android library module for widgets. Its manifest and resources merge into the final app package at build time.
+- Move the shared Coil `ImageLoader` Hilt binding out of `:core-ui` into a non-UI shared module before widget work begins. `:helper` is the pragmatic first home in phase 1.
 
 ---
 
@@ -107,22 +112,32 @@ Recommendation:
 
 - keep application/bootstrap concerns in `:app`
 - keep widget receivers, provider XML, widget actions, widget-specific utilities, and future configuration activities in `:widget`
-- only pull `core-ui` into `:widget` if the future config activities truly need shared theme or UI components
+- do not pull `:core-ui` into `:widget` just to follow app theme in phase 1; read the same theme preferences and mirror them with widget-local Glance theming
 
 ---
 
 ## Widget 1 — Playback Control
 
-**Purpose:** Show now-playing info and transport controls (play/pause, +/-30 s, sleep timer) on the home screen.
+**Purpose:** Show **Current playback** info and transport controls (play/pause, +/-10 s, sleep timer) on the home screen.
 
 ### Data source
 
 | Field | Source |
 |-------|--------|
-| `title`, `author`, `cover` | `PlayerUiState` via `PlayerStore.uiState` |
+| Primary text | `PlayerUiState.title` via `PlayerStore.uiState` |
+| Secondary text | `PlayerUiState.author` via `PlayerStore.uiState` |
+| `cover` | `PlayerUiState.cover` via `PlayerStore.uiState` |
 | Play / Pause state | `PlayerUiState.playPause` (`PlayPauseControlState`) |
 | Sleep timer remaining | `PlayerUiState.advancedControl.sleepTimerLeft` (`Duration`) |
 | Transport commands | Widget-safe Glance actions (`actionRunCallback`, `actionStartService`, or `actionSendBroadcast`) |
+
+Notes:
+
+- This widget represents **Current playback**, not a server **Open session**.
+- Text hierarchy should mirror the current big player semantics:
+  - for a **Book**, the primary text is the current **Chapter** title when present, otherwise the **Book** title
+  - for a **Podcast**, the primary text is the current **Episode** title
+  - the secondary text remains the author line from `PlayerUiState.author`
 
 ### Files to create
 
@@ -140,15 +155,24 @@ Recommendation:
 Row {
     Image(ImageProvider(coverBitmap)) // Load cover off-main-thread, then hand Glance an ImageProvider
     Column {
-        Text(title)
-        Text(author)
+        Text(title)   // primary line, matching the big player semantics
+        Text(author)  // secondary line
         Row {
-            Button(rewind 30s)
+            Button(rewind 10s)
             Button(play / pause)      // icon swaps on playPause.showPlayIcon
-            Button(fast-forward 30s)
+            Button(fast-forward 10s)
             Button(sleep timer)       // shows "12 min" when active, clock icon otherwise
         }
     }
+}
+```
+
+Empty state:
+
+```
+Column {
+    Text("Nothing playing")
+    Button("Open app")
 }
 ```
 
@@ -157,21 +181,25 @@ Row {
 | Callback | Command |
 |----------|---------|
 | `PlayPauseAction` | Create a widget-scoped `MediaController` from `SessionToken`, then `play()` / `pause()` |
-| `RewindAction` | Create a widget-scoped `MediaController`, then `seekBack()` |
-| `FastForwardAction` | Create a widget-scoped `MediaController`, then `seekForward()` |
-| `SleepTimerAction` | Explicit service or broadcast action handled by the app |
+| `RewindAction` | Create a widget-scoped `MediaController`, then `seekBack()` using the app's configured `10s` increment |
+| `FastForwardAction` | Create a widget-scoped `MediaController`, then `seekForward()` using the app's configured `10s` increment |
+| `SleepTimerAction` | Reuse the existing Media3 custom session command `CUSTOM_SLEEP_TIMER` |
+| `OpenAppAction` | Launch the app when there is no **Current playback** or controller connection fails |
 
 Notes:
 
 - Do not reuse `MediaControllerManager` from the activity layer. It is `ActivityRetainedScoped` and not suitable for widget callbacks.
 - For Widget 1, no configuration activity is needed. The widget has a natural default state: "current playback".
+- If a widget action cannot connect a `MediaController`, fall back to opening the app instead of silently failing.
 - If `ActionCallback` work becomes long-running, offload it to a worker and then call a Glance update.
 
 ### Update strategy
 
 - Update immediately while the app or `PlaybackService` is awake by calling `PlaybackWidget().update(context, glanceId)` for a single instance or `PlaybackWidget().updateAll(context)` for all instances.
+- Bridge the `:media` -> `:widget` boundary with a narrow interface such as `PlaybackWidgetSync` defined outside `:widget`, implemented in `:widget`, and injected into playback-layer code through Hilt. Do not create a reverse Gradle dependency from `:media` to `:widget`.
 - If background freshness is still required when the app is not awake, use WorkManager at **15 min or slower**, not 15 seconds.
 - Avoid minute-level background polling for playback state. The current Android guidance explicitly warns against overly frequent background updates.
+- Follow app theme preferences by reading the same dark-mode and dynamic-theme settings used by the app and mapping them into a widget-local Glance theme.
 
 ---
 
@@ -212,7 +240,10 @@ Notes:
 | `core/src/main/java/dev/halim/shelfdroid/core/PlayerUiState.kt` | Full playback state shape |
 | `media/src/main/java/dev/halim/shelfdroid/media/service/PlayerStore.kt` | Source of reactive playback UI state |
 | `media/src/main/java/dev/halim/shelfdroid/media/service/PlaybackService.kt` | Playback state source and service lifecycle |
+| `media/src/main/java/dev/halim/shelfdroid/media/service/CustomCommand.kt` | Existing custom sleep-timer session command |
 | `media/src/main/java/dev/halim/shelfdroid/media/di/ActivityModule.kt` | Current `MediaController` wiring that must not be reused as-is in widgets |
+| `media/src/main/java/dev/halim/shelfdroid/media/di/PlayerModule.kt` | Current `10s` seek increments and custom session commands |
+| `core-data/src/main/java/dev/halim/shelfdroid/core/data/screen/settings/SettingsRepository.kt` | Existing app theme preferences used by `MainActivity` |
 | `settings.gradle.kts` | Register the new `:widget` module |
 | `gradle/libs.versions.toml` | Fix swapped DataStore / Glance aliases and add appwidget artifact |
 | `widget/build.gradle.kts` | Define the widget library module and its dependencies |
@@ -225,20 +256,25 @@ Notes:
 
 | Utility | Location | Usage |
 |---------|----------|-------|
-| `PlayerStore.uiState` | `media` | Current title, author, cover, playback state, sleep timer state |
+| `PlayerStore.uiState` | `media` | **Current playback** title, author, cover, playback state, sleep timer state |
 | `PlayerUiState.playPause` | `core` | Decide play/pause icon and enabled state |
 | `AdvancedControl.sleepTimerLeft` | `core` | Format sleep timer state |
-| App-scoped Coil image loader | `ShelfDroid.kt` | Load cover bitmaps, then convert to `ImageProvider` for Glance |
+| Shared Coil `ImageLoader` Hilt binding | shared non-UI module | Load cover bitmaps, then convert to `ImageProvider` for Glance |
 | `PlaybackService` session component | `media` | Session target for widget-scoped `MediaController` creation |
+| `CUSTOM_SLEEP_TIMER` | `media` | Reuse the existing sleep timer toggle command |
 
 ---
 
 ## Verification checklist
 
 1. `./gradlew :app:assembleDebug` builds without errors
-2. Start playing a book -> add Playback widget -> cover, title, and author appear
-3. Tap play/pause -> playback state toggles correctly
-4. Tap rewind/forward -> playback jumps correctly
-5. Sleep timer state reflects active / inactive state correctly
-6. While playback is active and the app / service is awake, widget updates happen through `update(context, glanceId)` or `updateAll(context)` rather than a polling loop
-7. Widget picker shows description, preview fallback, and loading state correctly
+2. With active **Current playback**, add Playback widget -> cover, primary title, and secondary author line appear using the same content hierarchy as the big player
+3. For a **Book**, verify the primary line shows the current **Chapter** title when present, otherwise the **Book** title
+4. For a **Podcast**, verify the primary line shows the current **Episode** title
+5. Tap play/pause -> playback state toggles correctly
+6. Tap rewind/forward -> playback jumps by the app's existing `10s` increments
+7. Sleep timer action toggles through the existing `CUSTOM_SLEEP_TIMER` behavior
+8. With no **Current playback**, the widget shows the empty state and `Open app` action
+9. While playback is active and the app / service is awake, widget updates happen through `update(context, glanceId)` or `updateAll(context)` rather than a polling loop
+10. Widget theme follows the same dark-mode and dynamic-theme preferences as the app
+11. Widget picker shows description, preview fallback, and loading state correctly

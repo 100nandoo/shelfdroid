@@ -60,6 +60,10 @@ _Avoid_: Track download, file batch
 The listener's current completion state for a playable media unit.
 _Avoid_: Position, status
 
+**Current playback**:
+The locally active playable media context inside ShelfDroid, derived from on-device player state and used for now-playing UI. It is not the same as an **Open session**, which is server-tracked by the Audiobookshelf server.
+_Avoid_: Open session, now playing state
+
 **Listening session**:
 A recorded playback session reported by the server for a user, device, item, and time range.
 _Avoid_: Session, player state
@@ -120,5 +124,6 @@ _Avoid_: Preferences, app settings
 
 - "item" is too vague on its own in this repo; prefer **Library item** when referring to a server catalog entry.
 - "session" is overloaded; use **Listening session** for historical playback records and **Open session** for active server-tracked playback, where the server may hold many concurrent sessions and a user may have more than one.
+- "current playback" and **Open session** are distinct; **Current playback** is local player state inside ShelfDroid, while an **Open session** is server-tracked.
 - "track", "chapter", and "episode" are distinct; a **Track** is a file unit for books, a **Chapter** is a navigation segment in a book, and an **Episode** belongs to a podcast.
 - "download" and **Library file** are not the same thing; a **Library file** exists on the server, while a **Download** is a local device copy or downloaded server artifact.
