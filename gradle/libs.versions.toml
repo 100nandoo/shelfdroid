@@ -7,6 +7,7 @@ targetSdk = "36"
 
 # Modules
 app = ":app"
+widget = ":widget"
 core = ":core"
 coreData = ":core-data"
 coreDatabase = ":core-database"
@@ -26,7 +27,7 @@ androidxComposeBom = "2026.05.01"
 androidxCore = "1.18.0"
 androidxSplashscreen = "1.2.0"
 androidxDatastore = "1.1.7"
-androidxGlance = "1.2.1"
+androidxGlance = "1.1.1"
 androidxHilt = "1.3.0"
 androidxLifecycle = "2.10.0"
 androidxMedia3 = "1.10.1"
@@ -71,8 +72,9 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 screenshot-validation-api = { group = "com.android.tools.screenshot", name = "screenshot-validation-api", version.ref = "composeScreenshotTesting" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidxSplashscreen" }
-androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxGlance" }
-androidx-glance = { module = "androidx.glance:glance-material3", version.ref = "androidxDatastore" }
+androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastore" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "androidxGlance" }
+androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "androidxGlance" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHilt" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }

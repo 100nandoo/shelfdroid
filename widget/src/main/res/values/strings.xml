@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_widget_description">Quick access to ShelfDroid playback</string>
+    <string name="playback_widget_empty_title">Nothing playing</string>
+    <string name="playback_widget_open_app">Open app</string>
+</resources>
