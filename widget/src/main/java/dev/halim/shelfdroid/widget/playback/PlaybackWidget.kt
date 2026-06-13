@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.widget.playback
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -16,6 +15,7 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
@@ -30,6 +30,7 @@ import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
@@ -94,7 +95,9 @@ class PlaybackWidget : GlanceAppWidget() {
           }
         } else {
           Column {
-            Row {
+            Row(
+              modifier = GlanceModifier.fillMaxWidth().clickable(openAppAction)
+            ) {
               model.cover?.let { cover ->
                 Image(
                   provider = ImageProvider(cover),
@@ -156,10 +159,27 @@ class PlaybackWidget : GlanceAppWidget() {
               }
             }
             Spacer(modifier = GlanceModifier.height(12.dp))
-            FilledButton(
-              text = context.getString(R.string.playback_widget_open_app),
-              onClick = openAppAction,
-            )
+            Row {
+              FilledButton(
+                text = context.getString(R.string.playback_widget_seek_back),
+                onClick = PlaybackWidgetTransportAction.actionFor(PlaybackTransportAction.SeekBack),
+                enabled = model.seekBackEnabled,
+              )
+              Spacer(modifier = GlanceModifier.width(8.dp))
+              FilledButton(
+                text = model.playPauseLabel,
+                onClick =
+                  PlaybackWidgetTransportAction.actionFor(PlaybackTransportAction.PlayPause),
+                enabled = model.playPauseEnabled,
+              )
+              Spacer(modifier = GlanceModifier.width(8.dp))
+              FilledButton(
+                text = context.getString(R.string.playback_widget_seek_forward),
+                onClick =
+                  PlaybackWidgetTransportAction.actionFor(PlaybackTransportAction.SeekForward),
+                enabled = model.seekForwardEnabled,
+              )
+            }
           }
         }
       }
@@ -186,6 +206,12 @@ class PlaybackWidget : GlanceAppWidget() {
       author = uiState.author,
       stateLabel = stateLabel,
       isLoading = uiState.playPause.showLoadingIndicator,
+      playPauseLabel =
+        if (uiState.playPause.showPlayIcon) context.getString(R.string.playback_widget_play)
+        else context.getString(R.string.playback_widget_pause),
+      playPauseEnabled = uiState.playPause.enabled,
+      seekBackEnabled = uiState.seekControls.seekBackEnabled,
+      seekForwardEnabled = uiState.seekControls.seekForwardEnabled,
       cover = loadCoverBitmap(context, imageLoader, uiState.cover),
     )
   }
@@ -220,12 +246,6 @@ class PlaybackWidget : GlanceAppWidget() {
     return if (darkMode) darkColorScheme() else lightColorScheme()
   }
 
-  private fun openAppIntent(context: Context): Intent =
-    Intent(Intent.ACTION_MAIN)
-      .addCategory(Intent.CATEGORY_LAUNCHER)
-      .setPackage(context.packageName)
-      .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-
   @EntryPoint
   @InstallIn(SingletonComponent::class)
   interface PlaybackWidgetDependencies {
@@ -241,6 +261,10 @@ class PlaybackWidget : GlanceAppWidget() {
     val author: String,
     val stateLabel: String,
     val isLoading: Boolean,
+    val playPauseLabel: String,
+    val playPauseEnabled: Boolean,
+    val seekBackEnabled: Boolean,
+    val seekForwardEnabled: Boolean,
     val cover: Bitmap?,
   )
 

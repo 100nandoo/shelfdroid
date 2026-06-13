@@ -7,4 +7,8 @@
     <string name="playback_widget_loading">Loading</string>
     <string name="playback_widget_paused">Paused</string>
     <string name="playback_widget_playing">Playing</string>
+    <string name="playback_widget_seek_back">-10s</string>
+    <string name="playback_widget_seek_forward">+10s</string>
+    <string name="playback_widget_play">Play</string>
+    <string name="playback_widget_pause">Pause</string>
 </resources>

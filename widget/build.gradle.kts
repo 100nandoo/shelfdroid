@@ -41,6 +41,7 @@ dependencies {
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.glance.appwidget)
   implementation(libs.androidx.glance.material3)
+  implementation(libs.androidx.media3.session)
 
   implementation(libs.coil)
 
@@ -48,4 +49,8 @@ dependencies {
   ksp(libs.hilt.compiler)
 
   implementation(libs.kotlinx.coroutines.android)
+  implementation(libs.kotlinx.coroutines.guava)
+
+  testImplementation(libs.junit)
+  testImplementation(libs.kotlinx.coroutines.test)
 }
