@@ -63,6 +63,10 @@ constructor(
       author = uiState.author,
       cover = uiState.cover,
       state = state,
+      playPauseEnabled = uiState.playPause.enabled,
+      seekBackEnabled = uiState.seekControls.seekBackEnabled,
+      seekForwardEnabled = uiState.seekControls.seekForwardEnabled,
+      sleepTimerText = uiState.advancedControl.sleepTimerLeft.toPlaybackWidgetSleepTimerText(),
     )
   }
 
@@ -78,6 +82,10 @@ constructor(
     val author: String,
     val cover: String,
     val state: WidgetPlaybackState,
+    val playPauseEnabled: Boolean,
+    val seekBackEnabled: Boolean,
+    val seekForwardEnabled: Boolean,
+    val sleepTimerText: String?,
   )
 
   private enum class WidgetPlaybackState {

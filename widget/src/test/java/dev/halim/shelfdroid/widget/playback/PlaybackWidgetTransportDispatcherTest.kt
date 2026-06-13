@@ -38,16 +38,40 @@ class PlaybackWidgetTransportDispatcherTest {
     assertEquals(PlaybackWidgetTransportResult.OpenAppFallback, result)
   }
 
+  @Test
+  fun `sleep timer sends custom command when available`() = runTest {
+    val controller = FakePlaybackWidgetController(isSleepTimerEnabled = true)
+
+    val result = dispatcher.dispatch(PlaybackTransportAction.SleepTimer) { controller }
+
+    assertEquals(PlaybackWidgetTransportResult.Dispatched, result)
+    assertEquals(1, controller.sleepTimerCalls)
+    assertTrue(controller.released)
+  }
+
+  @Test
+  fun `sleep timer returns not available when session command is disabled`() = runTest {
+    val controller = FakePlaybackWidgetController(isSleepTimerEnabled = false)
+
+    val result = dispatcher.dispatch(PlaybackTransportAction.SleepTimer) { controller }
+
+    assertEquals(PlaybackWidgetTransportResult.NotAvailable, result)
+    assertEquals(0, controller.sleepTimerCalls)
+    assertTrue(controller.released)
+  }
+
   private class FakePlaybackWidgetController(
     override val isPlaying: Boolean = false,
     override val isPlayPauseEnabled: Boolean = false,
     override val isSeekBackEnabled: Boolean = false,
     override val isSeekForwardEnabled: Boolean = false,
+    override val isSleepTimerEnabled: Boolean = false,
   ) : PlaybackWidgetController {
     var playCalls = 0
     var pauseCalls = 0
     var seekBackCalls = 0
     var seekForwardCalls = 0
+    var sleepTimerCalls = 0
     var released = false
 
     override fun play() {
@@ -64,6 +88,10 @@ class PlaybackWidgetTransportDispatcherTest {
 
     override fun seekForward() {
       seekForwardCalls += 1
+    }
+
+    override suspend fun toggleSleepTimer() {
+      sleepTimerCalls += 1
     }
 
     override fun release() {

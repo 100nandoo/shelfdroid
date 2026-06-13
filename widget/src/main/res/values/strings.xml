@@ -11,4 +11,6 @@
     <string name="playback_widget_seek_forward">+10s</string>
     <string name="playback_widget_play">Play</string>
     <string name="playback_widget_pause">Pause</string>
+    <string name="playback_widget_sleep_timer">Timer</string>
+    <string name="playback_widget_sleep_timer_with_value">Timer %1$s</string>
 </resources>

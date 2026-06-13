@@ -2,13 +2,16 @@ package dev.halim.shelfdroid.widget.playback
 
 import android.content.ComponentName
 import android.content.Context
+import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
+import dev.halim.shelfdroid.media.service.CUSTOM_SLEEP_TIMER
 import dev.halim.shelfdroid.media.service.PlaybackService
 import kotlinx.coroutines.guava.await
 
@@ -39,6 +42,11 @@ internal class PlaybackWidgetTransportDispatcher {
           controller.seekForward()
           PlaybackWidgetTransportResult.Dispatched
         }
+        PlaybackTransportAction.SleepTimer -> {
+          if (!controller.isSleepTimerEnabled) return PlaybackWidgetTransportResult.NotAvailable
+          controller.toggleSleepTimer()
+          PlaybackWidgetTransportResult.Dispatched
+        }
       }
     } catch (error: Exception) {
       Log.e(TAG, "Failed to dispatch widget transport action", error)
@@ -56,7 +64,8 @@ internal class PlaybackWidgetTransportDispatcher {
 internal enum class PlaybackTransportAction(val parameterValue: String) {
   PlayPause("play_pause"),
   SeekBack("seek_back"),
-  SeekForward("seek_forward");
+  SeekForward("seek_forward"),
+  SleepTimer("sleep_timer");
 
   companion object {
     fun fromParameterValue(value: String): PlaybackTransportAction? =
@@ -77,6 +86,7 @@ internal interface PlaybackWidgetController {
   val isPlayPauseEnabled: Boolean
   val isSeekBackEnabled: Boolean
   val isSeekForwardEnabled: Boolean
+  val isSleepTimerEnabled: Boolean
 
   fun play()
 
@@ -85,6 +95,8 @@ internal interface PlaybackWidgetController {
   fun seekBack()
 
   fun seekForward()
+
+  suspend fun toggleSleepTimer()
 
   fun release()
 }
@@ -105,6 +117,8 @@ internal object Media3PlaybackWidgetControllerFactory {
 @OptIn(UnstableApi::class)
 private class Media3PlaybackWidgetController(private val controller: MediaController) :
   PlaybackWidgetController {
+  private val sleepTimerCommand = SessionCommand(CUSTOM_SLEEP_TIMER, Bundle.EMPTY)
+
   override val isPlaying: Boolean
     get() = controller.isPlaying
 
@@ -116,6 +130,9 @@ private class Media3PlaybackWidgetController(private val controller: MediaContro
 
   override val isSeekForwardEnabled: Boolean
     get() = controller.isCommandAvailable(Player.COMMAND_SEEK_FORWARD)
+
+  override val isSleepTimerEnabled: Boolean
+    get() = controller.getAvailableSessionCommands().contains(sleepTimerCommand)
 
   override fun play() {
     controller.play()
@@ -131,6 +148,10 @@ private class Media3PlaybackWidgetController(private val controller: MediaContro
 
   override fun seekForward() {
     controller.seekForward()
+  }
+
+  override suspend fun toggleSleepTimer() {
+    controller.sendCustomCommand(sleepTimerCommand, Bundle.EMPTY).await()
   }
 
   override fun release() {

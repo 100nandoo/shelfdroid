@@ -180,6 +180,11 @@ class PlaybackWidget : GlanceAppWidget() {
                 enabled = model.seekForwardEnabled,
               )
             }
+            Spacer(modifier = GlanceModifier.height(8.dp))
+            FilledButton(
+              text = model.sleepTimerLabel,
+              onClick = PlaybackWidgetTransportAction.actionFor(PlaybackTransportAction.SleepTimer),
+            )
           }
         }
       }
@@ -212,6 +217,12 @@ class PlaybackWidget : GlanceAppWidget() {
       playPauseEnabled = uiState.playPause.enabled,
       seekBackEnabled = uiState.seekControls.seekBackEnabled,
       seekForwardEnabled = uiState.seekControls.seekForwardEnabled,
+      sleepTimerLabel =
+        uiState.advancedControl.sleepTimerLeft
+          .toPlaybackWidgetSleepTimerText()
+          ?.let { time ->
+            context.getString(R.string.playback_widget_sleep_timer_with_value, time)
+          } ?: context.getString(R.string.playback_widget_sleep_timer),
       cover = loadCoverBitmap(context, imageLoader, uiState.cover),
     )
   }
@@ -265,6 +276,7 @@ class PlaybackWidget : GlanceAppWidget() {
     val playPauseEnabled: Boolean,
     val seekBackEnabled: Boolean,
     val seekForwardEnabled: Boolean,
+    val sleepTimerLabel: String,
     val cover: Bitmap?,
   )
 
