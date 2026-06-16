@@ -62,7 +62,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
   navKey: Home,
-  viewModel: HomeViewModel? = null,
+  viewModel: HomeViewModel =
+    hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
@@ -77,17 +80,12 @@ fun HomeScreen(
   onBackupsClicked: () -> Unit,
   onEditItemClicked: (String) -> Unit = {},
 ) {
-  val resolvedViewModel =
-    viewModel
-      ?: hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
-        factory.create(navKey)
-      }
-  val uiState by resolvedViewModel.uiState.collectAsStateWithLifecycle()
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size + 1
 
   val pagerState = rememberPagerState(pageCount = { libraryCount }, initialPage = 1)
   LaunchedEffect(pagerState.currentPage) {
-    resolvedViewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
+    viewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
   }
 
   HomeScreenContent(
@@ -95,7 +93,7 @@ fun HomeScreen(
     libraryCount,
     pagerState,
     uiState,
-    { homeEvent -> resolvedViewModel.onEvent(homeEvent) },
+    { homeEvent -> viewModel.onEvent(homeEvent) },
     onBookClicked,
     onPodcastClicked,
     onSettingsClicked,

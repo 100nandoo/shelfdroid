@@ -52,16 +52,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
   navKey: Login = Login(),
-  viewModel: LoginViewModel? = null,
+  viewModel: LoginViewModel =
+    hiltViewModel<LoginViewModel, LoginViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   snackbarHostState: SnackbarHostState,
   onLoginSuccess: () -> Unit,
 ) {
-  val resolvedViewModel =
-    viewModel
-      ?: hiltViewModel<LoginViewModel, LoginViewModel.Factory> { factory ->
-        factory.create(navKey)
-      }
-  val uiState by resolvedViewModel.uiState.collectAsStateWithLifecycle()
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
   val focusManager = LocalFocusManager.current
 
@@ -69,7 +67,7 @@ fun LoginScreen(
     when (val state = uiState.loginState) {
       is GenericState.Failure -> {
         state.errorMessage?.let { scope.launch { snackbarHostState.showErrorSnackbar(it) } }
-        resolvedViewModel.onEvent(LoginEvent.ErrorShown)
+        viewModel.onEvent(LoginEvent.ErrorShown)
       }
 
       is GenericState.Success -> {
@@ -80,7 +78,7 @@ fun LoginScreen(
     }
   }
 
-  LoginScreenContent(uiState, focusManager, resolvedViewModel::onEvent)
+  LoginScreenContent(uiState, focusManager, viewModel::onEvent)
 }
 
 @Composable
