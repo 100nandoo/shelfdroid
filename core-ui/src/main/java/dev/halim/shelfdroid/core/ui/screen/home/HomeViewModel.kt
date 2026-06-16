@@ -16,6 +16,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
+import dev.halim.shelfdroid.core.ui.navigation.Home
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +30,7 @@ class HomeViewModel
 @UnstableApi
 @AssistedInject
 constructor(
-  @Assisted private val fromLogin: Boolean,
+  @Assisted private val navKey: Home,
   private val repository: HomeRepository,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
@@ -41,7 +42,7 @@ constructor(
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
   init {
-    viewModelScope.launch { _uiState.update { repository.remoteSync(it, fromLogin) } }
+    viewModelScope.launch { _uiState.update { repository.remoteSync(it, navKey.fromLogin) } }
   }
 
   fun onEvent(event: HomeEvent) {
@@ -113,7 +114,7 @@ constructor(
   }
 
   @AssistedFactory interface Factory {
-    fun create(fromLogin: Boolean): HomeViewModel
+    fun create(navKey: Home): HomeViewModel
   }
 }
 

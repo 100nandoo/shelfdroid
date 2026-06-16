@@ -10,6 +10,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
+import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -22,7 +23,7 @@ class LoginViewModel
 @AssistedInject
 constructor(
   private val loginRepository: LoginRepository,
-  @Assisted private val reLogin: Boolean,
+  @Assisted private val navKey: Login,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(initUiState())
@@ -43,7 +44,7 @@ constructor(
   }
 
   private fun initUiState(): LoginUiState {
-    return if (reLogin) {
+    return if (navKey.reLogin) {
       runBlocking {
         val username = loginRepository.userPrefs.firstOrNull()?.username ?: ""
         val server = if (username.isNotBlank()) loginRepository.baseUrl else ""
@@ -53,6 +54,6 @@ constructor(
   }
 
   @AssistedFactory interface Factory {
-    fun create(reLogin: Boolean): LoginViewModel
+    fun create(navKey: Login): LoginViewModel
   }
 }

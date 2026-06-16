@@ -59,7 +59,7 @@ fun LoginScreen(
   val resolvedViewModel =
     viewModel
       ?: hiltViewModel<LoginViewModel, LoginViewModel.Factory> { factory ->
-        factory.create(navKey.reLogin)
+        factory.create(navKey)
       }
   val uiState by resolvedViewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()

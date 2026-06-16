@@ -80,7 +80,7 @@ fun HomeScreen(
   val resolvedViewModel =
     viewModel
       ?: hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
-        factory.create(navKey.fromLogin)
+        factory.create(navKey)
       }
   val uiState by resolvedViewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size + 1
