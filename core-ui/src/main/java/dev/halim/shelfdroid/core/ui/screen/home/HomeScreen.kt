@@ -54,13 +54,15 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
+import dev.halim.shelfdroid.core.ui.navigation.Home
 import dev.halim.shelfdroid.core.ui.screen.home.item.HomeItem
 import dev.halim.shelfdroid.core.ui.screen.home.item.HomeItemBottomSheet
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-  viewModel: HomeViewModel = hiltViewModel(),
+  navKey: Home,
+  viewModel: HomeViewModel? = null,
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,
@@ -75,12 +77,17 @@ fun HomeScreen(
   onBackupsClicked: () -> Unit,
   onEditItemClicked: (String) -> Unit = {},
 ) {
-  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  val resolvedViewModel =
+    viewModel
+      ?: hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
+        factory.create(navKey.fromLogin)
+      }
+  val uiState by resolvedViewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size + 1
 
   val pagerState = rememberPagerState(pageCount = { libraryCount }, initialPage = 1)
   LaunchedEffect(pagerState.currentPage) {
-    viewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
+    resolvedViewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
   }
 
   HomeScreenContent(
@@ -88,7 +95,7 @@ fun HomeScreen(
     libraryCount,
     pagerState,
     uiState,
-    { homeEvent -> viewModel.onEvent(homeEvent) },
+    { homeEvent -> resolvedViewModel.onEvent(homeEvent) },
     onBookClicked,
     onPodcastClicked,
     onSettingsClicked,
