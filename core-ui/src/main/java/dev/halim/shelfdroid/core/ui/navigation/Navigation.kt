@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.runtime.result.LocalResultEventBus
+import androidx.navigation3.runtime.result.rememberResultEventBusNavEntryDecorator
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.navigation3.ui.NavDisplay
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -51,9 +53,8 @@ import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScree
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePasswordScreen
-import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
+import dev.halim.shelfdroid.core.navigation.ApiKeyChangedNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
-import dev.halim.shelfdroid.core.navigation.NavResultKey
 import dev.halim.shelfdroid.media.service.PlayerStore
 import kotlinx.coroutines.launch
 
@@ -68,7 +69,6 @@ fun MainNavigation(
   SharedTransitionLayout {
     val backStack = rememberShelfNavBackStack(if (isLoggedIn) Home(false) else Login())
     val navigator = rememberShelfNavigator(backStack)
-    val resultStore = rememberNavigationResultStore()
 
     LaunchedEffect(isLoggedIn) { enforceAuthRestorePolicy(navigator, isLoggedIn) }
     LaunchedEffect(navRequest, isLoggedIn) {
@@ -85,7 +85,6 @@ fun MainNavigation(
       NavHostContainer(
         navigator = navigator,
         backStack = backStack,
-        resultStore = resultStore,
         sharedTransitionScope = this@SharedTransitionLayout,
         playerStore = playerStore,
         playerController = playerController,
@@ -104,7 +103,6 @@ fun MainNavigation(
 private fun ColumnScope.NavHostContainer(
   navigator: ShelfNavigator,
   backStack: androidx.navigation3.runtime.NavBackStack<ShelfNavKey>,
-  resultStore: NavigationResultStore,
   sharedTransitionScope: SharedTransitionScope,
   playerStore: PlayerStore,
   playerController: PlayerController,
@@ -155,11 +153,10 @@ private fun ColumnScope.NavHostContainer(
       }
     }
     entry<SearchPodcast> { key ->
-      val result = resultStore.consume<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
       Nav3ScreenWrapper(sharedTransitionScope) {
         SearchPodcastScreen(
           navKey = key,
-          result = result,
+          collectNavResultEvent = true,
           onItemClicked = { payload -> navigator.navigate(AddPodcast(payload)) },
           onAddedClick = { id -> navigator.navigate(Podcast(id)) },
         )
@@ -167,13 +164,15 @@ private fun ColumnScope.NavHostContainer(
     }
     entry<AddPodcast> { key ->
       val message = stringResource(R.string.podcast_created_successfully)
+      val resultBus = LocalResultEventBus.current
 
       Nav3ScreenWrapper(sharedTransitionScope) {
         AddPodcastScreen(
           navKey = key,
           onCreateSuccess = { result ->
             scope.launch { snackbarHostState.showSuccessSnackbar(message) }
-            handleCreatePodcastSuccess(navigator, resultStore, result)
+            resultBus.sendResult(result = result)
+            completeCreatePodcastNavigation(navigator, result)
           },
         )
       }
@@ -263,10 +262,9 @@ private fun ColumnScope.NavHostContainer(
       }
     }
     entry<NavApiKeys> {
-      val result = resultStore.consume<Boolean>(NavResultKey.API_KEY_CHANGED)
       Nav3ScreenWrapper(sharedTransitionScope) {
         ApiKeysScreen(
-          result = result,
+          collectNavResultEvent = true,
           snackbarHostState = snackbarHostState,
           onEditClicked = { navigator.navigate(EditApiKeys(it)) },
           createApiKeyClicked = { navigator.navigate(EditApiKeys(NavEditApiKeys())) },
@@ -274,11 +272,15 @@ private fun ColumnScope.NavHostContainer(
       }
     }
     entry<EditApiKeys> { key ->
+      val resultBus = LocalResultEventBus.current
       Nav3ScreenWrapper(sharedTransitionScope) {
         CreateEditApiKeysScreen(
           navKey = key,
           snackbarHostState = snackbarHostState,
-          navigateBack = { handleApiKeyMutationSuccess(navigator, resultStore) },
+          navigateBack = {
+            resultBus.sendResult(result = ApiKeyChangedNavResult)
+            completeApiKeyEditNavigation(navigator)
+          },
         )
       }
     }
@@ -305,6 +307,7 @@ private fun ColumnScope.NavHostContainer(
         listOf(
           rememberSaveableStateHolderNavEntryDecorator(),
           rememberViewModelStoreNavEntryDecorator(),
+          rememberResultEventBusNavEntryDecorator(),
         ),
       sharedTransitionScope = sharedTransitionScope,
       transitionSpec = {
