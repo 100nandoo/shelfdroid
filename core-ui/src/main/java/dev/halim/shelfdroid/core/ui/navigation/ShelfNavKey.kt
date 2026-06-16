@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.core.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
+import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
+import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import kotlinx.serialization.Serializable
 
 @Serializable sealed interface ShelfNavKey : NavKey
@@ -22,6 +24,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object SettingsListeningSession : ShelfNavKey
 
 @Serializable data class SearchPodcast(val libraryId: String) : ShelfNavKey
+
+@Serializable data class AddPodcast(val payload: PodcastFeedNavPayload) : ShelfNavKey
 
 @Serializable data class Podcast(val id: String) : ShelfNavKey
 
@@ -46,6 +50,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object Libraries : ShelfNavKey
 
 @Serializable data object NavApiKeys : ShelfNavKey
+
+@Serializable data class EditApiKeys(val payload: NavEditApiKeys) : ShelfNavKey
 
 @Serializable data object ServerSettings : ShelfNavKey
 

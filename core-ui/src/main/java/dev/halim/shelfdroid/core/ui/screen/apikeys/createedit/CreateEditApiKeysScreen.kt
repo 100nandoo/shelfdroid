@@ -35,6 +35,7 @@ import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.navigation.EditApiKeys
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.EDIT_API_KEYS_UI_STATE_ACTIVE
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -42,7 +43,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun CreateEditApiKeysScreen(
-  viewModel: EditApiKeysViewModel = hiltViewModel(),
+  navKey: EditApiKeys,
+  viewModel: EditApiKeysViewModel =
+    hiltViewModel<EditApiKeysViewModel, EditApiKeysViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   snackbarHostState: SnackbarHostState,
   navigateBack: () -> Unit,
 ) {

@@ -1,26 +1,29 @@
 package dev.halim.shelfdroid.core.ui.screen.addpodcast
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.response.PodcastFolder
 import dev.halim.shelfdroid.core.data.screen.addpodcast.AddPodcastRepository
 import dev.halim.shelfdroid.core.data.screen.addpodcast.AddPodcastUiState
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
-import javax.inject.Inject
+import dev.halim.shelfdroid.core.ui.navigation.AddPodcast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = AddPodcastViewModel.Factory::class)
 class AddPodcastViewModel
-@Inject
-constructor(savedStateHandle: SavedStateHandle, private val repository: AddPodcastRepository) :
-  ViewModel() {
-  val payload: PodcastFeedNavPayload = savedStateHandle.toRoute()
+@AssistedInject
+constructor(
+  @Assisted navKey: AddPodcast,
+  private val repository: AddPodcastRepository,
+) : ViewModel() {
+  val payload: PodcastFeedNavPayload = navKey.payload
   private val _uiState = MutableStateFlow(AddPodcastUiState())
 
   val uiState: StateFlow<AddPodcastUiState> = _uiState
@@ -53,6 +56,10 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: AddPodca
       is PodcastFeedEvent.GenreRemoved ->
         _uiState.update { it.copy(genres = it.genres - event.text) }
     }
+  }
+
+  @AssistedFactory interface Factory {
+    fun create(navKey: AddPodcast): AddPodcastViewModel
   }
 }
 

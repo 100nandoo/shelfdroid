@@ -1,25 +1,29 @@
 package dev.halim.shelfdroid.core.ui.screen.searchpodcast
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastRepository
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
-import javax.inject.Inject
+import dev.halim.shelfdroid.core.ui.navigation.SearchPodcast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = SearchPodcastViewModel.Factory::class)
 class SearchPodcastViewModel
-@Inject
-constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPodcastRepository) :
-  ViewModel() {
-  val libraryId: String = checkNotNull(savedStateHandle.get<String>("libraryId"))
+@AssistedInject
+constructor(
+  @Assisted navKey: SearchPodcast,
+  private val repository: SearchPodcastRepository,
+) : ViewModel() {
+  val libraryId: String = navKey.libraryId
   private val _uiState = MutableStateFlow(SearchPodcastUiState())
 
   val uiState: StateFlow<SearchPodcastUiState> = _uiState
@@ -45,6 +49,10 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: SearchPo
         }
       }
     }
+  }
+
+  @AssistedFactory interface Factory {
+    fun create(navKey: SearchPodcast): SearchPodcastViewModel
   }
 }
 

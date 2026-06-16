@@ -39,13 +39,18 @@ import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
+import dev.halim.shelfdroid.core.ui.navigation.SearchPodcast
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun SearchPodcastScreen(
+  navKey: SearchPodcast,
   result: CreatePodcastNavResult? = null,
-  viewModel: SearchPodcastViewModel = hiltViewModel(),
+  viewModel: SearchPodcastViewModel =
+    hiltViewModel<SearchPodcastViewModel, SearchPodcastViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   onItemClicked: (PodcastFeedNavPayload) -> Unit,
   onAddedClick: (String) -> Unit,
 ) {

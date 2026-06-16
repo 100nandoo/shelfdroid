@@ -29,7 +29,9 @@ import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
+import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
+import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
@@ -39,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
+import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.serversettings.ServerSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsListeningSessionScreen
@@ -48,6 +51,9 @@ import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScree
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePasswordScreen
+import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
+import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
+import dev.halim.shelfdroid.core.navigation.NavResultKey
 import dev.halim.shelfdroid.media.service.PlayerStore
 import kotlinx.coroutines.launch
 
@@ -62,6 +68,7 @@ fun MainNavigation(
   SharedTransitionLayout {
     val backStack = rememberShelfNavBackStack(if (isLoggedIn) Home(false) else Login())
     val navigator = rememberShelfNavigator(backStack)
+    val resultStore = rememberNavigationResultStore()
 
     LaunchedEffect(isLoggedIn) { enforceAuthRestorePolicy(navigator, isLoggedIn) }
     LaunchedEffect(navRequest, isLoggedIn) {
@@ -78,6 +85,7 @@ fun MainNavigation(
       NavHostContainer(
         navigator = navigator,
         backStack = backStack,
+        resultStore = resultStore,
         sharedTransitionScope = this@SharedTransitionLayout,
         playerStore = playerStore,
         playerController = playerController,
@@ -96,6 +104,7 @@ fun MainNavigation(
 private fun ColumnScope.NavHostContainer(
   navigator: ShelfNavigator,
   backStack: androidx.navigation3.runtime.NavBackStack<ShelfNavKey>,
+  resultStore: NavigationResultStore,
   sharedTransitionScope: SharedTransitionScope,
   playerStore: PlayerStore,
   playerController: PlayerController,
@@ -119,7 +128,7 @@ private fun ColumnScope.NavHostContainer(
           onSettingsClicked = { navigator.navigate(Settings) },
           onPodcastClicked = { navigator.navigate(Podcast(it)) },
           onBookClicked = { navigator.navigate(Book(it)) },
-          onSearchClicked = {},
+          onSearchClicked = { navigator.navigate(SearchPodcast(it)) },
           onSessionClicked = { navigator.navigate(ListeningSession) },
           onOpenSessionClicked = { navigator.navigate(OpenSession) },
           onUsersClicked = { navigator.navigate(UsersSettings) },
@@ -142,6 +151,30 @@ private fun ColumnScope.NavHostContainer(
             navigator.navigate(Episode(itemId = itemId, episodeId = episodeId))
           },
           onFetchEpisodeSuccess = { itemId -> navigator.navigate(AddEpisode(itemId)) },
+        )
+      }
+    }
+    entry<SearchPodcast> { key ->
+      val result = resultStore.consume<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        SearchPodcastScreen(
+          navKey = key,
+          result = result,
+          onItemClicked = { payload -> navigator.navigate(AddPodcast(payload)) },
+          onAddedClick = { id -> navigator.navigate(Podcast(id)) },
+        )
+      }
+    }
+    entry<AddPodcast> { key ->
+      val message = stringResource(R.string.podcast_created_successfully)
+
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        AddPodcastScreen(
+          navKey = key,
+          onCreateSuccess = { result ->
+            scope.launch { snackbarHostState.showSuccessSnackbar(message) }
+            handleCreatePodcastSuccess(navigator, resultStore, result)
+          },
         )
       }
     }
@@ -230,12 +263,22 @@ private fun ColumnScope.NavHostContainer(
       }
     }
     entry<NavApiKeys> {
+      val result = resultStore.consume<Boolean>(NavResultKey.API_KEY_CHANGED)
       Nav3ScreenWrapper(sharedTransitionScope) {
         ApiKeysScreen(
-          result = null,
+          result = result,
           snackbarHostState = snackbarHostState,
-          onEditClicked = {},
-          createApiKeyClicked = {},
+          onEditClicked = { navigator.navigate(EditApiKeys(it)) },
+          createApiKeyClicked = { navigator.navigate(EditApiKeys(NavEditApiKeys())) },
+        )
+      }
+    }
+    entry<EditApiKeys> { key ->
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        CreateEditApiKeysScreen(
+          navKey = key,
+          snackbarHostState = snackbarHostState,
+          navigateBack = { handleApiKeyMutationSuccess(navigator, resultStore) },
         )
       }
     }
