@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
@@ -23,15 +25,20 @@ import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MySnackbarHost
+import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
+import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
+import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
+import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
+import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.serversettings.ServerSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsListeningSessionScreen
@@ -42,6 +49,7 @@ import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScre
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePasswordScreen
 import dev.halim.shelfdroid.media.service.PlayerStore
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainNavigation(
@@ -56,10 +64,14 @@ fun MainNavigation(
     val navigator = rememberShelfNavigator(backStack)
 
     LaunchedEffect(isLoggedIn) { enforceAuthRestorePolicy(navigator, isLoggedIn) }
-    LaunchedEffect(navRequest.mediaId, navRequest.isOpenPlayer) {
-      if (navRequest.mediaId != null) {
-        onNavRequestComplete()
-      }
+    LaunchedEffect(navRequest, isLoggedIn) {
+      handleNavRequest(
+        navRequest = navRequest,
+        isLoggedIn = isLoggedIn,
+        navigator = navigator,
+        onNavRequestComplete = onNavRequestComplete,
+        playerController = playerController,
+      )
     }
 
     Column {
@@ -89,6 +101,7 @@ private fun ColumnScope.NavHostContainer(
   playerController: PlayerController,
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
+  val scope = rememberCoroutineScope()
   val entryProvider = entryProvider<ShelfNavKey> {
     entry<Login> { key ->
       Nav3ScreenWrapper(sharedTransitionScope) {
@@ -104,8 +117,8 @@ private fun ColumnScope.NavHostContainer(
         HomeScreen(
           navKey = key,
           onSettingsClicked = { navigator.navigate(Settings) },
-          onPodcastClicked = {},
-          onBookClicked = {},
+          onPodcastClicked = { navigator.navigate(Podcast(it)) },
+          onBookClicked = { navigator.navigate(Book(it)) },
           onSearchClicked = {},
           onSessionClicked = { navigator.navigate(ListeningSession) },
           onOpenSessionClicked = { navigator.navigate(OpenSession) },
@@ -116,6 +129,53 @@ private fun ColumnScope.NavHostContainer(
           onLogsClicked = { navigator.navigate(Logs) },
           onBackupsClicked = { navigator.navigate(Backups) },
           onEditItemClicked = {},
+        )
+      }
+    }
+    entry<Podcast> { key ->
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        PodcastScreen(
+          navKey = key,
+          playerController = playerController,
+          snackbarHostState = snackbarHostState,
+          onEpisodeClicked = { itemId, episodeId ->
+            navigator.navigate(Episode(itemId = itemId, episodeId = episodeId))
+          },
+          onFetchEpisodeSuccess = { itemId -> navigator.navigate(AddEpisode(itemId)) },
+        )
+      }
+    }
+    entry<AddEpisode> { key ->
+      val message = stringResource(R.string.starting_to_download_episodes)
+
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        AddEpisodeScreen(
+          navKey = key,
+          snackbarHostState = snackbarHostState,
+          onDownloadEpisodeSuccess = {
+            navigator.pop()
+            scope.launch { snackbarHostState.showSuccessSnackbar(message) }
+          },
+        )
+      }
+    }
+    entry<Book> { key ->
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        BookScreen(
+          navKey = key,
+          playerStore = playerStore,
+          playerController = playerController,
+          snackbarHostState = snackbarHostState,
+        )
+      }
+    }
+    entry<Episode> { key ->
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        EpisodeScreen(
+          navKey = key,
+          playerStore = playerStore,
+          playerController = playerController,
+          snackbarHostState = snackbarHostState,
         )
       }
     }

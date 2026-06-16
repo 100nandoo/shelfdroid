@@ -1,14 +1,16 @@
 package dev.halim.shelfdroid.core.ui.screen.book
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.book.BookRepository
 import dev.halim.shelfdroid.core.data.screen.book.BookUiState
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
+import dev.halim.shelfdroid.core.ui.navigation.Book
 import dev.halim.shelfdroid.download.DownloadRepo
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,16 +18,16 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = BookViewModel.Factory::class)
 class BookViewModel
-@Inject
+@AssistedInject
 constructor(
   private val repository: BookRepository,
   private val downloadRepo: DownloadRepo,
-  savedStateHandle: SavedStateHandle,
+  @Assisted navKey: Book,
 ) : ViewModel() {
 
-  val id: String = checkNotNull(savedStateHandle.get<String>("id"))
+  val id: String = navKey.id
 
   private val _uiState = MutableStateFlow(BookUiState())
   val uiState: StateFlow<BookUiState> =
@@ -67,6 +69,10 @@ constructor(
     viewModelScope.launch {
       repository.item(id).collect { bookUiState -> _uiState.value = bookUiState }
     }
+  }
+
+  @AssistedFactory interface Factory {
+    fun create(navKey: Book): BookViewModel
   }
 }
 

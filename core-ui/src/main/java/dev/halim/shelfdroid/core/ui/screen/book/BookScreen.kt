@@ -33,12 +33,15 @@ import dev.halim.shelfdroid.core.ui.player.forItemAction
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.navigation.Book
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
 import dev.halim.shelfdroid.media.service.PlayerStore
 
 @Composable
 fun BookScreen(
-  viewModel: BookViewModel = hiltViewModel(),
+  navKey: Book,
+  viewModel: BookViewModel =
+    hiltViewModel<BookViewModel, BookViewModel.Factory> { factory -> factory.create(navKey) },
   playerStore: PlayerStore,
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,

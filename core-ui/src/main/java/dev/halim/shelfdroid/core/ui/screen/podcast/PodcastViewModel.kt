@@ -1,9 +1,11 @@
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
 import android.util.Log
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
@@ -13,13 +15,13 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteFailu
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteSuccess
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
+import dev.halim.shelfdroid.core.ui.navigation.Podcast
 import dev.halim.shelfdroid.core.ui.player.forItemAction
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.service.PlayerStore
 import dev.halim.socketio.SocketManager
 import dev.halim.socketio.SocketManager.Event.Episode as SocketEpisode
 import dev.halim.socketio.model.PodcastEpisodeDownload
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,9 +34,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = PodcastViewModel.Factory::class)
 class PodcastViewModel
-@Inject
+@AssistedInject
 constructor(
   private val prefsRepository: PrefsRepository,
   private val repository: PodcastRepository,
@@ -42,9 +44,9 @@ constructor(
   private val socketManager: SocketManager,
   private val json: Json,
   playerStore: PlayerStore,
-  savedStateHandle: SavedStateHandle,
+  @Assisted navKey: Podcast,
 ) : ViewModel() {
-  val id: String = checkNotNull(savedStateHandle.get<String>("id"))
+  val id: String = navKey.id
   private val apiState = MutableStateFlow<PodcastApiState>(PodcastApiState.Idle)
   private val selectedEpisodeIds = MutableStateFlow<Set<String>>(emptySet())
   private val selectionMode = MutableStateFlow(false)
@@ -183,6 +185,10 @@ constructor(
       socketManager.off(SocketEpisode.DOWNLOAD_FINISHED)
       socketManager.disconnect()
     }
+  }
+
+  @AssistedFactory interface Factory {
+    fun create(navKey: Podcast): PodcastViewModel
   }
 }
 

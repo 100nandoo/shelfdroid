@@ -52,6 +52,7 @@ import dev.halim.shelfdroid.core.ui.components.VisibilityUp
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.mySharedElement
+import dev.halim.shelfdroid.core.ui.navigation.AddEpisode as AddEpisodeNavKey
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -59,7 +60,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AddEpisodeScreen(
-  viewModel: AddEpisodeViewModel = hiltViewModel(),
+  navKey: AddEpisodeNavKey,
+  viewModel: AddEpisodeViewModel =
+    hiltViewModel<AddEpisodeViewModel, AddEpisodeViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   snackbarHostState: SnackbarHostState,
   onDownloadEpisodeSuccess: () -> Unit,
 ) {

@@ -54,12 +54,17 @@ import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.navigation.Podcast
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
 import kotlinx.coroutines.launch
 
 @Composable
 fun PodcastScreen(
-  viewModel: PodcastViewModel = hiltViewModel(),
+  navKey: Podcast,
+  viewModel: PodcastViewModel =
+    hiltViewModel<PodcastViewModel, PodcastViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
   onEpisodeClicked: (String, String) -> Unit,
