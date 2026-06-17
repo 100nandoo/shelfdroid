@@ -34,6 +34,7 @@ import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.navigation.EditItem
 import dev.halim.shelfdroid.core.ui.permissions.rememberNotificationPermissionHandler
 import dev.halim.shelfdroid.core.ui.preview.Defaults.EDIT_ITEM_UI_STATE
+import dev.halim.shelfdroid.core.ui.preview.Defaults.EDIT_ITEM_PODCAST_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChaptersTab
@@ -115,7 +116,13 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
     }
     Box(modifier = Modifier.weight(1f).fillMaxWidth().imePadding()) {
       when (uiState.currentTab) {
-        EditItemTab.Details -> DetailsTab(uiState.details, onEvent, uiState.seriesSuggestions)
+        EditItemTab.Details ->
+          DetailsTab(
+            mediaKind = uiState.mediaKind,
+            details = uiState.details,
+            onEvent = onEvent,
+            seriesSuggestions = uiState.seriesSuggestions,
+          )
         EditItemTab.Cover -> CoverTab(uiState, onEvent)
         EditItemTab.Chapters -> ChaptersTab(uiState)
         EditItemTab.Files -> FilesTab(uiState, onEvent)
@@ -154,6 +161,12 @@ private fun EditItemScreenSavingPreview() {
       onEvent = {},
     )
   }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun EditItemScreenPodcastPreview() {
+  PreviewWrapper { EditItemScreenStateContent(uiState = EDIT_ITEM_PODCAST_UI_STATE, onEvent = {}) }
 }
 
 @ShelfDroidPreview
