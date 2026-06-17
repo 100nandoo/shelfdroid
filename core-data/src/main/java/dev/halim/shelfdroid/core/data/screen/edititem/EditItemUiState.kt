@@ -24,6 +24,11 @@ data class EditItemUiState(
   val seriesSuggestions: List<String> = emptyList(),
 )
 
+fun EditItemUiState.supportedTabs(): List<EditItemTab> = mediaKind.supportedTabs()
+
+fun EditItemUiState.normalized(): EditItemUiState =
+  copy(currentTab = currentTab.coerceFor(mediaKind))
+
 data class CoverSearchState(
   val state: GenericState = GenericState.Idle,
   val title: String = "",
@@ -59,10 +64,20 @@ enum class EditItemTab {
   Tools,
 }
 
+fun EditItemTab.coerceFor(mediaKind: EditItemMediaKind): EditItemTab =
+  if (this in mediaKind.supportedTabs()) this else EditItemTab.Details
+
 enum class EditItemMediaKind {
   Book,
   Podcast,
 }
+
+fun EditItemMediaKind.supportedTabs(): List<EditItemTab> =
+  when (this) {
+    EditItemMediaKind.Book -> EditItemTab.entries
+    EditItemMediaKind.Podcast ->
+      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Files)
+  }
 
 data class DetailsForm(
   val title: String = "",

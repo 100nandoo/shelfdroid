@@ -28,6 +28,8 @@ import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.download.ManagedDownload
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.coerceFor
+import dev.halim.shelfdroid.core.data.screen.edititem.supportedTabs
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
@@ -110,12 +112,15 @@ private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditI
 
 @Composable
 private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
+  val currentTab = uiState.currentTab.coerceFor(uiState.mediaKind)
+  val tabs = uiState.supportedTabs()
+
   Column(modifier = Modifier.fillMaxSize()) {
     if (uiState.isSaving) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     Box(modifier = Modifier.weight(1f).fillMaxWidth().imePadding()) {
-      when (uiState.currentTab) {
+      when (currentTab) {
         EditItemTab.Details ->
           DetailsTab(
             mediaKind = uiState.mediaKind,
@@ -131,13 +136,12 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
       }
     }
 
-    val tabs = EditItemTab.entries
-    val selectedIndex = tabs.indexOf(uiState.currentTab)
+    val selectedIndex = tabs.indexOf(currentTab)
 
     SecondaryScrollableTabRow(selectedTabIndex = selectedIndex, edgePadding = 0.dp) {
       tabs.forEach { tab ->
         Tab(
-          selected = uiState.currentTab == tab,
+          selected = currentTab == tab,
           onClick = { onEvent(EditItemEvent.ChangeTab(tab)) },
           text = { Text(tab.name) },
         )
