@@ -116,7 +116,8 @@ constructor(
 
   private fun uploadCover(uri: Uri, contentResolver: ContentResolver) = viewModelScope.launch {
     _uiState.update { it.copy(isCoverWorking = true) }
-    _uiState.value = repository.uploadCover(_uiState.value, uri, contentResolver, _events).normalized()
+    _uiState.value =
+      repository.uploadCover(_uiState.value, uri, contentResolver, _events).normalized()
   }
 
   private fun setCoverUrl(url: String) = viewModelScope.launch {

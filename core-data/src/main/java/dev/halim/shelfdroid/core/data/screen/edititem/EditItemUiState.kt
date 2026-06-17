@@ -75,8 +75,7 @@ enum class EditItemMediaKind {
 fun EditItemMediaKind.supportedTabs(): List<EditItemTab> =
   when (this) {
     EditItemMediaKind.Book -> EditItemTab.entries
-    EditItemMediaKind.Podcast ->
-      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Files)
+    EditItemMediaKind.Podcast -> listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Files)
   }
 
 data class DetailsForm(

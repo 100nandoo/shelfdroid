@@ -8,6 +8,7 @@ import dev.halim.core.network.request.MatchLibraryItemRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.MatchItemResult
+import dev.halim.core.network.response.SearchProviders
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -38,11 +39,10 @@ constructor(
         )
       }
 
+    val mediaKind = EditItemMapper.mapMedia(item).mediaKind
     val providersResponse = api.searchProviders().getOrNull()?.providers
-    val providers =
-      providersResponse?.books?.map { MatchProvider(it.value, it.text) } ?: emptyList()
-    val coverProviders =
-      providersResponse?.booksCovers?.map { MatchProvider(it.value, it.text) } ?: emptyList()
+    val providers = matchProvidersFor(providersResponse, mediaKind)
+    val coverProviders = coverProvidersFor(providersResponse, mediaKind)
     // TODO use prefs once edit libraries implemented
     val defaultProvider = "audible"
     val defaultCoverProvider = coverProviders.firstOrNull()?.value ?: "best"
@@ -131,8 +131,7 @@ constructor(
     mediaKind: EditItemMediaKind,
     original: DetailsForm,
     current: DetailsForm,
-  ): UpdateLibraryItemMediaRequest =
-    EditItemMapper.buildUpdateRequest(mediaKind, original, current)
+  ): UpdateLibraryItemMediaRequest = EditItemMapper.buildUpdateRequest(mediaKind, original, current)
 
   private fun mergeUpdated(state: EditItemUiState, item: LibraryItem): EditItemUiState {
     val updatedState =
@@ -354,6 +353,7 @@ constructor(
           title = state.coverSearch.title,
           author = state.coverSearch.author.ifBlank { null },
           provider = state.coverSearch.provider,
+          podcast = coverSearchPodcastFlag(state.mediaKind),
         )
         .getOrElse {
           events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
@@ -376,3 +376,31 @@ constructor(
     return state.copy(isToolWorking = false)
   }
 }
+
+internal fun matchProvidersFor(
+  providers: SearchProviders?,
+  mediaKind: EditItemMediaKind,
+): List<MatchProvider> =
+  when (mediaKind) {
+      EditItemMediaKind.Book -> providers?.books
+      EditItemMediaKind.Podcast -> providers?.podcasts
+    }
+    ?.map { MatchProvider(it.value, it.text) }
+    .orEmpty()
+
+internal fun coverProvidersFor(
+  providers: SearchProviders?,
+  mediaKind: EditItemMediaKind,
+): List<MatchProvider> =
+  when (mediaKind) {
+      EditItemMediaKind.Book -> providers?.booksCovers
+      EditItemMediaKind.Podcast -> providers?.podcasts
+    }
+    ?.map { MatchProvider(it.value, it.text) }
+    .orEmpty()
+
+internal fun coverSearchPodcastFlag(mediaKind: EditItemMediaKind): Int =
+  when (mediaKind) {
+    EditItemMediaKind.Book -> 0
+    EditItemMediaKind.Podcast -> 1
+  }
