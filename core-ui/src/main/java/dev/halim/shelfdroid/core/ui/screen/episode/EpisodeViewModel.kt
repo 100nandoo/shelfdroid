@@ -60,7 +60,8 @@ constructor(
     }
   }
 
-  @AssistedFactory interface Factory {
+  @AssistedFactory
+  interface Factory {
     fun create(navKey: Episode): EpisodeViewModel
   }
 }

@@ -14,7 +14,9 @@ class NavigationResultHandlerTest {
     val navigator = ShelfNavigator(backStack)
     val result = CreatePodcastNavResult(id = "podcast-id", feedUrl = "feed-url")
 
-    navigator.navigate(AddPodcast(PodcastFeedNavPayload(libraryId = "library-id", feedUrl = "feed-url")))
+    navigator.navigate(
+      AddPodcast(PodcastFeedNavPayload(libraryId = "library-id", feedUrl = "feed-url"))
+    )
     completeCreatePodcastNavigation(navigator, result)
 
     assertEquals(

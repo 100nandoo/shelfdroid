@@ -24,8 +24,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = EditUserViewModel.Factory::class)
 class EditUserViewModel
 @AssistedInject
-constructor(@Assisted navKey: EditUser, private val repository: EditUserRepository) :
-  ViewModel() {
+constructor(@Assisted navKey: EditUser, private val repository: EditUserRepository) : ViewModel() {
   private val _uiState = MutableStateFlow(repository.item(navKey.payload))
   private val isCreateMode = _uiState.value.editUser.isCreateMode()
 
@@ -95,7 +94,8 @@ constructor(@Assisted navKey: EditUser, private val repository: EditUserReposito
     return createUserInfoValidation(_uiState.value)
   }
 
-  @AssistedFactory interface Factory {
+  @AssistedFactory
+  interface Factory {
     fun create(navKey: EditUser): EditUserViewModel
   }
 }

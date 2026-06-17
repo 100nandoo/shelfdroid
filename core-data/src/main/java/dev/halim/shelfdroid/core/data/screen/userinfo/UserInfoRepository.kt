@@ -14,7 +14,10 @@ constructor(
 ) {
 
   suspend fun item(userId: String): UserInfoUiState {
-    val entity = repo.byUserId(userId) ?: return UserInfoUiState(state = GenericState.Failure())
+    repo.remote(userId)
+    val entity =
+      repo.byUserId(userId)
+        ?: return UserInfoUiState(state = GenericState.Failure("Unable to load listening stats."))
     val mediaProgress = userRepo.userWithProgress(userId)
 
     val uiState = mapper.toUiState(entity, mediaProgress)

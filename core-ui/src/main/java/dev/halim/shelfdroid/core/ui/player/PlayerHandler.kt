@@ -40,7 +40,10 @@ fun PlayerHandler(
 
 fun isPlayerVisibleDestination(key: ShelfNavKey?): Boolean {
   return when (key) {
-    is Home, is Book, is Podcast, is Episode -> true
+    is Home,
+    is Book,
+    is Podcast,
+    is Episode -> true
     else -> false
   }
 }

@@ -6,6 +6,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.userinfo.UserInfoRepository
 import dev.halim.shelfdroid.core.data.screen.userinfo.UserInfoUiState
 import dev.halim.shelfdroid.core.ui.navigation.UserInfo
@@ -20,7 +21,7 @@ class UserInfoViewModel
 constructor(@Assisted navKey: UserInfo, repository: UserInfoRepository) : ViewModel() {
   val userId: String = navKey.userId
 
-  private val _uiState = MutableStateFlow(UserInfoUiState())
+  private val _uiState = MutableStateFlow(UserInfoUiState(state = GenericState.Loading))
   val uiState: StateFlow<UserInfoUiState> = _uiState.asStateFlow()
 
   init {
@@ -33,7 +34,8 @@ constructor(@Assisted navKey: UserInfo, repository: UserInfoRepository) : ViewMo
     }
   }
 
-  @AssistedFactory interface Factory {
+  @AssistedFactory
+  interface Factory {
     fun create(navKey: UserInfo): UserInfoViewModel
   }
 }

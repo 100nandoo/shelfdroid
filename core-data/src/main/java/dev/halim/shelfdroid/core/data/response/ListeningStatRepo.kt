@@ -25,6 +25,18 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
 
   fun byUserId(userId: String) = queries.byUserId(userId).executeAsOneOrNull()
 
+  suspend fun remote(userId: String): Result<ListeningStatResponse> {
+    val result = api.listeningStats(userId)
+    val response = result.getOrNull()
+    if (result.isFailure) {
+      Log.e("ListeningStatRepo", "remote($userId): ${result.exceptionOrNull()}")
+    }
+    if (response != null) {
+      queries.insert(toEntity(userId, response))
+    }
+    return result
+  }
+
   suspend fun remote() = supervisorScope {
     val userIds = userQueries.allIds().executeAsList()
 

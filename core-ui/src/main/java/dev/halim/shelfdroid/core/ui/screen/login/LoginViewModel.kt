@@ -2,10 +2,10 @@ package dev.halim.shelfdroid.core.ui.screen.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
@@ -53,7 +53,8 @@ constructor(
     } else LoginUiState()
   }
 
-  @AssistedFactory interface Factory {
+  @AssistedFactory
+  interface Factory {
     fun create(navKey: Login): LoginViewModel
   }
 }

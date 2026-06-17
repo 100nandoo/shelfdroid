@@ -82,7 +82,8 @@ constructor(
     )
   }
 
-  @AssistedFactory interface Factory {
+  @AssistedFactory
+  interface Factory {
     fun create(navKey: EditApiKeys): EditApiKeysViewModel
   }
 }

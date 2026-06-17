@@ -165,7 +165,8 @@ constructor(
     _uiState.value = repository.deleteFile(_uiState.value, target.ino, _events)
   }
 
-  @AssistedFactory interface Factory {
+  @AssistedFactory
+  interface Factory {
     fun create(navKey: EditItem): EditItemViewModel
   }
 }

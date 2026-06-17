@@ -4,6 +4,7 @@ package dev.halim.shelfdroid.core.ui.screen.userinfo
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.userinfo.UserInfoUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.TextHeadlineMedium
@@ -45,10 +48,11 @@ import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.extensions.appendBold
 import dev.halim.shelfdroid.core.ui.extensions.appendTwoLine
+import dev.halim.shelfdroid.core.ui.navigation.UserInfo
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.USER_INFO_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import dev.halim.shelfdroid.core.ui.navigation.UserInfo
+import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -62,7 +66,25 @@ fun UserInfoScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  UserInfoContent(uiState = uiState)
+  UserInfoScreenStateContent(uiState = uiState)
+}
+
+@Composable
+private fun UserInfoScreenStateContent(uiState: UserInfoUiState) {
+  when (val state = uiState.state) {
+    GenericState.Loading,
+    GenericState.Idle -> {
+      Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+      }
+    }
+
+    is GenericState.Failure -> {
+      GenericMessageScreen(state.errorMessage ?: stringResource(R.string.edit_item_failed_to_load))
+    }
+
+    GenericState.Success -> UserInfoContent(uiState = uiState)
+  }
 }
 
 @Composable
@@ -70,9 +92,9 @@ private fun UserInfoContent(uiState: UserInfoUiState = UserInfoUiState()) {
   val startPadding = Modifier.padding(start = 16.dp)
   val endPadding = Modifier.padding(end = 16.dp)
   LazyVerticalGrid(
-    modifier = Modifier.fillMaxSize(),
+    modifier = Modifier.fillMaxSize().padding(top = 16.dp),
     columns = GridCells.Fixed(2),
-    verticalArrangement = Arrangement.Bottom,
+    verticalArrangement = Arrangement.Top,
     horizontalArrangement = Arrangement.spacedBy(12.dp),
   ) {
     item(span = { GridItemSpan(maxLineSpan) }) {
