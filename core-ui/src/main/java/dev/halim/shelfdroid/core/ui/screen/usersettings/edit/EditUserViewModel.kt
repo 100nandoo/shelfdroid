@@ -92,17 +92,7 @@ constructor(@Assisted navKey: EditUser, private val repository: EditUserReposito
   }
 
   private fun validateUserInfo(): EditUserState {
-    val ui = _uiState.value
-
-    val usernameValid = ui.editUser.username.isNotEmpty()
-    val passwordValid = ui.editUser.password.isNotEmpty()
-
-    return when {
-      usernameValid && passwordValid -> EditUserState.Success
-      !usernameValid && !passwordValid -> EditUserState.UsernameAndPasswordFieldError
-      !passwordValid -> EditUserState.PasswordFieldError
-      else -> EditUserState.PasswordFieldError
-    }
+    return createUserInfoValidation(_uiState.value)
   }
 
   @AssistedFactory interface Factory {
@@ -117,4 +107,16 @@ sealed interface EditUserEvent {
   data class UpdateUiState(val transform: (EditUserUiState) -> EditUserUiState) : EditUserEvent
 
   data object Submit : EditUserEvent
+}
+
+internal fun createUserInfoValidation(ui: EditUserUiState): EditUserState {
+  val usernameValid = ui.editUser.username.isNotEmpty()
+  val passwordValid = ui.editUser.password.isNotEmpty()
+
+  return when {
+    usernameValid && passwordValid -> EditUserState.Success
+    !usernameValid && !passwordValid -> EditUserState.UsernameAndPasswordFieldError
+    !passwordValid -> EditUserState.PasswordFieldError
+    else -> EditUserState.UsernameFieldError
+  }
 }
