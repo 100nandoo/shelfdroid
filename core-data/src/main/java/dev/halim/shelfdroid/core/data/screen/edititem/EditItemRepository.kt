@@ -8,7 +8,6 @@ import dev.halim.core.network.request.MatchLibraryItemRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.MatchItemResult
-import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
@@ -69,37 +68,18 @@ constructor(
     defaultCoverProvider: String = "best",
     seriesSuggestions: List<String> = emptyList(),
   ): EditItemUiState {
-    val media = item.media as? Book
-    val metadata = media?.metadata
-    val details =
-      DetailsForm(
-        title = metadata?.title.orEmpty(),
-        subtitle = metadata?.subtitle.orEmpty(),
-        authors = metadata?.authors?.map { it.name } ?: emptyList(),
-        narrators = metadata?.narrators ?: emptyList(),
-        series =
-          metadata?.series?.map { SeriesEntry(it.name, it.sequence.orEmpty()) } ?: emptyList(),
-        genres = metadata?.genres ?: emptyList(),
-        tags = media?.tags ?: emptyList(),
-        publishedYear = metadata?.publishedYear.orEmpty(),
-        publisher = metadata?.publisher.orEmpty(),
-        description = metadata?.description.orEmpty(),
-        isbn = metadata?.isbn.orEmpty(),
-        asin = metadata?.asin.orEmpty(),
-        language = metadata?.language.orEmpty(),
-        explicit = metadata?.explicit ?: false,
-        abridged = false,
-      )
+    val mappedMedia = EditItemMapper.mapMedia(item)
+    val details = mappedMedia.details
 
     return EditItemUiState(
       state = GenericState.Success,
       itemId = item.id,
+      mediaKind = mappedMedia.mediaKind,
       coverUrl = helper.generateItemCoverUrl(item.id, item.updatedAt),
       webBaseUrl = "https://${DataStoreManager.BASE_URL}",
       details = details,
       originalDetails = details,
-      chapters =
-        media?.chapters?.map { ChapterRow(it.id, it.title, it.start, it.end) } ?: emptyList(),
+      chapters = mappedMedia.chapters,
       libraryFiles =
         item.libraryFiles.map {
           LibraryFileRow(
@@ -115,14 +95,14 @@ constructor(
           providers = providers,
           selectedProvider = defaultProvider,
           title = details.title,
-          author = details.authors.joinToString(),
+          author = details.primaryAuthor(mappedMedia.mediaKind),
         ),
       coverSearch =
         CoverSearchState(
           provider = defaultCoverProvider,
           providers = coverProviders,
           title = details.title,
-          author = details.authors.joinToString(),
+          author = details.primaryAuthor(mappedMedia.mediaKind),
         ),
       seriesSuggestions = seriesSuggestions,
     )
@@ -132,7 +112,7 @@ constructor(
     state: EditItemUiState,
     events: MutableSharedFlow<GenericUiEvent>,
   ): EditItemUiState {
-    val request = buildUpdateRequest(state.originalDetails, state.details)
+    val request = buildUpdateRequest(state.mediaKind, state.originalDetails, state.details)
     api.updateItemMedia(state.itemId, request).getOrElse {
       events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
       return state.copy(isSaving = false)
@@ -148,44 +128,11 @@ constructor(
   }
 
   private fun buildUpdateRequest(
+    mediaKind: EditItemMediaKind,
     original: DetailsForm,
     current: DetailsForm,
-  ): UpdateLibraryItemMediaRequest {
-    fun <T> delta(orig: T, cur: T): T? = if (cur != orig) cur else null
-    fun deltaNames(
-      orig: List<String>,
-      cur: List<String>,
-    ): List<UpdateLibraryItemMediaRequest.NameRef>? =
-      if (cur != orig) cur.map { UpdateLibraryItemMediaRequest.NameRef(it) } else null
-    fun deltaSeries(
-      orig: List<SeriesEntry>,
-      cur: List<SeriesEntry>,
-    ): List<UpdateLibraryItemMediaRequest.SeriesRef>? =
-      if (cur != orig)
-        cur.map { UpdateLibraryItemMediaRequest.SeriesRef(it.name, it.sequence.ifBlank { null }) }
-      else null
-
-    return UpdateLibraryItemMediaRequest(
-      metadata =
-        UpdateLibraryItemMediaRequest.Metadata(
-          title = delta(original.title, current.title),
-          subtitle = delta(original.subtitle, current.subtitle),
-          authors = deltaNames(original.authors, current.authors),
-          narrators = delta(original.narrators, current.narrators),
-          series = deltaSeries(original.series, current.series),
-          genres = delta(original.genres, current.genres),
-          publishedYear = delta(original.publishedYear, current.publishedYear),
-          publisher = delta(original.publisher, current.publisher),
-          description = delta(original.description, current.description),
-          isbn = delta(original.isbn, current.isbn),
-          asin = delta(original.asin, current.asin),
-          language = delta(original.language, current.language),
-          explicit = delta(original.explicit, current.explicit),
-          abridged = delta(original.abridged, current.abridged),
-        ),
-      tags = delta(original.tags, current.tags),
-    )
-  }
+  ): UpdateLibraryItemMediaRequest =
+    EditItemMapper.buildUpdateRequest(mediaKind, original, current)
 
   private fun mergeUpdated(state: EditItemUiState, item: LibraryItem): EditItemUiState {
     val updatedState =

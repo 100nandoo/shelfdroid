@@ -6,6 +6,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 data class EditItemUiState(
   val state: GenericState = GenericState.Loading,
   val itemId: String = "",
+  val mediaKind: EditItemMediaKind = EditItemMediaKind.Book,
   val coverUrl: String = "",
   val webBaseUrl: String = "",
   val currentTab: EditItemTab = EditItemTab.Details,
@@ -58,6 +59,11 @@ enum class EditItemTab {
   Tools,
 }
 
+enum class EditItemMediaKind {
+  Book,
+  Podcast,
+}
+
 data class DetailsForm(
   val title: String = "",
   val subtitle: String = "",
@@ -74,7 +80,18 @@ data class DetailsForm(
   val language: String = "",
   val explicit: Boolean = false,
   val abridged: Boolean = false,
+  val podcastAuthor: String = "",
+  val rssFeedUrl: String = "",
+  val releaseDate: String = "",
+  val itunesId: String = "",
+  val podcastType: String = "episodic",
 )
+
+fun DetailsForm.primaryAuthor(mediaKind: EditItemMediaKind): String =
+  when (mediaKind) {
+    EditItemMediaKind.Book -> authors.joinToString()
+    EditItemMediaKind.Podcast -> podcastAuthor
+  }
 
 data class MatchState(
   val providers: List<MatchProvider> = emptyList(),

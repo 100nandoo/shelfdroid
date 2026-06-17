@@ -9,7 +9,11 @@ object MetadataSerializer : JsonContentPolymorphicSerializer<Metadata>(Metadata:
   override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Metadata> {
     val jsonObject = element.jsonObject
     return when {
-      "itunesPageUrl" in jsonObject -> PodcastMetadata.serializer()
+      "feedUrl" in jsonObject ||
+        "itunesPageUrl" in jsonObject ||
+        "itunesId" in jsonObject ||
+        "releaseDate" in jsonObject ||
+        "type" in jsonObject -> PodcastMetadata.serializer()
       else -> BookMetadata.serializer()
     }
   }
