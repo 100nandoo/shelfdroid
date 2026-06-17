@@ -1,8 +1,10 @@
 package dev.halim.shelfdroid.core.ui.navigation
 
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -14,15 +16,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.runtime.result.LocalResultEventBus
+import androidx.navigation3.runtime.result.rememberResultEventBusNavEntryDecorator
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import androidx.navigation3.ui.NavDisplay
+import dev.halim.shelfdroid.core.navigation.ApiKeyChangedNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditUser
-import dev.halim.shelfdroid.core.navigation.NavResultKey
-import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
@@ -58,55 +61,6 @@ import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePas
 import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.EditUserScreen
 import dev.halim.shelfdroid.media.service.PlayerStore
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-
-@Serializable data class Login(val reLogin: Boolean = false)
-
-@Serializable data class Home(val fromLogin: Boolean)
-
-@Serializable object Settings
-
-@Serializable object SettingsPlayback
-
-@Serializable object SettingsPlayer
-
-@Serializable object SettingsNotification
-
-@Serializable object SettingsPodcast
-
-@Serializable object SettingsListeningSession
-
-@Serializable data class SearchPodcast(val libraryId: String)
-
-@Serializable data class Podcast(val id: String)
-
-@Serializable data class Book(val id: String)
-
-@Serializable data class EditItem(val itemId: String)
-
-@Serializable data class Episode(val itemId: String, val episodeId: String)
-
-@Serializable data class AddEpisode(val id: String)
-
-@Serializable object ListeningSession
-
-@Serializable object OpenSession
-
-@Serializable object UsersSettings
-
-@Serializable class UserInfo(val userId: String)
-
-@Serializable object ChangePassword
-
-@Serializable object Libraries
-
-@Serializable object NavApiKeys
-
-@Serializable object ServerSettings
-
-@Serializable object Logs
-
-@Serializable object Backups
 
 @Composable
 fun MainNavigation(
@@ -117,28 +71,30 @@ fun MainNavigation(
   onNavRequestComplete: () -> Unit = {},
 ) {
   SharedTransitionLayout {
-    val navController = rememberNavController()
-    val startDestination = if (isLoggedIn) Home(false) else Login()
+    val backStack = rememberShelfNavBackStack(if (isLoggedIn) Home(false) else Login())
+    val navigator = rememberShelfNavigator(backStack)
 
-    LaunchedEffect(navRequest.mediaId) {
-      handlePendingMediaId(
-        navRequest,
-        isLoggedIn,
-        navController,
-        onNavRequestComplete,
-        playerController,
+    LaunchedEffect(isLoggedIn) { enforceAuthRestorePolicy(navigator, isLoggedIn) }
+    LaunchedEffect(navRequest, isLoggedIn) {
+      handleNavRequest(
+        navRequest = navRequest,
+        isLoggedIn = isLoggedIn,
+        navigator = navigator,
+        onNavRequestComplete = onNavRequestComplete,
+        playerController = playerController,
       )
     }
+
     Column {
       NavHostContainer(
-        navController = navController,
-        startDestination = startDestination,
+        navigator = navigator,
+        backStack = backStack,
         sharedTransitionScope = this@SharedTransitionLayout,
         playerStore = playerStore,
         playerController = playerController,
       )
       PlayerHandler(
-        navController = navController,
+        currentKey = navigator.current,
         sharedTransitionScope = this@SharedTransitionLayout,
         playerStore = playerStore,
         playerController = playerController,
@@ -149,225 +105,262 @@ fun MainNavigation(
 
 @Composable
 private fun ColumnScope.NavHostContainer(
-  navController: NavHostController,
-  startDestination: Any,
+  navigator: ShelfNavigator,
+  backStack: androidx.navigation3.runtime.NavBackStack<ShelfNavKey>,
   sharedTransitionScope: SharedTransitionScope,
   playerStore: PlayerStore,
   playerController: PlayerController,
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
-  Box(Modifier.weight(1f)) {
-    MySnackbarHost(snackbarHostState = snackbarHostState)
-
-    NavHost(navController = navController, startDestination = startDestination) {
-      composable<Login> {
-        LoginScreen(
-          snackbarHostState = snackbarHostState,
-          onLoginSuccess = {
-            navController.navigate(Home(true)) {
-              launchSingleTop = true
-              popUpTo(0) { inclusive = true }
-            }
-          },
-        )
-      }
-      composable<Home> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) {
-          HomeScreen(
-            onSettingsClicked = { navController.navigate(Settings) },
-            onPodcastClicked = { id -> navController.navigate(Podcast(id)) },
-            onBookClicked = { id -> navController.navigate(Book(id)) },
-            onSearchClicked = { libraryId -> navController.navigate(SearchPodcast(libraryId)) },
-            onSessionClicked = { navController.navigate(ListeningSession) },
-            onOpenSessionClicked = { navController.navigate(OpenSession) },
-            onUsersClicked = { navController.navigate(UsersSettings) },
-            onLibrariesClicked = {
-              //              navController.navigate(Libraries)
-            },
-            onApiKeysClicked = { navController.navigate(NavApiKeys) },
-            onServerSettingsClicked = { navController.navigate(ServerSettings) },
-            onLogsClicked = { navController.navigate(Logs) },
-            onBackupsClicked = { navController.navigate(Backups) },
-            onEditItemClicked = { id -> navController.navigate(EditItem(id)) },
+  val entryProvider =
+    entryProvider<ShelfNavKey> {
+      entry<Login> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          LoginScreen(
+            navKey = key,
+            snackbarHostState = snackbarHostState,
+            onLoginSuccess = { navigator.replaceStack(Home(fromLogin = true)) },
           )
         }
       }
-      composable<Podcast> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+      entry<Home> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          HomeScreen(
+            navKey = key,
+            onSettingsClicked = { navigator.navigate(Settings) },
+            onPodcastClicked = { navigator.navigate(Podcast(it)) },
+            onBookClicked = { navigator.navigate(Book(it)) },
+            onSearchClicked = { navigator.navigate(SearchPodcast(it)) },
+            onSessionClicked = { navigator.navigate(ListeningSession) },
+            onOpenSessionClicked = { navigator.navigate(OpenSession) },
+            onUsersClicked = { navigator.navigate(UsersSettings) },
+            onLibrariesClicked = {},
+            onApiKeysClicked = { navigator.navigate(NavApiKeys) },
+            onServerSettingsClicked = { navigator.navigate(ServerSettings) },
+            onLogsClicked = { navigator.navigate(Logs) },
+            onBackupsClicked = { navigator.navigate(Backups) },
+            onEditItemClicked = { navigator.navigate(EditItem(it)) },
+          )
+        }
+      }
+      entry<Podcast> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
           PodcastScreen(
+            navKey = key,
             playerController = playerController,
             snackbarHostState = snackbarHostState,
             onEpisodeClicked = { itemId, episodeId ->
-              navController.navigate(Episode(itemId, episodeId))
+              navigator.navigate(Episode(itemId = itemId, episodeId = episodeId))
             },
-            onFetchEpisodeSuccess = { id -> navController.navigate(AddEpisode(id)) },
+            onFetchEpisodeSuccess = { itemId -> navigator.navigate(AddEpisode(itemId)) },
           )
         }
       }
-      composable<AddEpisode> {
+      entry<SearchPodcast> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          SearchPodcastScreen(
+            navKey = key,
+            collectNavResultEvent = true,
+            onItemClicked = { payload -> navigator.navigate(AddPodcast(payload)) },
+            onAddedClick = { id -> navigator.navigate(Podcast(id)) },
+          )
+        }
+      }
+      entry<AddPodcast> { key ->
+        val message = stringResource(R.string.podcast_created_successfully)
+        val resultBus = LocalResultEventBus.current
+
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          AddPodcastScreen(
+            navKey = key,
+            onCreateSuccess = { result ->
+              scope.launch { snackbarHostState.showSuccessSnackbar(message) }
+              resultBus.sendResult(result = result)
+              completeCreatePodcastNavigation(navigator, result)
+            },
+          )
+        }
+      }
+      entry<AddEpisode> { key ->
         val message = stringResource(R.string.starting_to_download_episodes)
 
-        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+        Nav3ScreenWrapper(sharedTransitionScope) {
           AddEpisodeScreen(
+            navKey = key,
             snackbarHostState = snackbarHostState,
             onDownloadEpisodeSuccess = {
-              navController.popBackStack()
-              scope.launch { snackbarHostState.showSnackbar(message) }
+              navigator.pop()
+              scope.launch { snackbarHostState.showSuccessSnackbar(message) }
             },
           )
         }
       }
-      composable<Book> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+      entry<Book> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
           BookScreen(
+            navKey = key,
             playerStore = playerStore,
             playerController = playerController,
             snackbarHostState = snackbarHostState,
-            onEditClicked = { id -> navController.navigate(EditItem(id)) },
+            onEditClicked = { navigator.navigate(EditItem(it)) },
           )
         }
       }
-
-      composable<EditItem> {
-        EditItemScreen(
-          snackbarHostState = snackbarHostState,
-          navigateBack = { navController.popBackStack() },
-        )
+      entry<EditItem> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          EditItemScreen(
+            navKey = key,
+            snackbarHostState = snackbarHostState,
+            navigateBack = { navigator.pop() },
+          )
+        }
       }
-
-      composable<Episode> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+      entry<Episode> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
           EpisodeScreen(
+            navKey = key,
             playerStore = playerStore,
             playerController = playerController,
             snackbarHostState = snackbarHostState,
           )
         }
       }
-
-      composable<Settings> {
-        SettingsScreen(
-          onPlayerClicked = { navController.navigate(SettingsPlayer) },
-          onPlaybackClicked = { navController.navigate(SettingsPlayback) },
-          onNotificationClicked = { navController.navigate(SettingsNotification) },
-          onPodcastClicked = { navController.navigate(SettingsPodcast) },
-          onListeningSessionClicked = { navController.navigate(SettingsListeningSession) },
-          reLogin = { navController.navigate(Login(reLogin = true)) },
-          changePassword = { navController.navigate(ChangePassword) },
-        )
-      }
-
-      composable<SettingsPlayback> { SettingsPlaybackScreen() }
-      composable<SettingsPlayer> { SettingsPlayerScreen() }
-      composable<SettingsNotification> { SettingsNotificationScreen() }
-      composable<SettingsPodcast> { SettingsPodcastScreen() }
-      composable<SettingsListeningSession> { SettingsListeningSessionScreen() }
-
-      composable<SearchPodcast> { entry ->
-        val result = entry.savedStateHandle.get<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
-        SearchPodcastScreen(
-          result = result,
-          onItemClicked = { payload -> navController.navigate(payload) },
-          onAddedClick = { id -> navController.navigate(Podcast(id)) },
-        )
-        if (result != null) {
-          entry.savedStateHandle.remove<CreatePodcastNavResult>(NavResultKey.CREATE_PODCAST)
+      entry<Settings> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          SettingsScreen(
+            onPlayerClicked = { navigator.navigate(SettingsPlayer) },
+            onPlaybackClicked = { navigator.navigate(SettingsPlayback) },
+            onNotificationClicked = { navigator.navigate(SettingsNotification) },
+            onPodcastClicked = { navigator.navigate(SettingsPodcast) },
+            onListeningSessionClicked = { navigator.navigate(SettingsListeningSession) },
+            reLogin = { navigator.navigate(Login(reLogin = true)) },
+            changePassword = { navigator.navigate(ChangePassword) },
+          )
         }
       }
-      composable<PodcastFeedNavPayload> {
-        val message = stringResource(R.string.podcast_created_successfully)
-
-        AddPodcastScreen(
-          onCreateSuccess = { result ->
-            scope.launch { snackbarHostState.showSuccessSnackbar(message) }
-
-            navController.previousBackStackEntry
-              ?.savedStateHandle
-              ?.set(NavResultKey.CREATE_PODCAST, result)
-            navController.popBackStack()
-            navController.navigate(Podcast(result.id))
-          }
-        )
+      entry<SettingsPlayback> {
+        Nav3ScreenWrapper(sharedTransitionScope) { SettingsPlaybackScreen() }
       }
-      composable<ListeningSession> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+      entry<SettingsPlayer> { Nav3ScreenWrapper(sharedTransitionScope) { SettingsPlayerScreen() } }
+      entry<SettingsNotification> {
+        Nav3ScreenWrapper(sharedTransitionScope) { SettingsNotificationScreen() }
+      }
+      entry<SettingsPodcast> {
+        Nav3ScreenWrapper(sharedTransitionScope) { SettingsPodcastScreen() }
+      }
+      entry<SettingsListeningSession> {
+        Nav3ScreenWrapper(sharedTransitionScope) { SettingsListeningSessionScreen() }
+      }
+      entry<ListeningSession> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
           ListeningSessionScreen(snackbarHostState = snackbarHostState)
         }
       }
-
-      composable<OpenSession> {
-        SharedScreenWrapper(sharedTransitionScope, this@composable) {
+      entry<OpenSession> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
           OpenSessionScreen(snackbarHostState = snackbarHostState)
         }
       }
-
-      composable<UsersSettings> {
-        UserSettingsScreen(
-          snackbarHostState = snackbarHostState,
-          onUserClicked = { navEditUser -> navController.navigate(navEditUser) },
-          onInfoClicked = { userId -> navController.navigate(UserInfo(userId)) },
-          createUserClicked = { navController.navigate(NavEditUser.defaultUser()) },
-        )
-      }
-
-      composable<NavEditUser> {
-        EditUserScreen(
-          snackbarHostState = snackbarHostState,
-          navigateBack = { navController.popBackStack() },
-          changePassword = { navController.navigate(ChangePassword) },
-        )
-      }
-
-      composable<UserInfo> { UserInfoScreen() }
-
-      composable<ChangePassword> {
-        ChangePasswordScreen(
-          snackbarHostState = snackbarHostState,
-          finish = { navController.popBackStack() },
-        )
-      }
-
-      composable<Logs> { LogsScreen() }
-
-      composable<Backups> { BackupsScreen(snackbarHostState = snackbarHostState) }
-
-      composable<ServerSettings> { ServerSettingsScreen(snackbarHostState = snackbarHostState) }
-
-      composable<NavApiKeys> { entry ->
-        val result = entry.savedStateHandle.get<Boolean>(NavResultKey.API_KEY_CHANGED)
-        ApiKeysScreen(
-          result = result,
-          snackbarHostState = snackbarHostState,
-          onEditClicked = { payload -> navController.navigate(payload) },
-          createApiKeyClicked = { navController.navigate(NavEditApiKeys()) },
-        )
-        if (result != null) {
-          entry.savedStateHandle.remove<Boolean>(NavResultKey.API_KEY_CHANGED)
+      entry<UsersSettings> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          UserSettingsScreen(
+            snackbarHostState = snackbarHostState,
+            onUserClicked = { navigator.navigate(EditUser(it)) },
+            onInfoClicked = { navigator.navigate(UserInfo(it)) },
+            createUserClicked = { navigator.navigate(EditUser(NavEditUser.defaultUser())) },
+          )
         }
       }
-
-      composable<NavEditApiKeys> {
-        CreateEditApiKeysScreen(
-          snackbarHostState = snackbarHostState,
-          navigateBack = {
-            navController.previousBackStackEntry
-              ?.savedStateHandle
-              ?.set(NavResultKey.API_KEY_CHANGED, true)
-            navController.popBackStack()
-          },
-        )
+      entry<EditUser> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          EditUserScreen(
+            navKey = key,
+            snackbarHostState = snackbarHostState,
+            navigateBack = { navigator.pop() },
+            changePassword = { navigator.navigate(ChangePassword) },
+          )
+        }
+      }
+      entry<UserInfo> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) { UserInfoScreen(navKey = key) }
+      }
+      entry<ChangePassword> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          ChangePasswordScreen(
+            snackbarHostState = snackbarHostState,
+            finish = { navigator.pop() },
+          )
+        }
+      }
+      entry<NavApiKeys> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          ApiKeysScreen(
+            collectNavResultEvent = true,
+            snackbarHostState = snackbarHostState,
+            onEditClicked = { navigator.navigate(EditApiKeys(it)) },
+            createApiKeyClicked = { navigator.navigate(EditApiKeys(NavEditApiKeys())) },
+          )
+        }
+      }
+      entry<EditApiKeys> { key ->
+        val resultBus = LocalResultEventBus.current
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          CreateEditApiKeysScreen(
+            navKey = key,
+            snackbarHostState = snackbarHostState,
+            navigateBack = {
+              resultBus.sendResult(result = ApiKeyChangedNavResult)
+              completeApiKeyEditNavigation(navigator)
+            },
+          )
+        }
+      }
+      entry<ServerSettings> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          ServerSettingsScreen(snackbarHostState = snackbarHostState)
+        }
+      }
+      entry<Logs> { Nav3ScreenWrapper(sharedTransitionScope) { LogsScreen() } }
+      entry<Backups> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          BackupsScreen(snackbarHostState = snackbarHostState)
+        }
       }
     }
+
+  Box(Modifier.weight(1f)) {
+    MySnackbarHost(snackbarHostState = snackbarHostState)
+    NavDisplay(
+      backStack = backStack,
+      onBack = { navigator.pop() },
+      entryProvider = entryProvider,
+      entryDecorators =
+        listOf(
+          rememberSaveableStateHolderNavEntryDecorator(),
+          rememberViewModelStoreNavEntryDecorator(),
+          rememberResultEventBusNavEntryDecorator(),
+        ),
+      sharedTransitionScope = sharedTransitionScope,
+      transitionSpec = {
+        fadeIn() togetherWith fadeOut()
+      },
+      popTransitionSpec = {
+        fadeIn() togetherWith fadeOut()
+      },
+      predictivePopTransitionSpec = {
+        fadeIn() togetherWith fadeOut()
+      },
+    )
   }
 }
 
 @Composable
-private fun SharedScreenWrapper(
+private fun Nav3ScreenWrapper(
   sharedTransitionScope: SharedTransitionScope,
-  animatedContentScope: AnimatedContentScope,
   content: @Composable () -> Unit,
 ) {
+  val animatedContentScope = LocalNavAnimatedContentScope.current
   CompositionLocalProvider(
     LocalSharedTransitionScope provides sharedTransitionScope,
     LocalAnimatedContentScope provides animatedContentScope,

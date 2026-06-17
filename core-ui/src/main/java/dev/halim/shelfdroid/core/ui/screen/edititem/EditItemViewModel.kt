@@ -2,10 +2,11 @@ package dev.halim.shelfdroid.core.ui.screen.edititem
 
 import android.content.ContentResolver
 import android.net.Uri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
@@ -19,7 +20,6 @@ import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
 import dev.halim.shelfdroid.core.ui.navigation.EditItem
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,33 +30,32 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = EditItemViewModel.Factory::class)
 class EditItemViewModel
-@Inject
+@AssistedInject
 constructor(
-  savedStateHandle: SavedStateHandle,
+  @Assisted navKey: EditItem,
   private val repository: EditItemRepository,
   private val managedDownloadManager: ManagedDownloadManager,
   private val libraryFileDownloadUseCase: EditItemLibraryFileDownloadUseCase,
 ) : ViewModel() {
+  private val itemId = navKey.itemId
 
-  private val route: EditItem = savedStateHandle.toRoute()
-
-  private val _uiState = MutableStateFlow(EditItemUiState(itemId = route.itemId))
+  private val _uiState = MutableStateFlow(EditItemUiState(itemId = itemId))
   val uiState: StateFlow<EditItemUiState> =
     _uiState
       .onStart { load() }
       .stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000L),
-        EditItemUiState(itemId = route.itemId),
+        EditItemUiState(itemId = itemId),
       )
 
   private val _events = MutableSharedFlow<GenericUiEvent>()
   val events = _events.asSharedFlow()
 
   private fun load() {
-    viewModelScope.launch { _uiState.value = repository.load(route.itemId) }
+    viewModelScope.launch { _uiState.value = repository.load(itemId) }
   }
 
   fun onEvent(event: EditItemEvent) {
@@ -164,6 +163,11 @@ constructor(
     val target = _uiState.value.pendingDeleteFile ?: return@launch
     _uiState.update { it.copy(activeFileActionIno = target.ino) }
     _uiState.value = repository.deleteFile(_uiState.value, target.ino, _events)
+  }
+
+  @AssistedFactory
+  interface Factory {
+    fun create(navKey: EditItem): EditItemViewModel
   }
 }
 

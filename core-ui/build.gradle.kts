@@ -59,8 +59,10 @@ dependencies {
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.lifecycle.viewmodel.navigation3)
   implementation(libs.androidx.media3.exoplayer)
-  implementation(libs.androidx.navigation.compose)
+  implementation(libs.androidx.navigation3.runtime)
+  implementation(libs.androidx.navigation3.ui)
 
   // Compose
   implementation(libs.androidx.compose.material3)

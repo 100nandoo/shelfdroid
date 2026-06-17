@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
   @Inject lateinit var playerStore: PlayerStore
   @Inject lateinit var playerController: PlayerController
 
-  private var navRequest by mutableStateOf<NavRequest>(NavRequest())
+  private var navRequest by mutableStateOf<NavRequest>(NavRequest.None)
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
             playerStore = playerStore,
             playerController = playerController,
             navRequest = navRequest,
-            onNavRequestComplete = { navRequest = NavRequest() },
+            onNavRequestComplete = { navRequest = NavRequest.None },
           )
         }
       }
@@ -96,6 +96,11 @@ class MainActivity : ComponentActivity() {
   private fun handleExtra() {
     val mediaId = intent.getStringExtra(EXTRA_MEDIA_ID)
     val isOpenPlayer = intent.action == ACTION_OPEN_PLAYER
-    navRequest = NavRequest(mediaId = mediaId, isOpenPlayer = isOpenPlayer)
+    navRequest =
+      when {
+        mediaId != null -> NavRequest.OpenMedia(mediaId = mediaId, openPlayer = isOpenPlayer)
+        isOpenPlayer -> NavRequest.OpenPlayer
+        else -> NavRequest.None
+      }
   }
 }

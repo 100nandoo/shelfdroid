@@ -1,49 +1,55 @@
 package dev.halim.shelfdroid.core.ui.navigation
 
-import androidx.navigation.NavHostController
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.media.mediaitem.MediaIdWrapper
 
-data class NavRequest(val mediaId: String? = null, val isOpenPlayer: Boolean = true)
+sealed interface NavRequest {
+  data object None : NavRequest
 
-fun handlePendingMediaId(
+  data object OpenPlayer : NavRequest
+
+  data class OpenMedia(val mediaId: String, val openPlayer: Boolean) : NavRequest
+}
+
+data class ResolvedNavRequest(val backStack: List<ShelfNavKey>, val openPlayer: Boolean)
+
+fun handleNavRequest(
   navRequest: NavRequest,
   isLoggedIn: Boolean,
-  navController: NavHostController,
+  navigator: ShelfNavigator,
   onNavRequestComplete: () -> Unit,
   playerController: PlayerController,
 ) {
-  if (navRequest.mediaId == null || !isLoggedIn) return
-  val mediaId = navRequest.mediaId
+  val resolved = resolveNavRequest(navRequest, isLoggedIn) ?: return
 
-  val request = MediaIdWrapper.fromMediaId(mediaId)
-  val secondaryId = request.secondaryId
-
-  if (secondaryId == null || secondaryId.length < 32) {
-    navController.navigateOnce(Book(request.itemId), popUpToRoute = Home(false))
-  } else {
-    navController.navigateOnce(Podcast(request.itemId), Home(false))
-    navController.navigateOnce(Episode(request.itemId, secondaryId), Podcast(request.itemId))
+  if (resolved.backStack.isNotEmpty()) {
+    navigator.replaceStack(resolved.backStack)
   }
-
-  if (navRequest.isOpenPlayer) {
+  if (resolved.openPlayer) {
     playerController.onEvent(PlayerEvent.Big)
   }
 
   onNavRequestComplete()
 }
 
-fun <T : Any> NavHostController.navigateOnce(
-  route: T,
-  popUpToRoute: T,
-  inclusive: Boolean = false,
-) {
-  val currentRoute = currentBackStackEntry?.destination?.route
-  if (currentRoute == route) return
+fun resolveNavRequest(navRequest: NavRequest, isLoggedIn: Boolean): ResolvedNavRequest? {
+  if (!isLoggedIn) return null
 
-  navigate(route) {
-    launchSingleTop = true
-    popUpTo(popUpToRoute) { this.inclusive = inclusive }
+  return when (navRequest) {
+    NavRequest.None -> null
+    NavRequest.OpenPlayer -> ResolvedNavRequest(backStack = emptyList(), openPlayer = true)
+    is NavRequest.OpenMedia -> {
+      val request = MediaIdWrapper.fromMediaId(navRequest.mediaId)
+      val secondaryId = request.secondaryId
+      val backStack =
+        if (secondaryId == null || secondaryId.length < 32) {
+          listOf(Home(false), Book(request.itemId))
+        } else {
+          listOf(Home(false), Podcast(request.itemId), Episode(request.itemId, secondaryId))
+        }
+
+      ResolvedNavRequest(backStack = backStack, openPlayer = navRequest.openPlayer)
+    }
   }
 }

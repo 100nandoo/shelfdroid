@@ -49,6 +49,7 @@ import dev.halim.shelfdroid.core.ui.components.VisibilityCircular
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.navigation.Podcast
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -59,7 +60,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PodcastScreen(
-  viewModel: PodcastViewModel = hiltViewModel(),
+  navKey: Podcast,
+  viewModel: PodcastViewModel =
+    hiltViewModel<PodcastViewModel, PodcastViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
   onEpisodeClicked: (String, String) -> Unit,

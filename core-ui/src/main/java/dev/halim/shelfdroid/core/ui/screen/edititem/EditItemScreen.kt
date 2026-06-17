@@ -31,6 +31,7 @@ import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.navigation.EditItem
 import dev.halim.shelfdroid.core.ui.permissions.rememberNotificationPermissionHandler
 import dev.halim.shelfdroid.core.ui.preview.Defaults.EDIT_ITEM_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -44,9 +45,13 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ToolsTab
 
 @Composable
 fun EditItemScreen(
+  navKey: EditItem,
   snackbarHostState: SnackbarHostState,
   navigateBack: () -> Unit,
-  viewModel: EditItemViewModel = hiltViewModel(),
+  viewModel: EditItemViewModel =
+    hiltViewModel<EditItemViewModel, EditItemViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val savedMessage = stringResource(R.string.edit_item_saved)

@@ -22,9 +22,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.result.ResultEffect
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysApiState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeysUiState
+import dev.halim.shelfdroid.core.navigation.ApiKeyChangedNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
@@ -38,12 +40,17 @@ import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 @Composable
 fun ApiKeysScreen(
   result: Boolean? = null,
+  collectNavResultEvent: Boolean = false,
   viewModel: ApiKeysViewModel = hiltViewModel(),
   snackbarHostState: SnackbarHostState,
   onEditClicked: (NavEditApiKeys) -> Unit = {},
   createApiKeyClicked: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+  if (collectNavResultEvent) {
+    ResultEffect<ApiKeyChangedNavResult> { viewModel.onEvent(ApiKeysEvent.Refresh) }
+  }
 
   LaunchedEffect(result) {
     if (result == true) {

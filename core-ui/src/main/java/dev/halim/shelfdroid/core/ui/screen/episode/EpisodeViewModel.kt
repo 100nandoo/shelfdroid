@@ -1,14 +1,16 @@
 package dev.halim.shelfdroid.core.ui.screen.episode
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.episode.EpisodeUiState
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
+import dev.halim.shelfdroid.core.ui.navigation.Episode
 import dev.halim.shelfdroid.download.DownloadRepo
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,17 +18,17 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = EpisodeViewModel.Factory::class)
 class EpisodeViewModel
-@Inject
+@AssistedInject
 constructor(
-  savedStateHandle: SavedStateHandle,
   private val repository: EpisodeRepository,
   private val downloadRepo: DownloadRepo,
+  @Assisted navKey: Episode,
 ) : ViewModel() {
 
-  val itemId: String = checkNotNull(savedStateHandle.get<String>("itemId"))
-  val episodeId: String = checkNotNull(savedStateHandle.get<String>("episodeId"))
+  val itemId: String = navKey.itemId
+  val episodeId: String = navKey.episodeId
 
   private val _uiState = MutableStateFlow(EpisodeUiState())
   val uiState: StateFlow<EpisodeUiState> =
@@ -56,6 +58,11 @@ constructor(
         _uiState.value = episodeUiState
       }
     }
+  }
+
+  @AssistedFactory
+  interface Factory {
+    fun create(navKey: Episode): EpisodeViewModel
   }
 }
 

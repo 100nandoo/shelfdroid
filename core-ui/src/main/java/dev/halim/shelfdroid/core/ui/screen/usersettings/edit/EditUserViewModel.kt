@@ -1,16 +1,17 @@
 package dev.halim.shelfdroid.core.ui.screen.usersettings.edit
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserRepository
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserState
 import dev.halim.shelfdroid.core.data.screen.usersettings.edit.EditUserUiState
 import dev.halim.shelfdroid.core.navigation.NavEditUser
-import javax.inject.Inject
+import dev.halim.shelfdroid.core.ui.navigation.EditUser
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,12 +21,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = EditUserViewModel.Factory::class)
 class EditUserViewModel
-@Inject
-constructor(savedStateHandle: SavedStateHandle, private val repository: EditUserRepository) :
-  ViewModel() {
-  private val _uiState = MutableStateFlow(repository.item(savedStateHandle.toRoute()))
+@AssistedInject
+constructor(@Assisted navKey: EditUser, private val repository: EditUserRepository) : ViewModel() {
+  private val _uiState = MutableStateFlow(repository.item(navKey.payload))
   private val isCreateMode = _uiState.value.editUser.isCreateMode()
 
   val uiState: StateFlow<EditUserUiState> =
@@ -91,17 +91,12 @@ constructor(savedStateHandle: SavedStateHandle, private val repository: EditUser
   }
 
   private fun validateUserInfo(): EditUserState {
-    val ui = _uiState.value
+    return createUserInfoValidation(_uiState.value)
+  }
 
-    val usernameValid = ui.editUser.username.isNotEmpty()
-    val passwordValid = ui.editUser.password.isNotEmpty()
-
-    return when {
-      usernameValid && passwordValid -> EditUserState.Success
-      !usernameValid && !passwordValid -> EditUserState.UsernameAndPasswordFieldError
-      !passwordValid -> EditUserState.PasswordFieldError
-      else -> EditUserState.PasswordFieldError
-    }
+  @AssistedFactory
+  interface Factory {
+    fun create(navKey: EditUser): EditUserViewModel
   }
 }
 
@@ -112,4 +107,16 @@ sealed interface EditUserEvent {
   data class UpdateUiState(val transform: (EditUserUiState) -> EditUserUiState) : EditUserEvent
 
   data object Submit : EditUserEvent
+}
+
+internal fun createUserInfoValidation(ui: EditUserUiState): EditUserState {
+  val usernameValid = ui.editUser.username.isNotEmpty()
+  val passwordValid = ui.editUser.password.isNotEmpty()
+
+  return when {
+    usernameValid && passwordValid -> EditUserState.Success
+    !usernameValid && !passwordValid -> EditUserState.UsernameAndPasswordFieldError
+    !passwordValid -> EditUserState.PasswordFieldError
+    else -> EditUserState.UsernameFieldError
+  }
 }

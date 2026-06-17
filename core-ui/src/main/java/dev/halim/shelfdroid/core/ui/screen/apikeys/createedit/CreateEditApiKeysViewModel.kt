@@ -1,9 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.apikeys.createedit
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
@@ -11,7 +12,7 @@ import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateApiKeyFiel
 import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateEditApiKeysRepository
 import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateEditApiKeysUiState
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
-import javax.inject.Inject
+import dev.halim.shelfdroid.core.ui.navigation.EditApiKeys
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,15 +22,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = EditApiKeysViewModel.Factory::class)
 class EditApiKeysViewModel
-@Inject
+@AssistedInject
 constructor(
-  savedStateHandle: SavedStateHandle,
+  @Assisted navKey: EditApiKeys,
   private val repository: CreateEditApiKeysRepository,
 ) : ViewModel() {
 
-  private val nav = savedStateHandle.toRoute<NavEditApiKeys>()
+  private val nav: NavEditApiKeys = navKey.payload
   val isCreateMode = nav.isCreateMode()
 
   private val _uiState = MutableStateFlow(repository.item(nav))
@@ -79,6 +80,11 @@ constructor(
       userNotSelected = ui.selectedUserId.isBlank(),
       expiresAtEmpty = !ui.neverExpires && ui.expiresAtMillis == 0L,
     )
+  }
+
+  @AssistedFactory
+  interface Factory {
+    fun create(navKey: EditApiKeys): EditApiKeysViewModel
   }
 }
 

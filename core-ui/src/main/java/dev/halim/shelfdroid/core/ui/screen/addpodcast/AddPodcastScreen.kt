@@ -59,6 +59,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.VisibilityUp
+import dev.halim.shelfdroid.core.ui.navigation.AddPodcast
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -66,7 +67,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AddPodcastScreen(
-  viewModel: AddPodcastViewModel = hiltViewModel(),
+  navKey: AddPodcast,
+  viewModel: AddPodcastViewModel =
+    hiltViewModel<AddPodcastViewModel, AddPodcastViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   onCreateSuccess: (CreatePodcastNavResult) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()

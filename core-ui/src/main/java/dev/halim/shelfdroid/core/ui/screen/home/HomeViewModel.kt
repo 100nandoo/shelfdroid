@@ -1,9 +1,11 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
@@ -14,7 +16,7 @@ import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
-import javax.inject.Inject
+import dev.halim.shelfdroid.core.ui.navigation.Home
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,17 +25,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = HomeViewModel.Factory::class)
 class HomeViewModel
 @UnstableApi
-@Inject
+@AssistedInject
 constructor(
-  savedStateHandle: SavedStateHandle,
+  @Assisted private val navKey: Home,
   private val repository: HomeRepository,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
-  val fromLogin: Boolean = checkNotNull(savedStateHandle.get<Boolean>("fromLogin"))
-
   private val _uiState = MutableStateFlow(HomeUiState())
   val uiState: StateFlow<HomeUiState> =
     combine(_uiState, repository.item()) { state, (prefs, libraries) ->
@@ -42,7 +42,7 @@ constructor(
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
   init {
-    viewModelScope.launch { _uiState.update { repository.remoteSync(it, fromLogin) } }
+    viewModelScope.launch { _uiState.update { repository.remoteSync(it, navKey.fromLogin) } }
   }
 
   fun onEvent(event: HomeEvent) {
@@ -111,6 +111,11 @@ constructor(
         }
       }
     }
+  }
+
+  @AssistedFactory
+  interface Factory {
+    fun create(navKey: Home): HomeViewModel
   }
 }
 

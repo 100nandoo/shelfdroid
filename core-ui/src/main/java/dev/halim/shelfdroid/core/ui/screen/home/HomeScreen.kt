@@ -50,6 +50,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
+import dev.halim.shelfdroid.core.ui.navigation.Home
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -60,7 +61,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-  viewModel: HomeViewModel = hiltViewModel(),
+  navKey: Home,
+  viewModel: HomeViewModel =
+    hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   onBookClicked: (String) -> Unit,
   onPodcastClicked: (String) -> Unit,
   onSettingsClicked: () -> Unit,

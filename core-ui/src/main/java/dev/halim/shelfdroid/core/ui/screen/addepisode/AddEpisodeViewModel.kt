@@ -1,8 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.addepisode
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
@@ -10,7 +12,7 @@ import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeFilterState
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeUiState
-import javax.inject.Inject
+import dev.halim.shelfdroid.core.ui.navigation.AddEpisode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,15 +21,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = AddEpisodeViewModel.Factory::class)
 class AddEpisodeViewModel
-@Inject
+@AssistedInject
 constructor(
   private val repository: AddEpisodeRepository,
   private val prefsRepository: PrefsRepository,
-  savedStateHandle: SavedStateHandle,
+  @Assisted navKey: AddEpisode,
 ) : ViewModel() {
-  val id: String = checkNotNull(savedStateHandle.get<String>("id"))
+  val id: String = navKey.id
   private val downloadEpisodeState = MutableStateFlow<GenericState>(GenericState.Idle)
 
   private val _uiState = MutableStateFlow(repository.item(id))
@@ -106,6 +108,11 @@ constructor(
         viewModelScope.launch { prefsRepository.updateHideDownloaded(event.hideDownloaded) }
       }
     }
+  }
+
+  @AssistedFactory
+  interface Factory {
+    fun create(navKey: AddEpisode): AddEpisodeViewModel
   }
 }
 

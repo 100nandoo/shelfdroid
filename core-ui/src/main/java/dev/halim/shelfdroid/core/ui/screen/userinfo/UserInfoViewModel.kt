@@ -1,24 +1,27 @@
 package dev.halim.shelfdroid.core.ui.screen.userinfo
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.userinfo.UserInfoRepository
 import dev.halim.shelfdroid.core.data.screen.userinfo.UserInfoUiState
-import javax.inject.Inject
+import dev.halim.shelfdroid.core.ui.navigation.UserInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = UserInfoViewModel.Factory::class)
 class UserInfoViewModel
-@Inject
-constructor(savedStateHandle: SavedStateHandle, repository: UserInfoRepository) : ViewModel() {
-  val userId: String = checkNotNull(savedStateHandle.get<String>("userId"))
+@AssistedInject
+constructor(@Assisted navKey: UserInfo, repository: UserInfoRepository) : ViewModel() {
+  val userId: String = navKey.userId
 
-  private val _uiState = MutableStateFlow(UserInfoUiState())
+  private val _uiState = MutableStateFlow(UserInfoUiState(state = GenericState.Loading))
   val uiState: StateFlow<UserInfoUiState> = _uiState.asStateFlow()
 
   init {
@@ -29,6 +32,11 @@ constructor(savedStateHandle: SavedStateHandle, repository: UserInfoRepository) 
     when (event) {
       ListeningStatEvent.OnInit -> {}
     }
+  }
+
+  @AssistedFactory
+  interface Factory {
+    fun create(navKey: UserInfo): UserInfoViewModel
   }
 }
 

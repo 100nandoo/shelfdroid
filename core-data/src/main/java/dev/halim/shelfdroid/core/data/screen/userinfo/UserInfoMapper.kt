@@ -41,7 +41,7 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
   private fun total(entity: ListeningStatEntity): UserInfoUiState.Total {
     val minutes = (entity.totalTime / 60)
     val string = String.format(Locale.getDefault(), "%,d", minutes)
-    return UserInfoUiState.Total(days = entity.days?.count().toString(), minutes = string)
+    return UserInfoUiState.Total(days = (entity.days?.count() ?: 0).toString(), minutes = string)
   }
 
   private fun thisWeek(entity: ListeningStatEntity): UserInfoUiState.ThisWeek? {
@@ -54,7 +54,7 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
 
     val minutes = thisWeek.values.sum() / 60.0
     val lastWeekMinutes = lastWeek.values.sum() / 60.0
-    val minutesDelta = ((minutes - lastWeekMinutes) / lastWeekMinutes * 100).roundToInt().toFloat()
+    val minutesDelta = calculatePercentageDelta(minutes, lastWeekMinutes)
 
     val mostMinutes = thisWeek.maxBy { it.value }.value / 60
 
@@ -63,9 +63,8 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
     val streakDelta = streak - lastStreak
 
     val dailyAverage = minutes / days
-    val lastWeekdailyAverage = lastWeekMinutes / lastWeekDays
-    val dailyAverageDelta =
-      ((dailyAverage - lastWeekdailyAverage) / lastWeekdailyAverage * 100).roundToInt().toFloat()
+    val lastWeekdailyAverage = if (lastWeekDays == 0) 0.0 else lastWeekMinutes / lastWeekDays
+    val dailyAverageDelta = calculatePercentageDelta(dailyAverage, lastWeekdailyAverage)
 
     return UserInfoUiState.ThisWeek(
       days = days.toString(),
@@ -78,6 +77,11 @@ class UserInfoMapper @Inject constructor(private val helper: Helper) {
       dailyAverage = dailyAverage.roundToInt().toString(),
       dailyAverageDelta = dailyAverageDelta,
     )
+  }
+
+  private fun calculatePercentageDelta(current: Double, previous: Double): Float {
+    if (previous <= 0.0) return 0f
+    return ((current - previous) / previous * 100).roundToInt().toFloat()
   }
 
   private fun splitWeeks(days: Map<String, Int>?): Pair<Map<String, Int>, Map<String, Int>> {

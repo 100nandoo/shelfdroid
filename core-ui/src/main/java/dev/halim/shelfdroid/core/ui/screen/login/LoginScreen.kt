@@ -44,13 +44,18 @@ import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
+import dev.halim.shelfdroid.core.ui.navigation.Login
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-  viewModel: LoginViewModel = hiltViewModel(),
+  navKey: Login = Login(),
+  viewModel: LoginViewModel =
+    hiltViewModel<LoginViewModel, LoginViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   snackbarHostState: SnackbarHostState,
   onLoginSuccess: () -> Unit,
 ) {

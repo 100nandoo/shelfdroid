@@ -52,13 +52,18 @@ import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.navigation.EditUser
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 @Composable
 fun EditUserScreen(
-  viewModel: EditUserViewModel = hiltViewModel(),
+  navKey: EditUser,
+  viewModel: EditUserViewModel =
+    hiltViewModel<EditUserViewModel, EditUserViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
   snackbarHostState: SnackbarHostState,
   navigateBack: () -> Unit,
   changePassword: () -> Unit,
