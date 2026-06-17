@@ -36,6 +36,7 @@ import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
+import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
@@ -51,10 +52,13 @@ import dev.halim.shelfdroid.core.ui.screen.settings.notification.SettingsNotific
 import dev.halim.shelfdroid.core.ui.screen.settings.player.SettingsPlayerScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
+import dev.halim.shelfdroid.core.ui.screen.userinfo.UserInfoScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePasswordScreen
+import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.EditUserScreen
 import dev.halim.shelfdroid.core.navigation.ApiKeyChangedNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
+import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.media.service.PlayerStore
 import kotlinx.coroutines.launch
 
@@ -135,7 +139,7 @@ private fun ColumnScope.NavHostContainer(
           onServerSettingsClicked = { navigator.navigate(ServerSettings) },
           onLogsClicked = { navigator.navigate(Logs) },
           onBackupsClicked = { navigator.navigate(Backups) },
-          onEditItemClicked = {},
+          onEditItemClicked = { navigator.navigate(EditItem(it)) },
         )
       }
     }
@@ -198,6 +202,16 @@ private fun ColumnScope.NavHostContainer(
           playerStore = playerStore,
           playerController = playerController,
           snackbarHostState = snackbarHostState,
+          onEditClicked = { navigator.navigate(EditItem(it)) },
+        )
+      }
+    }
+    entry<EditItem> { key ->
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        EditItemScreen(
+          navKey = key,
+          snackbarHostState = snackbarHostState,
+          navigateBack = { navigator.pop() },
         )
       }
     }
@@ -247,11 +261,24 @@ private fun ColumnScope.NavHostContainer(
       Nav3ScreenWrapper(sharedTransitionScope) {
         UserSettingsScreen(
           snackbarHostState = snackbarHostState,
-          onUserClicked = {},
-          onInfoClicked = {},
-          createUserClicked = {},
+          onUserClicked = { navigator.navigate(EditUser(it)) },
+          onInfoClicked = { navigator.navigate(UserInfo(it)) },
+          createUserClicked = { navigator.navigate(EditUser(NavEditUser.defaultUser())) },
         )
       }
+    }
+    entry<EditUser> { key ->
+      Nav3ScreenWrapper(sharedTransitionScope) {
+        EditUserScreen(
+          navKey = key,
+          snackbarHostState = snackbarHostState,
+          navigateBack = { navigator.pop() },
+          changePassword = { navigator.navigate(ChangePassword) },
+        )
+      }
+    }
+    entry<UserInfo> { key ->
+      Nav3ScreenWrapper(sharedTransitionScope) { UserInfoScreen(navKey = key) }
     }
     entry<ChangePassword> {
       Nav3ScreenWrapper(sharedTransitionScope) {

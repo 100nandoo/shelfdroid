@@ -48,11 +48,18 @@ import dev.halim.shelfdroid.core.ui.extensions.appendTwoLine
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.USER_INFO_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.navigation.UserInfo
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 @Composable
-fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel()) {
+fun UserInfoScreen(
+  navKey: UserInfo,
+  viewModel: UserInfoViewModel =
+    hiltViewModel<UserInfoViewModel, UserInfoViewModel.Factory> { factory ->
+      factory.create(navKey)
+    },
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
   UserInfoContent(uiState = uiState)
