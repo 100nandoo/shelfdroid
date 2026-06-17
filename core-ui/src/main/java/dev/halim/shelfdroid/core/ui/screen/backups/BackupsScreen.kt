@@ -50,12 +50,12 @@ import dev.halim.shelfdroid.core.ui.components.TextLabelMedium
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
-import dev.halim.shelfdroid.core.ui.extensions.getFilename
 import dev.halim.shelfdroid.core.ui.permissions.rememberNotificationPermissionHandler
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
+import dev.halim.shelfdroid.helper.getFilename
 import kotlinx.coroutines.launch
 
 @Composable

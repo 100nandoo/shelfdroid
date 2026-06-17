@@ -14,6 +14,7 @@ import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.helper.Helper
+import dev.halim.shelfdroid.helper.getFilename
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -213,10 +214,22 @@ constructor(
     }
     val mime = contentResolver.getType(uri) ?: "image/*"
     val body = bytes.toRequestBody(mime.toMediaTypeOrNull())
-    val part = MultipartBody.Part.createFormData("cover", "cover", body)
-    val updated =
+    val filename = resolveCoverFilename(contentResolver.getFilename(uri), mime)
+    val part = MultipartBody.Part.createFormData("cover", filename, body)
+    val response =
       api.uploadItemCover(state.itemId, part).getOrElse {
-        events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
+        events.emit(
+          GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty().ifBlank { "Cover upload failed" })
+        )
+        return state.copy(isCoverWorking = false)
+      }
+    if (!response.success) {
+      events.emit(GenericUiEvent.ShowErrorSnackbar("Cover upload failed"))
+      return state.copy(isCoverWorking = false)
+    }
+    val updated =
+      api.item(state.itemId).getOrElse {
+        events.emit(GenericUiEvent.ShowSuccessSnackbar())
         return state.copy(isCoverWorking = false)
       }
     libraryItemRepo.updateItem(updated)
@@ -404,3 +417,19 @@ internal fun coverSearchPodcastFlag(mediaKind: EditItemMediaKind): Int =
     EditItemMediaKind.Book -> 0
     EditItemMediaKind.Podcast -> 1
   }
+
+internal fun resolveCoverFilename(filename: String, mime: String): String {
+  val sanitized = filename.substringAfterLast('/').trim().ifBlank { "cover" }
+  if (sanitized.substringAfterLast('.', "").isNotBlank()) return sanitized
+
+  val extension =
+    when (mime.lowercase()) {
+      "image/jpeg",
+      "image/jpg" -> "jpg"
+      "image/png" -> "png"
+      "image/webp" -> "webp"
+      "image/gif" -> "gif"
+      else -> "jpg"
+    }
+  return "$sanitized.$extension"
+}

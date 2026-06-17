@@ -51,4 +51,27 @@ class EditItemRepositoryHelpersTest {
     assertEquals(0, coverSearchPodcastFlag(EditItemMediaKind.Book))
     assertEquals(1, coverSearchPodcastFlag(EditItemMediaKind.Podcast))
   }
+
+  @Test
+  fun resolveCoverFilename_keepsExistingImageFilename() {
+    assertEquals(
+      "andrew-svk-150fZ07GQqs-unsplash.jpg",
+      resolveCoverFilename("andrew-svk-150fZ07GQqs-unsplash.jpg", "image/jpeg"),
+    )
+  }
+
+  @Test
+  fun resolveCoverFilename_addsExtensionFromMime() {
+    assertEquals("cover.jpg", resolveCoverFilename("cover", "image/jpeg"))
+  }
+
+  @Test
+  fun resolveCoverFilename_usesFallbackNameForBlankFilename() {
+    assertEquals("cover.png", resolveCoverFilename("", "image/png"))
+  }
+
+  @Test
+  fun resolveCoverFilename_defaultsToJpgForUnknownMime() {
+    assertEquals("cover.jpg", resolveCoverFilename("", "image/*"))
+  }
 }

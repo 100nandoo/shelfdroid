@@ -178,7 +178,7 @@ interface ApiService {
   suspend fun uploadItemCover(
     @Path("itemId") itemId: String,
     @Part cover: MultipartBody.Part,
-  ): Result<LibraryItem>
+  ): Result<SetItemCoverResponse>
 
   @POST("/api/items/{itemId}/cover")
   suspend fun setItemCoverFromUrl(
