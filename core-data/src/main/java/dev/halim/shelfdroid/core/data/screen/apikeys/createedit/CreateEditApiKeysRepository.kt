@@ -43,13 +43,15 @@ constructor(private val api: ApiService, private val userRepo: UserRepo) {
         isActive = uiState.isActive,
         userId = uiState.selectedUserId,
       )
-    api.createApiKey(request).getOrElse {
-      events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
-      return uiState.copy(state = GenericState.Failure(it.message))
-    }
-    events.emit(GenericUiEvent.ShowSuccessSnackbar())
-    events.emit(GenericUiEvent.NavigateBack)
-    return uiState.copy(state = GenericState.Success)
+    val response =
+      api.createApiKey(request).getOrElse {
+        events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
+        return uiState.copy(state = GenericState.Failure(it.message))
+      }
+    return uiState.copy(
+      state = GenericState.Success,
+      createdApiKey = response.apiKey.apiKey.orEmpty(),
+    )
   }
 
   suspend fun updateApiKey(

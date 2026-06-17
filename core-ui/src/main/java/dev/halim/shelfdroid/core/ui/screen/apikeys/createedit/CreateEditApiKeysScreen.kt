@@ -1,5 +1,9 @@
 package dev.halim.shelfdroid.core.ui.screen.apikeys.createedit
 
+import android.content.ClipData
+import android.content.ClipDescription
+import android.os.Build
+import android.os.PersistableBundle
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,17 +13,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,15 +65,87 @@ fun CreateEditApiKeysScreen(
   navigateBack: () -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  val clipboardManager = LocalClipboard.current
+  val scope = rememberCoroutineScope()
+  val copiedMessage = stringResource(R.string.api_key_copied)
+  val apiKeyLabel = stringResource(R.string.api_key)
 
   if (viewModel.isCreateMode) {
     CreateApiKeysContent(uiState = uiState, onEvent = viewModel::onEvent)
+    if (uiState.createdApiKey.isNotBlank()) {
+      ApiKeyCreatedDialog(
+        apiKey = uiState.createdApiKey,
+        onCopy = {
+          scope.launch {
+            val clipData = createSensitivePlainTextClip(apiKeyLabel, uiState.createdApiKey)
+            clipboardManager.setClipEntry(clipData.toClipEntry())
+
+            snackbarHostState.showSuccessSnackbar(copiedMessage)
+          }
+        },
+        onDone = navigateBack,
+      )
+    }
   } else {
     EditApiKeysContent(uiState = uiState, onEvent = viewModel::onEvent)
   }
 
   SnackbarHandling(viewModel, snackbarHostState, navigateBack)
 }
+
+@Composable
+private fun ApiKeyCreatedDialog(
+  apiKey: String,
+  onCopy: () -> Unit,
+  onDone: () -> Unit,
+) {
+  AlertDialog(
+    onDismissRequest = onDone,
+    title = {
+      Text(
+        text = stringResource(R.string.api_key_created_title),
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+      )
+    },
+    text = {
+      Column {
+        Text(text = stringResource(R.string.api_key_created_helper))
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+          value = apiKey,
+          onValueChange = {},
+          label = { Text(stringResource(R.string.api_key)) },
+          modifier = Modifier.fillMaxWidth(),
+          readOnly = true,
+          singleLine = true,
+          trailingIcon = {
+            IconButton(onClick = onCopy) {
+              Icon(
+                painter = painterResource(R.drawable.copy),
+                contentDescription = stringResource(R.string.copy_api_key),
+              )
+            }
+          },
+        )
+      }
+    },
+    confirmButton = { TextButton(onClick = onDone) { Text(stringResource(R.string.ok)) } },
+  )
+}
+
+private fun createSensitivePlainTextClip(
+  label: String,
+  value: String,
+): ClipData =
+  ClipData.newPlainText(label, value).apply {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      description.extras =
+        PersistableBundle().apply {
+          putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+        }
+    }
+  }
 
 @Composable
 private fun CreateApiKeysContent(
@@ -268,9 +353,11 @@ private fun SnackbarHandling(
             }
           launch { snackbarHostState.showErrorSnackbar(message) }
         }
+
         is GenericUiEvent.ShowSuccessSnackbar -> {
           launch { snackbarHostState.showSuccessSnackbar(successMessage) }
         }
+
         GenericUiEvent.NavigateBack -> navigateBack()
         else -> Unit
       }

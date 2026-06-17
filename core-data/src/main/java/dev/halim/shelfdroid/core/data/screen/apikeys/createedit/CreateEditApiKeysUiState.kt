@@ -6,6 +6,7 @@ data class CreateEditApiKeysUiState(
   val state: GenericState = GenericState.Loading,
   val fieldError: CreateApiKeyFieldError = CreateApiKeyFieldError.None,
   val apiKeyId: String = "",
+  val createdApiKey: String = "",
   val name: String = "",
   val users: List<User> = emptyList(),
   val selectedUserId: String = "",

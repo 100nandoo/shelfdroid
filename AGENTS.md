@@ -10,21 +10,27 @@
 - No sycophantic openers or closing fluff.
 - Keep solutions simple and direct.
 - User instructions always override this file.
+- For icons, fetch from Google Fonts icons in the Rounded
+  style: https://fonts.google.com/icons?icon.style=Rounded
 
 ## Agent skills
 
 ### Issue tracker
 
-Issues for this repo are tracked in GitHub Issues via the local `gh` CLI context. See `docs/agents/issue-tracker.md`.
+Issues for this repo are tracked in GitHub Issues via the local `gh` CLI context. See
+`docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-This repo uses the default triage label vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
+This repo uses the default triage label vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`,
+`ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-This repo is configured as a single-context repo with root-level domain docs and ADR lookup rules. See `docs/agents/domain.md`.
+This repo is configured as a single-context repo with root-level domain docs and ADR lookup rules.
+See `docs/agents/domain.md`.
 
 ### Orchestration labels
 
-This repo uses the default orchestration-label scheme with stage-based `f<N>-<C>` and `p<N><L>-<C>` labels. See `docs/agents/orchestration-labels.md`.
+This repo uses the default orchestration-label scheme with stage-based `f<N>-<C>` and `p<N><L>-<C>`
+labels. See `docs/agents/orchestration-labels.md`.
