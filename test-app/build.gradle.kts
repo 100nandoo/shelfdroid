@@ -31,8 +31,29 @@ android {
 
 dependencies {
   implementation(project(libs.versions.app.get()))
+  implementation(project(libs.versions.core.get()))
   implementation(project(libs.versions.coreData.get()))
+  implementation(project(libs.versions.coreDatabase.get()))
+  implementation(project(libs.versions.coreDatastore.get()))
+  implementation(project(libs.versions.coreNetwork.get()))
   implementation(project(libs.versions.coreTesting.get()))
+  implementation(project(libs.versions.coreUi.get()))
+  implementation(project(libs.versions.download.get()))
+  implementation(project(libs.versions.helper.get()))
+  implementation(project(libs.versions.media.get()))
+  implementation(project(libs.versions.socketIO.get()))
+  implementation(libs.androidx.datastore)
+  implementation(libs.androidx.media3.datasource.okhttp)
+  implementation(libs.androidx.media3.exoplayer)
+  implementation(libs.androidx.media3.session)
+  implementation(libs.coil)
+  implementation(libs.coil.okhttp)
+  implementation(libs.kotlinx.coroutines.android)
+  implementation(libs.kotlinx.datetime)
+  implementation(libs.kotlinx.serialization)
+  implementation(libs.process.phoenix)
+  implementation(libs.retrofit)
+  implementation(libs.sqldelight.driver)
 
   // Testing
   implementation(libs.androidx.test.core)
@@ -43,5 +64,6 @@ dependencies {
 
   // Compose
   implementation(platform(libs.androidx.compose.bom))
+  implementation("androidx.compose.ui:ui-test-android")
   implementation(libs.androidx.compose.ui.test.junit4)
 }
