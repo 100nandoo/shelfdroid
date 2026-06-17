@@ -12,7 +12,6 @@
 - [ ] Widget
 - [ ] Expand Compose screenshot coverage
     - [ ] Follow plan: `docs/plan/compose-screenshot-coverage-expansion.md`
-- [ ] Backup Restore
 - [ ] Window Manager
 - [ ] Create release build with https://github.com/ilharp/sign-android-release
 - [ ] close playback implementation
@@ -95,3 +94,4 @@
 - [x] Preview for all UI component
 - [x] Loading state for player
 - [x] Search episode filter, show date
+- [x] Backup Restore

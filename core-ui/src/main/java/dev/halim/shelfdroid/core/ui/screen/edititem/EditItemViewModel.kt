@@ -19,6 +19,8 @@ import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
+import dev.halim.shelfdroid.core.data.screen.edititem.coerceFor
+import dev.halim.shelfdroid.core.data.screen.edititem.normalized
 import dev.halim.shelfdroid.core.ui.navigation.EditItem
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,12 +57,13 @@ constructor(
   val events = _events.asSharedFlow()
 
   private fun load() {
-    viewModelScope.launch { _uiState.value = repository.load(itemId) }
+    viewModelScope.launch { _uiState.value = repository.load(itemId).normalized() }
   }
 
   fun onEvent(event: EditItemEvent) {
     when (event) {
-      is EditItemEvent.ChangeTab -> _uiState.update { it.copy(currentTab = event.tab) }
+      is EditItemEvent.ChangeTab ->
+        _uiState.update { it.copy(currentTab = event.tab.coerceFor(it.mediaKind)) }
       is EditItemEvent.UpdateDetails ->
         _uiState.update { it.copy(details = event.transform(it.details)) }
       EditItemEvent.Save -> save()
@@ -97,59 +100,59 @@ constructor(
 
   private fun save() = viewModelScope.launch {
     _uiState.update { it.copy(isSaving = true) }
-    val result = repository.save(_uiState.value, _events)
+    val result = repository.save(_uiState.value, _events).normalized()
     _uiState.value = result
   }
 
   private fun quickMatch() = viewModelScope.launch {
     _uiState.update { it.copy(isSaving = true) }
-    _uiState.value = repository.quickMatch(_uiState.value, _events)
+    _uiState.value = repository.quickMatch(_uiState.value, _events).normalized()
   }
 
   private fun reScan() = viewModelScope.launch {
     _uiState.update { it.copy(isSaving = true) }
-    _uiState.value = repository.reScan(_uiState.value, _events)
+    _uiState.value = repository.reScan(_uiState.value, _events).normalized()
   }
 
   private fun uploadCover(uri: Uri, contentResolver: ContentResolver) = viewModelScope.launch {
     _uiState.update { it.copy(isCoverWorking = true) }
-    _uiState.value = repository.uploadCover(_uiState.value, uri, contentResolver, _events)
+    _uiState.value = repository.uploadCover(_uiState.value, uri, contentResolver, _events).normalized()
   }
 
   private fun setCoverUrl(url: String) = viewModelScope.launch {
     _uiState.update { it.copy(isCoverWorking = true) }
-    _uiState.value = repository.setCoverUrl(_uiState.value, url, _events)
+    _uiState.value = repository.setCoverUrl(_uiState.value, url, _events).normalized()
   }
 
   private fun deleteCover() = viewModelScope.launch {
     _uiState.update { it.copy(isCoverWorking = true) }
-    _uiState.value = repository.deleteCover(_uiState.value, _events)
+    _uiState.value = repository.deleteCover(_uiState.value, _events).normalized()
   }
 
   private fun runMatchSearch() = viewModelScope.launch {
     _uiState.update { it.copy(match = it.match.copy(isSearching = true)) }
-    _uiState.value = repository.searchMatches(_uiState.value, _events)
+    _uiState.value = repository.searchMatches(_uiState.value, _events).normalized()
   }
 
   private fun runCoverSearch() = viewModelScope.launch {
     _uiState.update { it.copy(coverSearch = it.coverSearch.copy(state = GenericState.Loading)) }
-    _uiState.value = repository.searchCovers(_uiState.value, _events)
+    _uiState.value = repository.searchCovers(_uiState.value, _events).normalized()
   }
 
   private fun embedMetadata() = viewModelScope.launch {
     _uiState.update { it.copy(isToolWorking = true) }
-    _uiState.value = repository.embedMetadata(_uiState.value, _events)
+    _uiState.value = repository.embedMetadata(_uiState.value, _events).normalized()
   }
 
   private fun downloadLibraryFile(ino: String) = viewModelScope.launch {
     _uiState.update { it.copy(activeFileActionIno = ino) }
     when (val result = libraryFileDownloadUseCase.prepare(_uiState.value, ino)) {
       is EditItemLibraryFileDownloadResult.Success -> {
-        _uiState.value = result.state
+        _uiState.value = result.state.normalized()
         _events.emit(GenericUiEvent.RequestManagedDownload(result.download))
       }
       is EditItemLibraryFileDownloadResult.Failure -> {
-        _uiState.value = result.state
+        _uiState.value = result.state.normalized()
         _events.emit(GenericUiEvent.ShowErrorSnackbar(result.message))
       }
     }
@@ -162,7 +165,7 @@ constructor(
   private fun deleteLibraryFile() = viewModelScope.launch {
     val target = _uiState.value.pendingDeleteFile ?: return@launch
     _uiState.update { it.copy(activeFileActionIno = target.ino) }
-    _uiState.value = repository.deleteFile(_uiState.value, target.ino, _events)
+    _uiState.value = repository.deleteFile(_uiState.value, target.ino, _events).normalized()
   }
 
   @AssistedFactory

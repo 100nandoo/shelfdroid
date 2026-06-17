@@ -385,6 +385,12 @@
     <string name="edit_item_tags">Tags</string>
     <string name="edit_item_isbn">ISBN</string>
     <string name="edit_item_asin">ASIN</string>
+    <string name="edit_item_rss_feed_url">RSS Feed URL</string>
+    <string name="edit_item_release_date">Release Date</string>
+    <string name="edit_item_itunes_id">iTunes ID</string>
+    <string name="edit_item_podcast_type">Podcast Type</string>
+    <string name="edit_item_podcast_type_episodic">Episodic</string>
+    <string name="edit_item_podcast_type_serial">Serial</string>
     <string name="edit_item_explicit">Explicit</string>
     <string name="edit_item_abridged">Abridged</string>
     <string name="edit_item_quick_match">Quick Match</string>

@@ -17,6 +17,7 @@ import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.ChapterRow
 import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
+import dev.halim.shelfdroid.core.data.screen.edititem.EditItemMediaKind
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchProvider
@@ -483,6 +484,21 @@ object Defaults {
       abridged = false,
     )
 
+  val EDIT_ITEM_PODCAST_DETAILS_FORM =
+    DetailsForm(
+      title = "The Daily Stack",
+      genres = listOf("Technology", "News"),
+      tags = listOf("mobile", "android"),
+      description = "A daily podcast about mobile engineering.",
+      language = "en",
+      explicit = true,
+      podcastAuthor = "Ana Silva",
+      rssFeedUrl = "https://example.com/feed.xml",
+      releaseDate = "2026-06-17",
+      itunesId = "123456789",
+      podcastType = "serial",
+    )
+
   val EDIT_ITEM_CHAPTERS =
     listOf(
       ChapterRow(id = 1, title = "A Long-expected Party", start = 0.0, end = 1832.0),
@@ -535,6 +551,7 @@ object Defaults {
     EditItemUiState(
       state = GenericState.Success,
       itemId = BOOK_ID,
+      mediaKind = EditItemMediaKind.Book,
       coverUrl = BOOK_COVER,
       webBaseUrl = "http://localhost:13378",
       details = EDIT_ITEM_DETAILS_FORM,
@@ -553,6 +570,29 @@ object Defaults {
           providers = EDIT_ITEM_MATCH_PROVIDERS,
           title = BOOK_TITLE,
           author = BOOK_AUTHOR,
+        ),
+    )
+
+  val EDIT_ITEM_PODCAST_UI_STATE =
+    EditItemUiState(
+      state = GenericState.Success,
+      itemId = "podcast-id",
+      mediaKind = EditItemMediaKind.Podcast,
+      coverUrl = BOOK_COVER,
+      webBaseUrl = "http://localhost:13378",
+      details = EDIT_ITEM_PODCAST_DETAILS_FORM,
+      match =
+        MatchState(
+          providers = EDIT_ITEM_MATCH_PROVIDERS,
+          selectedProvider = "google",
+          title = EDIT_ITEM_PODCAST_DETAILS_FORM.title,
+          author = EDIT_ITEM_PODCAST_DETAILS_FORM.podcastAuthor,
+        ),
+      coverSearch =
+        CoverSearchState(
+          providers = EDIT_ITEM_MATCH_PROVIDERS,
+          title = EDIT_ITEM_PODCAST_DETAILS_FORM.title,
+          author = EDIT_ITEM_PODCAST_DETAILS_FORM.podcastAuthor,
         ),
     )
 

@@ -6,6 +6,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 data class EditItemUiState(
   val state: GenericState = GenericState.Loading,
   val itemId: String = "",
+  val mediaKind: EditItemMediaKind = EditItemMediaKind.Book,
   val coverUrl: String = "",
   val webBaseUrl: String = "",
   val currentTab: EditItemTab = EditItemTab.Details,
@@ -22,6 +23,11 @@ data class EditItemUiState(
   val pendingDeleteFile: LibraryFileRow? = null,
   val seriesSuggestions: List<String> = emptyList(),
 )
+
+fun EditItemUiState.supportedTabs(): List<EditItemTab> = mediaKind.supportedTabs()
+
+fun EditItemUiState.normalized(): EditItemUiState =
+  copy(currentTab = currentTab.coerceFor(mediaKind))
 
 data class CoverSearchState(
   val state: GenericState = GenericState.Idle,
@@ -58,6 +64,21 @@ enum class EditItemTab {
   Tools,
 }
 
+fun EditItemTab.coerceFor(mediaKind: EditItemMediaKind): EditItemTab =
+  if (this in mediaKind.supportedTabs()) this else EditItemTab.Details
+
+enum class EditItemMediaKind {
+  Book,
+  Podcast,
+}
+
+fun EditItemMediaKind.supportedTabs(): List<EditItemTab> =
+  when (this) {
+    EditItemMediaKind.Book -> EditItemTab.entries
+    EditItemMediaKind.Podcast ->
+      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Files)
+  }
+
 data class DetailsForm(
   val title: String = "",
   val subtitle: String = "",
@@ -74,7 +95,18 @@ data class DetailsForm(
   val language: String = "",
   val explicit: Boolean = false,
   val abridged: Boolean = false,
+  val podcastAuthor: String = "",
+  val rssFeedUrl: String = "",
+  val releaseDate: String = "",
+  val itunesId: String = "",
+  val podcastType: String = "episodic",
 )
+
+fun DetailsForm.primaryAuthor(mediaKind: EditItemMediaKind): String =
+  when (mediaKind) {
+    EditItemMediaKind.Book -> authors.joinToString()
+    EditItemMediaKind.Podcast -> podcastAuthor
+  }
 
 data class MatchState(
   val providers: List<MatchProvider> = emptyList(),
