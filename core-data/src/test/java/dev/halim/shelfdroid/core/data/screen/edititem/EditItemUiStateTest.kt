@@ -34,4 +34,23 @@ class EditItemUiStateTest {
 
     assertEquals(EditItemTab.Tools, state.normalized().currentTab)
   }
+
+  @Test
+  fun switchingTabs_preservesEpisodeUpdateInput() {
+    val state =
+      EditItemUiState(
+        mediaKind = EditItemMediaKind.Podcast,
+        currentTab = EditItemTab.Episodes,
+        episodeUpdate =
+          EpisodeUpdateState(
+            persistedCutoffMillis = 1L,
+            cutoffInput = "2026-06-18 21:30",
+            limitInput = "0",
+          ),
+      )
+
+    val switched = state.copy(currentTab = EditItemTab.Details).copy(currentTab = EditItemTab.Episodes)
+
+    assertEquals(state.episodeUpdate, switched.episodeUpdate)
+  }
 }

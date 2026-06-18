@@ -131,7 +131,7 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
           )
         EditItemTab.Cover -> CoverTab(uiState, onEvent)
         EditItemTab.Chapters -> ChaptersTab(uiState)
-        EditItemTab.Episodes -> EpisodesTab(uiState)
+        EditItemTab.Episodes -> EpisodesTab(uiState, onEvent)
         EditItemTab.Files -> FilesTab(uiState, onEvent)
         EditItemTab.Match -> MatchTab(uiState, onEvent)
         EditItemTab.Tools -> ToolsTab(uiState, onEvent)

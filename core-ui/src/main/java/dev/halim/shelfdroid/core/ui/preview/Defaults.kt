@@ -18,6 +18,7 @@ import dev.halim.shelfdroid.core.data.screen.edititem.ChapterRow
 import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeRow
+import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeUpdateState
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemMediaKind
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
@@ -598,6 +599,12 @@ object Defaults {
             id = "episode-3",
             title = "Episode 8: Storage changes in Android 16",
           ),
+        ),
+      episodeUpdate =
+        EpisodeUpdateState(
+          persistedCutoffMillis = 1750253400000,
+          cutoffInput = "2025-06-18 21:30",
+          limitInput = "3",
         ),
       match =
         MatchState(

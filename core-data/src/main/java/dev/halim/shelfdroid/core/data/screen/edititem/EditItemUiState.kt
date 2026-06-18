@@ -14,6 +14,7 @@ data class EditItemUiState(
   val originalDetails: DetailsForm = DetailsForm(),
   val chapters: List<ChapterRow> = emptyList(),
   val episodes: List<EpisodeRow> = emptyList(),
+  val episodeUpdate: EpisodeUpdateState = EpisodeUpdateState(),
   val libraryFiles: List<LibraryFileRow> = emptyList(),
   val match: MatchState = MatchState(),
   val coverSearch: CoverSearchState = CoverSearchState(),
@@ -45,6 +46,13 @@ data class EpisodeRow(
   val id: String,
   val title: String,
   val secondaryText: String = "",
+)
+
+data class EpisodeUpdateState(
+  val persistedCutoffMillis: Long = 0L,
+  val cutoffInput: String = "",
+  val limitInput: String = "3",
+  val isRunning: Boolean = false,
 )
 
 data class LibraryFileRow(

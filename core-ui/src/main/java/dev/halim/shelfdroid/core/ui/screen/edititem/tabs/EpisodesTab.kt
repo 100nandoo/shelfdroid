@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,28 +22,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 
 @Composable
-fun EpisodesTab(uiState: EditItemUiState) {
+fun EpisodesTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit = {}) {
   if (uiState.episodes.isEmpty()) {
-    Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-      Text(
-        text = stringResource(R.string.edit_item_no_episodes),
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-      )
+    LazyColumn(reverseLayout = true) {
+      item { EpisodeUpdateControls(uiState = uiState, onEvent = onEvent) }
+      item {
+        Box(
+          modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 48.dp),
+          contentAlignment = Alignment.Center,
+        ) {
+          Text(
+            text = stringResource(R.string.edit_item_no_episodes),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+          )
+        }
+      }
     }
     return
   }
 
   LazyColumn(reverseLayout = true) {
+    item { EpisodeUpdateControls(uiState = uiState, onEvent = onEvent) }
     item { Spacer(modifier = Modifier.height(12.dp)) }
     items(uiState.episodes, key = { it.id }) { episode ->
       Column(
@@ -64,6 +80,51 @@ fun EpisodesTab(uiState: EditItemUiState) {
         }
       }
       HorizontalDivider()
+    }
+  }
+}
+
+@Composable
+private fun EpisodeUpdateControls(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
+  val episodeUpdate = uiState.episodeUpdate
+
+  Column(
+    modifier = Modifier.fillMaxWidth().padding(16.dp),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    if (episodeUpdate.isRunning) {
+      LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+    }
+    MyOutlinedTextField(
+      enabled = !episodeUpdate.isRunning,
+      value = episodeUpdate.cutoffInput,
+      onValueChange = { onEvent(EditItemEvent.UpdateEpisodeCutoffInput(it)) },
+      label = stringResource(R.string.edit_item_episode_update_cutoff),
+      placeholder = stringResource(R.string.edit_item_episode_update_cutoff_hint),
+      keyboardOptions =
+        KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+    )
+    MyOutlinedTextField(
+      enabled = !episodeUpdate.isRunning,
+      value = episodeUpdate.limitInput,
+      onValueChange = { onEvent(EditItemEvent.UpdateEpisodeLimitInput(it)) },
+      label = stringResource(R.string.edit_item_episode_limit),
+      placeholder = stringResource(R.string.edit_item_episode_limit_hint),
+      keyboardOptions =
+        KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+    )
+    TextButton(
+      enabled = !episodeUpdate.isRunning,
+      onClick = { onEvent(EditItemEvent.RunEpisodeUpdateCheck) },
+      modifier = Modifier.align(Alignment.End),
+    ) {
+      Text(
+        if (episodeUpdate.isRunning) {
+          stringResource(R.string.edit_item_checking_episodes)
+        } else {
+          stringResource(R.string.edit_item_check_download_new_episodes)
+        }
+      )
     }
   }
 }

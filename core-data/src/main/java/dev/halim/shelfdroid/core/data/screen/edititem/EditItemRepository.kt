@@ -28,6 +28,14 @@ constructor(
   private val helper: Helper,
   private val libraryItemRepo: LibraryItemRepo,
 ) {
+  private val episodeUpdateRunner =
+    EditItemEpisodeUpdateRunner(
+      updateEpisodeCutoff = { itemId, request -> api.updateItemMedia(itemId, request) },
+      checkNewEpisodes = { itemId, limit -> api.checkNewEpisodes(itemId, limit).map { it.episodes.size } },
+      reloadItem = { itemId -> api.item(itemId) },
+      mergeUpdated = ::mergeUpdated,
+      updateCachedItem = libraryItemRepo::updateItem,
+    )
 
   suspend fun load(itemId: String): EditItemUiState {
     val item =
@@ -82,6 +90,7 @@ constructor(
       originalDetails = details,
       chapters = mappedMedia.chapters,
       episodes = mappedMedia.episodes,
+      episodeUpdate = mappedMedia.episodeUpdate,
       libraryFiles =
         item.libraryFiles.map {
           LibraryFileRow(
@@ -147,6 +156,11 @@ constructor(
       )
     return updatedState.copy(
       currentTab = state.currentTab,
+      episodeUpdate =
+        updatedState.episodeUpdate.copy(
+          limitInput = state.episodeUpdate.limitInput,
+          isRunning = false,
+        ),
       coverSearch =
         state.coverSearch.copy(
           title = updatedState.coverSearch.title,
@@ -298,6 +312,15 @@ constructor(
     libraryItemRepo.updateItem(updated)
     events.emit(GenericUiEvent.ShowSuccessSnackbar("File deleted"))
     return mergeUpdated(state, updated).copy(activeFileActionIno = null, pendingDeleteFile = null)
+  }
+
+  suspend fun runEpisodeUpdateCheck(
+    state: EditItemUiState,
+    events: MutableSharedFlow<GenericUiEvent>,
+  ): EditItemUiState {
+    val result = episodeUpdateRunner.run(state)
+    result.events.forEach { events.emit(it) }
+    return result.state
   }
 
   suspend fun searchMatches(

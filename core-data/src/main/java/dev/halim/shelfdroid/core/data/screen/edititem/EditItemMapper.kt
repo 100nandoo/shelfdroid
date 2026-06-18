@@ -5,12 +5,17 @@ import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 
 internal data class MappedEditItemMedia(
   val mediaKind: EditItemMediaKind,
   val details: DetailsForm,
   val chapters: List<ChapterRow>,
   val episodes: List<EpisodeRow>,
+  val episodeUpdate: EpisodeUpdateState,
 )
 
 internal object EditItemMapper {
@@ -41,6 +46,7 @@ internal object EditItemMapper {
             ),
           chapters = media.chapters.map { ChapterRow(it.id, it.title, it.start, it.end) },
           episodes = emptyList(),
+          episodeUpdate = EpisodeUpdateState(),
         )
       }
       is Podcast -> {
@@ -63,6 +69,12 @@ internal object EditItemMapper {
             ),
           chapters = emptyList(),
           episodes = mapEpisodes(media.episodes),
+          episodeUpdate =
+            EpisodeUpdateState(
+              persistedCutoffMillis = media.lastEpisodeCheck,
+              cutoffInput = formatEpisodeUpdateCutoffInput(media.lastEpisodeCheck),
+              limitInput = media.maxNewEpisodesToDownload.toString(),
+            ),
         )
       }
       else ->
@@ -71,6 +83,7 @@ internal object EditItemMapper {
           details = DetailsForm(),
           chapters = emptyList(),
           episodes = emptyList(),
+          episodeUpdate = EpisodeUpdateState(),
         )
     }
 
@@ -189,4 +202,48 @@ private fun formatDuration(seconds: Double): String {
     minutes > 0 -> "$minutes minutes"
     else -> ""
   }
+}
+
+internal fun formatEpisodeUpdateCutoffInput(epochMillis: Long): String {
+  if (epochMillis <= 0L) return ""
+
+  val dateTime =
+    kotlinx.datetime.Instant.fromEpochMilliseconds(epochMillis)
+      .toLocalDateTime(TimeZone.currentSystemDefault())
+
+  return buildString {
+    append(dateTime.year.toString().padStart(4, '0'))
+    append('-')
+    append(dateTime.monthNumber.toString().padStart(2, '0'))
+    append('-')
+    append(dateTime.day.toString().padStart(2, '0'))
+    append(' ')
+    append(dateTime.hour.toString().padStart(2, '0'))
+    append(':')
+    append(dateTime.minute.toString().padStart(2, '0'))
+  }
+}
+
+internal fun parseEpisodeUpdateCutoffInput(input: String): Long? {
+  val trimmed = input.trim()
+  if (trimmed.isBlank()) return null
+
+  val format = kotlinx.datetime.LocalDateTime.Format {
+    year()
+    char('-')
+    monthNumber()
+    char('-')
+    day()
+    char(' ')
+    hour()
+    char(':')
+    minute()
+  }
+
+  return runCatching {
+      kotlinx.datetime.LocalDateTime.parse(trimmed, format)
+        .toInstant(TimeZone.currentSystemDefault())
+        .toEpochMilliseconds()
+    }
+    .getOrNull()
 }
