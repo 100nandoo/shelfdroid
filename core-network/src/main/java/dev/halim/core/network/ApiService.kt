@@ -280,7 +280,10 @@ interface ApiService {
 
   // search
   @GET("/api/search/podcast")
-  suspend fun searchPodcast(@Query("term") term: String): Result<List<SearchPodcast>>
+  suspend fun searchPodcast(
+    @Query("term") term: String,
+    @Query("provider") provider: String? = null,
+  ): Result<List<SearchPodcast>>
 
   // users
   @POST("/api/users")

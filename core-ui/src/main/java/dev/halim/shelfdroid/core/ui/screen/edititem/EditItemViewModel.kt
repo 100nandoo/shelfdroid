@@ -19,6 +19,8 @@ import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
+import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchField
 import dev.halim.shelfdroid.core.data.screen.edititem.coerceFor
 import dev.halim.shelfdroid.core.data.screen.edititem.normalized
 import dev.halim.shelfdroid.core.ui.navigation.EditItem
@@ -73,14 +75,24 @@ constructor(
       is EditItemEvent.SetCoverUrl -> setCoverUrl(event.url)
       EditItemEvent.DeleteCover -> deleteCover()
       is EditItemEvent.UpdateMatchProvider ->
-        _uiState.update { it.copy(match = it.match.copy(selectedProvider = event.provider)) }
-      is EditItemEvent.UpdateMatchTitle ->
-        _uiState.update { it.copy(match = it.match.copy(title = event.title)) }
-      is EditItemEvent.UpdateMatchAuthor ->
-        _uiState.update { it.copy(match = it.match.copy(author = event.author)) }
+        _uiState.update { updateMatchProvider(it, event.provider) }
+      is EditItemEvent.UpdateBookMatchTitle ->
+        _uiState.update { updateBookMatchTitle(it, event.title) }
+      is EditItemEvent.UpdateBookMatchAuthor ->
+        _uiState.update { updateBookMatchAuthor(it, event.author) }
+      is EditItemEvent.UpdatePodcastMatchSearchTerm ->
+        _uiState.update { updatePodcastMatchSearchTerm(it, event.term) }
       EditItemEvent.RunMatchSearch -> runMatchSearch()
-      is EditItemEvent.ApplyMatchResult ->
-        _uiState.update { repository.applyMatch(it, event.index) }
+      is EditItemEvent.ApplyBookMatchResult ->
+        _uiState.update { repository.applyBookMatch(it, event.index) }
+      is EditItemEvent.OpenPodcastMatchReview ->
+        _uiState.update { repository.openPodcastMatchReview(it, event.index) }
+      EditItemEvent.DismissPodcastMatchReview ->
+        _uiState.update { repository.dismissPodcastMatchReview(it) }
+      is EditItemEvent.TogglePodcastMatchField ->
+        _uiState.update { repository.togglePodcastMatchField(it, event.field) }
+      EditItemEvent.ApplyPodcastMatchReview ->
+        _uiState.update { repository.applyPodcastMatchReview(it) }
       is EditItemEvent.UpdateCoverSearchProvider ->
         _uiState.update { it.copy(coverSearch = it.coverSearch.copy(provider = event.provider)) }
       is EditItemEvent.UpdateCoverSearchTitle ->
@@ -138,7 +150,15 @@ constructor(
   }
 
   private fun runMatchSearch() = viewModelScope.launch {
-    _uiState.update { it.copy(match = it.match.copy(isSearching = true)) }
+    _uiState.update {
+      it.copy(
+        match =
+          when (val match = it.match) {
+            is MatchState.Book -> match.copy(isSearching = true)
+            is MatchState.Podcast -> match.copy(isSearching = true)
+          }
+      )
+    }
     _uiState.value = repository.searchMatches(_uiState.value, _events).normalized()
   }
 
@@ -181,6 +201,30 @@ constructor(
     _uiState.value = repository.runEpisodeUpdateCheck(_uiState.value, _events).normalized()
   }
 
+  private fun updateMatchProvider(state: EditItemUiState, provider: String): EditItemUiState =
+    state.copy(
+      match =
+        when (val match = state.match) {
+          is MatchState.Book -> match.copy(selectedProvider = provider)
+          is MatchState.Podcast -> match.copy(selectedProvider = provider)
+        }
+    )
+
+  private fun updateBookMatchTitle(state: EditItemUiState, title: String): EditItemUiState =
+    state.copy(
+      match = (state.match as? MatchState.Book)?.copy(title = title) ?: state.match
+    )
+
+  private fun updateBookMatchAuthor(state: EditItemUiState, author: String): EditItemUiState =
+    state.copy(
+      match = (state.match as? MatchState.Book)?.copy(author = author) ?: state.match
+    )
+
+  private fun updatePodcastMatchSearchTerm(state: EditItemUiState, term: String): EditItemUiState =
+    state.copy(
+      match = (state.match as? MatchState.Podcast)?.copy(searchTerm = term) ?: state.match
+    )
+
   @AssistedFactory
   interface Factory {
     fun create(navKey: EditItem): EditItemViewModel
@@ -206,13 +250,23 @@ sealed interface EditItemEvent {
 
   data class UpdateMatchProvider(val provider: String) : EditItemEvent
 
-  data class UpdateMatchTitle(val title: String) : EditItemEvent
+  data class UpdateBookMatchTitle(val title: String) : EditItemEvent
 
-  data class UpdateMatchAuthor(val author: String) : EditItemEvent
+  data class UpdateBookMatchAuthor(val author: String) : EditItemEvent
+
+  data class UpdatePodcastMatchSearchTerm(val term: String) : EditItemEvent
 
   data object RunMatchSearch : EditItemEvent
 
-  data class ApplyMatchResult(val index: Int) : EditItemEvent
+  data class ApplyBookMatchResult(val index: Int) : EditItemEvent
+
+  data class OpenPodcastMatchReview(val index: Int) : EditItemEvent
+
+  data object DismissPodcastMatchReview : EditItemEvent
+
+  data class TogglePodcastMatchField(val field: PodcastMatchField) : EditItemEvent
+
+  data object ApplyPodcastMatchReview : EditItemEvent
 
   data class UpdateCoverSearchProvider(val provider: String) : EditItemEvent
 

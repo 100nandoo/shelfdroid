@@ -48,6 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.displayCoverUrl
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
@@ -100,7 +101,7 @@ fun CoverTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
     verticalArrangement = Arrangement.spacedBy(20.dp),
   ) {
     CoverPreviewSection(
-      coverUrl = uiState.coverUrl,
+      coverUrl = uiState.displayCoverUrl(),
       isCoverWorking = uiState.isCoverWorking,
       onPickFromDevice = { pickLauncher.launch("image/*") },
       onDeleteCover = { showDeleteDialog = true },

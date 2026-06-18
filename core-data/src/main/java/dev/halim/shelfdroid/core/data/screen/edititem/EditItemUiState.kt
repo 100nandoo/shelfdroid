@@ -8,6 +8,7 @@ data class EditItemUiState(
   val itemId: String = "",
   val mediaKind: EditItemMediaKind = EditItemMediaKind.Book,
   val coverUrl: String = "",
+  val pendingCoverUrl: String? = null,
   val webBaseUrl: String = "",
   val currentTab: EditItemTab = EditItemTab.Details,
   val details: DetailsForm = DetailsForm(),
@@ -16,7 +17,7 @@ data class EditItemUiState(
   val episodes: List<EpisodeRow> = emptyList(),
   val episodeUpdate: EpisodeUpdateState = EpisodeUpdateState(),
   val libraryFiles: List<LibraryFileRow> = emptyList(),
-  val match: MatchState = MatchState(),
+  val match: MatchState = MatchState.Book(),
   val coverSearch: CoverSearchState = CoverSearchState(),
   val isSaving: Boolean = false,
   val isCoverWorking: Boolean = false,
@@ -70,6 +71,19 @@ data class MatchResultRow(
   val description: String,
 )
 
+data class PodcastMatchResultRow(
+  val cover: String,
+  val title: String,
+  val author: String,
+  val genres: List<String> = emptyList(),
+  val episodeCount: Int = 0,
+  val feedUrl: String = "",
+  val itunesId: String = "",
+  val releaseDate: String = "",
+  val explicit: Boolean = false,
+  val description: String = "",
+)
+
 enum class EditItemTab {
   Details,
   Cover,
@@ -100,7 +114,13 @@ fun EditItemMediaKind.supportedTabs(): List<EditItemTab> =
         EditItemTab.Tools,
       )
     EditItemMediaKind.Podcast ->
-      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Episodes, EditItemTab.Files)
+      listOf(
+        EditItemTab.Details,
+        EditItemTab.Cover,
+        EditItemTab.Episodes,
+        EditItemTab.Files,
+        EditItemTab.Match,
+      )
   }
 
 data class DetailsForm(
@@ -132,16 +152,49 @@ fun DetailsForm.primaryAuthor(mediaKind: EditItemMediaKind): String =
     EditItemMediaKind.Podcast -> podcastAuthor
   }
 
-data class MatchState(
-  val providers: List<MatchProvider> = emptyList(),
-  val selectedProvider: String = "audible",
-  val title: String = "",
-  val author: String = "",
-  val results: List<MatchResultRow> = emptyList(),
-  val rawResults: List<SearchBookMatchResponse> = emptyList(),
-  val isSearching: Boolean = false,
+sealed interface MatchState {
+  val providers: List<MatchProvider>
+  val selectedProvider: String
+  val isSearching: Boolean
+
+  data class Book(
+    override val providers: List<MatchProvider> = emptyList(),
+    override val selectedProvider: String = "audible",
+    val title: String = "",
+    val author: String = "",
+    val results: List<MatchResultRow> = emptyList(),
+    val rawResults: List<SearchBookMatchResponse> = emptyList(),
+    override val isSearching: Boolean = false,
+  ) : MatchState
+
+  data class Podcast(
+    override val providers: List<MatchProvider> = emptyList(),
+    override val selectedProvider: String = "itunes",
+    val searchTerm: String = "",
+    val results: List<PodcastMatchResultRow> = emptyList(),
+    val review: PodcastMatchReviewState? = null,
+    override val isSearching: Boolean = false,
+  ) : MatchState
+}
+
+data class PodcastMatchReviewState(
+  val result: PodcastMatchResultRow,
+  val selectedFields: Set<PodcastMatchField> = emptySet(),
 )
+
+enum class PodcastMatchField {
+  Cover,
+  Title,
+  Author,
+  Genres,
+  RssFeedUrl,
+  ItunesId,
+  ReleaseDate,
+  Explicit,
+}
 
 data class MatchProvider(val value: String, val text: String)
 
 data class SeriesEntry(val name: String, val sequence: String = "")
+
+fun EditItemUiState.displayCoverUrl(): String = pendingCoverUrl ?: coverUrl
