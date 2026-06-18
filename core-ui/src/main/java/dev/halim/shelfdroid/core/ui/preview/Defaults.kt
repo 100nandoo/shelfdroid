@@ -17,10 +17,10 @@ import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.ChapterRow
 import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
-import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeRow
-import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeUpdateState
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemMediaKind
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeRow
+import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeUpdateState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchProvider
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
@@ -603,7 +603,7 @@ object Defaults {
       episodeUpdate =
         EpisodeUpdateState(
           persistedCutoffMillis = 1750253400000,
-          cutoffInput = "2025-06-18 21:30",
+          selectedCutoffMillis = 1750253400000,
           limitInput = "3",
         ),
       match =

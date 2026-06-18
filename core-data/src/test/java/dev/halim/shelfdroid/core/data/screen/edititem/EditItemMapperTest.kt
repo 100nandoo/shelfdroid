@@ -7,8 +7,8 @@ import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.BookMetadata
 import dev.halim.core.network.response.libraryitem.Enclosure
 import dev.halim.core.network.response.libraryitem.Podcast
-import dev.halim.core.network.response.libraryitem.PodcastMetadata
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
+import dev.halim.core.network.response.libraryitem.PodcastMetadata
 import dev.halim.core.network.response.libraryitem.Series
 import dev.halim.core.network.response.play.AudioTrack
 import org.junit.Assert.assertEquals
@@ -263,7 +263,13 @@ class EditItemMapperTest {
     LibraryItem(
       id = "podcast-id",
       mediaType = "podcast",
-      media = Podcast(libraryItemId = "podcast-id", coverPath = null, tags = emptyList(), episodes = episodes),
+      media =
+        Podcast(
+          libraryItemId = "podcast-id",
+          coverPath = null,
+          tags = emptyList(),
+          episodes = episodes,
+        ),
     )
 
   private fun episode(
@@ -272,12 +278,13 @@ class EditItemMapperTest {
     publishedAt: Long?,
     duration: Double = 0.0,
     enclosureLength: String = "",
-  ) = PodcastEpisode(
-    libraryItemId = "podcast-id",
-    id = id,
-    title = title,
-    publishedAt = publishedAt,
-    enclosure = Enclosure(length = enclosureLength),
-    audioTrack = AudioTrack(duration = duration),
-  )
+  ) =
+    PodcastEpisode(
+      libraryItemId = "podcast-id",
+      id = id,
+      title = title,
+      publishedAt = publishedAt,
+      enclosure = Enclosure(length = enclosureLength),
+      audioTrack = AudioTrack(duration = duration),
+    )
 }

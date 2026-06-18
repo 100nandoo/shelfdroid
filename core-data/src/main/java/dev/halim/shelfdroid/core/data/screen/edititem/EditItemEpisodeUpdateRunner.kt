@@ -27,20 +27,13 @@ internal class EditItemEpisodeUpdateRunner(
       )
     }
 
-    val stateWithLimit = state.copy(episodeUpdate = state.episodeUpdate.copy(limitInput = normalizedLimit.limitText))
-    val cutoffResult = resolveCutoffMillis(stateWithLimit.episodeUpdate)
-    if (cutoffResult is CutoffResolution.Invalid) {
-      return EditItemEpisodeUpdateResult(
-        state = stateWithLimit.copy(episodeUpdate = stateWithLimit.episodeUpdate.copy(isRunning = false)),
-        events = listOf(GenericUiEvent.ShowErrorSnackbar(cutoffResult.message)),
-      )
-    }
-
+    val stateWithLimit =
+      state.copy(episodeUpdate = state.episodeUpdate.copy(limitInput = normalizedLimit.limitText))
     var workingState = stateWithLimit
     val events = mutableListOf<GenericUiEvent>()
     normalizedLimit.message?.let { events += GenericUiEvent.ShowErrorSnackbar(it) }
 
-    val cutoffMillis = (cutoffResult as CutoffResolution.Valid).millis
+    val cutoffMillis = resolveCutoffMillis(stateWithLimit.episodeUpdate)
     if (cutoffMillis != null && cutoffMillis != workingState.episodeUpdate.persistedCutoffMillis) {
       val cutoffUpdate =
         updateEpisodeCutoff(
@@ -49,8 +42,11 @@ internal class EditItemEpisodeUpdateRunner(
         )
       if (cutoffUpdate.isFailure) {
         return EditItemEpisodeUpdateResult(
-          state = workingState.copy(episodeUpdate = workingState.episodeUpdate.copy(isRunning = false)),
-          events = events + GenericUiEvent.ShowErrorSnackbar(cutoffUpdate.exceptionOrNull()?.message.orEmpty()),
+          state =
+            workingState.copy(episodeUpdate = workingState.episodeUpdate.copy(isRunning = false)),
+          events =
+            events +
+              GenericUiEvent.ShowErrorSnackbar(cutoffUpdate.exceptionOrNull()?.message.orEmpty()),
         )
       }
 
@@ -59,7 +55,7 @@ internal class EditItemEpisodeUpdateRunner(
           episodeUpdate =
             workingState.episodeUpdate.copy(
               persistedCutoffMillis = cutoffMillis,
-              cutoffInput = formatEpisodeUpdateCutoffInput(cutoffMillis),
+              selectedCutoffMillis = cutoffMillis,
             )
         )
     }
@@ -67,8 +63,11 @@ internal class EditItemEpisodeUpdateRunner(
     val checkResult = checkNewEpisodes(workingState.itemId, normalizedLimit.limit)
     if (checkResult.isFailure) {
       return EditItemEpisodeUpdateResult(
-        state = workingState.copy(episodeUpdate = workingState.episodeUpdate.copy(isRunning = false)),
-        events = events + GenericUiEvent.ShowErrorSnackbar(checkResult.exceptionOrNull()?.message.orEmpty()),
+        state =
+          workingState.copy(episodeUpdate = workingState.episodeUpdate.copy(isRunning = false)),
+        events =
+          events +
+            GenericUiEvent.ShowErrorSnackbar(checkResult.exceptionOrNull()?.message.orEmpty()),
       )
     }
 
@@ -93,28 +92,14 @@ internal class EditItemEpisodeUpdateRunner(
   }
 }
 
-private sealed interface CutoffResolution {
-  data class Valid(val millis: Long?) : CutoffResolution
+private fun resolveCutoffMillis(episodeUpdate: EpisodeUpdateState): Long? =
+  episodeUpdate.selectedCutoffMillis ?: episodeUpdate.persistedCutoffMillis.takeIf { it > 0L }
 
-  data class Invalid(val message: String) : CutoffResolution
-}
-
-private fun resolveCutoffMillis(episodeUpdate: EpisodeUpdateState): CutoffResolution {
-  val input = episodeUpdate.cutoffInput.trim()
-  if (input.isBlank()) {
-    return if (episodeUpdate.persistedCutoffMillis == 0L) CutoffResolution.Valid(null)
-    else CutoffResolution.Invalid("Enter a complete episode update cutoff.")
-  }
-
-  val millis = parseEpisodeUpdateCutoffInput(input)
-  return if (millis == null) {
-    CutoffResolution.Invalid("Enter a valid episode update cutoff in YYYY-MM-DD HH:MM format.")
-  } else {
-    CutoffResolution.Valid(millis)
-  }
-}
-
-private data class NormalizedLimit(val limit: Int, val limitText: String, val message: String? = null)
+private data class NormalizedLimit(
+  val limit: Int,
+  val limitText: String,
+  val message: String? = null,
+)
 
 private fun normalizeLimit(limitInput: String): NormalizedLimit? {
   val parsed = limitInput.trim().toIntOrNull() ?: return null

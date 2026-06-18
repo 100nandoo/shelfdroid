@@ -5,10 +5,7 @@ import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.format.char
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
+import dev.halim.shelfdroid.helper.formatFileSize
 
 internal data class MappedEditItemMedia(
   val mediaKind: EditItemMediaKind,
@@ -49,6 +46,7 @@ internal object EditItemMapper {
           episodeUpdate = EpisodeUpdateState(),
         )
       }
+
       is Podcast -> {
         val metadata = media.metadata
         MappedEditItemMedia(
@@ -72,11 +70,12 @@ internal object EditItemMapper {
           episodeUpdate =
             EpisodeUpdateState(
               persistedCutoffMillis = media.lastEpisodeCheck,
-              cutoffInput = formatEpisodeUpdateCutoffInput(media.lastEpisodeCheck),
+              selectedCutoffMillis = media.lastEpisodeCheck.takeIf { it > 0L },
               limitInput = media.maxNewEpisodesToDownload.toString(),
             ),
         )
       }
+
       else ->
         MappedEditItemMedia(
           mediaKind = EditItemMediaKind.Book,
@@ -102,10 +101,11 @@ internal object EditItemMapper {
           secondaryText =
             listOfNotNull(
                 formatDuration(episode.audioTrack.duration).ifBlank { null },
-                episode.enclosure?.length
+                episode.enclosure
+                  ?.length
                   ?.toLongOrNull()
                   ?.takeIf { it > 0 }
-                  ?.let(::humanReadableFileSize),
+                  ?.let { it.formatFileSize() },
               )
               .joinToString(" ∙ "),
         )
@@ -122,6 +122,7 @@ internal object EditItemMapper {
       cur: List<String>,
     ): List<UpdateLibraryItemMediaRequest.NameRef>? =
       if (cur != orig) cur.map { UpdateLibraryItemMediaRequest.NameRef(it) } else null
+
     fun deltaSeries(
       orig: List<SeriesEntry>,
       cur: List<SeriesEntry>,
@@ -129,11 +130,13 @@ internal object EditItemMapper {
       if (cur != orig)
         cur.map { UpdateLibraryItemMediaRequest.SeriesRef(it.name, it.sequence.ifBlank { null }) }
       else null
+
     fun deltaPodcastType(orig: String, cur: String): String? {
       val normalizedOrig = orig.ifBlank { DEFAULT_PODCAST_TYPE }
       val normalizedCur = cur.ifBlank { DEFAULT_PODCAST_TYPE }
       return if (normalizedCur != normalizedOrig) normalizedCur else null
     }
+
     fun deltaIntString(orig: String, cur: String): Int? {
       val normalizedOrig = orig.trim()
       val normalizedCur = cur.trim()
@@ -159,6 +162,7 @@ internal object EditItemMapper {
             explicit = delta(original.explicit, current.explicit),
             abridged = delta(original.abridged, current.abridged),
           )
+
         EditItemMediaKind.Podcast ->
           UpdateLibraryItemMediaRequest.Metadata(
             title = delta(original.title, current.title),
@@ -183,14 +187,6 @@ internal object EditItemMapper {
 
 private const val DEFAULT_PODCAST_TYPE = "episodic"
 
-private fun humanReadableFileSize(bytes: Long): String =
-  when {
-    bytes >= 1_000_000_000 -> "%.2f GB".format(bytes / 1_000_000_000.0)
-    bytes >= 1_000_000 -> "%.2f MB".format(bytes / 1_000_000.0)
-    bytes >= 1_000 -> "%.2f KB".format(bytes / 1_000.0)
-    else -> "$bytes B"
-  }
-
 private fun formatDuration(seconds: Double): String {
   val totalSeconds = seconds.toLong()
   val hours = totalSeconds / 3600
@@ -202,48 +198,4 @@ private fun formatDuration(seconds: Double): String {
     minutes > 0 -> "$minutes minutes"
     else -> ""
   }
-}
-
-internal fun formatEpisodeUpdateCutoffInput(epochMillis: Long): String {
-  if (epochMillis <= 0L) return ""
-
-  val dateTime =
-    kotlinx.datetime.Instant.fromEpochMilliseconds(epochMillis)
-      .toLocalDateTime(TimeZone.currentSystemDefault())
-
-  return buildString {
-    append(dateTime.year.toString().padStart(4, '0'))
-    append('-')
-    append(dateTime.monthNumber.toString().padStart(2, '0'))
-    append('-')
-    append(dateTime.day.toString().padStart(2, '0'))
-    append(' ')
-    append(dateTime.hour.toString().padStart(2, '0'))
-    append(':')
-    append(dateTime.minute.toString().padStart(2, '0'))
-  }
-}
-
-internal fun parseEpisodeUpdateCutoffInput(input: String): Long? {
-  val trimmed = input.trim()
-  if (trimmed.isBlank()) return null
-
-  val format = kotlinx.datetime.LocalDateTime.Format {
-    year()
-    char('-')
-    monthNumber()
-    char('-')
-    day()
-    char(' ')
-    hour()
-    char(':')
-    minute()
-  }
-
-  return runCatching {
-      kotlinx.datetime.LocalDateTime.parse(trimmed, format)
-        .toInstant(TimeZone.currentSystemDefault())
-        .toEpochMilliseconds()
-    }
-    .getOrNull()
 }

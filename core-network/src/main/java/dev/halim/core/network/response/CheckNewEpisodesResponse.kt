@@ -4,4 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CheckNewEpisodesResponse(@SerialName("episodes") val episodes: List<Episode> = emptyList())
+data class CheckNewEpisodesResponse(
+  @SerialName("episodes") val episodes: List<Episode> = emptyList()
+)

@@ -115,9 +115,10 @@ private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditI
 private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val currentTab = uiState.currentTab.coerceFor(uiState.mediaKind)
   val tabs = uiState.supportedTabs()
+  val showTopProgress = uiState.isSaving || uiState.episodeUpdate.isRunning
 
   Column(modifier = Modifier.fillMaxSize()) {
-    if (uiState.isSaving) {
+    if (showTopProgress) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     Box(modifier = Modifier.weight(1f).fillMaxWidth().imePadding()) {

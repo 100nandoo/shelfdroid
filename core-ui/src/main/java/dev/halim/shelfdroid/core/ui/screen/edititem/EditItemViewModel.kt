@@ -95,8 +95,10 @@ constructor(
       EditItemEvent.DismissDeleteLibraryFile ->
         _uiState.update { it.copy(pendingDeleteFile = null, activeFileActionIno = null) }
       EditItemEvent.ConfirmDeleteLibraryFile -> deleteLibraryFile()
-      is EditItemEvent.UpdateEpisodeCutoffInput ->
-        _uiState.update { it.copy(episodeUpdate = it.episodeUpdate.copy(cutoffInput = event.value)) }
+      is EditItemEvent.UpdateEpisodeCutoffMillis ->
+        _uiState.update {
+          it.copy(episodeUpdate = it.episodeUpdate.copy(selectedCutoffMillis = event.value))
+        }
       is EditItemEvent.UpdateEpisodeLimitInput ->
         _uiState.update { it.copy(episodeUpdate = it.episodeUpdate.copy(limitInput = event.value)) }
       EditItemEvent.RunEpisodeUpdateCheck -> runEpisodeUpdateCheck()
@@ -230,7 +232,7 @@ sealed interface EditItemEvent {
 
   data object DismissDeleteLibraryFile : EditItemEvent
 
-  data class UpdateEpisodeCutoffInput(val value: String) : EditItemEvent
+  data class UpdateEpisodeCutoffMillis(val value: Long) : EditItemEvent
 
   data class UpdateEpisodeLimitInput(val value: String) : EditItemEvent
 

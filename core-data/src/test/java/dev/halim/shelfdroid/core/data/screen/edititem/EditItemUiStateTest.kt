@@ -36,6 +36,11 @@ class EditItemUiStateTest {
   }
 
   @Test
+  fun supportedTabs_forBook_excludesEpisodes() {
+    assertEquals(false, EditItemMediaKind.Book.supportedTabs().contains(EditItemTab.Episodes))
+  }
+
+  @Test
   fun switchingTabs_preservesEpisodeUpdateInput() {
     val state =
       EditItemUiState(
@@ -44,12 +49,13 @@ class EditItemUiStateTest {
         episodeUpdate =
           EpisodeUpdateState(
             persistedCutoffMillis = 1L,
-            cutoffInput = "2026-06-18 21:30",
+            selectedCutoffMillis = 1L,
             limitInput = "0",
           ),
       )
 
-    val switched = state.copy(currentTab = EditItemTab.Details).copy(currentTab = EditItemTab.Episodes)
+    val switched =
+      state.copy(currentTab = EditItemTab.Details).copy(currentTab = EditItemTab.Episodes)
 
     assertEquals(state.episodeUpdate, switched.episodeUpdate)
   }

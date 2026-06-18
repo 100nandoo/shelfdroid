@@ -3,8 +3,6 @@ package dev.halim.shelfdroid.core.data.screen.edititem
 import dev.halim.core.network.response.SearchProvider
 import dev.halim.core.network.response.SearchProviders
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class EditItemRepositoryHelpersTest {
@@ -75,21 +73,5 @@ class EditItemRepositoryHelpersTest {
   @Test
   fun resolveCoverFilename_defaultsToJpgForUnknownMime() {
     assertEquals("cover.jpg", resolveCoverFilename("", "image/*"))
-  }
-
-  @Test
-  fun episodeUpdateCutoff_roundTripsThroughFormatterAndParser() {
-    val input = "2026-06-18 21:30"
-    val millis = requireNotNull(parseEpisodeUpdateCutoffInput(input))
-
-    assertEquals(input, formatEpisodeUpdateCutoffInput(millis))
-  }
-
-  @Test
-  fun parseEpisodeUpdateCutoffInput_rejectsIncompleteValues() {
-    assertNull(parseEpisodeUpdateCutoffInput("2026-06"))
-    assertNull(parseEpisodeUpdateCutoffInput("2026-06-18"))
-    assertNull(parseEpisodeUpdateCutoffInput("2026-06-18 21"))
-    assertNotNull(parseEpisodeUpdateCutoffInput("2026-06-18 21:30"))
   }
 }

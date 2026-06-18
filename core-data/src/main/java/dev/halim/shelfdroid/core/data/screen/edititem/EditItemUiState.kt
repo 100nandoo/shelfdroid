@@ -50,7 +50,7 @@ data class EpisodeRow(
 
 data class EpisodeUpdateState(
   val persistedCutoffMillis: Long = 0L,
-  val cutoffInput: String = "",
+  val selectedCutoffMillis: Long? = null,
   val limitInput: String = "3",
   val isRunning: Boolean = false,
 )
@@ -90,7 +90,15 @@ enum class EditItemMediaKind {
 
 fun EditItemMediaKind.supportedTabs(): List<EditItemTab> =
   when (this) {
-    EditItemMediaKind.Book -> EditItemTab.entries
+    EditItemMediaKind.Book ->
+      listOf(
+        EditItemTab.Details,
+        EditItemTab.Cover,
+        EditItemTab.Chapters,
+        EditItemTab.Files,
+        EditItemTab.Match,
+        EditItemTab.Tools,
+      )
     EditItemMediaKind.Podcast ->
       listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Episodes, EditItemTab.Files)
   }

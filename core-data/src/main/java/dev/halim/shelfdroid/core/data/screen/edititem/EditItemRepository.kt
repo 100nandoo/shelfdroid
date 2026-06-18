@@ -14,6 +14,7 @@ import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.helper.Helper
+import dev.halim.shelfdroid.helper.formatFileSize
 import dev.halim.shelfdroid.helper.getFilename
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -31,7 +32,9 @@ constructor(
   private val episodeUpdateRunner =
     EditItemEpisodeUpdateRunner(
       updateEpisodeCutoff = { itemId, request -> api.updateItemMedia(itemId, request) },
-      checkNewEpisodes = { itemId, limit -> api.checkNewEpisodes(itemId, limit).map { it.episodes.size } },
+      checkNewEpisodes = { itemId, limit ->
+        api.checkNewEpisodes(itemId, limit).map { it.episodes.size }
+      },
       reloadItem = { itemId -> api.item(itemId) },
       mergeUpdated = ::mergeUpdated,
       updateCachedItem = libraryItemRepo::updateItem,
@@ -97,7 +100,7 @@ constructor(
             ino = it.ino,
             path = it.metadata.path,
             filename = it.metadata.filename,
-            sizeText = helper.humanReadableFileSize(it.metadata.size.toLong()),
+            sizeText = it.metadata.size.toLong().formatFileSize(),
             fileType = it.fileType,
           )
         },
