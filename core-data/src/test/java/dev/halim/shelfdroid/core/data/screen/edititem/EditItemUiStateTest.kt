@@ -8,7 +8,7 @@ class EditItemUiStateTest {
   @Test
   fun supportedTabs_forPodcast_onlyIncludesApprovedTabs() {
     assertEquals(
-      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Files),
+      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Episodes, EditItemTab.Files),
       EditItemMediaKind.Podcast.supportedTabs(),
     )
   }

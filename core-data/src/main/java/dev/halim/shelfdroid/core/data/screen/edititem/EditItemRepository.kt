@@ -81,6 +81,7 @@ constructor(
       details = details,
       originalDetails = details,
       chapters = mappedMedia.chapters,
+      episodes = mappedMedia.episodes,
       libraryFiles =
         item.libraryFiles.map {
           LibraryFileRow(

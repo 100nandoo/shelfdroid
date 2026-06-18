@@ -391,6 +391,7 @@
     <string name="edit_item_podcast_type">Podcast Type</string>
     <string name="edit_item_podcast_type_episodic">Episodic</string>
     <string name="edit_item_podcast_type_serial">Serial</string>
+    <string name="edit_item_no_episodes">No server episodes found for this podcast.</string>
     <string name="edit_item_explicit">Explicit</string>
     <string name="edit_item_abridged">Abridged</string>
     <string name="edit_item_quick_match">Quick Match</string>

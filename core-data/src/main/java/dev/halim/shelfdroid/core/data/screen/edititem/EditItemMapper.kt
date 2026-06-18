@@ -4,11 +4,13 @@ import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.core.network.response.libraryitem.PodcastEpisode
 
 internal data class MappedEditItemMedia(
   val mediaKind: EditItemMediaKind,
   val details: DetailsForm,
   val chapters: List<ChapterRow>,
+  val episodes: List<EpisodeRow>,
 )
 
 internal object EditItemMapper {
@@ -38,6 +40,7 @@ internal object EditItemMapper {
               abridged = false,
             ),
           chapters = media.chapters.map { ChapterRow(it.id, it.title, it.start, it.end) },
+          episodes = emptyList(),
         )
       }
       is Podcast -> {
@@ -59,6 +62,7 @@ internal object EditItemMapper {
               podcastType = metadata.type?.ifBlank { DEFAULT_PODCAST_TYPE } ?: DEFAULT_PODCAST_TYPE,
             ),
           chapters = emptyList(),
+          episodes = mapEpisodes(media.episodes),
         )
       }
       else ->
@@ -66,8 +70,33 @@ internal object EditItemMapper {
           mediaKind = EditItemMediaKind.Book,
           details = DetailsForm(),
           chapters = emptyList(),
+          episodes = emptyList(),
         )
     }
+
+  private fun mapEpisodes(episodes: List<PodcastEpisode>): List<EpisodeRow> =
+    episodes
+      .mapIndexed { index, episode -> IndexedValue(index, episode) }
+      .sortedWith(
+        compareByDescending<IndexedValue<PodcastEpisode>> { it.value.publishedAt != null }
+          .thenByDescending { it.value.publishedAt ?: Long.MIN_VALUE }
+          .thenBy { it.index }
+      )
+      .map { (_, episode) ->
+        EpisodeRow(
+          id = episode.id,
+          title = episode.title,
+          secondaryText =
+            listOfNotNull(
+                formatDuration(episode.audioTrack.duration).ifBlank { null },
+                episode.enclosure?.length
+                  ?.toLongOrNull()
+                  ?.takeIf { it > 0 }
+                  ?.let(::humanReadableFileSize),
+              )
+              .joinToString(" ∙ "),
+        )
+      }
 
   fun buildUpdateRequest(
     mediaKind: EditItemMediaKind,
@@ -140,3 +169,24 @@ internal object EditItemMapper {
 }
 
 private const val DEFAULT_PODCAST_TYPE = "episodic"
+
+private fun humanReadableFileSize(bytes: Long): String =
+  when {
+    bytes >= 1_000_000_000 -> "%.2f GB".format(bytes / 1_000_000_000.0)
+    bytes >= 1_000_000 -> "%.2f MB".format(bytes / 1_000_000.0)
+    bytes >= 1_000 -> "%.2f KB".format(bytes / 1_000.0)
+    else -> "$bytes B"
+  }
+
+private fun formatDuration(seconds: Double): String {
+  val totalSeconds = seconds.toLong()
+  val hours = totalSeconds / 3600
+  val minutes = (totalSeconds % 3600) / 60
+
+  return when {
+    hours > 0 && minutes > 0 -> "$hours hours $minutes minutes"
+    hours > 0 -> "$hours hours"
+    minutes > 0 -> "$minutes minutes"
+    else -> ""
+  }
+}
