@@ -34,6 +34,10 @@ _Avoid_: Track, chapter
 The date on which a podcast **Episode** was published.
 _Avoid_: pubDate, published timestamp
 
+**Episode update cutoff**:
+The date and time after which the Audiobookshelf server should look for new **Episodes** when running an **Episode update check** for a **Podcast**.
+_Avoid_: lastEpisodeCheck, last checked
+
 **Chapter**:
 A named segment inside a book.
 _Avoid_: Track, episode
@@ -89,6 +93,10 @@ _Avoid_: Token, session
 **Server settings**:
 The editable Audiobookshelf server configuration exposed through ShelfDroid administrative screens.
 _Avoid_: Preferences, app settings
+
+**Episode update check**:
+An administrative action that asks the Audiobookshelf server to look for new **Episodes** for a **Podcast**, using an **Episode update cutoff** and a requested maximum number of new episodes to download.
+_Avoid_: Add episode, refresh feed, sync podcast
 
 ## Relationships
 

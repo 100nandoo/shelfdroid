@@ -4,6 +4,7 @@
 
 - [x] library management
     - [ ] edit podcast
+        - [ ] episodes, match, schedule tabs
     - [x] download/delete files
     - [x] Edit chapter go to web
 - [ ] Refactor player state
