@@ -8,7 +8,7 @@ class EditItemUiStateTest {
   @Test
   fun supportedTabs_forPodcast_onlyIncludesApprovedTabs() {
     assertEquals(
-      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Files),
+      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Episodes, EditItemTab.Files),
       EditItemMediaKind.Podcast.supportedTabs(),
     )
   }
@@ -33,5 +33,30 @@ class EditItemUiStateTest {
       )
 
     assertEquals(EditItemTab.Tools, state.normalized().currentTab)
+  }
+
+  @Test
+  fun supportedTabs_forBook_excludesEpisodes() {
+    assertEquals(false, EditItemMediaKind.Book.supportedTabs().contains(EditItemTab.Episodes))
+  }
+
+  @Test
+  fun switchingTabs_preservesEpisodeUpdateInput() {
+    val state =
+      EditItemUiState(
+        mediaKind = EditItemMediaKind.Podcast,
+        currentTab = EditItemTab.Episodes,
+        episodeUpdate =
+          EpisodeUpdateState(
+            persistedCutoffMillis = 1L,
+            selectedCutoffMillis = 1L,
+            limitInput = "0",
+          ),
+      )
+
+    val switched =
+      state.copy(currentTab = EditItemTab.Details).copy(currentTab = EditItemTab.Episodes)
+
+    assertEquals(state.episodeUpdate, switched.episodeUpdate)
   }
 }

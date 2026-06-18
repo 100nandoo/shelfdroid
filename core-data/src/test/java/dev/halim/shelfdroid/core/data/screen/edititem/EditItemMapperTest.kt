@@ -5,9 +5,12 @@ import dev.halim.core.network.response.libraryitem.Author
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.BookMetadata
+import dev.halim.core.network.response.libraryitem.Enclosure
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.core.network.response.libraryitem.PodcastMetadata
 import dev.halim.core.network.response.libraryitem.Series
+import dev.halim.core.network.response.play.AudioTrack
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -94,6 +97,87 @@ class EditItemMapperTest {
   }
 
   @Test
+  fun mapMedia_forPodcastAddsEpisodeRowsInPublishedDateDescendingOrder() {
+    val item =
+      podcastItem(
+        episodes =
+          listOf(
+            episode(id = "old", title = "Old", publishedAt = 100L),
+            episode(id = "new", title = "New", publishedAt = 300L),
+            episode(id = "mid", title = "Mid", publishedAt = 200L),
+          )
+      )
+
+    val result = EditItemMapper.mapMedia(item)
+
+    assertEquals(listOf("new", "mid", "old"), result.episodes.map { it.id })
+  }
+
+  @Test
+  fun mapMedia_forPodcastKeepsUndatedEpisodesBehindDatedOnesInPayloadOrder() {
+    val item =
+      podcastItem(
+        episodes =
+          listOf(
+            episode(id = "undated-1", title = "Undated 1", publishedAt = null),
+            episode(id = "dated", title = "Dated", publishedAt = 300L),
+            episode(id = "undated-2", title = "Undated 2", publishedAt = null),
+          )
+      )
+
+    val result = EditItemMapper.mapMedia(item)
+
+    assertEquals(listOf("dated", "undated-1", "undated-2"), result.episodes.map { it.id })
+  }
+
+  @Test
+  fun mapMedia_forPodcastKeepsDuplicateEpisodesVisibleAsSeparateRows() {
+    val item =
+      podcastItem(
+        episodes =
+          listOf(
+            episode(id = "dup-1", title = "Same title", publishedAt = 200L),
+            episode(id = "dup-2", title = "Same title", publishedAt = 200L),
+          )
+      )
+
+    val result = EditItemMapper.mapMedia(item)
+
+    assertEquals(listOf("dup-1", "dup-2"), result.episodes.map { it.id })
+    assertEquals(listOf("Same title", "Same title"), result.episodes.map { it.title })
+  }
+
+  @Test
+  fun mapMedia_forPodcastBuildsOptionalDurationAndFilesizeSecondaryText() {
+    val item =
+      podcastItem(
+        episodes =
+          listOf(
+            episode(
+              id = "full",
+              title = "Full",
+              publishedAt = 100L,
+              duration = 1800.0,
+              enclosureLength = "25000000",
+            ),
+            episode(
+              id = "duration-only",
+              title = "Duration Only",
+              publishedAt = 90L,
+              duration = 1800.0,
+            ),
+            episode(id = "empty", title = "Empty", publishedAt = 80L),
+          )
+      )
+
+    val result = EditItemMapper.mapMedia(item)
+
+    assertEquals("30 minutes ∙ 25.00 MB", result.episodes[0].secondaryText)
+    assertEquals("30 minutes", result.episodes[1].secondaryText)
+    assertEquals("", result.episodes[2].secondaryText)
+  }
+
+  @Test
   fun buildUpdateRequest_forBookOnlyIncludesChangedBookFields() {
     val request =
       EditItemMapper.buildUpdateRequest(
@@ -174,4 +258,33 @@ class EditItemMapperTest {
     assertNull(metadata.subtitle)
     assertNull(metadata.series)
   }
+
+  private fun podcastItem(episodes: List<PodcastEpisode>) =
+    LibraryItem(
+      id = "podcast-id",
+      mediaType = "podcast",
+      media =
+        Podcast(
+          libraryItemId = "podcast-id",
+          coverPath = null,
+          tags = emptyList(),
+          episodes = episodes,
+        ),
+    )
+
+  private fun episode(
+    id: String,
+    title: String,
+    publishedAt: Long?,
+    duration: Double = 0.0,
+    enclosureLength: String = "",
+  ) =
+    PodcastEpisode(
+      libraryItemId = "podcast-id",
+      id = id,
+      title = title,
+      publishedAt = publishedAt,
+      enclosure = Enclosure(length = enclosureLength),
+      audioTrack = AudioTrack(duration = duration),
+    )
 }

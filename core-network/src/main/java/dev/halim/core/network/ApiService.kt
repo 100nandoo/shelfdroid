@@ -24,6 +24,7 @@ import dev.halim.core.network.response.ApiKeysResponse
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BackupsResponse
 import dev.halim.core.network.response.BatchLibraryItemsResponse
+import dev.halim.core.network.response.CheckNewEpisodesResponse
 import dev.halim.core.network.response.CreateUpdateApiKeyResponse
 import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
@@ -309,6 +310,12 @@ interface ApiService {
 
   @POST("/api/podcasts")
   suspend fun createPodcast(@Body request: CreatePodcastRequest): Result<LibraryItem>
+
+  @GET("/api/podcasts/{itemId}/checknew")
+  suspend fun checkNewEpisodes(
+    @Path("itemId") itemId: String,
+    @Query("limit") limit: Int,
+  ): Result<CheckNewEpisodesResponse>
 
   @POST("/api/podcasts/{itemId}/download-episodes")
   suspend fun downloadEpisodes(

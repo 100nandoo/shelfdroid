@@ -19,6 +19,8 @@ import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemMediaKind
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeRow
+import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeUpdateState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchProvider
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
@@ -581,6 +583,29 @@ object Defaults {
       coverUrl = BOOK_COVER,
       webBaseUrl = "http://localhost:13378",
       details = EDIT_ITEM_PODCAST_DETAILS_FORM,
+      episodes =
+        listOf(
+          EpisodeRow(
+            id = "episode-1",
+            title = "Episode 10: Moving from WebViews to Custom Tabs",
+            secondaryText = "48 minutes ∙ 72.10 MB",
+          ),
+          EpisodeRow(
+            id = "episode-2",
+            title = "Episode 9: Now in Android at Google I/O",
+            secondaryText = "42 minutes",
+          ),
+          EpisodeRow(
+            id = "episode-3",
+            title = "Episode 8: Storage changes in Android 16",
+          ),
+        ),
+      episodeUpdate =
+        EpisodeUpdateState(
+          persistedCutoffMillis = 1750253400000,
+          selectedCutoffMillis = 1750253400000,
+          limitInput = "3",
+        ),
       match =
         MatchState(
           providers = EDIT_ITEM_MATCH_PROVIDERS,

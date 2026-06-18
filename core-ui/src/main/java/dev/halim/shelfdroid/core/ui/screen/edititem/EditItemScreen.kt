@@ -42,6 +42,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChaptersTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.CoverTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.DetailsTab
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.EpisodesTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.FilesTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.MatchTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ToolsTab
@@ -114,9 +115,10 @@ private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditI
 private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val currentTab = uiState.currentTab.coerceFor(uiState.mediaKind)
   val tabs = uiState.supportedTabs()
+  val showTopProgress = uiState.isSaving || uiState.episodeUpdate.isRunning
 
   Column(modifier = Modifier.fillMaxSize()) {
-    if (uiState.isSaving) {
+    if (showTopProgress) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
     Box(modifier = Modifier.weight(1f).fillMaxWidth().imePadding()) {
@@ -130,6 +132,7 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
           )
         EditItemTab.Cover -> CoverTab(uiState, onEvent)
         EditItemTab.Chapters -> ChaptersTab(uiState)
+        EditItemTab.Episodes -> EpisodesTab(uiState, onEvent)
         EditItemTab.Files -> FilesTab(uiState, onEvent)
         EditItemTab.Match -> MatchTab(uiState, onEvent)
         EditItemTab.Tools -> ToolsTab(uiState, onEvent)

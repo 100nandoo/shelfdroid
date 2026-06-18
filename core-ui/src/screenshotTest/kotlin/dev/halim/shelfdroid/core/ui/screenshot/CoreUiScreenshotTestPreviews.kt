@@ -28,6 +28,7 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.preview.sheetState
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreenContent
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.EpisodesTab
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreenContent
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreenContent
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreenContent
@@ -65,6 +66,24 @@ fun BookScreenScreenshot() {
 @Composable
 fun PodcastScreenScreenshot() {
   AnimatedPreviewWrapper(dynamicColor = false) { PodcastScreenContent() }
+}
+
+@PreviewTest
+@ShelfDroidPreview
+@Composable
+fun EditItemEpisodesTabScreenshot() {
+  PreviewWrapper(dynamicColor = false) {
+    EpisodesTab(uiState = Defaults.EDIT_ITEM_PODCAST_UI_STATE)
+  }
+}
+
+@PreviewTest
+@ShelfDroidPreview
+@Composable
+fun EditItemEpisodesTabEmptyScreenshot() {
+  PreviewWrapper(dynamicColor = false) {
+    EpisodesTab(uiState = Defaults.EDIT_ITEM_PODCAST_UI_STATE.copy(episodes = emptyList()))
+  }
 }
 
 @PreviewTest

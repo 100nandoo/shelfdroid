@@ -391,6 +391,13 @@
     <string name="edit_item_podcast_type">Podcast Type</string>
     <string name="edit_item_podcast_type_episodic">Episodic</string>
     <string name="edit_item_podcast_type_serial">Serial</string>
+    <string name="edit_item_no_episodes">No server episodes found for this podcast.</string>
+    <string name="edit_item_episode_update_cutoff">Episode update cutoff</string>
+    <string name="edit_item_episode_update_cutoff_hint">YYYY-MM-DD hh:mm AM/PM</string>
+    <string name="edit_item_episode_limit">Limit</string>
+    <string name="edit_item_episode_limit_hint">0 allows all new episodes</string>
+    <string name="edit_item_check_download_new_episodes">Check &amp; Download New Episodes</string>
+    <string name="edit_item_checking_episodes">Checking for new episodes…</string>
     <string name="edit_item_explicit">Explicit</string>
     <string name="edit_item_abridged">Abridged</string>
     <string name="edit_item_quick_match">Quick Match</string>

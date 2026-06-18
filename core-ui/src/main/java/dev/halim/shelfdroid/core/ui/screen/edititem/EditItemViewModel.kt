@@ -95,6 +95,13 @@ constructor(
       EditItemEvent.DismissDeleteLibraryFile ->
         _uiState.update { it.copy(pendingDeleteFile = null, activeFileActionIno = null) }
       EditItemEvent.ConfirmDeleteLibraryFile -> deleteLibraryFile()
+      is EditItemEvent.UpdateEpisodeCutoffMillis ->
+        _uiState.update {
+          it.copy(episodeUpdate = it.episodeUpdate.copy(selectedCutoffMillis = event.value))
+        }
+      is EditItemEvent.UpdateEpisodeLimitInput ->
+        _uiState.update { it.copy(episodeUpdate = it.episodeUpdate.copy(limitInput = event.value)) }
+      EditItemEvent.RunEpisodeUpdateCheck -> runEpisodeUpdateCheck()
     }
   }
 
@@ -169,6 +176,11 @@ constructor(
     _uiState.value = repository.deleteFile(_uiState.value, target.ino, _events).normalized()
   }
 
+  private fun runEpisodeUpdateCheck() = viewModelScope.launch {
+    _uiState.update { it.copy(episodeUpdate = it.episodeUpdate.copy(isRunning = true)) }
+    _uiState.value = repository.runEpisodeUpdateCheck(_uiState.value, _events).normalized()
+  }
+
   @AssistedFactory
   interface Factory {
     fun create(navKey: EditItem): EditItemViewModel
@@ -219,4 +231,10 @@ sealed interface EditItemEvent {
   data object ConfirmDeleteLibraryFile : EditItemEvent
 
   data object DismissDeleteLibraryFile : EditItemEvent
+
+  data class UpdateEpisodeCutoffMillis(val value: Long) : EditItemEvent
+
+  data class UpdateEpisodeLimitInput(val value: String) : EditItemEvent
+
+  data object RunEpisodeUpdateCheck : EditItemEvent
 }

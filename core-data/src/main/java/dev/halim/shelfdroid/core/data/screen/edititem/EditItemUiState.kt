@@ -13,6 +13,8 @@ data class EditItemUiState(
   val details: DetailsForm = DetailsForm(),
   val originalDetails: DetailsForm = DetailsForm(),
   val chapters: List<ChapterRow> = emptyList(),
+  val episodes: List<EpisodeRow> = emptyList(),
+  val episodeUpdate: EpisodeUpdateState = EpisodeUpdateState(),
   val libraryFiles: List<LibraryFileRow> = emptyList(),
   val match: MatchState = MatchState(),
   val coverSearch: CoverSearchState = CoverSearchState(),
@@ -40,6 +42,19 @@ data class CoverSearchState(
 
 data class ChapterRow(val id: Int, val title: String, val start: Double, val end: Double)
 
+data class EpisodeRow(
+  val id: String,
+  val title: String,
+  val secondaryText: String = "",
+)
+
+data class EpisodeUpdateState(
+  val persistedCutoffMillis: Long = 0L,
+  val selectedCutoffMillis: Long? = null,
+  val limitInput: String = "3",
+  val isRunning: Boolean = false,
+)
+
 data class LibraryFileRow(
   val ino: String,
   val path: String,
@@ -59,6 +74,7 @@ enum class EditItemTab {
   Details,
   Cover,
   Chapters,
+  Episodes,
   Files,
   Match,
   Tools,
@@ -74,8 +90,17 @@ enum class EditItemMediaKind {
 
 fun EditItemMediaKind.supportedTabs(): List<EditItemTab> =
   when (this) {
-    EditItemMediaKind.Book -> EditItemTab.entries
-    EditItemMediaKind.Podcast -> listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Files)
+    EditItemMediaKind.Book ->
+      listOf(
+        EditItemTab.Details,
+        EditItemTab.Cover,
+        EditItemTab.Chapters,
+        EditItemTab.Files,
+        EditItemTab.Match,
+        EditItemTab.Tools,
+      )
+    EditItemMediaKind.Podcast ->
+      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Episodes, EditItemTab.Files)
   }
 
 data class DetailsForm(
