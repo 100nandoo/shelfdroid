@@ -71,6 +71,9 @@ data class MatchResultRow(
   val description: String,
 )
 
+const val DEFAULT_BOOK_MATCH_PROVIDER = "audible"
+const val DEFAULT_PODCAST_MATCH_PROVIDER = "itunes"
+
 data class PodcastMatchResultRow(
   val cover: String,
   val title: String,
@@ -159,7 +162,7 @@ sealed interface MatchState {
 
   data class Book(
     override val providers: List<MatchProvider> = emptyList(),
-    override val selectedProvider: String = "audible",
+    override val selectedProvider: String = DEFAULT_BOOK_MATCH_PROVIDER,
     val title: String = "",
     val author: String = "",
     val results: List<MatchResultRow> = emptyList(),
@@ -169,7 +172,7 @@ sealed interface MatchState {
 
   data class Podcast(
     override val providers: List<MatchProvider> = emptyList(),
-    override val selectedProvider: String = "itunes",
+    override val selectedProvider: String = DEFAULT_PODCAST_MATCH_PROVIDER,
     val searchTerm: String = "",
     val results: List<PodcastMatchResultRow> = emptyList(),
     val review: PodcastMatchReviewState? = null,
@@ -179,7 +182,17 @@ sealed interface MatchState {
 
 data class PodcastMatchReviewState(
   val result: PodcastMatchResultRow,
+  val draft: PodcastMatchDraft = PodcastMatchDraft(),
   val selectedFields: Set<PodcastMatchField> = emptySet(),
+)
+
+data class PodcastMatchDraft(
+  val title: String = "",
+  val author: String = "",
+  val feedUrl: String = "",
+  val itunesId: String = "",
+  val releaseDate: String = "",
+  val explicit: Boolean = false,
 )
 
 enum class PodcastMatchField {

@@ -431,8 +431,11 @@
     <string name="edit_item_match_review_title">Review matched metadata</string>
     <string name="edit_item_current_value">Current: %1$s</string>
     <string name="edit_item_matched_value">Matched: %1$s</string>
+    <string name="edit_item_matched_value_label">Matched value</string>
     <string name="edit_item_apply_selected">Apply selected</string>
     <string name="edit_item_cover_preview_current">Current cover shown in Cover tab</string>
+    <string name="edit_item_matched_cover">Matched cover</string>
+    <string name="edit_item_matched_explicit_checkbox">Use matched explicit value</string>
 
     <string name="edit_item_remove_chip">Remove %1$s</string>
     <string name="edit_item_add_chip">Add %1$s…</string>

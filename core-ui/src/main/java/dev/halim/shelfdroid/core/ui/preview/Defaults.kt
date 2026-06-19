@@ -16,6 +16,8 @@ import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateEditApiKey
 import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.ChapterRow
 import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
+import dev.halim.shelfdroid.core.data.screen.edititem.DEFAULT_BOOK_MATCH_PROVIDER
+import dev.halim.shelfdroid.core.data.screen.edititem.DEFAULT_PODCAST_MATCH_PROVIDER
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemMediaKind
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
@@ -579,7 +581,7 @@ object Defaults {
       match =
         MatchState.Book(
           providers = EDIT_ITEM_MATCH_PROVIDERS,
-          selectedProvider = "google",
+          selectedProvider = DEFAULT_BOOK_MATCH_PROVIDER,
           title = BOOK_TITLE,
           author = BOOK_AUTHOR,
           results = EDIT_ITEM_MATCH_RESULTS,
@@ -626,7 +628,7 @@ object Defaults {
       match =
         MatchState.Podcast(
           providers = listOf(MatchProvider(value = "itunes", text = "Apple Podcasts")),
-          selectedProvider = "itunes",
+          selectedProvider = DEFAULT_PODCAST_MATCH_PROVIDER,
           searchTerm = EDIT_ITEM_PODCAST_DETAILS_FORM.title,
           results = EDIT_ITEM_PODCAST_MATCH_RESULTS,
         ),

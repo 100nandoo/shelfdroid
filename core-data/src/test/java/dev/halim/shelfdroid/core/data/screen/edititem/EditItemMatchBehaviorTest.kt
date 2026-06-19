@@ -78,6 +78,15 @@ class EditItemMatchBehaviorTest {
               releaseDate = "2026-06-17",
               explicit = true,
             ),
+          draft =
+            PodcastMatchDraft(
+              title = "Edited title",
+              author = "Edited author",
+              feedUrl = "https://edited.example/feed.xml",
+              itunesId = "123",
+              releaseDate = "2026-06-19",
+              explicit = true,
+            ),
           selectedFields =
             setOf(
               PodcastMatchField.Cover,
@@ -88,7 +97,7 @@ class EditItemMatchBehaviorTest {
         ),
       )
 
-    assertEquals("New title", updated.details.title)
+    assertEquals("Edited title", updated.details.title)
     assertEquals("Old author", updated.details.podcastAuthor)
     assertEquals(listOf("Tech"), updated.details.genres)
     assertEquals("https://old.example/feed.xml", updated.details.rssFeedUrl)
@@ -102,7 +111,9 @@ class EditItemMatchBehaviorTest {
   fun applyPodcastMatchSelection_returnsToDetailsAndClearsReview() {
     val review =
       PodcastMatchReviewState(
-        result = PodcastMatchResultRow(cover = "", title = "New title", author = "", explicit = true),
+        result =
+          PodcastMatchResultRow(cover = "", title = "New title", author = "", explicit = true),
+        draft = PodcastMatchDraft(title = "Edited title", explicit = true),
         selectedFields = setOf(PodcastMatchField.Title),
       )
     val state =

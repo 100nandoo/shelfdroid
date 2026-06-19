@@ -65,7 +65,7 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
           DropdownMenuItem(
             text = { Text(provider.text) },
             onClick = {
-              onEvent(EditItemEvent.UpdateMatchProvider(provider.value))
+              onEvent(EditItemEvent.UpdateBookMatch { it.copy(selectedProvider = provider.value) })
               expanded = false
             },
           )
@@ -75,14 +75,18 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
 
     OutlinedTextField(
       value = match.title,
-      onValueChange = { onEvent(EditItemEvent.UpdateBookMatchTitle(it)) },
+      onValueChange = {
+        onEvent(EditItemEvent.UpdateBookMatch { matchState -> matchState.copy(title = it) })
+      },
       label = { Text(stringResource(R.string.edit_item_search_title)) },
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
     )
     OutlinedTextField(
       value = match.author,
-      onValueChange = { onEvent(EditItemEvent.UpdateBookMatchAuthor(it)) },
+      onValueChange = {
+        onEvent(EditItemEvent.UpdateBookMatch { matchState -> matchState.copy(author = it) })
+      },
       label = { Text(stringResource(R.string.author)) },
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
