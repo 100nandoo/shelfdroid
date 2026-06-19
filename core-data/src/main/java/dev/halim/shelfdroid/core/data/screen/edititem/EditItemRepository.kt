@@ -363,6 +363,7 @@ constructor(
             match.copy(
               results = mapPodcastMatchRows(raw),
               review = null,
+              hasSearched = true,
               isSearching = false,
             )
         )

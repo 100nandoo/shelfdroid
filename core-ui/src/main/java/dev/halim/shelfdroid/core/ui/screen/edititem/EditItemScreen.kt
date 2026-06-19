@@ -117,7 +117,8 @@ private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditI
 private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val currentTab = uiState.currentTab.coerceFor(uiState.mediaKind)
   val tabs = uiState.supportedTabs()
-  val showTopProgress = uiState.isSaving || uiState.episodeUpdate.isRunning
+  val showTopProgress =
+    uiState.isSaving || uiState.episodeUpdate.isRunning || uiState.match.isSearching
 
   Column(modifier = Modifier.fillMaxSize()) {
     if (showTopProgress) {

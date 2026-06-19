@@ -176,6 +176,7 @@ sealed interface MatchState {
     val searchTerm: String = "",
     val results: List<PodcastMatchResultRow> = emptyList(),
     val review: PodcastMatchReviewState? = null,
+    val hasSearched: Boolean = false,
     override val isSearching: Boolean = false,
   ) : MatchState
 }

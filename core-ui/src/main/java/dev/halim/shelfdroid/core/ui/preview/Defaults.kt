@@ -630,6 +630,7 @@ object Defaults {
           providers = listOf(MatchProvider(value = "itunes", text = "Apple Podcasts")),
           selectedProvider = DEFAULT_PODCAST_MATCH_PROVIDER,
           searchTerm = EDIT_ITEM_PODCAST_DETAILS_FORM.title,
+          hasSearched = true,
           results = EDIT_ITEM_PODCAST_MATCH_RESULTS,
         ),
       coverSearch =

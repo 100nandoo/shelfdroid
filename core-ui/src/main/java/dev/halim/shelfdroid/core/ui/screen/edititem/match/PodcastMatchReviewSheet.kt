@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,7 +22,9 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,7 +34,13 @@ import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchDraft
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchField
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchReviewState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.CheckboxRow
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
+import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
+import dev.halim.shelfdroid.core.ui.components.TextBodySmall
+import dev.halim.shelfdroid.core.ui.components.TextTitleLarge
+import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -55,18 +64,17 @@ fun PodcastMatchReviewSheet(
 ) {
   ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss) {
     Column(
-      modifier =
-        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
+      modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      Text(
+      TextTitleLarge(
         text = stringResource(R.string.edit_item_match_review_title),
-        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.padding(horizontal = 16.dp),
       )
-      Text(
+      TextBodyMedium(
         text = review.result.title,
-        style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 16.dp),
       )
 
       CoverReviewRow(
@@ -156,14 +164,16 @@ private fun CoverReviewRow(
   enabled: Boolean,
   onCheckedChange: () -> Unit,
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    FieldSelectionRow(
-      label = stringResource(R.string.edit_item_cover),
+  Column {
+    CheckboxRow(
       checked = checked,
+      text = stringResource(R.string.edit_item_cover),
       enabled = enabled,
-      onCheckedChange = onCheckedChange,
+      onCheckedChange = { onCheckedChange() },
+      modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onCheckedChange),
+      textStyle = MaterialTheme.typography.titleMedium,
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(modifier = Modifier.padding(start = 48.dp)) {
       CoverPreviewCard(
         title = stringResource(R.string.edit_item_current_cover),
         coverUrl = currentCoverUrl,
@@ -175,13 +185,18 @@ private fun CoverReviewRow(
         modifier = Modifier.weight(1f),
       )
     }
+    Spacer(Modifier.height(12.dp))
+    HorizontalDivider()
   }
 }
 
 @Composable
 private fun CoverPreviewCard(title: String, coverUrl: String, modifier: Modifier = Modifier) {
   Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-    Text(text = title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium)
+    TextBodySmall(
+      text = title,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
     CoverNoAnimation(
       modifier = Modifier.height(60.dp),
       coverUrl = coverUrl,
@@ -200,30 +215,35 @@ private fun EditableTextReviewRow(
   onCheckedChange: () -> Unit,
   onValueChange: (String) -> Unit,
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    FieldSelectionRow(
-      label = label,
+  Column {
+    CheckboxRow(
       checked = checked,
+      text = label,
       enabled = enabled,
-      onCheckedChange = onCheckedChange,
-    )
-    Text(
-      text =
-        stringResource(
-          R.string.edit_item_current_value,
-          currentValue.ifBlank { stringResource(R.string.edit_item_none) },
-        ),
-      style = MaterialTheme.typography.bodySmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      onCheckedChange = { onCheckedChange() },
+      modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onCheckedChange),
+      textStyle = MaterialTheme.typography.titleMedium,
     )
     OutlinedTextField(
       value = editedValue,
       onValueChange = onValueChange,
       enabled = enabled && checked,
       label = { Text(stringResource(R.string.edit_item_matched_value_label)) },
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier.fillMaxWidth().padding(start = 48.dp, end = 16.dp),
       singleLine = true,
+      supportingText = {
+        TextBodySmall(
+          text =
+            stringResource(
+              R.string.edit_item_current_value,
+              currentValue.ifBlank { stringResource(R.string.edit_item_none) },
+            ),
+          modifier = Modifier.alpha(enabled.enableAlpha()),
+        )
+      },
     )
+    Spacer(Modifier.height(12.dp))
+    HorizontalDivider()
   }
 }
 
@@ -236,30 +256,36 @@ private fun ReadOnlyReviewRow(
   enabled: Boolean,
   onCheckedChange: () -> Unit,
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-    FieldSelectionRow(
-      label = label,
+  Column {
+    CheckboxRow(
       checked = checked,
+      text = label,
       enabled = enabled,
-      onCheckedChange = onCheckedChange,
+      onCheckedChange = { onCheckedChange() },
+      modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onCheckedChange),
+      textStyle = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
     )
-    Text(
-      text =
-        stringResource(
-          R.string.edit_item_current_value,
-          currentValue.ifBlank { stringResource(R.string.edit_item_none) },
-        ),
-      style = MaterialTheme.typography.bodySmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Text(
+    TextBodySmall(
       text =
         stringResource(
           R.string.edit_item_matched_value,
           matchedValue.ifBlank { stringResource(R.string.edit_item_none) },
         ),
-      style = MaterialTheme.typography.bodySmall,
+      modifier = Modifier.padding(start = 48.dp, end = 16.dp),
     )
+    Spacer(Modifier.height(8.dp))
+    TextBodySmall(
+      text =
+        stringResource(
+          R.string.edit_item_current_value,
+          currentValue.ifBlank { stringResource(R.string.edit_item_none) },
+        ),
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.padding(start = 48.dp, end = 16.dp),
+    )
+
+    Spacer(Modifier.height(12.dp))
+    HorizontalDivider()
   }
 }
 
@@ -271,45 +297,30 @@ private fun ExplicitReviewRow(
   onCheckedChange: () -> Unit,
   onValueChange: (Boolean) -> Unit,
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    FieldSelectionRow(
-      label = stringResource(R.string.edit_item_explicit),
+  Column {
+    CheckboxRow(
       checked = checked,
-      enabled = true,
-      onCheckedChange = onCheckedChange,
-    )
-    Text(
-      text = stringResource(R.string.edit_item_current_value, booleanLabel(currentValue)),
-      style = MaterialTheme.typography.bodySmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      text = stringResource(R.string.edit_item_explicit),
+      onCheckedChange = { onCheckedChange() },
+      modifier = Modifier.fillMaxWidth().clickable(onClick = onCheckedChange),
+      textStyle = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
     )
     Row(
       modifier =
-        Modifier.fillMaxWidth().clickable(enabled = checked) { onValueChange(!editedValue) },
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier.fillMaxWidth()
+          .clickable(enabled = checked) { onValueChange(!editedValue) }
+          .padding(start = 36.dp, end = 16.dp)
+          .alpha(checked.enableAlpha()),
+      verticalAlignment = Alignment.CenterVertically,
     ) {
       Checkbox(checked = editedValue, onCheckedChange = { onValueChange(it) }, enabled = checked)
-      Text(
-        text = stringResource(R.string.edit_item_matched_explicit_checkbox),
-        style = MaterialTheme.typography.bodyMedium,
-      )
+      TextBodyMedium(text = stringResource(R.string.edit_item_explicit))
     }
-  }
-}
-
-@Composable
-private fun FieldSelectionRow(
-  label: String,
-  checked: Boolean,
-  enabled: Boolean,
-  onCheckedChange: () -> Unit,
-) {
-  Row(
-    modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onCheckedChange),
-    horizontalArrangement = Arrangement.spacedBy(12.dp),
-  ) {
-    Checkbox(checked = checked, onCheckedChange = { onCheckedChange() }, enabled = enabled)
-    Text(text = label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium)
+    TextBodySmall(
+      text = stringResource(R.string.edit_item_current_value, booleanLabel(currentValue)),
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.padding(start = 48.dp, end = 16.dp),
+    )
   }
 }
 
@@ -345,7 +356,7 @@ private fun PodcastMatchReviewSheetPreview() {
           PodcastMatchField.Explicit,
         ),
     )
-  PreviewWrapper {
+  AnimatedPreviewWrapper {
     PodcastMatchReviewSheet(
       currentCoverUrl = Defaults.BOOK_COVER,
       details = Defaults.EDIT_ITEM_PODCAST_DETAILS_FORM,

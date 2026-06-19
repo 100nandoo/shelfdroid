@@ -13,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -96,10 +95,6 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
       enabled = !match.isSearching && match.title.isNotBlank(),
     ) {
       Text(stringResource(R.string.search))
-    }
-
-    if (match.isSearching) {
-      CircularProgressIndicator()
     }
 
     match.results.forEachIndexed { index, result ->
