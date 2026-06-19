@@ -33,7 +33,7 @@ constructor(
 ) {
   private val episodeUpdateRunner =
     EditItemEpisodeUpdateRunner(
-      updateEpisodeCutoff = { itemId, request -> api.updateItemMedia(itemId, request) },
+      updateEpisodeCutoff = { itemId, request -> api.updateItemMedia(itemId, request).map {} },
       checkNewEpisodes = { itemId, limit ->
         api.checkNewEpisodes(itemId, limit).map { it.episodes.size }
       },
@@ -199,6 +199,7 @@ constructor(
         events.emit(GenericUiEvent.ShowErrorSnackbar(result.message))
         state.copy(isSaving = false)
       }
+
       is MatchItemResult.Success -> {
         libraryItemRepo.updateItem(result.libraryItem)
         events.emit(GenericUiEvent.ShowSuccessSnackbar())
@@ -352,6 +353,7 @@ constructor(
             )
         )
       }
+
       is MatchState.Podcast -> {
         val raw =
           api.searchPodcast(term = match.searchTerm, provider = match.selectedProvider).getOrElse {
@@ -450,10 +452,55 @@ constructor(
       review.copy(selectedFields = selectedFields)
     }
 
-  fun applyPodcastMatchReview(state: EditItemUiState): EditItemUiState {
-    val match = state.match as? MatchState.Podcast ?: return state
-    val review = match.review ?: return state
-    return applyPodcastMatchSelection(state, review)
+  suspend fun applyPodcastMatchReview(
+    state: EditItemUiState,
+    events: MutableSharedFlow<GenericUiEvent>,
+  ): EditItemUiState {
+    val match = state.match as? MatchState.Podcast ?: return state.copy(isSaving = false)
+    val review = match.review ?: return state.copy(isSaving = false)
+    if (review.selectedFields.isEmpty()) return state.copy(isSaving = false)
+
+    val request = buildPodcastMatchReviewUpdateRequest(state, review)
+    if (request.isEmpty()) {
+      val appliedState =
+        applyPodcastMatchSelection(
+          state.copy(details = state.originalDetails, pendingCoverUrl = null),
+          review,
+        )
+      events.emit(GenericUiEvent.ShowSuccessSnackbar())
+      return appliedState.copy(
+        originalDetails = appliedState.details,
+        isSaving = false,
+      )
+    }
+
+    val response =
+      api.updateItemMedia(state.itemId, request).getOrElse {
+        events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
+        return state.copy(isSaving = false)
+      }
+
+    val updated = response.libraryItem
+    if (updated != null) {
+      libraryItemRepo.updateItem(updated)
+      events.emit(GenericUiEvent.ShowSuccessSnackbar())
+      return mergeUpdated(
+          dismissPodcastMatchReview(state).copy(currentTab = EditItemTab.Details),
+          updated,
+        )
+        .copy(isSaving = false, currentTab = EditItemTab.Details)
+    }
+
+    val appliedState =
+      applyPodcastMatchSelection(
+        state.copy(details = state.originalDetails, pendingCoverUrl = null),
+        review,
+      )
+    events.emit(GenericUiEvent.ShowSuccessSnackbar())
+    return appliedState.copy(
+      originalDetails = appliedState.details,
+      isSaving = false,
+    )
   }
 
   suspend fun searchCovers(
@@ -521,6 +568,7 @@ private fun createMatchState(
         title = details.title,
         author = details.primaryAuthor(mediaKind),
       )
+
     EditItemMediaKind.Podcast ->
       MatchState.Podcast(
         providers = providers,
@@ -536,11 +584,13 @@ private fun mergeMatchState(current: MatchState, updated: MatchState): MatchStat
         providers = updated.providers,
         selectedProvider = current.selectedProvider,
       )
+
     current is MatchState.Podcast && updated is MatchState.Podcast ->
       current.copy(
         providers = updated.providers,
         selectedProvider = current.selectedProvider,
       )
+
     else -> updated
   }
 
@@ -641,6 +691,51 @@ internal fun applyPodcastReviewToState(
   )
 }
 
+internal fun buildPodcastMatchReviewUpdateRequest(
+  state: EditItemUiState,
+  review: PodcastMatchReviewState,
+): UpdateLibraryItemMediaRequest {
+  val selectedOnlyState =
+    applyPodcastReviewToState(
+      state.copy(details = state.originalDetails, pendingCoverUrl = null),
+      review,
+    )
+  val metadata =
+    UpdateLibraryItemMediaRequest.Metadata(
+      title =
+        selectedOnlyState.details.title.takeIf { PodcastMatchField.Title in review.selectedFields },
+      author =
+        selectedOnlyState.details.podcastAuthor.takeIf {
+          PodcastMatchField.Author in review.selectedFields
+        },
+      genres =
+        selectedOnlyState.details.genres.takeIf {
+          PodcastMatchField.Genres in review.selectedFields
+        },
+      releaseDate =
+        selectedOnlyState.details.releaseDate.takeIf {
+          PodcastMatchField.ReleaseDate in review.selectedFields
+        },
+      feedUrl =
+        selectedOnlyState.details.rssFeedUrl.takeIf {
+          PodcastMatchField.RssFeedUrl in review.selectedFields
+        },
+      itunesId =
+        selectedOnlyState.details.itunesId
+          .takeIf { PodcastMatchField.ItunesId in review.selectedFields }
+          ?.trim()
+          ?.toIntOrNull(),
+      explicit =
+        selectedOnlyState.details.explicit.takeIf {
+          PodcastMatchField.Explicit in review.selectedFields
+        },
+    )
+  return UpdateLibraryItemMediaRequest(
+    metadata = metadata.takeUnless { it.isEmpty() },
+    url = selectedOnlyState.pendingCoverUrl,
+  )
+}
+
 internal fun applyPodcastMatchSelection(
   state: EditItemUiState,
   review: PodcastMatchReviewState,
@@ -652,6 +747,9 @@ internal fun applyPodcastMatchSelection(
       match = match.copy(review = null),
     )
 }
+
+private fun UpdateLibraryItemMediaRequest.isEmpty(): Boolean =
+  metadata == null && tags == null && url == null && lastEpisodeCheck == null
 
 internal fun matchProvidersFor(
   providers: SearchProviders?,
@@ -689,6 +787,7 @@ internal fun resolveCoverFilename(filename: String, mime: String): String {
     when (mime.lowercase()) {
       "image/jpeg",
       "image/jpg" -> "jpg"
+
       "image/png" -> "png"
       "image/webp" -> "webp"
       "image/gif" -> "gif"

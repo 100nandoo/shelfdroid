@@ -229,7 +229,7 @@ constructor(
 
 data class PodcastInfo(
   val id: String,
-  val itunesId: Int?,
+  val itunesId: String?,
   val title: String,
   val artist: String,
   val feedUrl: String,

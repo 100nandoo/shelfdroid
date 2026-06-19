@@ -91,6 +91,7 @@ fun PodcastMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) 
       currentCoverUrl = uiState.displayCoverUrl(),
       details = uiState.details,
       review = review,
+      isApplying = uiState.isSaving,
       sheetState = sheetState,
       onDismiss = { onEvent(EditItemEvent.DismissPodcastMatchReview) },
       onToggleField = { onEvent(EditItemEvent.TogglePodcastMatchField(it)) },

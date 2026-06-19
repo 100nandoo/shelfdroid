@@ -77,7 +77,7 @@ class EditItemMapperTest {
                   genres = listOf("Technology"),
                   feedUrl = "https://example.com/feed.xml",
                   releaseDate = "2026-06-10",
-                  itunesId = 42,
+                  itunesId = "42",
                   language = "en",
                   explicit = true,
                   type = "serial",

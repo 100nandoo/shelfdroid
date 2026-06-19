@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 data class UpdateLibraryItemMediaRequest(
   @SerialName("metadata") val metadata: Metadata? = null,
   @SerialName("tags") val tags: List<String>? = null,
+  @SerialName("url") val url: String? = null,
   @SerialName("lastEpisodeCheck") val lastEpisodeCheck: Long? = null,
 ) {
   @Serializable

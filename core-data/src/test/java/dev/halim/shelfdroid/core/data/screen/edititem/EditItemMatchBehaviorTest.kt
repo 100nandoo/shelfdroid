@@ -4,6 +4,7 @@ import dev.halim.core.network.response.SearchBookMatchResponse
 import dev.halim.core.network.response.SearchPodcast
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -127,6 +128,95 @@ class EditItemMatchBehaviorTest {
 
     assertEquals(EditItemTab.Details, updated.currentTab)
     assertEquals(null, (updated.match as MatchState.Podcast).review)
+  }
+
+  @Test
+  fun buildPodcastMatchReviewUpdateRequest_onlyPersistsSelectedFields() {
+    val review =
+      PodcastMatchReviewState(
+        result =
+          PodcastMatchResultRow(
+            cover = "https://example.com/new.jpg",
+            title = "Matched title",
+            author = "Matched author",
+            genres = listOf("Technology"),
+            feedUrl = "https://example.com/new.xml",
+            itunesId = "77",
+            releaseDate = "2026-06-19",
+            explicit = true,
+          ),
+        draft =
+          PodcastMatchDraft(
+            title = "Edited title",
+            author = "Edited author",
+            feedUrl = "https://example.com/edited.xml",
+            itunesId = "88",
+            releaseDate = "2026-06-20",
+            explicit = true,
+          ),
+        selectedFields =
+          setOf(
+            PodcastMatchField.Cover,
+            PodcastMatchField.Title,
+            PodcastMatchField.RssFeedUrl,
+          ),
+      )
+    val state =
+      EditItemUiState(
+        mediaKind = EditItemMediaKind.Podcast,
+        details =
+          DetailsForm(
+            title = "Unsaved local title",
+            podcastAuthor = "Unsaved local author",
+            language = "fr",
+          ),
+        originalDetails =
+          DetailsForm(
+            title = "Original title",
+            podcastAuthor = "Original author",
+            rssFeedUrl = "https://example.com/original.xml",
+            language = "en",
+          ),
+        match = MatchState.Podcast(review = review),
+      )
+
+    val request = buildPodcastMatchReviewUpdateRequest(state, review)
+    val metadata = requireNotNull(request.metadata)
+
+    assertEquals("Edited title", metadata.title)
+    assertEquals("https://example.com/edited.xml", metadata.feedUrl)
+    assertEquals("https://example.com/new.jpg", request.url)
+    assertNull(metadata.author)
+    assertNull(metadata.genres)
+    assertNull(metadata.language)
+  }
+
+  @Test
+  fun buildPodcastMatchReviewUpdateRequest_sendsCheckedFieldsEvenWhenTheyMatchPersistedState() {
+    val review =
+      PodcastMatchReviewState(
+        result =
+          PodcastMatchResultRow(
+            cover = "",
+            title = "Original title",
+            author = "",
+            explicit = false,
+          ),
+        draft = PodcastMatchDraft(title = "Original title", explicit = false),
+        selectedFields = setOf(PodcastMatchField.Title),
+      )
+    val state =
+      EditItemUiState(
+        mediaKind = EditItemMediaKind.Podcast,
+        details = DetailsForm(title = "Unsaved local title"),
+        originalDetails = DetailsForm(title = "Original title"),
+        match = MatchState.Podcast(review = review),
+      )
+
+    val request = buildPodcastMatchReviewUpdateRequest(state, review)
+    val metadata = requireNotNull(request.metadata)
+
+    assertEquals("Original title", metadata.title)
   }
 
   @Test

@@ -51,6 +51,7 @@ fun PodcastMatchReviewSheet(
   currentCoverUrl: String,
   details: DetailsForm,
   review: PodcastMatchReviewState,
+  isApplying: Boolean,
   sheetState: SheetState,
   onDismiss: () -> Unit,
   onToggleField: (PodcastMatchField) -> Unit,
@@ -62,7 +63,12 @@ fun PodcastMatchReviewSheet(
   onExplicitChange: (Boolean) -> Unit,
   onApply: () -> Unit,
 ) {
-  ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss) {
+  ModalBottomSheet(
+    sheetState = sheetState,
+    onDismissRequest = {
+      if (!isApplying) onDismiss()
+    },
+  ) {
     Column(
       modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -81,7 +87,7 @@ fun PodcastMatchReviewSheet(
         currentCoverUrl = currentCoverUrl,
         matchedCoverUrl = review.result.cover,
         checked = PodcastMatchField.Cover in review.selectedFields,
-        enabled = review.result.cover.isNotBlank(),
+        enabled = review.result.cover.isNotBlank() && !isApplying,
         onCheckedChange = { onToggleField(PodcastMatchField.Cover) },
       )
       EditableTextReviewRow(
@@ -89,7 +95,7 @@ fun PodcastMatchReviewSheet(
         currentValue = details.title,
         editedValue = review.draft.title,
         checked = PodcastMatchField.Title in review.selectedFields,
-        enabled = review.result.title.isNotBlank(),
+        enabled = review.result.title.isNotBlank() && !isApplying,
         onCheckedChange = { onToggleField(PodcastMatchField.Title) },
         onValueChange = onTitleChange,
       )
@@ -98,7 +104,7 @@ fun PodcastMatchReviewSheet(
         currentValue = details.podcastAuthor,
         editedValue = review.draft.author,
         checked = PodcastMatchField.Author in review.selectedFields,
-        enabled = review.result.author.isNotBlank(),
+        enabled = review.result.author.isNotBlank() && !isApplying,
         onCheckedChange = { onToggleField(PodcastMatchField.Author) },
         onValueChange = onAuthorChange,
       )
@@ -107,7 +113,7 @@ fun PodcastMatchReviewSheet(
         currentValue = details.genres.joinToString(),
         matchedValue = review.result.genres.joinToString(),
         checked = PodcastMatchField.Genres in review.selectedFields,
-        enabled = review.result.genres.isNotEmpty(),
+        enabled = review.result.genres.isNotEmpty() && !isApplying,
         onCheckedChange = { onToggleField(PodcastMatchField.Genres) },
       )
       EditableTextReviewRow(
@@ -115,7 +121,7 @@ fun PodcastMatchReviewSheet(
         currentValue = details.rssFeedUrl,
         editedValue = review.draft.feedUrl,
         checked = PodcastMatchField.RssFeedUrl in review.selectedFields,
-        enabled = review.result.feedUrl.isNotBlank(),
+        enabled = review.result.feedUrl.isNotBlank() && !isApplying,
         onCheckedChange = { onToggleField(PodcastMatchField.RssFeedUrl) },
         onValueChange = onFeedUrlChange,
       )
@@ -124,7 +130,7 @@ fun PodcastMatchReviewSheet(
         currentValue = details.itunesId,
         editedValue = review.draft.itunesId,
         checked = PodcastMatchField.ItunesId in review.selectedFields,
-        enabled = review.result.itunesId.isNotBlank(),
+        enabled = review.result.itunesId.isNotBlank() && !isApplying,
         onCheckedChange = { onToggleField(PodcastMatchField.ItunesId) },
         onValueChange = onItunesIdChange,
       )
@@ -133,7 +139,7 @@ fun PodcastMatchReviewSheet(
         currentValue = details.releaseDate,
         editedValue = review.draft.releaseDate,
         checked = PodcastMatchField.ReleaseDate in review.selectedFields,
-        enabled = review.result.releaseDate.isNotBlank(),
+        enabled = review.result.releaseDate.isNotBlank() && !isApplying,
         onCheckedChange = { onToggleField(PodcastMatchField.ReleaseDate) },
         onValueChange = onReleaseDateChange,
       )
@@ -141,14 +147,17 @@ fun PodcastMatchReviewSheet(
         currentValue = details.explicit,
         editedValue = review.draft.explicit,
         checked = PodcastMatchField.Explicit in review.selectedFields,
+        enabled = !isApplying,
         onCheckedChange = { onToggleField(PodcastMatchField.Explicit) },
         onValueChange = onExplicitChange,
       )
 
       HorizontalDivider()
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-        TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        Button(onClick = onApply, enabled = review.selectedFields.isNotEmpty()) {
+        TextButton(onClick = onDismiss, enabled = !isApplying) {
+          Text(stringResource(R.string.cancel))
+        }
+        Button(onClick = onApply, enabled = !isApplying && review.selectedFields.isNotEmpty()) {
           Text(stringResource(R.string.edit_item_apply_selected))
         }
       }
@@ -294,6 +303,7 @@ private fun ExplicitReviewRow(
   currentValue: Boolean,
   editedValue: Boolean,
   checked: Boolean,
+  enabled: Boolean,
   onCheckedChange: () -> Unit,
   onValueChange: (Boolean) -> Unit,
 ) {
@@ -301,19 +311,24 @@ private fun ExplicitReviewRow(
     CheckboxRow(
       checked = checked,
       text = stringResource(R.string.edit_item_explicit),
+      enabled = enabled,
       onCheckedChange = { onCheckedChange() },
-      modifier = Modifier.fillMaxWidth().clickable(onClick = onCheckedChange),
+      modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onCheckedChange),
       textStyle = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
     )
     Row(
       modifier =
         Modifier.fillMaxWidth()
-          .clickable(enabled = checked) { onValueChange(!editedValue) }
+          .clickable(enabled = enabled && checked) { onValueChange(!editedValue) }
           .padding(start = 36.dp, end = 16.dp)
-          .alpha(checked.enableAlpha()),
+          .alpha((enabled && checked).enableAlpha()),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      Checkbox(checked = editedValue, onCheckedChange = { onValueChange(it) }, enabled = checked)
+      Checkbox(
+        checked = editedValue,
+        onCheckedChange = { onValueChange(it) },
+        enabled = enabled && checked,
+      )
       TextBodyMedium(text = stringResource(R.string.edit_item_explicit))
     }
     TextBodySmall(
@@ -361,6 +376,7 @@ private fun PodcastMatchReviewSheetPreview() {
       currentCoverUrl = Defaults.BOOK_COVER,
       details = Defaults.EDIT_ITEM_PODCAST_DETAILS_FORM,
       review = previewReview,
+      isApplying = false,
       sheetState = sheetState(density),
       onDismiss = {},
       onToggleField = {},
@@ -414,6 +430,7 @@ private fun ExplicitReviewRowPreview() {
       currentValue = false,
       editedValue = true,
       checked = true,
+      enabled = true,
       onCheckedChange = {},
       onValueChange = {},
     )

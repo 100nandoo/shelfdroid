@@ -99,8 +99,7 @@ constructor(
       is EditItemEvent.UpdatePodcastMatchDraft ->
         _uiState.update { repository.updatePodcastMatchDraft(it, event.transform) }
 
-      EditItemEvent.ApplyPodcastMatchReview ->
-        _uiState.update { repository.applyPodcastMatchReview(it) }
+      EditItemEvent.ApplyPodcastMatchReview -> applyPodcastMatchReview()
 
       is EditItemEvent.UpdateCoverSearchProvider ->
         _uiState.update { it.copy(coverSearch = it.coverSearch.copy(provider = event.provider)) }
@@ -176,6 +175,11 @@ constructor(
       )
     }
     _uiState.value = repository.searchMatches(_uiState.value, _events).normalized()
+  }
+
+  private fun applyPodcastMatchReview() = viewModelScope.launch {
+    _uiState.update { it.copy(isSaving = true) }
+    _uiState.value = repository.applyPodcastMatchReview(_uiState.value, _events).normalized()
   }
 
   private fun runCoverSearch() = viewModelScope.launch {
