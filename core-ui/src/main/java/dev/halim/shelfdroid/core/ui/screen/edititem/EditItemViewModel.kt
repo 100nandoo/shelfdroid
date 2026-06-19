@@ -19,6 +19,9 @@ import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
+import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchDraft
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchField
 import dev.halim.shelfdroid.core.data.screen.edititem.coerceFor
 import dev.halim.shelfdroid.core.data.screen.edititem.normalized
 import dev.halim.shelfdroid.core.ui.navigation.EditItem
@@ -64,43 +67,67 @@ constructor(
     when (event) {
       is EditItemEvent.ChangeTab ->
         _uiState.update { it.copy(currentTab = event.tab.coerceFor(it.mediaKind)) }
+
       is EditItemEvent.UpdateDetails ->
         _uiState.update { it.copy(details = event.transform(it.details)) }
+
+      is EditItemEvent.UpdateBookMatch ->
+        _uiState.update { repository.updateBookMatch(it, event.transform) }
+
+      is EditItemEvent.UpdatePodcastMatch ->
+        _uiState.update { repository.updatePodcastMatch(it, event.transform) }
+
       EditItemEvent.Save -> save()
       EditItemEvent.QuickMatch -> quickMatch()
       EditItemEvent.ReScan -> reScan()
       is EditItemEvent.UploadCover -> uploadCover(event.uri, event.contentResolver)
       is EditItemEvent.SetCoverUrl -> setCoverUrl(event.url)
       EditItemEvent.DeleteCover -> deleteCover()
-      is EditItemEvent.UpdateMatchProvider ->
-        _uiState.update { it.copy(match = it.match.copy(selectedProvider = event.provider)) }
-      is EditItemEvent.UpdateMatchTitle ->
-        _uiState.update { it.copy(match = it.match.copy(title = event.title)) }
-      is EditItemEvent.UpdateMatchAuthor ->
-        _uiState.update { it.copy(match = it.match.copy(author = event.author)) }
       EditItemEvent.RunMatchSearch -> runMatchSearch()
-      is EditItemEvent.ApplyMatchResult ->
-        _uiState.update { repository.applyMatch(it, event.index) }
+      is EditItemEvent.ApplyBookMatchResult ->
+        _uiState.update { repository.applyBookMatch(it, event.index) }
+
+      is EditItemEvent.OpenPodcastMatchReview ->
+        _uiState.update { repository.openPodcastMatchReview(it, event.index) }
+
+      EditItemEvent.DismissPodcastMatchReview ->
+        _uiState.update { repository.dismissPodcastMatchReview(it) }
+
+      is EditItemEvent.TogglePodcastMatchField ->
+        _uiState.update { repository.togglePodcastMatchField(it, event.field) }
+
+      is EditItemEvent.UpdatePodcastMatchDraft ->
+        _uiState.update { repository.updatePodcastMatchDraft(it, event.transform) }
+
+      EditItemEvent.ApplyPodcastMatchReview -> applyPodcastMatchReview()
+
       is EditItemEvent.UpdateCoverSearchProvider ->
         _uiState.update { it.copy(coverSearch = it.coverSearch.copy(provider = event.provider)) }
+
       is EditItemEvent.UpdateCoverSearchTitle ->
         _uiState.update { it.copy(coverSearch = it.coverSearch.copy(title = event.title)) }
+
       is EditItemEvent.UpdateCoverSearchAuthor ->
         _uiState.update { it.copy(coverSearch = it.coverSearch.copy(author = event.author)) }
+
       EditItemEvent.RunCoverSearch -> runCoverSearch()
       EditItemEvent.EmbedMetadata -> embedMetadata()
       is EditItemEvent.DownloadLibraryFile -> downloadLibraryFile(event.ino)
       is EditItemEvent.PromptDeleteLibraryFile ->
         _uiState.update { it.copy(pendingDeleteFile = event.file) }
+
       EditItemEvent.DismissDeleteLibraryFile ->
         _uiState.update { it.copy(pendingDeleteFile = null, activeFileActionIno = null) }
+
       EditItemEvent.ConfirmDeleteLibraryFile -> deleteLibraryFile()
       is EditItemEvent.UpdateEpisodeCutoffMillis ->
         _uiState.update {
           it.copy(episodeUpdate = it.episodeUpdate.copy(selectedCutoffMillis = event.value))
         }
+
       is EditItemEvent.UpdateEpisodeLimitInput ->
         _uiState.update { it.copy(episodeUpdate = it.episodeUpdate.copy(limitInput = event.value)) }
+
       EditItemEvent.RunEpisodeUpdateCheck -> runEpisodeUpdateCheck()
     }
   }
@@ -138,8 +165,21 @@ constructor(
   }
 
   private fun runMatchSearch() = viewModelScope.launch {
-    _uiState.update { it.copy(match = it.match.copy(isSearching = true)) }
+    _uiState.update {
+      it.copy(
+        match =
+          when (val match = it.match) {
+            is MatchState.Book -> match.copy(isSearching = true)
+            is MatchState.Podcast -> match.copy(isSearching = true)
+          }
+      )
+    }
     _uiState.value = repository.searchMatches(_uiState.value, _events).normalized()
+  }
+
+  private fun applyPodcastMatchReview() = viewModelScope.launch {
+    _uiState.update { it.copy(isSaving = true) }
+    _uiState.value = repository.applyPodcastMatchReview(_uiState.value, _events).normalized()
   }
 
   private fun runCoverSearch() = viewModelScope.launch {
@@ -159,6 +199,7 @@ constructor(
         _uiState.value = result.state.normalized()
         _events.emit(GenericUiEvent.RequestManagedDownload(result.download))
       }
+
       is EditItemLibraryFileDownloadResult.Failure -> {
         _uiState.value = result.state.normalized()
         _events.emit(GenericUiEvent.ShowErrorSnackbar(result.message))
@@ -192,6 +233,11 @@ sealed interface EditItemEvent {
 
   data class UpdateDetails(val transform: (DetailsForm) -> DetailsForm) : EditItemEvent
 
+  data class UpdateBookMatch(val transform: (MatchState.Book) -> MatchState.Book) : EditItemEvent
+
+  data class UpdatePodcastMatch(val transform: (MatchState.Podcast) -> MatchState.Podcast) :
+    EditItemEvent
+
   data object Save : EditItemEvent
 
   data object QuickMatch : EditItemEvent
@@ -204,15 +250,20 @@ sealed interface EditItemEvent {
 
   data object DeleteCover : EditItemEvent
 
-  data class UpdateMatchProvider(val provider: String) : EditItemEvent
-
-  data class UpdateMatchTitle(val title: String) : EditItemEvent
-
-  data class UpdateMatchAuthor(val author: String) : EditItemEvent
-
   data object RunMatchSearch : EditItemEvent
 
-  data class ApplyMatchResult(val index: Int) : EditItemEvent
+  data class ApplyBookMatchResult(val index: Int) : EditItemEvent
+
+  data class OpenPodcastMatchReview(val index: Int) : EditItemEvent
+
+  data object DismissPodcastMatchReview : EditItemEvent
+
+  data class TogglePodcastMatchField(val field: PodcastMatchField) : EditItemEvent
+
+  data class UpdatePodcastMatchDraft(val transform: (PodcastMatchDraft) -> PodcastMatchDraft) :
+    EditItemEvent
+
+  data object ApplyPodcastMatchReview : EditItemEvent
 
   data class UpdateCoverSearchProvider(val provider: String) : EditItemEvent
 

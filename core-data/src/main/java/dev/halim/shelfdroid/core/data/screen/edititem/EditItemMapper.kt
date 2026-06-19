@@ -62,7 +62,7 @@ internal object EditItemMapper {
               podcastAuthor = metadata.author.orEmpty(),
               rssFeedUrl = metadata.feedUrl.orEmpty(),
               releaseDate = metadata.releaseDate.orEmpty(),
-              itunesId = metadata.itunesId?.toString().orEmpty(),
+              itunesId = metadata.itunesId.orEmpty(),
               podcastType = metadata.type?.ifBlank { DEFAULT_PODCAST_TYPE } ?: DEFAULT_PODCAST_TYPE,
             ),
           chapters = emptyList(),
@@ -179,13 +179,34 @@ internal object EditItemMapper {
       }
 
     return UpdateLibraryItemMediaRequest(
-      metadata = metadata,
+      metadata = metadata.takeUnless { it.isEmpty() },
       tags = delta(original.tags, current.tags),
     )
   }
 }
 
 private const val DEFAULT_PODCAST_TYPE = "episodic"
+
+internal fun UpdateLibraryItemMediaRequest.Metadata.isEmpty(): Boolean =
+  title == null &&
+    subtitle == null &&
+    authors == null &&
+    author == null &&
+    narrators == null &&
+    series == null &&
+    genres == null &&
+    publishedYear == null &&
+    publisher == null &&
+    description == null &&
+    releaseDate == null &&
+    feedUrl == null &&
+    isbn == null &&
+    asin == null &&
+    itunesId == null &&
+    language == null &&
+    explicit == null &&
+    abridged == null &&
+    type == null
 
 private fun formatDuration(seconds: Double): String {
   val totalSeconds = seconds.toLong()

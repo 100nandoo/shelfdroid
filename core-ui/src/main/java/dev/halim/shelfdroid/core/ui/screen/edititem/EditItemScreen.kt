@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.download.ManagedDownload
+import dev.halim.shelfdroid.core.data.screen.edititem.EditItemMediaKind
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.coerceFor
@@ -39,12 +40,13 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults.EDIT_ITEM_PODCAST_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.Defaults.EDIT_ITEM_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.edititem.match.BookMatchTab
+import dev.halim.shelfdroid.core.ui.screen.edititem.match.PodcastMatchTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChaptersTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.CoverTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.DetailsTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.EpisodesTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.FilesTab
-import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.MatchTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ToolsTab
 
 @Composable
@@ -115,7 +117,8 @@ private fun EditItemScreenStateContent(uiState: EditItemUiState, onEvent: (EditI
 private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val currentTab = uiState.currentTab.coerceFor(uiState.mediaKind)
   val tabs = uiState.supportedTabs()
-  val showTopProgress = uiState.isSaving || uiState.episodeUpdate.isRunning
+  val showTopProgress =
+    uiState.isSaving || uiState.episodeUpdate.isRunning || uiState.match.isSearching
 
   Column(modifier = Modifier.fillMaxSize()) {
     if (showTopProgress) {
@@ -134,7 +137,11 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
         EditItemTab.Chapters -> ChaptersTab(uiState)
         EditItemTab.Episodes -> EpisodesTab(uiState, onEvent)
         EditItemTab.Files -> FilesTab(uiState, onEvent)
-        EditItemTab.Match -> MatchTab(uiState, onEvent)
+        EditItemTab.Match ->
+          when (uiState.mediaKind) {
+            EditItemMediaKind.Book -> BookMatchTab(uiState, onEvent)
+            EditItemMediaKind.Podcast -> PodcastMatchTab(uiState, onEvent)
+          }
         EditItemTab.Tools -> ToolsTab(uiState, onEvent)
       }
     }

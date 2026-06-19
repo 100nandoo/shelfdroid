@@ -16,6 +16,8 @@ import dev.halim.shelfdroid.core.data.screen.apikeys.createedit.CreateEditApiKey
 import dev.halim.shelfdroid.core.data.screen.backups.BackupsUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.ChapterRow
 import dev.halim.shelfdroid.core.data.screen.edititem.CoverSearchState
+import dev.halim.shelfdroid.core.data.screen.edititem.DEFAULT_BOOK_MATCH_PROVIDER
+import dev.halim.shelfdroid.core.data.screen.edititem.DEFAULT_PODCAST_MATCH_PROVIDER
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemMediaKind
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
@@ -25,6 +27,7 @@ import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchProvider
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.SeriesEntry
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
@@ -549,6 +552,22 @@ object Defaults {
       ),
     )
 
+  val EDIT_ITEM_PODCAST_MATCH_RESULTS =
+    listOf(
+      PodcastMatchResultRow(
+        cover = BOOK_COVER,
+        title = "Android Developers Backstage",
+        author = "Google",
+        genres = listOf("Technology", "Software"),
+        episodeCount = 212,
+        feedUrl = "https://example.com/feed.xml",
+        itunesId = "123456789",
+        releaseDate = "2026-06-10",
+        explicit = false,
+        description = "Conversations with the Android team.",
+      )
+    )
+
   val EDIT_ITEM_UI_STATE =
     EditItemUiState(
       state = GenericState.Success,
@@ -560,9 +579,9 @@ object Defaults {
       chapters = EDIT_ITEM_CHAPTERS,
       libraryFiles = EDIT_ITEM_FILES,
       match =
-        MatchState(
+        MatchState.Book(
           providers = EDIT_ITEM_MATCH_PROVIDERS,
-          selectedProvider = "google",
+          selectedProvider = DEFAULT_BOOK_MATCH_PROVIDER,
           title = BOOK_TITLE,
           author = BOOK_AUTHOR,
           results = EDIT_ITEM_MATCH_RESULTS,
@@ -607,15 +626,16 @@ object Defaults {
           limitInput = "3",
         ),
       match =
-        MatchState(
-          providers = EDIT_ITEM_MATCH_PROVIDERS,
-          selectedProvider = "google",
-          title = EDIT_ITEM_PODCAST_DETAILS_FORM.title,
-          author = EDIT_ITEM_PODCAST_DETAILS_FORM.podcastAuthor,
+        MatchState.Podcast(
+          providers = listOf(MatchProvider(value = "itunes", text = "Apple Podcasts")),
+          selectedProvider = DEFAULT_PODCAST_MATCH_PROVIDER,
+          searchTerm = EDIT_ITEM_PODCAST_DETAILS_FORM.title,
+          hasSearched = true,
+          results = EDIT_ITEM_PODCAST_MATCH_RESULTS,
         ),
       coverSearch =
         CoverSearchState(
-          providers = EDIT_ITEM_MATCH_PROVIDERS,
+          providers = listOf(MatchProvider(value = "itunes", text = "Apple Podcasts")),
           title = EDIT_ITEM_PODCAST_DETAILS_FORM.title,
           author = EDIT_ITEM_PODCAST_DETAILS_FORM.podcastAuthor,
         ),

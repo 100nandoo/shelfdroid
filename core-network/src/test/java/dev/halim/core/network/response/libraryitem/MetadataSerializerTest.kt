@@ -31,4 +31,22 @@ class MetadataSerializerTest {
     assertEquals("https://example.com/feed.xml", metadata.feedUrl)
     assertEquals("serial", metadata.type)
   }
+
+  @Test
+  fun decodePodcastMetadata_whenItunesIdIsString_parsesNullableInt() {
+    val metadata =
+      json.decodeFromString<Metadata>(
+        """
+        {
+          "title": "Podcast title",
+          "feedUrl": "https://example.com/feed.xml",
+          "itunesId": "785545036"
+        }
+        """
+      )
+
+    assertTrue(metadata is PodcastMetadata)
+    metadata as PodcastMetadata
+    assertEquals("785545036", metadata.itunesId)
+  }
 }

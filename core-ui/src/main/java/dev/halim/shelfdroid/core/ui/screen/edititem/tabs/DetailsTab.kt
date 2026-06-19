@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -36,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemMediaKind
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.CheckboxRow
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -320,14 +320,6 @@ private fun ExplicitRow(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     text = stringResource(R.string.edit_item_explicit),
     onCheckedChange = onCheckedChange,
   )
-}
-
-@Composable
-private fun CheckboxRow(checked: Boolean, text: String, onCheckedChange: (Boolean) -> Unit) {
-  Row(verticalAlignment = Alignment.CenterVertically) {
-    Checkbox(checked = checked, onCheckedChange = onCheckedChange)
-    Text(text)
-  }
 }
 
 @Composable

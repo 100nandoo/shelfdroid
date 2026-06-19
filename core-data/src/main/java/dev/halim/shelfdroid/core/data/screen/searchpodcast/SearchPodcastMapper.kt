@@ -15,7 +15,7 @@ class SearchPodcastMapper @Inject constructor() {
       var id = ""
       val isAdded = podcastInfoList.any { podcastInfo ->
         val found =
-          podcastInfo.itunesId == podcast.id ||
+          podcastInfo.itunesId == podcast.id.toString() ||
             podcastInfo.feedUrl == podcast.feedUrl ||
             (podcastInfo.title == podcast.title && podcastInfo.artist == podcast.artistName)
         id = podcastInfo.id

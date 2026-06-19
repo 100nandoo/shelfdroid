@@ -1,6 +1,6 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
-package dev.halim.shelfdroid.core.ui.screen.edititem.tabs
+package dev.halim.shelfdroid.core.ui.screen.edititem.match
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -31,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -39,8 +39,8 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 
 @Composable
-fun MatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
-  val match = uiState.match
+fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
+  val match = uiState.match as? MatchState.Book ?: return
   Column(
     modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
     verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -48,6 +48,7 @@ fun MatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val selectedText =
       match.providers.find { it.value == match.selectedProvider }?.text ?: match.selectedProvider
+
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
       OutlinedTextField(
         value = selectedText,
@@ -63,23 +64,28 @@ fun MatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
           DropdownMenuItem(
             text = { Text(provider.text) },
             onClick = {
-              onEvent(EditItemEvent.UpdateMatchProvider(provider.value))
+              onEvent(EditItemEvent.UpdateBookMatch { it.copy(selectedProvider = provider.value) })
               expanded = false
             },
           )
         }
       }
     }
+
     OutlinedTextField(
       value = match.title,
-      onValueChange = { onEvent(EditItemEvent.UpdateMatchTitle(it)) },
+      onValueChange = {
+        onEvent(EditItemEvent.UpdateBookMatch { matchState -> matchState.copy(title = it) })
+      },
       label = { Text(stringResource(R.string.edit_item_search_title)) },
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
     )
     OutlinedTextField(
       value = match.author,
-      onValueChange = { onEvent(EditItemEvent.UpdateMatchAuthor(it)) },
+      onValueChange = {
+        onEvent(EditItemEvent.UpdateBookMatch { matchState -> matchState.copy(author = it) })
+      },
       label = { Text(stringResource(R.string.author)) },
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
@@ -91,14 +97,10 @@ fun MatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
       Text(stringResource(R.string.search))
     }
 
-    if (match.isSearching) {
-      CircularProgressIndicator()
-    }
-
     match.results.forEachIndexed { index, result ->
       Card(
         modifier =
-          Modifier.fillMaxWidth().clickable { onEvent(EditItemEvent.ApplyMatchResult(index)) }
+          Modifier.fillMaxWidth().clickable { onEvent(EditItemEvent.ApplyBookMatchResult(index)) }
       ) {
         Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           if (result.cover.isNotBlank()) {
@@ -135,6 +137,6 @@ fun MatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
 
 @ShelfDroidPreview
 @Composable
-private fun MatchTabPreview() {
-  PreviewWrapper { MatchTab(uiState = Defaults.EDIT_ITEM_UI_STATE, onEvent = {}) }
+private fun BookMatchTabPreview() {
+  PreviewWrapper { BookMatchTab(uiState = Defaults.EDIT_ITEM_UI_STATE, onEvent = {}) }
 }

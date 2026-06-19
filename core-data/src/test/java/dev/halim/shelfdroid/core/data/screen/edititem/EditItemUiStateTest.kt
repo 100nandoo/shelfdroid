@@ -6,19 +6,25 @@ import org.junit.Test
 class EditItemUiStateTest {
 
   @Test
-  fun supportedTabs_forPodcast_onlyIncludesApprovedTabs() {
+  fun supportedTabs_forPodcast_includesMatchAndExcludesTools() {
     assertEquals(
-      listOf(EditItemTab.Details, EditItemTab.Cover, EditItemTab.Episodes, EditItemTab.Files),
+      listOf(
+        EditItemTab.Details,
+        EditItemTab.Cover,
+        EditItemTab.Episodes,
+        EditItemTab.Files,
+        EditItemTab.Match,
+      ),
       EditItemMediaKind.Podcast.supportedTabs(),
     )
   }
 
   @Test
-  fun normalized_forPodcastCoercesUnsupportedTabBackToDetails() {
+  fun normalized_forPodcastCoercesUnsupportedToolsTabBackToDetails() {
     val state =
       EditItemUiState(
         mediaKind = EditItemMediaKind.Podcast,
-        currentTab = EditItemTab.Match,
+        currentTab = EditItemTab.Tools,
       )
 
     assertEquals(EditItemTab.Details, state.normalized().currentTab)

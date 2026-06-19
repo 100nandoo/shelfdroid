@@ -49,6 +49,7 @@ import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SetItemCoverResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.TagsResponse
+import dev.halim.core.network.response.UpdateLibraryItemMediaResponse
 import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UserWithMediaProgressDetail
@@ -163,7 +164,7 @@ interface ApiService {
   suspend fun updateItemMedia(
     @Path("itemId") itemId: String,
     @Body request: UpdateLibraryItemMediaRequest,
-  ): Result<Unit>
+  ): Result<UpdateLibraryItemMediaResponse>
 
   @POST("/api/items/{itemId}/match")
   suspend fun matchItem(
@@ -280,7 +281,10 @@ interface ApiService {
 
   // search
   @GET("/api/search/podcast")
-  suspend fun searchPodcast(@Query("term") term: String): Result<List<SearchPodcast>>
+  suspend fun searchPodcast(
+    @Query("term") term: String,
+    @Query("provider") provider: String? = null,
+  ): Result<List<SearchPodcast>>
 
   // users
   @POST("/api/users")
