@@ -1,0 +1,5 @@
+- Durable offline downloads for books and podcasts
+- Offline recovery after app-data clear
+- Timer button in the media notification
+- Better chapter display and playback settings
+- Edit item, backup, playback, and download fixes
