@@ -56,6 +56,11 @@ The F-Droid listing icon is a byte-for-byte copy of the repo's 512x512 marketing
 
 The five F-Droid phone screenshots are direct copies of git-tracked Compose screenshot-test references. They were added to `fastlane` in commit `8cb7d531` and were not edited after copy.
 
+The metadata tree also includes empty tablet screenshot directories for future F-Droid listing assets:
+- `fastlane/metadata/android/en-US/images/sevenInchScreenshots/`
+- `fastlane/metadata/android/en-US/images/tenInchScreenshots/`
+- no tablet screenshots are checked in yet, so there are no provenance entries or hashes for those directories
+
 | Listing asset | Direct source file | Screenshot source | SHA-256 |
 | --- | --- | --- | --- |
 | `fastlane/metadata/android/en-US/images/phoneScreenshots/01-home.png` | `core-ui/src/screenshotTestDebug/reference/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviewsKt/HomeScreenGridScreenshot_Light_4a9950f2_0.png` | `HomeScreenGridScreenshot()` in [`core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt`](../../core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt) | `c0089f78f67e0fc0bee4005ae97b2159afda8413a9257755dd64455999a073b4` |
@@ -86,6 +91,8 @@ Refresh the checked-in screenshot references after an intentional UI change:
 ```
 
 If the F-Droid listing screenshots are refreshed, copy the updated light-mode reference PNGs from `core-ui/src/screenshotTestDebug/reference/.../CoreUiScreenshotTestPreviewsKt/` into `fastlane/metadata/android/en-US/images/phoneScreenshots/` without additional edits, then update the hashes in this file.
+
+If tablet listing screenshots are added later, place them in `fastlane/metadata/android/en-US/images/sevenInchScreenshots/` or `fastlane/metadata/android/en-US/images/tenInchScreenshots/` as appropriate and add matching provenance entries and hashes here.
 
 ## Current conclusion
 
