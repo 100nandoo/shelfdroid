@@ -112,6 +112,10 @@ More documentation will be added in the future.
 
 - [Compose Preview Policy](./ui-previews.md)
 
+## 📦 Distribution
+
+- [F-Droid Asset Provenance](./fdroid/asset-provenance.md)
+
 ## 🧱 Architecture
 
 - [Download Module](./architecture/download-module.md)
