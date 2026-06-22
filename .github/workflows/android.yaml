@@ -83,10 +83,19 @@ jobs:
         run: |
           mv ${{ steps.sign_app.outputs.signedFile }} ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk
 
-      - name: Upload a Build Artifact
+      - name: Upload tagged build artifact
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ startsWith(github.ref, 'refs/tags/') && format('shelfdroid-{0}.apk', github.ref_name) || format('shelfdroid-{0}.apk', github.sha) }}
+          name: shelfdroid-${{ github.ref_name }}.apk
+          path: |
+            ./app/build/outputs/apk/release/
+
+      - name: Upload workflow dispatch artifact
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: shelfdroid-${{ github.sha }}.apk
           path: |
             ./app/build/outputs/apk/release/
 
