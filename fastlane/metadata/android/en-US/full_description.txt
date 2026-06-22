@@ -1,13 +1,14 @@
 ShelfDroid is a third-party Android client for self-hosted Audiobookshelf servers.
 
-Use it to browse your audiobook and podcast libraries, stream playback from your server, and keep listening offline on your Android device.
+Use it to browse your audiobook and podcast libraries, stream playback from your server, keep listening offline on your Android device, and handle common server management tasks from the same app.
 
 Features
 - Browse audiobook and podcast libraries from your Audiobookshelf server
 - Stream audiobooks and podcast episodes with synced progress
 - Download books and episodes for durable offline playback
 - Use chapters, bookmarks, sleep timer, playback speed, and player controls
-- Manage backups, API keys, users, and server settings when your account has permission
+- Manage backups, API keys, users, logs, and server settings when your account has permission
+- Review listening sessions and other admin screens available to your account
 - Customize sorting, display preferences, and playback settings
 
 Requirements

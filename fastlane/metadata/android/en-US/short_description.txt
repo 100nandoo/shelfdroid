@@ -1,1 +1,1 @@
-Android client for Audiobookshelf with offline playback and downloads
+Audiobookshelf Android client with playback, downloads, and server management
