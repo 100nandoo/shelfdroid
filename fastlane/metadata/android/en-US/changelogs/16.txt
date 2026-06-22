@@ -1,0 +1,3 @@
+- First f-droid release
+- Edit podcast functionality
+- Add episode filter functionality
