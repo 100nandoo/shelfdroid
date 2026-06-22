@@ -115,6 +115,7 @@ More documentation will be added in the future.
 ## 📦 Distribution
 
 - [F-Droid Asset Provenance](./fdroid/asset-provenance.md)
+- [F-Droid Release Procedure](./fdroid/release-procedure.md)
 
 ## 🧱 Architecture
 
