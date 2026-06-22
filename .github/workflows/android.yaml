@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   build:
@@ -17,7 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: main
           fetch-depth: 0
           persist-credentials: false
 
@@ -40,24 +38,33 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      - name: Increment versionCode and set versionName in libs.versions.toml
+      - name: Verify tag matches app version
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-          chmod +x ./update_version.sh
-          sh ./update_version.sh ${{ github.ref_name }}
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 🎊🎉 Release version ${{ github.ref_name }} 🎉🎊
-          branch: release/${{ github.ref_name }}
-          title: 🚀 Release ${{ github.ref_name }}
-          body: |
-            Automated version bump for release ${{ github.ref_name }}.
-          base: main
+          expected_version_name=$(grep '^VERSION_NAME=' app/version.properties | cut -d'=' -f2)
+          if [ "$expected_version_name" != "${{ github.ref_name }}" ]; then
+            echo "Tag '${{ github.ref_name }}' does not match VERSION_NAME '$expected_version_name'."
+            exit 1
+          fi
 
       - name: Build with Gradle
         run: ./gradlew :app:assembleRelease
+
+      - name: Verify release artifact version metadata
+        run: |
+          expected_version_name=$(grep '^VERSION_NAME=' app/version.properties | cut -d'=' -f2)
+          expected_version_code=$(grep '^VERSION_CODE=' app/version.properties | cut -d'=' -f2)
+          output_metadata=app/build/outputs/apk/release/output-metadata.json
+          actual_version_name=$(perl -0ne 'print $1 if /"versionName"\s*:\s*"([^"]+)"/' "$output_metadata")
+          actual_version_code=$(perl -0ne 'print $1 if /"versionCode"\s*:\s*([0-9]+)/' "$output_metadata")
+          if [ "$actual_version_name" != "$expected_version_name" ]; then
+            echo "Release artifact versionName '$actual_version_name' does not match '$expected_version_name'."
+            exit 1
+          fi
+          if [ "$actual_version_code" != "$expected_version_code" ]; then
+            echo "Release artifact versionCode '$actual_version_code' does not match '$expected_version_code'."
+            exit 1
+          fi
 
       - name: Sign app APK
         uses: ilharp/sign-android-release@v2
@@ -72,17 +79,19 @@ jobs:
         run: ls -al ./app/build/outputs/apk/release/
 
       - name: Rename APK with tag name
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           mv ${{ steps.sign_app.outputs.signedFile }} ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: shelfdroid-${{ github.ref_name }}.apk
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('shelfdroid-{0}.apk', github.ref_name) || format('shelfdroid-{0}.apk', github.sha) }}
           path: |
             ./app/build/outputs/apk/release/
 
       - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
         with:
           files: ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk

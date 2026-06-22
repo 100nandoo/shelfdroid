@@ -2,6 +2,22 @@ import java.util.Properties
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+val appVersionPropertiesFile = rootProject.file("app/version.properties")
+val appVersionProperties =
+  Properties().apply {
+    check(appVersionPropertiesFile.exists()) {
+      "Missing app version properties file: ${appVersionPropertiesFile.path}"
+    }
+    appVersionPropertiesFile.inputStream().use(::load)
+  }
+
+fun Properties.requiredInt(name: String): Int =
+  getProperty(name)?.toIntOrNull() ?: error("Missing integer property '$name' in app/version.properties")
+
+fun Properties.requiredString(name: String): String =
+  getProperty(name)?.takeIf(String::isNotBlank)
+    ?: error("Missing string property '$name' in app/version.properties")
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.hilt.gradle)
@@ -37,8 +53,8 @@ android {
     applicationId = libs.versions.namespace.get()
     minSdk = libs.versions.minSdk.get().toInt()
     targetSdk = libs.versions.targetSdk.get().toInt()
-    versionCode = libs.versions.versionCode.get().toInt()
-    versionName = libs.versions.versionName.get()
+    versionCode = appVersionProperties.requiredInt("VERSION_CODE")
+    versionName = appVersionProperties.requiredString("VERSION_NAME")
 
     vectorDrawables { useSupportLibrary = true }
     buildConfigField("String", "MEDIA3_VERSION", "\"${libs.versions.androidxMedia3.get()}\"")
