@@ -54,27 +54,47 @@ The F-Droid listing icon is a byte-for-byte copy of the repo's 512x512 marketing
 
 ## Listing screenshots
 
-The five F-Droid phone screenshots are direct copies of git-tracked Compose screenshot-test references. They were added to `fastlane` in commit `8cb7d531` and were not edited after copy.
+The current listing screenshot set is a repo-tracked collection of listing-only PNGs. These files are not packaged in the APK.
 
-The metadata tree also includes empty tablet screenshot directories for future F-Droid listing assets:
-- `fastlane/metadata/android/en-US/images/sevenInchScreenshots/`
-- `fastlane/metadata/android/en-US/images/tenInchScreenshots/`
-- no tablet screenshots are checked in yet, so there are no provenance entries or hashes for those directories
+Commit history:
+- phone screenshots were refreshed in `6f878e34` (`docs(fdroid): update descripton and screenshots`)
+- tablet screenshots were added in `3005b66d` (`docs(fdroid): add tablet screenshots`)
 
-| Listing asset | Direct source file | Screenshot source | SHA-256 |
-| --- | --- | --- | --- |
-| `fastlane/metadata/android/en-US/images/phoneScreenshots/01-home.png` | `core-ui/src/screenshotTestDebug/reference/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviewsKt/HomeScreenGridScreenshot_Light_4a9950f2_0.png` | `HomeScreenGridScreenshot()` in [`core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt`](../../core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt) | `c0089f78f67e0fc0bee4005ae97b2159afda8413a9257755dd64455999a073b4` |
-| `fastlane/metadata/android/en-US/images/phoneScreenshots/02-book.png` | `core-ui/src/screenshotTestDebug/reference/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviewsKt/BookScreenScreenshot_Light_4a9950f2_0.png` | `BookScreenScreenshot()` in [`core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt`](../../core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt) | `d0c88605627cc10c4e672e0de4256e1e7ff0c3a057aa6ba5bd60eec51e5c92df` |
-| `fastlane/metadata/android/en-US/images/phoneScreenshots/03-podcast.png` | `core-ui/src/screenshotTestDebug/reference/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviewsKt/PodcastScreenScreenshot_Light_4a9950f2_0.png` | `PodcastScreenScreenshot()` in [`core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt`](../../core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt) | `1ec1be5523f74af2005d4a262874fb65bf5bddcc60753ea48dc84013498dca7c` |
-| `fastlane/metadata/android/en-US/images/phoneScreenshots/04-episode.png` | `core-ui/src/screenshotTestDebug/reference/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviewsKt/EpisodeScreenScreenshot_Light_4a9950f2_0.png` | `EpisodeScreenScreenshot()` in [`core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt`](../../core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt) | `8b37393aacb56586c27e4572eac55fc6085f473713c1aa8411f4c11275052bbb` |
-| `fastlane/metadata/android/en-US/images/phoneScreenshots/05-player.png` | `core-ui/src/screenshotTestDebug/reference/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviewsKt/BigPlayerScreenshot_Light_4a9950f2_0.png` | `BigPlayerScreenshot()` in [`core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt`](../../core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt) | `26769b76406a9443ca7d523c7d4257fec00dd208044d2c3d117859e149673fa8` |
+ShelfDroid also keeps project-owned preview fixture data in [`core-ui/src/main/java/dev/halim/shelfdroid/core/ui/preview/Defaults.kt`](../../core-ui/src/main/java/dev/halim/shelfdroid/core/ui/preview/Defaults.kt) and Compose screenshot-test references in [`core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt`](../../core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt). Those remain useful when regenerating listing assets, but the PNGs under `fastlane/metadata/android/en-US/images/` are the actual review targets and should be treated as curated listing exports rather than byte-for-byte copies of the screenshot-test references.
+
+Phone listing assets:
+
+| Asset | UI area | Dimensions | SHA-256 | Added in commit |
+| --- | --- | --- | --- | --- |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/01-home-book.png` | home, books | `1080x2400` | `0864b5002116ded58c643d4c33d13c549ba6e5ff3bc5c6ad5a1a37abb129b9bd` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-podcast.png` | home, podcasts | `1080x2400` | `c4a5b11dace24967aac0ccdf7f149b7347d9a23b35175ecb2e18a2f7490651fc` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/03-book.png` | book detail | `1080x2400` | `60441615131fdd0375291ca0b1d9cfc0e83850df8cdb2041b4d3ffa2abb7bddc` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/04-podcast.png` | podcast detail | `1080x2400` | `41720ba818f5d6669d848e1bfcb6070508d82547cd75f35b66a9cc9eba6113ee` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/05-episode.png` | episode detail | `1080x2400` | `6d65f0babaf3f95bf9b4f139d0df3594c5c8ec6fde9c9e3cba8cf94a8a712e6b` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/06-player-book.png` | book player | `1080x2400` | `a8dd89c1ec959720e3e06814bdfddd7428517a2c0530929f4079b8c9b2ce882a` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/07-player-podcast.png` | podcast player | `1080x2400` | `bc98c8e8f734030da6e1e03060634bfd2b3b50f7c4c5a3e64b6fe286b0706d88` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/08-settings.png` | settings | `1080x2400` | `4b08f91e02edd077777ea23237104772c4b5fbe9ce0f06280f43d2640d486abd` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/09-backups.png` | backups | `1080x2400` | `1dd6ecc05fa2806ceb7dbe56a5082532055ed5d40198fd076b89c6802b8051d9` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/10-server-settings.png` | server settings | `1080x2400` | `d2ffacbb8f9d38ad4721628e7f5741de105cf365782c7f054cd9e155b803b86c` | `6f878e34` |
+| `fastlane/metadata/android/en-US/images/phoneScreenshots/11-edit-book.png` | edit book | `1080x2400` | `ffa670dbb6168d2c1909e69953b2d432f1de7cf83ba8c39fa4fade8214976a2f` | `6f878e34` |
+
+Seven-inch tablet listing assets:
+
+| Asset | UI area | Dimensions | SHA-256 | Added in commit |
+| --- | --- | --- | --- | --- |
+| `fastlane/metadata/android/en-US/images/sevenInchScreenshots/01-home-podcast.png` | home, podcasts | `1920x1200` | `b743f0a97c37c8666d9dc0f118338469cbf5f75ef6dd93b638deb85370e6b2f3` | `3005b66d` |
+| `fastlane/metadata/android/en-US/images/sevenInchScreenshots/02-settings.png` | settings | `1920x1200` | `6bf1de94c2f6db5383d380dfbfbfba626aa4e4f34d04ba4d2f765c97bc6b0d6b` | `3005b66d` |
+
+Ten-inch tablet listing assets:
+
+| Asset | UI area | Dimensions | SHA-256 | Added in commit |
+| --- | --- | --- | --- | --- |
+| `fastlane/metadata/android/en-US/images/tenInchScreenshots/01-home-book.png` | home, books | `1200x1920` | `e0e015a9e088c0a4348ab4c955da654c7a70c61a48a40dbcadc9350e58a0f7cb` | `3005b66d` |
+| `fastlane/metadata/android/en-US/images/tenInchScreenshots/02-book.png` | book detail | `1200x1920` | `0acbebcb2d8e59c7170074369ae4a963fa26098e2e57bdd88f2a2ac1c4d7fad6` | `3005b66d` |
 
 Screenshot safety notes:
-- all five listing screenshots are `1440x3120`
-- the direct sources live under `core-ui/src/screenshotTestDebug/reference/`, so reviewers can diff or regenerate them from source
-- the generating previews are declared in [`core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt`](../../core-ui/src/screenshotTest/kotlin/dev/halim/shelfdroid/core/ui/screenshot/CoreUiScreenshotTestPreviews.kt)
-- the preview titles, descriptions, and other visible copy for these screenshots are project-owned placeholder fixture data defined in [`core-ui/src/main/java/dev/halim/shelfdroid/core/ui/preview/Defaults.kt`](../../core-ui/src/main/java/dev/halim/shelfdroid/core/ui/preview/Defaults.kt)
-- preview defaults intentionally keep `IMAGE_URL = ""` and `BOOK_COVER = ""` in [`core-ui/src/main/java/dev/halim/shelfdroid/core/ui/preview/Defaults.kt`](../../core-ui/src/main/java/dev/halim/shelfdroid/core/ui/preview/Defaults.kt), so the screenshots render ShelfDroid's own fallback cover UI instead of bundling third-party cover artwork
+- preview defaults intentionally keep `IMAGE_URL = ""` and `BOOK_COVER = ""` in [`core-ui/src/main/java/dev/halim/shelfdroid/core/ui/preview/Defaults.kt`](../../core-ui/src/main/java/dev/halim/shelfdroid/core/ui/preview/Defaults.kt), so preview-derived listing assets render ShelfDroid's own fallback cover UI instead of third-party cover artwork
+- the fastlane PNGs are the authoritative listing assets for F-Droid review, even when a corresponding Compose preview or screenshot-test reference also exists elsewhere in the repo
 
 ## How to re-verify or refresh
 
@@ -92,11 +112,11 @@ Refresh the checked-in screenshot references after an intentional UI change:
 
 If the F-Droid listing screenshots are refreshed, copy the updated light-mode reference PNGs from `core-ui/src/screenshotTestDebug/reference/.../CoreUiScreenshotTestPreviewsKt/` into `fastlane/metadata/android/en-US/images/phoneScreenshots/` without additional edits, then update the hashes in this file.
 
-If tablet listing screenshots are added later, place them in `fastlane/metadata/android/en-US/images/sevenInchScreenshots/` or `fastlane/metadata/android/en-US/images/tenInchScreenshots/` as appropriate and add matching provenance entries and hashes here.
+If you refresh a screenshot that does not come directly from the current screenshot-test reference set, capture it from a build seeded only with project-owned or placeholder data, then update the dimensions and hashes recorded here.
 
 ## Current conclusion
 
 For the current release line, no bundled font or F-Droid listing asset needs replacement:
 - bundled fonts are traceable to open-licensed upstream font projects
 - launcher and listing icon assets are project-authored originals
-- listing screenshots are reproducible repo-owned outputs that use project-owned placeholder copy and do not embed third-party cover artwork
+- listing screenshots are repo-tracked review assets with pinned hashes and documented commit provenance

@@ -68,6 +68,7 @@ The GitHub Release APK is the developer-signed upstream artifact line that exist
 9. Prepare the F-Droid submission from the same source tag.
    - submit the upstream tag
    - point review notes at the GitHub Release asset for that same tag
+   - start from [`dev.halim.shelfdroid.yml.example`](./dev.halim.shelfdroid.yml.example) when opening the `fdroiddata` merge request
    - keep `fastlane/metadata/android/` and [`asset-provenance.md`](./asset-provenance.md) aligned with the shipped release
 
 ## Verified path
@@ -76,7 +77,9 @@ The current release path has been verified against the GitHub APK continuity tar
 
 - the GitHub workflow builds from the exact release tag and publishes a signed GitHub Release APK
 - the local Gradle release signing lookup now resolves the developer keystore from the current workspace layout or an explicit override
-- on 2026-06-22, the locally signed release APK certificate matched the published `0.4.2` GitHub Release APK certificate
+- `.github/workflows/android.yaml` now pins `ilharp/sign-android-release@v2` to Android build-tools `34.0.0`, because F-Droid's reproducible-build docs warn that `apksigner` from build-tools `35+` can make upstream-signed APK verification fail
+- on 2026-06-22, a clean rebuild of tag `0.4.2` from a detached worktree succeeded with `ANDROID_HOME` and `ANDROID_SDK_ROOT` exported, so the ignored local `local.properties` file is not a hard requirement for clean CI-style builds
+- on 2026-06-22, that clean `0.4.2` rebuild produced `app-release-unsigned.apk` whose extracted non-`META-INF` file set, per-file SHA-256 hashes, and ZIP entry order matched the published `shelfdroid-0.4.2.apk`; the only extracted-content differences were the expected `META-INF` signature files in the published APK
 
 ## Crash export fallback
 
