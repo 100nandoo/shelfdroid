@@ -98,6 +98,20 @@ _Avoid_: Preferences, app settings
 An administrative action that asks the Audiobookshelf server to look for new **Episodes** for a **Podcast**, using an **Episode update cutoff** and a requested maximum number of new episodes to download.
 _Avoid_: Add episode, refresh feed, sync podcast
 
+### Distribution
+
+**F-Droid main repository**:
+The curated public F-Droid app repository served from `f-droid.org`, where ShelfDroid can be listed for general discovery and installation.
+_Avoid_: Custom repo, private F-Droid
+
+**Upstream release**:
+An official ShelfDroid release where the git tag points at the exact source used to produce the published app artifact.
+_Avoid_: Post-tag build, release branch artifact
+
+**Reproducible release**:
+An **Upstream release** whose published APK can be rebuilt from the tagged source in a matching environment and verified as the same release for distribution trust.
+_Avoid_: Best-effort release, unverifiable build
+
 ## Relationships
 
 - An **Audiobookshelf server** contains one or more **Libraries**
@@ -116,6 +130,8 @@ _Avoid_: Add episode, refresh feed, sync podcast
 - A **Backup** belongs to the **Audiobookshelf server**, not to a specific **Library**
 - An **API key** belongs to exactly one **User**
 - **Server settings** belong to the **Audiobookshelf server**
+- ShelfDroid may be distributed through the **F-Droid main repository**
+- Every **Reproducible release** is also an **Upstream release**
 
 ## Example dialogue
 
@@ -135,3 +151,4 @@ _Avoid_: Add episode, refresh feed, sync podcast
 - "current playback" and **Open session** are distinct; **Current playback** is local player state inside ShelfDroid, while an **Open session** is server-tracked.
 - "track", "chapter", and "episode" are distinct; a **Track** is a file unit for books, a **Chapter** is a navigation segment in a book, and an **Episode** belongs to a podcast.
 - "download" and **Library file** are not the same thing; a **Library file** exists on the server, while a **Download** is a local device copy or downloaded server artifact.
+- "F-Droid release" is too vague in this repo; say **F-Droid main repository** when discussing the curated public catalog, and say **Reproducible release** when discussing release provenance.
