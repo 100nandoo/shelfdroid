@@ -47,6 +47,7 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.CoverTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.DetailsTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.EpisodesTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.FilesTab
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ScheduleTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ToolsTab
 
 @Composable
@@ -142,6 +143,7 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
             EditItemMediaKind.Book -> BookMatchTab(uiState, onEvent)
             EditItemMediaKind.Podcast -> PodcastMatchTab(uiState, onEvent)
           }
+        EditItemTab.Schedule -> ScheduleTab(uiState, onEvent)
         EditItemTab.Tools -> ToolsTab(uiState, onEvent)
       }
     }

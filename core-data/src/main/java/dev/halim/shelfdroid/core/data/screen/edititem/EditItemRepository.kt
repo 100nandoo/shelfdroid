@@ -6,6 +6,7 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CoverFromUrlRequest
 import dev.halim.core.network.request.MatchLibraryItemRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
+import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.MatchItemResult
 import dev.halim.core.network.response.SearchBookMatchResponse
@@ -39,6 +40,12 @@ constructor(
       },
       reloadItem = { itemId -> api.item(itemId) },
       mergeUpdated = ::mergeUpdated,
+      updateCachedItem = libraryItemRepo::updateItem,
+    )
+  private val scheduleSaveRunner =
+    EditItemScheduleSaveRunner(
+      validateCron = { expression -> api.validateCron(ValidateCronRequest(expression)) },
+      updateSchedule = api::updateItemMedia,
       updateCachedItem = libraryItemRepo::updateItem,
     )
 
@@ -97,6 +104,8 @@ constructor(
       webBaseUrl = "https://${DataStoreManager.BASE_URL}",
       details = details,
       originalDetails = details,
+      schedule = mappedMedia.schedule,
+      originalSchedule = mappedMedia.schedule,
       chapters = mappedMedia.chapters,
       episodes = mappedMedia.episodes,
       episodeUpdate = mappedMedia.episodeUpdate,
@@ -142,6 +151,15 @@ constructor(
     libraryItemRepo.updateItem(updated)
     events.emit(GenericUiEvent.ShowSuccessSnackbar())
     return mergeUpdated(state, updated).copy(isSaving = false)
+  }
+
+  suspend fun saveSchedule(
+    state: EditItemUiState,
+    events: MutableSharedFlow<GenericUiEvent>,
+  ): EditItemUiState {
+    val result = scheduleSaveRunner.run(state)
+    result.events.forEach { events.emit(it) }
+    return result.state
   }
 
   private fun buildUpdateRequest(

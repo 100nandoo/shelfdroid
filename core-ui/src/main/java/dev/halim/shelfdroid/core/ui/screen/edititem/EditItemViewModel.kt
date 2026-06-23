@@ -78,6 +78,7 @@ constructor(
         _uiState.update { repository.updatePodcastMatch(it, event.transform) }
 
       EditItemEvent.Save -> save()
+      EditItemEvent.SaveSchedule -> saveSchedule()
       EditItemEvent.QuickMatch -> quickMatch()
       EditItemEvent.ReScan -> reScan()
       is EditItemEvent.UploadCover -> uploadCover(event.uri, event.contentResolver)
@@ -128,6 +129,38 @@ constructor(
       is EditItemEvent.UpdateEpisodeLimitInput ->
         _uiState.update { it.copy(episodeUpdate = it.episodeUpdate.copy(limitInput = event.value)) }
 
+      is EditItemEvent.UpdateScheduleEnabled ->
+        _uiState.update {
+          it.copy(
+            schedule = it.schedule.copy(autoDownloadEpisodes = event.value),
+            scheduleCronError = null,
+          )
+        }
+
+      is EditItemEvent.UpdateScheduleCronExpression ->
+        _uiState.update {
+          it.copy(
+            schedule = it.schedule.copy(cronExpression = event.value),
+            scheduleCronError = null,
+          )
+        }
+
+      is EditItemEvent.UpdateScheduleMaxEpisodesToKeepInput ->
+        _uiState.update {
+          it.copy(
+            schedule = it.schedule.copy(maxEpisodesToKeepInput = event.value),
+            scheduleCronError = null,
+          )
+        }
+
+      is EditItemEvent.UpdateScheduleMaxNewEpisodesToDownloadInput ->
+        _uiState.update {
+          it.copy(
+            schedule = it.schedule.copy(maxNewEpisodesToDownloadInput = event.value),
+            scheduleCronError = null,
+          )
+        }
+
       EditItemEvent.RunEpisodeUpdateCheck -> runEpisodeUpdateCheck()
     }
   }
@@ -136,6 +169,11 @@ constructor(
     _uiState.update { it.copy(isSaving = true) }
     val result = repository.save(_uiState.value, _events).normalized()
     _uiState.value = result
+  }
+
+  private fun saveSchedule() = viewModelScope.launch {
+    _uiState.update { it.copy(isSaving = true) }
+    _uiState.value = repository.saveSchedule(_uiState.value, _events).normalized()
   }
 
   private fun quickMatch() = viewModelScope.launch {
@@ -286,6 +324,16 @@ sealed interface EditItemEvent {
   data class UpdateEpisodeCutoffMillis(val value: Long) : EditItemEvent
 
   data class UpdateEpisodeLimitInput(val value: String) : EditItemEvent
+
+  data class UpdateScheduleEnabled(val value: Boolean) : EditItemEvent
+
+  data class UpdateScheduleCronExpression(val value: String) : EditItemEvent
+
+  data class UpdateScheduleMaxEpisodesToKeepInput(val value: String) : EditItemEvent
+
+  data class UpdateScheduleMaxNewEpisodesToDownloadInput(val value: String) : EditItemEvent
+
+  data object SaveSchedule : EditItemEvent
 
   data object RunEpisodeUpdateCheck : EditItemEvent
 }

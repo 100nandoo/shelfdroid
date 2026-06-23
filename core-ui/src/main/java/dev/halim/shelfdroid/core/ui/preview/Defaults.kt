@@ -27,6 +27,7 @@ import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchProvider
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleForm
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.SeriesEntry
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
@@ -564,6 +565,7 @@ object Defaults {
       coverUrl = BOOK_COVER,
       webBaseUrl = "http://localhost:13378",
       details = EDIT_ITEM_DETAILS_FORM,
+      originalDetails = EDIT_ITEM_DETAILS_FORM,
       chapters = EDIT_ITEM_CHAPTERS,
       libraryFiles = EDIT_ITEM_FILES,
       match =
@@ -590,6 +592,21 @@ object Defaults {
       coverUrl = BOOK_COVER,
       webBaseUrl = "http://localhost:13378",
       details = EDIT_ITEM_PODCAST_DETAILS_FORM,
+      originalDetails = EDIT_ITEM_PODCAST_DETAILS_FORM,
+      schedule =
+        PodcastScheduleForm(
+          autoDownloadEpisodes = true,
+          cronExpression = "15 23 * * *",
+          maxEpisodesToKeepInput = "0",
+          maxNewEpisodesToDownloadInput = "3",
+        ),
+      originalSchedule =
+        PodcastScheduleForm(
+          autoDownloadEpisodes = true,
+          cronExpression = "15 23 * * *",
+          maxEpisodesToKeepInput = "0",
+          maxNewEpisodesToDownloadInput = "3",
+        ),
       episodes =
         listOf(
           EpisodeRow(

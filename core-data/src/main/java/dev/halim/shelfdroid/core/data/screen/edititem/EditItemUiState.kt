@@ -13,6 +13,9 @@ data class EditItemUiState(
   val currentTab: EditItemTab = EditItemTab.Details,
   val details: DetailsForm = DetailsForm(),
   val originalDetails: DetailsForm = DetailsForm(),
+  val schedule: PodcastScheduleForm = PodcastScheduleForm(),
+  val originalSchedule: PodcastScheduleForm = PodcastScheduleForm(),
+  val scheduleCronError: String? = null,
   val chapters: List<ChapterRow> = emptyList(),
   val episodes: List<EpisodeRow> = emptyList(),
   val episodeUpdate: EpisodeUpdateState = EpisodeUpdateState(),
@@ -56,6 +59,13 @@ data class EpisodeUpdateState(
   val isRunning: Boolean = false,
 )
 
+data class PodcastScheduleForm(
+  val autoDownloadEpisodes: Boolean = false,
+  val cronExpression: String = "",
+  val maxEpisodesToKeepInput: String = "0",
+  val maxNewEpisodesToDownloadInput: String = "0",
+)
+
 data class LibraryFileRow(
   val ino: String,
   val path: String,
@@ -94,6 +104,7 @@ enum class EditItemTab {
   Episodes,
   Files,
   Match,
+  Schedule,
   Tools,
 }
 
@@ -123,6 +134,7 @@ fun EditItemMediaKind.supportedTabs(): List<EditItemTab> =
         EditItemTab.Episodes,
         EditItemTab.Files,
         EditItemTab.Match,
+        EditItemTab.Schedule,
       )
   }
 
@@ -212,3 +224,26 @@ data class MatchProvider(val value: String, val text: String)
 data class SeriesEntry(val name: String, val sequence: String = "")
 
 fun EditItemUiState.displayCoverUrl(): String = pendingCoverUrl ?: coverUrl
+
+fun EditItemUiState.canConfigureSchedule(): Boolean =
+  mediaKind == EditItemMediaKind.Podcast &&
+    (originalDetails.rssFeedUrl.isNotBlank() || originalSchedule.autoDownloadEpisodes)
+
+fun EditItemUiState.hasScheduleChanges(): Boolean = schedule.asComparable() != originalSchedule.asComparable()
+
+private fun PodcastScheduleForm.asComparable() =
+  ComparablePodcastSchedule(
+    autoDownloadEpisodes = autoDownloadEpisodes,
+    cronExpression = cronExpression.takeIf { autoDownloadEpisodes }?.trim(),
+    maxEpisodesToKeep = normalizedNonNegativeInt(maxEpisodesToKeepInput),
+    maxNewEpisodesToDownload = normalizedNonNegativeInt(maxNewEpisodesToDownloadInput),
+  )
+
+internal fun normalizedNonNegativeInt(input: String): Int = input.trim().toIntOrNull()?.takeIf { it >= 0 } ?: 0
+
+private data class ComparablePodcastSchedule(
+  val autoDownloadEpisodes: Boolean,
+  val cronExpression: String?,
+  val maxEpisodesToKeep: Int,
+  val maxNewEpisodesToDownload: Int,
+)

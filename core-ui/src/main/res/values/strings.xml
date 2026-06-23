@@ -398,6 +398,16 @@
     <string name="edit_item_episode_limit_hint">0 allows all new episodes</string>
     <string name="edit_item_check_download_new_episodes">Check &amp; Download New Episodes</string>
     <string name="edit_item_checking_episodes">Checking for new episodes…</string>
+    <string name="edit_item_schedule_enable">Enable auto-download</string>
+    <string name="edit_item_schedule_max_episodes_to_keep">Max # of episodes to keep</string>
+    <string name="edit_item_schedule_max_new_episodes">Max # of new episodes to download per check</string>
+    <string name="edit_item_schedule_limit_hint">0 for unlimited</string>
+    <string name="edit_item_schedule_cron_expression">Cron expression</string>
+    <string name="edit_item_schedule_cron_hint">Cron expression (e.g. 15 23 * * *)</string>
+    <string name="edit_item_schedule_disabled_hint">Enable auto-download to edit the recurring schedule.</string>
+    <string name="edit_item_schedule_missing_rss_title">RSS feed required</string>
+    <string name="edit_item_schedule_missing_rss_message">Save an RSS feed in Details before configuring a podcast auto-download schedule.</string>
+    <string name="edit_item_schedule_save">Save schedule</string>
     <string name="edit_item_explicit">Explicit</string>
     <string name="edit_item_abridged">Abridged</string>
     <string name="edit_item_quick_match">Quick Match</string>

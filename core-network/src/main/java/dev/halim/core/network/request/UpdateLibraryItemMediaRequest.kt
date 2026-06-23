@@ -9,6 +9,10 @@ data class UpdateLibraryItemMediaRequest(
   @SerialName("tags") val tags: List<String>? = null,
   @SerialName("url") val url: String? = null,
   @SerialName("lastEpisodeCheck") val lastEpisodeCheck: Long? = null,
+  @SerialName("autoDownloadEpisodes") val autoDownloadEpisodes: Boolean? = null,
+  @SerialName("autoDownloadSchedule") val autoDownloadSchedule: String? = null,
+  @SerialName("maxEpisodesToKeep") val maxEpisodesToKeep: Int? = null,
+  @SerialName("maxNewEpisodesToDownload") val maxNewEpisodesToDownload: Int? = null,
 ) {
   @Serializable
   data class Metadata(
