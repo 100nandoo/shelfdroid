@@ -15,6 +15,8 @@ data class EditItemUiState(
   val originalDetails: DetailsForm = DetailsForm(),
   val schedule: PodcastScheduleForm = PodcastScheduleForm(),
   val originalSchedule: PodcastScheduleForm = PodcastScheduleForm(),
+  val scheduleMode: PodcastScheduleMode = PodcastScheduleMode.Advanced,
+  val simpleScheduleBuilder: PodcastScheduleSimpleBuilder = PodcastScheduleSimpleBuilder(),
   val scheduleCronError: String? = null,
   val chapters: List<ChapterRow> = emptyList(),
   val episodes: List<EpisodeRow> = emptyList(),

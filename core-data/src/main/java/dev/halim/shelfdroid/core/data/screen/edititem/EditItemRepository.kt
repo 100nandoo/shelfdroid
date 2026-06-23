@@ -95,6 +95,7 @@ constructor(
   ): EditItemUiState {
     val mappedMedia = EditItemMapper.mapMedia(item)
     val details = mappedMedia.details
+    val schedulePresentation = deriveSchedulePresentation(mappedMedia.schedule)
 
     return EditItemUiState(
       state = GenericState.Success,
@@ -106,6 +107,8 @@ constructor(
       originalDetails = details,
       schedule = mappedMedia.schedule,
       originalSchedule = mappedMedia.schedule,
+      scheduleMode = schedulePresentation.mode,
+      simpleScheduleBuilder = schedulePresentation.simpleBuilder,
       chapters = mappedMedia.chapters,
       episodes = mappedMedia.episodes,
       episodeUpdate = mappedMedia.episodeUpdate,
@@ -178,8 +181,16 @@ constructor(
         state.coverSearch.provider,
         state.seriesSuggestions,
       )
+    val schedulePresentation =
+      deriveSchedulePresentation(
+        updatedState.schedule,
+        preferredMode = state.scheduleMode,
+        currentBuilder = state.simpleScheduleBuilder,
+      )
     return updatedState.copy(
       currentTab = state.currentTab,
+      scheduleMode = schedulePresentation.mode,
+      simpleScheduleBuilder = schedulePresentation.simpleBuilder,
       episodeUpdate =
         updatedState.episodeUpdate.copy(
           limitInput = state.episodeUpdate.limitInput,

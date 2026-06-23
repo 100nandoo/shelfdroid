@@ -95,4 +95,34 @@ class EditItemUiStateTest {
 
     assertEquals(false, state.hasScheduleChanges())
   }
+
+  @Test
+  fun deriveSchedulePresentation_forSimpleCron_defaultsToSimpleMode() {
+    val presentation =
+      deriveSchedulePresentation(
+        PodcastScheduleForm(
+          autoDownloadEpisodes = true,
+          cronExpression = "15 23 * * *",
+        )
+      )
+
+    assertEquals(PodcastScheduleMode.Simple, presentation.mode)
+    assertEquals(PodcastScheduleSimpleInterval.Daily, presentation.simpleBuilder.interval)
+    assertEquals("23", presentation.simpleBuilder.selectedHour)
+    assertEquals("15", presentation.simpleBuilder.selectedMinute)
+  }
+
+  @Test
+  fun deriveSchedulePresentation_forNonSimpleCron_defaultsToAdvancedMode() {
+    val presentation =
+      deriveSchedulePresentation(
+        PodcastScheduleForm(
+          autoDownloadEpisodes = true,
+          cronExpression = "15 23 1 * *",
+        )
+      )
+
+    assertEquals(PodcastScheduleMode.Advanced, presentation.mode)
+    assertEquals(PodcastScheduleSimpleInterval.Daily, presentation.simpleBuilder.interval)
+  }
 }

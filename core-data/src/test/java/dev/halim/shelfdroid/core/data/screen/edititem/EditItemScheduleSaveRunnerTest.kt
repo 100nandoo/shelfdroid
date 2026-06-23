@@ -180,6 +180,44 @@ class EditItemScheduleSaveRunnerTest {
       assertEquals("2", result.state.originalSchedule.maxNewEpisodesToDownloadInput)
     }
 
+  @Test
+  fun run_whenSimpleBuilderOwnsCron_skipsValidation_andPreservesSimpleMode() =
+    kotlinx.coroutines.test.runTest {
+      var validated = false
+      var updateCalled = false
+      val runner =
+        runner(
+          validateCron = {
+            validated = true
+            Result.success(Unit)
+          },
+          updateSchedule = { _, _ ->
+            updateCalled = true
+            Result.success(UpdateLibraryItemMediaResponse(updated = "1"))
+          },
+        )
+
+      val result =
+        runner.run(
+          state(
+            schedule = enabledSchedule(),
+            scheduleMode = PodcastScheduleMode.Simple,
+            simpleScheduleBuilder =
+              PodcastScheduleSimpleBuilder(
+                interval = PodcastScheduleSimpleInterval.Daily,
+                selectedHour = "23",
+                selectedMinute = "15",
+              ),
+          )
+        )
+
+      assertEquals(false, validated)
+      assertEquals(true, updateCalled)
+      assertEquals(PodcastScheduleMode.Simple, result.state.scheduleMode)
+      assertEquals("15 23 * * *", result.state.originalSchedule.cronExpression)
+      assertEquals(listOf(GenericUiEvent.ShowSuccessSnackbar()), result.events)
+    }
+
   private fun runner(
     validateCron: suspend (String) -> Result<Unit> = { Result.success(Unit) },
     updateSchedule:
@@ -193,6 +231,8 @@ class EditItemScheduleSaveRunnerTest {
     originalDetails: DetailsForm = DetailsForm(),
     schedule: PodcastScheduleForm = enabledSchedule(),
     originalSchedule: PodcastScheduleForm = enabledSchedule(cronExpression = "0 1 * * 1"),
+    scheduleMode: PodcastScheduleMode = PodcastScheduleMode.Advanced,
+    simpleScheduleBuilder: PodcastScheduleSimpleBuilder = PodcastScheduleSimpleBuilder(),
   ) =
     EditItemUiState(
       state = GenericState.Success,
@@ -203,6 +243,8 @@ class EditItemScheduleSaveRunnerTest {
       originalDetails = originalDetails,
       schedule = schedule,
       originalSchedule = originalSchedule,
+      scheduleMode = scheduleMode,
+      simpleScheduleBuilder = simpleScheduleBuilder,
       isSaving = true,
     )
 

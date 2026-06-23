@@ -23,7 +23,7 @@ internal class EditItemScheduleSaveRunner(
     val schedule = workingState.schedule
     val cronExpression = schedule.cronExpression.trim()
 
-    if (schedule.autoDownloadEpisodes) {
+    if (workingState.shouldValidateScheduleCron()) {
       if (cronExpression.isBlank()) {
         return EditItemScheduleSaveResult(
           state = workingState.copy(isSaving = false, scheduleCronError = INVALID_CRON_EXPRESSION),
@@ -68,6 +68,12 @@ internal class EditItemScheduleSaveRunner(
         updateCachedItem(item)
         mapScheduleFromItem(item)
       } ?: successfulScheduleBaseline(workingState)
+    val schedulePresentation =
+      deriveSchedulePresentation(
+        schedule = persistedSchedule,
+        preferredMode = workingState.scheduleMode,
+        currentBuilder = workingState.simpleScheduleBuilder,
+      )
 
     return EditItemScheduleSaveResult(
       state =
@@ -75,6 +81,8 @@ internal class EditItemScheduleSaveRunner(
           currentTab = EditItemTab.Schedule,
           schedule = persistedSchedule,
           originalSchedule = persistedSchedule,
+          scheduleMode = schedulePresentation.mode,
+          simpleScheduleBuilder = schedulePresentation.simpleBuilder,
           isSaving = false,
           scheduleCronError = null,
         ),

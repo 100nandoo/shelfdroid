@@ -16,6 +16,9 @@ import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemLibraryFileDownloadResult
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemLibraryFileDownloadUseCase
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleMode
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleBuilder
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleInterval
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
@@ -23,7 +26,9 @@ import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchDraft
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchField
 import dev.halim.shelfdroid.core.data.screen.edititem.coerceFor
+import dev.halim.shelfdroid.core.data.screen.edititem.deriveSchedulePresentation
 import dev.halim.shelfdroid.core.data.screen.edititem.normalized
+import dev.halim.shelfdroid.core.data.screen.edititem.toCronExpressionOrNull
 import dev.halim.shelfdroid.core.ui.navigation.EditItem
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -137,6 +142,21 @@ constructor(
           )
         }
 
+      is EditItemEvent.ChangeScheduleMode ->
+        _uiState.update { state ->
+          val schedulePresentation =
+            deriveSchedulePresentation(
+              schedule = state.schedule,
+              preferredMode = event.mode,
+              currentBuilder = state.simpleScheduleBuilder,
+            )
+          state.copy(
+            scheduleMode = schedulePresentation.mode,
+            simpleScheduleBuilder = schedulePresentation.simpleBuilder,
+            scheduleCronError = null,
+          )
+        }
+
       is EditItemEvent.UpdateScheduleCronExpression ->
         _uiState.update {
           it.copy(
@@ -144,6 +164,29 @@ constructor(
             scheduleCronError = null,
           )
         }
+
+      is EditItemEvent.UpdateSimpleScheduleInterval ->
+        _uiState.update { updateSimpleScheduleBuilder(it) { builder ->
+          builder.copy(interval = event.interval)
+        } }
+
+      is EditItemEvent.UpdateSimpleScheduleHour ->
+        _uiState.update { updateSimpleScheduleBuilder(it) { builder ->
+          builder.copy(selectedHour = event.value.filter(Char::isDigit).take(2))
+        } }
+
+      is EditItemEvent.UpdateSimpleScheduleMinute ->
+        _uiState.update { updateSimpleScheduleBuilder(it) { builder ->
+          builder.copy(selectedMinute = event.value.filter(Char::isDigit).take(2))
+        } }
+
+      is EditItemEvent.ToggleSimpleScheduleWeekday ->
+        _uiState.update { updateSimpleScheduleBuilder(it) { builder ->
+          val weekdays =
+            if (event.weekday in builder.selectedWeekdays) builder.selectedWeekdays - event.weekday
+            else builder.selectedWeekdays + event.weekday
+          builder.copy(selectedWeekdays = weekdays)
+        } }
 
       is EditItemEvent.UpdateScheduleMaxEpisodesToKeepInput ->
         _uiState.update {
@@ -260,6 +303,23 @@ constructor(
     _uiState.value = repository.runEpisodeUpdateCheck(_uiState.value, _events).normalized()
   }
 
+  private fun updateSimpleScheduleBuilder(
+    state: EditItemUiState,
+    transform: (PodcastScheduleSimpleBuilder) -> PodcastScheduleSimpleBuilder,
+  ): EditItemUiState {
+    val updatedBuilder = transform(state.simpleScheduleBuilder)
+    val updatedCron = updatedBuilder.toCronExpressionOrNull()
+    return state.copy(
+      scheduleMode = PodcastScheduleMode.Simple,
+      simpleScheduleBuilder = updatedBuilder,
+      schedule =
+        state.schedule.copy(
+          cronExpression = updatedCron ?: state.schedule.cronExpression,
+        ),
+      scheduleCronError = null,
+    )
+  }
+
   @AssistedFactory
   interface Factory {
     fun create(navKey: EditItem): EditItemViewModel
@@ -327,7 +387,18 @@ sealed interface EditItemEvent {
 
   data class UpdateScheduleEnabled(val value: Boolean) : EditItemEvent
 
+  data class ChangeScheduleMode(val mode: PodcastScheduleMode) : EditItemEvent
+
   data class UpdateScheduleCronExpression(val value: String) : EditItemEvent
+
+  data class UpdateSimpleScheduleInterval(val interval: PodcastScheduleSimpleInterval) :
+    EditItemEvent
+
+  data class UpdateSimpleScheduleHour(val value: String) : EditItemEvent
+
+  data class UpdateSimpleScheduleMinute(val value: String) : EditItemEvent
+
+  data class ToggleSimpleScheduleWeekday(val weekday: Int) : EditItemEvent
 
   data class UpdateScheduleMaxEpisodesToKeepInput(val value: String) : EditItemEvent
 

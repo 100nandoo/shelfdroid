@@ -29,6 +29,9 @@ import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleForm
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchResultRow
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleMode
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleBuilder
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleInterval
 import dev.halim.shelfdroid.core.data.screen.edititem.SeriesEntry
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
@@ -606,6 +609,13 @@ object Defaults {
           cronExpression = "15 23 * * *",
           maxEpisodesToKeepInput = "0",
           maxNewEpisodesToDownloadInput = "3",
+        ),
+      scheduleMode = PodcastScheduleMode.Simple,
+      simpleScheduleBuilder =
+        PodcastScheduleSimpleBuilder(
+          interval = PodcastScheduleSimpleInterval.Daily,
+          selectedHour = "23",
+          selectedMinute = "15",
         ),
       episodes =
         listOf(
