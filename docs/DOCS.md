@@ -108,6 +108,17 @@ HomeRepository.kt
 
 More documentation will be added in the future.
 
+## 🎨 Code Style And Formatting
+
+ShelfDroid uses [ktfmt](https://github.com/facebook/ktfmt) with Google's Kotlin style.
+
+```bash
+find . \( -path './.idea' -o -path './build' \) -prune -o \
+  -name '*.kt' -print | xargs ktfmt --google-style
+```
+
+The command skips `.idea/` and `build/` so only real source files are formatted.
+
 ## 🎨 UI Development
 
 - [Compose Preview Policy](./ui-previews.md)
@@ -118,5 +129,7 @@ More documentation will be added in the future.
 - [F-Droid Release Procedure](./fdroid/release-procedure.md)
 
 ## 🧱 Architecture
+
+ShelfDroid follows the [Android Architecture Templates (Multi-Module)](https://github.com/android/architecture-templates/tree/multimodule) to keep the codebase scalable and maintainable.
 
 - [Download Module](./architecture/download-module.md)
