@@ -1,140 +1,159 @@
-# 📚 ShelfDroid
+<h1 align="center">ShelfDroid</h1>
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/icon.png" width="120" alt="ShelfDroid app icon" style="border-radius: 50%;">
+</p>
+<p align="center">
+  <b>Audiobookshelf Android client with playback, downloads, and server management</b>
+</p>
 
-ShelfDroid is a third-party Android client
-for [Audiobookshelf](https://github.com/advplyr/audiobookshelf), designed to
-provide seamless access to your audiobook collection. Stream, organize, and enjoy your audiobooks
-with an intuitive
-interface built specifically for Android.
+<p align="center">
+  <a href="https://github.com/100nandoo/shelfdroid/releases/latest">
+    <img src="https://img.shields.io/github/v/release/100nandoo/shelfdroid?style=flat-square&color=blue" alt="latest release">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/100nandoo/shelfdroid?style=flat-square&color=blue" alt="license">
+  </a>
+  <a href="https://github.com/100nandoo/shelfdroid/releases">
+    <img src="https://img.shields.io/github/downloads/100nandoo/shelfdroid/total?style=flat-square&color=brightgreen" alt="downloads">
+  </a>
+</p>
 
----
+<p align="center">
+  <a href="#download"><b>Download</b></a> &bull;
+  <a href="#features"><b>Features</b></a> &bull;
+  <a href="#screenshots"><b>Screenshots</b></a> &bull;
+  <a href="#acknowledgements"><b>Acknowledgements</b></a> &bull;
+  <a href="#star-history"><b>Star History</b></a> &bull;
+  <a href="#license"><b>License</b></a>
+</p>
 
-## 📸 Screenshots
+ShelfDroid is a third-party Android client for self-hosted [Audiobookshelf](https://github.com/advplyr/audiobookshelf) servers. Use it to browse audiobook and podcast libraries, stream playback from your server, keep listening offline on your Android device, and handle common server management tasks from the same app.
 
-<!-- Add screenshots of your app here -->
+> [!IMPORTANT]
+> ShelfDroid does not provide media, hosting, or a managed server. You bring your own Audiobookshelf library and account.
 
----
+## Download
 
-## 🛠 Getting Started
+<p align="center">
+  <table align="center">
+    <tr>
+      <td align="center" valign="middle">
+        <a href="https://play.google.com/store/apps/details?id=dev.halim.shelfdroid">
+          <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80" alt="Get it on Google Play">
+        </a>
+      </td>
+      <td align="center" valign="middle">
+        <a href="https://github.com/100nandoo/shelfdroid/releases/latest">
+          <img src="https://img.shields.io/badge/Download-Latest_APK-black?style=for-the-badge&logo=github" alt="Download latest APK">
+        </a>
+      </td>
+    </tr>
+  </table>
+</p>
 
-### Prerequisites
+## Features
 
-- An active [Audiobookshelf](https://github.com/advplyr/audiobookshelf) server instance.
-- Android device running version 7.0 (Nougat) or higher.
+- Browse audiobook and podcast libraries from your Audiobookshelf server
+- Stream audiobooks and podcast episodes with synced progress
+- Download books and episodes for durable offline playback
+- Use chapters, bookmarks, sleep timer, playback speed, and player controls
+- Manage backups, API keys, users, logs, and server settings when your account has permission
+- Review listening sessions and other admin screens available to your account
+- Customize sorting, display preferences, and playback settings
 
-## 🎨 Code Style & Formatting
+## Screenshots
 
-This project uses [ktfmt](https://github.com/facebook/ktfmt) for Kotlin code formatting, applying
-Google’s Kotlin style
-guide.
+All screenshots below are sourced from `fastlane/metadata/android/en-US/images`.
 
-To format all Kotlin files in the project, run:
+<details>
+  <summary>Phone screenshots</summary>
+  <br>
 
-```bash
-find . \( -path './.idea' -o -path './build' \) -prune -o \
-  -name '*.kt' -print | xargs ktfmt --google-style
-```
+  <p align="center">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01-home-book.png" width="220" alt="Books home screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-podcast.png" width="220" alt="Podcasts home screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03-book.png" width="220" alt="Book details screen">
+  </p>
+  <p align="center">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04-podcast.png" width="220" alt="Podcast details screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05-episode.png" width="220" alt="Episode details screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06-player-book.png" width="220" alt="Book player screen">
+  </p>
+  <p align="center">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07-player-podcast.png" width="220" alt="Podcast player screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08-settings.png" width="220" alt="Settings screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/09-backups.png" width="220" alt="Backups screen">
+  </p>
+  <p align="center">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/10-server-settings.png" width="220" alt="Server settings screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/11-edit-book.png" width="220" alt="Edit book screen">
+  </p>
+</details>
 
-**Why .idea and build are ignored**
+<details>
+  <summary>7-inch tablet screenshots</summary>
+  <br>
 
-* **.idea/**
+  <p align="center">
+    <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/01-home-podcast.png" width="320" alt="7-inch tablet podcast home screen">
+    <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/02-settings.png" width="320" alt="7-inch tablet settings screen">
+  </p>
+</details>
 
-  Contains Android Studio / IntelliJ project metadata. These files are IDE-generated, frequently
-  modified automatically, and should not be manually formatted.
-* **build/**
+<details>
+  <summary>10-inch tablet screenshots</summary>
+  <br>
 
-  Contains generated build outputs and intermediate files. Formatting these files is unnecessary and
-  may introduce unwanted changes or slow down the formatting process.
+  <p align="center">
+    <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/01-home-book.png" width="320" alt="10-inch tablet books home screen">
+    <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/02-book.png" width="320" alt="10-inch tablet book details screen">
+  </p>
+</details>
 
-By excluding these directories, ktfmt only formats actual source code, keeping formatting fast,
-safe, and focused on files that matter.
+## Requirements
 
-Maintaining a consistent style across the codebase helps improve readability and reduce noise in
-pull requests.
+- An Audiobookshelf server you can sign in to
+- Android 10 or newer
+- JDK 17 for local builds
 
----
+## Roadmap
 
-## 🏗 Architecture
+- [x] Implement core audiobook streaming functionality
+- [x] Add offline downloading and playback
+- [ ] Improve search and filtering features
+- [ ] Introduce custom themes for personalization
+- [ ] Add in-app settings for customization
+- [ ] Integrate Google Assistant for voice control
+- [x] Enhance playback controls with bookmarks and sleep timers
+- [x] Develop a modern and user-friendly UI
+- [x] Support audiobook chapters for easy navigation
 
-ShelfDroid follows
-the [Android Architecture Templates (Multi-Module)](https://github.com/android/architecture-templates/tree/multimodule)
-to ensure a scalable and maintainable codebase.
+See the [issue tracker](https://github.com/100nandoo/shelfdroid/issues) for current work and feature requests.
 
----
+## Documentation
 
-## 📅 Roadmap
+Project documentation lives in [docs/DOCS.md](docs/DOCS.md), including code style and architecture notes. Recent release notes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
-- [x] Implement core audiobook streaming functionality.
-- [x] Add offline downloading and playback.
-- [ ] Improve search and filtering features.
-- [ ] Introduce custom themes for personalization.
-- [ ] Add in-app settings for customization.
-- [ ] Integrate Google Assistant for voice control.
-- [x] Enhance playback controls with bookmarks and sleep timers.
-- [x] Develop a modern and user-friendly UI.
-- [x] Support audiobook chapters for easy navigation.
+## Acknowledgements
 
-Feel free to check out the [Issues](https://github.com/100nandoo/shelfdroid/issues) section to see
-what’s in progress or
-suggest new features!
+- [Audiobookshelf](https://github.com/advplyr/audiobookshelf) for the server platform ShelfDroid connects to
 
----
+## Star History
 
-## ⭐ Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=100nandoo/shelfdroid&type=Date)](https://star-history.com/#100nandoo/shelfdroid&Date)
 
-<a href="https://www.star-history.com/#100nandoo/shelfdroid&Date">
-  <picture>
-    <source
-      media="(prefers-color-scheme: dark)"
-      srcset="https://api.star-history.com/svg?repos=100nandoo/shelfdroid&type=Date&theme=dark"
-    />
-    <source
-      media="(prefers-color-scheme: light)"
-      srcset="https://api.star-history.com/svg?repos=100nandoo/shelfdroid&type=Date"
-    />
-    <img
-      alt="Star History Chart for 100nandoo/shelfdroid"
-      src="https://api.star-history.com/svg?repos=100nandoo/shelfdroid&type=Date"
-    />
-  </picture>
-</a>
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! If you'd like to contribute, please follow these steps:
+## Contributing
 
 1. Fork the repository.
-2. Create a new branch:
-    ```bash
-    git checkout -b feature/YourFeatureName
-    ```
-3. Make your changes and commit them using [Commitizen](https://github.com/commitizen/cz-cli):
-    ```bash
-    cz c
-    ```
-   This will guide you through creating a compliant commit message.
-4. Push your branch:
-    ```bash
-    git push origin feature/YourFeatureName
-    ```
-5. Open a Pull Request.
+2. Create a feature branch with `git checkout -b feature/YourFeatureName`.
+3. Make your changes, run formatting, and test the affected code.
+4. Commit your changes. If you use Commitizen, run `cz c`.
+5. Push your branch and open a pull request.
 
-## 📖 Documentation
+## License
 
-For more details on using and extending this project, check out the [Documentation](docs/DOCS.md).
+ShelfDroid is open source under the GNU Affero General Public License v3.0.
 
 ---
 
-## 🙌 Acknowledgements
-
-- [Audiobookshelf](https://github.com/advplyr/audiobookshelf) – The powerful server that ShelfDroid
-  connects to.
-
----
-
-## 📬 Contact
-
-**Fernando Fransisco Halim**  
-GitHub: [100nandoo](https://github.com/100nandoo)  
-Project Link: [ShelfDroid Repository](https://github.com/100nandoo/shelfdroid)
+Copyright (c) 2026 100nandoo

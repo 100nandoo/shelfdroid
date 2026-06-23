@@ -1,0 +1,45 @@
+# Copy this file to fdroiddata/metadata/dev.halim.shelfdroid.yml when opening
+# the F-Droid merge request, then update the release-specific fields below.
+
+Categories:
+  - Multimedia
+
+AuthorName: Fernando Fransisco Halim
+AuthorWebSite: https://github.com/100nandoo
+License: AGPL-3.0-or-later
+SourceCode: https://github.com/100nandoo/shelfdroid
+IssueTracker: https://github.com/100nandoo/shelfdroid/issues
+
+MaintainerNotes: |-
+  - Upstream app metadata lives in fastlane/metadata/android/en-US.
+  - Release tags are exact version names such as 0.4.3.
+  - versionCode and versionName are sourced from app/version.properties, so
+    checkupdates must use UpdateCheckData instead of default Gradle parsing.
+  - GitHub Release APKs are published as shelfdroid-<tag>.apk and are the
+    upstream binaries intended for F-Droid verification and publication.
+  - The GitHub signing workflow pins Android build-tools 34.0.0 because
+    F-Droid's reproducible-build docs warn that apksigner from build-tools 35+
+    can break signature-copy verification.
+  - On 2026-06-22, a clean rebuild of tag 0.4.2 matched the published
+    developer-signed 0.4.2 APK at the extracted non-META-INF file level and in
+    non-META-INF ZIP entry order; only META-INF signature files differed.
+
+RepoType: git
+Repo: https://github.com/100nandoo/shelfdroid.git
+Binaries: https://github.com/100nandoo/shelfdroid/releases/download/%v/shelfdroid-%v.apk
+
+Builds:
+  - versionName: 0.4.3
+    versionCode: 16
+    commit: 681806a0650fa1a28c9ab85c438dbb0e7c1f8d74
+    subdir: app
+    gradle:
+      - yes
+    output: build/outputs/apk/release/app-release-unsigned.apk
+
+AllowedAPKSigningKeys: 0430bed01abb1c653fc56883314a1c14f4922314f5af16af68885c732dd29bbd
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^[0-9]+(\.[0-9]+)*$
+UpdateCheckData: app/version.properties|VERSION_CODE=(\d+)|.|VERSION_NAME=(.+)
+CurrentVersion: 0.4.3
+CurrentVersionCode: 16

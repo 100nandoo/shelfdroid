@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Path to the file
-FILE="./gradle/libs.versions.toml"
+FILE="./app/version.properties"
 
 # Ensure the script accepts a version name as an argument
 if [ $# -ne 1 ]; then
@@ -13,7 +13,7 @@ fi
 new_version_name="$1"
 
 # Extract current version code from the file
-current_version_code=$(grep 'versionCode = "' "$FILE" | awk -F'"' '{print $2}')
+current_version_code=$(grep '^VERSION_CODE=' "$FILE" | cut -d'=' -f2)
 
 # Check if the version code is found
 if [ -z "$current_version_code" ]; then
@@ -30,9 +30,7 @@ if [ ! -f "$FILE" ]; then
   exit 1
 fi
 
-perl -i -pe "s/versionCode = \"$current_version_code\"/versionCode = \"$new_version_code\"/g" "$FILE"
-
-perl -i -0777 -pe 's/(\[versions\][^\[]*?)versionName = "[^"]*"/$1versionName = "'$new_version_name'"/s' "$FILE"
+perl -0pi -e "s/^VERSION_CODE=.*/VERSION_CODE=$new_version_code/m; s/^VERSION_NAME=.*/VERSION_NAME=$new_version_name/m" "$FILE"
 
 echo "Version code has been updated to $new_version_code"
 echo "Version name has been updated to \"$new_version_name\""

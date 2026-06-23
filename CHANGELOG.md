@@ -1,12 +1,12 @@
 ## Unreleased
 
+## 0.4.3 (2026-06-22)
+
 ### Feat
 
-- **Bookmark**: handle goto bookmark
-
-### Fix
-
-- **LocalSync**: request using wrong play method, change the way timeListened being calculate
+- **F-Droid**: first f-droid release
+- **Podcast**: edit podcast functionality
+- **Podcast**: add episode filter functionality
 
 ## 0.4.2 (2026-06-07)
 

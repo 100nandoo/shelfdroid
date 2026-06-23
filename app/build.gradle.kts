@@ -1,6 +1,36 @@
 import java.util.Properties
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+val appVersionPropertiesFile = rootProject.file("app/version.properties")
+val appVersionProperties =
+  Properties().apply {
+    check(appVersionPropertiesFile.exists()) {
+      "Missing app version properties file: ${appVersionPropertiesFile.path}"
+    }
+    appVersionPropertiesFile.inputStream().use(::load)
+  }
+
+fun Properties.requiredInt(name: String): Int =
+  getProperty(name)?.toIntOrNull() ?: error("Missing integer property '$name' in app/version.properties")
+
+fun Properties.requiredString(name: String): String =
+  getProperty(name)?.trim()?.takeIf(String::isNotBlank)
+    ?: error("Missing string property '$name' in app/version.properties")
+
+fun Project.findSigningPropertiesFile(): File? {
+  val explicitPath =
+    providers.gradleProperty("shelfdroid.signingPropertiesFile").orNull
+      ?: System.getenv("SHELFDROID_SIGNING_PROPERTIES_FILE")
+
+  return listOfNotNull(explicitPath, "../signing/keystore.properties", "../../signing/keystore.properties")
+    .map(::file)
+    .firstOrNull(File::exists)
+}
+
+fun File.resolveFromParent(path: String): File {
+  val candidate = File(path)
+  return if (candidate.isAbsolute) candidate else parentFile.resolve(path).normalize()
+}
 
 plugins {
   alias(libs.plugins.android.application)
@@ -14,21 +44,15 @@ android {
   compileSdk = libs.versions.targetSdk.get().toInt()
 
   signingConfigs {
-    val keystorePropertiesFile =
-      if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        file("..\\..\\signing\\keystore.properties")
-      } else {
-        file("../../signing/keystore.properties")
-      }
-
-    if (keystorePropertiesFile.exists()) {
+    val keystorePropertiesFile = project.findSigningPropertiesFile()
+    if (keystorePropertiesFile != null) {
       val properties = Properties().apply { load(keystorePropertiesFile.inputStream()) }
 
       create("release") {
-        storePassword = properties.getProperty("storePassword")
-        keyPassword = properties.getProperty("keyPassword")
-        keyAlias = properties.getProperty("keyAlias")
-        storeFile = rootProject.file(properties.getProperty("storeFile"))
+        storePassword = properties.requiredString("storePassword")
+        keyPassword = properties.requiredString("keyPassword")
+        keyAlias = properties.requiredString("keyAlias")
+        storeFile = keystorePropertiesFile.resolveFromParent(properties.requiredString("storeFile"))
       }
     }
   }
@@ -37,8 +61,8 @@ android {
     applicationId = libs.versions.namespace.get()
     minSdk = libs.versions.minSdk.get().toInt()
     targetSdk = libs.versions.targetSdk.get().toInt()
-    versionCode = libs.versions.versionCode.get().toInt()
-    versionName = libs.versions.versionName.get()
+    versionCode = appVersionProperties.requiredInt("VERSION_CODE")
+    versionName = appVersionProperties.requiredString("VERSION_NAME")
 
     vectorDrawables { useSupportLibrary = true }
     buildConfigField("String", "MEDIA3_VERSION", "\"${libs.versions.androidxMedia3.get()}\"")
