@@ -121,12 +121,13 @@ private fun AddEpisodeScreenContent(
   ) { paddingValues ->
     LazyColumn(
       state = lazyListState,
-      modifier = Modifier.padding(paddingValues).fillMaxSize().padding(horizontal = 16.dp),
+      modifier = Modifier.padding(paddingValues).fillMaxSize(),
       reverseLayout = true,
       verticalArrangement = Arrangement.Bottom,
     ) {
       item {
         CoverWithTitle(
+          modifier = Modifier.padding(horizontal = 16.dp),
           cover = uiState.cover,
           coverAnimationKey = Animations.coverKey(itemId),
           title = uiState.title,
@@ -203,7 +204,10 @@ private fun AddEpisodeItem(episode: AddEpisode, onCheckedChange: (Boolean) -> Un
 
   val enabled = episode.state != AddEpisodeDownloadState.Downloaded
 
-  Row(verticalAlignment = Alignment.CenterVertically) {
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = Modifier.padding(start = 4.dp, end = 16.dp),
+  ) {
     Checkbox(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     Column(modifier = Modifier.weight(1f)) {
       Text(
