@@ -14,7 +14,9 @@ internal data class EditItemScheduleSaveResult(
 internal class EditItemScheduleSaveRunner(
   private val validateCron: suspend (expression: String) -> Result<Unit>,
   private val updateSchedule:
-    suspend (itemId: String, request: UpdateLibraryItemMediaRequest) -> Result<UpdateLibraryItemMediaResponse>,
+    suspend (itemId: String, request: UpdateLibraryItemMediaRequest) -> Result<
+        UpdateLibraryItemMediaResponse
+      >,
   private val updateCachedItem: (LibraryItem) -> Unit = {},
 ) {
 
@@ -26,15 +28,14 @@ internal class EditItemScheduleSaveRunner(
     if (workingState.shouldValidateScheduleCron()) {
       if (cronExpression.isBlank()) {
         return EditItemScheduleSaveResult(
-          state = workingState.copy(isSaving = false, scheduleCronError = INVALID_CRON_EXPRESSION),
+          state = workingState.copy(isSaving = false, scheduleCronError = INVALID_CRON_EXPRESSION)
         )
       }
 
       validateCron(cronExpression).exceptionOrNull()?.let { error ->
         if (error is HttpException && error.code() == 400) {
           return EditItemScheduleSaveResult(
-            state =
-              workingState.copy(isSaving = false, scheduleCronError = INVALID_CRON_EXPRESSION),
+            state = workingState.copy(isSaving = false, scheduleCronError = INVALID_CRON_EXPRESSION)
           )
         }
 
@@ -116,11 +117,12 @@ internal fun successfulScheduleBaseline(state: EditItemUiState): PodcastSchedule
   return normalized.copy(
     cronExpression =
       if (normalized.autoDownloadEpisodes) normalized.cronExpression
-      else state.originalSchedule.cronExpression.trim(),
+      else state.originalSchedule.cronExpression.trim()
   )
 }
 
-internal fun mapScheduleFromItem(item: LibraryItem): PodcastScheduleForm = EditItemMapper.mapMedia(item).schedule
+internal fun mapScheduleFromItem(item: LibraryItem): PodcastScheduleForm =
+  EditItemMapper.mapMedia(item).schedule
 
 private const val INVALID_CRON_EXPRESSION = "Invalid cron expression"
 private const val FAILED_TO_VALIDATE_CRON_EXPRESSION = "Failed to validate cron expression"

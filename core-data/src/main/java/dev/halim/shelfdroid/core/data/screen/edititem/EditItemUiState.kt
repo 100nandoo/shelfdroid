@@ -231,7 +231,8 @@ fun EditItemUiState.canConfigureSchedule(): Boolean =
   mediaKind == EditItemMediaKind.Podcast &&
     (originalDetails.rssFeedUrl.isNotBlank() || originalSchedule.autoDownloadEpisodes)
 
-fun EditItemUiState.hasScheduleChanges(): Boolean = schedule.asComparable() != originalSchedule.asComparable()
+fun EditItemUiState.hasScheduleChanges(): Boolean =
+  schedule.asComparable() != originalSchedule.asComparable()
 
 private fun PodcastScheduleForm.asComparable() =
   ComparablePodcastSchedule(
@@ -241,7 +242,8 @@ private fun PodcastScheduleForm.asComparable() =
     maxNewEpisodesToDownload = normalizedNonNegativeInt(maxNewEpisodesToDownloadInput),
   )
 
-internal fun normalizedNonNegativeInt(input: String): Int = input.trim().toIntOrNull()?.takeIf { it >= 0 } ?: 0
+internal fun normalizedNonNegativeInt(input: String): Int =
+  input.trim().toIntOrNull()?.takeIf { it >= 0 } ?: 0
 
 private data class ComparablePodcastSchedule(
   val autoDownloadEpisodes: Boolean,

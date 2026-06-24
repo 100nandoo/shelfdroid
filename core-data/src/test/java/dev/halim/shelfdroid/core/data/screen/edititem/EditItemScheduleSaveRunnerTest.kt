@@ -10,7 +10,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
@@ -18,24 +17,25 @@ import retrofit2.Response
 class EditItemScheduleSaveRunnerTest {
 
   @Test
-  fun run_whenCronIsInvalid_setsInlineError_andSkipsUpdate() = kotlinx.coroutines.test.runTest {
-    var updateCalled = false
-    val runner =
-      runner(
-        validateCron = { Result.failure(httpException(400, "Invalid cron expression")) },
-        updateSchedule = { _, _ ->
-          updateCalled = true
-          Result.success(UpdateLibraryItemMediaResponse(updated = "1"))
-        },
-      )
+  fun run_whenCronIsInvalid_setsInlineError_andSkipsUpdate() =
+    kotlinx.coroutines.test.runTest {
+      var updateCalled = false
+      val runner =
+        runner(
+          validateCron = { Result.failure(httpException(400, "Invalid cron expression")) },
+          updateSchedule = { _, _ ->
+            updateCalled = true
+            Result.success(UpdateLibraryItemMediaResponse(updated = "1"))
+          },
+        )
 
-    val result = runner.run(state(schedule = enabledSchedule(cronExpression = "bad cron")))
+      val result = runner.run(state(schedule = enabledSchedule(cronExpression = "bad cron")))
 
-    assertEquals("Invalid cron expression", result.state.scheduleCronError)
-    assertEquals(false, result.state.isSaving)
-    assertEquals(emptyList<GenericUiEvent>(), result.events)
-    assertEquals(false, updateCalled)
-  }
+      assertEquals("Invalid cron expression", result.state.scheduleCronError)
+      assertEquals(false, result.state.isSaving)
+      assertEquals(emptyList<GenericUiEvent>(), result.events)
+      assertEquals(false, updateCalled)
+    }
 
   @Test
   fun run_whenValidationFailsForTransport_showsSnackbar_andKeepsInlineErrorClear() =
@@ -222,7 +222,9 @@ class EditItemScheduleSaveRunnerTest {
     validateCron: suspend (String) -> Result<Unit> = { Result.success(Unit) },
     updateSchedule:
       suspend (String, UpdateLibraryItemMediaRequest) -> Result<UpdateLibraryItemMediaResponse> =
-      { _, _ -> Result.success(UpdateLibraryItemMediaResponse(updated = "1")) },
+      { _, _ ->
+        Result.success(UpdateLibraryItemMediaResponse(updated = "1"))
+      },
     updateCachedItem: (LibraryItem) -> Unit = {},
   ) = EditItemScheduleSaveRunner(validateCron, updateSchedule, updateCachedItem)
 

@@ -421,10 +421,7 @@
     <string name="edit_item_schedule_thursday">Thursday</string>
     <string name="edit_item_schedule_friday">Friday</string>
     <string name="edit_item_schedule_saturday">Saturday</string>
-    <string name="edit_item_schedule_hour">Hour</string>
-    <string name="edit_item_schedule_hour_hint">0-23</string>
-    <string name="edit_item_schedule_minute">Minute</string>
-    <string name="edit_item_schedule_minute_hint">0-59</string>
+    <string name="edit_item_schedule_time">Time</string>
     <string name="edit_item_schedule_cron_expression">Cron expression</string>
     <string name="edit_item_schedule_cron_hint">Cron expression (e.g. 15 23 * * *)</string>
     <string name="edit_item_schedule_disabled_hint">Enable auto-download to edit the recurring schedule.</string>

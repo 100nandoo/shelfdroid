@@ -16,15 +16,15 @@ import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemLibraryFileDownloadResult
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemLibraryFileDownloadUseCase
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
-import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleMode
-import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleBuilder
-import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleInterval
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.LibraryFileRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchDraft
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchField
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleMode
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleBuilder
+import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleInterval
 import dev.halim.shelfdroid.core.data.screen.edititem.coerceFor
 import dev.halim.shelfdroid.core.data.screen.edititem.deriveSchedulePresentation
 import dev.halim.shelfdroid.core.data.screen.edititem.normalized
@@ -166,27 +166,36 @@ constructor(
         }
 
       is EditItemEvent.UpdateSimpleScheduleInterval ->
-        _uiState.update { updateSimpleScheduleBuilder(it) { builder ->
-          builder.copy(interval = event.interval)
-        } }
+        _uiState.update {
+          updateSimpleScheduleBuilder(it) { builder ->
+            builder.copy(interval = event.interval)
+          }
+        }
 
       is EditItemEvent.UpdateSimpleScheduleHour ->
-        _uiState.update { updateSimpleScheduleBuilder(it) { builder ->
-          builder.copy(selectedHour = event.value.filter(Char::isDigit).take(2))
-        } }
+        _uiState.update {
+          updateSimpleScheduleBuilder(it) { builder ->
+            builder.copy(selectedHour = event.value.filter(Char::isDigit).take(2))
+          }
+        }
 
       is EditItemEvent.UpdateSimpleScheduleMinute ->
-        _uiState.update { updateSimpleScheduleBuilder(it) { builder ->
-          builder.copy(selectedMinute = event.value.filter(Char::isDigit).take(2))
-        } }
+        _uiState.update {
+          updateSimpleScheduleBuilder(it) { builder ->
+            builder.copy(selectedMinute = event.value.filter(Char::isDigit).take(2))
+          }
+        }
 
       is EditItemEvent.ToggleSimpleScheduleWeekday ->
-        _uiState.update { updateSimpleScheduleBuilder(it) { builder ->
-          val weekdays =
-            if (event.weekday in builder.selectedWeekdays) builder.selectedWeekdays - event.weekday
-            else builder.selectedWeekdays + event.weekday
-          builder.copy(selectedWeekdays = weekdays)
-        } }
+        _uiState.update {
+          updateSimpleScheduleBuilder(it) { builder ->
+            val weekdays =
+              if (event.weekday in builder.selectedWeekdays)
+                builder.selectedWeekdays - event.weekday
+              else builder.selectedWeekdays + event.weekday
+            builder.copy(selectedWeekdays = weekdays)
+          }
+        }
 
       is EditItemEvent.UpdateScheduleMaxEpisodesToKeepInput ->
         _uiState.update {
@@ -312,10 +321,7 @@ constructor(
     return state.copy(
       scheduleMode = PodcastScheduleMode.Simple,
       simpleScheduleBuilder = updatedBuilder,
-      schedule =
-        state.schedule.copy(
-          cronExpression = updatedCron ?: state.schedule.cronExpression,
-        ),
+      schedule = state.schedule.copy(cronExpression = updatedCron ?: state.schedule.cronExpression),
       scheduleCronError = null,
     )
   }

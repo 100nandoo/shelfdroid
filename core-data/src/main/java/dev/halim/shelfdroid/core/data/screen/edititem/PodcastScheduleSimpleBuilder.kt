@@ -53,7 +53,9 @@ fun parseSimpleSchedule(cronExpression: String): PodcastScheduleSimpleBuilder? {
 
   PodcastScheduleSimpleInterval.entries
     .firstOrNull { it.presetCron == normalizedCron }
-    ?.let { return PodcastScheduleSimpleBuilder(interval = it) }
+    ?.let {
+      return PodcastScheduleSimpleBuilder(interval = it)
+    }
 
   val pieces = normalizedCron.split(WHITESPACE_REGEX)
   if (pieces.size != 5) return null

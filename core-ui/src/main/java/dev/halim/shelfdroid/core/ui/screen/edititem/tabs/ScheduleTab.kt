@@ -1,18 +1,31 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package dev.halim.shelfdroid.core.ui.screen.edititem.tabs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,8 +45,9 @@ import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.SectionCard
+import dev.halim.shelfdroid.core.ui.components.TimePickerTextField
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
-import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 
@@ -41,64 +55,86 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 fun ScheduleTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit = {}) {
   LazyColumn(
     contentPadding = PaddingValues(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
+    verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom),
+    modifier = Modifier.fillMaxSize(),
   ) {
     if (!uiState.canConfigureSchedule()) {
-      item { MissingRssWarningCard() }
+      item(key = "missing-rss") {
+        Column(modifier = Modifier.animateItem()) { MissingRssWarningCard() }
+      }
       return@LazyColumn
     }
 
-    item {
-      SectionCard {
-        MySwitch(
-          title = stringResource(R.string.edit_item_schedule_enable),
-          checked = uiState.schedule.autoDownloadEpisodes,
-          contentDescription = stringResource(R.string.edit_item_schedule_enable),
+    if (uiState.schedule.autoDownloadEpisodes) {
+      item(key = "max-episodes-to-keep") {
+        MyOutlinedTextField(
+          modifier = Modifier.animateItem(),
           enabled = !uiState.isSaving,
-          onCheckedChange = { onEvent(EditItemEvent.UpdateScheduleEnabled(it)) },
+          value = uiState.schedule.maxEpisodesToKeepInput,
+          onValueChange = {
+            onEvent(EditItemEvent.UpdateScheduleMaxEpisodesToKeepInput(it))
+          },
+          label = stringResource(R.string.edit_item_schedule_max_episodes_to_keep),
+          placeholder = stringResource(R.string.edit_item_schedule_limit_hint),
+          keyboardOptions =
+            KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
         )
+      }
 
-        if (uiState.schedule.autoDownloadEpisodes) {
-          MyOutlinedTextField(
-            enabled = !uiState.isSaving,
-            value = uiState.schedule.maxEpisodesToKeepInput,
-            onValueChange = {
-              onEvent(EditItemEvent.UpdateScheduleMaxEpisodesToKeepInput(it))
-            },
-            label = stringResource(R.string.edit_item_schedule_max_episodes_to_keep),
-            placeholder = stringResource(R.string.edit_item_schedule_limit_hint),
-            keyboardOptions =
-              KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-          )
-          MyOutlinedTextField(
-            enabled = !uiState.isSaving,
-            value = uiState.schedule.maxNewEpisodesToDownloadInput,
-            onValueChange = {
-              onEvent(EditItemEvent.UpdateScheduleMaxNewEpisodesToDownloadInput(it))
-            },
-            label = stringResource(R.string.edit_item_schedule_max_new_episodes),
-            placeholder = stringResource(R.string.edit_item_schedule_limit_hint),
-            keyboardOptions =
-              KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-          )
+      item(key = "max-new-episodes") {
+        MyOutlinedTextField(
+          modifier = Modifier.animateItem(),
+          enabled = !uiState.isSaving,
+          value = uiState.schedule.maxNewEpisodesToDownloadInput,
+          onValueChange = {
+            onEvent(EditItemEvent.UpdateScheduleMaxNewEpisodesToDownloadInput(it))
+          },
+          label = stringResource(R.string.edit_item_schedule_max_new_episodes),
+          placeholder = stringResource(R.string.edit_item_schedule_limit_hint),
+          keyboardOptions =
+            KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+        )
+      }
 
-          ScheduleModeSelector(uiState = uiState, onEvent = onEvent)
+      item(key = "schedule-mode") {
+        Spacer(Modifier.height(24.dp))
+        ScheduleModeSelector(
+          modifier = Modifier.animateItem(),
+          uiState = uiState,
+          onEvent = onEvent,
+        )
+      }
 
-          when (uiState.scheduleMode) {
-            PodcastScheduleMode.Simple -> SimpleScheduleEditor(uiState = uiState, onEvent = onEvent)
-            PodcastScheduleMode.Advanced ->
-              AdvancedScheduleEditor(uiState = uiState, onEvent = onEvent)
+      when (uiState.scheduleMode) {
+        PodcastScheduleMode.Simple -> simpleScheduleItems(uiState = uiState, onEvent = onEvent)
+        PodcastScheduleMode.Advanced -> {
+          item(key = "advanced-schedule") {
+            AdvancedScheduleEditor(
+              modifier = Modifier.animateItem(),
+              uiState = uiState,
+              onEvent = onEvent,
+            )
           }
-        } else {
-          Text(
-            text = stringResource(R.string.edit_item_schedule_disabled_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
         }
+      }
+    } else {
+      item(key = "schedule-disabled-hint") {
+        Text(
+          modifier = Modifier.animateItem(),
+          text = stringResource(R.string.edit_item_schedule_disabled_hint),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
 
+    item(key = "save-schedule") {
+      Column(
+        modifier = Modifier.fillMaxWidth().animateItem(),
+        horizontalAlignment = Alignment.End,
+      ) {
+        Spacer(Modifier.height(8.dp))
         Button(
-          modifier = Modifier.align(Alignment.End),
           enabled = !uiState.isSaving && uiState.hasScheduleChanges(),
           onClick = { onEvent(EditItemEvent.SaveSchedule) },
         ) {
@@ -106,14 +142,30 @@ fun ScheduleTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit = {})
         }
       }
     }
+
+    item(key = "schedule-enabled") {
+      MySwitch(
+        modifier = Modifier.animateItem(),
+        title = stringResource(R.string.edit_item_schedule_enable),
+        checked = uiState.schedule.autoDownloadEpisodes,
+        contentDescription = stringResource(R.string.edit_item_schedule_enable),
+        enabled = !uiState.isSaving,
+        onCheckedChange = { onEvent(EditItemEvent.UpdateScheduleEnabled(it)) },
+      )
+    }
   }
 }
 
 @Composable
-private fun ScheduleModeSelector(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
+private fun ScheduleModeSelector(
+  modifier: Modifier = Modifier,
+  uiState: EditItemUiState,
+  onEvent: (EditItemEvent) -> Unit,
+) {
   val simpleLabel = stringResource(R.string.edit_item_schedule_mode_simple)
   val advancedLabel = stringResource(R.string.edit_item_schedule_mode_advanced)
   MySegmentedButton(
+    modifier = modifier,
     options = listOf(simpleLabel, advancedLabel),
     selectedValue =
       when (uiState.scheduleMode) {
@@ -123,38 +175,38 @@ private fun ScheduleModeSelector(uiState: EditItemUiState, onEvent: (EditItemEve
     onClick = { selection ->
       onEvent(
         EditItemEvent.ChangeScheduleMode(
-          if (selection == simpleLabel) PodcastScheduleMode.Simple
-          else PodcastScheduleMode.Advanced
+          if (selection == simpleLabel) PodcastScheduleMode.Simple else PodcastScheduleMode.Advanced
         )
       )
     },
   )
 }
 
-@Composable
-private fun SimpleScheduleEditor(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
-  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    Text(
-      text = stringResource(R.string.edit_item_schedule_interval),
-      style = MaterialTheme.typography.titleMedium,
+private fun LazyListScope.simpleScheduleItems(
+  uiState: EditItemUiState,
+  onEvent: (EditItemEvent) -> Unit,
+) {
+  item(key = "schedule-interval") {
+    IntervalDropdown(
+      modifier = Modifier.animateItem(),
+      uiState = uiState,
+      onEvent = onEvent,
     )
+  }
 
-    PodcastScheduleSimpleInterval.entries.forEach { interval ->
-      IntervalOptionRow(
-        selected = uiState.simpleScheduleBuilder.interval == interval,
-        label = interval.label(),
-        enabled = !uiState.isSaving,
-        onClick = { onEvent(EditItemEvent.UpdateSimpleScheduleInterval(interval)) },
-      )
-    }
-
-    if (uiState.simpleScheduleBuilder.interval == PodcastScheduleSimpleInterval.Custom) {
+  if (uiState.simpleScheduleBuilder.interval == PodcastScheduleSimpleInterval.Custom) {
+    item(key = "schedule-weekdays-title") {
       Text(
+        modifier = Modifier.animateItem(),
         text = stringResource(R.string.edit_item_schedule_weekdays),
         style = MaterialTheme.typography.titleSmall,
       )
-      WEEKDAY_OPTIONS.forEach { (weekday, labelRes) ->
+    }
+
+    WEEKDAY_OPTIONS.forEach { (weekday, labelRes) ->
+      item(key = "schedule-weekday-$weekday") {
         CheckboxRow(
+          modifier = Modifier.animateItem(),
           checked = weekday in uiState.simpleScheduleBuilder.selectedWeekdays,
           text = stringResource(labelRes),
           onCheckedChange = { onEvent(EditItemEvent.ToggleSimpleScheduleWeekday(weekday)) },
@@ -162,16 +214,31 @@ private fun SimpleScheduleEditor(uiState: EditItemUiState, onEvent: (EditItemEve
         )
       }
     }
+  }
 
-    if (
-      uiState.simpleScheduleBuilder.interval == PodcastScheduleSimpleInterval.Custom ||
-        uiState.simpleScheduleBuilder.interval == PodcastScheduleSimpleInterval.Daily
-    ) {
-      TimeInputFields(uiState = uiState, onEvent = onEvent)
+  if (
+    uiState.simpleScheduleBuilder.interval == PodcastScheduleSimpleInterval.Custom ||
+      uiState.simpleScheduleBuilder.interval == PodcastScheduleSimpleInterval.Daily
+  ) {
+    item(key = "schedule-time") {
+      TimePickerTextField(
+        modifier = Modifier.animateItem(),
+        enabled = !uiState.isSaving,
+        label = stringResource(R.string.edit_item_schedule_time),
+        selectedHour = uiState.simpleScheduleBuilder.selectedHour.toIntOrNull() ?: 0,
+        selectedMinute = uiState.simpleScheduleBuilder.selectedMinute.toIntOrNull() ?: 0,
+        onTimeSelected = { hour, minute ->
+          onEvent(EditItemEvent.UpdateSimpleScheduleHour(hour.toString()))
+          onEvent(EditItemEvent.UpdateSimpleScheduleMinute(minute.toString()))
+        },
+      )
     }
+  }
 
-    uiState.simpleScheduleGuidance()?.let {
+  uiState.simpleScheduleGuidance()?.let {
+    item(key = "schedule-guidance") {
       Text(
+        modifier = Modifier.animateItem(),
         text = it,
         style = MaterialTheme.typography.bodyMedium,
         color =
@@ -184,9 +251,13 @@ private fun SimpleScheduleEditor(uiState: EditItemUiState, onEvent: (EditItemEve
 }
 
 @Composable
-private fun AdvancedScheduleEditor(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
+private fun AdvancedScheduleEditor(
+  modifier: Modifier = Modifier,
+  uiState: EditItemUiState,
+  onEvent: (EditItemEvent) -> Unit,
+) {
   OutlinedTextField(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier.fillMaxWidth(),
     enabled = !uiState.isSaving,
     value = uiState.schedule.cronExpression,
     onValueChange = { onEvent(EditItemEvent.UpdateScheduleCronExpression(it)) },
@@ -206,43 +277,43 @@ private fun AdvancedScheduleEditor(uiState: EditItemUiState, onEvent: (EditItemE
 }
 
 @Composable
-private fun TimeInputFields(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
-  MyOutlinedTextField(
-    enabled = !uiState.isSaving,
-    value = uiState.simpleScheduleBuilder.selectedHour,
-    onValueChange = { onEvent(EditItemEvent.UpdateSimpleScheduleHour(it)) },
-    label = stringResource(R.string.edit_item_schedule_hour),
-    placeholder = stringResource(R.string.edit_item_schedule_hour_hint),
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-  )
-  MyOutlinedTextField(
-    enabled = !uiState.isSaving,
-    value = uiState.simpleScheduleBuilder.selectedMinute,
-    onValueChange = { onEvent(EditItemEvent.UpdateSimpleScheduleMinute(it)) },
-    label = stringResource(R.string.edit_item_schedule_minute),
-    placeholder = stringResource(R.string.edit_item_schedule_minute_hint),
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-  )
-}
-
-@Composable
-private fun IntervalOptionRow(
-  selected: Boolean,
-  label: String,
-  enabled: Boolean,
-  onClick: () -> Unit,
+private fun IntervalDropdown(
+  modifier: Modifier = Modifier,
+  uiState: EditItemUiState,
+  onEvent: (EditItemEvent) -> Unit,
 ) {
-  Row(
-    modifier = Modifier.fillMaxWidth(),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    RadioButton(selected = selected, onClick = onClick, enabled = enabled)
-    Text(
-      text = label,
-      style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurface,
-    )
+  var expanded by remember { mutableStateOf(false) }
+
+  Column(modifier = modifier.fillMaxWidth()) {
+    ExposedDropdownMenuBox(
+      expanded = expanded,
+      onExpandedChange = { expanded = it && !uiState.isSaving },
+    ) {
+      OutlinedTextField(
+        value = uiState.simpleScheduleBuilder.interval.label(),
+        onValueChange = {},
+        readOnly = true,
+        enabled = !uiState.isSaving,
+        label = { Text(stringResource(R.string.edit_item_schedule_interval)) },
+        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+        modifier =
+          Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+      )
+      ExposedDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+      ) {
+        PodcastScheduleSimpleInterval.entries.forEach { interval ->
+          DropdownMenuItem(
+            text = { Text(interval.label()) },
+            onClick = {
+              onEvent(EditItemEvent.UpdateSimpleScheduleInterval(interval))
+              expanded = false
+            },
+          )
+        }
+      }
+    }
   }
 }
 
@@ -251,18 +322,25 @@ private fun PodcastScheduleSimpleInterval.label(): String =
   when (this) {
     PodcastScheduleSimpleInterval.Custom ->
       stringResource(R.string.edit_item_schedule_interval_custom)
+
     PodcastScheduleSimpleInterval.Daily ->
       stringResource(R.string.edit_item_schedule_interval_daily)
+
     PodcastScheduleSimpleInterval.Every12Hours ->
       stringResource(R.string.edit_item_schedule_interval_every_12_hours)
+
     PodcastScheduleSimpleInterval.Every6Hours ->
       stringResource(R.string.edit_item_schedule_interval_every_6_hours)
+
     PodcastScheduleSimpleInterval.Every2Hours ->
       stringResource(R.string.edit_item_schedule_interval_every_2_hours)
+
     PodcastScheduleSimpleInterval.EveryHour ->
       stringResource(R.string.edit_item_schedule_interval_every_hour)
+
     PodcastScheduleSimpleInterval.Every30Minutes ->
       stringResource(R.string.edit_item_schedule_interval_every_30_minutes)
+
     PodcastScheduleSimpleInterval.Every15Minutes ->
       stringResource(R.string.edit_item_schedule_interval_every_15_minutes)
   }
@@ -285,22 +363,20 @@ private fun MissingRssWarningCard() {
 @ShelfDroidPreview
 @Composable
 private fun ScheduleTabPreview() {
-  PreviewWrapper { ScheduleTab(uiState = Defaults.EDIT_ITEM_PODCAST_UI_STATE) }
+  AnimatedPreviewWrapper { ScheduleTab(uiState = Defaults.EDIT_ITEM_PODCAST_UI_STATE) }
 }
 
 @ShelfDroidPreview
 @Composable
 private fun ScheduleTabDisabledPreview() {
-  PreviewWrapper {
+  AnimatedPreviewWrapper {
     ScheduleTab(
       uiState =
         Defaults.EDIT_ITEM_PODCAST_UI_STATE.copy(
           schedule =
             Defaults.EDIT_ITEM_PODCAST_UI_STATE.schedule.copy(autoDownloadEpisodes = false),
           originalSchedule =
-            Defaults.EDIT_ITEM_PODCAST_UI_STATE.originalSchedule.copy(
-              autoDownloadEpisodes = false
-            ),
+            Defaults.EDIT_ITEM_PODCAST_UI_STATE.originalSchedule.copy(autoDownloadEpisodes = false),
         )
     )
   }
@@ -309,7 +385,7 @@ private fun ScheduleTabDisabledPreview() {
 @ShelfDroidPreview
 @Composable
 private fun ScheduleTabMissingRssPreview() {
-  PreviewWrapper {
+  AnimatedPreviewWrapper {
     ScheduleTab(
       uiState =
         Defaults.EDIT_ITEM_PODCAST_UI_STATE.copy(
@@ -318,9 +394,7 @@ private fun ScheduleTabMissingRssPreview() {
           schedule =
             Defaults.EDIT_ITEM_PODCAST_UI_STATE.schedule.copy(autoDownloadEpisodes = false),
           originalSchedule =
-            Defaults.EDIT_ITEM_PODCAST_UI_STATE.originalSchedule.copy(
-              autoDownloadEpisodes = false
-            ),
+            Defaults.EDIT_ITEM_PODCAST_UI_STATE.originalSchedule.copy(autoDownloadEpisodes = false),
         )
     )
   }
