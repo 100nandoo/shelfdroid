@@ -58,7 +58,7 @@ private fun SettingsPodcastScreenContent(
         title = stringResource(R.string.auto_select_finished_episodes),
         checked = uiState.crudPrefs.episodeAutoSelectFinished,
         contentDescription = stringResource(R.string.auto_select_finished_episodes),
-        onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHardDelete(it)) },
+        onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchAutoSelectFinished(it)) },
       )
     }
     Spacer(modifier = Modifier.height(16.dp))

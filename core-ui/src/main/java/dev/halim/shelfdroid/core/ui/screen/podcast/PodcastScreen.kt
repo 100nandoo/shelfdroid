@@ -180,9 +180,9 @@ fun PodcastScreenContent(
     }
     AnimatedVisibility(uiState.isSelectionMode) {
       DeleteSection(
-        count,
-        uiState.prefs.crudPrefs.episodeHardDelete,
-        uiState.prefs.crudPrefs.episodeAutoSelectFinished,
+        count = count,
+        initialHardDelete = uiState.prefs.crudPrefs.episodeHardDelete,
+        autoSelectFinished = uiState.prefs.crudPrefs.episodeAutoSelectFinished,
         onDeleteClick = { onEvent(PodcastEvent.DeleteEpisode(it)) },
         onAutoSelectFinishedChange = { onEvent(PodcastEvent.SwitchAutoSelectFinished(it)) },
       )
