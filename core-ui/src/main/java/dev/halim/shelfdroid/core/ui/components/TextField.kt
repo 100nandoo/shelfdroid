@@ -48,6 +48,8 @@ fun MyOutlinedTextField(
   label: String,
   prefix: String? = null,
   placeholder: String? = null,
+  supportingText: String? = null,
+  isError: Boolean = false,
   keyboardOptions: KeyboardOptions,
   visualTransformation: VisualTransformation = VisualTransformation.None,
   onNext: (() -> Unit)? = null,
@@ -65,8 +67,10 @@ fun MyOutlinedTextField(
     label = { Text(label) },
     prefix = prefix?.let { { Text(it, color = prefixColor) } },
     placeholder = placeholder?.let { { Text(it) } },
+    supportingText = supportingText?.let { { Text(it) } },
     keyboardOptions = keyboardOptions,
     visualTransformation = visualTransformation,
+    isError = isError,
     keyboardActions =
       KeyboardActions(onNext = onNext?.let { { it() } }, onDone = onDone?.let { { it() } }),
   )

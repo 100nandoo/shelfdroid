@@ -34,7 +34,8 @@ constructor(
     when (event) {
       is LoginEvent.LoginButtonPressed ->
         viewModelScope.launch { _uiState.update { loginRepository.login(_uiState.value) } }
-      is LoginEvent.ServerChanged -> _uiState.update { it.copy(server = event.server) }
+      is LoginEvent.ServerChanged ->
+        _uiState.update { it.copy(server = event.server, serverFieldError = null) }
       is LoginEvent.UsernameChanged -> _uiState.update { it.copy(username = event.username) }
       is LoginEvent.PasswordChanged -> _uiState.update { it.copy(password = event.password) }
       LoginEvent.ErrorShown -> {

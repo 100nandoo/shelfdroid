@@ -38,6 +38,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
+import dev.halim.shelfdroid.core.data.screen.login.LoginFieldError
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -109,8 +110,14 @@ fun LoginScreenContent(
         value = uiState.server,
         onValueChange = { onEvent(LoginEvent.ServerChanged(it)) },
         label = stringResource(R.string.server_address),
-        prefix = stringResource(R.string.https),
         placeholder = stringResource(R.string.placeholder_server),
+        supportingText =
+          if (uiState.serverFieldError == LoginFieldError.InvalidServerUrl) {
+            stringResource(R.string.invalid_server_url)
+          } else {
+            null
+          },
+        isError = uiState.serverFieldError != null,
         keyboardOptions =
           KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
         onNext = { focusManager.moveFocus(FocusDirection.Next) },

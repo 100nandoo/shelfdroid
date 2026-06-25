@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.text.format.DateUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.extensions.formatDurationShort
@@ -37,19 +38,25 @@ constructor(
   private suspend fun getToken(): String =
     withContext(Dispatchers.IO) { dataStoreManager.userPrefs.first().accessToken }
 
+  private fun currentBaseUrl(): AudiobookshelfBaseUrl =
+    AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL) ?: AudiobookshelfBaseUrl.DEFAULT
+
   fun generateItemCoverUrl(itemId: String, updatedAt: Long? = null): String {
-    val baseUrl = "https://${DataStoreManager.BASE_URL}/api/items/$itemId/cover"
-    return updatedAt?.takeIf { it > 0 }?.let { "$baseUrl?v=$it" } ?: baseUrl
+    return currentBaseUrl()
+      .resolve(
+        "/api/items/$itemId/cover",
+        query = updatedAt?.takeIf { it > 0 }?.let { "v=$it" },
+      )
   }
 
   suspend fun generateContentUrl(url: String): String =
-    "https://${DataStoreManager.BASE_URL}$url?token=${getToken()}"
+    currentBaseUrl().resolve(url, query = "token=${getToken()}")
 
   suspend fun generateBackupDownloadUrl(backupId: String): String =
-    "https://${DataStoreManager.BASE_URL}/api/backups/$backupId/download?token=${getToken()}"
+    currentBaseUrl().resolve("/api/backups/$backupId/download", query = "token=${getToken()}")
 
   suspend fun fileDownloadUrl(itemId: String, ino: String): String =
-    "https://${DataStoreManager.BASE_URL}/api/items/$itemId/file/$ino/download?token=${getToken()}"
+    currentBaseUrl().resolve("/api/items/$itemId/file/$ino/download", query = "token=${getToken()}")
 
   fun generateDownloadId(itemId: String, episodeId: String? = null): String =
     episodeId?.let { "$itemId|$it" } ?: itemId

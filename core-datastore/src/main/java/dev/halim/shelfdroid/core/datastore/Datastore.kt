@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.DisplayPrefs
@@ -57,14 +58,21 @@ private suspend fun <T> DataStore<Preferences>.updatePreference(key: Preferences
 
 class DataStoreManager @Inject constructor(private val dataStore: DataStore<Preferences>) {
   companion object {
-    var BASE_URL = "www.audiobookshelf.org"
+    var BASE_URL = AudiobookshelfBaseUrl.DEFAULT_VALUE
   }
 
-  val baseUrl: Flow<String> = dataStore.preferenceFlow(Keys.BASE_URL, "")
+  val baseUrl: Flow<String> =
+    dataStore.preferenceFlow(Keys.BASE_URL, "").map { stored ->
+      AudiobookshelfBaseUrl.parse(stored)?.value ?: ""
+    }
 
   fun baseUrl(): String = runBlocking { baseUrl.firstOrNull() ?: "" }
 
-  suspend fun updateBaseUrl(baseUrl: String) = dataStore.updatePreference(Keys.BASE_URL, baseUrl)
+  suspend fun updateBaseUrl(baseUrl: String) =
+    dataStore.updatePreference(
+      Keys.BASE_URL,
+      AudiobookshelfBaseUrl.parse(baseUrl)?.value ?: baseUrl.trim(),
+    )
 
   suspend fun getDeviceId(): String {
     val currentDeviceId = dataStore.preferenceFlow(Keys.DEVICE_ID, "").first()

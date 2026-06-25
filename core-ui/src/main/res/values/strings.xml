@@ -107,7 +107,6 @@
     <!--SnackBar-->
 
     <!--Login-->
-    <string name="https">https://</string>
     <!--Login-->
 
     <!--Home-->
@@ -508,8 +507,9 @@
     <string name="genre">Genre</string>
     <string name="language">Language</string>
     <string name="no_libraries_available">No libraries available.</string>
-    <string name="server_address">Server Address</string>
-    <string name="placeholder_server">audio.bookshelf.org</string>
+    <string name="server_address">Server URL</string>
+    <string name="placeholder_server">https://audiobooks.dev/</string>
+    <string name="invalid_server_url">Enter a valid server URL or host, such as example.com or https://example.com/audiobookshelf</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="login">Login</string>

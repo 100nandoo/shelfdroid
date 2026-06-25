@@ -1,8 +1,9 @@
 package dev.halim.core.network.client
 
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
-import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.IOException
@@ -15,35 +16,22 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
   }
 
   override fun intercept(chain: Interceptor.Chain): Response {
-
-    var request = chain.request()
-    val absHost: String = DataStoreManager.BASE_URL
-    val isAbsRequest = request.url.host == "www.audiobookshelf.org" || request.url.host == absHost
-
-    if (!isAbsRequest) {
+    val request = chain.request()
+    if (request.url.host != AudiobookshelfBaseUrl.DEFAULT.host) {
       return chain.proceed(request)
     }
 
-    val result = runCatching { request.url.newBuilder().host(absHost).build() }
-    if (result.isSuccess) {
-      val newUrl = result.getOrThrow()
-      val token = dataStoreManager.accessToken()
-      if (token.isBlank().not()) {
-        request = request.newBuilder().header("Authorization", "Bearer $token").build()
-      }
-      request = request.newBuilder().url(newUrl).build()
+    val baseUrl =
+      AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL) ?: return chain.proceed(request)
+    val newUrl =
+      baseUrl.resolve(request.url.encodedPath, request.url.encodedQuery).toHttpUrlOrNull()
+        ?: throw IOException("Host is invalid.")
 
-      return chain.proceed(request)
-    } else {
-      handleHostError(result)
+    val requestBuilder = request.newBuilder().url(newUrl)
+    val token = dataStoreManager.accessToken()
+    if (token.isNotBlank()) {
+      requestBuilder.header("Authorization", "Bearer $token")
     }
-    return chain.proceed(request)
-  }
-
-  private fun handleHostError(result: Result<HttpUrl>) {
-    val e = result.exceptionOrNull()
-    if (e != null && e is IllegalArgumentException) {
-      throw IOException("Host is invalid.")
-    } else throw IOException(e?.message)
+    return chain.proceed(requestBuilder.build())
   }
 }
