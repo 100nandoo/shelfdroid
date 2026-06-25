@@ -112,13 +112,16 @@ fun BookScreenContent(
 ) {
   LazyColumn(
     modifier =
-      Modifier.mySharedBound(Animations.containerKey(id)).fillMaxSize().padding(horizontal = 16.dp),
+      Modifier
+        .mySharedBound(Animations.containerKey(id))
+        .fillMaxSize()
+        .padding(horizontal = 16.dp),
     reverseLayout = true,
     verticalArrangement = Arrangement.spacedBy(8.dp, alignment = Alignment.Bottom),
   ) {
     item {
       Spacer(modifier = Modifier.height(16.dp))
-      if (!isEbook || canEdit) {
+      if (!isEbook) {
         PlayDownloadAndEdit(
           playPause = playPause,
           downloadState = downloadState,

@@ -13,7 +13,7 @@ class Book(
   @SerialName("audioFiles") val audioFiles: List<AudioFile> = listOf(),
   @SerialName("chapters") val chapters: List<BookChapter> = listOf(),
   @SerialName("tracks") val audioTracks: List<AudioTrack> = listOf(),
-  @SerialName("ebookFile") val ebookFile: EbookFile? = EbookFile(),
+  @SerialName("ebookFile") val ebookFile: EbookFile? = null,
   @SerialName("duration") val duration: Double? = 0.0,
 ) : Media
 

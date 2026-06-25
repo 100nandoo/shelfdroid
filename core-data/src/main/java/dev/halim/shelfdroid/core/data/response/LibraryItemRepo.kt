@@ -47,6 +47,7 @@ constructor(
       libraryIds.forEach { libraryId ->
         async {
           val ids = idsByLibraryId(libraryId)
+          if (ids.isEmpty()) return@async
           val result = api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()
 
           if (result != null) {
