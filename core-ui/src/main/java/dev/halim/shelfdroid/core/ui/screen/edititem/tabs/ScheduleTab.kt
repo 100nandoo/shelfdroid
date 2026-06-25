@@ -33,12 +33,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
-import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleMode
-import dev.halim.shelfdroid.core.data.screen.edititem.PodcastScheduleSimpleInterval
 import dev.halim.shelfdroid.core.data.screen.edititem.canConfigureSchedule
 import dev.halim.shelfdroid.core.data.screen.edititem.hasScheduleChanges
-import dev.halim.shelfdroid.core.data.screen.edititem.simpleScheduleGuidance
-import dev.halim.shelfdroid.core.data.screen.edititem.validationMessage
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.PodcastScheduleMode
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.PodcastScheduleSimpleInterval
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.simpleScheduleGuidance
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.validationMessage
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CheckboxRow
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField

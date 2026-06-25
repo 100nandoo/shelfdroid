@@ -12,9 +12,13 @@ import dev.halim.core.network.response.MatchItemResult
 import dev.halim.core.network.response.SearchBookMatchResponse
 import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SearchProviders
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.screen.edititem.episodes.EditItemEpisodeUpdateRunner
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.EditItemScheduleSaveRunner
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.deriveSchedulePresentation
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.helper.formatFileSize
@@ -32,6 +36,10 @@ constructor(
   private val helper: Helper,
   private val libraryItemRepo: LibraryItemRepo,
 ) {
+  private fun currentWebBaseUrl(): String =
+    AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL)?.value
+      ?: AudiobookshelfBaseUrl.DEFAULT_VALUE
+
   private val episodeUpdateRunner =
     EditItemEpisodeUpdateRunner(
       updateEpisodeCutoff = { itemId, request -> api.updateItemMedia(itemId, request).map {} },
@@ -56,7 +64,7 @@ constructor(
           state = GenericState.Failure(it.message),
           itemId = itemId,
           coverUrl = helper.generateItemCoverUrl(itemId),
-          webBaseUrl = "https://${DataStoreManager.BASE_URL}",
+          webBaseUrl = currentWebBaseUrl(),
         )
       }
 
@@ -102,7 +110,7 @@ constructor(
       itemId = item.id,
       mediaKind = mappedMedia.mediaKind,
       coverUrl = helper.generateItemCoverUrl(item.id, item.updatedAt),
-      webBaseUrl = "https://${DataStoreManager.BASE_URL}",
+      webBaseUrl = currentWebBaseUrl(),
       details = details,
       originalDetails = details,
       schedule = mappedMedia.schedule,

@@ -1,8 +1,10 @@
-package dev.halim.shelfdroid.core.data.screen.edititem
+package dev.halim.shelfdroid.core.data.screen.edititem.episodes
 
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.shelfdroid.core.data.GenericUiEvent
+import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.EpisodeUpdateState
 
 internal data class EditItemEpisodeUpdateResult(
   val state: EditItemUiState,

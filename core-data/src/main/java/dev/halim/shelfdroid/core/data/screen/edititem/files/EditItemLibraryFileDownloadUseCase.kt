@@ -1,6 +1,7 @@
-package dev.halim.shelfdroid.core.data.screen.edititem
+package dev.halim.shelfdroid.core.data.screen.edititem.files
 
 import dev.halim.shelfdroid.core.data.download.ManagedDownload
+import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import javax.inject.Inject
 
 class EditItemLibraryFileDownloadUseCase
