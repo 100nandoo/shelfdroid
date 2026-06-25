@@ -19,6 +19,7 @@ data class BookUiState(
   val genres: String = "",
   val language: String = "",
   val progress: Int = 0,
+  val isEbook: Boolean = false,
   val isSingleTrack: Boolean = false,
   val canEdit: Boolean = false,
   val download: DownloadUiState = DownloadUiState(),

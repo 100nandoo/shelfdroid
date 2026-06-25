@@ -56,6 +56,7 @@ constructor(
           val formattedProgress = (progress * 100).roundToInt()
           val remaining = helper.calculateRemaining(media.duration ?: 0.0, progress)
 
+          val isEbook = media.ebookFile != null
           val isSingleTrack = media.audioTracks.size == 1
 
           val download =
@@ -97,6 +98,7 @@ constructor(
             genres = genres,
             language = language,
             progress = formattedProgress,
+            isEbook = isEbook,
             isSingleTrack = isSingleTrack,
             canEdit = userPrefs.update,
             download = download,

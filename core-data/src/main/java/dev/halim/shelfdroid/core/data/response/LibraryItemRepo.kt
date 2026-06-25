@@ -196,7 +196,7 @@ constructor(
       LibraryItemEntity(
         id = item.id,
         libraryId = libraryId,
-        inoId = media.audioFiles.first().ino,
+        inoId = media.primaryInoId(),
         title = media.metadata.title ?: "",
         description = media.metadata.description ?: "",
         author = media.metadata.authors.joinToString { it.name },
@@ -226,6 +226,8 @@ constructor(
     }
   }
 }
+
+internal fun Book.primaryInoId(): String = audioFiles.firstOrNull()?.ino.orEmpty()
 
 data class PodcastInfo(
   val id: String,

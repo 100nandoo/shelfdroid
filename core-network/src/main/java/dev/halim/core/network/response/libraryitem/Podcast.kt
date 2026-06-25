@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Podcast(
   @SerialName("libraryItemId") override val libraryItemId: String = "",
-  @SerialName("coverPath") override val coverPath: String?,
-  @SerialName("tags") override val tags: List<String>,
+  @SerialName("coverPath") override val coverPath: String? = null,
+  @SerialName("tags") override val tags: List<String> = listOf(),
   @SerialName("metadata") val metadata: PodcastMetadata = PodcastMetadata(),
   @SerialName("episodes") val episodes: List<PodcastEpisode> = listOf(),
   @SerialName("autoDownloadEpisodes") val autoDownloadEpisodes: Boolean = false,
