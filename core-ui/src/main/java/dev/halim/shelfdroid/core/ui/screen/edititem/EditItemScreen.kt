@@ -44,11 +44,12 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.match.BookMatchTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.match.PodcastMatchTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChaptersTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.CoverTab
-import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.DetailsTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.EpisodesTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.FilesTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ScheduleTab
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ToolsTab
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.details.BookDetailsTab
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.details.PodcastDetailsTab
 
 @Composable
 fun EditItemScreen(
@@ -128,12 +129,16 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
     Box(modifier = Modifier.weight(1f).fillMaxWidth().imePadding()) {
       when (currentTab) {
         EditItemTab.Details ->
-          DetailsTab(
-            mediaKind = uiState.mediaKind,
-            details = uiState.details,
-            onEvent = onEvent,
-            seriesSuggestions = uiState.seriesSuggestions,
-          )
+          when (uiState.mediaKind) {
+            EditItemMediaKind.Book ->
+              BookDetailsTab(
+                details = uiState.details,
+                onEvent = onEvent,
+                seriesSuggestions = uiState.seriesSuggestions,
+              )
+            EditItemMediaKind.Podcast ->
+              PodcastDetailsTab(details = uiState.details, onEvent = onEvent)
+          }
         EditItemTab.Cover -> CoverTab(uiState, onEvent)
         EditItemTab.Chapters -> ChaptersTab(uiState)
         EditItemTab.Episodes -> EpisodesTab(uiState, onEvent)

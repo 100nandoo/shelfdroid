@@ -388,6 +388,7 @@ constructor(
             match.copy(
               results = mapBookMatchRows(raw),
               rawResults = raw,
+              hasSearched = true,
               isSearching = false,
             )
         )

@@ -183,6 +183,7 @@ sealed interface MatchState {
     val author: String = "",
     val results: List<MatchResultRow> = emptyList(),
     val rawResults: List<SearchBookMatchResponse> = emptyList(),
+    val hasSearched: Boolean = false,
     override val isSearching: Boolean = false,
   ) : MatchState
 

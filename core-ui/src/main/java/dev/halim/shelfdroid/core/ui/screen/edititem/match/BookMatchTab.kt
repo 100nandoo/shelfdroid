@@ -30,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
@@ -37,6 +39,7 @@ import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
+import dev.halim.shelfdroid.core.ui.components.TextBodyLarge
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -62,6 +65,12 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
         onUpdateMatch = ::updateMatch,
         onRunSearch = { onEvent(EditItemEvent.RunMatchSearch) },
       )
+    }
+
+    if (match.hasSearched && match.results.isEmpty() && !match.isSearching) {
+      item {
+        BookMatchEmptyState(modifier = Modifier.animateItem())
+      }
     }
 
     itemsIndexed(
@@ -141,6 +150,15 @@ private fun BookMatchSearchControls(
 }
 
 @Composable
+private fun BookMatchEmptyState(modifier: Modifier = Modifier) {
+  TextBodyLarge(
+    text = stringResource(R.string.edit_item_match_no_results),
+    modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp),
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+  )
+}
+
+@Composable
 private fun BookMatchResultListRow(
   modifier: Modifier = Modifier,
   result: MatchResultRow,
@@ -172,8 +190,10 @@ private fun BookMatchResultListRow(
           )
         }
         if (result.description.isNotBlank()) {
+          val description =
+            remember(result.description) { AnnotatedString.fromHtml(result.description) }
           Text(
-            text = result.description,
+            text = description,
             style = MaterialTheme.typography.bodySmall,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
@@ -189,4 +209,22 @@ private fun BookMatchResultListRow(
 @Composable
 private fun BookMatchTabPreview() {
   PreviewWrapper { BookMatchTab(uiState = Defaults.EDIT_ITEM_UI_STATE, onEvent = {}) }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun BookMatchTabEmptyPreview() {
+  PreviewWrapper {
+    BookMatchTab(
+      uiState =
+        Defaults.EDIT_ITEM_UI_STATE.copy(
+          match =
+            (Defaults.EDIT_ITEM_UI_STATE.match as MatchState.Book).copy(
+              hasSearched = true,
+              results = emptyList(),
+            )
+        ),
+      onEvent = {},
+    )
+  }
 }
