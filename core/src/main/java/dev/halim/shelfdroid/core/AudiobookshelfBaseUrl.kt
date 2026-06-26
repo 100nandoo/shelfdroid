@@ -28,6 +28,24 @@ private constructor(
     return URI(scheme, null, host, port, resolvedPath, mergedQuery, null).toASCIIString()
   }
 
+  fun resolveEncoded(path: String, encodedQuery: String? = null): String {
+    val pathWithoutFragment = path.substringBefore("#")
+    val encodedPath = pathWithoutFragment.substringBefore("?").ifBlank { "/" }
+    val existingEncodedQuery =
+      pathWithoutFragment.substringAfter("?", "").takeIf { it.isNotBlank() }
+    val mergedEncodedQuery =
+      listOfNotNull(existingEncodedQuery, encodedQuery).joinToString("&").takeIf { it.isNotBlank() }
+    val resolvedPath = joinPath(pathPrefix, encodedPath)
+    return buildString {
+      append(origin)
+      append(resolvedPath)
+      if (mergedEncodedQuery != null) {
+        append('?')
+        append(mergedEncodedQuery)
+      }
+    }
+  }
+
   fun socketPath(): String = joinPath(pathPrefix, "/socket.io")
 
   companion object {

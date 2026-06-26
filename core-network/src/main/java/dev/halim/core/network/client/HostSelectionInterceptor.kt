@@ -24,7 +24,7 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
     val baseUrl =
       AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL) ?: return chain.proceed(request)
     val newUrl =
-      baseUrl.resolve(request.url.encodedPath, request.url.encodedQuery).toHttpUrlOrNull()
+      baseUrl.resolveEncoded(request.url.encodedPath, request.url.encodedQuery).toHttpUrlOrNull()
         ?: throw IOException("Host is invalid.")
 
     val requestBuilder = request.newBuilder().url(newUrl)

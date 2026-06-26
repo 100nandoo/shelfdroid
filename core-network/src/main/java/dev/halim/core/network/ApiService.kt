@@ -203,6 +203,8 @@ interface ApiService {
     @Query("provider") provider: String,
     @Query("title") title: String,
     @Query("author") author: String? = null,
+    @Query("fallbackTitleOnly") fallbackTitleOnly: Int? = null,
+    @Query("id") id: String? = null,
   ): Result<List<SearchBookMatchResponse>>
 
   @GET("/api/search/covers")

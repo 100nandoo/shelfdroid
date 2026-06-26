@@ -376,6 +376,8 @@ constructor(
               provider = match.selectedProvider,
               title = match.title,
               author = match.author.ifBlank { null },
+              fallbackTitleOnly = 1,
+              id = state.itemId.ifBlank { null },
             )
             .getOrElse {
               events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))

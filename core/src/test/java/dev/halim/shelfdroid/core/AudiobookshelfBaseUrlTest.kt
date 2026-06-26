@@ -33,6 +33,20 @@ class AudiobookshelfBaseUrlTest {
   }
 
   @Test
+  fun resolveEncoded_preservesAlreadyEncodedQueryValues() {
+    val baseUrl = checkNotNull(AudiobookshelfBaseUrl.parse("https://example.com/audiobookshelf"))
+
+    assertEquals(
+      "https://example.com/audiobookshelf/api/search/books?provider=audible&title=Will%20Wight%20-%20Waybound%20-%20Cradle%2C%20Book%2012&author=Will%20Wight&fallbackTitleOnly=1",
+      baseUrl.resolveEncoded(
+        "/api/search/books",
+        encodedQuery =
+          "provider=audible&title=Will%20Wight%20-%20Waybound%20-%20Cradle%2C%20Book%2012&author=Will%20Wight&fallbackTitleOnly=1",
+      ),
+    )
+  }
+
+  @Test
   fun parse_rejectsUnsupportedScheme() {
     assertNull(AudiobookshelfBaseUrl.parse("ftp://example.com"))
   }
