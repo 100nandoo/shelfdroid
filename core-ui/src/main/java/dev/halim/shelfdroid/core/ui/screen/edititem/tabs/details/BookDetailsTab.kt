@@ -157,9 +157,11 @@ internal fun BookDetailsTab(
       onCheckedChange = { v -> onEvent(EditItemEvent.UpdateDetails { it.copy(explicit = v) }) },
     )
     CheckboxRow(
+      modifier = Modifier.fillMaxWidth(),
       checked = details.abridged,
       text = stringResource(R.string.edit_item_abridged),
       onCheckedChange = { v -> onEvent(EditItemEvent.UpdateDetails { it.copy(abridged = v) }) },
+      wholeRowClickable = true,
     )
 
     BookActionRow(onEvent = onEvent)
@@ -207,9 +209,11 @@ internal fun GenresAndTags(details: DetailsForm, onEvent: (EditItemEvent) -> Uni
 @Composable
 internal fun ExplicitRow(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
   CheckboxRow(
+    modifier = Modifier.fillMaxWidth(),
     checked = checked,
     text = stringResource(R.string.edit_item_explicit),
     onCheckedChange = onCheckedChange,
+    wholeRowClickable = true,
   )
 }
 

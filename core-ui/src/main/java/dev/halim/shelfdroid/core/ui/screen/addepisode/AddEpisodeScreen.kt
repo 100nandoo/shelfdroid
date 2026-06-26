@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -34,6 +36,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -140,7 +143,7 @@ private fun AddEpisodeScreenContent(
 
       items(items = filteredEpisodes, key = { it.url }) { episode ->
         AddEpisodeItem(episode) { onEvent(AddEpisodeEvent.CheckEpisode(episode.url, it)) }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        HorizontalDivider()
       }
     }
   }
@@ -206,9 +209,22 @@ private fun AddEpisodeItem(episode: AddEpisode, onCheckedChange: (Boolean) -> Un
 
   Row(
     verticalAlignment = Alignment.CenterVertically,
-    modifier = Modifier.padding(start = 4.dp, end = 16.dp),
+    modifier =
+      Modifier.fillMaxWidth()
+        .toggleable(
+          value = checked,
+          enabled = enabled,
+          role = Role.Checkbox,
+          onValueChange = onCheckedChange,
+        )
+        .padding(horizontal = 16.dp, vertical = 8.dp),
   ) {
-    Checkbox(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+    Checkbox(
+      checked = checked,
+      onCheckedChange = null,
+      enabled = enabled,
+      modifier = Modifier.padding(end = 12.dp),
+    )
     Column(modifier = Modifier.weight(1f)) {
       Text(
         modifier =

@@ -206,11 +206,12 @@ private fun LazyListScope.simpleScheduleItems(
     WEEKDAY_OPTIONS.forEach { (weekday, labelRes) ->
       item(key = "schedule-weekday-$weekday") {
         CheckboxRow(
-          modifier = Modifier.animateItem(),
+          modifier = Modifier.animateItem().fillMaxWidth(),
           checked = weekday in uiState.simpleScheduleBuilder.selectedWeekdays,
           text = stringResource(labelRes),
           onCheckedChange = { onEvent(EditItemEvent.ToggleSimpleScheduleWeekday(weekday)) },
           enabled = !uiState.isSaving,
+          wholeRowClickable = true,
         )
       }
     }
