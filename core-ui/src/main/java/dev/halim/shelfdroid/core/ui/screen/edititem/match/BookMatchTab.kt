@@ -6,17 +6,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -25,14 +27,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
+import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
+import dev.halim.shelfdroid.core.ui.components.TextBodyLarge
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -41,14 +48,59 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 @Composable
 fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val match = uiState.match as? MatchState.Book ?: return
+
+  fun updateMatch(transform: (MatchState.Book) -> MatchState.Book) {
+    onEvent(EditItemEvent.UpdateBookMatch(transform))
+  }
+
+  LazyColumn(
+    reverseLayout = true,
+    verticalArrangement = Arrangement.Bottom,
+    modifier = Modifier.fillMaxSize(),
+  ) {
+    item {
+      BookMatchSearchControls(
+        modifier = Modifier.animateItem(),
+        match = match,
+        onUpdateMatch = ::updateMatch,
+        onRunSearch = { onEvent(EditItemEvent.RunMatchSearch) },
+      )
+    }
+
+    if (match.hasSearched && match.results.isEmpty() && !match.isSearching) {
+      item {
+        BookMatchEmptyState(modifier = Modifier.animateItem())
+      }
+    }
+
+    itemsIndexed(
+      items = match.results,
+      key = { index, result -> "${result.title}-${result.author}-$index" },
+    ) { index, result ->
+      BookMatchResultListRow(
+        modifier = Modifier.animateItem(),
+        result = result,
+        onClick = { onEvent(EditItemEvent.ApplyBookMatchResult(index)) },
+      )
+    }
+  }
+}
+
+@Composable
+private fun BookMatchSearchControls(
+  modifier: Modifier = Modifier,
+  match: MatchState.Book,
+  onUpdateMatch: ((MatchState.Book) -> MatchState.Book) -> Unit,
+  onRunSearch: () -> Unit,
+) {
+  var expanded by remember { mutableStateOf(false) }
+  val selectedText =
+    match.providers.find { it.value == match.selectedProvider }?.text ?: match.selectedProvider
+
   Column(
-    modifier = Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+    modifier = modifier.fillMaxWidth().padding(16.dp),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedText =
-      match.providers.find { it.value == match.selectedProvider }?.text ?: match.selectedProvider
-
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
       OutlinedTextField(
         value = selectedText,
@@ -64,7 +116,7 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
           DropdownMenuItem(
             text = { Text(provider.text) },
             onClick = {
-              onEvent(EditItemEvent.UpdateBookMatch { it.copy(selectedProvider = provider.value) })
+              onUpdateMatch { it.copy(selectedProvider = provider.value) }
               expanded = false
             },
           )
@@ -74,64 +126,82 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
 
     OutlinedTextField(
       value = match.title,
-      onValueChange = {
-        onEvent(EditItemEvent.UpdateBookMatch { matchState -> matchState.copy(title = it) })
-      },
+      onValueChange = { onUpdateMatch { matchState -> matchState.copy(title = it) } },
       label = { Text(stringResource(R.string.edit_item_search_title)) },
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
     )
     OutlinedTextField(
       value = match.author,
-      onValueChange = {
-        onEvent(EditItemEvent.UpdateBookMatch { matchState -> matchState.copy(author = it) })
-      },
+      onValueChange = { onUpdateMatch { matchState -> matchState.copy(author = it) } },
       label = { Text(stringResource(R.string.author)) },
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
     )
+
     Button(
-      onClick = { onEvent(EditItemEvent.RunMatchSearch) },
+      onClick = onRunSearch,
       enabled = !match.isSearching && match.title.isNotBlank(),
+      modifier = Modifier.align(Alignment.End),
     ) {
       Text(stringResource(R.string.search))
     }
+  }
+}
 
-    match.results.forEachIndexed { index, result ->
-      Card(
-        modifier =
-          Modifier.fillMaxWidth().clickable { onEvent(EditItemEvent.ApplyBookMatchResult(index)) }
-      ) {
-        Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          if (result.cover.isNotBlank()) {
-            CoverNoAnimation(modifier = Modifier.size(64.dp), coverUrl = result.cover)
-          }
-          Column(modifier = Modifier.weight(1f)) {
-            Text(
-              text = result.title,
-              style = MaterialTheme.typography.titleSmall,
-              maxLines = 2,
-              overflow = TextOverflow.Ellipsis,
-            )
-            if (result.author.isNotBlank()) {
-              Text(
-                text = stringResource(R.string.edit_item_match_by_author, result.author),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-              )
-            }
-            if (result.description.isNotBlank()) {
-              Text(
-                text = result.description,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-              )
-            }
-          }
+@Composable
+private fun BookMatchEmptyState(modifier: Modifier = Modifier) {
+  TextBodyLarge(
+    text = stringResource(R.string.edit_item_match_no_results),
+    modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp),
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+  )
+}
+
+@Composable
+private fun BookMatchResultListRow(
+  modifier: Modifier = Modifier,
+  result: MatchResultRow,
+  onClick: () -> Unit,
+) {
+  Column(modifier = modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+      if (result.cover.isNotBlank()) {
+        CoverNoAnimation(
+          modifier = Modifier.height(60.dp).padding(end = 16.dp),
+          coverUrl = result.cover,
+          shape = RoundedCornerShape(4.dp),
+        )
+      }
+      Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+          text = result.title,
+          style = MaterialTheme.typography.bodyLarge,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+        )
+        if (result.author.isNotBlank()) {
+          Text(
+            text = stringResource(R.string.edit_item_match_by_author, result.author),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+        }
+        if (result.description.isNotBlank()) {
+          val description =
+            remember(result.description) { AnnotatedString.fromHtml(result.description) }
+          Text(
+            text = description,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+          )
         }
       }
     }
+    HorizontalDivider()
   }
 }
 
@@ -139,4 +209,22 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
 @Composable
 private fun BookMatchTabPreview() {
   PreviewWrapper { BookMatchTab(uiState = Defaults.EDIT_ITEM_UI_STATE, onEvent = {}) }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun BookMatchTabEmptyPreview() {
+  PreviewWrapper {
+    BookMatchTab(
+      uiState =
+        Defaults.EDIT_ITEM_UI_STATE.copy(
+          match =
+            (Defaults.EDIT_ITEM_UI_STATE.match as MatchState.Book).copy(
+              hasSearched = true,
+              results = emptyList(),
+            )
+        ),
+      onEvent = {},
+    )
+  }
 }

@@ -33,8 +33,13 @@ constructor(
   fun onEvent(event: LoginEvent) {
     when (event) {
       is LoginEvent.LoginButtonPressed ->
-        viewModelScope.launch { _uiState.update { loginRepository.login(_uiState.value) } }
-      is LoginEvent.ServerChanged -> _uiState.update { it.copy(server = event.server) }
+        viewModelScope.launch {
+          val currentState = _uiState.value
+          _uiState.update { it.copy(loginState = GenericState.Loading) }
+          _uiState.update { loginRepository.login(currentState) }
+        }
+      is LoginEvent.ServerChanged ->
+        _uiState.update { it.copy(server = event.server, serverFieldError = null) }
       is LoginEvent.UsernameChanged -> _uiState.update { it.copy(username = event.username) }
       is LoginEvent.PasswordChanged -> _uiState.update { it.copy(password = event.password) }
       LoginEvent.ErrorShown -> {

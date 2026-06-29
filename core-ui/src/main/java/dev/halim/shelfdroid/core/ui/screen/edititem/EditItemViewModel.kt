@@ -13,8 +13,6 @@ import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.download.ManagedDownload
 import dev.halim.shelfdroid.core.data.download.ManagedDownloadManager
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
-import dev.halim.shelfdroid.core.data.screen.edititem.EditItemLibraryFileDownloadResult
-import dev.halim.shelfdroid.core.data.screen.edititem.EditItemLibraryFileDownloadUseCase
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
@@ -23,7 +21,14 @@ import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchDraft
 import dev.halim.shelfdroid.core.data.screen.edititem.PodcastMatchField
 import dev.halim.shelfdroid.core.data.screen.edititem.coerceFor
+import dev.halim.shelfdroid.core.data.screen.edititem.files.EditItemLibraryFileDownloadResult
+import dev.halim.shelfdroid.core.data.screen.edititem.files.EditItemLibraryFileDownloadUseCase
 import dev.halim.shelfdroid.core.data.screen.edititem.normalized
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.PodcastScheduleMode
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.PodcastScheduleSimpleBuilder
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.PodcastScheduleSimpleInterval
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.deriveSchedulePresentation
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.toCronExpressionOrNull
 import dev.halim.shelfdroid.core.ui.navigation.EditItem
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,6 +83,7 @@ constructor(
         _uiState.update { repository.updatePodcastMatch(it, event.transform) }
 
       EditItemEvent.Save -> save()
+      EditItemEvent.SaveSchedule -> saveSchedule()
       EditItemEvent.QuickMatch -> quickMatch()
       EditItemEvent.ReScan -> reScan()
       is EditItemEvent.UploadCover -> uploadCover(event.uri, event.contentResolver)
@@ -128,6 +134,85 @@ constructor(
       is EditItemEvent.UpdateEpisodeLimitInput ->
         _uiState.update { it.copy(episodeUpdate = it.episodeUpdate.copy(limitInput = event.value)) }
 
+      is EditItemEvent.UpdateScheduleEnabled ->
+        _uiState.update {
+          it.copy(
+            schedule = it.schedule.copy(autoDownloadEpisodes = event.value),
+            scheduleCronError = null,
+          )
+        }
+
+      is EditItemEvent.ChangeScheduleMode ->
+        _uiState.update { state ->
+          val schedulePresentation =
+            deriveSchedulePresentation(
+              schedule = state.schedule,
+              preferredMode = event.mode,
+              currentBuilder = state.simpleScheduleBuilder,
+            )
+          state.copy(
+            scheduleMode = schedulePresentation.mode,
+            simpleScheduleBuilder = schedulePresentation.simpleBuilder,
+            scheduleCronError = null,
+          )
+        }
+
+      is EditItemEvent.UpdateScheduleCronExpression ->
+        _uiState.update {
+          it.copy(
+            schedule = it.schedule.copy(cronExpression = event.value),
+            scheduleCronError = null,
+          )
+        }
+
+      is EditItemEvent.UpdateSimpleScheduleInterval ->
+        _uiState.update {
+          updateSimpleScheduleBuilder(it) { builder ->
+            builder.copy(interval = event.interval)
+          }
+        }
+
+      is EditItemEvent.UpdateSimpleScheduleHour ->
+        _uiState.update {
+          updateSimpleScheduleBuilder(it) { builder ->
+            builder.copy(selectedHour = event.value.filter(Char::isDigit).take(2))
+          }
+        }
+
+      is EditItemEvent.UpdateSimpleScheduleMinute ->
+        _uiState.update {
+          updateSimpleScheduleBuilder(it) { builder ->
+            builder.copy(selectedMinute = event.value.filter(Char::isDigit).take(2))
+          }
+        }
+
+      is EditItemEvent.ToggleSimpleScheduleWeekday ->
+        _uiState.update {
+          updateSimpleScheduleBuilder(it) { builder ->
+            val weekdays =
+              if (event.weekday in builder.selectedWeekdays)
+                builder.selectedWeekdays - event.weekday
+              else builder.selectedWeekdays + event.weekday
+            builder.copy(selectedWeekdays = weekdays)
+          }
+        }
+
+      is EditItemEvent.UpdateScheduleMaxEpisodesToKeepInput ->
+        _uiState.update {
+          it.copy(
+            schedule = it.schedule.copy(maxEpisodesToKeepInput = event.value),
+            scheduleCronError = null,
+          )
+        }
+
+      is EditItemEvent.UpdateScheduleMaxNewEpisodesToDownloadInput ->
+        _uiState.update {
+          it.copy(
+            schedule = it.schedule.copy(maxNewEpisodesToDownloadInput = event.value),
+            scheduleCronError = null,
+          )
+        }
+
       EditItemEvent.RunEpisodeUpdateCheck -> runEpisodeUpdateCheck()
     }
   }
@@ -136,6 +221,11 @@ constructor(
     _uiState.update { it.copy(isSaving = true) }
     val result = repository.save(_uiState.value, _events).normalized()
     _uiState.value = result
+  }
+
+  private fun saveSchedule() = viewModelScope.launch {
+    _uiState.update { it.copy(isSaving = true) }
+    _uiState.value = repository.saveSchedule(_uiState.value, _events).normalized()
   }
 
   private fun quickMatch() = viewModelScope.launch {
@@ -222,6 +312,20 @@ constructor(
     _uiState.value = repository.runEpisodeUpdateCheck(_uiState.value, _events).normalized()
   }
 
+  private fun updateSimpleScheduleBuilder(
+    state: EditItemUiState,
+    transform: (PodcastScheduleSimpleBuilder) -> PodcastScheduleSimpleBuilder,
+  ): EditItemUiState {
+    val updatedBuilder = transform(state.simpleScheduleBuilder)
+    val updatedCron = updatedBuilder.toCronExpressionOrNull()
+    return state.copy(
+      scheduleMode = PodcastScheduleMode.Simple,
+      simpleScheduleBuilder = updatedBuilder,
+      schedule = state.schedule.copy(cronExpression = updatedCron ?: state.schedule.cronExpression),
+      scheduleCronError = null,
+    )
+  }
+
   @AssistedFactory
   interface Factory {
     fun create(navKey: EditItem): EditItemViewModel
@@ -286,6 +390,27 @@ sealed interface EditItemEvent {
   data class UpdateEpisodeCutoffMillis(val value: Long) : EditItemEvent
 
   data class UpdateEpisodeLimitInput(val value: String) : EditItemEvent
+
+  data class UpdateScheduleEnabled(val value: Boolean) : EditItemEvent
+
+  data class ChangeScheduleMode(val mode: PodcastScheduleMode) : EditItemEvent
+
+  data class UpdateScheduleCronExpression(val value: String) : EditItemEvent
+
+  data class UpdateSimpleScheduleInterval(val interval: PodcastScheduleSimpleInterval) :
+    EditItemEvent
+
+  data class UpdateSimpleScheduleHour(val value: String) : EditItemEvent
+
+  data class UpdateSimpleScheduleMinute(val value: String) : EditItemEvent
+
+  data class ToggleSimpleScheduleWeekday(val weekday: Int) : EditItemEvent
+
+  data class UpdateScheduleMaxEpisodesToKeepInput(val value: String) : EditItemEvent
+
+  data class UpdateScheduleMaxNewEpisodesToDownloadInput(val value: String) : EditItemEvent
+
+  data object SaveSchedule : EditItemEvent
 
   data object RunEpisodeUpdateCheck : EditItemEvent
 }

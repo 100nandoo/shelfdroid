@@ -97,6 +97,24 @@ class EditItemMapperTest {
   }
 
   @Test
+  fun mapMedia_mapsPodcastScheduleFields() {
+    val mapped =
+      EditItemMapper.mapMedia(
+        podcastItem(
+          autoDownloadEpisodes = true,
+          autoDownloadSchedule = "15 23 * * *",
+          maxEpisodesToKeep = 0,
+          maxNewEpisodesToDownload = 5,
+        )
+      )
+
+    assertEquals(true, mapped.schedule.autoDownloadEpisodes)
+    assertEquals("15 23 * * *", mapped.schedule.cronExpression)
+    assertEquals("0", mapped.schedule.maxEpisodesToKeepInput)
+    assertEquals("5", mapped.schedule.maxNewEpisodesToDownloadInput)
+  }
+
+  @Test
   fun mapMedia_forPodcastAddsEpisodeRowsInPublishedDateDescendingOrder() {
     val item =
       podcastItem(
@@ -259,7 +277,13 @@ class EditItemMapperTest {
     assertNull(metadata.series)
   }
 
-  private fun podcastItem(episodes: List<PodcastEpisode>) =
+  private fun podcastItem(
+    episodes: List<PodcastEpisode> = emptyList(),
+    autoDownloadEpisodes: Boolean = false,
+    autoDownloadSchedule: String = "",
+    maxEpisodesToKeep: Int = 0,
+    maxNewEpisodesToDownload: Int = 0,
+  ) =
     LibraryItem(
       id = "podcast-id",
       mediaType = "podcast",
@@ -268,7 +292,12 @@ class EditItemMapperTest {
           libraryItemId = "podcast-id",
           coverPath = null,
           tags = emptyList(),
+          metadata = PodcastMetadata(),
           episodes = episodes,
+          autoDownloadEpisodes = autoDownloadEpisodes,
+          autoDownloadSchedule = autoDownloadSchedule,
+          maxEpisodesToKeep = maxEpisodesToKeep,
+          maxNewEpisodesToDownload = maxNewEpisodesToDownload,
         ),
     )
 

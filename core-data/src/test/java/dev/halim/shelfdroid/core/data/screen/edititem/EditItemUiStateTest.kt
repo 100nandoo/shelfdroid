@@ -14,6 +14,7 @@ class EditItemUiStateTest {
         EditItemTab.Episodes,
         EditItemTab.Files,
         EditItemTab.Match,
+        EditItemTab.Schedule,
       ),
       EditItemMediaKind.Podcast.supportedTabs(),
     )
@@ -47,6 +48,11 @@ class EditItemUiStateTest {
   }
 
   @Test
+  fun supportedTabs_forBook_excludesSchedule() {
+    assertEquals(false, EditItemMediaKind.Book.supportedTabs().contains(EditItemTab.Schedule))
+  }
+
+  @Test
   fun switchingTabs_preservesEpisodeUpdateInput() {
     val state =
       EditItemUiState(
@@ -64,5 +70,59 @@ class EditItemUiStateTest {
       state.copy(currentTab = EditItemTab.Details).copy(currentTab = EditItemTab.Episodes)
 
     assertEquals(state.episodeUpdate, switched.episodeUpdate)
+  }
+
+  @Test
+  fun hasScheduleChanges_ignoresCronDifferencesWhileDisabled() {
+    val state =
+      EditItemUiState(
+        mediaKind = EditItemMediaKind.Podcast,
+        schedule =
+          PodcastScheduleForm(
+            autoDownloadEpisodes = false,
+            cronExpression = "15 23 * * *",
+            maxEpisodesToKeepInput = "0",
+            maxNewEpisodesToDownloadInput = "3",
+          ),
+        originalSchedule =
+          PodcastScheduleForm(
+            autoDownloadEpisodes = false,
+            cronExpression = "0 1 * * 1",
+            maxEpisodesToKeepInput = "0",
+            maxNewEpisodesToDownloadInput = "3",
+          ),
+      )
+
+    assertEquals(false, state.hasScheduleChanges())
+  }
+
+  @Test
+  fun deriveSchedulePresentation_forSimpleCron_defaultsToSimpleMode() {
+    val presentation =
+      deriveSchedulePresentation(
+        PodcastScheduleForm(
+          autoDownloadEpisodes = true,
+          cronExpression = "15 23 * * *",
+        )
+      )
+
+    assertEquals(PodcastScheduleMode.Simple, presentation.mode)
+    assertEquals(PodcastScheduleSimpleInterval.Daily, presentation.simpleBuilder.interval)
+    assertEquals("23", presentation.simpleBuilder.selectedHour)
+    assertEquals("15", presentation.simpleBuilder.selectedMinute)
+  }
+
+  @Test
+  fun deriveSchedulePresentation_forNonSimpleCron_defaultsToAdvancedMode() {
+    val presentation =
+      deriveSchedulePresentation(
+        PodcastScheduleForm(
+          autoDownloadEpisodes = true,
+          cronExpression = "15 23 1 * *",
+        )
+      )
+
+    assertEquals(PodcastScheduleMode.Advanced, presentation.mode)
+    assertEquals(PodcastScheduleSimpleInterval.Daily, presentation.simpleBuilder.interval)
   }
 }

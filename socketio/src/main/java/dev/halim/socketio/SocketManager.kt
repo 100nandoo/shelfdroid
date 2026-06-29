@@ -1,6 +1,7 @@
 package dev.halim.socketio
 
 import android.util.Log
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -32,7 +33,8 @@ class SocketManager @Inject constructor(private val dataStoreManager: DataStoreM
       return
     }
 
-    val url = "https://$baseUrl"
+    val parsedBaseUrl = AudiobookshelfBaseUrl.parse(baseUrl) ?: return
+    val url = parsedBaseUrl.origin
 
     val options =
       IO.Options.builder()
@@ -41,7 +43,7 @@ class SocketManager @Inject constructor(private val dataStoreManager: DataStoreM
         .setReconnectionDelayMax(15000)
         .setUpgrade(false)
         .setQuery("token=$token")
-        .setPath("/socket.io")
+        .setPath(parsedBaseUrl.socketPath())
         .build()
 
     try {

@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -125,6 +126,7 @@ private fun CoverWithTitlePreview() {
 
 @Composable
 fun CoverWithTitle(
+  modifier: Modifier = Modifier,
   cover: String,
   coverAnimationKey: String,
   title: String,
@@ -132,7 +134,7 @@ fun CoverWithTitle(
   subtitle: String,
   subtitleAnimationKey: String,
 ) {
-  Row(Modifier.height(IntrinsicSize.Max)) {
+  Row(modifier.height(IntrinsicSize.Max)) {
     Cover(
       Modifier.weight(1f).fillMaxHeight(),
       cover = cover,
@@ -148,6 +150,8 @@ fun CoverWithTitle(
       Text(
         modifier = Modifier.mySharedElement(titleAnimationKey),
         text = title,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
         style = MaterialTheme.typography.titleLarge,
       )
       Text(

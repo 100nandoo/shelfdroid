@@ -98,6 +98,10 @@ _Avoid_: Preferences, app settings
 An administrative action that asks the Audiobookshelf server to look for new **Episodes** for a **Podcast**, using an **Episode update cutoff** and a requested maximum number of new episodes to download.
 _Avoid_: Add episode, refresh feed, sync podcast
 
+**Podcast auto-download schedule**:
+A recurring server-side schedule for a **Podcast** that determines when the Audiobookshelf server should automatically check its RSS feed for new **Episodes** and auto-download them subject to configured limits.
+_Avoid_: Episode check schedule, cron, podcast sync timer
+
 ### Distribution
 
 **F-Droid main repository**:
@@ -118,6 +122,7 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Library** contains many **Library items**
 - A **Library item** is either a **Book** or a **Podcast**
 - A **Podcast** contains many **Episodes**
+- A **Podcast** may have one **Podcast auto-download schedule**
 - A **Book** may contain many **Chapters**
 - A **Book** may be backed by one or more **Tracks**
 - A **Library item** may have one or more **Library files**
@@ -148,6 +153,7 @@ _Avoid_: Best-effort release, unverifiable build
 
 - "item" is too vague on its own in this repo; prefer **Library item** when referring to a server catalog entry.
 - "session" is overloaded; use **Listening session** for historical playback records and **Open session** for active server-tracked playback, where the server may hold many concurrent sessions and a user may have more than one.
+- "schedule" is overloaded; use **Podcast auto-download schedule** for recurring podcast downloads and say backup schedule explicitly when discussing server backups.
 - "current playback" and **Open session** are distinct; **Current playback** is local player state inside ShelfDroid, while an **Open session** is server-tracked.
 - "track", "chapter", and "episode" are distinct; a **Track** is a file unit for books, a **Chapter** is a navigation segment in a book, and an **Episode** belongs to a podcast.
 - "download" and **Library file** are not the same thing; a **Library file** exists on the server, while a **Download** is a local device copy or downloaded server artifact.

@@ -10,6 +10,7 @@ import dev.halim.shelfdroid.helper.formatFileSize
 internal data class MappedEditItemMedia(
   val mediaKind: EditItemMediaKind,
   val details: DetailsForm,
+  val schedule: PodcastScheduleForm,
   val chapters: List<ChapterRow>,
   val episodes: List<EpisodeRow>,
   val episodeUpdate: EpisodeUpdateState,
@@ -41,6 +42,7 @@ internal object EditItemMapper {
               explicit = metadata.explicit,
               abridged = false,
             ),
+          schedule = PodcastScheduleForm(),
           chapters = media.chapters.map { ChapterRow(it.id, it.title, it.start, it.end) },
           episodes = emptyList(),
           episodeUpdate = EpisodeUpdateState(),
@@ -65,6 +67,13 @@ internal object EditItemMapper {
               itunesId = metadata.itunesId.orEmpty(),
               podcastType = metadata.type?.ifBlank { DEFAULT_PODCAST_TYPE } ?: DEFAULT_PODCAST_TYPE,
             ),
+          schedule =
+            PodcastScheduleForm(
+              autoDownloadEpisodes = media.autoDownloadEpisodes,
+              cronExpression = media.autoDownloadSchedule,
+              maxEpisodesToKeepInput = media.maxEpisodesToKeep.toString(),
+              maxNewEpisodesToDownloadInput = media.maxNewEpisodesToDownload.toString(),
+            ),
           chapters = emptyList(),
           episodes = mapEpisodes(media.episodes),
           episodeUpdate =
@@ -80,6 +89,7 @@ internal object EditItemMapper {
         MappedEditItemMedia(
           mediaKind = EditItemMediaKind.Book,
           details = DetailsForm(),
+          schedule = PodcastScheduleForm(),
           chapters = emptyList(),
           episodes = emptyList(),
           episodeUpdate = EpisodeUpdateState(),

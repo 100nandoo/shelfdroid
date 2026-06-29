@@ -49,4 +49,24 @@ class MetadataSerializerTest {
     metadata as PodcastMetadata
     assertEquals("785545036", metadata.itunesId)
   }
+
+  @Test
+  fun decodePodcast_whenCoverPathAndTagsMissing_usesDefaults() {
+    val podcast =
+      json.decodeFromString<Podcast>(
+        """
+        {
+          "libraryItemId": "podcast-1",
+          "metadata": {
+            "title": "Podcast title",
+            "feedUrl": "https://example.com/feed.xml"
+          },
+          "episodes": []
+        }
+        """
+      )
+
+    assertEquals(null, podcast.coverPath)
+    assertTrue(podcast.tags.isEmpty())
+  }
 }

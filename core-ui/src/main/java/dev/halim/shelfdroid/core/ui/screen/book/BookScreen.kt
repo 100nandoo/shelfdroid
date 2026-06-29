@@ -68,6 +68,7 @@ fun BookScreen(
       language = uiState.language,
       progress = uiState.progress,
       canEdit = uiState.canEdit,
+      isEbook = uiState.isEbook,
       downloadState = downloadState,
       playPause = playerUiState.playPause.forItemAction(playerUiState.id == viewModel.id),
       snackbarHostState = snackbarHostState,
@@ -100,6 +101,7 @@ fun BookScreenContent(
   language: String = Defaults.BOOK_LANGUAGE,
   progress: Int = Defaults.PROGRESS_PERCENT,
   canEdit: Boolean = false,
+  isEbook: Boolean = false,
   downloadState: DownloadState = DownloadState.Unknown,
   playPause: PlayPauseControlState = PlayPauseControlState(enabled = true),
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
@@ -116,16 +118,18 @@ fun BookScreenContent(
   ) {
     item {
       Spacer(modifier = Modifier.height(16.dp))
-      PlayDownloadAndEdit(
-        playPause = playPause,
-        downloadState = downloadState,
-        snackbarHostState = snackbarHostState,
-        onDownloadClicked = onDownloadClicked,
-        onDeleteDownloadClicked = onDeleteDownloadClicked,
-        onPlayClicked = onPlayClicked,
-        canEdit = canEdit,
-        onEditClicked = onEditClicked,
-      )
+      if (!isEbook) {
+        PlayDownloadAndEdit(
+          playPause = playPause,
+          downloadState = downloadState,
+          snackbarHostState = snackbarHostState,
+          onDownloadClicked = onDownloadClicked,
+          onDeleteDownloadClicked = onDeleteDownloadClicked,
+          onPlayClicked = onPlayClicked,
+          canEdit = canEdit,
+          onEditClicked = onEditClicked,
+        )
+      }
       ProgressRow(progress, remaining)
       ExpandShrinkText(text = description)
       BookDetail(duration, narrator, publishYear, publisher, genres, language)

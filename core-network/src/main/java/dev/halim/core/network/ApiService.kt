@@ -20,6 +20,7 @@ import dev.halim.core.network.request.UpdateApiKeyRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
+import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.response.ApiKeysResponse
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BackupsResponse
@@ -194,11 +195,16 @@ interface ApiService {
   @POST("/api/tools/item/{itemId}/embed-metadata")
   suspend fun embedItemMetadata(@Path("itemId") itemId: String): Result<Unit>
 
+  @POST("/api/validate-cron")
+  suspend fun validateCron(@Body request: ValidateCronRequest): Result<Unit>
+
   @GET("/api/search/books")
   suspend fun searchBooks(
     @Query("provider") provider: String,
     @Query("title") title: String,
     @Query("author") author: String? = null,
+    @Query("fallbackTitleOnly") fallbackTitleOnly: Int? = null,
+    @Query("id") id: String? = null,
   ): Result<List<SearchBookMatchResponse>>
 
   @GET("/api/search/covers")

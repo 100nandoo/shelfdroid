@@ -6,14 +6,19 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CoverFromUrlRequest
 import dev.halim.core.network.request.MatchLibraryItemRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
+import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.MatchItemResult
 import dev.halim.core.network.response.SearchBookMatchResponse
 import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SearchProviders
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.screen.edititem.episodes.EditItemEpisodeUpdateRunner
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.EditItemScheduleSaveRunner
+import dev.halim.shelfdroid.core.data.screen.edititem.schedule.deriveSchedulePresentation
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.helper.formatFileSize
@@ -31,6 +36,10 @@ constructor(
   private val helper: Helper,
   private val libraryItemRepo: LibraryItemRepo,
 ) {
+  private fun currentWebBaseUrl(): String =
+    AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL)?.value
+      ?: AudiobookshelfBaseUrl.DEFAULT_VALUE
+
   private val episodeUpdateRunner =
     EditItemEpisodeUpdateRunner(
       updateEpisodeCutoff = { itemId, request -> api.updateItemMedia(itemId, request).map {} },
@@ -41,6 +50,12 @@ constructor(
       mergeUpdated = ::mergeUpdated,
       updateCachedItem = libraryItemRepo::updateItem,
     )
+  private val scheduleSaveRunner =
+    EditItemScheduleSaveRunner(
+      validateCron = { expression -> api.validateCron(ValidateCronRequest(expression)) },
+      updateSchedule = api::updateItemMedia,
+      updateCachedItem = libraryItemRepo::updateItem,
+    )
 
   suspend fun load(itemId: String): EditItemUiState {
     val item =
@@ -49,7 +64,7 @@ constructor(
           state = GenericState.Failure(it.message),
           itemId = itemId,
           coverUrl = helper.generateItemCoverUrl(itemId),
-          webBaseUrl = "https://${DataStoreManager.BASE_URL}",
+          webBaseUrl = currentWebBaseUrl(),
         )
       }
 
@@ -88,15 +103,20 @@ constructor(
   ): EditItemUiState {
     val mappedMedia = EditItemMapper.mapMedia(item)
     val details = mappedMedia.details
+    val schedulePresentation = deriveSchedulePresentation(mappedMedia.schedule)
 
     return EditItemUiState(
       state = GenericState.Success,
       itemId = item.id,
       mediaKind = mappedMedia.mediaKind,
       coverUrl = helper.generateItemCoverUrl(item.id, item.updatedAt),
-      webBaseUrl = "https://${DataStoreManager.BASE_URL}",
+      webBaseUrl = currentWebBaseUrl(),
       details = details,
       originalDetails = details,
+      schedule = mappedMedia.schedule,
+      originalSchedule = mappedMedia.schedule,
+      scheduleMode = schedulePresentation.mode,
+      simpleScheduleBuilder = schedulePresentation.simpleBuilder,
       chapters = mappedMedia.chapters,
       episodes = mappedMedia.episodes,
       episodeUpdate = mappedMedia.episodeUpdate,
@@ -144,6 +164,15 @@ constructor(
     return mergeUpdated(state, updated).copy(isSaving = false)
   }
 
+  suspend fun saveSchedule(
+    state: EditItemUiState,
+    events: MutableSharedFlow<GenericUiEvent>,
+  ): EditItemUiState {
+    val result = scheduleSaveRunner.run(state)
+    result.events.forEach { events.emit(it) }
+    return result.state
+  }
+
   private fun buildUpdateRequest(
     mediaKind: EditItemMediaKind,
     original: DetailsForm,
@@ -160,8 +189,16 @@ constructor(
         state.coverSearch.provider,
         state.seriesSuggestions,
       )
+    val schedulePresentation =
+      deriveSchedulePresentation(
+        updatedState.schedule,
+        preferredMode = state.scheduleMode,
+        currentBuilder = state.simpleScheduleBuilder,
+      )
     return updatedState.copy(
       currentTab = state.currentTab,
+      scheduleMode = schedulePresentation.mode,
+      simpleScheduleBuilder = schedulePresentation.simpleBuilder,
       episodeUpdate =
         updatedState.episodeUpdate.copy(
           limitInput = state.episodeUpdate.limitInput,
@@ -339,6 +376,8 @@ constructor(
               provider = match.selectedProvider,
               title = match.title,
               author = match.author.ifBlank { null },
+              fallbackTitleOnly = 1,
+              id = state.itemId.ifBlank { null },
             )
             .getOrElse {
               events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
@@ -349,6 +388,7 @@ constructor(
             match.copy(
               results = mapBookMatchRows(raw),
               rawResults = raw,
+              hasSearched = true,
               isSearching = false,
             )
         )

@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.login
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.response.LoginResponse
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
@@ -26,15 +27,26 @@ constructor(
   val baseUrl = dataStoreManager.baseUrl()
 
   suspend fun login(uiState: LoginUiState): LoginUiState {
-    DataStoreManager.BASE_URL = uiState.server
+    val normalizedServer =
+      AudiobookshelfBaseUrl.parse(uiState.server)?.value
+        ?: return uiState.copy(
+          loginState = GenericState.Idle,
+          serverFieldError = LoginFieldError.InvalidServerUrl,
+        )
+
+    DataStoreManager.BASE_URL = normalizedServer
     val request = LoginRequest(uiState.username, uiState.password)
     val response = api.login(request)
     val result = response.getOrNull()
     if (result != null) {
-      updateDataStoreManager(uiState.server, result)
+      updateDataStoreManager(normalizedServer, result)
       progressRepo.saveAndConvert(result.user)
       bookmarkRepo.saveAndConvert(result.user)
-      return uiState.copy(loginState = GenericState.Success)
+      return uiState.copy(
+        server = normalizedServer,
+        loginState = GenericState.Success,
+        serverFieldError = null,
+      )
     }
     val exception = response.exceptionOrNull()
     val message =
@@ -48,7 +60,11 @@ constructor(
       } else {
         exception?.message
       }
-    return uiState.copy(loginState = GenericState.Failure(message))
+    return uiState.copy(
+      server = normalizedServer,
+      loginState = GenericState.Failure(message),
+      serverFieldError = null,
+    )
   }
 
   private suspend fun updateDataStoreManager(server: String, response: LoginResponse) {
@@ -64,10 +80,15 @@ constructor(
 data class LoginUiState(
   val loginState: GenericState = GenericState.Idle,
   val server: String = "",
+  val serverFieldError: LoginFieldError? = null,
   val username: String = "",
   val password: String = "",
   val reLogin: Boolean = false,
 )
+
+enum class LoginFieldError {
+  InvalidServerUrl
+}
 
 sealed interface LoginEvent {
   data object LoginButtonPressed : LoginEvent

@@ -8,6 +8,7 @@ import dagger.hilt.components.SingletonComponent
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.client.HostSelectionInterceptor
 import dev.halim.core.network.client.TokenAuthenticator
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
@@ -48,7 +49,7 @@ object NetworkModule {
   @Provides
   fun providesRetrofit(json: Json, okHttpClient: OkHttpClient): Retrofit {
     return Retrofit.Builder()
-      .baseUrl("https://www.audiobookshelf.org")
+      .baseUrl(AudiobookshelfBaseUrl.DEFAULT_VALUE)
       .client(okHttpClient)
       .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
       .addCallAdapterFactory(ResultCallAdapterFactory.create())

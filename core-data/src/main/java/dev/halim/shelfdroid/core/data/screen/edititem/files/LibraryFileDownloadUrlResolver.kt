@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.screen.edititem
+package dev.halim.shelfdroid.core.data.screen.edititem.files
 
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject

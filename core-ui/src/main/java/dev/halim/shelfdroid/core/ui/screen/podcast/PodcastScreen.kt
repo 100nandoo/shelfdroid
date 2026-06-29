@@ -3,7 +3,6 @@ package dev.halim.shelfdroid.core.ui.screen.podcast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,10 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +39,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.CheckboxRow
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.ListDeleteButton
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
@@ -180,9 +178,9 @@ fun PodcastScreenContent(
     }
     AnimatedVisibility(uiState.isSelectionMode) {
       DeleteSection(
-        count,
-        uiState.prefs.crudPrefs.episodeHardDelete,
-        uiState.prefs.crudPrefs.episodeAutoSelectFinished,
+        count = count,
+        initialHardDelete = uiState.prefs.crudPrefs.episodeHardDelete,
+        autoSelectFinished = uiState.prefs.crudPrefs.episodeAutoSelectFinished,
         onDeleteClick = { onEvent(PodcastEvent.DeleteEpisode(it)) },
         onAutoSelectFinishedChange = { onEvent(PodcastEvent.SwitchAutoSelectFinished(it)) },
       )
@@ -233,15 +231,13 @@ private fun DeleteSection(
   var hardDelete by remember { mutableStateOf(initialHardDelete) }
 
   Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-    Row(
+    CheckboxRow(
       modifier = Modifier.fillMaxWidth(),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Start,
-    ) {
-      Checkbox(checked = autoSelectFinished, onCheckedChange = onAutoSelectFinishedChange)
-      Spacer(modifier = Modifier.width(8.dp))
-      Text(text = stringResource(R.string.auto_select_finished_episodes))
-    }
+      checked = autoSelectFinished,
+      text = stringResource(R.string.auto_select_finished_episodes),
+      onCheckedChange = onAutoSelectFinishedChange,
+      wholeRowClickable = true,
+    )
     ListDeleteButton(
       modifier = Modifier.fillMaxWidth(),
       count = count,

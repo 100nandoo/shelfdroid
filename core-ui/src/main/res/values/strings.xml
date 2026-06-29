@@ -107,7 +107,6 @@
     <!--SnackBar-->
 
     <!--Login-->
-    <string name="https">https://</string>
     <!--Login-->
 
     <!--Home-->
@@ -398,6 +397,36 @@
     <string name="edit_item_episode_limit_hint">0 allows all new episodes</string>
     <string name="edit_item_check_download_new_episodes">Check &amp; Download New Episodes</string>
     <string name="edit_item_checking_episodes">Checking for new episodes…</string>
+    <string name="edit_item_schedule_enable">Enable auto-download</string>
+    <string name="edit_item_schedule_max_episodes_to_keep">Max # of episodes to keep</string>
+    <string name="edit_item_schedule_max_new_episodes">Max # of new episodes to download per check</string>
+    <string name="edit_item_schedule_limit_hint">0 for unlimited</string>
+    <string name="edit_item_schedule_mode_simple">Schedule</string>
+    <string name="edit_item_schedule_mode_advanced">Advanced</string>
+    <string name="edit_item_schedule_interval">Interval</string>
+    <string name="edit_item_schedule_interval_custom">Custom days and time</string>
+    <string name="edit_item_schedule_interval_daily">Every day</string>
+    <string name="edit_item_schedule_interval_every_12_hours">Every 12 hours</string>
+    <string name="edit_item_schedule_interval_every_6_hours">Every 6 hours</string>
+    <string name="edit_item_schedule_interval_every_2_hours">Every 2 hours</string>
+    <string name="edit_item_schedule_interval_every_hour">Every hour</string>
+    <string name="edit_item_schedule_interval_every_30_minutes">Every 30 minutes</string>
+    <string name="edit_item_schedule_interval_every_15_minutes">Every 15 minutes</string>
+    <string name="edit_item_schedule_weekdays">Weekdays to run</string>
+    <string name="edit_item_schedule_sunday">Sunday</string>
+    <string name="edit_item_schedule_monday">Monday</string>
+    <string name="edit_item_schedule_tuesday">Tuesday</string>
+    <string name="edit_item_schedule_wednesday">Wednesday</string>
+    <string name="edit_item_schedule_thursday">Thursday</string>
+    <string name="edit_item_schedule_friday">Friday</string>
+    <string name="edit_item_schedule_saturday">Saturday</string>
+    <string name="edit_item_schedule_time">Time</string>
+    <string name="edit_item_schedule_cron_expression">Cron expression</string>
+    <string name="edit_item_schedule_cron_hint">Cron expression (e.g. 15 23 * * *)</string>
+    <string name="edit_item_schedule_disabled_hint">Enable auto-download to edit the recurring schedule.</string>
+    <string name="edit_item_schedule_missing_rss_title">RSS feed required</string>
+    <string name="edit_item_schedule_missing_rss_message">Save an RSS feed in Details before configuring a podcast auto-download schedule.</string>
+    <string name="edit_item_schedule_save">Save schedule</string>
     <string name="edit_item_explicit">Explicit</string>
     <string name="edit_item_abridged">Abridged</string>
     <string name="edit_item_quick_match">Quick Match</string>
@@ -427,6 +456,7 @@
     <string name="edit_item_cover">Cover</string>
     <string name="edit_item_none">None</string>
     <string name="edit_item_match_search_term">Search term</string>
+    <string name="edit_item_match_no_results">No matches found.</string>
     <string name="edit_item_podcast_match_summary">%1$s • %2$d episodes</string>
     <string name="edit_item_podcast_match_no_results">No matches found.</string>
     <string name="edit_item_match_review_title">Review matched metadata</string>
@@ -478,8 +508,9 @@
     <string name="genre">Genre</string>
     <string name="language">Language</string>
     <string name="no_libraries_available">No libraries available.</string>
-    <string name="server_address">Server Address</string>
-    <string name="placeholder_server">audio.bookshelf.org</string>
+    <string name="server_address">Server URL</string>
+    <string name="placeholder_server">https://audiobooks.dev/</string>
+    <string name="invalid_server_url">Enter a valid server URL or host, such as example.com or https://example.com/audiobookshelf</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
