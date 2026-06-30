@@ -22,6 +22,10 @@ _Avoid_: Item, media object
 A library item representing an audiobook, potentially as a single track or multiple tracks.
 _Avoid_: Book file, title
 
+**ASIN**:
+The Audible catalog identifier stored on a **Book** and usable as a direct search value for Audible-backed metadata lookup.
+_Avoid_: Search ID, product code
+
 **Podcast**:
 A library item representing a podcast feed that contains episodes.
 _Avoid_: Show, channel

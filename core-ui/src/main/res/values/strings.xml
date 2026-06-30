@@ -481,6 +481,7 @@
     <string name="edit_item_delete_file_confirm">This will delete the file from your server. Are you sure?</string>
 
     <string name="edit_item_search_title">Search Title</string>
+    <string name="edit_item_search_title_or_asin">Search Title or ASIN</string>
     <string name="edit_item_match_by_author">by %1$s</string>
 
     <string name="edit_item_tools_title">Audiobook File Management Tools</string>

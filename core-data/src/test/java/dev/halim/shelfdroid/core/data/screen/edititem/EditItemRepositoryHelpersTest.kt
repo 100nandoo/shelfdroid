@@ -56,6 +56,45 @@ class EditItemRepositoryHelpersTest {
   }
 
   @Test
+  fun initialBookMatchSearch_prefersAsinForAudibleProviders() {
+    assertEquals(
+      BookMatchSearchInput(title = "B0ABC123", author = ""),
+      initialBookMatchSearch(
+        details =
+          DetailsForm(
+            title = "Project Hail Mary",
+            authors = listOf("Andy Weir"),
+            asin = "B0ABC123",
+          ),
+        selectedProvider = "audible",
+      ),
+    )
+  }
+
+  @Test
+  fun initialBookMatchSearch_keepsTitleAndAuthorForNonAudibleProviders() {
+    assertEquals(
+      BookMatchSearchInput(title = "Project Hail Mary", author = "Andy Weir"),
+      initialBookMatchSearch(
+        details =
+          DetailsForm(
+            title = "Project Hail Mary",
+            authors = listOf("Andy Weir"),
+            asin = "B0ABC123",
+          ),
+        selectedProvider = "google",
+      ),
+    )
+  }
+
+  @Test
+  fun isAudibleMatchProvider_matchesRegionalAudibleProviders() {
+    assertEquals(true, isAudibleMatchProvider("audible"))
+    assertEquals(true, isAudibleMatchProvider("audible.uk"))
+    assertEquals(false, isAudibleMatchProvider("google"))
+  }
+
+  @Test
   fun coverProvidersFor_bookUsesBookCoverProviders() {
     assertEquals(
       listOf(MatchProvider(value = "openlibrary", text = "Open Library")),

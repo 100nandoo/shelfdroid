@@ -85,8 +85,12 @@ data class MatchResultRow(
   val description: String,
 )
 
-const val DEFAULT_BOOK_MATCH_PROVIDER = "audible"
-const val DEFAULT_PODCAST_MATCH_PROVIDER = "audible"
+const val AUDIBLE_MATCH_PROVIDER_PREFIX = "audible"
+const val DEFAULT_BOOK_MATCH_PROVIDER = AUDIBLE_MATCH_PROVIDER_PREFIX
+const val DEFAULT_PODCAST_MATCH_PROVIDER = AUDIBLE_MATCH_PROVIDER_PREFIX
+
+fun isAudibleMatchProvider(provider: String): Boolean =
+  provider.startsWith(AUDIBLE_MATCH_PROVIDER_PREFIX)
 
 data class PodcastMatchResultRow(
   val cover: String,

@@ -685,13 +685,15 @@ private fun createMatchState(
   details: DetailsForm,
 ): MatchState =
   when (mediaKind) {
-    EditItemMediaKind.Book ->
+    EditItemMediaKind.Book -> {
+      val initialSearch = initialBookMatchSearch(details, selectedProvider)
       MatchState.Book(
         providers = providers,
         selectedProvider = selectedProvider,
-        title = details.title,
-        author = details.primaryAuthor(mediaKind),
+        title = initialSearch.title,
+        author = initialSearch.author,
       )
+    }
 
     EditItemMediaKind.Podcast ->
       MatchState.Podcast(
@@ -716,6 +718,21 @@ private fun mergeMatchState(current: MatchState, updated: MatchState): MatchStat
       )
 
     else -> updated
+  }
+
+data class BookMatchSearchInput(val title: String, val author: String)
+
+fun initialBookMatchSearch(
+  details: DetailsForm,
+  selectedProvider: String,
+): BookMatchSearchInput =
+  if (isAudibleMatchProvider(selectedProvider) && details.asin.isNotBlank()) {
+    BookMatchSearchInput(title = details.asin, author = "")
+  } else {
+    BookMatchSearchInput(
+      title = details.title,
+      author = details.primaryAuthor(EditItemMediaKind.Book),
+    )
   }
 
 internal fun mapBookMatchRows(raw: List<SearchBookMatchResponse>): List<MatchResultRow> = raw.map {

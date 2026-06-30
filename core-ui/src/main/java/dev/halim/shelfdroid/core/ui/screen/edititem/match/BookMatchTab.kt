@@ -2,6 +2,7 @@
 
 package dev.halim.shelfdroid.core.ui.screen.edititem.match
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,10 +37,13 @@ import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.edititem.BookMatchDraft
+import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
 import dev.halim.shelfdroid.core.data.screen.edititem.displayCoverUrl
+import dev.halim.shelfdroid.core.data.screen.edititem.initialBookMatchSearch
+import dev.halim.shelfdroid.core.data.screen.edititem.isAudibleMatchProvider
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.components.TextBodyLarge
@@ -69,6 +73,7 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
     item {
       BookMatchSearchControls(
         modifier = Modifier.animateItem(),
+        details = uiState.details,
         match = match,
         onUpdateMatch = ::updateMatch,
         onRunSearch = { onEvent(EditItemEvent.RunMatchSearch) },
@@ -125,6 +130,7 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
 @Composable
 private fun BookMatchSearchControls(
   modifier: Modifier = Modifier,
+  details: DetailsForm,
   match: MatchState.Book,
   onUpdateMatch: ((MatchState.Book) -> MatchState.Book) -> Unit,
   onRunSearch: () -> Unit,
@@ -132,6 +138,12 @@ private fun BookMatchSearchControls(
   var expanded by remember { mutableStateOf(false) }
   val selectedText =
     match.providers.find { it.value == match.selectedProvider }?.text ?: match.selectedProvider
+  val titleLabel =
+    if (isAudibleMatchProvider(match.selectedProvider)) {
+      R.string.edit_item_search_title_or_asin
+    } else {
+      R.string.edit_item_search_title
+    }
 
   Column(
     modifier = modifier.fillMaxWidth().padding(16.dp),
@@ -152,7 +164,14 @@ private fun BookMatchSearchControls(
           DropdownMenuItem(
             text = { Text(provider.text) },
             onClick = {
-              onUpdateMatch { it.copy(selectedProvider = provider.value) }
+              val searchInput = initialBookMatchSearch(details, provider.value)
+              onUpdateMatch {
+                it.copy(
+                  selectedProvider = provider.value,
+                  title = searchInput.title,
+                  author = searchInput.author,
+                )
+              }
               expanded = false
             },
           )
@@ -163,7 +182,11 @@ private fun BookMatchSearchControls(
     OutlinedTextField(
       value = match.title,
       onValueChange = { onUpdateMatch { matchState -> matchState.copy(title = it) } },
-      label = { Text(stringResource(R.string.edit_item_search_title)) },
+      label = {
+        AnimatedContent(targetState = titleLabel, label = "bookMatchSearchTitleLabel") { label ->
+          Text(stringResource(label))
+        }
+      },
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
     )
