@@ -3,10 +3,12 @@ package dev.halim.shelfdroid.core.ui.player
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +47,10 @@ fun PlayPauseButton(
       contentAlignment = Alignment.Center,
     ) {
       if (playPause.showLoadingIndicator) {
-        CircularProgressIndicator(modifier = Modifier.size(contentSize), strokeWidth = 2.dp)
+        CircularProgressIndicator(
+          modifier = Modifier.size(contentSize).padding(6.dp),
+          color = LocalContentColor.current,
+        )
       } else {
         Icon(
           modifier = Modifier.size(contentSize),

@@ -31,6 +31,31 @@ class EditItemRepositoryHelpersTest {
   }
 
   @Test
+  fun defaultMatchProviderFor_prefersAudibleWhenAvailable() {
+    assertEquals(
+      "audible",
+      defaultMatchProviderFor(
+        listOf(
+          MatchProvider(value = "google", text = "Google Books"),
+          MatchProvider(value = "audible", text = "Audible.com"),
+        ),
+        EditItemMediaKind.Book,
+      ),
+    )
+  }
+
+  @Test
+  fun defaultMatchProviderFor_fallsBackToFirstProviderWhenAudibleMissing() {
+    assertEquals(
+      "itunes",
+      defaultMatchProviderFor(
+        listOf(MatchProvider(value = "itunes", text = "Apple Podcasts")),
+        EditItemMediaKind.Podcast,
+      ),
+    )
+  }
+
+  @Test
   fun coverProvidersFor_bookUsesBookCoverProviders() {
     assertEquals(
       listOf(MatchProvider(value = "openlibrary", text = "Open Library")),

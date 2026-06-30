@@ -12,6 +12,8 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.download.ManagedDownload
 import dev.halim.shelfdroid.core.data.download.ManagedDownloadManager
+import dev.halim.shelfdroid.core.data.screen.edititem.BookMatchDraft
+import dev.halim.shelfdroid.core.data.screen.edititem.BookMatchField
 import dev.halim.shelfdroid.core.data.screen.edititem.DetailsForm
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemTab
@@ -90,8 +92,19 @@ constructor(
       is EditItemEvent.SetCoverUrl -> setCoverUrl(event.url)
       EditItemEvent.DeleteCover -> deleteCover()
       EditItemEvent.RunMatchSearch -> runMatchSearch()
-      is EditItemEvent.ApplyBookMatchResult ->
-        _uiState.update { repository.applyBookMatch(it, event.index) }
+      is EditItemEvent.OpenBookMatchReview ->
+        _uiState.update { repository.openBookMatchReview(it, event.index) }
+
+      EditItemEvent.DismissBookMatchReview ->
+        _uiState.update { repository.dismissBookMatchReview(it) }
+
+      is EditItemEvent.ToggleBookMatchField ->
+        _uiState.update { repository.toggleBookMatchField(it, event.field) }
+
+      is EditItemEvent.UpdateBookMatchDraft ->
+        _uiState.update { repository.updateBookMatchDraft(it, event.transform) }
+
+      EditItemEvent.ApplyBookMatchReview -> applyBookMatchReview()
 
       is EditItemEvent.OpenPodcastMatchReview ->
         _uiState.update { repository.openPodcastMatchReview(it, event.index) }
@@ -272,6 +285,11 @@ constructor(
     _uiState.value = repository.applyPodcastMatchReview(_uiState.value, _events).normalized()
   }
 
+  private fun applyBookMatchReview() = viewModelScope.launch {
+    _uiState.update { it.copy(isSaving = true) }
+    _uiState.value = repository.applyBookMatchReview(_uiState.value, _events).normalized()
+  }
+
   private fun runCoverSearch() = viewModelScope.launch {
     _uiState.update { it.copy(coverSearch = it.coverSearch.copy(state = GenericState.Loading)) }
     _uiState.value = repository.searchCovers(_uiState.value, _events).normalized()
@@ -356,7 +374,15 @@ sealed interface EditItemEvent {
 
   data object RunMatchSearch : EditItemEvent
 
-  data class ApplyBookMatchResult(val index: Int) : EditItemEvent
+  data class OpenBookMatchReview(val index: Int) : EditItemEvent
+
+  data object DismissBookMatchReview : EditItemEvent
+
+  data class ToggleBookMatchField(val field: BookMatchField) : EditItemEvent
+
+  data class UpdateBookMatchDraft(val transform: (BookMatchDraft) -> BookMatchDraft) : EditItemEvent
+
+  data object ApplyBookMatchReview : EditItemEvent
 
   data class OpenPodcastMatchReview(val index: Int) : EditItemEvent
 

@@ -86,7 +86,7 @@ data class MatchResultRow(
 )
 
 const val DEFAULT_BOOK_MATCH_PROVIDER = "audible"
-const val DEFAULT_PODCAST_MATCH_PROVIDER = "itunes"
+const val DEFAULT_PODCAST_MATCH_PROVIDER = "audible"
 
 data class PodcastMatchResultRow(
   val cover: String,
@@ -183,6 +183,7 @@ sealed interface MatchState {
     val author: String = "",
     val results: List<MatchResultRow> = emptyList(),
     val rawResults: List<SearchBookMatchResponse> = emptyList(),
+    val review: BookMatchReviewState? = null,
     val hasSearched: Boolean = false,
     override val isSearching: Boolean = false,
   ) : MatchState
@@ -196,6 +197,62 @@ sealed interface MatchState {
     val hasSearched: Boolean = false,
     override val isSearching: Boolean = false,
   ) : MatchState
+}
+
+data class BookMatchReviewState(
+  val result: BookMatchReviewResult,
+  val draft: BookMatchDraft = BookMatchDraft(),
+  val selectedFields: Set<BookMatchField> = emptySet(),
+)
+
+data class BookMatchReviewResult(
+  val cover: String = "",
+  val title: String = "",
+  val subtitle: String = "",
+  val authors: List<String> = emptyList(),
+  val narrators: List<String> = emptyList(),
+  val publisher: String = "",
+  val publishedYear: String = "",
+  val description: String = "",
+  val isbn: String = "",
+  val asin: String = "",
+  val abridged: Boolean? = null,
+  val genres: List<String> = emptyList(),
+  val tags: List<String> = emptyList(),
+  val series: List<SeriesEntry> = emptyList(),
+)
+
+data class BookMatchDraft(
+  val title: String = "",
+  val subtitle: String = "",
+  val authors: List<String> = emptyList(),
+  val narrators: List<String> = emptyList(),
+  val publisher: String = "",
+  val publishedYear: String = "",
+  val description: String = "",
+  val isbn: String = "",
+  val asin: String = "",
+  val abridged: Boolean = false,
+  val genres: List<String> = emptyList(),
+  val tags: List<String> = emptyList(),
+  val series: List<SeriesEntry> = emptyList(),
+)
+
+enum class BookMatchField {
+  Cover,
+  Title,
+  Subtitle,
+  Authors,
+  Narrators,
+  Publisher,
+  PublishedYear,
+  Description,
+  Isbn,
+  Asin,
+  Abridged,
+  Genres,
+  Tags,
+  Series,
 }
 
 data class PodcastMatchReviewState(

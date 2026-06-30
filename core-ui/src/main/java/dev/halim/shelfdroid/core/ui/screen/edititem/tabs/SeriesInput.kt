@@ -46,6 +46,7 @@ fun SeriesInput(
   onAdd: (SeriesEntry) -> Unit,
   onRemove: (SeriesEntry) -> Unit,
   modifier: Modifier = Modifier,
+  enabled: Boolean = true,
 ) {
   var showDialog by remember { mutableStateOf(false) }
 
@@ -59,10 +60,12 @@ fun SeriesInput(
           InputChip(
             selected = true,
             onClick = {},
+            enabled = enabled,
             label = { Text(chipLabel) },
             trailingIcon = {
               IconButton(
                 modifier = Modifier.size(InputChipDefaults.IconSize),
+                enabled = enabled,
                 onClick = { onRemove(entry) },
               ) {
                 Icon(
@@ -79,11 +82,12 @@ fun SeriesInput(
     OutlinedTextField(
       value = "",
       onValueChange = {},
+      enabled = enabled,
       readOnly = true,
       placeholder = { Text(stringResource(R.string.edit_item_add_chip, label)) },
       modifier = Modifier.fillMaxWidth(),
       trailingIcon = {
-        IconButton(onClick = { showDialog = true }) {
+        IconButton(enabled = enabled, onClick = { showDialog = true }) {
           Icon(
             painter = painterResource(R.drawable.add),
             contentDescription = stringResource(R.string.edit_item_series_add),
@@ -93,7 +97,7 @@ fun SeriesInput(
     )
   }
 
-  if (showDialog) {
+  if (showDialog && enabled) {
     SeriesDialog(
       suggestions = suggestions - values.map { it.name }.toSet(),
       onDismiss = { showDialog = false },

@@ -134,7 +134,7 @@ object Defaults {
   const val BOOK_ID = "1234567890"
   const val BOOK_AUTHOR = "Iris Vale"
   const val BOOK_TITLE = "Signal in the Harbor"
-  const val BOOK_COVER = ""
+  const val BOOK_COVER = "https://unsplash.com/photos/brown-rock-formation-9qgKQewttVs"
   const val PROGRESS: Float = 0.5f
   const val PROGRESS_PERCENT = 12
   const val PROGRESS_COMPLETE_PERCENT = 100

@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.edititem
 
+import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.response.SearchBookMatchResponse
 import dev.halim.core.network.response.SearchPodcast
 import org.junit.Assert.assertEquals
@@ -265,5 +266,207 @@ class EditItemMatchBehaviorTest {
     assertEquals(listOf("New Author", "Co Author"), updated.authors)
     assertEquals(listOf("New Narrator"), updated.narrators)
     assertEquals(listOf("Sci-Fi"), updated.genres)
+  }
+
+  @Test
+  fun applyBookReviewToState_onlyTouchesSelectedFieldsAndStagesCoverLocally() {
+    val state =
+      EditItemUiState(
+        mediaKind = EditItemMediaKind.Book,
+        currentTab = EditItemTab.Match,
+        coverUrl = "https://example.com/original.jpg",
+        details =
+          DetailsForm(
+            title = "Old title",
+            subtitle = "Old subtitle",
+            authors = listOf("Old author"),
+            narrators = listOf("Old narrator"),
+            series = listOf(SeriesEntry("Old series", "1")),
+            genres = listOf("Old genre"),
+            tags = listOf("old-tag"),
+            publisher = "Old publisher",
+            publishedYear = "1999",
+            description = "Old description",
+            isbn = "old-isbn",
+            asin = "old-asin",
+            abridged = true,
+          ),
+      )
+
+    val updated =
+      applyBookReviewToState(
+        state,
+        BookMatchReviewState(
+          result =
+            BookMatchReviewResult(
+              cover = "https://example.com/new.jpg",
+              title = "Matched title",
+              authors = listOf("Matched author"),
+            ),
+          draft =
+            BookMatchDraft(
+              title = "Edited title",
+              subtitle = "Edited subtitle",
+              authors = listOf("Edited author"),
+              narrators = listOf("Edited narrator"),
+              series = listOf(SeriesEntry("Edited series", "2")),
+              genres = listOf("Edited genre"),
+              tags = listOf("edited-tag"),
+              publisher = "Edited publisher",
+              publishedYear = "2026",
+              description = "Edited description",
+              isbn = "edited-isbn",
+              asin = "edited-asin",
+              abridged = false,
+            ),
+          selectedFields =
+            setOf(
+              BookMatchField.Cover,
+              BookMatchField.Title,
+              BookMatchField.Authors,
+              BookMatchField.Abridged,
+              BookMatchField.Genres,
+            ),
+        ),
+      )
+
+    assertEquals("Edited title", updated.details.title)
+    assertEquals("Old subtitle", updated.details.subtitle)
+    assertEquals(listOf("Edited author"), updated.details.authors)
+    assertEquals(listOf("Old narrator"), updated.details.narrators)
+    assertEquals(listOf("Old genre"), state.details.genres)
+    assertEquals(listOf("Edited genre"), updated.details.genres)
+    assertEquals(listOf("old-tag"), updated.details.tags)
+    assertEquals("Old publisher", updated.details.publisher)
+    assertFalse(updated.details.abridged)
+    assertEquals("https://example.com/new.jpg", updated.pendingCoverUrl)
+  }
+
+  @Test
+  fun buildBookMatchReviewUpdateRequest_onlyPersistsSelectedFields() {
+    val review =
+      BookMatchReviewState(
+        result =
+          BookMatchReviewResult(
+            cover = "https://example.com/new.jpg",
+            title = "Matched title",
+            subtitle = "Matched subtitle",
+            authors = listOf("Matched author"),
+            narrators = listOf("Matched narrator"),
+            publisher = "Matched publisher",
+            publishedYear = "2026",
+            description = "Matched description",
+            isbn = "matched-isbn",
+            asin = "matched-asin",
+            abridged = false,
+            genres = listOf("Technology"),
+            tags = listOf("featured"),
+            series = listOf(SeriesEntry("Matched series", "3")),
+          ),
+        draft =
+          BookMatchDraft(
+            title = "Edited title",
+            subtitle = "Edited subtitle",
+            authors = listOf("Edited author"),
+            narrators = listOf("Edited narrator"),
+            publisher = "Edited publisher",
+            publishedYear = "2027",
+            description = "Edited description",
+            isbn = "edited-isbn",
+            asin = "edited-asin",
+            abridged = false,
+            genres = listOf("Edited genre"),
+            tags = listOf("edited-tag"),
+            series = listOf(SeriesEntry("Edited series", "4")),
+          ),
+        selectedFields =
+          setOf(
+            BookMatchField.Cover,
+            BookMatchField.Title,
+            BookMatchField.Authors,
+            BookMatchField.Tags,
+            BookMatchField.Series,
+          ),
+      )
+    val state =
+      EditItemUiState(
+        mediaKind = EditItemMediaKind.Book,
+        details =
+          DetailsForm(
+            title = "Unsaved local title",
+            authors = listOf("Unsaved local author"),
+            tags = listOf("local-tag"),
+          ),
+        originalDetails =
+          DetailsForm(
+            title = "Original title",
+            authors = listOf("Original author"),
+            tags = listOf("original-tag"),
+            publisher = "Original publisher",
+          ),
+        match = MatchState.Book(review = review),
+      )
+
+    val request = buildBookMatchReviewUpdateRequest(state, review)
+    val metadata = requireNotNull(request.metadata)
+
+    assertEquals("Edited title", metadata.title)
+    assertEquals(listOf(UpdateLibraryItemMediaRequest.NameRef("Edited author")), metadata.authors)
+    assertEquals(
+      listOf(UpdateLibraryItemMediaRequest.SeriesRef("Edited series", "4")),
+      metadata.series,
+    )
+    assertEquals(listOf("edited-tag"), request.tags)
+    assertEquals("https://example.com/new.jpg", request.url)
+    assertNull(metadata.subtitle)
+    assertNull(metadata.publisher)
+    assertNull(metadata.abridged)
+    assertNull(metadata.genres)
+  }
+
+  @Test
+  fun buildBookMatchReviewUpdateRequest_sendsCheckedAbridgedWhenFalse() {
+    val review =
+      BookMatchReviewState(
+        result = BookMatchReviewResult(title = "Matched title", abridged = false),
+        draft = BookMatchDraft(title = "Matched title", abridged = false),
+        selectedFields = setOf(BookMatchField.Abridged),
+      )
+    val state =
+      EditItemUiState(
+        mediaKind = EditItemMediaKind.Book,
+        details = DetailsForm(title = "Unsaved local title", abridged = true),
+        originalDetails = DetailsForm(title = "Original title", abridged = true),
+        match = MatchState.Book(review = review),
+      )
+
+    val request = buildBookMatchReviewUpdateRequest(state, review)
+    val metadata = requireNotNull(request.metadata)
+
+    assertEquals(false, metadata.abridged)
+  }
+
+  @Test
+  fun defaultBookMatchFields_excludesMissingOptionalFields() {
+    val fields =
+      defaultBookMatchFields(
+        BookMatchReviewResult(
+          title = "Title",
+          authors = emptyList(),
+          narrators = emptyList(),
+          abridged = null,
+          genres = emptyList(),
+          tags = emptyList(),
+          series = emptyList(),
+        )
+      )
+
+    assertTrue(BookMatchField.Title in fields)
+    assertFalse(BookMatchField.Cover in fields)
+    assertFalse(BookMatchField.Authors in fields)
+    assertFalse(BookMatchField.Narrators in fields)
+    assertFalse(BookMatchField.Abridged in fields)
+    assertFalse(BookMatchField.Genres in fields)
+    assertFalse(BookMatchField.Series in fields)
   }
 }

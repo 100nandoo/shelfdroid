@@ -15,6 +15,7 @@ data class SearchBookMatchResponse(
   @SerialName("cover") val cover: String? = null,
   @SerialName("isbn") val isbn: String? = null,
   @SerialName("asin") val asin: String? = null,
+  @SerialName("abridged") val abridged: Boolean? = null,
   @SerialName("genres") val genres: List<String> = emptyList(),
   @SerialName("tags") val tags: List<String> = emptyList(),
   @SerialName("series") val series: List<SeriesRef> = emptyList(),

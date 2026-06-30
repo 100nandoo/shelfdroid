@@ -22,6 +22,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,9 +35,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.data.screen.edititem.BookMatchDraft
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchResultRow
 import dev.halim.shelfdroid.core.data.screen.edititem.MatchState
+import dev.halim.shelfdroid.core.data.screen.edititem.displayCoverUrl
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.components.TextBodyLarge
@@ -48,9 +51,14 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 @Composable
 fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
   val match = uiState.match as? MatchState.Book ?: return
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
   fun updateMatch(transform: (MatchState.Book) -> MatchState.Book) {
     onEvent(EditItemEvent.UpdateBookMatch(transform))
+  }
+
+  fun updateDraft(transform: (BookMatchDraft) -> BookMatchDraft) {
+    onEvent(EditItemEvent.UpdateBookMatchDraft(transform))
   }
 
   LazyColumn(
@@ -80,9 +88,37 @@ fun BookMatchTab(uiState: EditItemUiState, onEvent: (EditItemEvent) -> Unit) {
       BookMatchResultListRow(
         modifier = Modifier.animateItem(),
         result = result,
-        onClick = { onEvent(EditItemEvent.ApplyBookMatchResult(index)) },
+        onClick = { onEvent(EditItemEvent.OpenBookMatchReview(index)) },
       )
     }
+  }
+
+  val review = match.review
+  if (review != null) {
+    BookMatchReviewSheet(
+      currentCoverUrl = uiState.displayCoverUrl(),
+      details = uiState.details,
+      review = review,
+      isApplying = uiState.isSaving,
+      sheetState = sheetState,
+      seriesSuggestions = uiState.seriesSuggestions,
+      onDismiss = { onEvent(EditItemEvent.DismissBookMatchReview) },
+      onToggleField = { onEvent(EditItemEvent.ToggleBookMatchField(it)) },
+      onTitleChange = { value -> updateDraft { it.copy(title = value) } },
+      onSubtitleChange = { value -> updateDraft { it.copy(subtitle = value) } },
+      onAuthorsChange = { value -> updateDraft { it.copy(authors = value) } },
+      onNarratorsChange = { value -> updateDraft { it.copy(narrators = value) } },
+      onPublisherChange = { value -> updateDraft { it.copy(publisher = value) } },
+      onPublishedYearChange = { value -> updateDraft { it.copy(publishedYear = value) } },
+      onDescriptionChange = { value -> updateDraft { it.copy(description = value) } },
+      onIsbnChange = { value -> updateDraft { it.copy(isbn = value) } },
+      onAsinChange = { value -> updateDraft { it.copy(asin = value) } },
+      onAbridgedChange = { value -> updateDraft { it.copy(abridged = value) } },
+      onGenresChange = { value -> updateDraft { it.copy(genres = value) } },
+      onTagsChange = { value -> updateDraft { it.copy(tags = value) } },
+      onSeriesChange = { value -> updateDraft { it.copy(series = value) } },
+      onApply = { onEvent(EditItemEvent.ApplyBookMatchReview) },
+    )
   }
 }
 
@@ -165,7 +201,10 @@ private fun BookMatchResultListRow(
   onClick: () -> Unit,
 ) {
   Column(modifier = modifier.fillMaxWidth().clickable(onClick = onClick)) {
-    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+    Row(
+      modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
       if (result.cover.isNotBlank()) {
         CoverNoAnimation(
           modifier = Modifier.height(60.dp).padding(end = 16.dp),
@@ -208,7 +247,29 @@ private fun BookMatchResultListRow(
 @ShelfDroidPreview
 @Composable
 private fun BookMatchTabPreview() {
-  PreviewWrapper { BookMatchTab(uiState = Defaults.EDIT_ITEM_UI_STATE, onEvent = {}) }
+  val previewMatch = Defaults.EDIT_ITEM_UI_STATE.match as MatchState.Book
+  PreviewWrapper {
+    BookMatchTab(
+      uiState =
+        Defaults.EDIT_ITEM_UI_STATE.copy(
+          match =
+            previewMatch.copy(
+              results =
+                previewMatch.results.mapIndexed { index, result ->
+                  if (index == 0) result.copy(cover = Defaults.BOOK_COVER) else result
+                } +
+                  MatchResultRow(
+                    cover = Defaults.BOOK_COVER,
+                    title =
+                      "The Bomber Mafia: A Dream, a Temptation, and the Longest Night of the Second World War",
+                    author = "Malcolm Gladwell",
+                    description = "A long-title preview result for layout coverage.",
+                  )
+            )
+        ),
+      onEvent = {},
+    )
+  }
 }
 
 @ShelfDroidPreview

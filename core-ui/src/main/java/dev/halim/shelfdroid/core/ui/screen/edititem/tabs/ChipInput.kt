@@ -44,6 +44,7 @@ fun ChipInput(
   onRemove: (String) -> Unit,
   modifier: Modifier = Modifier,
   suggestions: List<String> = emptyList(),
+  enabled: Boolean = true,
 ) {
   var draft by remember { mutableStateOf("") }
   Column(modifier = modifier.fillMaxWidth()) {
@@ -54,10 +55,12 @@ fun ChipInput(
           InputChip(
             selected = true,
             onClick = {},
+            enabled = enabled,
             label = { Text(value) },
             trailingIcon = {
               IconButton(
                 modifier = Modifier.size(InputChipDefaults.IconSize),
+                enabled = enabled,
                 onClick = { onRemove(value) },
               ) {
                 Icon(
@@ -79,12 +82,16 @@ fun ChipInput(
         }
       }
     val showSuggestions =
-      suggestions.isNotEmpty() && WindowInsets.isImeVisible && filteredSuggestions.isNotEmpty()
+      enabled &&
+        suggestions.isNotEmpty() &&
+        WindowInsets.isImeVisible &&
+        filteredSuggestions.isNotEmpty()
 
     if (suggestions.isEmpty()) {
       OutlinedTextField(
         value = draft,
         onValueChange = { draft = it },
+        enabled = enabled,
         placeholder = { Text(stringResource(R.string.edit_item_add_chip, label)) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
@@ -109,6 +116,7 @@ fun ChipInput(
         OutlinedTextField(
           value = draft,
           onValueChange = { draft = it },
+          enabled = enabled,
           placeholder = { Text(stringResource(R.string.edit_item_add_chip, label)) },
           modifier =
             Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
@@ -129,6 +137,7 @@ fun ChipInput(
           filteredSuggestions.forEach { suggestion ->
             DropdownMenuItem(
               text = { Text(suggestion) },
+              enabled = enabled,
               onClick = {
                 onAdd(suggestion)
                 draft = ""
