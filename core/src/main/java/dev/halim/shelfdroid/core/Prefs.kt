@@ -12,9 +12,9 @@ data class DisplayPrefs(
   val listView: Boolean = true,
   val filter: Filter = Filter.All,
   val bookSort: BookSort = BookSort.Progress,
-  val podcastSort: PodcastSort = PodcastSort.AddedAt,
+  val podcastSort: PodcastSort = PodcastSort.Progress,
   val sortOrder: SortOrder = SortOrder.Desc,
-  val podcastSortOrder: SortOrder = SortOrder.Asc,
+  val podcastSortOrder: SortOrder = SortOrder.Desc,
 )
 
 @Serializable
@@ -59,7 +59,7 @@ enum class ChapterTimeDisplay {
 @Serializable
 data class PlayerPrefs(
   val chapterTitleLine: Int = 2,
-  val chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.TimeRange,
+  val chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.DurationShort,
 )
 
 val SLEEP_TIMER_PRESET_MINUTES: List<Int> = listOf(1, 5, 10, 15, 30, 45, 60)
