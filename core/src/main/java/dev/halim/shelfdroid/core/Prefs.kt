@@ -122,13 +122,15 @@ enum class BookSort(val label: String) {
 
 enum class PodcastSort(val label: String) {
   AddedAt(LABEL_ADDED_AT),
-  Title(LABEL_TITLE);
+  Title(LABEL_TITLE),
+  Progress(LABEL_PROGRESS);
 
   companion object {
     fun fromLabel(label: String): PodcastSort {
       return when (label) {
         LABEL_ADDED_AT -> AddedAt
         LABEL_TITLE -> Title
+        LABEL_PROGRESS -> Progress
         else -> AddedAt
       }
     }

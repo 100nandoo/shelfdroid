@@ -38,6 +38,7 @@ data class PodcastUiState(
   val title: String = "",
   val cover: String = "",
   val addedAt: Long = 0,
+  val progressLastUpdate: Long = 0,
   val episodeCount: Int = 0,
   val unfinishedCount: Int = 0,
   val downloadedCount: Int = 0,

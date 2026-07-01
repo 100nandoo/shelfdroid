@@ -5,6 +5,7 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
+import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
@@ -35,6 +36,7 @@ constructor(private val progressRepo: ProgressRepo, private val downloadRepo: Do
   suspend fun toPodcastUiState(item: LibraryItemEntity): PodcastUiState {
     val podcast = Json.decodeFromString<Podcast>(item.media)
     val downloadedIds = downloadRepo.podcastDownloadedEpisodeIds(item.title, podcast.episodes)
+    val progresses = progressRepo.byLibraryItemId(item.id)
 
     val finished = progressRepo.byLibraryItemIdAndFinished(item.id)
     val finishedIds = finished.map { it.id }
@@ -53,10 +55,16 @@ constructor(private val progressRepo: ProgressRepo, private val downloadRepo: Do
       title = item.title,
       cover = item.cover,
       addedAt = item.addedAt,
+      progressLastUpdate = podcastProgressLastUpdate(progresses),
       episodeCount = episodeCount,
       unfinishedCount = unfinishedCount,
       downloadedCount = downloadedCount,
       unfinishedAndDownloadCount = unfinishedAndDownloadCount,
     )
   }
+}
+
+internal fun podcastProgressLastUpdate(progresses: List<ProgressEntity>): Long {
+  return progresses.filter { !it.episodeId.isNullOrBlank() }.maxOfOrNull(ProgressEntity::lastUpdate)
+    ?: 0L
 }

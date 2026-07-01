@@ -68,6 +68,10 @@ _Avoid_: Track download, file batch
 The listener's current completion state for a playable media unit.
 _Avoid_: Position, status
 
+**Progress recency**:
+The recency of the listener's last **Progress** update for a media context. For a **Book**, it comes from the book's own **Progress**. For a **Podcast**, it comes from the most recent **Episode** progress update, including finished episodes.
+_Avoid_: Last listened, progress timestamp, recent activity
+
 **Current playback**:
 The locally active playable media context inside ShelfDroid, derived from on-device player state and used for now-playing UI. It is not the same as an **Open session**, which is server-tracked by the Audiobookshelf server.
 _Avoid_: Open session, now playing state
@@ -160,5 +164,6 @@ _Avoid_: Best-effort release, unverifiable build
 - "schedule" is overloaded; use **Podcast auto-download schedule** for recurring podcast downloads and say backup schedule explicitly when discussing server backups.
 - "current playback" and **Open session** are distinct; **Current playback** is local player state inside ShelfDroid, while an **Open session** is server-tracked.
 - "track", "chapter", and "episode" are distinct; a **Track** is a file unit for books, a **Chapter** is a navigation segment in a book, and an **Episode** belongs to a podcast.
+- "progress" is overloaded; use **Progress** for completion state and **Progress recency** for the last update used to order home-screen items.
 - "download" and **Library file** are not the same thing; a **Library file** exists on the server, while a **Download** is a local device copy or downloaded server artifact.
 - "F-Droid release" is too vague in this repo; say **F-Droid main repository** when discussing the curated public catalog, and say **Reproducible release** when discussing release provenance.

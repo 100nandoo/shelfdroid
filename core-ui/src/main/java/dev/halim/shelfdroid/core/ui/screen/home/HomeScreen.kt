@@ -405,7 +405,7 @@ private fun bookFilterAndSort(
   }
 }
 
-private fun podcastFilterAndSort(
+internal fun podcastFilterAndSort(
   podcasts: List<PodcastUiState>,
   displayPrefs: DisplayPrefs,
 ): List<PodcastUiState> {
@@ -413,15 +413,27 @@ private fun podcastFilterAndSort(
 
   val comparator =
     when (displayPrefs.podcastSort) {
-      PodcastSort.AddedAt -> compareBy<PodcastUiState> { it.addedAt }
-      PodcastSort.Title -> compareBy { it.title }
+      PodcastSort.AddedAt ->
+        if (displayPrefs.podcastSortOrder == SortOrder.Desc) {
+          compareByDescending<PodcastUiState> { it.addedAt }.thenBy { it.title }
+        } else {
+          compareBy<PodcastUiState>({ it.addedAt }, { it.title })
+        }
+      PodcastSort.Title ->
+        if (displayPrefs.podcastSortOrder == SortOrder.Desc) {
+          compareByDescending<PodcastUiState> { it.title }
+        } else {
+          compareBy { it.title }
+        }
+      PodcastSort.Progress ->
+        if (displayPrefs.podcastSortOrder == SortOrder.Desc) {
+          compareByDescending<PodcastUiState> { it.progressLastUpdate }.thenBy { it.title }
+        } else {
+          compareBy<PodcastUiState>({ it.progressLastUpdate }, { it.title })
+        }
     }
 
-  return if (displayPrefs.podcastSortOrder == SortOrder.Desc) {
-    filtered.sortedWith(comparator.reversed())
-  } else {
-    filtered.sortedWith(comparator)
-  }
+  return filtered.sortedWith(comparator)
 }
 
 @ShelfDroidPreview
