@@ -38,6 +38,8 @@ data class Login(val reLogin: Boolean = false, val reason: AuthPromptReason? = n
 
 @Serializable data class Episode(val itemId: String, val episodeId: String) : ShelfNavKey
 
+@Serializable data class EditEpisode(val itemId: String, val episodeId: String) : ShelfNavKey
+
 @Serializable data class AddEpisode(val id: String) : ShelfNavKey
 
 @Serializable data object ListeningSession : ShelfNavKey

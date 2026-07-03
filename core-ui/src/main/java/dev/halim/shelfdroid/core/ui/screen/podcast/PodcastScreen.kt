@@ -66,6 +66,7 @@ fun PodcastScreen(
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
   onEpisodeClicked: (String, String) -> Unit,
+  onEditEpisodeClicked: (String, String) -> Unit,
   onFetchEpisodeSuccess: (String) -> Unit,
 ) {
   InitMediaControllerIfMainActivity()
@@ -107,6 +108,7 @@ fun PodcastScreen(
       snackbarHostState = snackbarHostState,
       onEvent = viewModel::onEvent,
       onEpisodeClicked = onEpisodeClicked,
+      onEditEpisodeClicked = onEditEpisodeClicked,
       onPlayClicked = { itemId, episodeId, _ ->
         playerController.onEvent(PlayerEvent.PlayPodcast(itemId, episodeId))
       },
@@ -130,6 +132,7 @@ fun PodcastScreenContent(
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onEvent: (PodcastEvent) -> Unit = {},
   onEpisodeClicked: (String, String) -> Unit = { _, _ -> },
+  onEditEpisodeClicked: (String, String) -> Unit = { _, _ -> },
   onPlayClicked: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
   BackHandler(enabled = uiState.isSelectionMode) { onEvent(PodcastEvent.SelectionMode(false, "")) }
@@ -138,6 +141,7 @@ fun PodcastScreenContent(
     if (isDownloaded) uiState.episodes.filter { it.download.state.isDownloaded() }
     else uiState.episodes
   val count = uiState.selectedEpisodeIds.size
+  val selectedActionEpisode = uiState.episodes.find { it.episodeId == uiState.actionSheetEpisodeId }
 
   Column(modifier = Modifier.fillMaxSize()) {
     LazyColumn(
@@ -153,7 +157,7 @@ fun PodcastScreenContent(
           uiState.title,
           episode,
           isSelected,
-          uiState.canDeleteEpisode,
+          uiState.canEditEpisode || uiState.canDeleteEpisode,
           onEvent,
           onEpisodeClicked,
           onPlayClicked,
@@ -185,6 +189,22 @@ fun PodcastScreenContent(
         onAutoSelectFinishedChange = { onEvent(PodcastEvent.SwitchAutoSelectFinished(it)) },
       )
     }
+  }
+
+  selectedActionEpisode?.let { episode ->
+    EpisodeActionSheet(
+      title = episode.title,
+      podcastTitle = uiState.title,
+      publishedAt = episode.publishedAt,
+      canEdit = uiState.canEditEpisode,
+      canDelete = uiState.canDeleteEpisode,
+      onDismiss = { onEvent(PodcastEvent.DismissEpisodeActions) },
+      onEdit = {
+        onEvent(PodcastEvent.DismissEpisodeActions)
+        onEditEpisodeClicked(id, episode.episodeId)
+      },
+      onDelete = { onEvent(PodcastEvent.StartDeleteSelection(episode.episodeId)) },
+    )
   }
 }
 

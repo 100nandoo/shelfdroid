@@ -41,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
+import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
@@ -156,6 +157,9 @@ private fun ColumnScope.NavHostContainer(
             onEpisodeClicked = { itemId, episodeId ->
               navigator.navigate(Episode(itemId = itemId, episodeId = episodeId))
             },
+            onEditEpisodeClicked = { itemId, episodeId ->
+              navigator.navigate(EditEpisode(itemId = itemId, episodeId = episodeId))
+            },
             onFetchEpisodeSuccess = { itemId -> navigator.navigate(AddEpisode(itemId)) },
           )
         }
@@ -226,6 +230,15 @@ private fun ColumnScope.NavHostContainer(
             playerStore = playerStore,
             playerController = playerController,
             snackbarHostState = snackbarHostState,
+          )
+        }
+      }
+      entry<EditEpisode> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          EditEpisodeScreen(
+            navKey = key,
+            snackbarHostState = snackbarHostState,
+            navigateBack = { navigator.pop() },
           )
         }
       }
