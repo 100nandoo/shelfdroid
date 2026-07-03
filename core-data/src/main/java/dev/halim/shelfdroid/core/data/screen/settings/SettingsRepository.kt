@@ -6,6 +6,7 @@ import androidx.media3.database.StandaloneDatabaseProvider.DATABASE_NAME as EXOP
 import com.jakewharton.processphoenix.ProcessPhoenix
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.ApiService
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
@@ -30,20 +31,23 @@ constructor(
 
   val darkMode = dataStoreManager.darkMode
   val dynamicTheme = dataStoreManager.dynamicTheme
+  val authPromptReason = dataStoreManager.authPromptReason
   val token = prefsRepository.userPrefs.map { it.accessToken }
   val prefs = prefsRepository.prefsFlow()
 
   suspend fun logout(): Result<Unit> {
-    val result = api.logout(prefsRepository.userPrefs.first().refreshToken)
-    result.onSuccess { _ ->
-      clearDir()
+    val refreshToken = prefsRepository.userPrefs.first().refreshToken
+    if (refreshToken.isNotBlank()) {
+      api.logout(refreshToken)
+    }
+    return runCatching {
       dataStoreManager.clear()
-      return Result.success(Unit)
+      clearDir()
     }
-    result.onFailure { error ->
-      return Result.failure(error)
-    }
-    return Result.failure(Exception("Logout failed"))
+  }
+
+  suspend fun startManualReLogin() {
+    dataStoreManager.beginForcedReLogin(AuthPromptReason.ManualReLogin)
   }
 
   suspend fun updateDarkMode(enabled: Boolean) {

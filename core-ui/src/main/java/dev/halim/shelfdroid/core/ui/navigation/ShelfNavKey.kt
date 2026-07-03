@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
@@ -8,7 +9,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable sealed interface ShelfNavKey : NavKey
 
-@Serializable data class Login(val reLogin: Boolean = false) : ShelfNavKey
+@Serializable
+data class Login(val reLogin: Boolean = false, val reason: AuthPromptReason? = null) : ShelfNavKey
 
 @Serializable data class Home(val fromLogin: Boolean) : ShelfNavKey
 

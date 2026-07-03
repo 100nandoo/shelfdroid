@@ -65,16 +65,19 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainNavigation(
   isLoggedIn: Boolean,
+  loginKey: Login,
   playerStore: PlayerStore,
   playerController: PlayerController,
   navRequest: NavRequest,
   onNavRequestComplete: () -> Unit = {},
 ) {
   SharedTransitionLayout {
-    val backStack = rememberShelfNavBackStack(if (isLoggedIn) Home(false) else Login())
+    val backStack = rememberShelfNavBackStack(if (isLoggedIn) Home(false) else loginKey)
     val navigator = rememberShelfNavigator(backStack)
 
-    LaunchedEffect(isLoggedIn) { enforceAuthRestorePolicy(navigator, isLoggedIn) }
+    LaunchedEffect(isLoggedIn, loginKey) {
+      enforceAuthRestorePolicy(navigator, isLoggedIn, loginKey)
+    }
     LaunchedEffect(navRequest, isLoggedIn) {
       handleNavRequest(
         navRequest = navRequest,
@@ -234,7 +237,6 @@ private fun ColumnScope.NavHostContainer(
             onNotificationClicked = { navigator.navigate(SettingsNotification) },
             onPodcastClicked = { navigator.navigate(SettingsPodcast) },
             onListeningSessionClicked = { navigator.navigate(SettingsListeningSession) },
-            reLogin = { navigator.navigate(Login(reLogin = true)) },
             changePassword = { navigator.navigate(ChangePassword) },
           )
         }

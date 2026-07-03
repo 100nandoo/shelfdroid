@@ -10,6 +10,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
+import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ class LoginViewModel
 @AssistedInject
 constructor(
   private val loginRepository: LoginRepository,
+  private val settingsRepository: SettingsRepository,
   @Assisted private val navKey: Login,
 ) : ViewModel() {
 
@@ -37,6 +39,12 @@ constructor(
           val currentState = _uiState.value
           _uiState.update { it.copy(loginState = GenericState.Loading) }
           _uiState.update { loginRepository.login(currentState) }
+        }
+      LoginEvent.UseDifferentServerOrAccountConfirmed ->
+        viewModelScope.launch {
+          settingsRepository.logout().onFailure { error ->
+            _uiState.update { it.copy(loginState = GenericState.Failure(error.message)) }
+          }
         }
       is LoginEvent.ServerChanged ->
         _uiState.update { it.copy(server = event.server, serverFieldError = null) }
@@ -53,9 +61,14 @@ constructor(
       runBlocking {
         val username = loginRepository.userPrefs.firstOrNull()?.username ?: ""
         val server = if (username.isNotBlank()) loginRepository.baseUrl else ""
-        LoginUiState(username = username, server = server, reLogin = true)
+        LoginUiState(
+          username = username,
+          server = server,
+          reLogin = true,
+          authPromptReason = navKey.reason,
+        )
       }
-    } else LoginUiState()
+    } else LoginUiState(authPromptReason = navKey.reason)
   }
 
   @AssistedFactory

@@ -14,11 +14,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -36,11 +39,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginFieldError
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
@@ -89,6 +94,7 @@ fun LoginScreenContent(
   onEvent: (LoginEvent) -> Unit = {},
 ) {
   val (serverRef, usernameRef, passwordRef) = remember { FocusRequester.createRefs() }
+  var showUseDifferentAccountDialog by remember { mutableStateOf(false) }
 
   LaunchedEffect(Unit) {
     if (uiState.reLogin) passwordRef.requestFocus() else serverRef.requestFocus()
@@ -104,6 +110,25 @@ fun LoginScreenContent(
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Bottom,
     ) {
+      uiState.authPromptReason?.let { reason ->
+        Text(
+          text =
+            when (reason) {
+              AuthPromptReason.RefreshFailed ->
+                stringResource(R.string.failed_to_refresh_token_relogin_required)
+              AuthPromptReason.ManualReLogin ->
+                stringResource(R.string.reenter_password_to_continue)
+            },
+          modifier = Modifier.fillMaxWidth(),
+        )
+
+        TextButton(onClick = { showUseDifferentAccountDialog = true }) {
+          Text(stringResource(R.string.use_different_server_or_account))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+      }
+
       MyOutlinedTextField(
         modifier = Modifier.fillMaxWidth().focusRequester(serverRef).testTag("server"),
         enabled = uiState.reLogin.not(),
@@ -158,6 +183,18 @@ fun LoginScreenContent(
       }
     }
   }
+
+  MyAlertDialog(
+    showDialog = showUseDifferentAccountDialog,
+    title = stringResource(R.string.use_different_server_or_account),
+    text = stringResource(R.string.dialog_use_different_server_or_account_text),
+    confirmText = stringResource(R.string.logout),
+    onConfirm = {
+      onEvent(LoginEvent.UseDifferentServerOrAccountConfirmed)
+      showUseDifferentAccountDialog = false
+    },
+    onDismiss = { showUseDifferentAccountDialog = false },
+  )
 }
 
 @ShelfDroidPreview
@@ -177,6 +214,6 @@ fun LoginScreenContentDynamicPreview() {
 @ShelfDroidPreview
 @Composable
 fun ReLoginScreenContentPreview() {
-  val loginUiState = LoginUiState(reLogin = true)
+  val loginUiState = LoginUiState(reLogin = true, authPromptReason = AuthPromptReason.RefreshFailed)
   PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
 }

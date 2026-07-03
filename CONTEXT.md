@@ -110,6 +110,20 @@ _Avoid_: Add episode, refresh feed, sync podcast
 A recurring server-side schedule for a **Podcast** that determines when the Audiobookshelf server should automatically check its RSS feed for new **Episodes** and auto-download them subject to configured limits.
 _Avoid_: Episode check schedule, cron, podcast sync timer
 
+### Authentication
+
+**Session recovery**:
+The attempt to keep the current signed-in state alive without user input before ShelfDroid asks for credentials again.
+_Avoid_: Auto login, refresh loop
+
+**Forced re-login**:
+A recovery flow where ShelfDroid requires the current **User** to sign in again to the current **Audiobookshelf server** after **Session recovery** fails, while preserving local app data and cached content.
+_Avoid_: Logout, fresh login, account switch
+
+**Full logout**:
+An explicit sign-out that clears local authentication state and local app data instead of recovering the current session.
+_Avoid_: Re-login, session recovery
+
 ### Distribution
 
 **F-Droid main repository**:
@@ -143,6 +157,9 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Backup** belongs to the **Audiobookshelf server**, not to a specific **Library**
 - An **API key** belongs to exactly one **User**
 - **Server settings** belong to the **Audiobookshelf server**
+- **Session recovery** happens before **Forced re-login**
+- A **Forced re-login** keeps the same **User** and **Audiobookshelf server**
+- A **Full logout** ends the current local session instead of recovering it
 - ShelfDroid may be distributed through the **F-Droid main repository**
 - Every **Reproducible release** is also an **Upstream release**
 

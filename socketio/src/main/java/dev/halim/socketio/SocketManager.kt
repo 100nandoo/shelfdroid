@@ -7,10 +7,20 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import java.net.URISyntaxException
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @Singleton
-class SocketManager @Inject constructor(private val dataStoreManager: DataStoreManager) {
+class SocketManager
+@Inject
+constructor(
+  private val dataStoreManager: DataStoreManager,
+  @Named("io") private val appScope: CoroutineScope,
+) {
 
   companion object Event {
     object Episode {
@@ -22,6 +32,31 @@ class SocketManager @Inject constructor(private val dataStoreManager: DataStoreM
 
   private var socket: Socket? = null
   private val listeners = mutableMapOf<String, (Array<Any>) -> Unit>()
+  private var observedToken: String? = null
+
+  init {
+    appScope.launch {
+      dataStoreManager.userPrefs
+        .map { it.accessToken }
+        .distinctUntilChanged()
+        .collect { token ->
+          val previousToken = observedToken
+          observedToken = token
+
+          if (previousToken == null) {
+            return@collect
+          }
+          if (socket == null) {
+            return@collect
+          }
+
+          when {
+            token.isBlank() -> disconnect()
+            previousToken != token -> reconnect()
+          }
+        }
+    }
+  }
 
   fun connect() {
     if (socket?.connected() == true) return
@@ -68,6 +103,11 @@ class SocketManager @Inject constructor(private val dataStoreManager: DataStoreM
   fun disconnect() {
     socket?.disconnect()
     socket = null
+  }
+
+  private fun reconnect() {
+    disconnect()
+    connect()
   }
 
   fun send(event: String, vararg args: Any) {

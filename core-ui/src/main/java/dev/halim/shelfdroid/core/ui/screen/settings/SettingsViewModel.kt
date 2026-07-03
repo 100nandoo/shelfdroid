@@ -50,6 +50,9 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
   fun onEvent(event: SettingsEvent) {
     when (event) {
       is SettingsEvent.LogoutButtonPressed -> viewModelScope.launch { logout() }
+      SettingsEvent.ReLoginButtonPressed -> {
+        viewModelScope.launch { repository.startManualReLogin() }
+      }
       is SettingsEvent.SwitchDarkTheme -> {
         viewModelScope.launch { repository.updateDarkMode(event.isDarkMode) }
       }
@@ -102,6 +105,8 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
 
 sealed interface SettingsEvent {
   data object LogoutButtonPressed : SettingsEvent
+
+  data object ReLoginButtonPressed : SettingsEvent
 
   data class SwitchDarkTheme(val isDarkMode: Boolean) : SettingsEvent
 

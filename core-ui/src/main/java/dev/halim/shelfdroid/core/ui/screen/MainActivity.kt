@@ -23,6 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.MainNavigation
 import dev.halim.shelfdroid.core.ui.navigation.NavRequest
+import dev.halim.shelfdroid.core.ui.navigation.toLoginKey
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
@@ -60,6 +61,10 @@ class MainActivity : ComponentActivity() {
         settingsRepository.token.collectAsStateWithLifecycle(
           runBlocking { settingsRepository.token.first() }
         )
+      val authPromptReason by
+        settingsRepository.authPromptReason.collectAsStateWithLifecycle(
+          runBlocking { settingsRepository.authPromptReason.first() }
+        )
       ShelfDroidTheme(darkTheme = isDarkMode, dynamicColor = isDynamic) {
         Surface(
           modifier =
@@ -68,6 +73,7 @@ class MainActivity : ComponentActivity() {
         ) {
           MainNavigation(
             isLoggedIn = token.isBlank().not(),
+            loginKey = authPromptReason.toLoginKey(),
             playerStore = playerStore,
             playerController = playerController,
             navRequest = navRequest,

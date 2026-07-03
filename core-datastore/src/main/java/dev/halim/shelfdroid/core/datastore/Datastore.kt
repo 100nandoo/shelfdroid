@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.DisplayPrefs
@@ -36,6 +37,7 @@ private object Keys {
   val DYNAMIC_THEME = booleanPreferencesKey("dynamic_theme")
   val DEVICE_ID = stringPreferencesKey("device_id")
   val USER_PREFS = stringPreferencesKey("user_prefs")
+  val AUTH_PROMPT_REASON = stringPreferencesKey("auth_prompt_reason")
   val SERVER_PREFS = stringPreferencesKey("server_prefs")
   val DISPLAY_PREFS = stringPreferencesKey("display_prefs")
   val PLAYBACK_PREFS = stringPreferencesKey("playback_prefs")
@@ -111,11 +113,36 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
       } ?: UserPrefs()
     }
 
+  val authPromptReason: Flow<AuthPromptReason?> =
+    dataStore.data.map { prefs ->
+      prefs[Keys.AUTH_PROMPT_REASON]?.let { stored ->
+        AuthPromptReason.entries.firstOrNull { it.name == stored }
+      }
+    }
+
   fun accessToken(): String = runBlocking { userPrefs.firstOrNull()?.accessToken ?: "" }
 
   suspend fun updateUserPrefs(userPrefs: UserPrefs) {
     val json = Json.encodeToString(userPrefs)
     dataStore.edit { prefs -> prefs[Keys.USER_PREFS] = json }
+  }
+
+  suspend fun completeLogin(userPrefs: UserPrefs) {
+    val json = Json.encodeToString(userPrefs)
+    dataStore.edit { prefs ->
+      prefs[Keys.USER_PREFS] = json
+      prefs.remove(Keys.AUTH_PROMPT_REASON)
+    }
+  }
+
+  suspend fun beginForcedReLogin(reason: AuthPromptReason) {
+    val currentPrefs = userPrefs.first()
+    val updatedPrefs = currentPrefs.copy(accessToken = "", refreshToken = "")
+    val json = Json.encodeToString(updatedPrefs)
+    dataStore.edit { prefs ->
+      prefs[Keys.USER_PREFS] = json
+      prefs[Keys.AUTH_PROMPT_REASON] = reason.name
+    }
   }
 
   val serverPrefs: Flow<ServerPrefs> =
@@ -241,6 +268,16 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   suspend fun updateRefreshToken(newToken: String) {
     val updated = userPrefs.first().copy(refreshToken = newToken)
     updateUserPrefs(updated)
+  }
+
+  suspend fun updateTokens(accessToken: String, refreshToken: String) {
+    val updatedPrefs =
+      userPrefs.first().copy(accessToken = accessToken, refreshToken = refreshToken)
+    val json = Json.encodeToString(updatedPrefs)
+    dataStore.edit { prefs ->
+      prefs[Keys.USER_PREFS] = json
+      prefs.remove(Keys.AUTH_PROMPT_REASON)
+    }
   }
 
   val tags: Flow<Set<String>> = dataStore.preferenceFlow(Keys.TAGS, emptySet())

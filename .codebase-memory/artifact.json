@@ -1,11 +1,11 @@
 {
     "schema_version": 1,
-    "commit": "e6f98b951fccd4b9c404a2c8528aaa1b1afb6f42",
-    "indexed_at": "2026-07-03T02:43:39Z",
+    "commit": "f63dc5cd9cf4b50c2bf6429b3f3d4f6763e2d8c3",
+    "indexed_at": "2026-07-03T03:04:50Z",
     "project": "Users-fernando-Codes-ShelfDroid",
-    "nodes": 4747,
-    "edges": 21877,
+    "nodes": 4744,
+    "edges": 21875,
     "original_size": 16646144,
-    "compressed_size": 2465456,
+    "compressed_size": 2466636,
     "compression_level": 3
 }

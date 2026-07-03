@@ -47,7 +47,6 @@ fun SettingsScreen(
   onNotificationClicked: () -> Unit = {},
   onPodcastClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
-  reLogin: () -> Unit = {},
   changePassword: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,7 +60,6 @@ fun SettingsScreen(
     onNotificationClicked = onNotificationClicked,
     onPodcastClicked = onPodcastClicked,
     onListeningSessionClicked = onListeningSessionClicked,
-    reLogin = reLogin,
     changePassword = changePassword,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
   )
@@ -77,7 +75,6 @@ fun SettingsScreenContent(
   onNotificationClicked: () -> Unit = {},
   onPodcastClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
-  reLogin: () -> Unit = {},
   changePassword: () -> Unit = {},
   onEvent: (SettingsEvent) -> Unit = {},
 ) {
@@ -86,7 +83,7 @@ fun SettingsScreenContent(
       Modifier.fillMaxSize().padding(vertical = 16.dp).verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    LogoutSection(onEvent, reLogin, changePassword)
+    LogoutSection(onEvent, changePassword)
     Spacer(modifier = Modifier.height(16.dp))
 
     OthersSection(version, user, uiState)
@@ -260,7 +257,6 @@ private fun OthersSection(version: String, user: String, uiState: SettingsUiStat
 @Composable
 fun LogoutSection(
   onEvent: (SettingsEvent) -> Unit = {},
-  reLogin: () -> Unit,
   changePassword: () -> Unit,
   initialShowLogoutDialog: Boolean = false,
   initialShowReLoginDialog: Boolean = false,
@@ -315,7 +311,7 @@ fun LogoutSection(
     confirmText = stringResource(R.string.ok),
     dismissText = stringResource(R.string.cancel),
     onConfirm = {
-      reLogin()
+      onEvent(SettingsEvent.ReLoginButtonPressed)
       showReLoginDialog = false
     },
     onDismiss = { showReLoginDialog = false },
@@ -341,7 +337,7 @@ fun SettingsScreenContentDynamicPreview() {
 @Composable
 private fun LogoutSectionLogoutDialogPreview() {
   PreviewWrapper(dynamicColor = false) {
-    LogoutSection(reLogin = {}, changePassword = {}, initialShowLogoutDialog = true)
+    LogoutSection(changePassword = {}, initialShowLogoutDialog = true)
   }
 }
 
@@ -349,6 +345,6 @@ private fun LogoutSectionLogoutDialogPreview() {
 @Composable
 private fun LogoutSectionReLoginDialogPreview() {
   PreviewWrapper(dynamicColor = false) {
-    LogoutSection(reLogin = {}, changePassword = {}, initialShowReLoginDialog = true)
+    LogoutSection(changePassword = {}, initialShowReLoginDialog = true)
   }
 }

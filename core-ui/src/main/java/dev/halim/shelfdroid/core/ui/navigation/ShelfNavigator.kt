@@ -52,7 +52,7 @@ fun enforceAuthRestorePolicy(
   isLoggedIn: Boolean,
   loginKey: Login = Login(),
 ) {
-  if (!isLoggedIn && navigator.current !is Login) {
+  if (!isLoggedIn && (navigator.current !is Login || navigator.current != loginKey)) {
     navigator.replaceStack(loginKey)
   }
 }

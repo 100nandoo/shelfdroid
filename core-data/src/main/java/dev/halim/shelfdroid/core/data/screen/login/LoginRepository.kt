@@ -4,6 +4,7 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.response.LoginResponse
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
@@ -72,7 +73,7 @@ constructor(
       val userPrefs = mapper.toUserPrefs(response.user)
 
       updateBaseUrl(server)
-      updateUserPrefs(userPrefs)
+      completeLogin(userPrefs)
     }
   }
 }
@@ -84,6 +85,7 @@ data class LoginUiState(
   val username: String = "",
   val password: String = "",
   val reLogin: Boolean = false,
+  val authPromptReason: AuthPromptReason? = null,
 )
 
 enum class LoginFieldError {
@@ -92,6 +94,8 @@ enum class LoginFieldError {
 
 sealed interface LoginEvent {
   data object LoginButtonPressed : LoginEvent
+
+  data object UseDifferentServerOrAccountConfirmed : LoginEvent
 
   data object ErrorShown : LoginEvent
 

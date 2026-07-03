@@ -1,0 +1,3 @@
+# Session Recovery, Forced Re-Login, and Full Logout
+
+ShelfDroid will treat silent token refresh, forced re-login, and full logout as different policies. When a request fails authentication, ShelfDroid will attempt session recovery once by refreshing tokens; if that fails, it will clear only the access token and refresh token, preserve local app data and cached content, and route the user into a forced re-login for the same user on the same Audiobookshelf server. The forced re-login screen may offer a confirmation-gated escape hatch into full logout for intentionally switching server or account, and that path must still perform destructive local cleanup even when remote logout can no longer succeed because the refresh token is already gone.
