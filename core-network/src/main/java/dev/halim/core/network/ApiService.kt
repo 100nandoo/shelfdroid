@@ -45,6 +45,7 @@ import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.SearchBookMatchResponse
 import dev.halim.core.network.response.SearchCoversResponse
 import dev.halim.core.network.response.SearchPodcast
+import dev.halim.core.network.response.SearchPodcastEpisodeResponse
 import dev.halim.core.network.response.SearchProvidersResponse
 import dev.halim.core.network.response.ServerSettingsResponse
 import dev.halim.core.network.response.SessionsResponse
@@ -293,6 +294,12 @@ interface ApiService {
     @Query("term") term: String,
     @Query("provider") provider: String? = null,
   ): Result<List<SearchPodcast>>
+
+  @GET("/api/podcasts/{itemId}/search-episode")
+  suspend fun searchPodcastEpisode(
+    @Path("itemId") itemId: String,
+    @Query("title") title: String,
+  ): Result<SearchPodcastEpisodeResponse>
 
   // users
   @POST("/api/users")

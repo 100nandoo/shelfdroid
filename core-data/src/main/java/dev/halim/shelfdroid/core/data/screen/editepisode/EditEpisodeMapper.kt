@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.core.data.screen.editepisode
 
+import dev.halim.core.network.request.UpdatePodcastEpisodeEnclosureRequest
 import dev.halim.core.network.request.UpdatePodcastEpisodeRequest
+import dev.halim.core.network.response.Episode
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.core.data.GenericState
 import java.text.SimpleDateFormat
@@ -24,8 +26,10 @@ internal object EditEpisodeMapper {
       itemId = itemId,
       episodeId = episodeId,
       podcastTitle = podcastTitle,
+      currentTab = EditEpisodeTab.Details,
       details = details,
       originalDetails = details,
+      match = EpisodeMatchState(searchTerm = details.title),
     )
   }
 
@@ -62,6 +66,56 @@ internal object EditEpisodeMapper {
       publishedAt = if (publishedDateChanged) normalizedCurrent.publishedAtMillis else null,
     ).takeUnless { it.isEmpty() }
   }
+
+  fun mapMatchResult(episode: Episode): EpisodeMatchResultRow =
+    EpisodeMatchResultRow(
+      season = episode.season,
+      episode = episode.episode,
+      episodeType = episode.episodeType,
+      title = episode.title,
+      subtitle = episode.subtitle,
+      description = episode.description,
+      enclosureUrl = episode.enclosure.url,
+      enclosureType = episode.enclosure.type,
+      enclosureLength = episode.enclosure.length,
+      pubDate = episode.pubDate,
+      publishedAtMillis = parsePublishedAtMillis(episode.pubDate, episode.publishedAt),
+    )
+
+  fun buildMatchUpdateRequest(result: EpisodeMatchResultRow): UpdatePodcastEpisodeRequest? =
+    UpdatePodcastEpisodeRequest(
+      season = result.season.takeIf { it.isNotBlank() },
+      episode = result.episode.takeIf { it.isNotBlank() },
+      episodeType = result.episodeType.takeIf { it.isNotBlank() },
+      title = result.title.takeIf { it.isNotBlank() },
+      subtitle = result.subtitle.takeIf { it.isNotBlank() },
+      description = result.description.takeIf { it.isNotBlank() },
+      enclosure =
+        result.enclosureUrl.takeIf { it.isNotBlank() }?.let {
+          UpdatePodcastEpisodeEnclosureRequest(
+            url = it,
+            type = result.enclosureType.takeIf { value -> value.isNotBlank() },
+            length = result.enclosureLength.takeIf { value -> value.isNotBlank() },
+          )
+        },
+      pubDate = result.pubDate.takeIf { it.isNotBlank() },
+      publishedAt = result.publishedAtMillis,
+    ).takeUnless { it.isEmpty() }
+
+  fun applyMatch(
+    original: EpisodeDetailsForm,
+    result: EpisodeMatchResultRow,
+  ): EpisodeDetailsForm =
+    original.copy(
+      season = result.season.takeIf { it.isNotBlank() } ?: original.season,
+      episode = result.episode.takeIf { it.isNotBlank() } ?: original.episode,
+      episodeType = result.episodeType.takeIf { it.isNotBlank() } ?: original.episodeType,
+      title = result.title.takeIf { it.isNotBlank() } ?: original.title,
+      subtitle = result.subtitle.takeIf { it.isNotBlank() } ?: original.subtitle,
+      description = result.description.takeIf { it.isNotBlank() } ?: original.description,
+      enclosureUrl = result.enclosureUrl.takeIf { it.isNotBlank() } ?: original.enclosureUrl,
+      publishedAtMillis = result.publishedAtMillis ?: original.publishedAtMillis,
+    )
 
   internal fun parsePublishedAtMillis(pubDate: String?, publishedAt: Long?): Long? =
     pubDate
@@ -103,6 +157,7 @@ private fun UpdatePodcastEpisodeRequest.isEmpty(): Boolean =
     title == null &&
     subtitle == null &&
     description == null &&
+    enclosure == null &&
     pubDate == null &&
     publishedAt == null
 

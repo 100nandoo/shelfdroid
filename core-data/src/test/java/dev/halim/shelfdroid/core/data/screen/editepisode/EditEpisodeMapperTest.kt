@@ -42,6 +42,7 @@ class EditEpisodeMapperTest {
       EditEpisodeMapper.parsePublishedAtMillis(episode.pubDate, episode.publishedAt),
       state.details.publishedAtMillis,
     )
+    assertEquals("Episode title", state.match.searchTerm)
     assertEquals(state.details, state.originalDetails)
   }
 }

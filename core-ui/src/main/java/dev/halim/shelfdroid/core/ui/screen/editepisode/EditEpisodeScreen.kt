@@ -22,12 +22,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
+import dev.halim.shelfdroid.core.data.screen.editepisode.EditEpisodeTab
 import dev.halim.shelfdroid.core.data.screen.editepisode.EditEpisodeUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.navigation.EditEpisode
 import dev.halim.shelfdroid.core.ui.screen.editepisode.tabs.EditEpisodeDetailsTab
+import dev.halim.shelfdroid.core.ui.screen.editepisode.tabs.EditEpisodeMatchTab
 
 @Composable
 fun EditEpisodeScreen(
@@ -85,20 +87,44 @@ private fun EditEpisodeScreenStateContent(
         }
 
         GenericState.Success -> {
-          EditEpisodeDetailsTab(
-            podcastTitle = uiState.podcastTitle,
-            details = uiState.details,
-            canSave = uiState.canSave(),
-            onEvent = onEvent,
-            onSave = { onEvent(EditEpisodeEvent.Save) },
-          )
+          when (uiState.currentTab) {
+            EditEpisodeTab.Details ->
+              EditEpisodeDetailsTab(
+                podcastTitle = uiState.podcastTitle,
+                details = uiState.details,
+                canSave = uiState.canSave(),
+                onEvent = onEvent,
+                onSave = { onEvent(EditEpisodeEvent.Save) },
+              )
+
+            EditEpisodeTab.Match ->
+              EditEpisodeMatchTab(
+                match = uiState.match,
+                isApplying = uiState.isSaving,
+                onEvent = onEvent,
+              )
+          }
         }
       }
     }
 
     if (uiState.state == GenericState.Success) {
-      SecondaryScrollableTabRow(selectedTabIndex = 0, edgePadding = 0.dp) {
-        Tab(selected = true, onClick = {}, text = { Text(stringResource(R.string.details)) })
+      val selectedTabIndex =
+        when (uiState.currentTab) {
+          EditEpisodeTab.Details -> 0
+          EditEpisodeTab.Match -> 1
+        }
+      SecondaryScrollableTabRow(selectedTabIndex = selectedTabIndex, edgePadding = 0.dp) {
+        Tab(
+          selected = uiState.currentTab == EditEpisodeTab.Details,
+          onClick = { onEvent(EditEpisodeEvent.ChangeTab(EditEpisodeTab.Details)) },
+          text = { Text(stringResource(R.string.details)) },
+        )
+        Tab(
+          selected = uiState.currentTab == EditEpisodeTab.Match,
+          onClick = { onEvent(EditEpisodeEvent.ChangeTab(EditEpisodeTab.Match)) },
+          text = { Text(stringResource(R.string.match)) },
+        )
       }
     }
   }

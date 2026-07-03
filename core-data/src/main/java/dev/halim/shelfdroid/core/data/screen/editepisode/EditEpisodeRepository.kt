@@ -20,6 +20,14 @@ constructor(
       },
       updateCachedItem = libraryItemRepo::updateItem,
     )
+  private val matchRunner =
+    EditEpisodeMatchRunner(
+      searchEpisodes = { itemId, title -> api.searchPodcastEpisode(itemId, title).map { it.episodes } },
+      updateEpisode = { itemId, episodeId, request ->
+        api.updatePodcastEpisode(itemId, episodeId, request)
+      },
+      updateCachedItem = libraryItemRepo::updateItem,
+    )
 
   suspend fun item(itemId: String, episodeId: String): EditEpisodeUiState {
     val podcastTitle = libraryItemRepo.byId(itemId)?.title.orEmpty()
@@ -41,6 +49,25 @@ constructor(
     events: MutableSharedFlow<GenericUiEvent>,
   ): EditEpisodeUiState {
     val result = saveRunner.run(state)
+    result.events.forEach { events.emit(it) }
+    return result.state
+  }
+
+  suspend fun searchMatches(
+    state: EditEpisodeUiState,
+    events: MutableSharedFlow<GenericUiEvent>,
+  ): EditEpisodeUiState {
+    val result = matchRunner.search(state)
+    result.events.forEach { events.emit(it) }
+    return result.state
+  }
+
+  suspend fun applyMatch(
+    state: EditEpisodeUiState,
+    index: Int,
+    events: MutableSharedFlow<GenericUiEvent>,
+  ): EditEpisodeUiState {
+    val result = matchRunner.apply(state, index)
     result.events.forEach { events.emit(it) }
     return result.state
   }
