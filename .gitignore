@@ -28,3 +28,6 @@ keystore.properties
 
 
 .claude/
+
+.codebase-memory/graph.db.zst
+.codebase-memory/artifact.json
