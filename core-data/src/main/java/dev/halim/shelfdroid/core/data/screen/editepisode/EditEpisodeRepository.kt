@@ -33,14 +33,7 @@ constructor(
         )
       }
 
-    return EditEpisodeUiState(
-      state = GenericState.Success,
-      itemId = itemId,
-      episodeId = episodeId,
-      podcastTitle = podcastTitle,
-      title = episode.title,
-      persistedTitle = episode.title,
-    )
+    return EditEpisodeMapper.mapState(itemId, episodeId, podcastTitle, episode)
   }
 
   suspend fun save(

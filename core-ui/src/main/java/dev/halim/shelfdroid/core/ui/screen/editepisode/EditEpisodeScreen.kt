@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
@@ -84,12 +87,18 @@ private fun EditEpisodeScreenStateContent(
         GenericState.Success -> {
           EditEpisodeDetailsTab(
             podcastTitle = uiState.podcastTitle,
-            title = uiState.title,
+            details = uiState.details,
             canSave = uiState.canSave(),
-            onTitleChange = { onEvent(EditEpisodeEvent.UpdateTitle(it)) },
+            onEvent = onEvent,
             onSave = { onEvent(EditEpisodeEvent.Save) },
           )
         }
+      }
+    }
+
+    if (uiState.state == GenericState.Success) {
+      SecondaryScrollableTabRow(selectedTabIndex = 0, edgePadding = 0.dp) {
+        Tab(selected = true, onClick = {}, text = { Text(stringResource(R.string.details)) })
       }
     }
   }

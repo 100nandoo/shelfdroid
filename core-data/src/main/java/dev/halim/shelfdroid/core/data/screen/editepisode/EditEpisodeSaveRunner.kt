@@ -16,7 +16,16 @@ class EditEpisodeSaveRunner(
   private val updateCachedItem: (LibraryItem) -> Unit = {},
 ) {
   suspend fun run(state: EditEpisodeUiState): EditEpisodeSaveResult {
-    val request = UpdatePodcastEpisodeRequest(title = state.title)
+    val request =
+      EditEpisodeMapper.buildUpdateRequest(
+        original = state.originalDetails,
+        current = state.details,
+      )
+        ?: return EditEpisodeSaveResult(
+          state = state.copy(isSaving = false),
+          events = listOf(GenericUiEvent.ShowPlainSnackbar(NO_UPDATES_NECESSARY)),
+        )
+
     val updatedItem =
       updateEpisode(state.itemId, state.episodeId, request).getOrElse {
         return EditEpisodeSaveResult(
@@ -27,21 +36,23 @@ class EditEpisodeSaveRunner(
 
     updateCachedItem(updatedItem)
 
-    val updatedTitle =
+    val updatedDetails =
       (updatedItem.media as? Podcast)
         ?.episodes
         ?.find { it.id == state.episodeId }
-        ?.title
-        ?: state.title
+        ?.let(EditEpisodeMapper::mapDetails)
+        ?: state.details
 
     return EditEpisodeSaveResult(
       state =
         state.copy(
-          title = updatedTitle,
-          persistedTitle = updatedTitle,
+          details = updatedDetails,
+          originalDetails = updatedDetails,
           isSaving = false,
         ),
       events = listOf(GenericUiEvent.ShowSuccessSnackbar()),
     )
   }
 }
+
+private const val NO_UPDATES_NECESSARY = "No updates necessary"

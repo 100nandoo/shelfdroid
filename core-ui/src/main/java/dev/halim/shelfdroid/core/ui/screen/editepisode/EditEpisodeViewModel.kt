@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.screen.editepisode.EditEpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.editepisode.EditEpisodeUiState
+import dev.halim.shelfdroid.core.data.screen.editepisode.EpisodeDetailsForm
 import dev.halim.shelfdroid.core.ui.navigation.EditEpisode
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,9 +44,8 @@ constructor(
 
   fun onEvent(event: EditEpisodeEvent) {
     when (event) {
-      is EditEpisodeEvent.UpdateTitle -> {
-        _uiState.update { it.copy(title = event.title) }
-      }
+      is EditEpisodeEvent.UpdateDetails ->
+        _uiState.update { it.copy(details = event.transform(it.details)) }
       EditEpisodeEvent.Save -> save()
     }
   }
@@ -71,7 +71,9 @@ constructor(
 }
 
 sealed interface EditEpisodeEvent {
-  data class UpdateTitle(val title: String) : EditEpisodeEvent
+  data class UpdateDetails(
+    val transform: (EpisodeDetailsForm) -> EpisodeDetailsForm
+  ) : EditEpisodeEvent
 
   data object Save : EditEpisodeEvent
 }
