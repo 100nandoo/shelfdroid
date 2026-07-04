@@ -20,6 +20,7 @@ import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayDownloadAndEdit
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
+import dev.halim.shelfdroid.core.ui.navigation.EditEpisode
 import dev.halim.shelfdroid.core.ui.navigation.Episode
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
@@ -37,6 +38,7 @@ fun EpisodeScreen(
   playerStore: PlayerStore,
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
+  onEditClicked: (EditEpisode) -> Unit = {},
 ) {
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -52,6 +54,7 @@ fun EpisodeScreen(
       title = uiState.title,
       publishedAt = uiState.publishedAt,
       description = uiState.description,
+      canEdit = uiState.canEdit,
       playPause = playPause,
       downloadUiState = uiState.download,
       snackbarHostState = snackbarHostState,
@@ -63,6 +66,9 @@ fun EpisodeScreen(
       },
       onPlayClicked = {
         playerController.onEvent(PlayerEvent.PlayPodcast(viewModel.itemId, viewModel.episodeId))
+      },
+      onEditClicked = {
+        onEditClicked(EditEpisode(itemId = viewModel.itemId, episodeId = viewModel.episodeId))
       },
     )
   }
@@ -76,12 +82,14 @@ fun EpisodeScreenContent(
   title: String = Defaults.EPISODE_TITLE,
   publishedAt: String = Defaults.EPISODE_PUBLISHED_AT,
   description: String = Defaults.EPISODE_DESCRIPTION,
+  canEdit: Boolean = false,
   playPause: PlayPauseControlState = PlayPauseControlState(enabled = true),
   downloadUiState: DownloadUiState = DownloadUiState(),
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onDownloadClicked: () -> Unit = {},
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit = {},
+  onEditClicked: () -> Unit = {},
 ) {
   LazyColumn(
     modifier =
@@ -99,6 +107,8 @@ fun EpisodeScreenContent(
         onDownloadClicked = onDownloadClicked,
         onDeleteDownloadClicked = onDeleteDownloadClicked,
         onPlayClicked = onPlayClicked,
+        canEdit = canEdit,
+        onEditClicked = onEditClicked,
       )
     }
     item { ExpandShrinkText(text = description, maxLines = 3, expanded = true) }

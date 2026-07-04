@@ -33,6 +33,8 @@
     <string name="next_page">Next page</string>
     <string name="go_to_page">Go to page</string>
     <string name="edit">Edit</string>
+    <string name="details">Details</string>
+    <string name="match">Match</string>
     <string name="info">info</string>
     <!--Content Description-->
 
@@ -283,6 +285,8 @@
     <string name="api_key_created_helper">Copy this API key now. You may not be able to see it again.</string>
     <string name="copy_api_key">Copy API key</string>
     <string name="api_key_copied">API key copied.</string>
+    <string name="copy_rss_url">Copy RSS URL</string>
+    <string name="rss_url_copied">RSS URL copied.</string>
     <string name="create_api_key_failed">Create API key failed.</string>
     <string name="add_api_key">Add API Key</string>
     <string name="api_key">API Key</string>
@@ -378,6 +382,7 @@
     <!--Edit Item-->
     <string name="edit_item_failed_to_load">Failed to load</string>
     <string name="edit_item_subtitle">Subtitle</string>
+    <string name="season">Season</string>
     <string name="edit_item_authors">Authors</string>
     <string name="edit_item_narrators">Narrators</string>
     <string name="edit_item_series">Series</string>
@@ -394,6 +399,14 @@
     <string name="edit_item_podcast_type">Podcast Type</string>
     <string name="edit_item_podcast_type_episodic">Episodic</string>
     <string name="edit_item_podcast_type_serial">Serial</string>
+    <string name="edit_episode_number">Episode</string>
+    <string name="edit_episode_type">Episode Type</string>
+    <string name="edit_episode_type_full">Full</string>
+    <string name="edit_episode_type_trailer">Trailer</string>
+    <string name="edit_episode_type_bonus">Bonus</string>
+    <string name="edit_episode_published_date">Episode published date</string>
+    <string name="edit_episode_rss_enclosure_url">URL from RSS feed</string>
+    <string name="edit_episode_not_linked_to_rss_feed">Episode not linked to RSS feed</string>
     <string name="edit_item_no_episodes">No server episodes found for this podcast.</string>
     <string name="edit_item_episode_update_cutoff">Episode update cutoff</string>
     <string name="edit_item_episode_update_cutoff_hint">YYYY-MM-DD hh:mm AM/PM</string>

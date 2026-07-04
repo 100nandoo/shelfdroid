@@ -18,6 +18,7 @@ import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateApiKeyRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
+import dev.halim.core.network.request.UpdatePodcastEpisodeRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.request.ValidateCronRequest
@@ -44,6 +45,7 @@ import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.SearchBookMatchResponse
 import dev.halim.core.network.response.SearchCoversResponse
 import dev.halim.core.network.response.SearchPodcast
+import dev.halim.core.network.response.SearchPodcastEpisodeResponse
 import dev.halim.core.network.response.SearchProvidersResponse
 import dev.halim.core.network.response.ServerSettingsResponse
 import dev.halim.core.network.response.SessionsResponse
@@ -55,6 +57,7 @@ import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
+import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.core.network.response.play.PlayResponse
 import okhttp3.MultipartBody
 import retrofit2.http.Body
@@ -292,6 +295,12 @@ interface ApiService {
     @Query("provider") provider: String? = null,
   ): Result<List<SearchPodcast>>
 
+  @GET("/api/podcasts/{itemId}/search-episode")
+  suspend fun searchPodcastEpisode(
+    @Path("itemId") itemId: String,
+    @Query("title") title: String,
+  ): Result<SearchPodcastEpisodeResponse>
+
   // users
   @POST("/api/users")
   suspend fun createUser(@Body request: CreateUserRequest): Result<CreateUserResponse>
@@ -339,6 +348,19 @@ interface ApiService {
     @Path("episodeId") episodeId: String,
     @Query("hard") hard: Int = 0,
   ): Result<Unit>
+
+  @GET("/api/podcasts/{itemId}/episode/{episodeId}")
+  suspend fun podcastEpisode(
+    @Path("itemId") itemId: String,
+    @Path("episodeId") episodeId: String,
+  ): Result<PodcastEpisode>
+
+  @PATCH("/api/podcasts/{itemId}/episode/{episodeId}")
+  suspend fun updatePodcastEpisode(
+    @Path("itemId") itemId: String,
+    @Path("episodeId") episodeId: String,
+    @Body request: UpdatePodcastEpisodeRequest,
+  ): Result<LibraryItem>
 
   // tags
   @GET("/api/tags") suspend fun tags(): Result<TagsResponse>

@@ -11,5 +11,6 @@ data class EpisodeUiState(
   val cover: String = "",
   val description: String = "",
   val progress: String = "",
+  val canEdit: Boolean = false,
   val download: DownloadUiState = DownloadUiState(),
 )

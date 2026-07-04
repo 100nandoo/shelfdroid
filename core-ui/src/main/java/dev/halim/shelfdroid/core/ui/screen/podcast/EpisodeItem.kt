@@ -46,7 +46,7 @@ fun EpisodeItem(
   podcastTitle: String,
   episode: Episode,
   isSelected: Boolean,
-  canDelete: Boolean,
+  canManage: Boolean,
   onEvent: (PodcastEvent) -> Unit,
   onEpisodeClicked: (String, String) -> Unit,
   onPlayClicked: (String, String, Boolean) -> Unit,
@@ -60,8 +60,8 @@ fun EpisodeItem(
         .fillMaxWidth()
         .combinedClickable(
           onLongClick = {
-            if (isSelectionMode.not() && canDelete) {
-              onEvent(PodcastEvent.SelectionMode(true, episode.episodeId))
+            if (isSelectionMode.not() && canManage) {
+              onEvent(PodcastEvent.OpenEpisodeActions(episode.episodeId))
             }
           },
           onClick = {

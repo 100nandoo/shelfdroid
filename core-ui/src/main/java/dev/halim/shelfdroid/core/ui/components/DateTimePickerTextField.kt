@@ -60,6 +60,7 @@ fun DateTimePickerTextField(
       modifier = Modifier.fillMaxWidth(),
       readOnly = true,
       enabled = enabled,
+      singleLine = true,
       trailingIcon = {
         IconButton(enabled = enabled, onClick = { showDatePicker = true }) {
           Icon(painter = painterResource(R.drawable.calendar), contentDescription = label)
