@@ -132,15 +132,16 @@ class EditEpisodeSaveRunnerTest {
   private fun state(
     details: EpisodeDetailsForm,
     originalDetails: EpisodeDetailsForm,
-  ) = EditEpisodeUiState(
-    state = GenericState.Success,
-    itemId = "item-1",
-    episodeId = "ep-1",
-    podcastTitle = "Podcast",
-    details = details,
-    originalDetails = originalDetails,
-    isSaving = true,
-  )
+  ) =
+    EditEpisodeUiState(
+      state = GenericState.Success,
+      itemId = "item-1",
+      episodeId = "ep-1",
+      podcastTitle = "Podcast",
+      details = details,
+      originalDetails = originalDetails,
+      isSaving = true,
+    )
 
   private fun updatedItem(
     itemId: String,
@@ -148,22 +149,23 @@ class EditEpisodeSaveRunnerTest {
     episodeTitle: String = "Title",
     episodeSubtitle: String = "",
     episodeDescription: String = "",
-  ) = LibraryItem(
-    id = itemId,
-    libraryId = "library-1",
-    mediaType = "podcast",
-    media =
-      Podcast(
-        libraryItemId = itemId,
-        episodes =
-          listOf(
-            PodcastEpisode(
-              id = episodeId,
-              title = episodeTitle,
-              subtitle = episodeSubtitle,
-              description = episodeDescription,
-            )
-          ),
-      ),
-  )
+  ) =
+    LibraryItem(
+      id = itemId,
+      libraryId = "library-1",
+      mediaType = "podcast",
+      media =
+        Podcast(
+          libraryItemId = itemId,
+          episodes =
+            listOf(
+              PodcastEpisode(
+                id = episodeId,
+                title = episodeTitle,
+                subtitle = episodeSubtitle,
+                description = episodeDescription,
+              )
+            ),
+        ),
+    )
 }

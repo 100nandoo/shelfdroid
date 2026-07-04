@@ -6,8 +6,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.screen.editepisode.EditEpisodeRepository
 import dev.halim.shelfdroid.core.data.screen.editepisode.EditEpisodeTab
 import dev.halim.shelfdroid.core.data.screen.editepisode.EditEpisodeUiState
@@ -123,12 +123,10 @@ constructor(
 sealed interface EditEpisodeEvent {
   data class ChangeTab(val tab: EditEpisodeTab) : EditEpisodeEvent
 
-  data class UpdateDetails(
-    val transform: (EpisodeDetailsForm) -> EpisodeDetailsForm
-  ) : EditEpisodeEvent
-
-  data class UpdateMatch(val transform: (EpisodeMatchState) -> EpisodeMatchState) :
+  data class UpdateDetails(val transform: (EpisodeDetailsForm) -> EpisodeDetailsForm) :
     EditEpisodeEvent
+
+  data class UpdateMatch(val transform: (EpisodeMatchState) -> EpisodeMatchState) : EditEpisodeEvent
 
   data object RunMatchSearch : EditEpisodeEvent
 

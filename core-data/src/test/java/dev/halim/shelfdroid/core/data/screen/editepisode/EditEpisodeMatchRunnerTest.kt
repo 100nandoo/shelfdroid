@@ -74,7 +74,10 @@ class EditEpisodeMatchRunnerTest {
     assertEquals("19", result.state.match.results.single().episode)
     assertEquals("Matched title", result.state.match.results.single().title)
     assertEquals("Matched subtitle", result.state.match.results.single().subtitle)
-    assertEquals("https://example.com/rss-episode.mp3", result.state.match.results.single().enclosureUrl)
+    assertEquals(
+      "https://example.com/rss-episode.mp3",
+      result.state.match.results.single().enclosureUrl,
+    )
     assertEquals(emptyList<GenericUiEvent>(), result.events)
   }
 
@@ -189,17 +192,18 @@ class EditEpisodeMatchRunnerTest {
     originalDetails: EpisodeDetailsForm = details,
     match: EpisodeMatchState = EpisodeMatchState(searchTerm = details.title),
     isSaving: Boolean = false,
-  ) = EditEpisodeUiState(
-    state = GenericState.Success,
-    itemId = "item-1",
-    episodeId = "ep-1",
-    podcastTitle = "Podcast",
-    currentTab = currentTab,
-    details = details,
-    originalDetails = originalDetails,
-    match = match,
-    isSaving = isSaving,
-  )
+  ) =
+    EditEpisodeUiState(
+      state = GenericState.Success,
+      itemId = "item-1",
+      episodeId = "ep-1",
+      podcastTitle = "Podcast",
+      currentTab = currentTab,
+      details = details,
+      originalDetails = originalDetails,
+      match = match,
+      isSaving = isSaving,
+    )
 
   private fun updatedItem(
     itemId: String,
@@ -213,28 +217,29 @@ class EditEpisodeMatchRunnerTest {
     episodeType: String,
     pubDate: String,
     publishedAt: Long,
-  ) = LibraryItem(
-    id = itemId,
-    libraryId = "library-1",
-    mediaType = "podcast",
-    media =
-      Podcast(
-        libraryItemId = itemId,
-        episodes =
-          listOf(
-            PodcastEpisode(
-              id = episodeId,
-              title = title,
-              subtitle = subtitle,
-              description = description,
-              enclosure = Enclosure(url = enclosureUrl),
-              season = season,
-              episode = episode,
-              episodeType = episodeType,
-              pubDate = pubDate,
-              publishedAt = publishedAt,
-            )
-          ),
-      ),
-  )
+  ) =
+    LibraryItem(
+      id = itemId,
+      libraryId = "library-1",
+      mediaType = "podcast",
+      media =
+        Podcast(
+          libraryItemId = itemId,
+          episodes =
+            listOf(
+              PodcastEpisode(
+                id = episodeId,
+                title = title,
+                subtitle = subtitle,
+                description = description,
+                enclosure = Enclosure(url = enclosureUrl),
+                season = season,
+                episode = episode,
+                episodeType = episodeType,
+                pubDate = pubDate,
+                publishedAt = publishedAt,
+              )
+            ),
+        ),
+    )
 }

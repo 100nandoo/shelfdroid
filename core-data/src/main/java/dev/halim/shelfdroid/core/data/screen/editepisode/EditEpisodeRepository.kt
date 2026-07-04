@@ -22,7 +22,9 @@ constructor(
     )
   private val matchRunner =
     EditEpisodeMatchRunner(
-      searchEpisodes = { itemId, title -> api.searchPodcastEpisode(itemId, title).map { it.episodes } },
+      searchEpisodes = { itemId, title ->
+        api.searchPodcastEpisode(itemId, title).map { it.episodes }
+      },
       updateEpisode = { itemId, episodeId, request ->
         api.updatePodcastEpisode(itemId, episodeId, request)
       },

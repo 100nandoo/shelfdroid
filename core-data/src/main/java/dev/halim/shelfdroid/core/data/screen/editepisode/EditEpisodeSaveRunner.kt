@@ -12,7 +12,9 @@ data class EditEpisodeSaveResult(
 
 class EditEpisodeSaveRunner(
   private val updateEpisode:
-    suspend (itemId: String, episodeId: String, request: UpdatePodcastEpisodeRequest) -> Result<LibraryItem>,
+    suspend (itemId: String, episodeId: String, request: UpdatePodcastEpisodeRequest) -> Result<
+        LibraryItem
+      >,
   private val updateCachedItem: (LibraryItem) -> Unit = {},
 ) {
   suspend fun run(state: EditEpisodeUiState): EditEpisodeSaveResult {
@@ -40,8 +42,7 @@ class EditEpisodeSaveRunner(
       (updatedItem.media as? Podcast)
         ?.episodes
         ?.find { it.id == state.episodeId }
-        ?.let(EditEpisodeMapper::mapDetails)
-        ?: state.details
+        ?.let(EditEpisodeMapper::mapDetails) ?: state.details
 
     return EditEpisodeSaveResult(
       state =

@@ -39,9 +39,9 @@ import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
+import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
-import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
@@ -230,6 +230,7 @@ private fun ColumnScope.NavHostContainer(
             playerStore = playerStore,
             playerController = playerController,
             snackbarHostState = snackbarHostState,
+            onEditClicked = { navigator.navigate(it) },
           )
         }
       }

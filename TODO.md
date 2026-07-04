@@ -2,11 +2,7 @@
 
 ## High Priority
 
-- [x] library management
-    - [ ] edit podcast
-        - [ ] episodes, match, schedule tabs
-    - [x] download/delete files
-    - [x] Edit chapter go to web
+- [ ] Edit episode
 - [ ] Refactor player state
 - [ ] Socket implementation
     - [ ] Handle download event
@@ -96,3 +92,8 @@
 - [x] Loading state for player
 - [x] Search episode filter, show date
 - [x] Backup Restore
+- [x] library management
+    - [x] edit podcast
+        - [x] episodes, match, schedule tabs
+    - [x] download/delete files
+    - [x] Edit chapter go to web

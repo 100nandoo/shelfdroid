@@ -5,8 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SearchPodcastEpisodeResponse(
-  @SerialName("episodes") val episodes: List<SearchPodcastEpisodeMatch> = emptyList(),
+  @SerialName("episodes") val episodes: List<SearchPodcastEpisodeMatch> = emptyList()
 )
 
-@Serializable
-data class SearchPodcastEpisodeMatch(@SerialName("episode") val episode: Episode)
+@Serializable data class SearchPodcastEpisodeMatch(@SerialName("episode") val episode: Episode)

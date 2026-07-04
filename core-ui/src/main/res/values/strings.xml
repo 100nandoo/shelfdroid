@@ -285,6 +285,8 @@
     <string name="api_key_created_helper">Copy this API key now. You may not be able to see it again.</string>
     <string name="copy_api_key">Copy API key</string>
     <string name="api_key_copied">API key copied.</string>
+    <string name="copy_rss_url">Copy RSS URL</string>
+    <string name="rss_url_copied">RSS URL copied.</string>
     <string name="create_api_key_failed">Create API key failed.</string>
     <string name="add_api_key">Add API Key</string>
     <string name="api_key">API Key</string>

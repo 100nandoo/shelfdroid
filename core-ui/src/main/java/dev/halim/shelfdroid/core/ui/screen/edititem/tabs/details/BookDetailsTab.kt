@@ -184,8 +184,8 @@ internal fun DescriptionField(value: String, onValueChange: (String) -> Unit) {
     onValueChange = onValueChange,
     label = { Text(stringResource(R.string.description)) },
     modifier = Modifier.fillMaxWidth(),
-    minLines = 4,
-    maxLines = 8,
+    minLines = 3,
+    maxLines = 3,
   )
 }
 

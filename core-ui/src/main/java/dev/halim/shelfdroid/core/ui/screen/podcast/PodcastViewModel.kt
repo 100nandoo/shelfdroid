@@ -162,7 +162,7 @@ constructor(
             current.copy(
               selectedEpisodeIds =
                 if (event.enabled) current.selectedEpisodeIds + ids
-                else current.selectedEpisodeIds - ids,
+                else current.selectedEpisodeIds - ids
             )
           }
           prefsRepository.updateAutoSelectFinished(event.enabled)

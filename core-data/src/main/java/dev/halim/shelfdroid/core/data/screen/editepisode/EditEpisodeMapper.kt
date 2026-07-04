@@ -55,16 +55,18 @@ internal object EditEpisodeMapper {
       normalizedCurrent.publishedAtMillis != normalizedOriginal.publishedAtMillis
 
     return UpdatePodcastEpisodeRequest(
-      season = delta(normalizedOriginal.season, normalizedCurrent.season),
-      episode = delta(normalizedOriginal.episode, normalizedCurrent.episode),
-      episodeType = delta(normalizedOriginal.episodeType, normalizedCurrent.episodeType),
-      title = delta(normalizedOriginal.title, normalizedCurrent.title),
-      subtitle = delta(normalizedOriginal.subtitle, normalizedCurrent.subtitle),
-      description = delta(normalizedOriginal.description, normalizedCurrent.description),
-      pubDate =
-        if (publishedDateChanged) normalizedCurrent.publishedAtMillis?.let(::formatPubDate) else null,
-      publishedAt = if (publishedDateChanged) normalizedCurrent.publishedAtMillis else null,
-    ).takeUnless { it.isEmpty() }
+        season = delta(normalizedOriginal.season, normalizedCurrent.season),
+        episode = delta(normalizedOriginal.episode, normalizedCurrent.episode),
+        episodeType = delta(normalizedOriginal.episodeType, normalizedCurrent.episodeType),
+        title = delta(normalizedOriginal.title, normalizedCurrent.title),
+        subtitle = delta(normalizedOriginal.subtitle, normalizedCurrent.subtitle),
+        description = delta(normalizedOriginal.description, normalizedCurrent.description),
+        pubDate =
+          if (publishedDateChanged) normalizedCurrent.publishedAtMillis?.let(::formatPubDate)
+          else null,
+        publishedAt = if (publishedDateChanged) normalizedCurrent.publishedAtMillis else null,
+      )
+      .takeUnless { it.isEmpty() }
   }
 
   fun mapMatchResult(episode: Episode): EpisodeMatchResultRow =
@@ -84,23 +86,26 @@ internal object EditEpisodeMapper {
 
   fun buildMatchUpdateRequest(result: EpisodeMatchResultRow): UpdatePodcastEpisodeRequest? =
     UpdatePodcastEpisodeRequest(
-      season = result.season.takeIf { it.isNotBlank() },
-      episode = result.episode.takeIf { it.isNotBlank() },
-      episodeType = result.episodeType.takeIf { it.isNotBlank() },
-      title = result.title.takeIf { it.isNotBlank() },
-      subtitle = result.subtitle.takeIf { it.isNotBlank() },
-      description = result.description.takeIf { it.isNotBlank() },
-      enclosure =
-        result.enclosureUrl.takeIf { it.isNotBlank() }?.let {
-          UpdatePodcastEpisodeEnclosureRequest(
-            url = it,
-            type = result.enclosureType.takeIf { value -> value.isNotBlank() },
-            length = result.enclosureLength.takeIf { value -> value.isNotBlank() },
-          )
-        },
-      pubDate = result.pubDate.takeIf { it.isNotBlank() },
-      publishedAt = result.publishedAtMillis,
-    ).takeUnless { it.isEmpty() }
+        season = result.season.takeIf { it.isNotBlank() },
+        episode = result.episode.takeIf { it.isNotBlank() },
+        episodeType = result.episodeType.takeIf { it.isNotBlank() },
+        title = result.title.takeIf { it.isNotBlank() },
+        subtitle = result.subtitle.takeIf { it.isNotBlank() },
+        description = result.description.takeIf { it.isNotBlank() },
+        enclosure =
+          result.enclosureUrl
+            .takeIf { it.isNotBlank() }
+            ?.let {
+              UpdatePodcastEpisodeEnclosureRequest(
+                url = it,
+                type = result.enclosureType.takeIf { value -> value.isNotBlank() },
+                length = result.enclosureLength.takeIf { value -> value.isNotBlank() },
+              )
+            },
+        pubDate = result.pubDate.takeIf { it.isNotBlank() },
+        publishedAt = result.publishedAtMillis,
+      )
+      .takeUnless { it.isEmpty() }
 
   fun applyMatch(
     original: EpisodeDetailsForm,
@@ -118,13 +123,9 @@ internal object EditEpisodeMapper {
     )
 
   internal fun parsePublishedAtMillis(pubDate: String?, publishedAt: Long?): Long? =
-    pubDate
-      ?.takeIf { it.isNotBlank() }
-      ?.let(::parsePubDateMillis)
-      ?: publishedAt
+    pubDate?.takeIf { it.isNotBlank() }?.let(::parsePubDateMillis) ?: publishedAt
 
-  internal fun formatPubDate(millis: Long): String =
-    pubDateFormatter().format(Date(millis))
+  internal fun formatPubDate(millis: Long): String = pubDateFormatter().format(Date(millis))
 
   private fun EpisodeDetailsForm.normalized(): EpisodeDetailsForm =
     copy(
@@ -137,10 +138,11 @@ internal object EditEpisodeMapper {
 
   private fun parsePubDateMillis(pubDate: String): Long? =
     runCatching {
-      ZonedDateTime.parse(pubDate, DateTimeFormatter.RFC_1123_DATE_TIME)
-        .toInstant()
-        .toEpochMilli()
-    }.getOrNull()
+        ZonedDateTime.parse(pubDate, DateTimeFormatter.RFC_1123_DATE_TIME)
+          .toInstant()
+          .toEpochMilli()
+      }
+      .getOrNull()
 
   private fun delta(original: String, current: String): String? = current.takeIf { it != original }
 

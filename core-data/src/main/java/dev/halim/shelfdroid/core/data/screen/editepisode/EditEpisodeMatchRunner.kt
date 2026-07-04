@@ -15,7 +15,9 @@ class EditEpisodeMatchRunner(
   private val searchEpisodes:
     suspend (itemId: String, title: String) -> Result<List<SearchPodcastEpisodeMatch>>,
   private val updateEpisode:
-    suspend (itemId: String, episodeId: String, request: UpdatePodcastEpisodeRequest) -> Result<LibraryItem>,
+    suspend (itemId: String, episodeId: String, request: UpdatePodcastEpisodeRequest) -> Result<
+        LibraryItem
+      >,
   private val updateCachedItem: (LibraryItem) -> Unit = {},
 ) {
   suspend fun search(state: EditEpisodeUiState): EditEpisodeMatchResult {
@@ -65,8 +67,9 @@ class EditEpisodeMatchRunner(
 
   suspend fun apply(state: EditEpisodeUiState, index: Int): EditEpisodeMatchResult {
     val match = state.match
-    val result = match.results.getOrNull(index)
-      ?: return EditEpisodeMatchResult(state = state.copy(isSaving = false), events = emptyList())
+    val result =
+      match.results.getOrNull(index)
+        ?: return EditEpisodeMatchResult(state = state.copy(isSaving = false), events = emptyList())
 
     val request =
       EditEpisodeMapper.buildMatchUpdateRequest(result)
@@ -93,7 +96,9 @@ class EditEpisodeMatchRunner(
         ?: EditEpisodeMapper.applyMatch(state.originalDetails, result)
 
     val syncedSearchTerm =
-      if (match.searchTerm == state.originalDetails.title || match.searchTerm == state.details.title) {
+      if (
+        match.searchTerm == state.originalDetails.title || match.searchTerm == state.details.title
+      ) {
         updatedDetails.title
       } else {
         match.searchTerm

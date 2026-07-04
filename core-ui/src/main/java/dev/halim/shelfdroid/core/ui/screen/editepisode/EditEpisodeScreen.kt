@@ -58,12 +58,17 @@ fun EditEpisodeScreen(
     }
   }
 
-  EditEpisodeScreenStateContent(uiState = uiState, onEvent = viewModel::onEvent)
+  EditEpisodeScreenStateContent(
+    uiState = uiState,
+    snackbarHostState = snackbarHostState,
+    onEvent = viewModel::onEvent,
+  )
 }
 
 @Composable
 private fun EditEpisodeScreenStateContent(
   uiState: EditEpisodeUiState,
+  snackbarHostState: SnackbarHostState,
   onEvent: (EditEpisodeEvent) -> Unit,
 ) {
   Column(modifier = Modifier.fillMaxSize()) {
@@ -93,6 +98,7 @@ private fun EditEpisodeScreenStateContent(
                 podcastTitle = uiState.podcastTitle,
                 details = uiState.details,
                 canSave = uiState.canSave(),
+                snackbarHostState = snackbarHostState,
                 onEvent = onEvent,
                 onSave = { onEvent(EditEpisodeEvent.Save) },
               )

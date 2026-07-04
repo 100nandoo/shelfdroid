@@ -4,6 +4,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
@@ -22,17 +23,20 @@ constructor(
   private val progressRepo: ProgressRepo,
   private val downloadRepo: DownloadRepo,
   private val helper: Helper,
+  private val prefsRepository: PrefsRepository,
 ) {
   @OptIn(UnstableApi::class)
   fun item(itemId: String, episodeId: String): Flow<EpisodeUiState> {
     val podcastFlow = libraryItemRepo.flowById(itemId)
     val progressFlow = progressRepo.flowEpisodeById(episodeId)
+    val userPrefsFlow = prefsRepository.userPrefs
     return combine(
       podcastFlow,
       progressFlow,
       downloadRepo.downloads,
       downloadRepo.durableDownloads,
-    ) { podcast, progress, _, _ ->
+      userPrefsFlow,
+    ) { podcast, progress, _, _, userPrefs ->
       podcast
         ?.takeIf { it.isBook.toBoolean().not() }
         ?.let {
@@ -68,6 +72,7 @@ constructor(
             cover = podcast.cover,
             description = description,
             progress = formattedProgress,
+            canEdit = userPrefs.isAdmin || userPrefs.update,
             download = downloadUiState,
           )
         } ?: EpisodeUiState(state = GenericState.Failure("Failed to fetch Podcast"))

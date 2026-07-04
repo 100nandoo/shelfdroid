@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.editepisode.tabs
 
+import android.content.ClipData
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,19 +12,26 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.toClipEntry
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -32,24 +40,32 @@ import dev.halim.shelfdroid.core.data.screen.editepisode.EpisodeDetailsForm
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DateTimePickerTextField
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeEvent
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.details.DescriptionField
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.details.DetailsLayout
-import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeEvent
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun EditEpisodeDetailsTab(
   podcastTitle: String,
   details: EpisodeDetailsForm,
   canSave: Boolean,
+  snackbarHostState: SnackbarHostState,
   onEvent: (EditEpisodeEvent) -> Unit,
   onSave: () -> Unit,
 ) {
+  val clipboardManager = LocalClipboard.current
   val focusManager = LocalFocusManager.current
+  val scope = rememberCoroutineScope()
   val seasonRef = remember { FocusRequester() }
   val episodeRef = remember { FocusRequester() }
   val titleRef = remember { FocusRequester() }
+  val copiedMessage = stringResource(R.string.rss_url_copied)
+  val copyRssLabel = stringResource(R.string.copy_rss_url)
+  val rssFieldLabel = stringResource(R.string.edit_episode_rss_enclosure_url)
 
   DetailsLayout {
     if (podcastTitle.isNotBlank()) {
@@ -90,27 +106,22 @@ internal fun EditEpisodeDetailsTab(
       )
     }
 
-    Row(
+    EpisodeTypeField(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-      verticalAlignment = Alignment.Top,
-    ) {
-      EpisodeTypeField(
-        modifier = Modifier.weight(1f),
-        value = details.episodeType,
-        onValueChange = { value ->
-          onEvent(EditEpisodeEvent.UpdateDetails { it.copy(episodeType = value) })
-        },
-      )
-      DateTimePickerTextField(
-        modifier = Modifier.weight(2f),
-        label = stringResource(R.string.edit_episode_published_date),
-        selectedDateTimeMillis = details.publishedAtMillis,
-        onDateTimeSelected = { value ->
-          onEvent(EditEpisodeEvent.UpdateDetails { it.copy(publishedAtMillis = value) })
-        },
-      )
-    }
+      value = details.episodeType,
+      onValueChange = { value ->
+        onEvent(EditEpisodeEvent.UpdateDetails { it.copy(episodeType = value) })
+      },
+    )
+
+    DateTimePickerTextField(
+      modifier = Modifier.fillMaxWidth(),
+      label = stringResource(R.string.edit_episode_published_date),
+      selectedDateTimeMillis = details.publishedAtMillis,
+      onDateTimeSelected = { value ->
+        onEvent(EditEpisodeEvent.UpdateDetails { it.copy(publishedAtMillis = value) })
+      },
+    )
 
     MyOutlinedTextField(
       modifier = Modifier.focusRequester(titleRef),
@@ -131,8 +142,8 @@ internal fun EditEpisodeDetailsTab(
       },
       label = { Text(stringResource(R.string.edit_item_subtitle)) },
       modifier = Modifier.fillMaxWidth(),
-      minLines = 3,
-      maxLines = 6,
+      minLines = 2,
+      maxLines = 2,
     )
 
     DescriptionField(
@@ -142,21 +153,31 @@ internal fun EditEpisodeDetailsTab(
       },
     )
 
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-      horizontalArrangement = Arrangement.End,
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Button(onClick = onSave, enabled = canSave) { Text(stringResource(R.string.save)) }
-    }
-
     if (details.enclosureUrl.isNotBlank()) {
       OutlinedTextField(
         value = details.enclosureUrl,
         onValueChange = {},
         readOnly = true,
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-        label = { Text(stringResource(R.string.edit_episode_rss_enclosure_url)) },
+        label = { Text(rssFieldLabel) },
+        singleLine = true,
+        trailingIcon = {
+          IconButton(
+            onClick = {
+              scope.launch {
+                clipboardManager.setClipEntry(
+                  ClipData.newPlainText(rssFieldLabel, details.enclosureUrl).toClipEntry()
+                )
+                snackbarHostState.showSuccessSnackbar(copiedMessage)
+              }
+            }
+          ) {
+            Icon(
+              painter = painterResource(R.drawable.copy),
+              contentDescription = copyRssLabel,
+            )
+          }
+        },
       )
     } else {
       Text(
@@ -165,6 +186,14 @@ internal fun EditEpisodeDetailsTab(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(bottom = 16.dp),
       )
+    }
+
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+      horizontalArrangement = Arrangement.End,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Button(onClick = onSave, enabled = canSave) { Text(stringResource(R.string.save)) }
     }
   }
 }
@@ -234,6 +263,7 @@ private fun EditEpisodeDetailsTabPreview() {
           enclosureUrl = "https://example.com/episode.mp3",
         ),
       canSave = true,
+      snackbarHostState = SnackbarHostState(),
       onEvent = {},
       onSave = {},
     )

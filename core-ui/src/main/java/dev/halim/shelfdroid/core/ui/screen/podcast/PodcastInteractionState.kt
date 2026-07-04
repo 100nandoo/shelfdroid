@@ -49,5 +49,6 @@ internal data class PodcastInteractionState(
   fun startDeleteSelectionFromActions(
     episodeId: String,
     autoSelectedIds: Set<String>,
-  ): PodcastInteractionState = dismissEpisodeActions().setSelectionMode(true, episodeId, autoSelectedIds)
+  ): PodcastInteractionState =
+    dismissEpisodeActions().setSelectionMode(true, episodeId, autoSelectedIds)
 }
