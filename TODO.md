@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Edit episode
 - [ ] Refactor player state
 - [ ] Socket implementation
     - [ ] Handle download event
@@ -97,3 +96,4 @@
         - [x] episodes, match, schedule tabs
     - [x] download/delete files
     - [x] Edit chapter go to web
+- [x] Edit episode

@@ -1,11 +1,7 @@
 <h1 align="center">ShelfDroid</h1>
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/icon.png" width="120" alt="ShelfDroid app icon" style="border-radius: 50%;">
+  <img src=".idea/icon.svg" width="120" alt="ShelfDroid app icon" style="border-radius: 50%;">
 </p>
-<p align="center">
-  <b>Audiobookshelf Android client with playback, downloads, and server management</b>
-</p>
-
 <p align="center">
   <a href="https://github.com/100nandoo/shelfdroid/releases/latest">
     <img src="https://img.shields.io/github/v/release/100nandoo/shelfdroid?style=flat-square&color=blue" alt="latest release">
@@ -19,37 +15,18 @@
 </p>
 
 <p align="center">
-  <a href="#download"><b>Download</b></a> &bull;
-  <a href="#features"><b>Features</b></a> &bull;
-  <a href="#screenshots"><b>Screenshots</b></a> &bull;
-  <a href="#acknowledgements"><b>Acknowledgements</b></a> &bull;
-  <a href="#star-history"><b>Star History</b></a> &bull;
-  <a href="#license"><b>License</b></a>
+  <a href="https://play.google.com/store/apps/details?id=dev.halim.shelfdroid">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80" alt="Get it on Google Play">
+  </a>
+  <a href="https://f-droid.org/en/packages/dev.halim.shelfdroid/">
+    <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on-en.svg" height="80" alt="Get it on F-Droid">
+  </a>
+  <a href="https://github.com/100nandoo/shelfdroid/releases/latest">
+    <img src="docs/images/badge_github.png" height="80" alt="Download latest APK from GitHub">
+  </a>
 </p>
 
 ShelfDroid is a third-party Android client for self-hosted [Audiobookshelf](https://github.com/advplyr/audiobookshelf) servers. Use it to browse audiobook and podcast libraries, stream playback from your server, keep listening offline on your Android device, and handle common server management tasks from the same app.
-
-> [!IMPORTANT]
-> ShelfDroid does not provide media, hosting, or a managed server. You bring your own Audiobookshelf library and account.
-
-## Download
-
-<p align="center">
-  <table align="center">
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://play.google.com/store/apps/details?id=dev.halim.shelfdroid">
-          <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80" alt="Get it on Google Play">
-        </a>
-      </td>
-      <td align="center" valign="middle">
-        <a href="https://github.com/100nandoo/shelfdroid/releases/latest">
-          <img src="https://img.shields.io/badge/Download-Latest_APK-black?style=for-the-badge&logo=github" alt="Download latest APK">
-        </a>
-      </td>
-    </tr>
-  </table>
-</p>
 
 ## Features
 
@@ -63,52 +40,23 @@ ShelfDroid is a third-party Android client for self-hosted [Audiobookshelf](http
 
 ## Screenshots
 
-All screenshots below are sourced from `fastlane/metadata/android/en-US/images`.
-
-<details>
-  <summary>Phone screenshots</summary>
-  <br>
-
-  <p align="center">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01-home-book.png" width="220" alt="Books home screen">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-podcast.png" width="220" alt="Podcasts home screen">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03-book.png" width="220" alt="Book details screen">
+  <p>
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01-home-book.png" width="160" alt="Books home screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02-home-podcast.png" width="160" alt="Podcasts home screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03-book.png" width="160" alt="Book details screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04-podcast.png" width="160" alt="Podcast details screen">
   </p>
-  <p align="center">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04-podcast.png" width="220" alt="Podcast details screen">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05-episode.png" width="220" alt="Episode details screen">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06-player-book.png" width="220" alt="Book player screen">
+  <p>
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/05-episode.png" width="160" alt="Episode details screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06-player-book.png" width="160" alt="Book player screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07-player-podcast.png" width="160" alt="Podcast player screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08-settings.png" width="160" alt="Settings screen">
   </p>
-  <p align="center">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/07-player-podcast.png" width="220" alt="Podcast player screen">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08-settings.png" width="220" alt="Settings screen">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/09-backups.png" width="220" alt="Backups screen">
+  <p>
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/09-backups.png" width="160" alt="Backups screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/10-server-settings.png" width="160" alt="Server settings screen">
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/11-edit-book.png" width="160" alt="Edit book screen">
   </p>
-  <p align="center">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/10-server-settings.png" width="220" alt="Server settings screen">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/11-edit-book.png" width="220" alt="Edit book screen">
-  </p>
-</details>
-
-<details>
-  <summary>7-inch tablet screenshots</summary>
-  <br>
-
-  <p align="center">
-    <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/01-home-podcast.png" width="320" alt="7-inch tablet podcast home screen">
-    <img src="fastlane/metadata/android/en-US/images/sevenInchScreenshots/02-settings.png" width="320" alt="7-inch tablet settings screen">
-  </p>
-</details>
-
-<details>
-  <summary>10-inch tablet screenshots</summary>
-  <br>
-
-  <p align="center">
-    <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/01-home-book.png" width="320" alt="10-inch tablet books home screen">
-    <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/02-book.png" width="320" alt="10-inch tablet book details screen">
-  </p>
-</details>
 
 ## Requirements
 
