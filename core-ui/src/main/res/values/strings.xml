@@ -19,6 +19,7 @@
     <string name="mark_as_finished">Mark as finished</string>
     <string name="download_incomplete">Download incomplete</string>
     <string name="downloaded">Downloaded</string>
+    <string name="no_downloaded_items">No downloaded items.</string>
     <string name="downloaded_filter_on">Downloaded Filter On</string>
     <string name="downloaded_filter_off">Downloaded Filter Off</string>
     <string name="sort_and_filter">Sort and Filter</string>

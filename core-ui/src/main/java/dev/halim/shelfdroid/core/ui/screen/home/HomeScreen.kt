@@ -39,6 +39,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.DisplayPrefs
+import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.SortOrder
@@ -284,6 +285,8 @@ fun LibraryContent(
   val isDownloaded = displayPrefs.filter.isDownloaded()
   val processedBooks = bookFilterAndSort(books, displayPrefs)
   val processedPodcasts = podcastFilterAndSort(podcasts, displayPrefs)
+  val showDownloadedEmptyState =
+    shouldShowDownloadedEmptyState(displayPrefs, processedBooks, processedPodcasts)
 
   val scope = rememberCoroutineScope()
 
@@ -348,6 +351,11 @@ fun LibraryContent(
         onSearchClicked = onSearchClicked,
       )
     }
+    if (showDownloadedEmptyState) {
+      item(key = "downloaded-empty", span = { GridItemSpan(maxLineSpan) }) {
+        DownloadedEmptyState()
+      }
+    }
     items(items = processedBooks, key = { it.id }) { book ->
       HomeItem(
         listView = listView,
@@ -382,6 +390,30 @@ fun LibraryContent(
       }
     }
   }
+}
+
+@Composable
+private fun DownloadedEmptyState() {
+  Column(
+    modifier = Modifier.fillMaxWidth().padding(16.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Text(
+      text = stringResource(R.string.no_downloaded_items),
+      style = MaterialTheme.typography.titleLarge,
+      textAlign = TextAlign.Center,
+    )
+  }
+}
+
+internal fun shouldShowDownloadedEmptyState(
+  displayPrefs: DisplayPrefs,
+  processedBooks: List<BookUiState>,
+  processedPodcasts: List<PodcastUiState>,
+): Boolean {
+  return displayPrefs.filter.isDownloaded() &&
+    processedBooks.isEmpty() &&
+    processedPodcasts.isEmpty()
 }
 
 private fun bookFilterAndSort(
@@ -476,6 +508,22 @@ fun HomeScreenContentListDynamicPreview() {
     HomeScreenContent(
       pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 }),
       uiState = Defaults.HOME_UI_STATE_LIST,
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun HomeScreenContentDownloadedEmptyPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    HomeScreenContent(
+      libraryCount = 2,
+      pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 }),
+      uiState =
+        Defaults.HOME_UI_STATE.copy(
+          prefs = Prefs(displayPrefs = DisplayPrefs(filter = Filter.Downloaded)),
+          librariesUiState = listOf(Defaults.HOME_LIBRARY_STATE.first()),
+        ),
     )
   }
 }
