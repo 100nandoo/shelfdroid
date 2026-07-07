@@ -17,6 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ShelfDroid"
+        android:usesCleartextTraffic="true"
         tools:targetApi="35">
         <profileable
             android:shell="true"
