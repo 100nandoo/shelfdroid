@@ -30,6 +30,10 @@ _Avoid_: Search ID, product code
 A library item representing a podcast feed that contains episodes.
 _Avoid_: Show, channel
 
+**Podcast source feed**:
+The original upstream feed URL stored on a **Podcast** and used by the Audiobookshelf server to discover and import **Episodes**.
+_Avoid_: RSS feed, subscription link
+
 **Episode**:
 A playable unit inside a podcast.
 _Avoid_: Track, chapter
@@ -45,6 +49,14 @@ _Avoid_: lastEpisodeCheck, last checked
 **Chapter**:
 A named segment inside a book.
 _Avoid_: Track, episode
+
+**Series**:
+A named server-managed sequence that groups related **Books**, optionally with per-book ordering.
+_Avoid_: Saga, sequence list
+
+**Collection**:
+A named server-managed grouping of **Library items** curated together outside the normal library hierarchy.
+_Avoid_: Playlist, folder
 
 **Library file**:
 An individual file attached to a library item, such as an audio file, cover-related file, or other stored asset.
@@ -98,16 +110,20 @@ _Avoid_: Listener, account
 A server credential owned by a user and managed separately from username-password login.
 _Avoid_: Token, session
 
+**Generated RSS feed**:
+A public Audiobookshelf server-generated feed for a **Library item**, **Series**, or **Collection** that external podcast clients can subscribe to.
+_Avoid_: RSS feed, feed URL
+
 **Server settings**:
 The editable Audiobookshelf server configuration exposed through ShelfDroid administrative screens.
 _Avoid_: Preferences, app settings
 
 **Episode update check**:
-An administrative action that asks the Audiobookshelf server to look for new **Episodes** for a **Podcast**, using an **Episode update cutoff** and a requested maximum number of new episodes to download.
+An administrative action that asks the Audiobookshelf server to look for new **Episodes** for a **Podcast**, using a **Podcast source feed**, an **Episode update cutoff**, and a requested maximum number of new episodes to download.
 _Avoid_: Add episode, refresh feed, sync podcast
 
 **Podcast auto-download schedule**:
-A recurring server-side schedule for a **Podcast** that determines when the Audiobookshelf server should automatically check its RSS feed for new **Episodes** and auto-download them subject to configured limits.
+A recurring server-side schedule for a **Podcast** that determines when the Audiobookshelf server should automatically check its **Podcast source feed** for new **Episodes** and auto-download them subject to configured limits.
 _Avoid_: Episode check schedule, cron, podcast sync timer
 
 ### Authentication
@@ -144,9 +160,12 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Library** contains many **Library items**
 - A **Library item** is either a **Book** or a **Podcast**
 - A **Podcast** contains many **Episodes**
+- A **Podcast** may have one **Podcast source feed**
 - A **Podcast** may have one **Podcast auto-download schedule**
 - A **Book** may contain many **Chapters**
 - A **Book** may be backed by one or more **Tracks**
+- A **Series** groups related **Books**
+- A **Collection** groups one or more **Library items**
 - A **Library item** may have one or more **Library files**
 - A **Download** is derived from server media or a server file and belongs to a device, not to the server catalog
 - A **Book download batch** belongs to one **Book** and may enqueue one or more **Track** downloads
@@ -156,6 +175,7 @@ _Avoid_: Best-effort release, unverifiable build
 - One **User** may have multiple **Open sessions** at the same time across clients
 - A **Backup** belongs to the **Audiobookshelf server**, not to a specific **Library**
 - An **API key** belongs to exactly one **User**
+- A **Generated RSS feed** belongs to one **Library item**, **Series**, or **Collection**
 - **Server settings** belong to the **Audiobookshelf server**
 - **Session recovery** happens before **Forced re-login**
 - A **Forced re-login** keeps the same **User** and **Audiobookshelf server**
@@ -179,6 +199,7 @@ _Avoid_: Best-effort release, unverifiable build
 - "item" is too vague on its own in this repo; prefer **Library item** when referring to a server catalog entry.
 - "session" is overloaded; use **Listening session** for historical playback records and **Open session** for active server-tracked playback, where the server may hold many concurrent sessions and a user may have more than one.
 - "schedule" is overloaded; use **Podcast auto-download schedule** for recurring podcast downloads and say backup schedule explicitly when discussing server backups.
+- "RSS feed" is overloaded; use **Podcast source feed** for upstream podcast ingestion and **Generated RSS feed** for the public Audiobookshelf-managed feed exposed to external clients.
 - "current playback" and **Open session** are distinct; **Current playback** is local player state inside ShelfDroid, while an **Open session** is server-tracked.
 - "track", "chapter", and "episode" are distinct; a **Track** is a file unit for books, a **Chapter** is a navigation segment in a book, and an **Episode** belongs to a podcast.
 - "progress" is overloaded; use **Progress** for completion state and **Progress recency** for the last update used to order home-screen items.

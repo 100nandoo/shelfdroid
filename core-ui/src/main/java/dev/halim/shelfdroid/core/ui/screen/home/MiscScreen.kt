@@ -29,6 +29,7 @@ fun MiscScreen(
   onLibrariesClicked: () -> Unit,
   onApiKeysClicked: () -> Unit,
   onServerSettingsClicked: () -> Unit,
+  onRssFeedsClicked: () -> Unit,
   onLogsClicked: () -> Unit,
   onBackupsClicked: () -> Unit,
 ) {
@@ -41,6 +42,7 @@ fun MiscScreen(
     onLibrariesClicked = onLibrariesClicked,
     onApiKeysClicked = onApiKeysClicked,
     onServerSettingsClicked = onServerSettingsClicked,
+    onRssFeedsClicked = onRssFeedsClicked,
     onLogsClicked = onLogsClicked,
     onBackupsClicked = onBackupsClicked,
   )
@@ -56,6 +58,7 @@ private fun MiscScreenContent(
   onLibrariesClicked: () -> Unit = {},
   onApiKeysClicked: () -> Unit = {},
   onServerSettingsClicked: () -> Unit = {},
+  onRssFeedsClicked: () -> Unit = {},
   onLogsClicked: () -> Unit = {},
   onBackupsClicked: () -> Unit = {},
 ) {
@@ -67,6 +70,14 @@ private fun MiscScreenContent(
         text = stringResource(R.string.server),
         textAlign = TextAlign.Center,
       )
+
+      TextButton(
+        onClick = onRssFeedsClicked,
+        modifier = modifier,
+      ) {
+        Text(text = stringResource(R.string.rss_feeds))
+      }
+
       TextButton(
         onClick = onBackupsClicked,
         modifier = modifier,

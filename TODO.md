@@ -2,11 +2,10 @@
 
 ## High Priority
 
+- [ ] Open rss feeds
 - [ ] Notifications
 - [ ] Email
 - [ ] Item metadata utils
-- [ ] Rss feeds
-- [ ] Open rss feeds
 - [ ] authentications
 - [ ] Refactor player state
 - [ ] Socket implementation
@@ -103,3 +102,4 @@
     - [x] download/delete files
     - [x] Edit chapter go to web
 - [x] Edit episode
+- [x] Rss feeds

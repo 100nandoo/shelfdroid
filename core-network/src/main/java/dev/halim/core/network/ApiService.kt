@@ -42,6 +42,7 @@ import dev.halim.core.network.response.LogsResponse
 import dev.halim.core.network.response.MatchItemResult
 import dev.halim.core.network.response.OpenSessionsResponse
 import dev.halim.core.network.response.PodcastFeed
+import dev.halim.core.network.response.RssFeedsResponse
 import dev.halim.core.network.response.SearchBookMatchResponse
 import dev.halim.core.network.response.SearchCoversResponse
 import dev.halim.core.network.response.SearchPodcast
@@ -381,4 +382,9 @@ interface ApiService {
 
   // logger
   @GET("/api/logger-data") suspend fun logs(): Result<LogsResponse>
+
+  @GET("/api/feeds") suspend fun rssFeeds(): Result<RssFeedsResponse>
+
+  @POST("/api/feeds/{feedId}/close")
+  suspend fun closeRssFeed(@Path("feedId") feedId: String): Result<Unit>
 }

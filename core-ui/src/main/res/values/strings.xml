@@ -204,6 +204,23 @@
     <string name="close_open_session">Close open session</string>
     <!--Open Sessions-->
 
+    <!--RSS Feeds-->
+    <string name="rss_feeds">RSS Feeds</string>
+    <string name="library_item">Library item</string>
+    <string name="collection">Collection</string>
+    <string name="unknown_title">Unknown</string>
+    <string name="last_updated">Last updated</string>
+    <string name="public_feed_url">Public feed URL</string>
+    <string name="rss_feed_slug">Slug</string>
+    <string name="rss_feed_prevent_indexing">Prevent indexing</string>
+    <string name="rss_feed_owner_name">Owner name</string>
+    <string name="rss_feed_owner_email">Owner email</string>
+    <string name="close_rss_feed">Close RSS feed</string>
+    <string name="close_rss_feed_confirm">This will close the generated RSS feed for external clients. Are you sure?</string>
+    <string name="rss_feed_closed">RSS feed closed.</string>
+    <string name="failed_to_close_rss_feed">Failed to close RSS feed.</string>
+    <!--RSS Feeds-->
+
     <!--User Settings-->
     <string name="email">email</string>
     <string name="change_password">Change Password</string>

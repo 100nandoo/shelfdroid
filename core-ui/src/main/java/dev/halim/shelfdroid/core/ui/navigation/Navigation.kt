@@ -48,6 +48,7 @@ import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
+import dev.halim.shelfdroid.core.ui.screen.rssfeeds.RssFeedsScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.serversettings.ServerSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
@@ -142,6 +143,7 @@ private fun ColumnScope.NavHostContainer(
             onLibrariesClicked = {},
             onApiKeysClicked = { navigator.navigate(NavApiKeys) },
             onServerSettingsClicked = { navigator.navigate(ServerSettings) },
+            onRssFeedsClicked = { navigator.navigate(RssFeeds) },
             onLogsClicked = { navigator.navigate(Logs) },
             onBackupsClicked = { navigator.navigate(Backups) },
             onEditItemClicked = { navigator.navigate(EditItem(it)) },
@@ -335,6 +337,11 @@ private fun ColumnScope.NavHostContainer(
       entry<ServerSettings> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           ServerSettingsScreen(snackbarHostState = snackbarHostState)
+        }
+      }
+      entry<RssFeeds> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          RssFeedsScreen(snackbarHostState = snackbarHostState)
         }
       }
       entry<Logs> { Nav3ScreenWrapper(sharedTransitionScope) { LogsScreen() } }
