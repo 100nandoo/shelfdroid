@@ -114,20 +114,22 @@ fun TextHeadlineMedium(modifier: Modifier = Modifier, text: String) {
 }
 
 @Composable
-fun TextHeadlineSmall(modifier: Modifier = Modifier, text: String) {
+fun TextHeadlineSmall(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null) {
   Text(
     text = text,
     style = MaterialTheme.typography.headlineSmall,
     modifier = modifier.padding(bottom = 4.dp),
+    textAlign = textAlign,
   )
 }
 
 @Composable
-fun TextTitleLarge(modifier: Modifier = Modifier, text: String) {
+fun TextTitleLarge(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null) {
   Text(
     text = text,
     style = MaterialTheme.typography.titleLarge,
     modifier = modifier.padding(bottom = 4.dp),
+    textAlign = textAlign,
   )
 }
 
