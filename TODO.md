@@ -2,6 +2,12 @@
 
 ## High Priority
 
+- [ ] Notifications
+- [ ] Email
+- [ ] Item metadata utils
+- [ ] Rss feeds
+- [ ] Open rss feeds
+- [ ] authentications
 - [ ] Refactor player state
 - [ ] Socket implementation
     - [ ] Handle download event
