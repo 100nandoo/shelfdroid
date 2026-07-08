@@ -53,6 +53,7 @@ import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.Defaults.RSS_FEEDS_UI_STATE
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 import kotlinx.coroutines.launch
@@ -244,35 +245,6 @@ private fun RssFeedItem(
 @Composable
 private fun RssFeedsScreenPreview() {
   AnimatedPreviewWrapper(dynamicColor = false) {
-    RssFeedsContent(
-      uiState =
-        RssFeedsUiState(
-          state = GenericState.Success,
-          feeds =
-            listOf(
-              RssFeedsUiState.RssFeedUi(
-                id = "feed-1",
-                title = "The Diary of a CEO",
-                slug = "doac",
-                entityType = "libraryItem",
-                episodeCount = 6,
-                preventIndexing = true,
-                updatedAtText = "8 July 2026 10:37AM",
-                publicFeedUrl = "https://audio.example.com/feed/doac",
-                coverUrl = "",
-                ownerName = "Cross",
-                ownerEmail = "cross@example.com",
-                episodes =
-                  listOf(
-                    RssFeedsUiState.EpisodeUi(
-                      id = "episode-1",
-                      title = "Most Replayed Moment",
-                      publishedAtText = "26 June 2026 1:00PM",
-                    )
-                  ),
-              )
-            ),
-        )
-    )
+    RssFeedsContent(uiState = RSS_FEEDS_UI_STATE)
   }
 }

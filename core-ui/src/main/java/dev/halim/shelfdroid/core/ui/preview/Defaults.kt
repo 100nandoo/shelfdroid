@@ -40,6 +40,7 @@ import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.data.screen.logs.LogsUiState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.RssFeedsUiState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.data.screen.userinfo.UserInfoUiState
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsUiState
@@ -460,6 +461,38 @@ object Defaults {
           ),
         ),
     )
+
+  val RSS_FEED_EPISODES =
+    listOf(
+      RssFeedsUiState.EpisodeUi(
+        id = "episode-1",
+        title = "Most Replayed Moment",
+        publishedAtText = "26 June 2026 1:00PM",
+      ),
+      RssFeedsUiState.EpisodeUi(
+        id = "episode-2",
+        title = "An Episode With A Longer Title To Exercise Wrapping In The Sheet",
+        publishedAtText = "24 June 2026 9:30AM",
+      ),
+    )
+
+  val RSS_FEED =
+    RssFeedsUiState.RssFeedUi(
+      id = "feed-1",
+      title = "The Diary of a CEO",
+      slug = "doac",
+      entityType = "libraryItem",
+      episodeCount = 6,
+      preventIndexing = true,
+      updatedAtText = "8 July 2026 10:37AM",
+      publicFeedUrl = "https://audio.example.com/feed/doac",
+      coverUrl = "",
+      ownerName = "Cross",
+      ownerEmail = "cross@example.com",
+      episodes = RSS_FEED_EPISODES,
+    )
+
+  val RSS_FEEDS_UI_STATE = RssFeedsUiState(state = GenericState.Success, feeds = listOf(RSS_FEED))
 
   // Edit Item
   val EDIT_ITEM_DETAILS_FORM =

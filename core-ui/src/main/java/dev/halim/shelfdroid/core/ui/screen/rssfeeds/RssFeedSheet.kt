@@ -38,6 +38,7 @@ import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
 import dev.halim.shelfdroid.core.ui.components.TextLabelValue
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.components.TextTitleSmall
+import dev.halim.shelfdroid.core.ui.preview.Defaults.RSS_FEED
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.preview.sheetState
@@ -158,37 +159,10 @@ private fun PreviewRssBottomSheet() {
   PreviewWrapper(false) {
     val density = LocalDensity.current
     val sheetState = sheetState(density)
-    val feed =
-      RssFeedsUiState.RssFeedUi(
-        id = "feed-1",
-        title = "The Diary of a CEO",
-        slug = "doac",
-        entityType = "libraryItem",
-        episodeCount = 6,
-        preventIndexing = true,
-        updatedAtText = "8 July 2026 10:37AM",
-        publicFeedUrl = "https://audio.example.com/feed/doac",
-        coverUrl = "",
-        ownerName = "Cross",
-        ownerEmail = "cross@example.com",
-        episodes =
-          listOf(
-            RssFeedsUiState.EpisodeUi(
-              id = "episode-1",
-              title = "Most Replayed Moment",
-              publishedAtText = "26 June 2026 1:00PM",
-            ),
-            RssFeedsUiState.EpisodeUi(
-              id = "episode-2",
-              title = "An Episode With A Longer Title To Exercise Wrapping In The Sheet",
-              publishedAtText = "24 June 2026 9:30AM",
-            ),
-          ),
-      )
 
     RssFeedSheet(
       sheetState = sheetState,
-      feed = feed,
+      feed = RSS_FEED,
       onDismiss = {},
       onCopyUrl = {},
     )
