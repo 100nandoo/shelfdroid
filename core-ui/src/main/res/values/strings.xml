@@ -206,19 +206,32 @@
 
     <!--RSS Feeds-->
     <string name="rss_feeds">RSS Feeds</string>
+    <string name="generated_rss_feed">Generated RSS feed</string>
+    <string name="open_generated_rss_feed">Open Generated RSS Feed</string>
     <string name="library_item">Library item</string>
     <string name="collection">Collection</string>
     <string name="unknown_title">Unknown</string>
     <string name="last_updated">Last updated</string>
     <string name="public_feed_url">Public feed URL</string>
     <string name="rss_feed_slug">Slug</string>
+    <string name="generated_rss_feed_url_preview">Feed URL: %1$s</string>
+    <string name="rss_details">RSS Details</string>
+    <string name="advanced">Advanced</string>
     <string name="rss_feed_prevent_indexing">Prevent indexing</string>
+    <string name="rss_feed_prevent_indexing_directories">Prevent your feed from being indexed by external podcast directories</string>
     <string name="rss_feed_owner_name">Owner name</string>
     <string name="rss_feed_owner_email">Owner email</string>
+    <string name="open_feed">Open Feed</string>
     <string name="close_rss_feed">Close RSS feed</string>
     <string name="close_rss_feed_confirm">This will close the generated RSS feed for external clients. Are you sure?</string>
+    <string name="generated_rss_feed_opened">Generated RSS feed opened.</string>
     <string name="rss_feed_closed">RSS feed closed.</string>
+    <string name="failed_to_open_generated_rss_feed">Failed to open generated RSS feed.</string>
     <string name="failed_to_close_rss_feed">Failed to close RSS feed.</string>
+    <string name="generated_rss_feed_https_warning">Many podcast clients require the generated RSS feed URL to use HTTPS.</string>
+    <string name="generated_rss_feed_pub_date_warning">Some podcast clients may ignore episodes without a published date.</string>
+    <string name="rss_feed_slug_required">Slug is required.</string>
+    <string name="rss_feed_slug_sanitized">Slug was sanitized. Review it and tap Open Feed again.</string>
     <!--RSS Feeds-->
 
     <!--User Settings-->

@@ -40,6 +40,7 @@ data class LibraryItem(
   @SerialName("isInvalid") val isInvalid: Boolean = false,
   @SerialName("mediaType") val mediaType: String = "",
   @SerialName("media") val media: Media,
+  @SerialName("rssFeed") val rssFeed: RssFeed? = null,
   @SerialName("libraryFiles") val libraryFiles: List<LibraryFile> = listOf(),
 )
 

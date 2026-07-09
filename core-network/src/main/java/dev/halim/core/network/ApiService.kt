@@ -10,6 +10,7 @@ import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.DeleteSessionsRequest
 import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.request.MatchLibraryItemRequest
+import dev.halim.core.network.request.OpenItemRssFeedRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.core.network.request.ProgressRequest
@@ -40,6 +41,7 @@ import dev.halim.core.network.response.LoginResponse
 import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.LogsResponse
 import dev.halim.core.network.response.MatchItemResult
+import dev.halim.core.network.response.OpenItemRssFeedResponse
 import dev.halim.core.network.response.OpenSessionsResponse
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.RssFeedsResponse
@@ -142,6 +144,7 @@ interface ApiService {
   suspend fun item(
     @Path("itemId") itemId: String,
     @Query("expanded") expanded: Int = 1,
+    @Query("include") include: String? = null,
   ): Result<LibraryItem>
 
   @POST("api/items/batch/get")
@@ -384,6 +387,12 @@ interface ApiService {
   @GET("/api/logger-data") suspend fun logs(): Result<LogsResponse>
 
   @GET("/api/feeds") suspend fun rssFeeds(): Result<RssFeedsResponse>
+
+  @POST("/api/feeds/item/{itemId}/open")
+  suspend fun openItemRssFeed(
+    @Path("itemId") itemId: String,
+    @Body request: OpenItemRssFeedRequest,
+  ): Result<OpenItemRssFeedResponse>
 
   @POST("/api/feeds/{feedId}/close")
   suspend fun closeRssFeed(@Path("feedId") feedId: String): Result<Unit>

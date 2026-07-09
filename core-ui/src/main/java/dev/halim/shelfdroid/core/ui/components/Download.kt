@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -109,6 +111,9 @@ fun PlayDownloadAndEdit(
   onDownloadClicked: () -> Unit,
   onDeleteDownloadClicked: () -> Unit,
   canEdit: Boolean = false,
+  @DrawableRes extraActionPainterResId: Int? = null,
+  @StringRes extraActionContentDescriptionResId: Int? = null,
+  onExtraActionClicked: (() -> Unit)? = null,
   onEditClicked: () -> Unit = {},
 ) {
   Row(Modifier.padding(vertical = 8.dp)) {
@@ -119,6 +124,17 @@ fun PlayDownloadAndEdit(
       onDownloadClicked = onDownloadClicked,
       onDeleteDownloadClicked = onDeleteDownloadClicked,
     )
+    if (
+      extraActionPainterResId != null &&
+        extraActionContentDescriptionResId != null &&
+        onExtraActionClicked != null
+    ) {
+      MyTonalIconButton(
+        painterResId = extraActionPainterResId,
+        contentDescriptionResId = extraActionContentDescriptionResId,
+        onClick = onExtraActionClicked,
+      )
+    }
     if (canEdit) {
       MyTonalIconButton(
         painterResId = R.drawable.edit,
@@ -142,6 +158,9 @@ private fun PlayDownloadAndEditPreview() {
         onDownloadClicked = {},
         onDeleteDownloadClicked = {},
         canEdit = true,
+        extraActionPainterResId = R.drawable.rss,
+        extraActionContentDescriptionResId = R.string.generated_rss_feed,
+        onExtraActionClicked = {},
         onEditClicked = {},
       )
       PlayDownloadAndEdit(

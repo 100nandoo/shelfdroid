@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteFailure
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteSuccess
+import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.OpenRssFeedFailure
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.navigation.Podcast
@@ -172,7 +173,44 @@ constructor(
         apiState.update { PodcastApiState.AddLoading }
         viewModelScope.launch(Dispatchers.IO) { apiState.update { repository.fetchEpisode() } }
       }
-      PodcastEvent.ResetAddEpisodeState -> {
+      is PodcastEvent.OpenGeneratedRssFeed -> {
+        apiState.update { PodcastApiState.OpenRssFeedLoading }
+        viewModelScope.launch(Dispatchers.IO) {
+          val result =
+            repository.openGeneratedRssFeed(
+              itemId = id,
+              slug = event.slug,
+              preventIndexing = event.preventIndexing,
+              ownerName = event.ownerName,
+              ownerEmail = event.ownerEmail,
+            )
+          apiState.update {
+            result.fold(
+              onSuccess = { PodcastApiState.OpenRssFeedSuccess },
+              onFailure = {
+                OpenRssFeedFailure(it.message ?: "Failed to open generated RSS feed")
+              },
+            )
+          }
+        }
+      }
+      is PodcastEvent.CloseGeneratedRssFeed -> {
+        apiState.update { PodcastApiState.CloseRssFeedLoading }
+        viewModelScope.launch(Dispatchers.IO) {
+          val result = repository.closeGeneratedRssFeed(itemId = id, feedId = event.feedId)
+          apiState.update {
+            result.fold(
+              onSuccess = { PodcastApiState.CloseRssFeedSuccess },
+              onFailure = {
+                PodcastApiState.CloseRssFeedFailure(
+                  it.message ?: "Failed to close generated RSS feed"
+                )
+              },
+            )
+          }
+        }
+      }
+      PodcastEvent.ResetApiState -> {
         apiState.update { PodcastApiState.Idle }
       }
     }
@@ -242,5 +280,14 @@ sealed interface PodcastEvent {
 
   data object AddEpisode : PodcastEvent
 
-  data object ResetAddEpisodeState : PodcastEvent
+  data class OpenGeneratedRssFeed(
+    val slug: String,
+    val preventIndexing: Boolean,
+    val ownerName: String,
+    val ownerEmail: String,
+  ) : PodcastEvent
+
+  data class CloseGeneratedRssFeed(val feedId: String) : PodcastEvent
+
+  data object ResetApiState : PodcastEvent
 }

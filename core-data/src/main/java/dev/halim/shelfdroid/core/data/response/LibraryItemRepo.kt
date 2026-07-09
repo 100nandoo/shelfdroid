@@ -5,12 +5,17 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BatchLibraryItemsRequest
+import dev.halim.core.network.request.OpenItemRssFeedMetadataDetails
+import dev.halim.core.network.request.OpenItemRssFeedRequest
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.LibraryItem
+import dev.halim.core.network.response.RssFeed
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.BookCleanupRequest
 import dev.halim.shelfdroid.download.DownloadRepo
@@ -71,6 +76,45 @@ constructor(
   fun updateItem(item: LibraryItem) {
     queries.insert(toEntity(item, item.libraryId))
   }
+
+  suspend fun refreshItem(id: String, include: String? = null): Result<LibraryItem> {
+    val result = api.item(id, include = include)
+    result.getOrNull()?.let(::updateItem)
+    return result
+  }
+
+  suspend fun openGeneratedRssFeedForItem(
+    itemId: String,
+    slug: String,
+    metadataDetails: OpenItemRssFeedMetadataDetails,
+  ): Result<RssFeed> {
+    val request =
+      OpenItemRssFeedRequest(
+        serverAddress = currentWebBaseUrl(),
+        slug = slug,
+        metadataDetails = metadataDetails,
+      )
+    val response =
+      api.openItemRssFeed(itemId, request).getOrElse {
+        return Result.failure(it)
+      }
+    if (refreshItem(itemId, include = "rssfeed").isFailure) {
+      patchRssFeed(itemId, response.feed)
+    }
+    return Result.success(response.feed)
+  }
+
+  suspend fun closeGeneratedRssFeedForItem(itemId: String, feedId: String): Result<Unit> {
+    api.closeRssFeed(feedId).getOrElse {
+      return Result.failure(it)
+    }
+    if (refreshItem(itemId, include = "rssfeed").isFailure) {
+      patchRssFeed(itemId, null)
+    }
+    return Result.success(Unit)
+  }
+
+  fun currentWebBaseUrlForUi(): String = currentWebBaseUrl()
 
   fun byId(id: String): LibraryItemEntity? {
     return queries.byId(id).executeAsOneOrNull()
@@ -206,6 +250,7 @@ constructor(
         duration = helper.formatDuration(media.duration ?: 0.0),
         isBook = 1,
         media = json.encodeToString(media),
+        rssFeed = item.rssFeed?.let(json::encodeToString),
         addedAt = item.addedAt,
       )
     } else {
@@ -222,10 +267,20 @@ constructor(
         duration = "",
         isBook = 0,
         media = json.encodeToString(media),
+        rssFeed = item.rssFeed?.let(json::encodeToString),
         addedAt = item.addedAt,
       )
     }
   }
+
+  private fun patchRssFeed(itemId: String, feed: RssFeed?) {
+    val entity = byId(itemId) ?: return
+    queries.insert(entity.copy(rssFeed = feed?.let(json::encodeToString)))
+  }
+
+  private fun currentWebBaseUrl(): String =
+    AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL)?.value
+      ?: AudiobookshelfBaseUrl.DEFAULT_VALUE
 }
 
 internal fun Book.primaryInoId(): String = audioFiles.firstOrNull()?.ino.orEmpty()

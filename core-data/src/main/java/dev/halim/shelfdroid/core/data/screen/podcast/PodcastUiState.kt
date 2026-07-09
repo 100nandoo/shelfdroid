@@ -4,6 +4,7 @@ import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedUiState
 
 data class PodcastUiState(
   val state: GenericState = GenericState.Loading,
@@ -18,6 +19,7 @@ data class PodcastUiState(
   val canAddEpisode: Boolean = false,
   val canEditEpisode: Boolean = false,
   val canDeleteEpisode: Boolean = false,
+  val generatedRssFeed: GeneratedRssFeedUiState = GeneratedRssFeedUiState(),
   val episodes: List<Episode> = emptyList(),
   val prefs: Prefs = Prefs(),
 )
@@ -46,4 +48,16 @@ sealed interface PodcastApiState {
   data object AddLoading : PodcastApiState
 
   data object DeleteLoading : PodcastApiState
+
+  data object OpenRssFeedLoading : PodcastApiState
+
+  data object OpenRssFeedSuccess : PodcastApiState
+
+  data class OpenRssFeedFailure(val message: String) : PodcastApiState
+
+  data object CloseRssFeedLoading : PodcastApiState
+
+  data object CloseRssFeedSuccess : PodcastApiState
+
+  data class CloseRssFeedFailure(val message: String) : PodcastApiState
 }

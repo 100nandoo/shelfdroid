@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package dev.halim.shelfdroid.core.ui.screen.book
 
+import android.content.ClipData
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,11 +10,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -19,12 +31,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.DownloadState
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.book.BookApiState
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayDownloadAndEdit
 import dev.halim.shelfdroid.core.ui.components.TextLabelValue
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
+import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.navigation.Book
@@ -35,7 +50,9 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
+import dev.halim.shelfdroid.core.ui.screen.rssfeeds.ItemGeneratedRssFeedSheet
 import dev.halim.shelfdroid.media.service.PlayerStore
+import kotlinx.coroutines.launch
 
 @Composable
 fun BookScreen(
@@ -50,7 +67,81 @@ fun BookScreen(
   InitMediaControllerIfMainActivity()
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerStore.uiState.collectAsStateWithLifecycle()
+  val scope = rememberCoroutineScope()
+  val clipboardManager = LocalClipboard.current
+  val publicFeedLabel = stringResource(R.string.public_feed_url)
+  val copiedMessage = stringResource(R.string.rss_url_copied)
+  val openSuccessMessage = stringResource(R.string.generated_rss_feed_opened)
+  val closeSuccessMessage = stringResource(R.string.rss_feed_closed)
+  val openFailureMessage = stringResource(R.string.failed_to_open_generated_rss_feed)
+  val closeFailureMessage = stringResource(R.string.failed_to_close_rss_feed)
+  var showRssFeedSheet by rememberSaveable { mutableStateOf(false) }
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val downloadState = if (uiState.isSingleTrack) uiState.download.state else uiState.downloads.state
+
+  LaunchedEffect(uiState.apiState) {
+    when (val state = uiState.apiState) {
+      is BookApiState.OpenRssFeedFailure -> {
+        scope.launch {
+          snackbarHostState.showErrorSnackbar(state.message.ifBlank { openFailureMessage })
+        }
+        viewModel.onEvent(BookEvent.ResetApiState)
+      }
+
+      BookApiState.OpenRssFeedSuccess -> {
+        scope.launch { snackbarHostState.showSuccessSnackbar(openSuccessMessage) }
+        viewModel.onEvent(BookEvent.ResetApiState)
+      }
+
+      is BookApiState.CloseRssFeedFailure -> {
+        scope.launch {
+          snackbarHostState.showErrorSnackbar(state.message.ifBlank { closeFailureMessage })
+        }
+        viewModel.onEvent(BookEvent.ResetApiState)
+      }
+
+      BookApiState.CloseRssFeedSuccess -> {
+        showRssFeedSheet = false
+        scope.launch { snackbarHostState.showSuccessSnackbar(closeSuccessMessage) }
+        viewModel.onEvent(BookEvent.ResetApiState)
+      }
+
+      else -> Unit
+    }
+  }
+
+  if (showRssFeedSheet && uiState.generatedRssFeed.isVisible) {
+    ItemGeneratedRssFeedSheet(
+      sheetState = sheetState,
+      title = uiState.title,
+      rssFeed = uiState.generatedRssFeed,
+      isProcessing =
+        uiState.apiState == BookApiState.OpenRssFeedLoading ||
+          uiState.apiState == BookApiState.CloseRssFeedLoading,
+      onDismiss = { showRssFeedSheet = false },
+      onCopyUrl = { value ->
+        scope.launch {
+          clipboardManager.setClipEntry(ClipData.newPlainText(publicFeedLabel, value).toClipEntry())
+          snackbarHostState.showSuccessSnackbar(copiedMessage)
+        }
+      },
+      onOpenFeed = { slug, preventIndexing, ownerName, ownerEmail ->
+        viewModel.onEvent(
+          BookEvent.OpenGeneratedRssFeed(
+            slug = slug,
+            preventIndexing = preventIndexing,
+            ownerName = ownerName,
+            ownerEmail = ownerEmail,
+          )
+        )
+      },
+      onCloseFeed = { feedId -> viewModel.onEvent(BookEvent.CloseGeneratedRssFeed(feedId)) },
+      onShowMessage = { message ->
+        scope.launch { snackbarHostState.showErrorSnackbar(message) }
+      },
+    )
+  }
+
   if (uiState.state == GenericState.Success) {
     BookScreenContent(
       id = viewModel.id,
@@ -71,6 +162,7 @@ fun BookScreen(
       isEbook = uiState.isEbook,
       downloadState = downloadState,
       playPause = playerUiState.playPause.forItemAction(playerUiState.id == viewModel.id),
+      generatedRssFeedVisible = uiState.generatedRssFeed.isVisible,
       snackbarHostState = snackbarHostState,
       onDownloadClicked = {
         viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.Download))
@@ -79,6 +171,10 @@ fun BookScreen(
         viewModel.onEvent(BookEvent.DownloadEvent(CommonDownloadEvent.DeleteDownload))
       },
       onPlayClicked = { playerController.onEvent(PlayerEvent.PlayBook(viewModel.id)) },
+      onGeneratedRssFeedClicked = {
+        showRssFeedSheet = true
+        scope.launch { sheetState.show() }
+      },
       onEditClicked = { onEditClicked(viewModel.id) },
     )
   }
@@ -104,10 +200,12 @@ fun BookScreenContent(
   isEbook: Boolean = false,
   downloadState: DownloadState = DownloadState.Unknown,
   playPause: PlayPauseControlState = PlayPauseControlState(enabled = true),
+  generatedRssFeedVisible: Boolean = false,
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onDownloadClicked: () -> Unit = {},
   onDeleteDownloadClicked: () -> Unit = {},
   onPlayClicked: () -> Unit,
+  onGeneratedRssFeedClicked: () -> Unit = {},
   onEditClicked: () -> Unit = {},
 ) {
   LazyColumn(
@@ -127,6 +225,10 @@ fun BookScreenContent(
           onDeleteDownloadClicked = onDeleteDownloadClicked,
           onPlayClicked = onPlayClicked,
           canEdit = canEdit,
+          extraActionPainterResId = if (generatedRssFeedVisible) R.drawable.rss else null,
+          extraActionContentDescriptionResId =
+            if (generatedRssFeedVisible) R.string.generated_rss_feed else null,
+          onExtraActionClicked = if (generatedRssFeedVisible) onGeneratedRssFeedClicked else null,
           onEditClicked = onEditClicked,
         )
       }

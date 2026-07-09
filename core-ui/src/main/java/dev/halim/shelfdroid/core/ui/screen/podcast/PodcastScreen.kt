@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package dev.halim.shelfdroid.core.ui.screen.podcast
 
+import android.content.ClipData
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -12,21 +15,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -54,6 +62,7 @@ import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
+import dev.halim.shelfdroid.core.ui.screen.rssfeeds.ItemGeneratedRssFeedSheet
 import kotlinx.coroutines.launch
 
 @Composable
@@ -73,19 +82,30 @@ fun PodcastScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
+  val clipboardManager = LocalClipboard.current
+  val publicFeedLabel = stringResource(R.string.public_feed_url)
+  val copiedMessage = stringResource(R.string.rss_url_copied)
+  val openSuccessMessage = stringResource(R.string.generated_rss_feed_opened)
+  val closeSuccessMessage = stringResource(R.string.rss_feed_closed)
+  val openFailureMessage = stringResource(R.string.failed_to_open_generated_rss_feed)
+  val closeFailureMessage = stringResource(R.string.failed_to_close_rss_feed)
+  var showRssFeedSheet by rememberSaveable { mutableStateOf(false) }
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
   LaunchedEffect(uiState.apiState) {
     when (val state = uiState.apiState) {
       is PodcastApiState.AddSuccess -> {
-        viewModel.onEvent(PodcastEvent.ResetAddEpisodeState)
+        viewModel.onEvent(PodcastEvent.ResetApiState)
         onFetchEpisodeSuccess(viewModel.id)
       }
       is PodcastApiState.AddFailure -> {
         scope.launch { snackbarHostState.showErrorSnackbar(state.message) }
+        viewModel.onEvent(PodcastEvent.ResetApiState)
       }
       is PodcastApiState.DeleteFailure -> {
         scope.launch { snackbarHostState.showErrorSnackbar(state.message) }
         viewModel.onEvent(PodcastEvent.SelectionMode(false, ""))
+        viewModel.onEvent(PodcastEvent.ResetApiState)
       }
       is PodcastApiState.DeleteSuccess -> {
         val message =
@@ -96,9 +116,63 @@ fun PodcastScreen(
           )
         scope.launch { snackbarHostState.showSuccessSnackbar(message) }
         viewModel.onEvent(PodcastEvent.SelectionMode(false, ""))
+        viewModel.onEvent(PodcastEvent.ResetApiState)
+      }
+      is PodcastApiState.OpenRssFeedFailure -> {
+        scope.launch {
+          snackbarHostState.showErrorSnackbar(state.message.ifBlank { openFailureMessage })
+        }
+        viewModel.onEvent(PodcastEvent.ResetApiState)
+      }
+      PodcastApiState.OpenRssFeedSuccess -> {
+        scope.launch { snackbarHostState.showSuccessSnackbar(openSuccessMessage) }
+        viewModel.onEvent(PodcastEvent.ResetApiState)
+      }
+      is PodcastApiState.CloseRssFeedFailure -> {
+        scope.launch {
+          snackbarHostState.showErrorSnackbar(state.message.ifBlank { closeFailureMessage })
+        }
+        viewModel.onEvent(PodcastEvent.ResetApiState)
+      }
+      PodcastApiState.CloseRssFeedSuccess -> {
+        showRssFeedSheet = false
+        scope.launch { snackbarHostState.showSuccessSnackbar(closeSuccessMessage) }
+        viewModel.onEvent(PodcastEvent.ResetApiState)
       }
       else -> Unit
     }
+  }
+
+  if (showRssFeedSheet && uiState.generatedRssFeed.isVisible) {
+    ItemGeneratedRssFeedSheet(
+      sheetState = sheetState,
+      title = uiState.title,
+      rssFeed = uiState.generatedRssFeed,
+      isProcessing =
+        uiState.apiState == PodcastApiState.OpenRssFeedLoading ||
+          uiState.apiState == PodcastApiState.CloseRssFeedLoading,
+      onDismiss = { showRssFeedSheet = false },
+      onCopyUrl = { value ->
+        scope.launch {
+          clipboardManager.setClipEntry(ClipData.newPlainText(publicFeedLabel, value).toClipEntry())
+          snackbarHostState.showSuccessSnackbar(copiedMessage)
+        }
+      },
+      onOpenFeed = { slug, preventIndexing, ownerName, ownerEmail ->
+        viewModel.onEvent(
+          PodcastEvent.OpenGeneratedRssFeed(
+            slug = slug,
+            preventIndexing = preventIndexing,
+            ownerName = ownerName,
+            ownerEmail = ownerEmail,
+          )
+        )
+      },
+      onCloseFeed = { feedId -> viewModel.onEvent(PodcastEvent.CloseGeneratedRssFeed(feedId)) },
+      onShowMessage = { message ->
+        scope.launch { snackbarHostState.showErrorSnackbar(message) }
+      },
+    )
   }
 
   if (uiState.state == GenericState.Success) {
@@ -107,6 +181,10 @@ fun PodcastScreen(
       id = viewModel.id,
       snackbarHostState = snackbarHostState,
       onEvent = viewModel::onEvent,
+      onGeneratedRssFeedClicked = {
+        showRssFeedSheet = true
+        scope.launch { sheetState.show() }
+      },
       onEpisodeClicked = onEpisodeClicked,
       onEditEpisodeClicked = onEditEpisodeClicked,
       onPlayClicked = { itemId, episodeId, _ ->
@@ -131,6 +209,7 @@ fun PodcastScreenContent(
   id: String = Defaults.BOOK_ID,
   snackbarHostState: SnackbarHostState = SnackbarHostState(),
   onEvent: (PodcastEvent) -> Unit = {},
+  onGeneratedRssFeedClicked: () -> Unit = {},
   onEpisodeClicked: (String, String) -> Unit = { _, _ -> },
   onEditEpisodeClicked: (String, String) -> Unit = { _, _ -> },
   onPlayClicked: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -166,7 +245,13 @@ fun PodcastScreenContent(
         )
       }
       item {
-        Header(uiState.canAddEpisode, uiState.apiState, onEvent)
+        Header(
+          canAddEpisode = uiState.canAddEpisode,
+          showGeneratedRssFeed = uiState.generatedRssFeed.isVisible,
+          state = uiState.apiState,
+          onGeneratedRssFeedClicked = onGeneratedRssFeedClicked,
+          onEvent = onEvent,
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         ExpandShrinkText(Modifier.padding(horizontal = 16.dp), uiState.description)
@@ -211,7 +296,9 @@ fun PodcastScreenContent(
 @Composable
 private fun Header(
   canAddEpisode: Boolean,
+  showGeneratedRssFeed: Boolean,
   state: PodcastApiState,
+  onGeneratedRssFeedClicked: () -> Unit,
   onEvent: (PodcastEvent) -> Unit,
 ) {
   Row(
@@ -224,6 +311,14 @@ private fun Header(
       style = MaterialTheme.typography.headlineMedium,
       textAlign = TextAlign.Left,
     )
+
+    if (showGeneratedRssFeed) {
+      Icon(
+        painter = painterResource(id = R.drawable.rss),
+        contentDescription = stringResource(R.string.generated_rss_feed),
+        modifier = Modifier.padding(end = 12.dp).clickable(onClick = onGeneratedRssFeedClicked),
+      )
+    }
 
     if (canAddEpisode) {
       VisibilityCircular(state == PodcastApiState.AddLoading) {

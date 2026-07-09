@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.podcast
 
 import dev.halim.core.network.ApiService
+import dev.halim.core.network.request.OpenItemRssFeedMetadataDetails
 import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
@@ -8,6 +9,7 @@ import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.PodcastFeedRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedMapper
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +52,16 @@ constructor(
       entity?.let {
         podcast = Json.decodeFromString<Podcast>(it.media)
         val episodes = mapper.mapEpisodes(it.title, podcast?.episodes ?: emptyList(), progresses)
+        val generatedRssFeed =
+          GeneratedRssFeedMapper.map(
+            itemId = id,
+            feed = it.rssFeed?.let { rssFeed -> Json.decodeFromString(rssFeed) },
+            webBaseUrl = currentWebBaseUrl(),
+            canManage = prefs.userPrefs.isAdmin,
+            hasAudioContent = podcast?.episodes?.isNotEmpty() == true,
+            hasEpisodesWithoutPubDate =
+              podcast?.episodes?.any { episode -> episode.pubDate == null } == true,
+          )
 
         PodcastUiState(
           state = GenericState.Success,
@@ -60,6 +72,7 @@ constructor(
           canAddEpisode = prefs.userPrefs.isAdmin,
           canEditEpisode = prefs.userPrefs.isAdmin || prefs.userPrefs.update,
           canDeleteEpisode = prefs.userPrefs.isAdmin || prefs.userPrefs.delete,
+          generatedRssFeed = generatedRssFeed,
           episodes = episodes,
           prefs = prefs,
         )
@@ -123,5 +136,32 @@ constructor(
     failureIds
   }
 
+  suspend fun openGeneratedRssFeed(
+    itemId: String,
+    slug: String,
+    preventIndexing: Boolean,
+    ownerName: String,
+    ownerEmail: String,
+  ): Result<Unit> {
+    return libraryItemRepo
+      .openGeneratedRssFeedForItem(
+        itemId = itemId,
+        slug = slug,
+        metadataDetails =
+          OpenItemRssFeedMetadataDetails(
+            preventIndexing = preventIndexing,
+            ownerName = ownerName,
+            ownerEmail = ownerEmail,
+          ),
+      )
+      .map {}
+  }
+
+  suspend fun closeGeneratedRssFeed(itemId: String, feedId: String): Result<Unit> {
+    return libraryItemRepo.closeGeneratedRssFeedForItem(itemId = itemId, feedId = feedId)
+  }
+
   private fun failureState(message: String) = PodcastApiState.AddFailure(message)
+
+  private fun currentWebBaseUrl(): String = libraryItemRepo.currentWebBaseUrlForUi()
 }

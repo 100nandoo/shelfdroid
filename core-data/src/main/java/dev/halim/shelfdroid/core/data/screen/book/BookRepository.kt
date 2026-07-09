@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.book
 
 import android.annotation.SuppressLint
+import dev.halim.core.network.request.OpenItemRssFeedMetadataDetails
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
@@ -8,6 +9,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedMapper
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
@@ -57,7 +59,17 @@ constructor(
           val remaining = helper.calculateRemaining(media.duration ?: 0.0, progress)
 
           val isEbook = media.ebookFile != null
+          val canManageGeneratedRss = userPrefs.isAdmin
           val isSingleTrack = media.audioTracks.size == 1
+          val generatedRssFeed =
+            GeneratedRssFeedMapper.map(
+              itemId = id,
+              feed = it.rssFeed?.let { rssFeed -> Json.decodeFromString(rssFeed) },
+              webBaseUrl = currentWebBaseUrl(),
+              canManage = canManageGeneratedRss,
+              hasAudioContent = media.audioTracks.isNotEmpty(),
+              hasEpisodesWithoutPubDate = false,
+            )
 
           val download =
             if (isSingleTrack) {
@@ -101,10 +113,38 @@ constructor(
             isEbook = isEbook,
             isSingleTrack = isSingleTrack,
             canEdit = userPrefs.update,
+            generatedRssFeed = generatedRssFeed,
             download = download,
             downloads = downloads,
           )
         } ?: BookUiState(state = GenericState.Failure("Failed to fetch book"))
     }
   }
+
+  suspend fun openGeneratedRssFeed(
+    itemId: String,
+    slug: String,
+    preventIndexing: Boolean,
+    ownerName: String,
+    ownerEmail: String,
+  ): Result<Unit> {
+    return libraryItemRepo
+      .openGeneratedRssFeedForItem(
+        itemId = itemId,
+        slug = slug,
+        metadataDetails =
+          OpenItemRssFeedMetadataDetails(
+            preventIndexing = preventIndexing,
+            ownerName = ownerName,
+            ownerEmail = ownerEmail,
+          ),
+      )
+      .map {}
+  }
+
+  suspend fun closeGeneratedRssFeed(itemId: String, feedId: String): Result<Unit> {
+    return libraryItemRepo.closeGeneratedRssFeedForItem(itemId = itemId, feedId = feedId)
+  }
+
+  private fun currentWebBaseUrl(): String = libraryItemRepo.currentWebBaseUrlForUi()
 }

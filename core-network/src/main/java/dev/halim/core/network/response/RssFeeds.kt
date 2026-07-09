@@ -11,6 +11,7 @@ data class RssFeed(
   @SerialName("id") val id: String,
   @SerialName("slug") val slug: String = "",
   @SerialName("entityType") val entityType: String = "",
+  @SerialName("entityId") val entityId: String = "",
   @SerialName("feedUrl") val feedUrl: String = "",
   @SerialName("serverAddress") val serverAddress: String? = null,
   @SerialName("updatedAt") val updatedAt: Long = 0L,
@@ -21,6 +22,7 @@ data class RssFeed(
 @Serializable
 data class RssFeedMeta(
   @SerialName("title") val title: String = "",
+  @SerialName("description") val description: String? = null,
   @SerialName("preventIndexing") val preventIndexing: Boolean = true,
   @SerialName("ownerName") val ownerName: String? = null,
   @SerialName("ownerEmail") val ownerEmail: String? = null,

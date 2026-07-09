@@ -1,6 +1,7 @@
 package dev.halim.core.network.response.libraryitem
 
 import dev.halim.core.network.response.LibraryItem
+import dev.halim.core.network.response.RssFeed
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -61,6 +62,7 @@ object LibraryItemSerializer : KSerializer<LibraryItem> {
       isInvalid = jsonObject["isInvalid"]?.jsonPrimitive?.booleanOrNull ?: false,
       mediaType = mediaType,
       media = media,
+      rssFeed = jsonObject["rssFeed"]?.let { decoder.json.decodeFromJsonElement<RssFeed>(it) },
       libraryFiles =
         jsonObject["libraryFiles"]?.let { decoder.json.decodeFromJsonElement(it) } ?: emptyList(),
     )
@@ -90,6 +92,8 @@ object LibraryItemSerializer : KSerializer<LibraryItem> {
 
       val mediaJson = encoder.json.encodeToJsonElement(value.media)
       put("media", mediaJson)
+
+      value.rssFeed?.let { put("rssFeed", encoder.json.encodeToJsonElement(it)) }
 
       val libraryFilesJson = encoder.json.encodeToJsonElement(value.libraryFiles)
       put("libraryFiles", libraryFilesJson)
