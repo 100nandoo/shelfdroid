@@ -1,0 +1,13 @@
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.4.7"
+version_provider = "commitizen"
+version_scheme = "semver"
+version_files = [
+    "app/version.properties:VERSION_NAME",
+]
+tag_format = "$version"
+bump_message = "bump: version $current_version -> $new_version"
+pre_bump_hooks = [
+    "./update_version.sh $CZ_PRE_NEW_VERSION",
+]
