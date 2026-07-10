@@ -26,7 +26,10 @@
   </a>
 </p>
 
-ShelfDroid is a third-party Android client for self-hosted [Audiobookshelf](https://github.com/advplyr/audiobookshelf) servers. Use it to browse audiobook and podcast libraries, stream playback from your server, keep listening offline on your Android device, and handle common server management tasks from the same app.
+ShelfDroid is a third-party Android client for
+self-hosted [Audiobookshelf](https://github.com/advplyr/audiobookshelf) servers. Use it to browse
+audiobook and podcast libraries, stream playback from your server, keep listening offline on your
+Android device, and handle common server management tasks from the same app.
 
 ## Features
 
@@ -37,6 +40,30 @@ ShelfDroid is a third-party Android client for self-hosted [Audiobookshelf](http
 - Manage backups, API keys, users, logs, and server settings when your account has permission
 - Review listening sessions and other admin screens available to your account
 - Customize sorting, display preferences, and playback settings
+
+## Server Management Functionality
+
+<details>
+  <summary>View implemented server management features</summary>
+
+| Feature                       | Implemented |
+|-------------------------------|-------------|
+| Manage Book, Podcast, Episode | ☑️          |
+| RSS Feeds                     | ☑️          |
+| Backups                       | ☑️          |
+| Logs                          | ☑️          |
+| API Keys                      | ☑️          |
+| Users                         | ☑️          |
+| Server Settings               | ☑️          |
+| Open Sessions                 | ☑️          |
+| Listening Sessions            | ☑️          |
+| Email                         | ❌           |
+| Notifications                 | ❌           |
+| Edit Libraries                | ❌           |
+| Item Metadata Utils           | ❌           |
+| Authentication                | ❌           |
+
+</details>
 
 ## Screenshots
 
@@ -76,15 +103,18 @@ ShelfDroid is a third-party Android client for self-hosted [Audiobookshelf](http
 - [x] Develop a modern and user-friendly UI
 - [x] Support audiobook chapters for easy navigation
 
-See the [issue tracker](https://github.com/100nandoo/shelfdroid/issues) for current work and feature requests.
+See the [issue tracker](https://github.com/100nandoo/shelfdroid/issues) for current work and feature
+requests.
 
 ## Documentation
 
-Project documentation lives in [docs/DOCS.md](docs/DOCS.md), including code style and architecture notes. Recent release notes are tracked in [CHANGELOG.md](CHANGELOG.md).
+Project documentation lives in [docs/DOCS.md](docs/DOCS.md), including code style and architecture
+notes. Recent release notes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Acknowledgements
 
-- [Audiobookshelf](https://github.com/advplyr/audiobookshelf) for the server platform ShelfDroid connects to
+- [Audiobookshelf](https://github.com/advplyr/audiobookshelf) for the server platform ShelfDroid
+  connects to
 
 ## Star History
 
