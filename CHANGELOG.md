@@ -1,7 +1,8 @@
-## Unreleased
+## 0.4.8 (2026-07-10)
 
 ### Feat
 
+- **github**: pull release notes from fastlane changelog
 - **RssFeeds**: open rss feed
 - **RssFeedScreen**: full implementation
 - **MiscScreen**: split into 2 section; server, client
@@ -16,6 +17,7 @@
 - **deps**: update dependency androidx.hilt:hilt-navigation-compose to v1.4.0 (#248)
 - **deps**: update dependency androidx.compose:compose-bom to v2026.06.01 (#247)
 - **deps**: update androidxnavigation3 to v1.2.0-alpha05 (#246)
+- **deps**: update hilt to v2.60 (#242)
 
 ### Refactor
 

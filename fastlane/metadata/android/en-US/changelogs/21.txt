@@ -1,0 +1,15 @@
+
+### Feat
+
+- **RssFeeds**: open rss feed
+- **RssFeedScreen**: full implementation
+- **MiscScreen**: split into 2 section; server, client
+- **HomeScreen**: handle empty state cause by filter
+- **RefreshToken**: handle http code 401 for relogin flow
+- **BookMatchTab**: add ASIN support for book match tab
+
+### Refactor
+
+- **EditEpisode**: code review changes
+- **Prefs**: podcast default sort is progress, desc
+- **BookMatchTab**: improve book match ui
