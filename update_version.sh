@@ -3,6 +3,7 @@
 # Path to the file
 FILE="./app/version.properties"
 CHANGELOG_DIR="./fastlane/metadata/android/en-US/changelogs"
+CHANGELOG_FILE="${CZ_PRE_CHANGELOG_FILE_NAME:-./CHANGELOG.md}"
 
 # Ensure the script accepts a version name as an argument
 if [ $# -ne 1 ]; then
@@ -40,9 +41,23 @@ changelog_file="$CHANGELOG_DIR/$new_version_code.txt"
 
 perl -0pi -e "s/^VERSION_CODE=.*/VERSION_CODE=$new_version_code/m; s/^VERSION_NAME=.*/VERSION_NAME=$new_version_name/m" "$FILE"
 
-touch "$changelog_file"
+release_notes=""
+if [ -f "$CHANGELOG_FILE" ]; then
+  release_notes=$(awk -v version="$new_version_name" '
+    $0 ~ "^## " version " \\(" { in_section=1; next }
+    in_section && $0 ~ "^## " { exit }
+    in_section { print }
+  ' "$CHANGELOG_FILE")
+fi
+
+if [ -n "$release_notes" ]; then
+  printf "%s\n" "$release_notes" > "$changelog_file"
+else
+  touch "$changelog_file"
+fi
+
 git add "$changelog_file"
 
 echo "Version code has been updated to $new_version_code"
 echo "Version name has been updated to \"$new_version_name\""
-echo "Changelog file has been created at $changelog_file"
+echo "Changelog file has been updated at $changelog_file"

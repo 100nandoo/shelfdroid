@@ -8,6 +8,8 @@ version_files = [
 ]
 tag_format = "$version"
 bump_message = "bump: version $current_version -> $new_version"
+update_changelog_on_bump = true
+changelog_file = "CHANGELOG.md"
 pre_bump_hooks = [
     "./update_version.sh $CZ_PRE_NEW_VERSION",
 ]
