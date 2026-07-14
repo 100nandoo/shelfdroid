@@ -18,7 +18,7 @@ media = ":media"
 socketIO = ":socketio"
 testApp = ":test-app"
 
-androidGradlePlugin = "9.2.1"
+androidGradlePlugin = "9.3.0"
 androidxActivity = "1.13.0"
 androidxComposeBom = "2026.06.01"
 androidxCore = "1.19.0"
