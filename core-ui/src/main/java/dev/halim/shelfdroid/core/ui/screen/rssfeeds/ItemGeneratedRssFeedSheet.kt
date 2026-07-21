@@ -62,21 +62,21 @@ fun ItemGeneratedRssFeedSheet(
   val isCreateMode = currentFeed == null
 
   var slug by
-  rememberSaveable(rssFeed.defaultSlug, currentFeed?.id) {
-    mutableStateOf(rssFeed.defaultSlug)
-  }
+    rememberSaveable(rssFeed.defaultSlug, currentFeed?.id) {
+      mutableStateOf(rssFeed.defaultSlug)
+    }
   var preventIndexing by
-  rememberSaveable(currentFeed?.id) {
-    mutableStateOf(currentFeed?.preventIndexing ?: true)
-  }
+    rememberSaveable(currentFeed?.id) {
+      mutableStateOf(currentFeed?.preventIndexing ?: true)
+    }
   var ownerName by
-  rememberSaveable(currentFeed?.id) {
-    mutableStateOf(currentFeed?.ownerName.orEmpty())
-  }
+    rememberSaveable(currentFeed?.id) {
+      mutableStateOf(currentFeed?.ownerName.orEmpty())
+    }
   var ownerEmail by
-  rememberSaveable(currentFeed?.id) {
-    mutableStateOf(currentFeed?.ownerEmail.orEmpty())
-  }
+    rememberSaveable(currentFeed?.id) {
+      mutableStateOf(currentFeed?.ownerEmail.orEmpty())
+    }
 
   val previewUrl =
     remember(rssFeed.webBaseUrl, slug) { resolvePreviewFeedUrl(rssFeed.webBaseUrl, slug) }
@@ -107,7 +107,7 @@ fun ItemGeneratedRssFeedSheet(
       Text(
         text =
           stringResource(
-            if (isCreateMode) R.string.open_generated_rss_feed else R.string.generated_rss_feed,
+            if (isCreateMode) R.string.open_generated_rss_feed else R.string.generated_rss_feed
           ),
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.SemiBold,
@@ -236,7 +236,7 @@ fun ItemGeneratedRssFeedSheet(
                   preventIndexing = preventIndexing,
                   ownerName = ownerName,
                   ownerEmail = ownerEmail,
-                ),
+                )
               )
             } else {
               showCloseDialog = true
@@ -246,7 +246,7 @@ fun ItemGeneratedRssFeedSheet(
           modifier = Modifier.fillMaxWidth(),
         ) {
           Text(
-            text = stringResource(if (isCreateMode) R.string.open_feed else R.string.close_rss_feed),
+            text = stringResource(if (isCreateMode) R.string.open_feed else R.string.close_rss_feed)
           )
         }
       }

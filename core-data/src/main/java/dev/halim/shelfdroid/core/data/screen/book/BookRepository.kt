@@ -8,8 +8,8 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedMapper
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedMapper
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
@@ -125,9 +125,7 @@ constructor(
     itemId: String,
     details: GeneratedRssFeedDetails,
   ): Result<Unit> {
-    return libraryItemRepo
-      .openGeneratedRssFeedForItem(itemId = itemId, details = details)
-      .map {}
+    return libraryItemRepo.openGeneratedRssFeedForItem(itemId = itemId, details = details).map {}
   }
 
   suspend fun closeGeneratedRssFeed(itemId: String, feedId: String): Result<Unit> {

@@ -7,12 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,10 +33,10 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.RssFeedsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
+import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
 import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
 import dev.halim.shelfdroid.core.ui.components.TextLabelValue
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
-import dev.halim.shelfdroid.core.ui.components.TextTitleSmall
 import dev.halim.shelfdroid.core.ui.preview.Defaults.RSS_FEED
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -51,92 +50,96 @@ fun RssFeedSheet(
   onCopyUrl: (String) -> Unit,
 ) {
   ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss) {
-    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 64.dp)) {
-      Row(modifier = Modifier.fillMaxWidth()) {
-        CoverNoAnimation(
-          modifier = Modifier.size(88.dp),
-          coverUrl = feed.coverUrl,
-          shape = RoundedCornerShape(8.dp),
-          showFallback = true,
-        )
-        Column(modifier = Modifier.padding(start = 16.dp).weight(1f)) {
-          TextTitleMedium(text = feed.title)
-          TextLabelSmall(
-            text = entityTypeLabel(feed.entityType),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+    LazyColumn(modifier = Modifier.padding(bottom = 64.dp)) {
+      item {
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+          CoverNoAnimation(
+            modifier = Modifier.size(88.dp),
+            coverUrl = feed.coverUrl,
+            shape = RoundedCornerShape(8.dp),
+            showFallback = true,
           )
-          TextLabelSmall(
-            text =
-              "${feed.episodeCount} ${pluralStringResource(R.plurals.plurals_episode, feed.episodeCount)}",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
-      }
-
-      HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-      OutlinedTextField(
-        value = feed.publicFeedUrl,
-        onValueChange = {},
-        readOnly = true,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text(stringResource(R.string.public_feed_url)) },
-        singleLine = true,
-        trailingIcon = {
-          IconButton(onClick = { onCopyUrl(feed.publicFeedUrl) }) {
-            Icon(
-              painter = painterResource(R.drawable.copy),
-              contentDescription = stringResource(R.string.copy_rss_url),
+          Column(modifier = Modifier.padding(start = 16.dp).weight(1f)) {
+            TextTitleMedium(text = feed.title)
+            TextLabelSmall(
+              text = entityTypeLabel(feed.entityType),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextLabelSmall(
+              text =
+                "${feed.episodeCount} ${pluralStringResource(R.plurals.plurals_episode, feed.episodeCount)}",
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           }
-        },
-      )
+        }
 
-      Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp))
 
-      TextLabelValue(
-        label = stringResource(R.string.last_updated),
-        value = feed.updatedAtText,
-        labelWeight = 2f,
-      )
-      TextLabelValue(
-        label = stringResource(R.string.edit_item_type),
-        value = entityTypeLabel(feed.entityType),
-        labelWeight = 2f,
-      )
-      TextLabelValue(
-        label = stringResource(R.string.rss_feed_slug),
-        value = feed.slug,
-        labelWeight = 2f,
-      )
-      TextLabelValue(
-        label = stringResource(R.string.rss_feed_prevent_indexing),
-        value =
-          if (feed.preventIndexing) stringResource(R.string.yes) else stringResource(R.string.no),
-        labelWeight = 2f,
-      )
-      TextLabelValue(
-        label = stringResource(R.string.rss_feed_owner_name),
-        value = feed.ownerName.orEmpty(),
-        labelWeight = 2f,
-      )
-      TextLabelValue(
-        label = stringResource(R.string.rss_feed_owner_email),
-        value = feed.ownerEmail.orEmpty(),
-        labelWeight = 2f,
-      )
+        OutlinedTextField(
+          value = feed.publicFeedUrl,
+          onValueChange = {},
+          readOnly = true,
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+          label = { Text(stringResource(R.string.public_feed_url)) },
+          singleLine = true,
+          trailingIcon = {
+            IconButton(onClick = { onCopyUrl(feed.publicFeedUrl) }) {
+              Icon(
+                painter = painterResource(R.drawable.copy),
+                contentDescription = stringResource(R.string.copy_rss_url),
+              )
+            }
+          },
+        )
 
-      Spacer(modifier = Modifier.height(16.dp))
-      TextTitleMedium(text = stringResource(R.string.episodes))
-      Column(
-        modifier =
-          Modifier.fillMaxWidth().heightIn(max = 320.dp).verticalScroll(rememberScrollState())
-      ) {
-        feed.episodes.forEachIndexed { index, episode ->
-          if (index > 0) HorizontalDivider()
-          Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-            TextTitleSmall(text = episode.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
-          }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+          TextLabelValue(
+            label = stringResource(R.string.last_updated),
+            value = feed.updatedAtText,
+            labelWeight = 2f,
+          )
+          TextLabelValue(
+            label = stringResource(R.string.edit_item_type),
+            value = entityTypeLabel(feed.entityType),
+            labelWeight = 2f,
+          )
+          TextLabelValue(
+            label = stringResource(R.string.rss_feed_slug),
+            value = feed.slug,
+            labelWeight = 2f,
+          )
+          TextLabelValue(
+            label = stringResource(R.string.rss_feed_prevent_indexing),
+            value =
+              if (feed.preventIndexing) stringResource(R.string.yes)
+              else stringResource(R.string.no),
+            labelWeight = 2f,
+          )
+          TextLabelValue(
+            label = stringResource(R.string.rss_feed_owner_name),
+            value = feed.ownerName.orEmpty(),
+            labelWeight = 2f,
+          )
+          TextLabelValue(
+            label = stringResource(R.string.rss_feed_owner_email),
+            value = feed.ownerEmail.orEmpty(),
+            labelWeight = 2f,
+          )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        TextTitleMedium(
+          modifier = Modifier.padding(horizontal = 16.dp),
+          text = stringResource(R.string.episodes),
+        )
+      }
+
+      itemsIndexed(feed.episodes) { index, episode ->
+        if (index > 0) HorizontalDivider()
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+          TextBodyMedium(text = episode.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
       }
     }
