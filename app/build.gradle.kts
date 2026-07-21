@@ -120,7 +120,8 @@ dependencies {
 
   // Hilt Dependency Injection
   implementation(libs.hilt.android)
-  ksp(libs.hilt.compiler)
+    debugImplementation(libs.leakcanary)
+    ksp(libs.hilt.compiler)
 
   // Arch Components
   implementation(libs.androidx.lifecycle.runtime.compose)

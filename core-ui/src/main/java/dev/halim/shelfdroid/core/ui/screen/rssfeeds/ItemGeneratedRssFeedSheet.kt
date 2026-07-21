@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,12 +22,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +40,9 @@ import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.TextLabelValue
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.preview.sheetState
 import java.text.Normalizer
 
 @Composable
@@ -55,21 +62,21 @@ fun ItemGeneratedRssFeedSheet(
   val isCreateMode = currentFeed == null
 
   var slug by
-    rememberSaveable(rssFeed.defaultSlug, currentFeed?.id) {
-      mutableStateOf(rssFeed.defaultSlug)
-    }
+  rememberSaveable(rssFeed.defaultSlug, currentFeed?.id) {
+    mutableStateOf(rssFeed.defaultSlug)
+  }
   var preventIndexing by
-    rememberSaveable(currentFeed?.id) {
-      mutableStateOf(currentFeed?.preventIndexing ?: true)
-    }
+  rememberSaveable(currentFeed?.id) {
+    mutableStateOf(currentFeed?.preventIndexing ?: true)
+  }
   var ownerName by
-    rememberSaveable(currentFeed?.id) {
-      mutableStateOf(currentFeed?.ownerName.orEmpty())
-    }
+  rememberSaveable(currentFeed?.id) {
+    mutableStateOf(currentFeed?.ownerName.orEmpty())
+  }
   var ownerEmail by
-    rememberSaveable(currentFeed?.id) {
-      mutableStateOf(currentFeed?.ownerEmail.orEmpty())
-    }
+  rememberSaveable(currentFeed?.id) {
+    mutableStateOf(currentFeed?.ownerEmail.orEmpty())
+  }
 
   val previewUrl =
     remember(rssFeed.webBaseUrl, slug) { resolvePreviewFeedUrl(rssFeed.webBaseUrl, slug) }
@@ -91,14 +98,16 @@ fun ItemGeneratedRssFeedSheet(
 
   ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss) {
     Column(
-      modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 48.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
+      modifier =
+        Modifier.verticalScroll(rememberScrollState())
+          .padding(start = 16.dp, end = 16.dp, bottom = 48.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       Text(text = title, style = MaterialTheme.typography.headlineSmall)
       Text(
         text =
           stringResource(
-            if (isCreateMode) R.string.open_generated_rss_feed else R.string.generated_rss_feed
+            if (isCreateMode) R.string.open_generated_rss_feed else R.string.generated_rss_feed,
           ),
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.SemiBold,
@@ -110,25 +119,17 @@ fun ItemGeneratedRssFeedSheet(
           onValueChange = { slug = it },
           modifier = Modifier.fillMaxWidth(),
           label = { Text(stringResource(R.string.rss_feed_slug)) },
+          supportingText = {
+            Text(
+              text = previewUrl,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          },
           singleLine = true,
           enabled = !isProcessing,
         )
-        Text(
-          text =
-            stringResource(
-              R.string.generated_rss_feed_url_preview,
-              previewUrl,
-            ),
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
+        Spacer(Modifier.height(8.dp))
         HorizontalDivider()
-        Text(
-          text = stringResource(R.string.rss_details),
-          style = MaterialTheme.typography.titleSmall,
-          fontWeight = FontWeight.SemiBold,
-        )
         RowCheckbox(
           checked = preventIndexing,
           text = stringResource(R.string.rss_feed_prevent_indexing_directories),
@@ -136,11 +137,6 @@ fun ItemGeneratedRssFeedSheet(
           onCheckedChange = { preventIndexing = it },
         )
 
-        Text(
-          text = stringResource(R.string.advanced),
-          style = MaterialTheme.typography.titleSmall,
-          fontWeight = FontWeight.SemiBold,
-        )
         OutlinedTextField(
           value = ownerName,
           onValueChange = { ownerName = it },
@@ -240,7 +236,7 @@ fun ItemGeneratedRssFeedSheet(
                   preventIndexing = preventIndexing,
                   ownerName = ownerName,
                   ownerEmail = ownerEmail,
-                )
+                ),
               )
             } else {
               showCloseDialog = true
@@ -250,7 +246,7 @@ fun ItemGeneratedRssFeedSheet(
           modifier = Modifier.fillMaxWidth(),
         ) {
           Text(
-            text = stringResource(if (isCreateMode) R.string.open_feed else R.string.close_rss_feed)
+            text = stringResource(if (isCreateMode) R.string.open_feed else R.string.close_rss_feed),
           )
         }
       }
@@ -293,4 +289,32 @@ private fun resolvePreviewFeedUrl(webBaseUrl: String, slug: String): String {
   val baseUrl = AudiobookshelfBaseUrl.parse(webBaseUrl) ?: AudiobookshelfBaseUrl.DEFAULT
   val path = if (slug.isBlank()) "/feed/" else "/feed/$slug"
   return baseUrl.resolve(path)
+}
+
+@ShelfDroidPreview
+@Composable
+private fun ItemGeneratedRssFeedSheetPreview() {
+  PreviewWrapper(false) {
+    val density = LocalDensity.current
+    val sheetState = sheetState(density)
+
+    ItemGeneratedRssFeedSheet(
+      sheetState = sheetState,
+      title = "Studio Dispatch",
+      rssFeed =
+        GeneratedRssFeedUiState(
+          defaultSlug = "studio-dispatch",
+          webBaseUrl = "https://audiobooks.example.com",
+          canManage = true,
+          hasEpisodesWithoutPubDate = true,
+        ),
+      isProcessing = false,
+      onDismiss = {},
+      onCopyUrl = {},
+      onOpenFeed = {},
+      onCloseFeed = {},
+      onShowMessage = {},
+    )
+    LaunchedEffect(Unit) { sheetState.show() }
+  }
 }
