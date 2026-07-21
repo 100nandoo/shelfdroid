@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Open rss feeds
 - [ ] Notifications
 - [ ] Email
 - [ ] Item metadata utils
@@ -103,3 +102,4 @@
     - [x] Edit chapter go to web
 - [x] Edit episode
 - [x] Rss feeds
+- [x] Open rss feeds

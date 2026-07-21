@@ -93,15 +93,20 @@ Android device, and handle common server management tasks from the same app.
 
 ## Roadmap
 
-- [x] Implement core audiobook streaming functionality
-- [x] Add offline downloading and playback
-- [ ] Improve search and filtering features
+- [ ] Email management
+- [ ] Notifications management
+- [ ] Edit Libraries
+- [ ] Item Metadata Utils
+- [ ] Listening Sessions
 - [ ] Introduce custom themes for personalization
 - [ ] Add in-app settings for customization
 - [ ] Integrate Google Assistant for voice control
 - [x] Enhance playback controls with bookmarks and sleep timers
 - [x] Develop a modern and user-friendly UI
 - [x] Support audiobook chapters for easy navigation
+- [x] Implement core audiobook streaming functionality
+- [x] Add offline downloading and playback
+- [x] Improve search and filtering features
 
 See the [issue tracker](https://github.com/100nandoo/shelfdroid/issues) for current work and feature
 requests.
