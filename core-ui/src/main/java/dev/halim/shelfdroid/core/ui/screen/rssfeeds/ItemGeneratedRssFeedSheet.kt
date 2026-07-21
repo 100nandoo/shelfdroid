@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
@@ -45,7 +46,7 @@ fun ItemGeneratedRssFeedSheet(
   isProcessing: Boolean,
   onDismiss: () -> Unit,
   onCopyUrl: (String) -> Unit,
-  onOpenFeed: (String, Boolean, String, String) -> Unit,
+  onOpenFeed: (GeneratedRssFeedDetails) -> Unit,
   onCloseFeed: (String) -> Unit,
   onShowMessage: (String) -> Unit,
 ) {
@@ -233,7 +234,14 @@ fun ItemGeneratedRssFeedSheet(
                 onShowMessage(slugSanitizedMessage)
                 return@Button
               }
-              onOpenFeed(slug, preventIndexing, ownerName, ownerEmail)
+              onOpenFeed(
+                GeneratedRssFeedDetails(
+                  slug = slug,
+                  preventIndexing = preventIndexing,
+                  ownerName = ownerName,
+                  ownerEmail = ownerEmail,
+                )
+              )
             } else {
               showCloseDialog = true
             }

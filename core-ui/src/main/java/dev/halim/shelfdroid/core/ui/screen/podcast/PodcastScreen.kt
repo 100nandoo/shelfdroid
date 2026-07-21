@@ -158,16 +158,7 @@ fun PodcastScreen(
           snackbarHostState.showSuccessSnackbar(copiedMessage)
         }
       },
-      onOpenFeed = { slug, preventIndexing, ownerName, ownerEmail ->
-        viewModel.onEvent(
-          PodcastEvent.OpenGeneratedRssFeed(
-            slug = slug,
-            preventIndexing = preventIndexing,
-            ownerName = ownerName,
-            ownerEmail = ownerEmail,
-          )
-        )
-      },
+      onOpenFeed = { details -> viewModel.onEvent(PodcastEvent.OpenGeneratedRssFeed(details)) },
       onCloseFeed = { feedId -> viewModel.onEvent(PodcastEvent.CloseGeneratedRssFeed(feedId)) },
       onShowMessage = { message ->
         scope.launch { snackbarHostState.showErrorSnackbar(message) }

@@ -30,7 +30,18 @@ class RssFeedsViewModel @Inject constructor(private val repository: RssFeedsRepo
       is RssFeedsEvent.CloseFeed -> {
         viewModelScope.launch {
           _uiState.update { it.copy(apiState = RssFeedsApiState.Loading) }
-          _uiState.update { repository.closeFeed(event.feedId, it) }
+          val result = repository.closeFeed(event.feedId)
+          _uiState.update { state ->
+            result.fold(
+              onSuccess = {
+                state.copy(
+                  apiState = RssFeedsApiState.CloseSuccess,
+                  feeds = state.feeds.filterNot { it.id == event.feedId },
+                )
+              },
+              onFailure = { state.copy(apiState = RssFeedsApiState.CloseFailure(it.message)) },
+            )
+          }
         }
       }
       RssFeedsEvent.Refresh -> initialPage()

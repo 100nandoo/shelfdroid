@@ -17,6 +17,7 @@ import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.toBoolean
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.download.BookCleanupRequest
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
@@ -85,14 +86,18 @@ constructor(
 
   suspend fun openGeneratedRssFeedForItem(
     itemId: String,
-    slug: String,
-    metadataDetails: OpenItemRssFeedMetadataDetails,
+    details: GeneratedRssFeedDetails,
   ): Result<RssFeed> {
     val request =
       OpenItemRssFeedRequest(
         serverAddress = currentWebBaseUrl(),
-        slug = slug,
-        metadataDetails = metadataDetails,
+        slug = details.slug,
+        metadataDetails =
+          OpenItemRssFeedMetadataDetails(
+            preventIndexing = details.preventIndexing,
+            ownerName = details.ownerName,
+            ownerEmail = details.ownerEmail,
+          ),
       )
     val response =
       api.openItemRssFeed(itemId, request).getOrElse {

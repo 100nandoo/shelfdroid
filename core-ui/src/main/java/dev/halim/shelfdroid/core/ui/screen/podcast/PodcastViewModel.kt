@@ -16,6 +16,7 @@ import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.DeleteSucce
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState.OpenRssFeedFailure
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastRepository
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.ui.navigation.Podcast
 import dev.halim.shelfdroid.core.ui.player.forItemAction
 import dev.halim.shelfdroid.download.DownloadRepo
@@ -179,10 +180,7 @@ constructor(
           val result =
             repository.openGeneratedRssFeed(
               itemId = id,
-              slug = event.slug,
-              preventIndexing = event.preventIndexing,
-              ownerName = event.ownerName,
-              ownerEmail = event.ownerEmail,
+              details = event.details,
             )
           apiState.update {
             result.fold(
@@ -280,12 +278,7 @@ sealed interface PodcastEvent {
 
   data object AddEpisode : PodcastEvent
 
-  data class OpenGeneratedRssFeed(
-    val slug: String,
-    val preventIndexing: Boolean,
-    val ownerName: String,
-    val ownerEmail: String,
-  ) : PodcastEvent
+  data class OpenGeneratedRssFeed(val details: GeneratedRssFeedDetails) : PodcastEvent
 
   data class CloseGeneratedRssFeed(val feedId: String) : PodcastEvent
 

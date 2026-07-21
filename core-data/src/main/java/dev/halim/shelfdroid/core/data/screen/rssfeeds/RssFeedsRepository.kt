@@ -27,16 +27,7 @@ constructor(private val api: ApiService, private val helper: Helper) {
     )
   }
 
-  suspend fun closeFeed(feedId: String, uiState: RssFeedsUiState): RssFeedsUiState {
-    api.closeRssFeed(feedId).getOrElse {
-      return uiState.copy(apiState = RssFeedsApiState.CloseFailure(it.message))
-    }
-
-    return uiState.copy(
-      apiState = RssFeedsApiState.CloseSuccess,
-      feeds = uiState.feeds.filterNot { it.id == feedId },
-    )
-  }
+  suspend fun closeFeed(feedId: String): Result<Unit> = api.closeRssFeed(feedId)
 
   private fun currentWebBaseUrl(): String =
     AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL)?.value

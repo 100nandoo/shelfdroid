@@ -125,16 +125,7 @@ fun BookScreen(
           snackbarHostState.showSuccessSnackbar(copiedMessage)
         }
       },
-      onOpenFeed = { slug, preventIndexing, ownerName, ownerEmail ->
-        viewModel.onEvent(
-          BookEvent.OpenGeneratedRssFeed(
-            slug = slug,
-            preventIndexing = preventIndexing,
-            ownerName = ownerName,
-            ownerEmail = ownerEmail,
-          )
-        )
-      },
+      onOpenFeed = { details -> viewModel.onEvent(BookEvent.OpenGeneratedRssFeed(details)) },
       onCloseFeed = { feedId -> viewModel.onEvent(BookEvent.CloseGeneratedRssFeed(feedId)) },
       onShowMessage = { message ->
         scope.launch { snackbarHostState.showErrorSnackbar(message) }

@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.book
 
 import android.annotation.SuppressLint
-import dev.halim.core.network.request.OpenItemRssFeedMetadataDetails
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
@@ -10,6 +9,7 @@ import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedMapper
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
@@ -123,22 +123,10 @@ constructor(
 
   suspend fun openGeneratedRssFeed(
     itemId: String,
-    slug: String,
-    preventIndexing: Boolean,
-    ownerName: String,
-    ownerEmail: String,
+    details: GeneratedRssFeedDetails,
   ): Result<Unit> {
     return libraryItemRepo
-      .openGeneratedRssFeedForItem(
-        itemId = itemId,
-        slug = slug,
-        metadataDetails =
-          OpenItemRssFeedMetadataDetails(
-            preventIndexing = preventIndexing,
-            ownerName = ownerName,
-            ownerEmail = ownerEmail,
-          ),
-      )
+      .openGeneratedRssFeedForItem(itemId = itemId, details = details)
       .map {}
   }
 

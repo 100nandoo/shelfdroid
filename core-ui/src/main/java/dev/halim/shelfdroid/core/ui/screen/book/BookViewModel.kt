@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.book.BookApiState
 import dev.halim.shelfdroid.core.data.screen.book.BookRepository
 import dev.halim.shelfdroid.core.data.screen.book.BookUiState
+import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.ui.event.CommonDownloadEvent
 import dev.halim.shelfdroid.core.ui.navigation.Book
 import dev.halim.shelfdroid.download.DownloadRepo
@@ -72,10 +73,7 @@ constructor(
           val result =
             repository.openGeneratedRssFeed(
               itemId = id,
-              slug = event.slug,
-              preventIndexing = event.preventIndexing,
-              ownerName = event.ownerName,
-              ownerEmail = event.ownerEmail,
+              details = event.details,
             )
           apiState.update {
             result.fold(
@@ -118,12 +116,7 @@ constructor(
 sealed interface BookEvent {
   data class DownloadEvent(val downloadEvent: CommonDownloadEvent) : BookEvent
 
-  data class OpenGeneratedRssFeed(
-    val slug: String,
-    val preventIndexing: Boolean,
-    val ownerName: String,
-    val ownerEmail: String,
-  ) : BookEvent
+  data class OpenGeneratedRssFeed(val details: GeneratedRssFeedDetails) : BookEvent
 
   data class CloseGeneratedRssFeed(val feedId: String) : BookEvent
 

@@ -2,6 +2,13 @@ package dev.halim.shelfdroid.core.data.screen.rssfeeds
 
 import dev.halim.core.network.response.RssFeed
 
+data class GeneratedRssFeedDetails(
+  val slug: String,
+  val preventIndexing: Boolean,
+  val ownerName: String,
+  val ownerEmail: String,
+)
+
 data class GeneratedRssFeedUiState(
   val currentFeed: CurrentFeedUi? = null,
   val publicFeedUrl: String = "",
