@@ -41,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemScreen
+import dev.halim.shelfdroid.core.ui.screen.emailmanagement.EmailManagementScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
@@ -143,6 +144,7 @@ private fun ColumnScope.NavHostContainer(
             onLibrariesClicked = {},
             onApiKeysClicked = { navigator.navigate(NavApiKeys) },
             onServerSettingsClicked = { navigator.navigate(ServerSettings) },
+            onEmailManagementClicked = { navigator.navigate(EmailManagement) },
             onRssFeedsClicked = { navigator.navigate(RssFeeds) },
             onLogsClicked = { navigator.navigate(Logs) },
             onBackupsClicked = { navigator.navigate(Backups) },
@@ -337,6 +339,11 @@ private fun ColumnScope.NavHostContainer(
       entry<ServerSettings> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           ServerSettingsScreen(snackbarHostState = snackbarHostState)
+        }
+      }
+      entry<EmailManagement> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          EmailManagementScreen(snackbarHostState = snackbarHostState)
         }
       }
       entry<RssFeeds> {

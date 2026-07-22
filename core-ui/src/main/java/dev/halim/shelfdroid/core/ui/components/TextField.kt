@@ -120,6 +120,7 @@ fun MyOutlinedTextField(
 @Composable
 fun PasswordTextField(
   modifier: Modifier = Modifier,
+  enabled: Boolean = true,
   value: String,
   onValueChange: (String) -> Unit,
   label: String,
@@ -131,6 +132,8 @@ fun PasswordTextField(
   var passwordVisible by remember { mutableStateOf(false) }
 
   OutlinedTextField(
+    readOnly = enabled.not(),
+    enabled = enabled,
     value = value,
     onValueChange = onValueChange,
     label = { Text(label) },

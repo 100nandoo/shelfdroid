@@ -23,6 +23,8 @@ import dev.halim.core.network.request.UpdatePodcastEpisodeRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.request.ValidateCronRequest
+import dev.halim.core.network.request.emailmanagement.UpdateEmailSettingsRequest
+import dev.halim.core.network.request.emailmanagement.UpdateEreaderDevicesRequest
 import dev.halim.core.network.response.ApiKeysResponse
 import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BackupsResponse
@@ -60,6 +62,8 @@ import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
+import dev.halim.core.network.response.emailmanagement.EmailSettingsResponse
+import dev.halim.core.network.response.emailmanagement.EreaderDevicesResponse
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.core.network.response.play.PlayResponse
 import okhttp3.MultipartBody
@@ -374,6 +378,20 @@ interface ApiService {
   suspend fun updateSettings(
     @Body request: UpdateServerSettingsRequest
   ): Result<ServerSettingsResponse>
+
+  @GET("/api/emails/settings") suspend fun emailSettings(): Result<EmailSettingsResponse>
+
+  @PATCH("/api/emails/settings")
+  suspend fun updateEmailSettings(
+    @Body request: UpdateEmailSettingsRequest
+  ): Result<EmailSettingsResponse>
+
+  @POST("/api/emails/test") suspend fun sendTestEmail(): Result<Unit>
+
+  @POST("/api/emails/ereader-devices")
+  suspend fun updateEreaderDevices(
+    @Body request: UpdateEreaderDevicesRequest
+  ): Result<EreaderDevicesResponse>
 
   // search providers
   @GET("/api/search/providers") suspend fun searchProviders(): Result<SearchProvidersResponse>

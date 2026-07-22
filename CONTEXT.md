@@ -118,6 +118,18 @@ _Avoid_: RSS feed, feed URL
 The editable Audiobookshelf server configuration exposed through ShelfDroid administrative screens.
 _Avoid_: Preferences, app settings
 
+**Email settings**:
+The Audiobookshelf server's SMTP configuration and shared send-to-device configuration used for test email delivery and ebook delivery to **E-reader devices**.
+_Avoid_: Mail prefs, notification settings
+
+**E-reader device**:
+A named email delivery destination stored in **Email settings** that users may target when the Audiobookshelf server sends an ebook attachment.
+_Avoid_: Kindle address, send target
+
+**E-reader device availability**:
+The server-side access policy on an **E-reader device** that determines whether it is available to admins only, all non-guest users, all users, or a specific set of **Users**.
+_Avoid_: Device permission, recipient scope
+
 **Episode update check**:
 An administrative action that asks the Audiobookshelf server to look for new **Episodes** for a **Podcast**, using a **Podcast source feed**, an **Episode update cutoff**, and a requested maximum number of new episodes to download.
 _Avoid_: Add episode, refresh feed, sync podcast
@@ -177,6 +189,9 @@ _Avoid_: Best-effort release, unverifiable build
 - An **API key** belongs to exactly one **User**
 - A **Generated RSS feed** belongs to one **Library item**, **Series**, or **Collection**
 - **Server settings** belong to the **Audiobookshelf server**
+- **Email settings** belong to the **Audiobookshelf server**
+- An **E-reader device** belongs to **Email settings**
+- An **E-reader device availability** belongs to one **E-reader device**
 - **Session recovery** happens before **Forced re-login**
 - A **Forced re-login** keeps the same **User** and **Audiobookshelf server**
 - A **Full logout** ends the current local session instead of recovering it
@@ -203,5 +218,6 @@ _Avoid_: Best-effort release, unverifiable build
 - "current playback" and **Open session** are distinct; **Current playback** is local player state inside ShelfDroid, while an **Open session** is server-tracked.
 - "track", "chapter", and "episode" are distinct; a **Track** is a file unit for books, a **Chapter** is a navigation segment in a book, and an **Episode** belongs to a podcast.
 - "progress" is overloaded; use **Progress** for completion state and **Progress recency** for the last update used to order home-screen items.
+- "settings" is overloaded; use **Email settings** for SMTP and send-to-device configuration, and use **Server settings** for the broader Audiobookshelf server configuration surface.
 - "download" and **Library file** are not the same thing; a **Library file** exists on the server, while a **Download** is a local device copy or downloaded server artifact.
 - "F-Droid release" is too vague in this repo; say **F-Droid main repository** when discussing the curated public catalog, and say **Reproducible release** when discussing release provenance.

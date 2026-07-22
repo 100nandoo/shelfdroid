@@ -29,6 +29,7 @@ fun MiscScreen(
   onLibrariesClicked: () -> Unit,
   onApiKeysClicked: () -> Unit,
   onServerSettingsClicked: () -> Unit,
+  onEmailManagementClicked: () -> Unit,
   onRssFeedsClicked: () -> Unit,
   onLogsClicked: () -> Unit,
   onBackupsClicked: () -> Unit,
@@ -42,6 +43,7 @@ fun MiscScreen(
     onLibrariesClicked = onLibrariesClicked,
     onApiKeysClicked = onApiKeysClicked,
     onServerSettingsClicked = onServerSettingsClicked,
+    onEmailManagementClicked = onEmailManagementClicked,
     onRssFeedsClicked = onRssFeedsClicked,
     onLogsClicked = onLogsClicked,
     onBackupsClicked = onBackupsClicked,
@@ -58,6 +60,7 @@ private fun MiscScreenContent(
   onLibrariesClicked: () -> Unit = {},
   onApiKeysClicked: () -> Unit = {},
   onServerSettingsClicked: () -> Unit = {},
+  onEmailManagementClicked: () -> Unit = {},
   onRssFeedsClicked: () -> Unit = {},
   onLogsClicked: () -> Unit = {},
   onBackupsClicked: () -> Unit = {},
@@ -111,6 +114,13 @@ private fun MiscScreenContent(
         modifier = modifier,
       ) {
         Text(text = stringResource(R.string.settings))
+      }
+
+      TextButton(
+        onClick = onEmailManagementClicked,
+        modifier = modifier,
+      ) {
+        Text(text = stringResource(R.string.email_management))
       }
 
       TextButton(

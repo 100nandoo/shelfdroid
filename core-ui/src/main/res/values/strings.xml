@@ -332,6 +332,49 @@
     <string name="owner_semicolon">Owner: </string>
     <!--API Keys-->
 
+    <!--Email Management-->
+    <string name="email_management">Email Management</string>
+    <string name="smtp_settings">SMTP Settings</string>
+    <string name="smtp_settings_description">Configure the server email transport used for test messages and send-to-device deliveries.</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="secure_connection">Secure connection</string>
+    <string name="reject_unauthorized_certificates">Reject unauthorized certificates</string>
+    <string name="from_address">From address</string>
+    <string name="test_address">Test address</string>
+    <string name="test">Test</string>
+    <string name="reset">Reset</string>
+    <string name="email_settings_updated">Email settings updated.</string>
+    <string name="email_settings_update_failed">Failed to update email settings.</string>
+    <string name="test_email_sent">Test email sent.</string>
+    <string name="test_email_failed">Failed to send test email.</string>
+    <string name="e_reader_devices">eReader Devices</string>
+    <string name="e_reader_devices_description">Manage the shared send-to-device destinations exposed by the Audiobookshelf server.</string>
+    <string name="add_device">Add Device</string>
+    <string name="edit_device">Edit Device</string>
+    <string name="delete_device">Delete Device</string>
+    <string name="delete_device_confirm">Delete the eReader device \"%1$s\"?</string>
+    <string name="email_address">Email</string>
+    <string name="device_available_to">Device is available to</string>
+    <string name="admins_only">Admins only</string>
+    <string name="users_excluding_guests">Users (excluding guests)</string>
+    <string name="users_including_guests">Users (including guests)</string>
+    <string name="select_users">Select users</string>
+    <string name="device_name_required">Device name is required.</string>
+    <string name="device_email_required">Device email is required.</string>
+    <string name="device_name_already_exists">A device with this name already exists.</string>
+    <string name="select_at_least_one_user">Select at least one user.</string>
+    <string name="loading_users">Loading users…</string>
+    <string name="failed_to_load_users">Failed to load users.</string>
+    <string name="no_users_available">No users available.</string>
+    <string name="device_update_failed">Failed to update device.</string>
+    <string name="device_added">Device added.</string>
+    <string name="device_updated">Device updated.</string>
+    <string name="device_deleted">Device deleted.</string>
+    <string name="no_e_reader_devices">No eReader devices configured.</string>
+    <string name="accessible_by_value">Accessible by: %1$s</string>
+    <!--Email Management-->
+
     <!--Book-->
     <string name="completed">Completed</string>
     <!--Book-->
