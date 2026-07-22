@@ -48,7 +48,7 @@ sqldelight = "2.3.2"
 
 # 3rd party
 accompanist = "0.37.3"
-coil = "3.4.0"
+coil = "3.5.0"
 retrofit = "3.0.0"
 retrofit-result = "1.1.0"
 socketioClient = "2.1.2"
