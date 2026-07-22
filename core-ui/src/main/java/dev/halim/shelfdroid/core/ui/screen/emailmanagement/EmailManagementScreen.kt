@@ -396,9 +396,6 @@ private fun HandleEmailManagementSnackbar(
 @Composable
 private fun accessibleByLabel(device: EreaderDeviceItem, uiState: EmailManagementUiState): String =
   when (device.availabilityOption) {
-    DeviceAvailabilityOption.AdminOrUp -> stringResource(R.string.admins_only)
-    DeviceAvailabilityOption.UserOrUp -> stringResource(R.string.users_excluding_guests)
-    DeviceAvailabilityOption.GuestOrUp -> stringResource(R.string.users_including_guests)
     DeviceAvailabilityOption.SpecificUsers -> {
       val usernames =
         device.users
@@ -408,6 +405,8 @@ private fun accessibleByLabel(device: EreaderDeviceItem, uiState: EmailManagemen
           }
       usernames.joinToString()
     }
+
+    else -> availabilityLabel(device.availabilityOption)
   }
 
 @ShelfDroidPreview

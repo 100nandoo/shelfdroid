@@ -3,7 +3,6 @@
 ## High Priority
 
 - [ ] Notifications
-- [ ] Email
 - [ ] Item metadata utils
 - [ ] authentications
 - [ ] Refactor player state
@@ -103,3 +102,4 @@
 - [x] Edit episode
 - [x] Rss feeds
 - [x] Open rss feeds
+- [x] Email

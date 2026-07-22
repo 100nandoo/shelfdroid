@@ -93,7 +93,7 @@ Android device, and handle common server management tasks from the same app.
 
 ## Roadmap
 
-- [ ] Email management
+- [ ] Authentication management
 - [ ] Notifications management
 - [ ] Edit Libraries
 - [ ] Item Metadata Utils
@@ -107,6 +107,7 @@ Android device, and handle common server management tasks from the same app.
 - [x] Implement core audiobook streaming functionality
 - [x] Add offline downloading and playback
 - [x] Improve search and filtering features
+- [x] Email management
 
 See the [issue tracker](https://github.com/100nandoo/shelfdroid/issues) for current work and feature
 requests.
@@ -120,10 +121,6 @@ notes. Recent release notes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 - [Audiobookshelf](https://github.com/advplyr/audiobookshelf) for the server platform ShelfDroid
   connects to
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=100nandoo/shelfdroid&type=Date)](https://star-history.com/#100nandoo/shelfdroid&Date)
 
 ## Contributing
 
