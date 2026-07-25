@@ -402,6 +402,9 @@ interface ApiService {
   @DELETE("/api/notifications/{ruleId}")
   suspend fun deleteAppriseNotificationRule(@Path("ruleId") ruleId: String): Result<Unit>
 
+  @GET("/api/notifications/{ruleId}/test")
+  suspend fun testAppriseNotificationRule(@Path("ruleId") ruleId: String): Result<Unit>
+
   @GET("/api/emails/settings") suspend fun emailSettings(): Result<EmailSettingsResponse>
 
   @PATCH("/api/emails/settings")

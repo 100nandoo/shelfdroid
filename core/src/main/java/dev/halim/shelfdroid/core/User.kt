@@ -36,6 +36,8 @@ enum class UserType {
 
   fun isAdmin(): Boolean = this == Admin
 
+  fun isAdminOrUp(): Boolean = isAdmin() || isRoot()
+
   fun isUser(): Boolean = this == User
 
   fun isRoot(): Boolean = this == Root

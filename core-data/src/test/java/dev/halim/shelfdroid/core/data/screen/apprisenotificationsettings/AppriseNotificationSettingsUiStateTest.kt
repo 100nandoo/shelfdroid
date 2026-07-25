@@ -1,10 +1,14 @@
 package dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings
 
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import retrofit2.HttpException
+import retrofit2.Response
 
 class AppriseNotificationSettingsUiStateTest {
 
@@ -169,10 +173,45 @@ class AppriseNotificationSettingsUiStateTest {
             AppriseNotificationSettingsMutationTarget.NotificationRule
           )
       )
+    val ruleTestSavingState =
+      AppriseNotificationSettingsUiState(
+        apiState =
+          AppriseNotificationSettingsApiState.Loading(
+            AppriseNotificationSettingsMutationTarget.NotificationRuleTest
+          )
+      )
 
     assertTrue(settingsSavingState.isSavingSettings)
     assertFalse(settingsSavingState.isMutatingRule)
     assertFalse(ruleSavingState.isSavingSettings)
     assertTrue(ruleSavingState.isMutatingRule)
+    assertFalse(ruleTestSavingState.isSavingSettings)
+    assertTrue(ruleTestSavingState.isMutatingRule)
   }
+
+  @Test
+  fun notificationRuleTestFailureReason_mapsKnownHttpCodes() {
+    assertEquals(
+      AppriseNotificationSettingsFailureReason.AppriseNotConfigured,
+      notificationRuleTestFailureReason(httpException(400)),
+    )
+    assertEquals(
+      AppriseNotificationSettingsFailureReason.DeliveryFailed,
+      notificationRuleTestFailureReason(httpException(500)),
+    )
+  }
+
+  @Test
+  fun notificationRuleTestFailureReason_ignoresUnknownFailures() {
+    assertNull(notificationRuleTestFailureReason(httpException(404)))
+    assertNull(notificationRuleTestFailureReason(IllegalStateException("boom")))
+  }
+
+  private fun httpException(code: Int): HttpException =
+    HttpException(
+      Response.error<Unit>(
+        code,
+        "".toResponseBody("text/plain".toMediaType()),
+      )
+    )
 }

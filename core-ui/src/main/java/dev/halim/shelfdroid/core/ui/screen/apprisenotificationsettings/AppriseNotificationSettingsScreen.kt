@@ -39,6 +39,7 @@ import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.Apprise
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseGlobalSettingsForm
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseGlobalSettingsValidation
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsApiState
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsFailureReason
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsMutationTarget
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationEventUi
@@ -210,6 +211,7 @@ private fun NotificationRulesSection(
           AppriseNotificationSettingsMutationTarget.NotificationRule -> editing = null
           AppriseNotificationSettingsMutationTarget.NotificationRuleDelete -> deleting = null
           AppriseNotificationSettingsMutationTarget.GlobalSettings -> Unit
+          AppriseNotificationSettingsMutationTarget.NotificationRuleTest -> Unit
         }
       else -> Unit
     }
@@ -232,6 +234,7 @@ private fun NotificationRulesSection(
         NotificationRuleCard(
           rule = rule,
           enabled = !isLoading,
+          onTest = { onEvent(AppriseNotificationSettingsEvent.TestRule(rule)) },
           onEdit = { editing = rule.form },
           onDelete = { deleting = rule },
         )
@@ -290,6 +293,7 @@ private fun NotificationRulesSection(
 private fun NotificationRuleCard(
   rule: NotificationRuleUi,
   enabled: Boolean,
+  onTest: () -> Unit,
   onEdit: () -> Unit,
   onDelete: () -> Unit,
 ) {
@@ -317,6 +321,9 @@ private fun NotificationRuleCard(
   }
   Spacer(modifier = Modifier.height(12.dp))
   Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Button(enabled = enabled, onClick = onTest) {
+      Text(stringResource(R.string.test))
+    }
     Button(enabled = enabled, onClick = onEdit) {
       Text(stringResource(R.string.edit))
     }
@@ -493,6 +500,12 @@ private fun HandleAppriseNotificationSettingsSnackbar(
   val ruleSaveErrorMessage = stringResource(R.string.notification_rule_save_failed)
   val ruleDeleteSuccessMessage = stringResource(R.string.notification_rule_deleted)
   val ruleDeleteErrorMessage = stringResource(R.string.notification_rule_delete_failed)
+  val ruleTestSuccessMessage = stringResource(R.string.notification_rule_test_sent)
+  val ruleTestErrorMessage = stringResource(R.string.notification_rule_test_failed)
+  val ruleTestNotConfiguredMessage =
+    stringResource(R.string.notification_rule_test_apprise_not_configured)
+  val ruleTestDeliveryFailedMessage =
+    stringResource(R.string.notification_rule_test_delivery_failed)
 
   LaunchedEffect(uiState.apiState) {
     when (val state = uiState.apiState) {
@@ -503,16 +516,25 @@ private fun HandleAppriseNotificationSettingsSnackbar(
             AppriseNotificationSettingsMutationTarget.NotificationRule -> ruleSaveSuccessMessage
             AppriseNotificationSettingsMutationTarget.NotificationRuleDelete ->
               ruleDeleteSuccessMessage
+            AppriseNotificationSettingsMutationTarget.NotificationRuleTest -> ruleTestSuccessMessage
           }
         )
       is AppriseNotificationSettingsApiState.Failure ->
         snackbarHostState.showErrorSnackbar(
-          state.message
+          state.message.takeUnless { state.reason != null }
             ?: when (state.target) {
               AppriseNotificationSettingsMutationTarget.GlobalSettings -> settingsErrorMessage
               AppriseNotificationSettingsMutationTarget.NotificationRule -> ruleSaveErrorMessage
               AppriseNotificationSettingsMutationTarget.NotificationRuleDelete ->
                 ruleDeleteErrorMessage
+              AppriseNotificationSettingsMutationTarget.NotificationRuleTest ->
+                when (state.reason) {
+                  AppriseNotificationSettingsFailureReason.AppriseNotConfigured ->
+                    ruleTestNotConfiguredMessage
+                  AppriseNotificationSettingsFailureReason.DeliveryFailed ->
+                    ruleTestDeliveryFailedMessage
+                  null -> ruleTestErrorMessage
+                }
             }
         )
       else -> Unit

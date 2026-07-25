@@ -4,6 +4,7 @@ import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseN
 import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
 import dev.halim.shelfdroid.core.data.GenericState
 import java.net.URI
+import retrofit2.HttpException
 
 data class AppriseNotificationSettingsUiState(
   val state: GenericState = GenericState.Loading,
@@ -63,6 +64,12 @@ enum class AppriseNotificationSettingsMutationTarget {
   GlobalSettings,
   NotificationRule,
   NotificationRuleDelete,
+  NotificationRuleTest,
+}
+
+enum class AppriseNotificationSettingsFailureReason {
+  AppriseNotConfigured,
+  DeliveryFailed,
 }
 
 sealed interface AppriseNotificationSettingsApiState {
@@ -77,6 +84,7 @@ sealed interface AppriseNotificationSettingsApiState {
   data class Failure(
     val target: AppriseNotificationSettingsMutationTarget,
     val message: String?,
+    val reason: AppriseNotificationSettingsFailureReason? = null,
   ) : AppriseNotificationSettingsApiState
 }
 
@@ -184,3 +192,12 @@ private fun String.toAbsoluteUriOrNull(): URI? =
         uri.scheme != null &&
         !uri.host.isNullOrBlank()
     }
+
+internal fun notificationRuleTestFailureReason(
+  error: Throwable
+): AppriseNotificationSettingsFailureReason? =
+  when ((error as? HttpException)?.code()) {
+    400 -> AppriseNotificationSettingsFailureReason.AppriseNotConfigured
+    500 -> AppriseNotificationSettingsFailureReason.DeliveryFailed
+    else -> null
+  }

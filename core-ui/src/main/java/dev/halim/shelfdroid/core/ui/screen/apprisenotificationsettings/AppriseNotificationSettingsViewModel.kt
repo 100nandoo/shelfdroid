@@ -42,6 +42,7 @@ constructor(private val repository: AppriseNotificationSettingsRepository) : Vie
       AppriseNotificationSettingsEvent.SaveSettings -> saveSettings()
       is AppriseNotificationSettingsEvent.SaveRule -> saveRule(event.form)
       is AppriseNotificationSettingsEvent.DeleteRule -> deleteRule(event.rule)
+      is AppriseNotificationSettingsEvent.TestRule -> testRule(event.rule)
     }
   }
 
@@ -92,6 +93,20 @@ constructor(private val repository: AppriseNotificationSettingsRepository) : Vie
       _uiState.update { repository.deleteRule(it, rule) }
     }
   }
+
+  private fun testRule(rule: NotificationRuleUi) {
+    viewModelScope.launch {
+      _uiState.update {
+        it.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Loading(
+              AppriseNotificationSettingsMutationTarget.NotificationRuleTest
+            )
+        )
+      }
+      _uiState.update { repository.testRule(it, rule) }
+    }
+  }
 }
 
 sealed interface AppriseNotificationSettingsEvent {
@@ -102,4 +117,5 @@ sealed interface AppriseNotificationSettingsEvent {
   data object SaveSettings : AppriseNotificationSettingsEvent
   data class SaveRule(val form: NotificationRuleForm) : AppriseNotificationSettingsEvent
   data class DeleteRule(val rule: NotificationRuleUi) : AppriseNotificationSettingsEvent
+  data class TestRule(val rule: NotificationRuleUi) : AppriseNotificationSettingsEvent
 }

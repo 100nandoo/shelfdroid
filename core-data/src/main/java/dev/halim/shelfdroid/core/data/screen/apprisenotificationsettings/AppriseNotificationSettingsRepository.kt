@@ -16,7 +16,7 @@ constructor(
 ) {
 
   suspend fun load(): AppriseNotificationSettingsUiState {
-    if (!prefsRepository.userPrefs.first().isAdmin) {
+    if (!prefsRepository.userPrefs.first().type.isAdminOrUp()) {
       return AppriseNotificationSettingsUiState(
         state = GenericState.Success,
         canAccess = false,
@@ -136,6 +136,29 @@ constructor(
             )
         )
       }
+  }
+
+  suspend fun testRule(
+    uiState: AppriseNotificationSettingsUiState,
+    rule: NotificationRuleUi,
+  ): AppriseNotificationSettingsUiState {
+    api.testAppriseNotificationRule(rule.id).getOrElse {
+      return uiState.copy(
+        apiState =
+          AppriseNotificationSettingsApiState.Failure(
+            target = AppriseNotificationSettingsMutationTarget.NotificationRuleTest,
+            message = it.message,
+            reason = notificationRuleTestFailureReason(it),
+          )
+      )
+    }
+
+    return uiState.copy(
+      apiState =
+        AppriseNotificationSettingsApiState.Success(
+          AppriseNotificationSettingsMutationTarget.NotificationRuleTest
+        )
+    )
   }
 
   private suspend fun loadSettings(): Result<AppriseNotificationSettingsUiState> {
