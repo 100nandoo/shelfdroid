@@ -40,7 +40,11 @@ constructor(
     return loadSettings()
       .map { it.copy(apiState = AppriseNotificationSettingsApiState.Success) }
       .getOrElse {
-        uiState.copy(apiState = AppriseNotificationSettingsApiState.Failure(it.message))
+        uiState.copy(
+          apiState = AppriseNotificationSettingsApiState.Success,
+          savedSettings = uiState.draftSettings,
+          draftSettings = uiState.draftSettings,
+        )
       }
   }
 

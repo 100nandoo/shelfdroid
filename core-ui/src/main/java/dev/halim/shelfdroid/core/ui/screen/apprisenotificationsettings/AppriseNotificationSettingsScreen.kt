@@ -17,7 +17,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -162,18 +161,7 @@ private fun GlobalSettingsSection(
     enabled = !uiState.isSavingSettings,
   )
   Spacer(modifier = Modifier.height(12.dp))
-  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-    if (uiState.hasChanges) {
-      TextButton(
-        enabled = !uiState.isSavingSettings,
-        onClick = { onEvent(AppriseNotificationSettingsEvent.ResetDraftSettings) },
-      ) {
-        Text(stringResource(R.string.reset))
-      }
-    } else {
-      Spacer(modifier = Modifier.height(1.dp))
-    }
-
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
     Button(
       enabled = uiState.canSave,
       onClick = { onEvent(AppriseNotificationSettingsEvent.SaveSettings) },
@@ -386,9 +374,35 @@ private fun AppriseNotificationSettingsValidationPreview() {
             ),
           draftSettings =
             AppriseGlobalSettingsForm(
-              appriseApiUrl = "https://apprise.example.com/api",
+              appriseApiUrl = "https://apprise.example.com/notify/",
               maxNotificationQueue = "0",
               maxFailedAttempts = "",
+            ),
+        )
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AppriseNotificationSettingsSavingPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    AppriseNotificationSettingsContent(
+      uiState =
+        AppriseNotificationSettingsUiState(
+          state = GenericState.Success,
+          apiState = AppriseNotificationSettingsApiState.Loading,
+          savedSettings =
+            AppriseGlobalSettingsForm(
+              appriseApiUrl = "https://apprise.example.com/notify",
+              maxNotificationQueue = "5",
+              maxFailedAttempts = "3",
+            ),
+          draftSettings =
+            AppriseGlobalSettingsForm(
+              appriseApiUrl = "https://apprise.example.com/notify/",
+              maxNotificationQueue = "6",
+              maxFailedAttempts = "3",
             ),
         )
     )

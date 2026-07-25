@@ -97,7 +97,7 @@ internal fun validateAppriseGlobalSettings(
     maxNotificationQueueError = positiveIntegerError(maxNotificationQueue),
     maxFailedAttemptsError = positiveIntegerError(maxFailedAttempts),
     hasNotifyEndpointWarning =
-      apiUrlError == null && parsedUri?.path?.endsWith("/notify") != true,
+      apiUrlError == null && parsedUri?.path.orEmpty().trimEnd('/').endsWith("/notify") != true,
   )
 }
 

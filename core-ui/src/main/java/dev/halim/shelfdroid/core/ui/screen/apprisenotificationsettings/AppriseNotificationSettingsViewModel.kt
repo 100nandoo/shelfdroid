@@ -36,9 +36,6 @@ constructor(private val repository: AppriseNotificationSettingsRepository) : Vie
       is AppriseNotificationSettingsEvent.UpdateDraftSettings -> {
         _uiState.update { it.copy(draftSettings = event.transform(it.draftSettings)) }
       }
-      AppriseNotificationSettingsEvent.ResetDraftSettings -> {
-        _uiState.update { it.copy(draftSettings = it.savedSettings) }
-      }
       AppriseNotificationSettingsEvent.SaveSettings -> saveSettings()
     }
   }
@@ -61,8 +58,6 @@ sealed interface AppriseNotificationSettingsEvent {
   data class UpdateDraftSettings(
     val transform: (AppriseGlobalSettingsForm) -> AppriseGlobalSettingsForm
   ) : AppriseNotificationSettingsEvent
-
-  data object ResetDraftSettings : AppriseNotificationSettingsEvent
 
   data object SaveSettings : AppriseNotificationSettingsEvent
 }

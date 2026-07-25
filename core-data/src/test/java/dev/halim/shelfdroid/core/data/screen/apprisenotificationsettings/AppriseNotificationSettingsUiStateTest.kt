@@ -62,6 +62,21 @@ class AppriseNotificationSettingsUiStateTest {
   }
 
   @Test
+  fun validation_doesNotWarnForNotifyEndpointWithTrailingSlash() {
+    val validation =
+      validateAppriseGlobalSettings(
+        AppriseGlobalSettingsForm(
+          appriseApiUrl = "https://apprise.example.com/notify/",
+          maxNotificationQueue = "2",
+          maxFailedAttempts = "1",
+        )
+      )
+
+    assertTrue(validation.isValid)
+    assertFalse(validation.hasNotifyEndpointWarning)
+  }
+
+  @Test
   fun canSave_requiresChangesValidDraftAndIdleMutationState() {
     val saved =
       AppriseGlobalSettingsForm(
