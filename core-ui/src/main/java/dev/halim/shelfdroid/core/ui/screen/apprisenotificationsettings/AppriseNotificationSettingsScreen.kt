@@ -11,14 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions as ComposeKeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,8 +44,8 @@ import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.Apprise
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationEventUi
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleForm
-import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleUi
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleStatus
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleUi
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.validateNotificationRule
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.withEvent
 import dev.halim.shelfdroid.core.ui.R
@@ -80,7 +80,8 @@ private fun AppriseNotificationSettingsContent(
 ) {
   Column(modifier = Modifier.fillMaxSize()) {
     VisibilityDown(
-      uiState.state is GenericState.Loading || uiState.apiState is AppriseNotificationSettingsApiState.Loading
+      uiState.state is GenericState.Loading ||
+        uiState.apiState is AppriseNotificationSettingsApiState.Loading
     ) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
@@ -131,7 +132,9 @@ private fun GlobalSettingsSection(
   MyOutlinedTextField(
     value = draft.appriseApiUrl,
     onValueChange = { value ->
-      onEvent(AppriseNotificationSettingsEvent.UpdateDraftSettings { it.copy(appriseApiUrl = value) })
+      onEvent(
+        AppriseNotificationSettingsEvent.UpdateDraftSettings { it.copy(appriseApiUrl = value) }
+      )
     },
     label = stringResource(R.string.apprise_api_url),
     placeholder = stringResource(R.string.apprise_api_url_placeholder),
@@ -386,12 +389,10 @@ private fun RuleDialog(
           }
         }
 
-        event?.description
-          ?.takeIf(String::isNotBlank)
-          ?.let {
-            Spacer(modifier = Modifier.height(12.dp))
-            TextBodyMedium(text = it)
-          }
+        event?.description?.takeIf(String::isNotBlank)?.let {
+          Spacer(modifier = Modifier.height(12.dp))
+          TextBodyMedium(text = it)
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
         ChipInput(
@@ -435,7 +436,8 @@ private fun RuleDialog(
           onCheckedChange = { form = form.copy(enabled = it) },
         )
 
-        event?.variables
+        event
+          ?.variables
           ?.takeIf { it.isNotEmpty() }
           ?.let { variables ->
             Spacer(modifier = Modifier.height(12.dp))
@@ -546,7 +548,8 @@ private fun HandleAppriseNotificationSettingsSnackbar(
 private fun apiUrlSupportingText(validation: AppriseGlobalSettingsValidation): String? =
   when (validation.apiUrlError) {
     AppriseGlobalSettingsFieldError.Required -> stringResource(R.string.apprise_api_url_required)
-    AppriseGlobalSettingsFieldError.InvalidUrl -> stringResource(R.string.enter_a_valid_absolute_url)
+    AppriseGlobalSettingsFieldError.InvalidUrl ->
+      stringResource(R.string.enter_a_valid_absolute_url)
     null ->
       if (validation.hasNotifyEndpointWarning) {
         stringResource(R.string.apprise_api_url_notify_warning)
@@ -711,7 +714,7 @@ private fun AppriseNotificationSettingsErrorPreview() {
     AppriseNotificationSettingsContent(
       uiState =
         AppriseNotificationSettingsUiState(
-          state = GenericState.Failure("Unable to load Apprise notification settings."),
+          state = GenericState.Failure("Unable to load Apprise notification settings.")
         )
     )
   }

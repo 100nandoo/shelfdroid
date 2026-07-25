@@ -37,10 +37,11 @@ class AppriseNotificationSettingsUiStateTest {
 
     val updated =
       NotificationRuleForm(
-        eventName = "onTest",
-        titleTemplate = "Custom title",
-        bodyTemplate = "Custom body",
-      ).withEvent(event)
+          eventName = "onTest",
+          titleTemplate = "Custom title",
+          bodyTemplate = "Custom body",
+        )
+        .withEvent(event)
 
     assertEquals("onBackupFailed", updated.eventName)
     assertEquals("Backup Failed", updated.titleTemplate)
@@ -146,10 +147,7 @@ class AppriseNotificationSettingsUiStateTest {
             AppriseNotificationSettingsMutationTarget.GlobalSettings
           )
       )
-    val invalidState =
-      dirtyState.copy(
-        draftSettings = dirtyDraft.copy(maxNotificationQueue = "-1"),
-      )
+    val invalidState = dirtyState.copy(draftSettings = dirtyDraft.copy(maxNotificationQueue = "-1"))
 
     assertFalse(cleanState.canSave)
     assertTrue(dirtyState.canSave)

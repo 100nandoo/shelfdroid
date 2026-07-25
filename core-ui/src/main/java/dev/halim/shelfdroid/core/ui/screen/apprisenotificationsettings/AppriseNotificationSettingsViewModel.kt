@@ -115,7 +115,10 @@ sealed interface AppriseNotificationSettingsEvent {
   ) : AppriseNotificationSettingsEvent
 
   data object SaveSettings : AppriseNotificationSettingsEvent
+
   data class SaveRule(val form: NotificationRuleForm) : AppriseNotificationSettingsEvent
+
   data class DeleteRule(val rule: NotificationRuleUi) : AppriseNotificationSettingsEvent
+
   data class TestRule(val rule: NotificationRuleUi) : AppriseNotificationSettingsEvent
 }

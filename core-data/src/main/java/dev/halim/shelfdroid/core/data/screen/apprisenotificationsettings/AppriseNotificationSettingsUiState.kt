@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings
 
-import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
 import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
+import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
 import dev.halim.shelfdroid.core.data.GenericState
 import java.net.URI
 import retrofit2.HttpException
@@ -49,9 +49,7 @@ data class AppriseGlobalSettingsValidation(
 ) {
   val isValid: Boolean
     get() =
-      apiUrlError == null &&
-        maxNotificationQueueError == null &&
-        maxFailedAttemptsError == null
+      apiUrlError == null && maxNotificationQueueError == null && maxFailedAttemptsError == null
 }
 
 enum class AppriseGlobalSettingsFieldError {
@@ -121,14 +119,19 @@ data class NotificationRuleForm(
 )
 
 data class NotificationRuleValidation(val hasBlankDestinationUrl: Boolean) {
-  val isValid: Boolean get() = !hasBlankDestinationUrl
+  val isValid: Boolean
+    get() = !hasBlankDestinationUrl
 }
 
 fun validateNotificationRule(form: NotificationRuleForm) =
   NotificationRuleValidation(form.urls.isEmpty() || form.urls.any { it.isBlank() })
 
 fun NotificationRuleForm.withEvent(event: NotificationEventUi) =
-  copy(eventName = event.name, titleTemplate = event.defaultTitleTemplate, bodyTemplate = event.defaultBodyTemplate)
+  copy(
+    eventName = event.name,
+    titleTemplate = event.defaultTitleTemplate,
+    bodyTemplate = event.defaultBodyTemplate,
+  )
 
 internal fun NotificationRuleForm.toRequest() =
   AppriseNotificationRuleRequest(
@@ -180,7 +183,8 @@ internal fun AppriseGlobalSettingsForm.toRequest(): UpdateAppriseNotificationSet
 private fun positiveIntegerError(value: String): AppriseGlobalSettingsFieldError? =
   when {
     value.isEmpty() -> AppriseGlobalSettingsFieldError.Required
-    value.toIntOrNull()?.takeIf { it > 0 } == null -> AppriseGlobalSettingsFieldError.PositiveInteger
+    value.toIntOrNull()?.takeIf { it > 0 } == null ->
+      AppriseGlobalSettingsFieldError.PositiveInteger
     else -> null
   }
 
@@ -188,9 +192,7 @@ private fun String.toAbsoluteUriOrNull(): URI? =
   runCatching { URI(this) }
     .getOrNull()
     ?.takeIf { uri ->
-      uri.isAbsolute &&
-        uri.scheme != null &&
-        !uri.host.isNullOrBlank()
+      uri.isAbsolute && uri.scheme != null && !uri.host.isNullOrBlank()
     }
 
 internal fun notificationRuleTestFailureReason(

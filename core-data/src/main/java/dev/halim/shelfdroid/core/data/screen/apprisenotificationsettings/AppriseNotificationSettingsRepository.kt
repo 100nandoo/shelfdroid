@@ -28,7 +28,9 @@ constructor(
     }
   }
 
-  suspend fun saveSettings(uiState: AppriseNotificationSettingsUiState): AppriseNotificationSettingsUiState {
+  suspend fun saveSettings(
+    uiState: AppriseNotificationSettingsUiState
+  ): AppriseNotificationSettingsUiState {
     if (!uiState.hasChanges) {
       return uiState.copy(apiState = AppriseNotificationSettingsApiState.Idle)
     }
@@ -162,11 +164,15 @@ constructor(
   }
 
   private suspend fun loadSettings(): Result<AppriseNotificationSettingsUiState> {
-    val response = api.appriseNotificationSettings().getOrElse { return Result.failure(it) }
+    val response =
+      api.appriseNotificationSettings().getOrElse {
+        return Result.failure(it)
+      }
 
     return Result.success(
-      AppriseNotificationSettingsMapper
-        .map(response) { helper.toReadableDate(it, includeTime = true) }
+      AppriseNotificationSettingsMapper.map(response) {
+          helper.toReadableDate(it, includeTime = true)
+        }
         .copy(state = GenericState.Success)
     )
   }

@@ -18,13 +18,13 @@ import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateApiKeyRequest
-import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
-import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.request.UpdatePodcastEpisodeRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.request.ValidateCronRequest
+import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
+import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEmailSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEreaderDevicesRequest
 import dev.halim.core.network.response.ApiKeysResponse
@@ -391,7 +391,9 @@ interface ApiService {
   ): Result<Unit>
 
   @POST("/api/notifications")
-  suspend fun createAppriseNotificationRule(@Body request: AppriseNotificationRuleRequest): Result<Unit>
+  suspend fun createAppriseNotificationRule(
+    @Body request: AppriseNotificationRuleRequest
+  ): Result<Unit>
 
   @PATCH("/api/notifications/{ruleId}")
   suspend fun updateAppriseNotificationRule(

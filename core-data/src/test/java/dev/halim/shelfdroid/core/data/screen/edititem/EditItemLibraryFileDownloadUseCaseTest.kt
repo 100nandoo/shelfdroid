@@ -2,6 +2,9 @@ package dev.halim.shelfdroid.core.data.screen.edititem
 
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.download.ManagedDownload
+import dev.halim.shelfdroid.core.data.screen.edititem.files.EditItemLibraryFileDownloadResult
+import dev.halim.shelfdroid.core.data.screen.edititem.files.EditItemLibraryFileDownloadUseCase
+import dev.halim.shelfdroid.core.data.screen.edititem.files.LibraryFileDownloadUrlResolver
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

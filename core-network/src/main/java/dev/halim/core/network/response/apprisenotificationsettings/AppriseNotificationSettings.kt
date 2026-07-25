@@ -9,14 +9,18 @@ data class AppriseNotificationSettingsResponse(
   @SerialName("data") val data: AppriseNotificationData = AppriseNotificationData(),
 )
 
-@Serializable data class AppriseNotificationData(@SerialName("events") val events: List<AppriseNotificationEvent> = emptyList())
+@Serializable
+data class AppriseNotificationData(
+  @SerialName("events") val events: List<AppriseNotificationEvent> = emptyList()
+)
 
 @Serializable
 data class AppriseNotificationEvent(
   @SerialName("name") val name: String = "",
   @SerialName("description") val description: String = "",
   @SerialName("variables") val variables: List<String> = emptyList(),
-  @SerialName("defaults") val defaults: AppriseNotificationEventDefaults = AppriseNotificationEventDefaults(),
+  @SerialName("defaults")
+  val defaults: AppriseNotificationEventDefaults = AppriseNotificationEventDefaults(),
 )
 
 @Serializable
@@ -30,8 +34,7 @@ data class AppriseNotificationSettings(
   @SerialName("id") val id: String = "",
   @SerialName("appriseType") val appriseType: String? = null,
   @SerialName("appriseApiUrl") val appriseApiUrl: String? = null,
-  @SerialName("notifications")
-  val notifications: List<AppriseNotificationRule> = emptyList(),
+  @SerialName("notifications") val notifications: List<AppriseNotificationRule> = emptyList(),
   @SerialName("maxFailedAttempts") val maxFailedAttempts: Int = 5,
   @SerialName("maxNotificationQueue") val maxNotificationQueue: Int = 10,
   @SerialName("notificationDelay") val notificationDelay: Int = 0,
