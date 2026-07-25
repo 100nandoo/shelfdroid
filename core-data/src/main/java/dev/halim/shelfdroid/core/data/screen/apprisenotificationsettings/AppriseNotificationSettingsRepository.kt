@@ -23,13 +23,34 @@ constructor(
       )
     }
 
-    val response =
-      api.appriseNotificationSettings().getOrElse {
-        return AppriseNotificationSettingsUiState(state = GenericState.Failure(it.message))
-      }
+    return loadSettings().getOrElse {
+      AppriseNotificationSettingsUiState(state = GenericState.Failure(it.message))
+    }
+  }
 
-    return AppriseNotificationSettingsMapper
-      .map(response) { helper.toReadableDate(it, includeTime = true) }
-      .copy(state = GenericState.Success)
+  suspend fun saveSettings(uiState: AppriseNotificationSettingsUiState): AppriseNotificationSettingsUiState {
+    if (!uiState.hasChanges) {
+      return uiState.copy(apiState = AppriseNotificationSettingsApiState.Idle)
+    }
+
+    api.updateAppriseNotificationSettings(uiState.draftSettings.toRequest()).getOrElse {
+      return uiState.copy(apiState = AppriseNotificationSettingsApiState.Failure(it.message))
+    }
+
+    return loadSettings()
+      .map { it.copy(apiState = AppriseNotificationSettingsApiState.Success) }
+      .getOrElse {
+        uiState.copy(apiState = AppriseNotificationSettingsApiState.Failure(it.message))
+      }
+  }
+
+  private suspend fun loadSettings(): Result<AppriseNotificationSettingsUiState> {
+    val response = api.appriseNotificationSettings().getOrElse { return Result.failure(it) }
+
+    return Result.success(
+      AppriseNotificationSettingsMapper
+        .map(response) { helper.toReadableDate(it, includeTime = true) }
+        .copy(state = GenericState.Success)
+    )
   }
 }

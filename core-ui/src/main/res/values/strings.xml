@@ -380,6 +380,9 @@
     <string name="apprise_notification_settings_description">Review the Audiobookshelf server\'s global Apprise API endpoint and the current Notification rules. Local sleep-timer preferences remain separate.</string>
     <string name="apprise_notification_settings_admin_only">Apprise notification settings are only available to Admin and Root users.</string>
     <string name="apprise_api_url">Apprise API URL</string>
+    <string name="apprise_api_url_placeholder">https://apprise.example.com/notify</string>
+    <string name="apprise_api_url_required">Apprise API URL is required.</string>
+    <string name="apprise_api_url_notify_warning">This URL does not look like a full `/notify` endpoint.</string>
     <string name="max_queue_size_for_notification_events">Max queue size for notification events</string>
     <string name="max_failed_attempts">Max failed attempts</string>
     <string name="notification_rules">Notification rules</string>
@@ -394,6 +397,9 @@
     <string name="last_fired">Last fired</string>
     <string name="last_attempt_failed">Last attempt failed</string>
     <string name="never_fired">Never fired</string>
+    <string name="field_required">This field is required.</string>
+    <string name="enter_a_valid_absolute_url">Enter a valid absolute URL.</string>
+    <string name="enter_a_positive_integer">Enter a positive integer.</string>
     <!--Apprise Notification Settings-->
 
     <!--Book-->

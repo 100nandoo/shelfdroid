@@ -25,9 +25,10 @@ class AppriseNotificationSettingsMapperTest {
         formatDateTime = { error("formatDateTime should not be called for empty rules") },
       )
 
-    assertEquals("https://apprise.example.com/notify", uiState.settings.appriseApiUrl)
-    assertEquals("5", uiState.settings.maxNotificationQueue)
-    assertEquals("3", uiState.settings.maxFailedAttempts)
+    assertEquals("https://apprise.example.com/notify", uiState.savedSettings.appriseApiUrl)
+    assertEquals("5", uiState.savedSettings.maxNotificationQueue)
+    assertEquals("3", uiState.savedSettings.maxFailedAttempts)
+    assertEquals(uiState.savedSettings, uiState.draftSettings)
     assertTrue(uiState.notificationRules.isEmpty())
   }
 

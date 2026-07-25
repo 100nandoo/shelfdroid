@@ -18,6 +18,7 @@ import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateApiKeyRequest
+import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.request.UpdatePodcastEpisodeRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
@@ -382,6 +383,11 @@ interface ApiService {
 
   @GET("/api/notifications")
   suspend fun appriseNotificationSettings(): Result<AppriseNotificationSettingsResponse>
+
+  @PATCH("/api/notifications")
+  suspend fun updateAppriseNotificationSettings(
+    @Body request: UpdateAppriseNotificationSettingsRequest
+  ): Result<Unit>
 
   @GET("/api/emails/settings") suspend fun emailSettings(): Result<EmailSettingsResponse>
 

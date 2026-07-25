@@ -9,13 +9,15 @@ internal object AppriseNotificationSettingsMapper {
     formatDateTime: (Long) -> String,
   ): AppriseNotificationSettingsUiState {
     val settings = response.settings
+    val form =
+      AppriseGlobalSettingsForm(
+        appriseApiUrl = settings.appriseApiUrl.orEmpty(),
+        maxNotificationQueue = settings.maxNotificationQueue.toString(),
+        maxFailedAttempts = settings.maxFailedAttempts.toString(),
+      )
     return AppriseNotificationSettingsUiState(
-      settings =
-        AppriseGlobalSettingsUi(
-          appriseApiUrl = settings.appriseApiUrl.orEmpty(),
-          maxNotificationQueue = settings.maxNotificationQueue.toString(),
-          maxFailedAttempts = settings.maxFailedAttempts.toString(),
-        ),
+      savedSettings = form,
+      draftSettings = form,
       notificationRules = settings.notifications.map { rule -> mapRule(rule, formatDateTime) },
     )
   }

@@ -351,7 +351,9 @@ private fun ColumnScope.NavHostContainer(
         }
       }
       entry<AppriseNotificationSettings> {
-        Nav3ScreenWrapper(sharedTransitionScope) { AppriseNotificationSettingsScreen() }
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          AppriseNotificationSettingsScreen(snackbarHostState = snackbarHostState)
+        }
       }
       entry<RssFeeds> {
         Nav3ScreenWrapper(sharedTransitionScope) {
