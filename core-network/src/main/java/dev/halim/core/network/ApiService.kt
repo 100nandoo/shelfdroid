@@ -62,6 +62,7 @@ import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
+import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EmailSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EreaderDevicesResponse
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
@@ -378,6 +379,9 @@ interface ApiService {
   suspend fun updateSettings(
     @Body request: UpdateServerSettingsRequest
   ): Result<ServerSettingsResponse>
+
+  @GET("/api/notifications")
+  suspend fun appriseNotificationSettings(): Result<AppriseNotificationSettingsResponse>
 
   @GET("/api/emails/settings") suspend fun emailSettings(): Result<EmailSettingsResponse>
 

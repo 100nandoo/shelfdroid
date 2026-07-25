@@ -64,6 +64,8 @@ data class Login(val reLogin: Boolean = false, val reason: AuthPromptReason? = n
 
 @Serializable data object EmailManagement : ShelfNavKey
 
+@Serializable data object AppriseNotificationSettings : ShelfNavKey
+
 @Serializable data object RssFeeds : ShelfNavKey
 
 @Serializable data object Logs : ShelfNavKey

@@ -37,6 +37,7 @@ import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
+import dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.AppriseNotificationSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeScreen
@@ -145,6 +146,9 @@ private fun ColumnScope.NavHostContainer(
             onApiKeysClicked = { navigator.navigate(NavApiKeys) },
             onServerSettingsClicked = { navigator.navigate(ServerSettings) },
             onEmailManagementClicked = { navigator.navigate(EmailManagement) },
+            onAppriseNotificationSettingsClicked = {
+              navigator.navigate(AppriseNotificationSettings)
+            },
             onRssFeedsClicked = { navigator.navigate(RssFeeds) },
             onLogsClicked = { navigator.navigate(Logs) },
             onBackupsClicked = { navigator.navigate(Backups) },
@@ -345,6 +349,9 @@ private fun ColumnScope.NavHostContainer(
         Nav3ScreenWrapper(sharedTransitionScope) {
           EmailManagementScreen(snackbarHostState = snackbarHostState)
         }
+      }
+      entry<AppriseNotificationSettings> {
+        Nav3ScreenWrapper(sharedTransitionScope) { AppriseNotificationSettingsScreen() }
       }
       entry<RssFeeds> {
         Nav3ScreenWrapper(sharedTransitionScope) {
