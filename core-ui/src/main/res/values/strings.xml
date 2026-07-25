@@ -378,6 +378,7 @@
 
     <!--Apprise Notification Settings-->
     <string name="apprise_notification_settings_description">Review the Audiobookshelf server\'s global Apprise API endpoint and the current Notification rules. Local sleep-timer preferences remain separate.</string>
+    <string name="apprise_notification_settings_admin_only">Apprise notification settings are only available to Admin and Root users.</string>
     <string name="apprise_api_url">Apprise API URL</string>
     <string name="max_queue_size_for_notification_events">Max queue size for notification events</string>
     <string name="max_failed_attempts">Max failed attempts</string>

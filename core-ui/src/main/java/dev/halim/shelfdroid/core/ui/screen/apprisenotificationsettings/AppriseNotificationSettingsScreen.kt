@@ -59,6 +59,10 @@ private fun AppriseNotificationSettingsContent(
       }
 
       GenericState.Success -> {
+        if (!uiState.canAccess) {
+          GenericMessageScreen(stringResource(R.string.apprise_notification_settings_admin_only))
+          return@Column
+        }
         Column(
           modifier =
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)

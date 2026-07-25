@@ -4,6 +4,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 
 data class AppriseNotificationSettingsUiState(
   val state: GenericState = GenericState.Loading,
+  val canAccess: Boolean = true,
   val settings: AppriseGlobalSettingsUi = AppriseGlobalSettingsUi(),
   val notificationRules: List<NotificationRuleUi> = emptyList(),
 )
