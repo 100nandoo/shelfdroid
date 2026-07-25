@@ -122,6 +122,18 @@ _Avoid_: Preferences, app settings
 The Audiobookshelf server's SMTP configuration and shared send-to-device configuration used for test email delivery and ebook delivery to **E-reader devices**.
 _Avoid_: Mail prefs, notification settings
 
+**Apprise notification settings**:
+The Audiobookshelf server's Apprise integration configuration, including the shared Apprise API endpoint and the set of server-managed **Notification rules**.
+_Avoid_: Notification settings, app notifications
+
+**Notification rule**:
+A server-managed rule inside **Apprise notification settings** that listens for one **Notification event** and sends a templated notification to one or more Apprise destinations.
+_Avoid_: Alert, webhook, trigger
+
+**Notification event**:
+A named Audiobookshelf server event that can trigger a **Notification rule**.
+_Avoid_: Hook, callback, app event
+
 **E-reader device**:
 A named email delivery destination stored in **Email settings** that users may target when the Audiobookshelf server sends an ebook attachment.
 _Avoid_: Kindle address, send target
@@ -190,6 +202,9 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Generated RSS feed** belongs to one **Library item**, **Series**, or **Collection**
 - **Server settings** belong to the **Audiobookshelf server**
 - **Email settings** belong to the **Audiobookshelf server**
+- **Apprise notification settings** belong to the **Audiobookshelf server**
+- A **Notification rule** belongs to **Apprise notification settings**
+- A **Notification rule** listens for one **Notification event**
 - An **E-reader device** belongs to **Email settings**
 - An **E-reader device availability** belongs to one **E-reader device**
 - **Session recovery** happens before **Forced re-login**
@@ -218,6 +233,7 @@ _Avoid_: Best-effort release, unverifiable build
 - "current playback" and **Open session** are distinct; **Current playback** is local player state inside ShelfDroid, while an **Open session** is server-tracked.
 - "track", "chapter", and "episode" are distinct; a **Track** is a file unit for books, a **Chapter** is a navigation segment in a book, and an **Episode** belongs to a podcast.
 - "progress" is overloaded; use **Progress** for completion state and **Progress recency** for the last update used to order home-screen items.
-- "settings" is overloaded; use **Email settings** for SMTP and send-to-device configuration, and use **Server settings** for the broader Audiobookshelf server configuration surface.
+- "settings" is overloaded; use **Email settings** for SMTP and send-to-device configuration, use **Apprise notification settings** for server-side Apprise automation, and use **Server settings** for the broader Audiobookshelf server configuration surface.
+- "notification settings" is overloaded; use **Apprise notification settings** for server-side automation and avoid using it for local Android notification preferences.
 - "download" and **Library file** are not the same thing; a **Library file** exists on the server, while a **Download** is a local device copy or downloaded server artifact.
 - "F-Droid release" is too vague in this repo; say **F-Droid main repository** when discussing the curated public catalog, and say **Reproducible release** when discussing release provenance.
