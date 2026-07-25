@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings
 
 import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
+import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
 import dev.halim.shelfdroid.core.data.GenericState
 import java.net.URI
 
@@ -11,6 +12,7 @@ data class AppriseNotificationSettingsUiState(
   val savedSettings: AppriseGlobalSettingsForm = AppriseGlobalSettingsForm(),
   val draftSettings: AppriseGlobalSettingsForm = AppriseGlobalSettingsForm(),
   val notificationRules: List<NotificationRuleUi> = emptyList(),
+  val notificationEvents: List<NotificationEventUi> = emptyList(),
 ) {
   val hasChanges: Boolean
     get() = savedSettings != draftSettings
@@ -19,7 +21,14 @@ data class AppriseNotificationSettingsUiState(
     get() = validateAppriseGlobalSettings(draftSettings)
 
   val isSavingSettings: Boolean
-    get() = apiState is AppriseNotificationSettingsApiState.Loading
+    get() =
+      apiState is AppriseNotificationSettingsApiState.Loading &&
+        apiState.target == AppriseNotificationSettingsMutationTarget.GlobalSettings
+
+  val isMutatingRule: Boolean
+    get() =
+      apiState is AppriseNotificationSettingsApiState.Loading &&
+        apiState.target != AppriseNotificationSettingsMutationTarget.GlobalSettings
 
   val canSave: Boolean
     get() = canAccess && hasChanges && validation.isValid && !isSavingSettings
@@ -50,14 +59,25 @@ enum class AppriseGlobalSettingsFieldError {
   PositiveInteger,
 }
 
+enum class AppriseNotificationSettingsMutationTarget {
+  GlobalSettings,
+  NotificationRule,
+  NotificationRuleDelete,
+}
+
 sealed interface AppriseNotificationSettingsApiState {
   data object Idle : AppriseNotificationSettingsApiState
 
-  data object Loading : AppriseNotificationSettingsApiState
+  data class Loading(val target: AppriseNotificationSettingsMutationTarget) :
+    AppriseNotificationSettingsApiState
 
-  data object Success : AppriseNotificationSettingsApiState
+  data class Success(val target: AppriseNotificationSettingsMutationTarget) :
+    AppriseNotificationSettingsApiState
 
-  data class Failure(val message: String?) : AppriseNotificationSettingsApiState
+  data class Failure(
+    val target: AppriseNotificationSettingsMutationTarget,
+    val message: String?,
+  ) : AppriseNotificationSettingsApiState
 }
 
 data class NotificationRuleUi(
@@ -70,7 +90,48 @@ data class NotificationRuleUi(
   val consecutiveFailedAttempts: String,
   val titleTemplate: String,
   val bodyTemplate: String,
+  val form: NotificationRuleForm = NotificationRuleForm(),
 )
+
+data class NotificationEventUi(
+  val name: String,
+  val description: String = "",
+  val variables: List<String> = emptyList(),
+  val defaultTitleTemplate: String = "",
+  val defaultBodyTemplate: String = "",
+)
+
+data class NotificationRuleForm(
+  val id: String? = null,
+  val libraryId: String? = null,
+  val eventName: String = "onTest",
+  val urls: List<String> = emptyList(),
+  val titleTemplate: String = "",
+  val bodyTemplate: String = "",
+  val enabled: Boolean = true,
+  val type: String? = null,
+)
+
+data class NotificationRuleValidation(val hasBlankDestinationUrl: Boolean) {
+  val isValid: Boolean get() = !hasBlankDestinationUrl
+}
+
+fun validateNotificationRule(form: NotificationRuleForm) =
+  NotificationRuleValidation(form.urls.isEmpty() || form.urls.any { it.isBlank() })
+
+fun NotificationRuleForm.withEvent(event: NotificationEventUi) =
+  copy(eventName = event.name, titleTemplate = event.defaultTitleTemplate, bodyTemplate = event.defaultBodyTemplate)
+
+internal fun NotificationRuleForm.toRequest() =
+  AppriseNotificationRuleRequest(
+    libraryId = libraryId,
+    eventName = eventName,
+    urls = urls.map(String::trim),
+    titleTemplate = titleTemplate,
+    bodyTemplate = bodyTemplate,
+    enabled = enabled,
+    type = type,
+  )
 
 enum class NotificationRuleStatus {
   NeverFired,

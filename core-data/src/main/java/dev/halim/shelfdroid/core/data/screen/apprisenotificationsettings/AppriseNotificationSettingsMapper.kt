@@ -19,6 +19,9 @@ internal object AppriseNotificationSettingsMapper {
       savedSettings = form,
       draftSettings = form,
       notificationRules = settings.notifications.map { rule -> mapRule(rule, formatDateTime) },
+      notificationEvents = response.data.events.map { event ->
+        NotificationEventUi(event.name, event.description, event.variables, event.defaults.title, event.defaults.body)
+      },
     )
   }
 
@@ -45,6 +48,7 @@ internal object AppriseNotificationSettingsMapper {
       consecutiveFailedAttempts = rule.numConsecutiveFailedAttempts.toString(),
       titleTemplate = rule.titleTemplate,
       bodyTemplate = rule.bodyTemplate,
+      form = NotificationRuleForm(rule.id, rule.libraryId, rule.eventName, rule.urls, rule.titleTemplate, rule.bodyTemplate, rule.enabled, rule.type),
     )
   }
 }

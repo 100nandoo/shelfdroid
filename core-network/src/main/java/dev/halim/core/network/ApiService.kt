@@ -19,6 +19,7 @@ import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateApiKeyRequest
 import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
+import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.request.UpdatePodcastEpisodeRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
@@ -388,6 +389,18 @@ interface ApiService {
   suspend fun updateAppriseNotificationSettings(
     @Body request: UpdateAppriseNotificationSettingsRequest
   ): Result<Unit>
+
+  @POST("/api/notifications")
+  suspend fun createAppriseNotificationRule(@Body request: AppriseNotificationRuleRequest): Result<Unit>
+
+  @PATCH("/api/notifications/{ruleId}")
+  suspend fun updateAppriseNotificationRule(
+    @Path("ruleId") ruleId: String,
+    @Body request: AppriseNotificationRuleRequest,
+  ): Result<Unit>
+
+  @DELETE("/api/notifications/{ruleId}")
+  suspend fun deleteAppriseNotificationRule(@Path("ruleId") ruleId: String): Result<Unit>
 
   @GET("/api/emails/settings") suspend fun emailSettings(): Result<EmailSettingsResponse>
 

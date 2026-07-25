@@ -9,6 +9,41 @@ import org.junit.Test
 class AppriseNotificationSettingsUiStateTest {
 
   @Test
+  fun ruleValidation_rejectsBlankDestinationUrls() {
+    val validation =
+      validateNotificationRule(
+        NotificationRuleForm(
+          eventName = "onTest",
+          urls = listOf("https://example.com", "  "),
+        )
+      )
+
+    assertFalse(validation.isValid)
+    assertTrue(validation.hasBlankDestinationUrl)
+  }
+
+  @Test
+  fun eventChange_replacesTemplatesWithUpstreamDefaults() {
+    val event =
+      NotificationEventUi(
+        name = "onBackupFailed",
+        defaultTitleTemplate = "Backup Failed",
+        defaultBodyTemplate = "{{errorMsg}}",
+      )
+
+    val updated =
+      NotificationRuleForm(
+        eventName = "onTest",
+        titleTemplate = "Custom title",
+        bodyTemplate = "Custom body",
+      ).withEvent(event)
+
+    assertEquals("onBackupFailed", updated.eventName)
+    assertEquals("Backup Failed", updated.titleTemplate)
+    assertEquals("{{errorMsg}}", updated.bodyTemplate)
+  }
+
+  @Test
   fun validation_acceptsAbsoluteNotifyEndpointAndPositiveIntegers() {
     val validation =
       validateAppriseGlobalSettings(
@@ -101,7 +136,12 @@ class AppriseNotificationSettingsUiStateTest {
         draftSettings = dirtyDraft,
       )
     val savingState =
-      dirtyState.copy(apiState = AppriseNotificationSettingsApiState.Loading)
+      dirtyState.copy(
+        apiState =
+          AppriseNotificationSettingsApiState.Loading(
+            AppriseNotificationSettingsMutationTarget.GlobalSettings
+          )
+      )
     val invalidState =
       dirtyState.copy(
         draftSettings = dirtyDraft.copy(maxNotificationQueue = "-1"),
@@ -111,5 +151,28 @@ class AppriseNotificationSettingsUiStateTest {
     assertTrue(dirtyState.canSave)
     assertFalse(savingState.canSave)
     assertFalse(invalidState.canSave)
+  }
+
+  @Test
+  fun savingFlags_distinguishGlobalSettingsFromRuleMutations() {
+    val settingsSavingState =
+      AppriseNotificationSettingsUiState(
+        apiState =
+          AppriseNotificationSettingsApiState.Loading(
+            AppriseNotificationSettingsMutationTarget.GlobalSettings
+          )
+      )
+    val ruleSavingState =
+      AppriseNotificationSettingsUiState(
+        apiState =
+          AppriseNotificationSettingsApiState.Loading(
+            AppriseNotificationSettingsMutationTarget.NotificationRule
+          )
+      )
+
+    assertTrue(settingsSavingState.isSavingSettings)
+    assertFalse(settingsSavingState.isMutatingRule)
+    assertFalse(ruleSavingState.isSavingSettings)
+    assertTrue(ruleSavingState.isMutatingRule)
   }
 }

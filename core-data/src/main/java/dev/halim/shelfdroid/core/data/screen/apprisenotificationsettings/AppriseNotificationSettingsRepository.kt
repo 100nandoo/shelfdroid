@@ -34,13 +34,107 @@ constructor(
     }
 
     api.updateAppriseNotificationSettings(uiState.draftSettings.toRequest()).getOrElse {
-      return uiState.copy(apiState = AppriseNotificationSettingsApiState.Failure(it.message))
+      return uiState.copy(
+        apiState =
+          AppriseNotificationSettingsApiState.Failure(
+            target = AppriseNotificationSettingsMutationTarget.GlobalSettings,
+            message = it.message,
+          )
+      )
     }
 
     return loadSettings()
-      .map { it.copy(apiState = AppriseNotificationSettingsApiState.Success) }
+      .map {
+        it.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Success(
+              AppriseNotificationSettingsMutationTarget.GlobalSettings
+            )
+        )
+      }
       .getOrElse {
-        uiState.copy(apiState = AppriseNotificationSettingsApiState.Failure(it.message))
+        uiState.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Failure(
+              target = AppriseNotificationSettingsMutationTarget.GlobalSettings,
+              message = it.message,
+            )
+        )
+      }
+  }
+
+  suspend fun mutateRule(
+    uiState: AppriseNotificationSettingsUiState,
+    form: NotificationRuleForm,
+  ): AppriseNotificationSettingsUiState {
+    val mutation =
+      if (form.id == null) {
+        api.createAppriseNotificationRule(form.toRequest())
+      } else {
+        api.updateAppriseNotificationRule(form.id, form.toRequest())
+      }
+
+    mutation.getOrElse {
+      return uiState.copy(
+        apiState =
+          AppriseNotificationSettingsApiState.Failure(
+            target = AppriseNotificationSettingsMutationTarget.NotificationRule,
+            message = it.message,
+          )
+      )
+    }
+
+    return loadSettings()
+      .map {
+        it.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Success(
+              AppriseNotificationSettingsMutationTarget.NotificationRule
+            )
+        )
+      }
+      .getOrElse {
+        uiState.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Failure(
+              target = AppriseNotificationSettingsMutationTarget.NotificationRule,
+              message = it.message,
+            )
+        )
+      }
+  }
+
+  suspend fun deleteRule(
+    uiState: AppriseNotificationSettingsUiState,
+    rule: NotificationRuleUi,
+  ): AppriseNotificationSettingsUiState {
+    api.deleteAppriseNotificationRule(rule.id).getOrElse {
+      return uiState.copy(
+        apiState =
+          AppriseNotificationSettingsApiState.Failure(
+            target = AppriseNotificationSettingsMutationTarget.NotificationRuleDelete,
+            message = it.message,
+          )
+      )
+    }
+
+    return loadSettings()
+      .map {
+        it.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Success(
+              AppriseNotificationSettingsMutationTarget.NotificationRuleDelete
+            )
+        )
+      }
+      .getOrElse {
+        uiState.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Failure(
+              target = AppriseNotificationSettingsMutationTarget.NotificationRuleDelete,
+              message = it.message,
+            )
+        )
       }
   }
 

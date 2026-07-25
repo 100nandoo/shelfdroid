@@ -388,6 +388,7 @@
     <string name="notification_rules">Notification rules</string>
     <string name="event_name">Event</string>
     <string name="destinations">Destinations</string>
+    <string name="destination_urls">Destination URLs</string>
     <string name="consecutive_failed_attempts">Consecutive failed attempts</string>
     <string name="title_template">Title template</string>
     <string name="body_template">Body template</string>
@@ -400,6 +401,15 @@
     <string name="field_required">This field is required.</string>
     <string name="enter_a_valid_absolute_url">Enter a valid absolute URL.</string>
     <string name="enter_a_positive_integer">Enter a positive integer.</string>
+    <string name="create_notification_rule">Create notification rule</string>
+    <string name="edit_notification_rule">Edit notification rule</string>
+    <string name="delete_notification_rule_title">Delete notification rule?</string>
+    <string name="apprise_destination_url_required">Add at least one destination URL.</string>
+    <string name="notification_rule_variables">Variables: %1$s</string>
+    <string name="notification_rule_saved">Notification rule saved.</string>
+    <string name="notification_rule_save_failed">Failed to save notification rule.</string>
+    <string name="notification_rule_deleted">Notification rule deleted.</string>
+    <string name="notification_rule_delete_failed">Failed to delete notification rule.</string>
     <!--Apprise Notification Settings-->
 
     <!--Book-->
@@ -645,6 +655,7 @@
     <string name="clear">Clear</string>
     <string name="filter">Filter</string>
     <string name="download">Download</string>
+    <string name="create">Create</string>
     <string name="delete">Delete</string>
     <string name="enable">Enable</string>
     <string name="selected">selected</string>

@@ -5,8 +5,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseGlobalSettingsForm
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsApiState
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsMutationTarget
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsRepository
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsUiState
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleForm
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleUi
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,6 +40,8 @@ constructor(private val repository: AppriseNotificationSettingsRepository) : Vie
         _uiState.update { it.copy(draftSettings = event.transform(it.draftSettings)) }
       }
       AppriseNotificationSettingsEvent.SaveSettings -> saveSettings()
+      is AppriseNotificationSettingsEvent.SaveRule -> saveRule(event.form)
+      is AppriseNotificationSettingsEvent.DeleteRule -> deleteRule(event.rule)
     }
   }
 
@@ -48,8 +53,43 @@ constructor(private val repository: AppriseNotificationSettingsRepository) : Vie
     if (!_uiState.value.canSave) return
 
     viewModelScope.launch {
-      _uiState.update { it.copy(apiState = AppriseNotificationSettingsApiState.Loading) }
+      _uiState.update {
+        it.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Loading(
+              AppriseNotificationSettingsMutationTarget.GlobalSettings
+            )
+        )
+      }
       _uiState.update { repository.saveSettings(it) }
+    }
+  }
+
+  private fun saveRule(form: NotificationRuleForm) {
+    viewModelScope.launch {
+      _uiState.update {
+        it.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Loading(
+              AppriseNotificationSettingsMutationTarget.NotificationRule
+            )
+        )
+      }
+      _uiState.update { repository.mutateRule(it, form) }
+    }
+  }
+
+  private fun deleteRule(rule: NotificationRuleUi) {
+    viewModelScope.launch {
+      _uiState.update {
+        it.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Loading(
+              AppriseNotificationSettingsMutationTarget.NotificationRuleDelete
+            )
+        )
+      }
+      _uiState.update { repository.deleteRule(it, rule) }
     }
   }
 }
@@ -60,4 +100,6 @@ sealed interface AppriseNotificationSettingsEvent {
   ) : AppriseNotificationSettingsEvent
 
   data object SaveSettings : AppriseNotificationSettingsEvent
+  data class SaveRule(val form: NotificationRuleForm) : AppriseNotificationSettingsEvent
+  data class DeleteRule(val rule: NotificationRuleUi) : AppriseNotificationSettingsEvent
 }

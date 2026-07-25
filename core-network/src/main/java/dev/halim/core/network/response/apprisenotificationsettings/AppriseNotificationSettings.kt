@@ -5,7 +5,24 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AppriseNotificationSettingsResponse(
-  @SerialName("settings") val settings: AppriseNotificationSettings = AppriseNotificationSettings()
+  @SerialName("settings") val settings: AppriseNotificationSettings = AppriseNotificationSettings(),
+  @SerialName("data") val data: AppriseNotificationData = AppriseNotificationData(),
+)
+
+@Serializable data class AppriseNotificationData(@SerialName("events") val events: List<AppriseNotificationEvent> = emptyList())
+
+@Serializable
+data class AppriseNotificationEvent(
+  @SerialName("name") val name: String = "",
+  @SerialName("description") val description: String = "",
+  @SerialName("variables") val variables: List<String> = emptyList(),
+  @SerialName("defaults") val defaults: AppriseNotificationEventDefaults = AppriseNotificationEventDefaults(),
+)
+
+@Serializable
+data class AppriseNotificationEventDefaults(
+  @SerialName("title") val title: String = "",
+  @SerialName("body") val body: String = "",
 )
 
 @Serializable

@@ -1,5 +1,8 @@
 package dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings
 
+import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationData
+import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationEvent
+import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationEventDefaults
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationRule
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettings
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettingsResponse
@@ -83,5 +86,65 @@ class AppriseNotificationSettingsMapperTest {
     assertEquals(NotificationRuleStatus.NeverFired, neverFiredRule.status)
     assertEquals("", neverFiredRule.statusValue)
     assertEquals("0", neverFiredRule.consecutiveFailedAttempts)
+  }
+
+  @Test
+  fun map_exposesNotificationEventsAndPreservesHiddenRuleFieldsForEditing() {
+    val uiState =
+      AppriseNotificationSettingsMapper.map(
+        response =
+          AppriseNotificationSettingsResponse(
+            settings =
+              AppriseNotificationSettings(
+                notifications =
+                  listOf(
+                    AppriseNotificationRule(
+                      id = "rule-1",
+                      libraryId = "library-1",
+                      eventName = "onTest",
+                      urls = listOf("discord://alerts"),
+                      titleTemplate = "Title",
+                      bodyTemplate = "Body",
+                      enabled = false,
+                      type = "library",
+                    )
+                  )
+              ),
+            data =
+              AppriseNotificationData(
+                events =
+                  listOf(
+                    AppriseNotificationEvent(
+                      name = "onTest",
+                      description = "Send a test notification",
+                      variables = listOf("title", "body"),
+                      defaults =
+                        AppriseNotificationEventDefaults(
+                          title = "Default title",
+                          body = "Default body",
+                        ),
+                    )
+                  )
+              ),
+          ),
+        formatDateTime = { error("formatDateTime should not be called for never-fired rules") },
+      )
+
+    val event = uiState.notificationEvents.single()
+    assertEquals("onTest", event.name)
+    assertEquals("Send a test notification", event.description)
+    assertEquals(listOf("title", "body"), event.variables)
+    assertEquals("Default title", event.defaultTitleTemplate)
+    assertEquals("Default body", event.defaultBodyTemplate)
+
+    val form = uiState.notificationRules.single().form
+    assertEquals("rule-1", form.id)
+    assertEquals("library-1", form.libraryId)
+    assertEquals("onTest", form.eventName)
+    assertEquals(listOf("discord://alerts"), form.urls)
+    assertEquals("Title", form.titleTemplate)
+    assertEquals("Body", form.bodyTemplate)
+    assertEquals(false, form.enabled)
+    assertEquals("library", form.type)
   }
 }

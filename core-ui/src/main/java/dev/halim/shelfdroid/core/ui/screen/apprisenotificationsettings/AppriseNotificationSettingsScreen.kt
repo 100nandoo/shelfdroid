@@ -12,6 +12,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions as ComposeKeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -32,11 +39,17 @@ import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.Apprise
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseGlobalSettingsForm
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseGlobalSettingsValidation
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsApiState
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsMutationTarget
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsUiState
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationEventUi
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleForm
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleUi
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleStatus
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.validateNotificationRule
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.withEvent
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
 import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
@@ -47,6 +60,7 @@ import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChipInput
 
 @Composable
 fun AppriseNotificationSettingsScreen(
@@ -99,7 +113,7 @@ private fun AppriseNotificationSettingsContent(
       Spacer(modifier = Modifier.height(16.dp))
       GlobalSettingsSection(uiState = uiState, onEvent = onEvent)
       Spacer(modifier = Modifier.height(24.dp))
-      NotificationRulesSection(uiState.notificationRules)
+      NotificationRulesSection(uiState = uiState, onEvent = onEvent)
       Spacer(modifier = Modifier.height(16.dp))
     }
   }
@@ -172,7 +186,35 @@ private fun GlobalSettingsSection(
 }
 
 @Composable
-private fun NotificationRulesSection(notificationRules: List<NotificationRuleUi>) {
+private fun NotificationRulesSection(
+  uiState: AppriseNotificationSettingsUiState,
+  onEvent: (AppriseNotificationSettingsEvent) -> Unit,
+) {
+  var editing by remember { mutableStateOf<NotificationRuleForm?>(null) }
+  var deleting by remember { mutableStateOf<NotificationRuleUi?>(null) }
+
+  val notificationRules = uiState.notificationRules
+  val notificationEvents = uiState.notificationEvents
+  val apiState = uiState.apiState
+  val loadingState = apiState as? AppriseNotificationSettingsApiState.Loading
+  val isLoading = loadingState != null
+  val isSavingRule =
+    loadingState?.target == AppriseNotificationSettingsMutationTarget.NotificationRule
+  val isDeletingRule =
+    loadingState?.target == AppriseNotificationSettingsMutationTarget.NotificationRuleDelete
+
+  LaunchedEffect(uiState.apiState) {
+    when (val state = uiState.apiState) {
+      is AppriseNotificationSettingsApiState.Success ->
+        when (state.target) {
+          AppriseNotificationSettingsMutationTarget.NotificationRule -> editing = null
+          AppriseNotificationSettingsMutationTarget.NotificationRuleDelete -> deleting = null
+          AppriseNotificationSettingsMutationTarget.GlobalSettings -> Unit
+        }
+      else -> Unit
+    }
+  }
+
   TextTitleMedium(text = stringResource(R.string.notification_rules))
   Spacer(modifier = Modifier.height(8.dp))
 
@@ -181,21 +223,76 @@ private fun NotificationRulesSection(notificationRules: List<NotificationRuleUi>
       text = stringResource(R.string.empty_type, stringResource(R.string.notification_rules)),
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    return
+  } else {
+    Column {
+      notificationRules.forEachIndexed { index, rule ->
+        if (index > 0) {
+          HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+        }
+        NotificationRuleCard(
+          rule = rule,
+          enabled = !isLoading,
+          onEdit = { editing = rule.form },
+          onDelete = { deleting = rule },
+        )
+      }
+    }
   }
 
-  Column {
-    notificationRules.forEachIndexed { index, rule ->
-      if (index > 0) {
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-      }
-      NotificationRuleCard(rule = rule)
-    }
+  Spacer(modifier = Modifier.height(12.dp))
+  Button(
+    onClick = {
+      editing =
+        notificationEvents.firstOrNull()?.let { NotificationRuleForm().withEvent(it) }
+          ?: NotificationRuleForm()
+    },
+    enabled = notificationEvents.isNotEmpty() && !isLoading,
+  ) {
+    Text(stringResource(R.string.create))
+  }
+  editing?.let { form ->
+    RuleDialog(
+      initial = form,
+      events = notificationEvents,
+      isSaving = isSavingRule,
+      onDismiss = { editing = null },
+      onSave = {
+        editing = it
+        onEvent(AppriseNotificationSettingsEvent.SaveRule(it))
+      },
+    )
+  }
+  deleting?.let { rule ->
+    AlertDialog(
+      onDismissRequest = { if (!isDeletingRule) deleting = null },
+      title = { Text(stringResource(R.string.delete_notification_rule_title)) },
+      confirmButton = {
+        Button(
+          enabled = !isDeletingRule,
+          onClick = { onEvent(AppriseNotificationSettingsEvent.DeleteRule(rule)) },
+        ) {
+          Text(stringResource(R.string.delete))
+        }
+      },
+      dismissButton = {
+        Button(
+          enabled = !isDeletingRule,
+          onClick = { deleting = null },
+        ) {
+          Text(stringResource(R.string.cancel))
+        }
+      },
+    )
   }
 }
 
 @Composable
-private fun NotificationRuleCard(rule: NotificationRuleUi) {
+private fun NotificationRuleCard(
+  rule: NotificationRuleUi,
+  enabled: Boolean,
+  onEdit: () -> Unit,
+  onDelete: () -> Unit,
+) {
   TextTitleSmall(text = rule.eventName)
   TextLabelSmall(
     text = stringResource(if (rule.enabled) R.string.enabled else R.string.disabled),
@@ -218,6 +315,150 @@ private fun NotificationRuleCard(rule: NotificationRuleUi) {
     Spacer(modifier = Modifier.height(8.dp))
     SettingValueRow(label = stringResource(R.string.body_template), value = rule.bodyTemplate)
   }
+  Spacer(modifier = Modifier.height(12.dp))
+  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Button(enabled = enabled, onClick = onEdit) {
+      Text(stringResource(R.string.edit))
+    }
+    Button(enabled = enabled, onClick = onDelete) {
+      Text(stringResource(R.string.delete))
+    }
+  }
+}
+
+@Composable
+private fun RuleDialog(
+  initial: NotificationRuleForm,
+  events: List<NotificationEventUi>,
+  isSaving: Boolean,
+  onDismiss: () -> Unit,
+  onSave: (NotificationRuleForm) -> Unit,
+) {
+  var form by remember(initial) { mutableStateOf(initial) }
+  var expanded by remember { mutableStateOf(false) }
+  val validation = validateNotificationRule(form)
+  val event = events.firstOrNull { it.name == form.eventName }
+
+  AlertDialog(
+    onDismissRequest = { if (!isSaving) onDismiss() },
+    title = {
+      Text(
+        stringResource(
+          if (form.id == null) {
+            R.string.create_notification_rule
+          } else {
+            R.string.edit_notification_rule
+          }
+        )
+      )
+    },
+    text = {
+      Column {
+        TextLabelSmall(
+          text = stringResource(R.string.event_name),
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Button(
+          enabled = events.isNotEmpty() && !isSaving,
+          onClick = { expanded = true },
+        ) {
+          Text(event?.name ?: form.eventName)
+        }
+        DropdownMenu(
+          expanded = expanded,
+          onDismissRequest = { expanded = false },
+        ) {
+          events.forEach { option ->
+            DropdownMenuItem(
+              text = { Text(option.name) },
+              onClick = {
+                form = form.withEvent(option)
+                expanded = false
+              },
+            )
+          }
+        }
+
+        event?.description
+          ?.takeIf(String::isNotBlank)
+          ?.let {
+            Spacer(modifier = Modifier.height(12.dp))
+            TextBodyMedium(text = it)
+          }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        ChipInput(
+          label = stringResource(R.string.destination_urls),
+          values = form.urls,
+          onAdd = { form = form.copy(urls = form.urls + it) },
+          onRemove = { form = form.copy(urls = form.urls - it) },
+          enabled = !isSaving,
+        )
+        if (validation.hasBlankDestinationUrl) {
+          TextLabelSmall(
+            text = stringResource(R.string.apprise_destination_url_required),
+            color = MaterialTheme.colorScheme.error,
+          )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+          value = form.titleTemplate,
+          onValueChange = { form = form.copy(titleTemplate = it) },
+          label = { Text(stringResource(R.string.title_template)) },
+          modifier = Modifier.fillMaxWidth(),
+          enabled = !isSaving,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+          value = form.bodyTemplate,
+          onValueChange = { form = form.copy(bodyTemplate = it) },
+          label = { Text(stringResource(R.string.body_template)) },
+          modifier = Modifier.fillMaxWidth(),
+          enabled = !isSaving,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+        MySwitch(
+          title = stringResource(R.string.enabled),
+          checked = form.enabled,
+          contentDescription = stringResource(R.string.enabled),
+          enabled = !isSaving,
+          onCheckedChange = { form = form.copy(enabled = it) },
+        )
+
+        event?.variables
+          ?.takeIf { it.isNotEmpty() }
+          ?.let { variables ->
+            Spacer(modifier = Modifier.height(12.dp))
+            TextBodyMedium(
+              text =
+                stringResource(
+                  R.string.notification_rule_variables,
+                  variables.joinToString(),
+                )
+            )
+          }
+      }
+    },
+    confirmButton = {
+      Button(
+        enabled = validation.isValid && !isSaving,
+        onClick = { onSave(form) },
+      ) {
+        Text(stringResource(R.string.save))
+      }
+    },
+    dismissButton = {
+      Button(
+        enabled = !isSaving,
+        onClick = onDismiss,
+      ) {
+        Text(stringResource(R.string.cancel))
+      }
+    },
+  )
 }
 
 @Composable
@@ -246,15 +487,34 @@ private fun HandleAppriseNotificationSettingsSnackbar(
   uiState: AppriseNotificationSettingsUiState,
   snackbarHostState: SnackbarHostState,
 ) {
-  val successMessage = stringResource(R.string.settings_saved)
-  val errorMessage = stringResource(R.string.settings_save_failed)
+  val settingsSuccessMessage = stringResource(R.string.settings_saved)
+  val settingsErrorMessage = stringResource(R.string.settings_save_failed)
+  val ruleSaveSuccessMessage = stringResource(R.string.notification_rule_saved)
+  val ruleSaveErrorMessage = stringResource(R.string.notification_rule_save_failed)
+  val ruleDeleteSuccessMessage = stringResource(R.string.notification_rule_deleted)
+  val ruleDeleteErrorMessage = stringResource(R.string.notification_rule_delete_failed)
 
   LaunchedEffect(uiState.apiState) {
     when (val state = uiState.apiState) {
-      AppriseNotificationSettingsApiState.Success ->
-        snackbarHostState.showSuccessSnackbar(successMessage)
+      is AppriseNotificationSettingsApiState.Success ->
+        snackbarHostState.showSuccessSnackbar(
+          when (state.target) {
+            AppriseNotificationSettingsMutationTarget.GlobalSettings -> settingsSuccessMessage
+            AppriseNotificationSettingsMutationTarget.NotificationRule -> ruleSaveSuccessMessage
+            AppriseNotificationSettingsMutationTarget.NotificationRuleDelete ->
+              ruleDeleteSuccessMessage
+          }
+        )
       is AppriseNotificationSettingsApiState.Failure ->
-        snackbarHostState.showErrorSnackbar(state.message ?: errorMessage)
+        snackbarHostState.showErrorSnackbar(
+          state.message
+            ?: when (state.target) {
+              AppriseNotificationSettingsMutationTarget.GlobalSettings -> settingsErrorMessage
+              AppriseNotificationSettingsMutationTarget.NotificationRule -> ruleSaveErrorMessage
+              AppriseNotificationSettingsMutationTarget.NotificationRuleDelete ->
+                ruleDeleteErrorMessage
+            }
+        )
       else -> Unit
     }
   }
@@ -391,7 +651,10 @@ private fun AppriseNotificationSettingsSavingPreview() {
       uiState =
         AppriseNotificationSettingsUiState(
           state = GenericState.Success,
-          apiState = AppriseNotificationSettingsApiState.Loading,
+          apiState =
+            AppriseNotificationSettingsApiState.Loading(
+              AppriseNotificationSettingsMutationTarget.GlobalSettings
+            ),
           savedSettings =
             AppriseGlobalSettingsForm(
               appriseApiUrl = "https://apprise.example.com/notify",
