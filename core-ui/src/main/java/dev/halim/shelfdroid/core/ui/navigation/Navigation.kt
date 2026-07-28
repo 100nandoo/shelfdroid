@@ -24,6 +24,7 @@ import androidx.navigation3.runtime.result.rememberResultEventBusNavEntryDecorat
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.navigation3.ui.NavDisplay
 import dev.halim.shelfdroid.core.navigation.ApiKeyChangedNavResult
+import dev.halim.shelfdroid.core.navigation.AppriseNotificationRuleChangedNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -38,6 +39,7 @@ import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.AppriseNotificationSettingsScreen
+import dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.NotificationRuleEditorScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeScreen
@@ -120,6 +122,7 @@ private fun ColumnScope.NavHostContainer(
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
+  val notificationRuleSavedMessage = stringResource(R.string.notification_rule_saved)
   val entryProvider =
     entryProvider<ShelfNavKey> {
       entry<Login> { key ->
@@ -352,7 +355,27 @@ private fun ColumnScope.NavHostContainer(
       }
       entry<AppriseNotificationSettings> {
         Nav3ScreenWrapper(sharedTransitionScope) {
-          AppriseNotificationSettingsScreen(snackbarHostState = snackbarHostState)
+          AppriseNotificationSettingsScreen(
+            snackbarHostState = snackbarHostState,
+            collectNavResultEvent = true,
+            onCreateRule = { navigator.navigate(EditAppriseNotificationRule(it)) },
+            onEditRule = { navigator.navigate(EditAppriseNotificationRule(it)) },
+          )
+        }
+      }
+      entry<EditAppriseNotificationRule> { key ->
+        val resultBus = LocalResultEventBus.current
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          NotificationRuleEditorScreen(
+            navKey = key,
+            snackbarHostState = snackbarHostState,
+            navigateBack = { navigator.pop() },
+            onSaveSuccess = {
+              resultBus.sendResult(result = AppriseNotificationRuleChangedNavResult)
+              navigator.pop()
+              scope.launch { snackbarHostState.showSuccessSnackbar(notificationRuleSavedMessage) }
+            },
+          )
         }
       }
       entry<RssFeeds> {

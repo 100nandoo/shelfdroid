@@ -2,27 +2,17 @@ package dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings
 
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
 
 class AppriseNotificationSettingsRepository
 @Inject
 constructor(
   private val api: ApiService,
   private val helper: Helper,
-  private val prefsRepository: PrefsRepository,
 ) {
 
   suspend fun load(): AppriseNotificationSettingsUiState {
-    if (!prefsRepository.userPrefs.first().type.isAdminOrUp()) {
-      return AppriseNotificationSettingsUiState(
-        state = GenericState.Success,
-        canAccess = false,
-      )
-    }
-
     return loadSettings().getOrElse {
       AppriseNotificationSettingsUiState(state = GenericState.Failure(it.message))
     }
@@ -41,7 +31,7 @@ constructor(
           AppriseNotificationSettingsApiState.Failure(
             target = AppriseNotificationSettingsMutationTarget.GlobalSettings,
             message = it.message,
-          )
+          ),
       )
     }
 
@@ -50,8 +40,8 @@ constructor(
         it.copy(
           apiState =
             AppriseNotificationSettingsApiState.Success(
-              AppriseNotificationSettingsMutationTarget.GlobalSettings
-            )
+              AppriseNotificationSettingsMutationTarget.GlobalSettings,
+            ),
         )
       }
       .getOrElse {
@@ -60,7 +50,7 @@ constructor(
             AppriseNotificationSettingsApiState.Failure(
               target = AppriseNotificationSettingsMutationTarget.GlobalSettings,
               message = it.message,
-            )
+            ),
         )
       }
   }
@@ -82,7 +72,7 @@ constructor(
           AppriseNotificationSettingsApiState.Failure(
             target = AppriseNotificationSettingsMutationTarget.NotificationRule,
             message = it.message,
-          )
+          ),
       )
     }
 
@@ -91,8 +81,8 @@ constructor(
         it.copy(
           apiState =
             AppriseNotificationSettingsApiState.Success(
-              AppriseNotificationSettingsMutationTarget.NotificationRule
-            )
+              AppriseNotificationSettingsMutationTarget.NotificationRule,
+            ),
         )
       }
       .getOrElse {
@@ -101,7 +91,7 @@ constructor(
             AppriseNotificationSettingsApiState.Failure(
               target = AppriseNotificationSettingsMutationTarget.NotificationRule,
               message = it.message,
-            )
+            ),
         )
       }
   }
@@ -116,7 +106,7 @@ constructor(
           AppriseNotificationSettingsApiState.Failure(
             target = AppriseNotificationSettingsMutationTarget.NotificationRuleDelete,
             message = it.message,
-          )
+          ),
       )
     }
 
@@ -125,8 +115,8 @@ constructor(
         it.copy(
           apiState =
             AppriseNotificationSettingsApiState.Success(
-              AppriseNotificationSettingsMutationTarget.NotificationRuleDelete
-            )
+              AppriseNotificationSettingsMutationTarget.NotificationRuleDelete,
+            ),
         )
       }
       .getOrElse {
@@ -135,7 +125,7 @@ constructor(
             AppriseNotificationSettingsApiState.Failure(
               target = AppriseNotificationSettingsMutationTarget.NotificationRuleDelete,
               message = it.message,
-            )
+            ),
         )
       }
   }
@@ -151,15 +141,15 @@ constructor(
             target = AppriseNotificationSettingsMutationTarget.NotificationRuleTest,
             message = it.message,
             reason = notificationRuleTestFailureReason(it),
-          )
+          ),
       )
     }
 
     return uiState.copy(
       apiState =
         AppriseNotificationSettingsApiState.Success(
-          AppriseNotificationSettingsMutationTarget.NotificationRuleTest
-        )
+          AppriseNotificationSettingsMutationTarget.NotificationRuleTest,
+        ),
     )
   }
 
@@ -171,9 +161,9 @@ constructor(
 
     return Result.success(
       AppriseNotificationSettingsMapper.map(response) {
-          helper.toReadableDate(it, includeTime = true)
-        }
-        .copy(state = GenericState.Success)
+        helper.toReadableDate(it, includeTime = true)
+      }
+        .copy(state = GenericState.Success),
     )
   }
 }

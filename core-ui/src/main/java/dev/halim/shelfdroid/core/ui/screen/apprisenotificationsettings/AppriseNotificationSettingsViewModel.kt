@@ -39,6 +39,7 @@ constructor(private val repository: AppriseNotificationSettingsRepository) : Vie
       is AppriseNotificationSettingsEvent.UpdateDraftSettings -> {
         _uiState.update { it.copy(draftSettings = event.transform(it.draftSettings)) }
       }
+      AppriseNotificationSettingsEvent.Refresh -> initialPage()
       AppriseNotificationSettingsEvent.SaveSettings -> saveSettings()
       is AppriseNotificationSettingsEvent.SaveRule -> saveRule(event.form)
       is AppriseNotificationSettingsEvent.DeleteRule -> deleteRule(event.rule)
@@ -115,6 +116,8 @@ sealed interface AppriseNotificationSettingsEvent {
   ) : AppriseNotificationSettingsEvent
 
   data object SaveSettings : AppriseNotificationSettingsEvent
+
+  data object Refresh : AppriseNotificationSettingsEvent
 
   data class SaveRule(val form: NotificationRuleForm) : AppriseNotificationSettingsEvent
 

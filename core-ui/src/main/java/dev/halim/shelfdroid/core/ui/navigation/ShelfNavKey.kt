@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
 import dev.halim.shelfdroid.core.AuthPromptReason
+import dev.halim.shelfdroid.core.navigation.NavEditAppriseNotificationRule
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
@@ -65,6 +66,9 @@ data class Login(val reLogin: Boolean = false, val reason: AuthPromptReason? = n
 @Serializable data object EmailManagement : ShelfNavKey
 
 @Serializable data object AppriseNotificationSettings : ShelfNavKey
+
+@Serializable
+data class EditAppriseNotificationRule(val payload: NavEditAppriseNotificationRule) : ShelfNavKey
 
 @Serializable data object RssFeeds : ShelfNavKey
 

@@ -50,3 +50,15 @@ data class NavEditApiKeys(
 ) {
   fun isCreateMode() = id.isEmpty()
 }
+
+@Serializable
+data class NavEditAppriseNotificationRule(
+  val id: String? = null,
+  val libraryId: String? = null,
+  val eventName: String = "onTest",
+  val urls: List<String> = emptyList(),
+  val titleTemplate: String = "",
+  val bodyTemplate: String = "",
+  val enabled: Boolean = true,
+  val type: String? = null,
+)

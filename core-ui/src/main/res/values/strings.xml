@@ -377,8 +377,6 @@
     <!--Email Management-->
 
     <!--Apprise Notification Settings-->
-    <string name="apprise_notification_settings_description">Review the Audiobookshelf server\'s global Apprise API endpoint and the current Notification rules. Local sleep-timer preferences remain separate.</string>
-    <string name="apprise_notification_settings_admin_only">Apprise notification settings are only available to Admin and Root users.</string>
     <string name="apprise_api_url">Apprise API URL</string>
     <string name="apprise_api_url_placeholder">https://apprise.example.com/notify</string>
     <string name="apprise_api_url_required">Apprise API URL is required.</string>

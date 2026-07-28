@@ -9,7 +9,6 @@ import retrofit2.HttpException
 data class AppriseNotificationSettingsUiState(
   val state: GenericState = GenericState.Loading,
   val apiState: AppriseNotificationSettingsApiState = AppriseNotificationSettingsApiState.Idle,
-  val canAccess: Boolean = true,
   val savedSettings: AppriseGlobalSettingsForm = AppriseGlobalSettingsForm(),
   val draftSettings: AppriseGlobalSettingsForm = AppriseGlobalSettingsForm(),
   val notificationRules: List<NotificationRuleUi> = emptyList(),
@@ -32,7 +31,7 @@ data class AppriseNotificationSettingsUiState(
         apiState.target != AppriseNotificationSettingsMutationTarget.GlobalSettings
 
   val canSave: Boolean
-    get() = canAccess && hasChanges && validation.isValid && !isSavingSettings
+    get() = hasChanges && validation.isValid && !isSavingSettings
 }
 
 data class AppriseGlobalSettingsForm(
@@ -185,6 +184,7 @@ private fun positiveIntegerError(value: String): AppriseGlobalSettingsFieldError
     value.isEmpty() -> AppriseGlobalSettingsFieldError.Required
     value.toIntOrNull()?.takeIf { it > 0 } == null ->
       AppriseGlobalSettingsFieldError.PositiveInteger
+
     else -> null
   }
 
