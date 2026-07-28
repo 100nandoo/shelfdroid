@@ -18,6 +18,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,9 +51,7 @@ import dev.halim.shelfdroid.core.navigation.NavEditAppriseNotificationRule
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
-import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
-import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
-import dev.halim.shelfdroid.core.ui.components.TextTitleSmall
+import dev.halim.shelfdroid.core.ui.components.TextTitleLarge
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
@@ -92,7 +92,7 @@ private fun AppriseNotificationSettingsContent(
   Column(modifier = Modifier.fillMaxSize()) {
     VisibilityDown(
       uiState.state is GenericState.Loading ||
-        uiState.apiState is AppriseNotificationSettingsApiState.Loading,
+        uiState.apiState is AppriseNotificationSettingsApiState.Loading
     ) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
@@ -108,17 +108,16 @@ private fun AppriseNotificationSettingsContent(
     }
 
     Column(
-      modifier =
-        Modifier
-          .fillMaxSize()
-          .verticalScroll(rememberScrollState())
-          .padding(horizontal = 16.dp),
+      modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+      verticalArrangement = Arrangement.Bottom,
     ) {
       Spacer(modifier = Modifier.height(16.dp))
-      TextTitleMedium(text = stringResource(R.string.apprise_notification_settings))
-      Spacer(modifier = Modifier.height(16.dp))
-      GlobalSettingsSection(uiState = uiState, onEvent = onEvent)
-      Spacer(modifier = Modifier.height(24.dp))
+      Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        TextTitleLarge(text = stringResource(R.string.apprise_notification_settings))
+        Spacer(modifier = Modifier.height(16.dp))
+        GlobalSettingsSection(uiState = uiState, onEvent = onEvent)
+        Spacer(modifier = Modifier.height(24.dp))
+      }
       NotificationRulesSection(
         uiState = uiState,
         onEvent = onEvent,
@@ -142,7 +141,7 @@ private fun GlobalSettingsSection(
     value = draft.appriseApiUrl,
     onValueChange = { value ->
       onEvent(
-        AppriseNotificationSettingsEvent.UpdateDraftSettings { it.copy(appriseApiUrl = value) },
+        AppriseNotificationSettingsEvent.UpdateDraftSettings { it.copy(appriseApiUrl = value) }
       )
     },
     label = stringResource(R.string.apprise_api_url),
@@ -160,7 +159,7 @@ private fun GlobalSettingsSection(
       onEvent(
         AppriseNotificationSettingsEvent.UpdateDraftSettings {
           it.copy(maxNotificationQueue = value)
-        },
+        }
       )
     },
     label = stringResource(R.string.max_queue_size_for_notification_events),
@@ -177,7 +176,7 @@ private fun GlobalSettingsSection(
       onEvent(
         AppriseNotificationSettingsEvent.UpdateDraftSettings {
           it.copy(maxFailedAttempts = value)
-        },
+        }
       )
     },
     label = stringResource(R.string.max_failed_attempts),
@@ -215,20 +214,22 @@ private fun NotificationRulesSection(
   val isDeletingRule =
     loadingState?.target == AppriseNotificationSettingsMutationTarget.NotificationRuleDelete
 
-  TextTitleMedium(text = stringResource(R.string.notification_rules))
+  TextTitleLarge(
+    modifier = Modifier.padding(horizontal = 16.dp),
+    text = stringResource(R.string.notification_rules),
+  )
   Spacer(modifier = Modifier.height(8.dp))
 
   if (notificationRules.isEmpty()) {
     TextBodyMedium(
+      modifier = Modifier.padding(horizontal = 16.dp),
       text = stringResource(R.string.empty_type, stringResource(R.string.notification_rules)),
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
   } else {
     Column {
-      notificationRules.forEachIndexed { index, rule ->
-        if (index > 0) {
-          HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        }
+      notificationRules.forEach { rule ->
+        HorizontalDivider()
         NotificationRuleCard(
           rule = rule,
           enabled = !isLoading,
@@ -241,30 +242,41 @@ private fun NotificationRulesSection(
   }
 
   Spacer(modifier = Modifier.height(12.dp))
-  Button(
+  TextButton(
     onClick = {
       notificationEvents.firstOrNull()?.let { event ->
         onCreateRule(NotificationRuleForm().withEvent(event).toNavEditPayload())
       }
     },
     enabled = notificationEvents.isNotEmpty() && !isLoading,
+    modifier = Modifier.fillMaxWidth().padding(16.dp),
   ) {
     Text(stringResource(R.string.create))
   }
   deleting?.let { rule ->
     AlertDialog(
       onDismissRequest = { if (!isDeletingRule) deleting = null },
-      title = { Text(stringResource(R.string.delete_notification_rule_title)) },
+      title = {
+        Text(
+          text = stringResource(R.string.delete_notification_rule_title),
+          textAlign = TextAlign.Center,
+          modifier = Modifier.fillMaxWidth(),
+        )
+      },
+      text = { Text(stringResource(R.string.dialog_delete_text)) },
       confirmButton = {
-        Button(
+        TextButton(
           enabled = !isDeletingRule,
-          onClick = { onEvent(AppriseNotificationSettingsEvent.DeleteRule(rule)) },
+          onClick = {
+            deleting = null
+            onEvent(AppriseNotificationSettingsEvent.DeleteRule(rule))
+          },
         ) {
           Text(stringResource(R.string.delete))
         }
       },
       dismissButton = {
-        Button(
+        TextButton(
           enabled = !isDeletingRule,
           onClick = { deleting = null },
         ) {
@@ -272,50 +284,6 @@ private fun NotificationRulesSection(
         }
       },
     )
-  }
-}
-
-@Composable
-private fun NotificationRuleCard(
-  rule: NotificationRuleUi,
-  enabled: Boolean,
-  onTest: () -> Unit,
-  onEdit: () -> Unit,
-  onDelete: () -> Unit,
-) {
-  TextTitleSmall(text = rule.eventName)
-  TextLabelSmall(
-    text = stringResource(if (rule.enabled) R.string.enabled else R.string.disabled),
-    color = MaterialTheme.colorScheme.onSurfaceVariant,
-  )
-  Spacer(modifier = Modifier.height(12.dp))
-  SettingValueRow(label = stringResource(R.string.destinations), value = rule.destinationSummary)
-  Spacer(modifier = Modifier.height(8.dp))
-  SettingValueRow(label = statusLabel(rule.status), value = statusValue(rule))
-  Spacer(modifier = Modifier.height(8.dp))
-  SettingValueRow(
-    label = stringResource(R.string.consecutive_failed_attempts),
-    value = rule.consecutiveFailedAttempts,
-  )
-  if (rule.titleTemplate.isNotBlank()) {
-    Spacer(modifier = Modifier.height(8.dp))
-    SettingValueRow(label = stringResource(R.string.title_template), value = rule.titleTemplate)
-  }
-  if (rule.bodyTemplate.isNotBlank()) {
-    Spacer(modifier = Modifier.height(8.dp))
-    SettingValueRow(label = stringResource(R.string.body_template), value = rule.bodyTemplate)
-  }
-  Spacer(modifier = Modifier.height(12.dp))
-  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-    Button(enabled = enabled, onClick = onTest) {
-      Text(stringResource(R.string.test))
-    }
-    Button(enabled = enabled, onClick = onEdit) {
-      Text(stringResource(R.string.edit))
-    }
-    Button(enabled = enabled, onClick = onDelete) {
-      Text(stringResource(R.string.delete))
-    }
   }
 }
 
@@ -330,27 +298,6 @@ private fun NotificationRuleForm.toNavEditPayload() =
     enabled = enabled,
     type = type,
   )
-
-@Composable
-private fun SettingValueRow(label: String, value: String) {
-  TextLabelSmall(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-  TextBodyMedium(text = value.ifBlank { "—" })
-}
-
-@Composable
-private fun statusLabel(status: NotificationRuleStatus): String =
-  stringResource(
-    when (status) {
-      NotificationRuleStatus.NeverFired -> R.string.status
-      NotificationRuleStatus.LastAttemptFailed -> R.string.last_attempt_failed
-      NotificationRuleStatus.LastFired -> R.string.last_fired
-    },
-  )
-
-@Composable
-private fun statusValue(rule: NotificationRuleUi): String =
-  if (rule.status == NotificationRuleStatus.NeverFired) stringResource(R.string.never_fired)
-  else rule.statusValue
 
 @Composable
 private fun HandleAppriseNotificationSettingsSnackbar(
@@ -381,7 +328,7 @@ private fun HandleAppriseNotificationSettingsSnackbar(
               ruleDeleteSuccessMessage
 
             AppriseNotificationSettingsMutationTarget.NotificationRuleTest -> ruleTestSuccessMessage
-          },
+          }
         )
 
       is AppriseNotificationSettingsApiState.Failure ->
@@ -403,7 +350,7 @@ private fun HandleAppriseNotificationSettingsSnackbar(
 
                   null -> ruleTestErrorMessage
                 }
-            },
+            }
         )
 
       else -> Unit
@@ -483,7 +430,7 @@ private fun AppriseNotificationSettingsContentPreview() {
                 bodyTemplate = "",
               ),
             ),
-        ),
+        )
     )
   }
 }
@@ -508,7 +455,7 @@ private fun AppriseNotificationSettingsEmptyPreview() {
               maxNotificationQueue = "10",
               maxFailedAttempts = "5",
             ),
-        ),
+        )
     )
   }
 }
@@ -533,7 +480,7 @@ private fun AppriseNotificationSettingsValidationPreview() {
               maxNotificationQueue = "0",
               maxFailedAttempts = "",
             ),
-        ),
+        )
     )
   }
 }
@@ -548,7 +495,7 @@ private fun AppriseNotificationSettingsSavingPreview() {
           state = GenericState.Success,
           apiState =
             AppriseNotificationSettingsApiState.Loading(
-              AppriseNotificationSettingsMutationTarget.GlobalSettings,
+              AppriseNotificationSettingsMutationTarget.GlobalSettings
             ),
           savedSettings =
             AppriseGlobalSettingsForm(
@@ -562,7 +509,7 @@ private fun AppriseNotificationSettingsSavingPreview() {
               maxNotificationQueue = "6",
               maxFailedAttempts = "3",
             ),
-        ),
+        )
     )
   }
 }
@@ -572,7 +519,7 @@ private fun AppriseNotificationSettingsSavingPreview() {
 private fun AppriseNotificationSettingsLoadingPreview() {
   PreviewWrapper(dynamicColor = false) {
     AppriseNotificationSettingsContent(
-      uiState = AppriseNotificationSettingsUiState(state = GenericState.Loading),
+      uiState = AppriseNotificationSettingsUiState(state = GenericState.Loading)
     )
   }
 }
@@ -584,8 +531,8 @@ private fun AppriseNotificationSettingsErrorPreview() {
     AppriseNotificationSettingsContent(
       uiState =
         AppriseNotificationSettingsUiState(
-          state = GenericState.Failure("Unable to load Apprise notification settings."),
-        ),
+          state = GenericState.Failure("Unable to load Apprise notification settings.")
+        )
     )
   }
 }
@@ -595,10 +542,7 @@ private fun AppriseNotificationSettingsErrorPreview() {
 private fun AppriseNotificationSettingsAdminOnlyPreview() {
   PreviewWrapper(dynamicColor = false) {
     AppriseNotificationSettingsContent(
-      uiState =
-        AppriseNotificationSettingsUiState(
-          state = GenericState.Success,
-        ),
+      uiState = AppriseNotificationSettingsUiState(state = GenericState.Success)
     )
   }
 }

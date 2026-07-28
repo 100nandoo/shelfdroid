@@ -28,6 +28,12 @@ class Animations @Inject constructor() {
       fun publishedAtKey(id: String) = "episode_published_at_$id"
     }
 
+    object NotificationRule {
+      fun eventNameKey(id: String) = "notification_rule_event_name_$id"
+
+      fun destinationKey(id: String) = "notification_rule_destination_$id"
+    }
+
     object Player {
       fun containerKey(id: String) = "player_container_$id"
 

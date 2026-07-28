@@ -6,10 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseGlobalSettingsForm
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsMutationTarget
-import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsRepository
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleForm
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleUi
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.notificationruleeditor.AppriseNotificationSettingsRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

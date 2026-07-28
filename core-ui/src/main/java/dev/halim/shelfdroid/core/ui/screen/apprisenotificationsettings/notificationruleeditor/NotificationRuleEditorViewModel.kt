@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings
+package dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.notificationruleeditor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,9 +9,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsMutationTarget
-import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsRepository
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleForm
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.notificationruleeditor.AppriseNotificationSettingsRepository
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.validateNotificationRule
 import dev.halim.shelfdroid.core.navigation.NavEditAppriseNotificationRule
 import dev.halim.shelfdroid.core.ui.navigation.EditAppriseNotificationRule
@@ -51,7 +51,10 @@ constructor(
   }
 
   fun save() {
-    if (_uiState.value.state !is GenericState.Success || !validateNotificationRule(_form.value).isValid) {
+    if (
+      _uiState.value.state !is GenericState.Success ||
+        !validateNotificationRule(_form.value).isValid
+    ) {
       return
     }
 
@@ -60,8 +63,8 @@ constructor(
         it.copy(
           apiState =
             AppriseNotificationSettingsApiState.Loading(
-              AppriseNotificationSettingsMutationTarget.NotificationRule,
-            ),
+              AppriseNotificationSettingsMutationTarget.NotificationRule
+            )
         )
       }
       _uiState.update { repository.mutateRule(it, _form.value) }

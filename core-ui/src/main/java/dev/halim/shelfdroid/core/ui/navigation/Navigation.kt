@@ -39,7 +39,7 @@ import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.AppriseNotificationSettingsScreen
-import dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.NotificationRuleEditorScreen
+import dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.notificationruleeditor.NotificationRuleEditorScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeScreen

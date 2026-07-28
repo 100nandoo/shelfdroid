@@ -403,7 +403,8 @@
     <string name="edit_notification_rule">Edit notification rule</string>
     <string name="delete_notification_rule_title">Delete notification rule?</string>
     <string name="apprise_destination_url_required">Add at least one destination URL.</string>
-    <string name="notification_rule_variables">Variables: %1$s</string>
+    <string name="notification_rule_variables_label">Variables</string>
+    <string name="notification_rule_variables_hint">Tap a variable to insert it into the focused template field.</string>
     <string name="notification_rule_saved">Notification rule saved.</string>
     <string name="notification_rule_save_failed">Failed to save notification rule.</string>
     <string name="notification_rule_deleted">Notification rule deleted.</string>

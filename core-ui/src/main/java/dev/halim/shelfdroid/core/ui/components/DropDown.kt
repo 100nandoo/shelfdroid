@@ -43,6 +43,7 @@ fun ChipDropdownMenu(
   labelPosition: LabelPosition = LabelPosition.Side,
   initialValue: String,
   isError: Boolean = false,
+  enabled: Boolean = true,
   onClick: (String) -> Unit = {},
 ) {
   var expanded by remember { mutableStateOf(false) }
@@ -51,7 +52,7 @@ fun ChipDropdownMenu(
   ExposedDropdownMenuBox(
     modifier = modifier,
     expanded = expanded,
-    onExpandedChange = { expanded = it },
+    onExpandedChange = { if (enabled) expanded = it },
   ) {
     val labelComposable: @Composable ((Modifier) -> Unit)? = label?.let {
       { mod: Modifier ->
@@ -83,6 +84,7 @@ fun ChipDropdownMenu(
         modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         selected = expanded,
         onClick = {},
+        enabled = enabled,
         label = {
           Text(
             text = selected.ifEmpty { label ?: "" },
@@ -116,7 +118,7 @@ fun ChipDropdownMenu(
       }
     }
 
-    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+    ExposedDropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
       options.forEach { option ->
         val isSelected = option == selected
 
@@ -125,7 +127,7 @@ fun ChipDropdownMenu(
           onClick = {
             selected = option
             expanded = false
-            onClick(option)
+            if (enabled) onClick(option)
           },
           trailingIcon = {
             if (isSelected) {
@@ -175,6 +177,19 @@ fun ChipDropdownMenuLabelTopPreview() {
       label = "Label",
       labelPosition = LabelPosition.Top,
       initialValue = "Option 1",
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+fun ChipDropdownMenuDisabledPreview() {
+  PreviewWrapper {
+    ChipDropdownMenu(
+      options = listOf("Option 1", "Option 2", "Option 3"),
+      label = "Label",
+      initialValue = "Option 1",
+      enabled = false,
     )
   }
 }
