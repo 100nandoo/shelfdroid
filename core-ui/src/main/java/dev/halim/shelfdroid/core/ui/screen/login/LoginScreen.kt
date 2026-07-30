@@ -106,6 +106,12 @@ fun LoginScreenContent(
   val (serverRef, usernameRef, passwordRef) = remember { FocusRequester.createRefs() }
   var showUseDifferentAccountDialog by remember { mutableStateOf(false) }
   val supportsLocalLogin = uiState.supportsLocalLogin()
+  val headerMessages =
+    loginHeaderMessages(
+      uiState = uiState,
+      refreshFailedMessage = stringResource(R.string.failed_to_refresh_token_relogin_required),
+      manualReLoginMessage = stringResource(R.string.reenter_password_to_continue),
+    )
 
   LaunchedEffect(uiState.reLogin, supportsLocalLogin) {
     when {
@@ -127,15 +133,9 @@ fun LoginScreenContent(
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Bottom,
     ) {
-      uiState.authPromptReason?.let { reason ->
+      headerMessages.promptReasonMessage?.let { message ->
         Text(
-          text =
-            when (reason) {
-              AuthPromptReason.RefreshFailed ->
-                stringResource(R.string.failed_to_refresh_token_relogin_required)
-              AuthPromptReason.ManualReLogin ->
-                stringResource(R.string.reenter_password_to_continue)
-            },
+          text = message,
           modifier = Modifier.fillMaxWidth(),
           textAlign = TextAlign.Center,
         )
@@ -147,7 +147,7 @@ fun LoginScreenContent(
         Spacer(modifier = Modifier.height(16.dp))
       }
 
-      uiState.authLoginCustomMessage?.let { message ->
+      headerMessages.customMessage?.let { message ->
         Text(
           text = message,
           modifier = Modifier.fillMaxWidth(),
@@ -156,7 +156,7 @@ fun LoginScreenContent(
         Spacer(modifier = Modifier.height(12.dp))
       }
 
-      uiState.loginDiscoveryMessage?.let { message ->
+      headerMessages.discoveryMessage?.let { message ->
         Text(
           text = message,
           modifier = Modifier.fillMaxWidth(),
@@ -280,6 +280,32 @@ private fun SelectedLoginMethodCard(label: String) {
       Text(text = stringResource(R.string.selected), style = MaterialTheme.typography.bodySmall)
     }
   }
+}
+
+internal data class LoginHeaderMessages(
+  val promptReasonMessage: String? = null,
+  val customMessage: String? = null,
+  val discoveryMessage: String? = null,
+) {
+  fun ordered(): List<String> = listOfNotNull(promptReasonMessage, customMessage, discoveryMessage)
+}
+
+internal fun loginHeaderMessages(
+  uiState: LoginUiState,
+  refreshFailedMessage: String,
+  manualReLoginMessage: String,
+): LoginHeaderMessages {
+  val promptReasonMessage =
+    when (uiState.authPromptReason) {
+      AuthPromptReason.RefreshFailed -> refreshFailedMessage
+      AuthPromptReason.ManualReLogin -> manualReLoginMessage
+      null -> null
+    }
+  return LoginHeaderMessages(
+    promptReasonMessage = promptReasonMessage,
+    customMessage = uiState.authLoginCustomMessage,
+    discoveryMessage = uiState.loginDiscoveryMessage,
+  )
 }
 
 @ShelfDroidPreview

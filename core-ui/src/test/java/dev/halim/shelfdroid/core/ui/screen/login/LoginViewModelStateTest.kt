@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
@@ -7,12 +8,31 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.login.showsLocalLoginSurface
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
 import dev.halim.shelfdroid.core.data.screen.login.showsOpenIdLoginSurface
+import dev.halim.shelfdroid.core.ui.navigation.Login
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LoginViewModelStateTest {
+
+  @Test
+  fun initLoginUiState_whenForcedReloginHasSavedServer_startsFreshDiscovery() {
+    val initialized =
+      initLoginUiState(
+        navKey = Login(reLogin = true, reason = AuthPromptReason.RefreshFailed),
+        username = "fernando",
+        server = "https://example.com/audiobookshelf/",
+      )
+
+    assertTrue(initialized.reLogin)
+    assertEquals(AuthPromptReason.RefreshFailed, initialized.authPromptReason)
+    assertEquals("fernando", initialized.username)
+    assertEquals("https://example.com/audiobookshelf/", initialized.server)
+    assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
+    assertEquals(LoginDiscoveryState.Loading, initialized.discoveryState)
+    assertEquals(LoginMethod.Local, initialized.selectedLoginMethod)
+  }
 
   @Test
   fun prepareLoginDiscovery_whenServerChanges_clearsStaleDiscoveryState() {

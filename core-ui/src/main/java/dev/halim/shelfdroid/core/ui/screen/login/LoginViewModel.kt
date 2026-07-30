@@ -96,22 +96,17 @@ constructor(
   }
 
   private fun initUiState(): LoginUiState {
-    val state =
+    val (username, server) =
       if (navKey.reLogin) {
         runBlocking {
           val username = loginRepository.userPrefs.firstOrNull()?.username ?: ""
           val server = if (username.isNotBlank()) loginRepository.baseUrl else ""
-          LoginUiState(
-            username = username,
-            server = server,
-            reLogin = true,
-            authPromptReason = navKey.reason,
-          )
+          username to server
         }
       } else {
-        LoginUiState(authPromptReason = navKey.reason)
+        "" to ""
       }
-    return state.prepareLoginDiscovery(state.server)
+    return initLoginUiState(navKey = navKey, username = username, server = server)
   }
 
   @AssistedFactory
@@ -135,6 +130,21 @@ internal fun LoginUiState.prepareLoginDiscovery(server: String): LoginUiState {
     authOpenIdButtonText = null,
     authOpenIdAutoLaunch = null,
   )
+}
+
+internal fun initLoginUiState(navKey: Login, username: String = "", server: String = ""): LoginUiState {
+  val state =
+    if (navKey.reLogin) {
+      LoginUiState(
+        username = username,
+        server = if (username.isNotBlank()) server else "",
+        reLogin = true,
+        authPromptReason = navKey.reason,
+      )
+    } else {
+      LoginUiState(authPromptReason = navKey.reason)
+    }
+  return state.prepareLoginDiscovery(state.server)
 }
 
 internal fun LoginUiState.applyLoginDiscovery(result: LoginDiscoveryResult): LoginUiState {

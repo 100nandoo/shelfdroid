@@ -16,6 +16,7 @@ import com.android.tools.screenshot.PreviewTest
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.SeekControlsState
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
@@ -118,6 +119,44 @@ fun LoginScreenMixedMethodsScreenshot() {
           selectedLoginMethod = LoginMethod.Local,
           authLoginCustomMessage = "Use your library account for Local login.",
           authOpenIdButtonText = "Continue with Acme SSO",
+        )
+    )
+  }
+}
+
+@PreviewTest
+@ShelfDroidPreview
+@Composable
+fun LoginScreenForcedReLoginScreenshot() {
+  PreviewWrapper(dynamicColor = false) {
+    LoginScreenContent(
+      uiState =
+        LoginUiState(
+          reLogin = true,
+          authPromptReason = AuthPromptReason.RefreshFailed,
+          authLoginCustomMessage = "Sign in again to continue.",
+          username = "fernando",
+        )
+    )
+  }
+}
+
+@PreviewTest
+@ShelfDroidPreview
+@Composable
+fun LoginScreenOpenIdOnlyScreenshot() {
+  PreviewWrapper(dynamicColor = false) {
+    LoginScreenContent(
+      uiState =
+        LoginUiState(
+          server = "https://example.com",
+          normalizedServer = "https://example.com",
+          discoveryState = LoginDiscoveryState.Success,
+          availableLoginMethods = listOf(LoginMethod.OpenId),
+          selectedLoginMethod = LoginMethod.OpenId,
+          loginDiscoveryMessage =
+            "This server does not offer Local login. OpenID login is not supported on Android yet.",
+          authOpenIdButtonText = "Login with Acme SSO",
         )
     )
   }
