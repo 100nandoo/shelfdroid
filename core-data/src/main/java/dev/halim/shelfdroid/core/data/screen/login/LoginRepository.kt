@@ -2,49 +2,89 @@ package dev.halim.shelfdroid.core.data.screen.login
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.LoginRequest
-import dev.halim.core.network.response.LoginResponse
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.BookmarkRepo
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import retrofit2.HttpException
+
+const val LOGIN_DISCOVERY_FAILED_MESSAGE =
+  "Could not confirm this server's login methods. Local login is still available."
+
+const val LOCAL_LOGIN_UNAVAILABLE_MESSAGE =
+  "This server does not offer Local login. OpenID login is not supported on Android yet."
 
 class LoginRepository
 @Inject
 constructor(
   private val api: ApiService,
-  private val mapper: LoginMapper,
   private val dataStoreManager: DataStoreManager,
   prefsRepository: PrefsRepository,
-  private val progressRepo: ProgressRepo,
-  private val bookmarkRepo: BookmarkRepo,
+  private val loginSuccessHandler: LoginSuccessHandler,
 ) {
 
   val userPrefs = prefsRepository.userPrefs
   val baseUrl = dataStoreManager.baseUrl()
 
+  suspend fun discoverLoginMethods(rawServer: String): LoginDiscoveryResult {
+    val parsedServer = AudiobookshelfBaseUrl.parse(rawServer) ?: return LoginDiscoveryResult()
+    val response = api.status(parsedServer.resolve("/status"))
+    val result = response.getOrNull()
+    if (result != null) {
+      val availableLoginMethods =
+        result.authMethods.toLoginMethods().ifEmpty { listOf(LoginMethod.Local) }
+      return LoginDiscoveryResult(
+        normalizedServer = parsedServer.value,
+        discoveryState = LoginDiscoveryState.Success,
+        availableLoginMethods = availableLoginMethods,
+        loginDiscoveryMessage =
+          if (LoginMethod.Local !in availableLoginMethods) {
+            LOCAL_LOGIN_UNAVAILABLE_MESSAGE
+          } else {
+            null
+          },
+        authLoginCustomMessage = result.authFormData?.authLoginCustomMessage?.takeUnless { it.isBlank() },
+        authOpenIdButtonText = result.authFormData?.authOpenIDButtonText?.takeUnless { it.isBlank() },
+        authOpenIdAutoLaunch = result.authFormData?.authOpenIDAutoLaunch,
+      )
+    }
+
+    return LoginDiscoveryResult(
+      normalizedServer = parsedServer.value,
+      discoveryState = LoginDiscoveryState.Failure,
+      availableLoginMethods = listOf(LoginMethod.Local),
+      loginDiscoveryMessage = LOGIN_DISCOVERY_FAILED_MESSAGE,
+    )
+  }
+
   suspend fun login(uiState: LoginUiState): LoginUiState {
     val normalizedServer =
-      AudiobookshelfBaseUrl.parse(uiState.server)?.value
+      uiState.normalizedServer ?: AudiobookshelfBaseUrl.parse(uiState.server)?.value
         ?: return uiState.copy(
           loginState = GenericState.Idle,
           serverFieldError = LoginFieldError.InvalidServerUrl,
         )
+
+    if (uiState.discoveryState is LoginDiscoveryState.Success &&
+      LoginMethod.Local !in uiState.availableLoginMethods) {
+      return uiState.copy(
+        normalizedServer = normalizedServer,
+        loginState = GenericState.Failure(LOCAL_LOGIN_UNAVAILABLE_MESSAGE),
+        serverFieldError = null,
+      )
+    }
 
     DataStoreManager.BASE_URL = normalizedServer
     val request = LoginRequest(uiState.username, uiState.password)
     val response = api.login(request)
     val result = response.getOrNull()
     if (result != null) {
-      updateDataStoreManager(normalizedServer, result)
-      progressRepo.saveAndConvert(result.user)
-      bookmarkRepo.saveAndConvert(result.user)
+      loginSuccessHandler.onLoginSuccess(normalizedServer, result)
       return uiState.copy(
         server = normalizedServer,
+        normalizedServer = normalizedServer,
         loginState = GenericState.Success,
         serverFieldError = null,
       )
@@ -63,33 +103,81 @@ constructor(
       }
     return uiState.copy(
       server = normalizedServer,
+      normalizedServer = normalizedServer,
       loginState = GenericState.Failure(message),
       serverFieldError = null,
     )
-  }
-
-  private suspend fun updateDataStoreManager(server: String, response: LoginResponse) {
-    dataStoreManager.apply {
-      val userPrefs = mapper.toUserPrefs(response.user)
-
-      updateBaseUrl(server)
-      completeLogin(userPrefs)
-    }
   }
 }
 
 data class LoginUiState(
   val loginState: GenericState = GenericState.Idle,
   val server: String = "",
+  val normalizedServer: String? = null,
   val serverFieldError: LoginFieldError? = null,
   val username: String = "",
   val password: String = "",
   val reLogin: Boolean = false,
   val authPromptReason: AuthPromptReason? = null,
+  val discoveryState: LoginDiscoveryState = LoginDiscoveryState.Idle,
+  val availableLoginMethods: List<LoginMethod> = listOf(LoginMethod.Local),
+  val loginDiscoveryMessage: String? = null,
+  val authLoginCustomMessage: String? = null,
+  val authOpenIdButtonText: String? = null,
+  val authOpenIdAutoLaunch: Boolean? = null,
 )
 
 enum class LoginFieldError {
   InvalidServerUrl
+}
+
+enum class LoginMethod {
+  Local,
+  OpenId,
+}
+
+sealed interface LoginDiscoveryState {
+  data object Idle : LoginDiscoveryState
+
+  data object Loading : LoginDiscoveryState
+
+  data object Success : LoginDiscoveryState
+
+  data object Failure : LoginDiscoveryState
+}
+
+data class LoginDiscoveryResult(
+  val normalizedServer: String? = null,
+  val discoveryState: LoginDiscoveryState = LoginDiscoveryState.Idle,
+  val availableLoginMethods: List<LoginMethod> = listOf(LoginMethod.Local),
+  val loginDiscoveryMessage: String? = null,
+  val authLoginCustomMessage: String? = null,
+  val authOpenIdButtonText: String? = null,
+  val authOpenIdAutoLaunch: Boolean? = null,
+)
+
+fun LoginUiState.supportsLocalLogin(): Boolean {
+  return discoveryState !is LoginDiscoveryState.Success || LoginMethod.Local in availableLoginMethods
+}
+
+fun LoginUiState.supportsOpenIdLogin(): Boolean = LoginMethod.OpenId in availableLoginMethods
+
+fun LoginUiState.isOpenIdOnly(): Boolean {
+  return discoveryState is LoginDiscoveryState.Success &&
+    LoginMethod.Local !in availableLoginMethods &&
+    LoginMethod.OpenId in availableLoginMethods
+}
+
+private fun List<String>.toLoginMethods(): List<LoginMethod> {
+  val normalized = map { it.trim().lowercase() }
+  val methods = mutableListOf<LoginMethod>()
+  if ("local" in normalized) {
+    methods += LoginMethod.Local
+  }
+  if ("openid" in normalized) {
+    methods += LoginMethod.OpenId
+  }
+  return methods
 }
 
 sealed interface LoginEvent {

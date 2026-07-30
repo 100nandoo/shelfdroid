@@ -44,4 +44,6 @@ dependencies {
   ksp(libs.hilt.compiler)
 
   testImplementation(libs.junit)
+  testImplementation(libs.androidx.datastore)
+  testImplementation(libs.kotlinx.coroutines.test)
 }

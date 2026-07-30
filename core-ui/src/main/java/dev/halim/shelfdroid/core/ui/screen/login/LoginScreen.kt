@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,9 +43,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginFieldError
+import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
+import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
+import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
+import dev.halim.shelfdroid.core.data.screen.login.supportsOpenIdLogin
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -96,13 +102,20 @@ fun LoginScreenContent(
 ) {
   val (serverRef, usernameRef, passwordRef) = remember { FocusRequester.createRefs() }
   var showUseDifferentAccountDialog by remember { mutableStateOf(false) }
+  val supportsLocalLogin = uiState.supportsLocalLogin()
 
-  LaunchedEffect(Unit) {
-    if (uiState.reLogin) passwordRef.requestFocus() else serverRef.requestFocus()
+  LaunchedEffect(uiState.reLogin, supportsLocalLogin) {
+    when {
+      uiState.reLogin && supportsLocalLogin -> passwordRef.requestFocus()
+      uiState.reLogin.not() -> serverRef.requestFocus()
+    }
   }
 
   Box(modifier = Modifier.fillMaxSize().imePadding()) {
-    VisibilityDown(uiState.loginState is GenericState.Loading) {
+    VisibilityDown(
+      uiState.loginState is GenericState.Loading ||
+        uiState.discoveryState is LoginDiscoveryState.Loading
+    ) {
       LinearProgressIndicator(modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
     }
 
@@ -131,6 +144,24 @@ fun LoginScreenContent(
         Spacer(modifier = Modifier.height(16.dp))
       }
 
+      uiState.authLoginCustomMessage?.let { message ->
+        Text(
+          text = message,
+          modifier = Modifier.fillMaxWidth(),
+          textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+      }
+
+      uiState.loginDiscoveryMessage?.let { message ->
+        Text(
+          text = message,
+          modifier = Modifier.fillMaxWidth(),
+          textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+      }
+
       MyOutlinedTextField(
         modifier = Modifier.fillMaxWidth().focusRequester(serverRef).testTag("server"),
         enabled = uiState.reLogin.not(),
@@ -152,36 +183,57 @@ fun LoginScreenContent(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      MyOutlinedTextField(
-        modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
-        enabled = uiState.reLogin.not(),
-        value = uiState.username,
-        onValueChange = { onEvent(LoginEvent.UsernameChanged(it)) },
-        label = stringResource(R.string.username),
-        keyboardOptions =
-          KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-        onNext = { focusManager.moveFocus(FocusDirection.Next) },
-      )
+      if (supportsLocalLogin) {
+        MyOutlinedTextField(
+          modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
+          enabled = uiState.reLogin.not(),
+          value = uiState.username,
+          onValueChange = { onEvent(LoginEvent.UsernameChanged(it)) },
+          label = stringResource(R.string.username),
+          keyboardOptions =
+            KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+          onNext = { focusManager.moveFocus(FocusDirection.Next) },
+        )
 
-      Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-      PasswordTextField(
-        modifier = Modifier.testTag(stringResource(R.string.password)).focusRequester(passwordRef),
-        value = uiState.password,
-        onValueChange = { onEvent(LoginEvent.PasswordChanged(it)) },
-        label = stringResource(R.string.password),
-        keyboardOptions =
-          KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-        onDone = { onEvent(LoginEvent.LoginButtonPressed) },
-      )
+        PasswordTextField(
+          modifier = Modifier.testTag(stringResource(R.string.password)).focusRequester(passwordRef),
+          value = uiState.password,
+          onValueChange = { onEvent(LoginEvent.PasswordChanged(it)) },
+          label = stringResource(R.string.password),
+          keyboardOptions =
+            KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+          onDone = { onEvent(LoginEvent.LoginButtonPressed) },
+        )
 
-      Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-      Button(
-        onClick = { onEvent(LoginEvent.LoginButtonPressed) },
-        modifier = Modifier.fillMaxWidth().testTag(stringResource(R.string.login)),
-      ) {
-        Text(stringResource(R.string.login))
+        Button(
+          onClick = { onEvent(LoginEvent.LoginButtonPressed) },
+          modifier = Modifier.fillMaxWidth().testTag(stringResource(R.string.login)),
+        ) {
+          Text(stringResource(R.string.login))
+        }
+      } else if (uiState.isOpenIdOnly()) {
+        OutlinedButton(
+          onClick = {},
+          enabled = false,
+          modifier = Modifier.fillMaxWidth(),
+        ) {
+          Text(uiState.authOpenIdButtonText ?: stringResource(R.string.login_with_openid))
+        }
+      }
+
+      if (uiState.supportsOpenIdLogin() && LoginMethod.Local in uiState.availableLoginMethods) {
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedButton(
+          onClick = {},
+          enabled = false,
+          modifier = Modifier.fillMaxWidth(),
+        ) {
+          Text(uiState.authOpenIdButtonText ?: stringResource(R.string.login_with_openid))
+        }
       }
     }
   }
@@ -209,13 +261,38 @@ fun LoginScreenContentPreview() {
 @ShelfDroidPreview
 @Composable
 fun LoginScreenContentDynamicPreview() {
-  val loginUiState = LoginUiState(loginState = GenericState.Failure("Wrong credentials"))
+  val loginUiState =
+    LoginUiState(
+      authLoginCustomMessage = "Use your library username and password.",
+      loginState = GenericState.Failure("Wrong credentials"),
+    )
   PreviewWrapper(dynamicColor = true) { LoginScreenContent(loginUiState) }
 }
 
 @ShelfDroidPreview
 @Composable
 fun ReLoginScreenContentPreview() {
-  val loginUiState = LoginUiState(reLogin = true, authPromptReason = AuthPromptReason.RefreshFailed)
+  val loginUiState =
+    LoginUiState(
+      reLogin = true,
+      authPromptReason = AuthPromptReason.RefreshFailed,
+      authLoginCustomMessage = "Sign in again to continue.",
+    )
+  PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
+}
+
+@ShelfDroidPreview
+@Composable
+fun OpenIdOnlyLoginScreenContentPreview() {
+  val loginUiState =
+    LoginUiState(
+      server = "https://example.com",
+      normalizedServer = "https://example.com",
+      discoveryState = LoginDiscoveryState.Success,
+      availableLoginMethods = listOf(LoginMethod.OpenId),
+      loginDiscoveryMessage =
+        "This server does not offer Local login. OpenID login is not supported on Android yet.",
+      authOpenIdButtonText = "Login with Acme SSO",
+    )
   PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
 }

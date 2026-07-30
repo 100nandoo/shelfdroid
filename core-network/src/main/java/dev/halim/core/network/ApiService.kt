@@ -43,6 +43,7 @@ import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.LibrarySeriesResponse
 import dev.halim.core.network.response.ListeningStatResponse
 import dev.halim.core.network.response.LoginResponse
+import dev.halim.core.network.response.LoginStatusResponse
 import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.LogsResponse
 import dev.halim.core.network.response.MatchItemResult
@@ -82,6 +83,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Url
 
 interface ApiService {
 
@@ -117,6 +119,12 @@ interface ApiService {
 
   @POST("logout")
   suspend fun logout(@Header("x-refresh-token") refreshToken: String): Result<LogoutResponse>
+
+  @GET
+  suspend fun status(
+    @Url url: String,
+    @Header("x-shelfdroid-anonymous") anonymous: String = "true",
+  ): Result<LoginStatusResponse>
 
   // backups
   @GET("/api/backups") suspend fun backups(): Result<BackupsResponse>

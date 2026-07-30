@@ -64,5 +64,8 @@ dependencies {
 
   // Local tests: jUnit, coroutines, Android runner
   testImplementation(libs.junit)
+  testImplementation(libs.androidx.datastore)
   testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.retrofit.kotlinx.serialization)
+  testImplementation(libs.retrofit.result)
 }

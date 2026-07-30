@@ -646,6 +646,7 @@
     <string name="invalid_server_url">Enter a valid server URL or host, such as example.com or https://example.com/audiobookshelf</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="login_with_openid">Login with OpenID</string>
     <string name="login">Login</string>
     <string name="episodes">Episodes</string>
     <string name="display">Display</string>

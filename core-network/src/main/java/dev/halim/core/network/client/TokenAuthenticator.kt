@@ -20,6 +20,9 @@ constructor(
 ) : Authenticator {
 
   override fun authenticate(route: Route?, response: Response): Request? {
+    if (response.request.tag(AnonymousRequestTag::class.java) != null) {
+      return null
+    }
     val path = response.request.url.encodedPath
     if (path.contains("login") || path.contains("refresh")) {
       return null
