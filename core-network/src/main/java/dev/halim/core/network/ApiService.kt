@@ -64,6 +64,7 @@ import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
+import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettings
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EmailSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EreaderDevicesResponse
@@ -393,16 +394,18 @@ interface ApiService {
   @POST("/api/notifications")
   suspend fun createAppriseNotificationRule(
     @Body request: AppriseNotificationRuleRequest
-  ): Result<Unit>
+  ): Result<AppriseNotificationSettings>
 
   @PATCH("/api/notifications/{ruleId}")
   suspend fun updateAppriseNotificationRule(
     @Path("ruleId") ruleId: String,
     @Body request: AppriseNotificationRuleRequest,
-  ): Result<Unit>
+  ): Result<AppriseNotificationSettings>
 
   @DELETE("/api/notifications/{ruleId}")
-  suspend fun deleteAppriseNotificationRule(@Path("ruleId") ruleId: String): Result<Unit>
+  suspend fun deleteAppriseNotificationRule(
+    @Path("ruleId") ruleId: String
+  ): Result<AppriseNotificationSettings>
 
   @GET("/api/notifications/{ruleId}/test")
   suspend fun testAppriseNotificationRule(@Path("ruleId") ruleId: String): Result<Unit>

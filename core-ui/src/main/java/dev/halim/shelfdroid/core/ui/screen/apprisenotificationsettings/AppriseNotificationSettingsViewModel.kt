@@ -10,6 +10,8 @@ import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.Apprise
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleForm
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleUi
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.notificationruleeditor.AppriseNotificationSettingsRepository
+import dev.halim.shelfdroid.core.navigation.AppriseNotificationRuleChangedNavResult
+import dev.halim.shelfdroid.core.ui.navigation.applyTo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,6 +40,9 @@ constructor(private val repository: AppriseNotificationSettingsRepository) : Vie
     when (event) {
       is AppriseNotificationSettingsEvent.UpdateDraftSettings -> {
         _uiState.update { it.copy(draftSettings = event.transform(it.draftSettings)) }
+      }
+      is AppriseNotificationSettingsEvent.ApplyRuleChange -> {
+        _uiState.update { event.result.applyTo(it) }
       }
       AppriseNotificationSettingsEvent.Refresh -> initialPage()
       AppriseNotificationSettingsEvent.SaveSettings -> saveSettings()
@@ -118,6 +123,9 @@ sealed interface AppriseNotificationSettingsEvent {
   data object SaveSettings : AppriseNotificationSettingsEvent
 
   data object Refresh : AppriseNotificationSettingsEvent
+
+  data class ApplyRuleChange(val result: AppriseNotificationRuleChangedNavResult) :
+    AppriseNotificationSettingsEvent
 
   data class SaveRule(val form: NotificationRuleForm) : AppriseNotificationSettingsEvent
 

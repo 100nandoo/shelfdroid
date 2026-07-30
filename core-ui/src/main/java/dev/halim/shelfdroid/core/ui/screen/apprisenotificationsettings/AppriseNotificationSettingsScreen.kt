@@ -69,8 +69,8 @@ fun AppriseNotificationSettingsScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   if (collectNavResultEvent) {
-    ResultEffect<AppriseNotificationRuleChangedNavResult> {
-      viewModel.onEvent(AppriseNotificationSettingsEvent.Refresh)
+    ResultEffect<AppriseNotificationRuleChangedNavResult> { result ->
+      viewModel.onEvent(AppriseNotificationSettingsEvent.ApplyRuleChange(result))
     }
   }
   HandleAppriseNotificationSettingsSnackbar(uiState, snackbarHostState)

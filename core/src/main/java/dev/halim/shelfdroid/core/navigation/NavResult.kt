@@ -8,7 +8,26 @@ data class CreatePodcastNavResult(val id: String = "", val feedUrl: String = "")
 
 data object ApiKeyChangedNavResult
 
-data object AppriseNotificationRuleChangedNavResult
+@Parcelize
+data class AppriseNotificationRuleChangedNavResult(
+  val notificationRules: List<AppriseNotificationRuleNavResult> = emptyList()
+) : Parcelable
+
+@Parcelize
+data class AppriseNotificationRuleNavResult(
+  val id: String = "",
+  val libraryId: String? = null,
+  val eventName: String = "",
+  val urls: List<String> = emptyList(),
+  val titleTemplate: String = "",
+  val bodyTemplate: String = "",
+  val enabled: Boolean = true,
+  val type: String? = null,
+  val destinationSummary: String = "",
+  val statusName: String = "NeverFired",
+  val statusValue: String = "",
+  val consecutiveFailedAttempts: String = "0",
+) : Parcelable
 
 object NavResultKey {
   const val CREATE_PODCAST = "create_podcast"

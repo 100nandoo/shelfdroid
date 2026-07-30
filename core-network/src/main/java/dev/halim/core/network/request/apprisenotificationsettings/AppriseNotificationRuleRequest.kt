@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AppriseNotificationRuleRequest(
+  @SerialName("id") val id: String? = null,
   @SerialName("libraryId") val libraryId: String? = null,
   @SerialName("eventName") val eventName: String,
   @SerialName("urls") val urls: List<String>,

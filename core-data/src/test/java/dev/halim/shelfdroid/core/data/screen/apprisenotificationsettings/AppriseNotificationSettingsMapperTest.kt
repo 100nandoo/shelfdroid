@@ -147,4 +147,70 @@ class AppriseNotificationSettingsMapperTest {
     assertEquals(false, form.enabled)
     assertEquals("library", form.type)
   }
+
+  @Test
+  fun applySettings_updatesRulesAndGlobalSettingsWithoutDiscardingLoadedEvents() {
+    val existingState =
+      AppriseNotificationSettingsMapper.map(
+        response =
+          AppriseNotificationSettingsResponse(
+            settings =
+              AppriseNotificationSettings(
+                appriseApiUrl = "https://old.example.com/notify",
+                maxNotificationQueue = 2,
+                maxFailedAttempts = 1,
+              ),
+            data =
+              AppriseNotificationData(
+                events =
+                  listOf(
+                    AppriseNotificationEvent(
+                      name = "onPodcastEpisodeDownloaded",
+                      description = "Episode downloaded",
+                      variables = listOf("episodeTitle"),
+                      defaults =
+                        AppriseNotificationEventDefaults(
+                          title = "Default title",
+                          body = "Default body",
+                        ),
+                    )
+                  )
+              ),
+          ),
+        formatDateTime = { "formatted-$it" },
+      )
+
+    val updatedState =
+      AppriseNotificationSettingsMapper.applySettings(
+        uiState = existingState,
+        settings =
+          AppriseNotificationSettings(
+            appriseApiUrl = "https://new.example.com/notify",
+            maxNotificationQueue = 5,
+            maxFailedAttempts = 3,
+            notifications =
+              listOf(
+                AppriseNotificationRule(
+                  id = "rule-9",
+                  eventName = "onPodcastEpisodeDownloaded",
+                  urls = listOf("telegram://download"),
+                  titleTemplate = "New {{podcastTitle}} Episode!",
+                  bodyTemplate = "{{episodeTitle}} has been added.",
+                  enabled = true,
+                  lastFiredAt = 1_752_000_000_000L,
+                )
+              ),
+          ),
+        formatDateTime = { "formatted-$it" },
+      )
+
+    assertEquals("https://new.example.com/notify", updatedState.savedSettings.appriseApiUrl)
+    assertEquals("5", updatedState.savedSettings.maxNotificationQueue)
+    assertEquals("3", updatedState.savedSettings.maxFailedAttempts)
+    assertEquals(updatedState.savedSettings, updatedState.draftSettings)
+    assertEquals(existingState.notificationEvents, updatedState.notificationEvents)
+    assertEquals(1, updatedState.notificationRules.size)
+    assertEquals("rule-9", updatedState.notificationRules.single().id)
+    assertEquals("formatted-1752000000000", updatedState.notificationRules.single().statusValue)
+  }
 }

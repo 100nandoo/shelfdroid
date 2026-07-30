@@ -42,6 +42,7 @@ import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.Apprise
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseNotificationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationEventUi
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleForm
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleUi
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.validateNotificationRule
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.withEvent
 import dev.halim.shelfdroid.core.ui.Animations
@@ -72,7 +73,7 @@ fun NotificationRuleEditorScreen(
   navKey: EditAppriseNotificationRule,
   snackbarHostState: SnackbarHostState,
   navigateBack: () -> Unit,
-  onSaveSuccess: () -> Unit,
+  onSaveSuccess: (List<NotificationRuleUi>) -> Unit,
   viewModel: NotificationRuleEditorViewModel =
     hiltViewModel<NotificationRuleEditorViewModel, NotificationRuleEditorViewModel.Factory> {
       factory ->
@@ -83,6 +84,7 @@ fun NotificationRuleEditorScreen(
   val form by viewModel.form.collectAsStateWithLifecycle()
 
   HandleNotificationRuleEditorSnackbar(
+    uiState = uiState,
     apiState = uiState.apiState,
     snackbarHostState = snackbarHostState,
     onSaveSuccess = onSaveSuccess,
@@ -383,9 +385,10 @@ internal fun insertNotificationRuleVariable(
 
 @Composable
 private fun HandleNotificationRuleEditorSnackbar(
+  uiState: AppriseNotificationSettingsUiState,
   apiState: AppriseNotificationSettingsApiState,
   snackbarHostState: SnackbarHostState,
-  onSaveSuccess: () -> Unit,
+  onSaveSuccess: (List<NotificationRuleUi>) -> Unit,
 ) {
   val errorMessage = stringResource(R.string.notification_rule_save_failed)
 
@@ -393,7 +396,7 @@ private fun HandleNotificationRuleEditorSnackbar(
     when (apiState) {
       is AppriseNotificationSettingsApiState.Success -> {
         if (apiState.target == AppriseNotificationSettingsMutationTarget.NotificationRule) {
-          onSaveSuccess()
+          onSaveSuccess(uiState.notificationRules)
         }
       }
 

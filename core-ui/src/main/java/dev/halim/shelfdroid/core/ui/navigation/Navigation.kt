@@ -370,8 +370,13 @@ private fun ColumnScope.NavHostContainer(
             navKey = key,
             snackbarHostState = snackbarHostState,
             navigateBack = { navigator.pop() },
-            onSaveSuccess = {
-              resultBus.sendResult(result = AppriseNotificationRuleChangedNavResult)
+            onSaveSuccess = { notificationRules ->
+              resultBus.sendResult(
+                result =
+                  AppriseNotificationRuleChangedNavResult(
+                    notificationRules = notificationRules.map { it.toNavResult() }
+                  )
+              )
               navigator.pop()
               scope.launch { snackbarHostState.showSuccessSnackbar(notificationRuleSavedMessage) }
             },

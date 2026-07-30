@@ -134,6 +134,7 @@ fun NotificationRuleForm.withEvent(event: NotificationEventUi) =
 
 internal fun NotificationRuleForm.toRequest() =
   AppriseNotificationRuleRequest(
+    id = id,
     libraryId = libraryId,
     eventName = eventName,
     urls = urls.map(String::trim),

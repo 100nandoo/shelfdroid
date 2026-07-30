@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings
 
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationRule
+import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettings
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettingsResponse
 
 internal object AppriseNotificationSettingsMapper {
@@ -8,17 +9,11 @@ internal object AppriseNotificationSettingsMapper {
     response: AppriseNotificationSettingsResponse,
     formatDateTime: (Long) -> String,
   ): AppriseNotificationSettingsUiState {
-    val settings = response.settings
-    val form =
-      AppriseGlobalSettingsForm(
-        appriseApiUrl = settings.appriseApiUrl.orEmpty(),
-        maxNotificationQueue = settings.maxNotificationQueue.toString(),
-        maxFailedAttempts = settings.maxFailedAttempts.toString(),
-      )
     return AppriseNotificationSettingsUiState(
-      savedSettings = form,
-      draftSettings = form,
-      notificationRules = settings.notifications.map { rule -> mapRule(rule, formatDateTime) },
+      savedSettings = settingsToForm(response.settings),
+      draftSettings = settingsToForm(response.settings),
+      notificationRules =
+        response.settings.notifications.map { rule -> mapRule(rule, formatDateTime) },
       notificationEvents =
         response.data.events.map { event ->
           NotificationEventUi(
@@ -31,6 +26,26 @@ internal object AppriseNotificationSettingsMapper {
         },
     )
   }
+
+  fun applySettings(
+    uiState: AppriseNotificationSettingsUiState,
+    settings: AppriseNotificationSettings,
+    formatDateTime: (Long) -> String,
+  ): AppriseNotificationSettingsUiState {
+    val form = settingsToForm(settings)
+    return uiState.copy(
+      savedSettings = form,
+      draftSettings = form,
+      notificationRules = settings.notifications.map { rule -> mapRule(rule, formatDateTime) },
+    )
+  }
+
+  private fun settingsToForm(settings: AppriseNotificationSettings) =
+    AppriseGlobalSettingsForm(
+      appriseApiUrl = settings.appriseApiUrl.orEmpty(),
+      maxNotificationQueue = settings.maxNotificationQueue.toString(),
+      maxFailedAttempts = settings.maxFailedAttempts.toString(),
+    )
 
   private fun mapRule(
     rule: AppriseNotificationRule,

@@ -49,6 +49,28 @@ class AppriseNotificationSettingsUiStateTest {
   }
 
   @Test
+  fun notificationRuleRequest_preservesIdForUpdatesAndTrimsUrls() {
+    val request =
+      NotificationRuleForm(
+          id = "rule-123",
+          libraryId = "library-456",
+          eventName = "onPodcastEpisodeDownloaded",
+          urls = listOf(" telegram://download ", "https://asdf  "),
+          titleTemplate = "New {{podcastTitle}} Episode!",
+          bodyTemplate = "{{episodeTitle}} has been added to {{libraryName}} library.",
+          enabled = true,
+        )
+        .toRequest()
+
+    assertEquals("rule-123", request.id)
+    assertEquals("library-456", request.libraryId)
+    assertEquals(
+      listOf("telegram://download", "https://asdf"),
+      request.urls,
+    )
+  }
+
+  @Test
   fun validation_acceptsAbsoluteNotifyEndpointAndPositiveIntegers() {
     val validation =
       validateAppriseGlobalSettings(

@@ -67,34 +67,28 @@ constructor(
     uiState: AppriseNotificationSettingsUiState,
     form: NotificationRuleForm,
   ): AppriseNotificationSettingsUiState {
-    val mutation =
+    val settings =
       if (form.id == null) {
         api.createAppriseNotificationRule(form.toRequest())
       } else {
         api.updateAppriseNotificationRule(form.id, form.toRequest())
       }
 
-    mutation.getOrElse {
-      return uiState.copy(
-        apiState =
-          AppriseNotificationSettingsApiState.Failure(
-            target = AppriseNotificationSettingsMutationTarget.NotificationRule,
-            message = it.message,
+    return settings
+      .map { updatedSettings ->
+        AppriseNotificationSettingsMapper.applySettings(uiState, updatedSettings) {
+            helper.toReadableDate(it, includeTime = true)
+          }
+          .copy(
+            state = GenericState.Success,
+            apiState =
+              AppriseNotificationSettingsApiState.Success(
+                AppriseNotificationSettingsMutationTarget.NotificationRule
+              ),
           )
-      )
-    }
-
-    return loadSettings()
-      .map {
-        it.copy(
-          apiState =
-            AppriseNotificationSettingsApiState.Success(
-              AppriseNotificationSettingsMutationTarget.NotificationRule
-            )
-        )
       }
       .getOrElse {
-        uiState.copy(
+        return uiState.copy(
           apiState =
             AppriseNotificationSettingsApiState.Failure(
               target = AppriseNotificationSettingsMutationTarget.NotificationRule,
@@ -108,24 +102,19 @@ constructor(
     uiState: AppriseNotificationSettingsUiState,
     rule: NotificationRuleUi,
   ): AppriseNotificationSettingsUiState {
-    api.deleteAppriseNotificationRule(rule.id).getOrElse {
-      return uiState.copy(
-        apiState =
-          AppriseNotificationSettingsApiState.Failure(
-            target = AppriseNotificationSettingsMutationTarget.NotificationRuleDelete,
-            message = it.message,
+    return api
+      .deleteAppriseNotificationRule(rule.id)
+      .map { updatedSettings ->
+        AppriseNotificationSettingsMapper.applySettings(uiState, updatedSettings) {
+            helper.toReadableDate(it, includeTime = true)
+          }
+          .copy(
+            state = GenericState.Success,
+            apiState =
+              AppriseNotificationSettingsApiState.Success(
+                AppriseNotificationSettingsMutationTarget.NotificationRuleDelete
+              ),
           )
-      )
-    }
-
-    return loadSettings()
-      .map {
-        it.copy(
-          apiState =
-            AppriseNotificationSettingsApiState.Success(
-              AppriseNotificationSettingsMutationTarget.NotificationRuleDelete
-            )
-        )
       }
       .getOrElse {
         uiState.copy(
