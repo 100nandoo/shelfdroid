@@ -16,6 +16,9 @@ import com.android.tools.screenshot.PreviewTest
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.SeekControlsState
+import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
+import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialogWithCheckbox
@@ -98,6 +101,26 @@ fun EpisodeScreenScreenshot() {
 @Composable
 fun LoginScreenScreenshot() {
   PreviewWrapper(dynamicColor = false) { LoginScreenContent() }
+}
+
+@PreviewTest
+@ShelfDroidPreview
+@Composable
+fun LoginScreenMixedMethodsScreenshot() {
+  PreviewWrapper(dynamicColor = false) {
+    LoginScreenContent(
+      uiState =
+        LoginUiState(
+          server = "https://example.com",
+          normalizedServer = "https://example.com",
+          discoveryState = LoginDiscoveryState.Success,
+          availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+          selectedLoginMethod = LoginMethod.Local,
+          authLoginCustomMessage = "Use your library account for Local login.",
+          authOpenIdButtonText = "Continue with Acme SSO",
+        )
+    )
+  }
 }
 
 @PreviewTest

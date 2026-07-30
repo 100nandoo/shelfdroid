@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,9 +50,10 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginFieldError
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
-import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
+import dev.halim.shelfdroid.core.data.screen.login.showsLocalLoginSurface
+import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
+import dev.halim.shelfdroid.core.data.screen.login.showsOpenIdLoginSurface
 import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
-import dev.halim.shelfdroid.core.data.screen.login.supportsOpenIdLogin
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -183,7 +186,12 @@ fun LoginScreenContent(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      if (supportsLocalLogin) {
+      if (uiState.showsMixedLoginMethods()) {
+        MixedLoginMethodsSurface(uiState = uiState)
+        Spacer(modifier = Modifier.height(16.dp))
+      }
+
+      if (uiState.showsLocalLoginSurface()) {
         MyOutlinedTextField(
           modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
           enabled = uiState.reLogin.not(),
@@ -215,18 +223,7 @@ fun LoginScreenContent(
         ) {
           Text(stringResource(R.string.login))
         }
-      } else if (uiState.isOpenIdOnly()) {
-        OutlinedButton(
-          onClick = {},
-          enabled = false,
-          modifier = Modifier.fillMaxWidth(),
-        ) {
-          Text(uiState.authOpenIdButtonText ?: stringResource(R.string.login_with_openid))
-        }
-      }
-
-      if (uiState.supportsOpenIdLogin() && LoginMethod.Local in uiState.availableLoginMethods) {
-        Spacer(modifier = Modifier.height(12.dp))
+      } else if (uiState.showsOpenIdLoginSurface()) {
         OutlinedButton(
           onClick = {},
           enabled = false,
@@ -249,6 +246,40 @@ fun LoginScreenContent(
     },
     onDismiss = { showUseDifferentAccountDialog = false },
   )
+}
+
+@Composable
+private fun MixedLoginMethodsSurface(uiState: LoginUiState) {
+  Text(
+    text = stringResource(R.string.login_methods),
+    modifier = Modifier.fillMaxWidth(),
+    style = MaterialTheme.typography.titleSmall,
+  )
+  Spacer(modifier = Modifier.height(8.dp))
+  SelectedLoginMethodCard(label = stringResource(R.string.local_login))
+  Spacer(modifier = Modifier.height(8.dp))
+  OutlinedButton(
+    onClick = {},
+    enabled = false,
+    modifier = Modifier.fillMaxWidth(),
+  ) {
+    Text(uiState.authOpenIdButtonText ?: stringResource(R.string.login_with_openid))
+  }
+}
+
+@Composable
+private fun SelectedLoginMethodCard(label: String) {
+  Surface(
+    modifier = Modifier.fillMaxWidth(),
+    color = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    shape = MaterialTheme.shapes.large,
+  ) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp)) {
+      Text(text = label, style = MaterialTheme.typography.titleMedium)
+      Text(text = stringResource(R.string.selected), style = MaterialTheme.typography.bodySmall)
+    }
+  }
 }
 
 @ShelfDroidPreview
@@ -283,6 +314,22 @@ fun ReLoginScreenContentPreview() {
 
 @ShelfDroidPreview
 @Composable
+fun MixedLoginMethodsScreenContentPreview() {
+  val loginUiState =
+    LoginUiState(
+      server = "https://example.com",
+      normalizedServer = "https://example.com",
+      discoveryState = LoginDiscoveryState.Success,
+      availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+      selectedLoginMethod = LoginMethod.Local,
+      authLoginCustomMessage = "Use your library account for Local login.",
+      authOpenIdButtonText = "Continue with Acme SSO",
+    )
+  PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
+}
+
+@ShelfDroidPreview
+@Composable
 fun OpenIdOnlyLoginScreenContentPreview() {
   val loginUiState =
     LoginUiState(
@@ -290,6 +337,7 @@ fun OpenIdOnlyLoginScreenContentPreview() {
       normalizedServer = "https://example.com",
       discoveryState = LoginDiscoveryState.Success,
       availableLoginMethods = listOf(LoginMethod.OpenId),
+      selectedLoginMethod = LoginMethod.OpenId,
       loginDiscoveryMessage =
         "This server does not offer Local login. OpenID login is not supported on Android yet.",
       authOpenIdButtonText = "Login with Acme SSO",

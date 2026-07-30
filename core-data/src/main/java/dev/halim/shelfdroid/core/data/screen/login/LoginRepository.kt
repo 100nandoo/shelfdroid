@@ -121,6 +121,7 @@ data class LoginUiState(
   val authPromptReason: AuthPromptReason? = null,
   val discoveryState: LoginDiscoveryState = LoginDiscoveryState.Idle,
   val availableLoginMethods: List<LoginMethod> = listOf(LoginMethod.Local),
+  val selectedLoginMethod: LoginMethod = LoginMethod.Local,
   val loginDiscoveryMessage: String? = null,
   val authLoginCustomMessage: String? = null,
   val authOpenIdButtonText: String? = null,
@@ -162,10 +163,28 @@ fun LoginUiState.supportsLocalLogin(): Boolean {
 
 fun LoginUiState.supportsOpenIdLogin(): Boolean = LoginMethod.OpenId in availableLoginMethods
 
+fun LoginUiState.showsMixedLoginMethods(): Boolean {
+  return discoveryState is LoginDiscoveryState.Success &&
+    LoginMethod.Local in availableLoginMethods &&
+    LoginMethod.OpenId in availableLoginMethods
+}
+
+fun LoginUiState.showsLocalLoginSurface(): Boolean = selectedLoginMethod == LoginMethod.Local
+
+fun LoginUiState.showsOpenIdLoginSurface(): Boolean = selectedLoginMethod == LoginMethod.OpenId
+
 fun LoginUiState.isOpenIdOnly(): Boolean {
   return discoveryState is LoginDiscoveryState.Success &&
     LoginMethod.Local !in availableLoginMethods &&
     LoginMethod.OpenId in availableLoginMethods
+}
+
+fun List<LoginMethod>.defaultSelectedLoginMethod(): LoginMethod {
+  return when {
+    LoginMethod.Local in this -> LoginMethod.Local
+    LoginMethod.OpenId in this -> LoginMethod.OpenId
+    else -> LoginMethod.Local
+  }
 }
 
 private fun List<String>.toLoginMethods(): List<LoginMethod> {

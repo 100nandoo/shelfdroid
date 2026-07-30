@@ -14,6 +14,7 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
+import dev.halim.shelfdroid.core.data.screen.login.defaultSelectedLoginMethod
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlinx.coroutines.FlowPreview
@@ -60,7 +61,7 @@ constructor(
             _uiState.update { it.copy(loginState = GenericState.Failure(error.message)) }
           }
         }
-      is LoginEvent.ServerChanged -> _uiState.update { it.prepareDiscovery(event.server) }
+      is LoginEvent.ServerChanged -> _uiState.update { it.prepareLoginDiscovery(event.server) }
       is LoginEvent.UsernameChanged -> _uiState.update { it.copy(username = event.username) }
       is LoginEvent.PasswordChanged -> _uiState.update { it.copy(password = event.password) }
       LoginEvent.ErrorShown -> {
@@ -78,7 +79,7 @@ constructor(
         .collectLatest { server ->
           val parsed = AudiobookshelfBaseUrl.parse(server)
           if (parsed == null) {
-            _uiState.update { it.prepareDiscovery(server) }
+            _uiState.update { it.prepareLoginDiscovery(server) }
             return@collectLatest
           }
 
@@ -89,7 +90,7 @@ constructor(
             )
           }
           val result = loginRepository.discoverLoginMethods(server)
-          _uiState.update { it.applyDiscovery(result) }
+          _uiState.update { it.applyLoginDiscovery(result) }
         }
     }
   }
@@ -110,39 +111,42 @@ constructor(
       } else {
         LoginUiState(authPromptReason = navKey.reason)
       }
-    return state.prepareDiscovery(state.server)
-  }
-
-  private fun LoginUiState.prepareDiscovery(server: String): LoginUiState {
-    val normalizedServer = AudiobookshelfBaseUrl.parse(server)?.value
-    return copy(
-      server = server,
-      normalizedServer = normalizedServer,
-      serverFieldError = null,
-      discoveryState =
-        if (normalizedServer != null) LoginDiscoveryState.Loading else LoginDiscoveryState.Idle,
-      availableLoginMethods = listOf(LoginMethod.Local),
-      loginDiscoveryMessage = null,
-      authLoginCustomMessage = null,
-      authOpenIdButtonText = null,
-      authOpenIdAutoLaunch = null,
-    )
-  }
-
-  private fun LoginUiState.applyDiscovery(result: LoginDiscoveryResult): LoginUiState {
-    return copy(
-      normalizedServer = result.normalizedServer,
-      discoveryState = result.discoveryState,
-      availableLoginMethods = result.availableLoginMethods,
-      loginDiscoveryMessage = result.loginDiscoveryMessage,
-      authLoginCustomMessage = result.authLoginCustomMessage,
-      authOpenIdButtonText = result.authOpenIdButtonText,
-      authOpenIdAutoLaunch = result.authOpenIdAutoLaunch,
-    )
+    return state.prepareLoginDiscovery(state.server)
   }
 
   @AssistedFactory
   interface Factory {
     fun create(navKey: Login): LoginViewModel
   }
+}
+
+internal fun LoginUiState.prepareLoginDiscovery(server: String): LoginUiState {
+  val normalizedServer = AudiobookshelfBaseUrl.parse(server)?.value
+  val availableLoginMethods = listOf(LoginMethod.Local)
+  return copy(
+    server = server,
+    normalizedServer = normalizedServer,
+    serverFieldError = null,
+    discoveryState = if (normalizedServer != null) LoginDiscoveryState.Loading else LoginDiscoveryState.Idle,
+    availableLoginMethods = availableLoginMethods,
+    selectedLoginMethod = availableLoginMethods.defaultSelectedLoginMethod(),
+    loginDiscoveryMessage = null,
+    authLoginCustomMessage = null,
+    authOpenIdButtonText = null,
+    authOpenIdAutoLaunch = null,
+  )
+}
+
+internal fun LoginUiState.applyLoginDiscovery(result: LoginDiscoveryResult): LoginUiState {
+  val availableLoginMethods = result.availableLoginMethods.ifEmpty { listOf(LoginMethod.Local) }
+  return copy(
+    normalizedServer = result.normalizedServer,
+    discoveryState = result.discoveryState,
+    availableLoginMethods = availableLoginMethods,
+    selectedLoginMethod = availableLoginMethods.defaultSelectedLoginMethod(),
+    loginDiscoveryMessage = result.loginDiscoveryMessage,
+    authLoginCustomMessage = result.authLoginCustomMessage,
+    authOpenIdButtonText = result.authOpenIdButtonText,
+    authOpenIdAutoLaunch = result.authOpenIdAutoLaunch,
+  )
 }
