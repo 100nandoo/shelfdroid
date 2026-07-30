@@ -48,11 +48,9 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginFieldError
-import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
-import dev.halim.shelfdroid.core.data.screen.login.showsLocalLoginSurface
+import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
-import dev.halim.shelfdroid.core.data.screen.login.showsOpenIdLoginSurface
 import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
@@ -61,6 +59,7 @@ import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.navigation.Login
+import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
@@ -191,7 +190,7 @@ fun LoginScreenContent(
         Spacer(modifier = Modifier.height(16.dp))
       }
 
-      if (uiState.showsLocalLoginSurface()) {
+      if (supportsLocalLogin) {
         MyOutlinedTextField(
           modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
           enabled = uiState.reLogin.not(),
@@ -223,7 +222,7 @@ fun LoginScreenContent(
         ) {
           Text(stringResource(R.string.login))
         }
-      } else if (uiState.showsOpenIdLoginSurface()) {
+      } else if (uiState.isOpenIdOnly()) {
         OutlinedButton(
           onClick = {},
           enabled = false,
@@ -329,44 +328,17 @@ fun LoginScreenContentDynamicPreview() {
 @ShelfDroidPreview
 @Composable
 fun ReLoginScreenContentPreview() {
-  val loginUiState =
-    LoginUiState(
-      reLogin = true,
-      authPromptReason = AuthPromptReason.RefreshFailed,
-      authLoginCustomMessage = "Sign in again to continue.",
-    )
-  PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
+  PreviewWrapper(dynamicColor = false) { LoginScreenContent(Defaults.LOGIN_RELOGIN_UI_STATE) }
 }
 
 @ShelfDroidPreview
 @Composable
 fun MixedLoginMethodsScreenContentPreview() {
-  val loginUiState =
-    LoginUiState(
-      server = "https://example.com",
-      normalizedServer = "https://example.com",
-      discoveryState = LoginDiscoveryState.Success,
-      availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-      selectedLoginMethod = LoginMethod.Local,
-      authLoginCustomMessage = "Use your library account for Local login.",
-      authOpenIdButtonText = "Continue with Acme SSO",
-    )
-  PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
+  PreviewWrapper(dynamicColor = false) { LoginScreenContent(Defaults.LOGIN_MIXED_METHODS_UI_STATE) }
 }
 
 @ShelfDroidPreview
 @Composable
 fun OpenIdOnlyLoginScreenContentPreview() {
-  val loginUiState =
-    LoginUiState(
-      server = "https://example.com",
-      normalizedServer = "https://example.com",
-      discoveryState = LoginDiscoveryState.Success,
-      availableLoginMethods = listOf(LoginMethod.OpenId),
-      selectedLoginMethod = LoginMethod.OpenId,
-      loginDiscoveryMessage =
-        "This server does not offer Local login. OpenID login is not supported on Android yet.",
-      authOpenIdButtonText = "Login with Acme SSO",
-    )
-  PreviewWrapper(dynamicColor = false) { LoginScreenContent(loginUiState) }
+  PreviewWrapper(dynamicColor = false) { LoginScreenContent(Defaults.LOGIN_OPEN_ID_ONLY_UI_STATE) }
 }

@@ -14,7 +14,6 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
-import dev.halim.shelfdroid.core.data.screen.login.defaultSelectedLoginMethod
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlinx.coroutines.FlowPreview
@@ -117,14 +116,12 @@ constructor(
 
 internal fun LoginUiState.prepareLoginDiscovery(server: String): LoginUiState {
   val normalizedServer = AudiobookshelfBaseUrl.parse(server)?.value
-  val availableLoginMethods = listOf(LoginMethod.Local)
   return copy(
     server = server,
     normalizedServer = normalizedServer,
     serverFieldError = null,
     discoveryState = if (normalizedServer != null) LoginDiscoveryState.Loading else LoginDiscoveryState.Idle,
-    availableLoginMethods = availableLoginMethods,
-    selectedLoginMethod = availableLoginMethods.defaultSelectedLoginMethod(),
+    availableLoginMethods = listOf(LoginMethod.Local),
     loginDiscoveryMessage = null,
     authLoginCustomMessage = null,
     authOpenIdButtonText = null,
@@ -153,7 +150,6 @@ internal fun LoginUiState.applyLoginDiscovery(result: LoginDiscoveryResult): Log
     normalizedServer = result.normalizedServer,
     discoveryState = result.discoveryState,
     availableLoginMethods = availableLoginMethods,
-    selectedLoginMethod = availableLoginMethods.defaultSelectedLoginMethod(),
     loginDiscoveryMessage = result.loginDiscoveryMessage,
     authLoginCustomMessage = result.authLoginCustomMessage,
     authOpenIdButtonText = result.authOpenIdButtonText,

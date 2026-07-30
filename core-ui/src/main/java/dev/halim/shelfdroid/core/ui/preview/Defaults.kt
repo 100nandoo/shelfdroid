@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.preview
 
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.LogLevel
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlayerBookmark
@@ -37,6 +38,9 @@ import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
+import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
+import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.data.screen.logs.LogsUiState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
@@ -51,6 +55,32 @@ object Defaults {
   const val IMAGE_URL = ""
   const val TITLE = "Studio Dispatch"
   const val AUTHOR_NAME = "Mara Lee"
+  val LOGIN_MIXED_METHODS_UI_STATE =
+    LoginUiState(
+      server = "https://example.com",
+      normalizedServer = "https://example.com",
+      discoveryState = LoginDiscoveryState.Success,
+      availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+      authLoginCustomMessage = "Use your library account for Local login.",
+      authOpenIdButtonText = "Continue with Acme SSO",
+    )
+  val LOGIN_OPEN_ID_ONLY_UI_STATE =
+    LoginUiState(
+      server = "https://example.com",
+      normalizedServer = "https://example.com",
+      discoveryState = LoginDiscoveryState.Success,
+      availableLoginMethods = listOf(LoginMethod.OpenId),
+      loginDiscoveryMessage =
+        "This server does not offer Local login. OpenID login is not supported on Android yet.",
+      authOpenIdButtonText = "Login with Acme SSO",
+    )
+  val LOGIN_RELOGIN_UI_STATE =
+    LoginUiState(
+      reLogin = true,
+      authPromptReason = AuthPromptReason.RefreshFailed,
+      authLoginCustomMessage = "Sign in again to continue.",
+      username = "fernando",
+    )
   const val DESCRIPTION =
     """
         Studio Dispatch is a fictional preview podcast used for ShelfDroid screenshots and UI fixtures.

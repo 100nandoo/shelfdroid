@@ -5,9 +5,9 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
-import dev.halim.shelfdroid.core.data.screen.login.showsLocalLoginSurface
+import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
-import dev.halim.shelfdroid.core.data.screen.login.showsOpenIdLoginSurface
+import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -31,30 +31,28 @@ class LoginViewModelStateTest {
     assertEquals("https://example.com/audiobookshelf/", initialized.server)
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
     assertEquals(LoginDiscoveryState.Loading, initialized.discoveryState)
-    assertEquals(LoginMethod.Local, initialized.selectedLoginMethod)
+    assertEquals(listOf(LoginMethod.Local), initialized.availableLoginMethods)
   }
 
   @Test
   fun prepareLoginDiscovery_whenServerChanges_clearsStaleDiscoveryState() {
     val prepared =
       LoginUiState(
-          server = "https://old.example.com",
-          normalizedServer = "https://old.example.com",
-          discoveryState = LoginDiscoveryState.Success,
-          availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-          selectedLoginMethod = LoginMethod.Local,
-          loginDiscoveryMessage = "stale helper",
-          authLoginCustomMessage = "stale custom copy",
-          authOpenIdButtonText = "Stale SSO",
-          authOpenIdAutoLaunch = true,
-        )
+        server = "https://old.example.com",
+        normalizedServer = "https://old.example.com",
+        discoveryState = LoginDiscoveryState.Success,
+        availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+        loginDiscoveryMessage = "stale helper",
+        authLoginCustomMessage = "stale custom copy",
+        authOpenIdButtonText = "Stale SSO",
+        authOpenIdAutoLaunch = true,
+      )
         .prepareLoginDiscovery("https://new.example.com")
 
     assertEquals("https://new.example.com", prepared.server)
     assertEquals("https://new.example.com", prepared.normalizedServer)
     assertEquals(LoginDiscoveryState.Loading, prepared.discoveryState)
     assertEquals(listOf(LoginMethod.Local), prepared.availableLoginMethods)
-    assertEquals(LoginMethod.Local, prepared.selectedLoginMethod)
     assertNull(prepared.loginDiscoveryMessage)
     assertNull(prepared.authLoginCustomMessage)
     assertNull(prepared.authOpenIdButtonText)
@@ -73,10 +71,9 @@ class LoginViewModelStateTest {
         )
       )
 
-    assertEquals(LoginMethod.Local, applied.selectedLoginMethod)
     assertEquals("Continue with Acme SSO", applied.authOpenIdButtonText)
     assertTrue(applied.showsMixedLoginMethods())
-    assertTrue(applied.showsLocalLoginSurface())
+    assertTrue(applied.supportsLocalLogin())
   }
 
   @Test
@@ -93,8 +90,7 @@ class LoginViewModelStateTest {
         )
       )
 
-    assertEquals(LoginMethod.OpenId, applied.selectedLoginMethod)
     assertEquals("Continue with Acme SSO", applied.authOpenIdButtonText)
-    assertTrue(applied.showsOpenIdLoginSurface())
+    assertTrue(applied.isOpenIdOnly())
   }
 }
