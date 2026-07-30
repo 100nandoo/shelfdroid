@@ -113,7 +113,6 @@ private fun AppriseNotificationSettingsContent(
     ) {
       Spacer(modifier = Modifier.height(16.dp))
       Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        TextTitleLarge(text = stringResource(R.string.apprise_notification_settings))
         Spacer(modifier = Modifier.height(16.dp))
         GlobalSettingsSection(uiState = uiState, onEvent = onEvent)
         Spacer(modifier = Modifier.height(24.dp))

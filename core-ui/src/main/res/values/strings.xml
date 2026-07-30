@@ -350,7 +350,6 @@
     <string name="test_email_sent">Test email sent.</string>
     <string name="test_email_failed">Failed to send test email.</string>
     <string name="e_reader_devices">eReader Devices</string>
-    <string name="e_reader_devices_description">Manage the shared send-to-device destinations exposed by the Audiobookshelf server.</string>
     <string name="add_device">Add Device</string>
     <string name="edit_device">Edit Device</string>
     <string name="delete_device">Delete Device</string>

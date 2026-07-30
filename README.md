@@ -57,8 +57,8 @@ Android device, and handle common server management tasks from the same app.
 | Server Settings               | ☑️          |
 | Open Sessions                 | ☑️          |
 | Listening Sessions            | ☑️          |
-| Email                         | ❌           |
-| Notifications                 | ❌           |
+| Email                         | ☑️          |
+| Notifications                 | ☑️          |
 | Edit Libraries                | ❌           |
 | Item Metadata Utils           | ❌           |
 | Authentication                | ❌           |
@@ -94,7 +94,6 @@ Android device, and handle common server management tasks from the same app.
 ## Roadmap
 
 - [ ] Authentication management
-- [ ] Notifications management
 - [ ] Edit Libraries
 - [ ] Item Metadata Utils
 - [ ] Listening Sessions
@@ -108,6 +107,7 @@ Android device, and handle common server management tasks from the same app.
 - [x] Add offline downloading and playback
 - [x] Improve search and filtering features
 - [x] Email management
+- [x] Notifications management
 
 See the [issue tracker](https://github.com/100nandoo/shelfdroid/issues) for current work and feature
 requests.

@@ -34,6 +34,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.emailmanagement.DeviceAvailabilityOption
+import dev.halim.shelfdroid.core.data.screen.emailmanagement.DeviceEditorState
 import dev.halim.shelfdroid.core.data.screen.emailmanagement.DeviceMutation
 import dev.halim.shelfdroid.core.data.screen.emailmanagement.EmailManagementApiState
 import dev.halim.shelfdroid.core.data.screen.emailmanagement.EmailManagementOperation
@@ -43,11 +44,9 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySwitch
-import dev.halim.shelfdroid.core.ui.components.MyTonalIconButton
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.TextLabelSmall
-import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
-import dev.halim.shelfdroid.core.ui.components.TextTitleSmall
+import dev.halim.shelfdroid.core.ui.components.TextTitleLarge
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
@@ -107,14 +106,20 @@ private fun EmailManagementContent(
       return
     }
 
-    Column(
-      modifier =
-        Modifier.weight(1f).padding(horizontal = 16.dp).verticalScroll(rememberScrollState())
-    ) {
+    Column(modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
       Spacer(modifier = Modifier.height(16.dp))
-      EmailSettingsSection(uiState = uiState, onEvent = onEvent)
-      Spacer(modifier = Modifier.height(24.dp))
+      Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        EmailSettingsSection(uiState = uiState, onEvent = onEvent)
+        Spacer(modifier = Modifier.height(24.dp))
+      }
       EreaderDevicesSection(uiState = uiState, onEvent = onEvent)
+      TextButton(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        enabled = !uiState.isUpdatingDevices,
+        onClick = { onEvent(EmailManagementEvent.OpenCreateDeviceEditor) },
+      ) {
+        Text(stringResource(R.string.add_device))
+      }
       Spacer(modifier = Modifier.height(16.dp))
     }
   }
@@ -126,8 +131,7 @@ private fun EmailSettingsSection(
   onEvent: (EmailManagementEvent) -> Unit,
 ) {
   val draft = uiState.draftSettings
-
-  TextTitleMedium(text = stringResource(R.string.smtp_settings))
+  TextTitleLarge(text = stringResource(R.string.smtp_settings))
   TextLabelSmall(
     modifier = Modifier.padding(top = 4.dp),
     text = stringResource(R.string.smtp_settings_description),
@@ -250,28 +254,16 @@ private fun EreaderDevicesSection(
   uiState: EmailManagementUiState,
   onEvent: (EmailManagementEvent) -> Unit,
 ) {
-  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-    Column(modifier = Modifier.weight(1f)) {
-      TextTitleMedium(text = stringResource(R.string.e_reader_devices))
-      TextLabelSmall(
-        modifier = Modifier.padding(top = 4.dp, end = 16.dp),
-        text = stringResource(R.string.e_reader_devices_description),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-    TextButton(
-      enabled = !uiState.isUpdatingDevices,
-      onClick = { onEvent(EmailManagementEvent.OpenCreateDeviceEditor) },
-    ) {
-      Text(stringResource(R.string.add_device))
-    }
-  }
+  TextTitleLarge(
+    modifier = Modifier.padding(horizontal = 16.dp),
+    text = stringResource(R.string.e_reader_devices),
+  )
 
   Spacer(modifier = Modifier.height(12.dp))
 
   if (uiState.devices.isEmpty()) {
     TextLabelSmall(
-      modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
       text = stringResource(R.string.no_e_reader_devices),
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -280,8 +272,7 @@ private fun EreaderDevicesSection(
 
   Column {
     uiState.devices.forEach { device ->
-      HorizontalDivider()
-      EreaderDeviceRow(
+      EreaderDeviceItem(
         device = device,
         accessibleBy = accessibleByLabel(device, uiState),
         onEditClick = {
@@ -293,45 +284,6 @@ private fun EreaderDevicesSection(
       )
     }
     HorizontalDivider()
-  }
-}
-
-@Composable
-private fun EreaderDeviceRow(
-  device: EreaderDeviceItem,
-  accessibleBy: String,
-  onEditClick: () -> Unit,
-  onDeleteClick: () -> Unit,
-) {
-  Row(
-    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-    horizontalArrangement = Arrangement.SpaceBetween,
-  ) {
-    Column(modifier = Modifier.weight(1f)) {
-      TextTitleSmall(text = device.name)
-      TextLabelSmall(
-        modifier = Modifier.padding(top = 4.dp),
-        text = device.email,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-      TextLabelSmall(
-        modifier = Modifier.padding(top = 4.dp),
-        text = stringResource(R.string.accessible_by_value, accessibleBy),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      MyTonalIconButton(
-        painterResId = R.drawable.edit,
-        contentDescriptionResId = R.string.edit_device,
-        onClick = onEditClick,
-      )
-      MyTonalIconButton(
-        painterResId = R.drawable.delete,
-        contentDescriptionResId = R.string.delete_device,
-        onClick = onDeleteClick,
-      )
-    }
   }
 }
 
@@ -414,10 +366,7 @@ private fun accessibleByLabel(device: EreaderDeviceItem, uiState: EmailManagemen
 private fun EmailManagementContentPreview() {
   PreviewWrapper(dynamicColor = false) {
     EmailManagementContent(
-      uiState =
-        previewEmailManagementUiState(
-          editorState = dev.halim.shelfdroid.core.data.screen.emailmanagement.DeviceEditorState()
-        )
+      uiState = previewEmailManagementUiState(editorState = DeviceEditorState())
     )
   }
 }
