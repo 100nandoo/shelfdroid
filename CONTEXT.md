@@ -152,12 +152,28 @@ _Avoid_: Episode check schedule, cron, podcast sync timer
 
 ### Authentication
 
+**Login method**:
+A server-advertised way for a **User** to start sign-in to an **Audiobookshelf server**, such as **Local login** or **OpenID login**.
+_Avoid_: Auth method, auth mode, provider
+
+**Local login**:
+A username-password sign-in path handled by the **Audiobookshelf server** itself.
+_Avoid_: Local auth, password auth, regular login
+
+**OpenID login**:
+A browser-based sign-in path where the **Audiobookshelf server** delegates user authentication through its configured OpenID provider.
+_Avoid_: SSO, OAuth button, external login
+
+**Login discovery**:
+A pre-login `GET /status` check that reads the current **Login methods** and login-facing server messaging before ShelfDroid decides which login UI to show.
+_Avoid_: Preflight, auth probe, status ping
+
 **Session recovery**:
 The attempt to keep the current signed-in state alive without user input before ShelfDroid asks for credentials again.
 _Avoid_: Auto login, refresh loop
 
 **Forced re-login**:
-A recovery flow where ShelfDroid requires the current **User** to sign in again to the current **Audiobookshelf server** after **Session recovery** fails, while preserving local app data and cached content.
+A recovery flow where ShelfDroid requires the current **User** to sign in again to the current **Audiobookshelf server** after **Session recovery** fails, while preserving local app data and cached content. A **Forced re-login** still obeys the server's current **Login methods** rather than assuming **Local login** remains available.
 _Avoid_: Logout, fresh login, account switch
 
 **Full logout**:
@@ -207,8 +223,11 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Notification rule** listens for one **Notification event**
 - An **E-reader device** belongs to **Email settings**
 - An **E-reader device availability** belongs to one **E-reader device**
+- A **Login discovery** reads the current **Login methods** for an **Audiobookshelf server**
+- A **Login discovery** happens before ShelfDroid selects a **Login method**
 - **Session recovery** happens before **Forced re-login**
 - A **Forced re-login** keeps the same **User** and **Audiobookshelf server**
+- A **Forced re-login** may require a fresh **Login discovery** before ShelfDroid can show the valid **Login methods**
 - A **Full logout** ends the current local session instead of recovering it
 - ShelfDroid may be distributed through the **F-Droid main repository**
 - Every **Reproducible release** is also an **Upstream release**

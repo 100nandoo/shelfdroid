@@ -1,5 +1,19 @@
 # 📖 Project Documentation
 
+## Requirements
+
+- An Audiobookshelf server you can sign in to
+- Android 10 or newer
+- JDK 17 for local builds
+
+## Contributing
+
+1. Fork the repository.
+2. Create a feature branch with `git checkout -b feature/YourFeatureName`.
+3. Make your changes, run formatting, and test the affected code.
+4. Commit your changes. If you use Commitizen, run `cz c`.
+5. Push your branch and open a pull request.
+
 ## 🔗 Module Dependencies
 
 Below is a diagram representing the module dependencies in this project. Arrows indicate
@@ -86,8 +100,8 @@ flowchart LR
     S --> STP
     S --> SLS
     S --> L
-    class H, P, B, E, Pl primary
-    classDef primary stroke: #FFC981
+class H, P, B, E, Pl primary
+classDef primary stroke: #FFC981
 ```
 
 </details>
@@ -130,6 +144,8 @@ The command skips `.idea/` and `build/` so only real source files are formatted.
 
 ## 🧱 Architecture
 
-ShelfDroid follows the [Android Architecture Templates (Multi-Module)](https://github.com/android/architecture-templates/tree/multimodule) to keep the codebase scalable and maintainable.
+ShelfDroid follows
+the [Android Architecture Templates (Multi-Module)](https://github.com/android/architecture-templates/tree/multimodule)
+to keep the codebase scalable and maintainable.
 
 - [Download Module](./architecture/download-module.md)

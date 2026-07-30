@@ -85,12 +85,6 @@ Android device, and handle common server management tasks from the same app.
     <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/11-edit-book.png" width="160" alt="Edit book screen">
   </p>
 
-## Requirements
-
-- An Audiobookshelf server you can sign in to
-- Android 10 or newer
-- JDK 17 for local builds
-
 ## Roadmap
 
 - [ ] Authentication management
@@ -114,21 +108,14 @@ requests.
 
 ## Documentation
 
-Project documentation lives in [docs/DOCS.md](docs/DOCS.md), including code style and architecture
-notes. Recent release notes are tracked in [CHANGELOG.md](CHANGELOG.md).
+Project documentation lives in [docs/DOCS.md](docs/DOCS.md), including requirements,
+contributing guidance, code style, and architecture notes. Recent release notes are tracked in
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Acknowledgements
 
 - [Audiobookshelf](https://github.com/advplyr/audiobookshelf) for the server platform ShelfDroid
   connects to
-
-## Contributing
-
-1. Fork the repository.
-2. Create a feature branch with `git checkout -b feature/YourFeatureName`.
-3. Make your changes, run formatting, and test the affected code.
-4. Commit your changes. If you use Commitizen, run `cz c`.
-5. Push your branch and open a pull request.
 
 ## License
 
