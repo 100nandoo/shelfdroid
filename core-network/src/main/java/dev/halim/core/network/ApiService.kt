@@ -24,6 +24,7 @@ import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
+import dev.halim.core.network.request.apprisenotificationsettings.NotificationRuleEnabledRequest
 import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEmailSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEreaderDevicesRequest
@@ -400,6 +401,12 @@ interface ApiService {
   suspend fun updateAppriseNotificationRule(
     @Path("ruleId") ruleId: String,
     @Body request: AppriseNotificationRuleRequest,
+  ): Result<AppriseNotificationSettings>
+
+  @PATCH("/api/notifications/{ruleId}")
+  suspend fun updateAppriseNotificationRule(
+    @Path("ruleId") ruleId: String,
+    @Body request: NotificationRuleEnabledRequest,
   ): Result<AppriseNotificationSettings>
 
   @DELETE("/api/notifications/{ruleId}")

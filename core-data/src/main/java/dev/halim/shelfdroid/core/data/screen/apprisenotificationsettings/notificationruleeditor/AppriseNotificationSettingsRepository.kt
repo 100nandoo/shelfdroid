@@ -9,6 +9,7 @@ import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.Apprise
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleForm
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.NotificationRuleUi
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.notificationRuleTestFailureReason
+import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.toEnableRequest
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.toRequest
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
@@ -121,6 +122,35 @@ constructor(
           apiState =
             AppriseNotificationSettingsApiState.Failure(
               target = AppriseNotificationSettingsMutationTarget.NotificationRuleDelete,
+              message = it.message,
+            )
+        )
+      }
+  }
+
+  suspend fun enableRule(
+    uiState: AppriseNotificationSettingsUiState,
+    rule: NotificationRuleUi,
+  ): AppriseNotificationSettingsUiState {
+    return api
+      .updateAppriseNotificationRule(rule.id, rule.toEnableRequest())
+      .map { updatedSettings ->
+        AppriseNotificationSettingsMapper.applySettings(uiState, updatedSettings) {
+            helper.toReadableDate(it, includeTime = true)
+          }
+          .copy(
+            state = GenericState.Success,
+            apiState =
+              AppriseNotificationSettingsApiState.Success(
+                AppriseNotificationSettingsMutationTarget.NotificationRuleEnable
+              ),
+          )
+      }
+      .getOrElse {
+        uiState.copy(
+          apiState =
+            AppriseNotificationSettingsApiState.Failure(
+              target = AppriseNotificationSettingsMutationTarget.NotificationRuleEnable,
               message = it.message,
             )
         )

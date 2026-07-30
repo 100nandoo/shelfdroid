@@ -406,6 +406,7 @@
     <string name="notification_rule_variables_label">Variables</string>
     <string name="notification_rule_variables_hint">Tap a variable to insert it into the focused template field.</string>
     <string name="notification_rule_saved">Notification rule saved.</string>
+    <string name="notification_rule_enabled">Notification rule enabled.</string>
     <string name="notification_rule_save_failed">Failed to save notification rule.</string>
     <string name="notification_rule_deleted">Notification rule deleted.</string>
     <string name="notification_rule_delete_failed">Failed to delete notification rule.</string>

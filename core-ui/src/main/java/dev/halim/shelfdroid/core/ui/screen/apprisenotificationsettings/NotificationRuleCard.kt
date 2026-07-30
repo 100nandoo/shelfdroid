@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 internal fun NotificationRuleCard(
   rule: NotificationRuleUi,
   enabled: Boolean,
+  onEnable: () -> Unit,
   onTest: () -> Unit,
   onEdit: () -> Unit,
   onDelete: () -> Unit,
@@ -38,7 +40,7 @@ internal fun NotificationRuleCard(
   Column(
     modifier =
       Modifier.fillMaxWidth()
-        .alpha(rule.enabled.enableAlpha())
+        .clickable(enabled = enabled, onClick = onEdit)
         .padding(horizontal = 16.dp, vertical = 8.dp)
   ) {
     Text(
@@ -47,7 +49,8 @@ internal fun NotificationRuleCard(
       maxLines = 2,
       overflow = TextOverflow.Ellipsis,
       modifier =
-        Modifier.mySharedElement(Animations.Companion.NotificationRule.eventNameKey(rule.id)),
+        Modifier.alpha(rule.enabled.enableAlpha())
+          .mySharedElement(Animations.Companion.NotificationRule.eventNameKey(rule.id)),
     )
     Spacer(modifier = Modifier.height(4.dp))
     Row(
@@ -62,13 +65,23 @@ internal fun NotificationRuleCard(
         overflow = TextOverflow.Ellipsis,
         modifier =
           Modifier.weight(1f)
+            .alpha(rule.enabled.enableAlpha())
             .mySharedElement(Animations.Companion.NotificationRule.destinationKey(rule.id)),
       )
-      FilledTonalIconButton(enabled = enabled, onClick = onTest) {
-        Icon(
-          painter = painterResource(R.drawable.test),
-          contentDescription = stringResource(R.string.test),
-        )
+      if (rule.enabled) {
+        FilledTonalIconButton(enabled = enabled, onClick = onTest) {
+          Icon(
+            painter = painterResource(R.drawable.test),
+            contentDescription = stringResource(R.string.test),
+          )
+        }
+      } else {
+        FilledTonalIconButton(enabled = enabled, onClick = onEnable) {
+          Icon(
+            painter = painterResource(R.drawable.mode_off_on),
+            contentDescription = stringResource(R.string.enable),
+          )
+        }
       }
       FilledTonalIconButton(enabled = enabled, onClick = onEdit) {
         Icon(
@@ -104,6 +117,33 @@ private fun NotificationRuleCardPreview() {
           bodyTemplate = "The latest backup failed on the Audiobookshelf server.",
         ),
       enabled = true,
+      onEnable = {},
+      onTest = {},
+      onEdit = {},
+      onDelete = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun DisabledNotificationRuleCardPreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    NotificationRuleCard(
+      rule =
+        NotificationRuleUi(
+          id = "rule-2",
+          eventName = "onPodcastEpisodeDownloaded",
+          enabled = false,
+          destinationSummary = "ntfy://devices/mobile-app",
+          status = NotificationRuleStatus.LastFired,
+          statusValue = "24 July 2026 10:15AM",
+          consecutiveFailedAttempts = "2",
+          titleTemplate = "Episode downloaded",
+          bodyTemplate = "A new podcast episode finished downloading.",
+        ),
+      enabled = true,
+      onEnable = {},
       onTest = {},
       onEdit = {},
       onDelete = {},

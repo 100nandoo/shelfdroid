@@ -233,6 +233,7 @@ private fun NotificationRulesSection(
         NotificationRuleCard(
           rule = rule,
           enabled = !isLoading,
+          onEnable = { onEvent(AppriseNotificationSettingsEvent.EnableRule(rule)) },
           onTest = { onEvent(AppriseNotificationSettingsEvent.TestRule(rule)) },
           onEdit = { onEditRule(rule.form.toNavEditPayload()) },
           onDelete = { deleting = rule },
@@ -307,6 +308,7 @@ private fun HandleAppriseNotificationSettingsSnackbar(
   val settingsSuccessMessage = stringResource(R.string.settings_saved)
   val settingsErrorMessage = stringResource(R.string.settings_save_failed)
   val ruleSaveSuccessMessage = stringResource(R.string.notification_rule_saved)
+  val ruleEnableSuccessMessage = stringResource(R.string.notification_rule_enabled)
   val ruleSaveErrorMessage = stringResource(R.string.notification_rule_save_failed)
   val ruleDeleteSuccessMessage = stringResource(R.string.notification_rule_deleted)
   val ruleDeleteErrorMessage = stringResource(R.string.notification_rule_delete_failed)
@@ -324,6 +326,8 @@ private fun HandleAppriseNotificationSettingsSnackbar(
           when (state.target) {
             AppriseNotificationSettingsMutationTarget.GlobalSettings -> settingsSuccessMessage
             AppriseNotificationSettingsMutationTarget.NotificationRule -> ruleSaveSuccessMessage
+            AppriseNotificationSettingsMutationTarget.NotificationRuleEnable ->
+              ruleEnableSuccessMessage
             AppriseNotificationSettingsMutationTarget.NotificationRuleDelete ->
               ruleDeleteSuccessMessage
 
@@ -337,6 +341,8 @@ private fun HandleAppriseNotificationSettingsSnackbar(
             ?: when (state.target) {
               AppriseNotificationSettingsMutationTarget.GlobalSettings -> settingsErrorMessage
               AppriseNotificationSettingsMutationTarget.NotificationRule -> ruleSaveErrorMessage
+              AppriseNotificationSettingsMutationTarget.NotificationRuleEnable ->
+                ruleSaveErrorMessage
               AppriseNotificationSettingsMutationTarget.NotificationRuleDelete ->
                 ruleDeleteErrorMessage
 

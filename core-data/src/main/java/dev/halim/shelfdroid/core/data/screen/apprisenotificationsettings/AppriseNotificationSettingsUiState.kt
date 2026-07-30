@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings
 
 import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
+import dev.halim.core.network.request.apprisenotificationsettings.NotificationRuleEnabledRequest
 import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
 import dev.halim.shelfdroid.core.data.GenericState
 import java.net.URI
@@ -60,6 +61,7 @@ enum class AppriseGlobalSettingsFieldError {
 enum class AppriseNotificationSettingsMutationTarget {
   GlobalSettings,
   NotificationRule,
+  NotificationRuleEnable,
   NotificationRuleDelete,
   NotificationRuleTest,
 }
@@ -142,6 +144,12 @@ internal fun NotificationRuleForm.toRequest() =
     bodyTemplate = bodyTemplate,
     enabled = enabled,
     type = type,
+  )
+
+internal fun NotificationRuleUi.toEnableRequest() =
+  NotificationRuleEnabledRequest(
+    id = id,
+    enabled = true,
   )
 
 enum class NotificationRuleStatus {
