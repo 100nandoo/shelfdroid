@@ -17,11 +17,8 @@ class HostSelectionInterceptor @Inject constructor(private val dataStoreManager:
 
   override fun intercept(chain: Interceptor.Chain): Response {
     val request = chain.request()
-    val isAnonymousRequest = request.header(AnonymousRequest.HEADER_NAME) == AnonymousRequest.HEADER_VALUE
-    val requestBuilder = request.newBuilder().removeHeader(AnonymousRequest.HEADER_NAME)
-    if (isAnonymousRequest) {
-      requestBuilder.tag(AnonymousRequestTag::class.java, AnonymousRequestTag)
-    }
+    val isAnonymousRequest = request.tag(AnonymousRequestTag::class.java) != null
+    val requestBuilder = request.newBuilder()
     if (request.url.host != AudiobookshelfBaseUrl.DEFAULT.host) {
       return chain.proceed(requestBuilder.build())
     }

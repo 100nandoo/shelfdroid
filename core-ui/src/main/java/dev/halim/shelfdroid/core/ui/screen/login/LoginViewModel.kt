@@ -16,6 +16,7 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,12 +55,14 @@ constructor(
           _uiState.update { it.copy(loginState = GenericState.Loading) }
           _uiState.update { loginRepository.login(currentState) }
         }
+
       LoginEvent.UseDifferentServerOrAccountConfirmed ->
         viewModelScope.launch {
           settingsRepository.logout().onFailure { error ->
             _uiState.update { it.copy(loginState = GenericState.Failure(error.message)) }
           }
         }
+
       is LoginEvent.ServerChanged -> _uiState.update { it.prepareLoginDiscovery(event.server) }
       is LoginEvent.UsernameChanged -> _uiState.update { it.copy(username = event.username) }
       is LoginEvent.PasswordChanged -> _uiState.update { it.copy(password = event.password) }
@@ -73,7 +76,7 @@ constructor(
     viewModelScope.launch {
       uiState
         .map { it.server }
-        .debounce(300)
+        .debounce(500.milliseconds)
         .distinctUntilChanged()
         .collectLatest { server ->
           val parsed = AudiobookshelfBaseUrl.parse(server)
@@ -120,7 +123,8 @@ internal fun LoginUiState.prepareLoginDiscovery(server: String): LoginUiState {
     server = server,
     normalizedServer = normalizedServer,
     serverFieldError = null,
-    discoveryState = if (normalizedServer != null) LoginDiscoveryState.Loading else LoginDiscoveryState.Idle,
+    discoveryState =
+      if (normalizedServer != null) LoginDiscoveryState.Loading else LoginDiscoveryState.Idle,
     availableLoginMethods = listOf(LoginMethod.Local),
     loginDiscoveryMessage = null,
     authLoginCustomMessage = null,
@@ -129,7 +133,11 @@ internal fun LoginUiState.prepareLoginDiscovery(server: String): LoginUiState {
   )
 }
 
-internal fun initLoginUiState(navKey: Login, username: String = "", server: String = ""): LoginUiState {
+internal fun initLoginUiState(
+  navKey: Login,
+  username: String = "",
+  server: String = "",
+): LoginUiState {
   val state =
     if (navKey.reLogin) {
       LoginUiState(

@@ -2,7 +2,7 @@ package dev.halim.shelfdroid.core.data.screen.usersettings.edit
 
 import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.UpdateUserRequest
-import dev.halim.core.network.response.Permissions as NetworkPermissions
+import dev.halim.core.network.response.login.Permissions as NetworkPermissions
 import dev.halim.shelfdroid.core.Permissions
 import dev.halim.shelfdroid.core.data.GenericUiEvent
 import dev.halim.shelfdroid.core.data.response.LibraryRepo

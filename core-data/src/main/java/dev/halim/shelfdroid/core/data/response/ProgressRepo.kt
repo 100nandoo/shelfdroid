@@ -3,8 +3,8 @@ package dev.halim.shelfdroid.core.data.response
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
-import dev.halim.core.network.response.MediaProgress
-import dev.halim.core.network.response.User
+import dev.halim.core.network.response.login.MediaProgress
+import dev.halim.core.network.response.login.User
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.core.extensions.toBoolean

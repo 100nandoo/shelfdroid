@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.usersettings
 
-import dev.halim.core.network.response.Permissions as NetworkPermissions
 import dev.halim.core.network.response.Session
+import dev.halim.core.network.response.login.Permissions as NetworkPermissions
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.database.UserEntity
 import dev.halim.shelfdroid.core.extensions.toBoolean

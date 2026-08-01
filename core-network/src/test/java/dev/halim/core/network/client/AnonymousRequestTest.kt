@@ -26,7 +26,7 @@ import org.junit.Test
 class AnonymousRequestTest {
 
   @Test
-  fun intercept_whenRequestIsAnonymous_stripsMarkerHeaderAndSkipsAuthorization() = runTest {
+  fun intercept_whenRequestIsTaggedAnonymous_skipsAuthorization() = runTest {
     val dataStoreScope = dataStoreScope()
     try {
       val dataStoreManager = dataStoreManager(dataStoreScope)
@@ -46,7 +46,7 @@ class AnonymousRequestTest {
         .newCall(
           Request.Builder()
             .url("https://example.com/audiobookshelf/status")
-            .header(AnonymousRequest.HEADER_NAME, AnonymousRequest.HEADER_VALUE)
+            .tag(AnonymousRequestTag::class.java, AnonymousRequestTag)
             .build()
         )
         .execute()
@@ -55,7 +55,6 @@ class AnonymousRequestTest {
       client.connectionPool.evictAll()
 
       val request = requireNotNull(capturedRequest)
-      assertNull(request.header(AnonymousRequest.HEADER_NAME))
       assertNull(request.header("Authorization"))
       assertSame(AnonymousRequestTag, request.tag(AnonymousRequestTag::class.java))
     } finally {

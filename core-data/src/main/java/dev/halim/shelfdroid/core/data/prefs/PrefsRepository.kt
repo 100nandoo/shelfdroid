@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.data.prefs
 
-import dev.halim.core.network.response.ServerSettings
+import dev.halim.core.network.response.login.ServerSettings
 import dev.halim.shelfdroid.core.CrudPrefs
 import dev.halim.shelfdroid.core.ListeningSessionPrefs
 import dev.halim.shelfdroid.core.NotificationPrefs

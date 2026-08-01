@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.backups
 
 import dev.halim.core.network.response.BackupsResponse
-import dev.halim.core.network.response.ServerSettings
+import dev.halim.core.network.response.login.ServerSettings
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.helper.formatFileSize
 import javax.inject.Inject

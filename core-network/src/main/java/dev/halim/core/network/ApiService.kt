@@ -1,5 +1,6 @@
 package dev.halim.core.network
 
+import dev.halim.core.network.client.AnonymousRequestTag
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.ChangePasswordRequest
@@ -29,7 +30,6 @@ import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseN
 import dev.halim.core.network.request.emailmanagement.UpdateEmailSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEreaderDevicesRequest
 import dev.halim.core.network.response.ApiKeysResponse
-import dev.halim.core.network.response.AudioBookmark
 import dev.halim.core.network.response.BackupsResponse
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.CheckNewEpisodesResponse
@@ -42,8 +42,6 @@ import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.LibrarySeriesResponse
 import dev.halim.core.network.response.ListeningStatResponse
-import dev.halim.core.network.response.LoginResponse
-import dev.halim.core.network.response.LoginStatusResponse
 import dev.halim.core.network.response.LogoutResponse
 import dev.halim.core.network.response.LogsResponse
 import dev.halim.core.network.response.MatchItemResult
@@ -63,7 +61,6 @@ import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.TagsResponse
 import dev.halim.core.network.response.UpdateLibraryItemMediaResponse
 import dev.halim.core.network.response.UpdateUserResponse
-import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettings
@@ -71,6 +68,10 @@ import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotifi
 import dev.halim.core.network.response.emailmanagement.EmailSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EreaderDevicesResponse
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
+import dev.halim.core.network.response.login.AudioBookmark
+import dev.halim.core.network.response.login.LoginResponse
+import dev.halim.core.network.response.login.LoginStatusResponse
+import dev.halim.core.network.response.login.User
 import dev.halim.core.network.response.play.PlayResponse
 import okhttp3.MultipartBody
 import retrofit2.http.Body
@@ -83,6 +84,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Tag
 import retrofit2.http.Url
 
 interface ApiService {
@@ -123,7 +125,7 @@ interface ApiService {
   @GET
   suspend fun status(
     @Url url: String,
-    @Header("x-shelfdroid-anonymous") anonymous: String = "true",
+    @Tag anonymousRequestTag: AnonymousRequestTag = AnonymousRequestTag,
   ): Result<LoginStatusResponse>
 
   // backups

@@ -138,16 +138,17 @@ class LoginRepositoryTest {
             password = "secret",
             discoveryState = LoginDiscoveryState.Success,
             availableLoginMethods = listOf(LoginMethod.OpenId),
+            loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
             authOpenIdButtonText = "Login with SSO",
           )
         )
 
       assertEquals(0, loginRequests)
-      assertTrue(result.loginState is GenericState.Failure)
       assertEquals(
-        LOCAL_LOGIN_UNAVAILABLE_MESSAGE,
-        (result.loginState as GenericState.Failure).errorMessage,
+        GenericState.Idle,
+        result.loginState,
       )
+      assertEquals(LoginDiscoveryMessage.LocalLoginUnavailable, result.loginDiscoveryMessage)
     } finally {
       dataStoreScope.cancel()
     }
@@ -174,7 +175,7 @@ class LoginRepositoryTest {
             username = "fernando",
             password = "secret",
             discoveryState = LoginDiscoveryState.Failure,
-            loginDiscoveryMessage = LOGIN_DISCOVERY_FAILED_MESSAGE,
+            loginDiscoveryMessage = LoginDiscoveryMessage.MethodsUnconfirmed,
           )
         )
 
@@ -203,15 +204,15 @@ class LoginRepositoryTest {
   }
 
   private fun apiService(respond: (Request) -> Response): ApiService {
-    val json =
-      Json {
-        coerceInputValues = true
-        ignoreUnknownKeys = true
-        isLenient = true
-        prettyPrint = true
-        explicitNulls = false
-      }
-    val okHttpClient = OkHttpClient.Builder().addInterceptor { chain -> respond(chain.request()) }.build()
+    val json = Json {
+      coerceInputValues = true
+      ignoreUnknownKeys = true
+      isLenient = true
+      prettyPrint = true
+      explicitNulls = false
+    }
+    val okHttpClient =
+      OkHttpClient.Builder().addInterceptor { chain -> respond(chain.request()) }.build()
 
     return Retrofit.Builder()
       .baseUrl(AudiobookshelfBaseUrl.DEFAULT_VALUE)
@@ -246,7 +247,7 @@ class LoginRepositoryTest {
   private data object NoOpLoginSuccessHandler : LoginSuccessHandler {
     override suspend fun onLoginSuccess(
       server: String,
-      response: dev.halim.core.network.response.LoginResponse,
+      response: dev.halim.core.network.response.login.LoginResponse,
     ) = Unit
   }
 }

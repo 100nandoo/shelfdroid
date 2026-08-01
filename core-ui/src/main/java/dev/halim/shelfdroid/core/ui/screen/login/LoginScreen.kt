@@ -37,14 +37,20 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginFieldError
@@ -132,37 +138,10 @@ fun LoginScreenContent(
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Bottom,
     ) {
-      headerMessages.promptReasonMessage?.let { message ->
-        Text(
-          text = message,
-          modifier = Modifier.fillMaxWidth(),
-          textAlign = TextAlign.Center,
-        )
-
-        TextButton(onClick = { showUseDifferentAccountDialog = true }) {
-          Text(stringResource(R.string.use_different_server_or_account))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-      }
-
-      headerMessages.customMessage?.let { message ->
-        Text(
-          text = message,
-          modifier = Modifier.fillMaxWidth(),
-          textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-      }
-
-      headerMessages.discoveryMessage?.let { message ->
-        Text(
-          text = message,
-          modifier = Modifier.fillMaxWidth(),
-          textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-      }
+      LoginHeaderMessagesSection(
+        headerMessages = headerMessages,
+        onUseDifferentServerOrAccountClick = { showUseDifferentAccountDialog = true },
+      )
 
       MyOutlinedTextField(
         modifier = Modifier.fillMaxWidth().focusRequester(serverRef).testTag("server"),
@@ -192,7 +171,8 @@ fun LoginScreenContent(
 
       if (supportsLocalLogin) {
         MyOutlinedTextField(
-          modifier = Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
+          modifier =
+            Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
           enabled = uiState.reLogin.not(),
           value = uiState.username,
           onValueChange = { onEvent(LoginEvent.UsernameChanged(it)) },
@@ -205,7 +185,8 @@ fun LoginScreenContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         PasswordTextField(
-          modifier = Modifier.testTag(stringResource(R.string.password)).focusRequester(passwordRef),
+          modifier =
+            Modifier.testTag(stringResource(R.string.password)).focusRequester(passwordRef),
           value = uiState.password,
           onValueChange = { onEvent(LoginEvent.PasswordChanged(it)) },
           label = stringResource(R.string.password),
@@ -248,6 +229,56 @@ fun LoginScreenContent(
 }
 
 @Composable
+private fun LoginHeaderMessagesSection(
+  headerMessages: LoginHeaderMessages,
+  onUseDifferentServerOrAccountClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val textLinkColor = MaterialTheme.colorScheme.primary
+  val linkStyles =
+    remember(textLinkColor) {
+      TextLinkStyles(SpanStyle(textDecoration = TextDecoration.Underline, color = textLinkColor))
+    }
+
+  Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    headerMessages.promptReasonMessage?.let { message ->
+      Text(
+        text = message,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center,
+      )
+
+      TextButton(onClick = onUseDifferentServerOrAccountClick) {
+        Text(stringResource(R.string.use_different_server_or_account))
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    headerMessages.customMessage?.let { message ->
+      Text(
+        text =
+          remember(message, linkStyles) {
+            AnnotatedString.fromHtml(message, linkStyles = linkStyles)
+          },
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center,
+      )
+      Spacer(modifier = Modifier.height(12.dp))
+    }
+
+    headerMessages.discoveryMessage?.let { message ->
+      Text(
+        text = stringResource(message.asStringRes()),
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center,
+      )
+      Spacer(modifier = Modifier.height(12.dp))
+    }
+  }
+}
+
+@Composable
 private fun MixedLoginMethodsSurface(uiState: LoginUiState) {
   Text(
     text = stringResource(R.string.login_methods),
@@ -284,9 +315,15 @@ private fun SelectedLoginMethodCard(label: String) {
 internal data class LoginHeaderMessages(
   val promptReasonMessage: String? = null,
   val customMessage: String? = null,
-  val discoveryMessage: String? = null,
+  val discoveryMessage: LoginDiscoveryMessage? = null,
 ) {
-  fun ordered(): List<String> = listOfNotNull(promptReasonMessage, customMessage, discoveryMessage)
+  fun ordered(discoveryMessageText: (LoginDiscoveryMessage) -> String): List<String> {
+    return buildList {
+      promptReasonMessage?.let(::add)
+      customMessage?.let(::add)
+      discoveryMessage?.let { add(discoveryMessageText(it)) }
+    }
+  }
 }
 
 internal fun loginHeaderMessages(
@@ -305,6 +342,13 @@ internal fun loginHeaderMessages(
     customMessage = uiState.authLoginCustomMessage,
     discoveryMessage = uiState.loginDiscoveryMessage,
   )
+}
+
+private fun LoginDiscoveryMessage.asStringRes(): Int {
+  return when (this) {
+    LoginDiscoveryMessage.MethodsUnconfirmed -> R.string.login_discovery_methods_unconfirmed
+    LoginDiscoveryMessage.LocalLoginUnavailable -> R.string.login_discovery_local_unavailable
+  }
 }
 
 @ShelfDroidPreview

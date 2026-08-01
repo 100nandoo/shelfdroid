@@ -104,21 +104,27 @@ fun LoginScreenScreenshot() {
 @ShelfDroidPreview
 @Composable
 fun LoginScreenMixedMethodsScreenshot() {
-  PreviewWrapper(dynamicColor = false) { LoginScreenContent(uiState = Defaults.LOGIN_MIXED_METHODS_UI_STATE) }
+  PreviewWrapper(dynamicColor = false) {
+    LoginScreenContent(uiState = Defaults.LOGIN_MIXED_METHODS_UI_STATE)
+  }
 }
 
 @PreviewTest
 @ShelfDroidPreview
 @Composable
 fun LoginScreenForcedReLoginScreenshot() {
-  PreviewWrapper(dynamicColor = false) { LoginScreenContent(uiState = Defaults.LOGIN_RELOGIN_UI_STATE) }
+  PreviewWrapper(dynamicColor = false) {
+    LoginScreenContent(uiState = Defaults.LOGIN_RELOGIN_UI_STATE)
+  }
 }
 
 @PreviewTest
 @ShelfDroidPreview
 @Composable
 fun LoginScreenOpenIdOnlyScreenshot() {
-  PreviewWrapper(dynamicColor = false) { LoginScreenContent(uiState = Defaults.LOGIN_OPEN_ID_ONLY_UI_STATE) }
+  PreviewWrapper(dynamicColor = false) {
+    LoginScreenContent(uiState = Defaults.LOGIN_OPEN_ID_ONLY_UI_STATE)
+  }
 }
 
 @PreviewTest

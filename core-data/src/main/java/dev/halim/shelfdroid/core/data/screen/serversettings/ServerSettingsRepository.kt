@@ -2,7 +2,7 @@ package dev.halim.shelfdroid.core.data.screen.serversettings
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.UpdateServerSettingsRequest
-import dev.halim.core.network.response.ServerSettings
+import dev.halim.core.network.response.login.ServerSettings
 import dev.halim.shelfdroid.core.data.GenericState
 import javax.inject.Inject
 

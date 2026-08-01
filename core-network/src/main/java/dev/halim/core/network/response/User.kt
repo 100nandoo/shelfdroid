@@ -1,5 +1,6 @@
 package dev.halim.core.network.response
 
+import dev.halim.core.network.response.login.User
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

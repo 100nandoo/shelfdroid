@@ -7,12 +7,12 @@ import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
-import dev.halim.core.network.response.Permissions
 import dev.halim.core.network.response.Session
 import dev.halim.core.network.response.UpdateUserResponse
-import dev.halim.core.network.response.User
 import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
+import dev.halim.core.network.response.login.Permissions
+import dev.halim.core.network.response.login.User
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.UserEntity

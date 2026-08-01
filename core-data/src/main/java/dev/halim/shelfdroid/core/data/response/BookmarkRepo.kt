@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.response
 
-import dev.halim.core.network.response.AudioBookmark
-import dev.halim.core.network.response.User
+import dev.halim.core.network.response.login.AudioBookmark
+import dev.halim.core.network.response.login.User
 import dev.halim.shelfdroid.core.database.BookmarkEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject

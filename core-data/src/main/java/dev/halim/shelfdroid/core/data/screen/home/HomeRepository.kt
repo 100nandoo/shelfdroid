@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.response.LoginResponse
-import dev.halim.core.network.response.UserType as NetworkUserType
+import dev.halim.core.network.response.login.LoginResponse
+import dev.halim.core.network.response.login.UserType as NetworkUserType
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs

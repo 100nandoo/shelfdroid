@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.login
 
-import dev.halim.core.network.response.LoginResponse
+import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.datastore.DataStoreManager

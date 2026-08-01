@@ -113,6 +113,8 @@
     <!--Login-->
     <string name="failed_to_refresh_token_relogin_required">Failed to refresh token, re-login required.</string>
     <string name="reenter_password_to_continue">Re-enter your password to continue using this server.</string>
+    <string name="login_discovery_methods_unconfirmed">Could not confirm this server\'s login methods. Local login is still available.</string>
+    <string name="login_discovery_local_unavailable">This server does not offer Local login. OpenID login is not supported on Android yet.</string>
     <!--Login-->
 
     <!--Home-->

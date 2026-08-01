@@ -10,12 +10,6 @@ import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import retrofit2.HttpException
 
-const val LOGIN_DISCOVERY_FAILED_MESSAGE =
-  "Could not confirm this server's login methods. Local login is still available."
-
-const val LOCAL_LOGIN_UNAVAILABLE_MESSAGE =
-  "This server does not offer Local login. OpenID login is not supported on Android yet."
-
 class LoginRepository
 @Inject
 constructor(
@@ -41,12 +35,14 @@ constructor(
         availableLoginMethods = availableLoginMethods,
         loginDiscoveryMessage =
           if (LoginMethod.Local !in availableLoginMethods) {
-            LOCAL_LOGIN_UNAVAILABLE_MESSAGE
+            LoginDiscoveryMessage.LocalLoginUnavailable
           } else {
             null
           },
-        authLoginCustomMessage = result.authFormData?.authLoginCustomMessage?.takeUnless { it.isBlank() },
-        authOpenIdButtonText = result.authFormData?.authOpenIDButtonText?.takeUnless { it.isBlank() },
+        authLoginCustomMessage =
+          result.authFormData?.authLoginCustomMessage?.takeUnless { it.isBlank() },
+        authOpenIdButtonText =
+          result.authFormData?.authOpenIDButtonText?.takeUnless { it.isBlank() },
         authOpenIdAutoLaunch = result.authFormData?.authOpenIDAutoLaunch,
       )
     }
@@ -55,23 +51,26 @@ constructor(
       normalizedServer = parsedServer.value,
       discoveryState = LoginDiscoveryState.Failure,
       availableLoginMethods = listOf(LoginMethod.Local),
-      loginDiscoveryMessage = LOGIN_DISCOVERY_FAILED_MESSAGE,
+      loginDiscoveryMessage = LoginDiscoveryMessage.MethodsUnconfirmed,
     )
   }
 
   suspend fun login(uiState: LoginUiState): LoginUiState {
     val normalizedServer =
-      uiState.normalizedServer ?: AudiobookshelfBaseUrl.parse(uiState.server)?.value
+      uiState.normalizedServer
+        ?: AudiobookshelfBaseUrl.parse(uiState.server)?.value
         ?: return uiState.copy(
           loginState = GenericState.Idle,
           serverFieldError = LoginFieldError.InvalidServerUrl,
         )
 
-    if (uiState.discoveryState is LoginDiscoveryState.Success &&
-      LoginMethod.Local !in uiState.availableLoginMethods) {
+    if (
+      uiState.discoveryState is LoginDiscoveryState.Success &&
+        LoginMethod.Local !in uiState.availableLoginMethods
+    ) {
       return uiState.copy(
         normalizedServer = normalizedServer,
-        loginState = GenericState.Failure(LOCAL_LOGIN_UNAVAILABLE_MESSAGE),
+        loginState = GenericState.Idle,
         serverFieldError = null,
       )
     }
@@ -121,7 +120,7 @@ data class LoginUiState(
   val authPromptReason: AuthPromptReason? = null,
   val discoveryState: LoginDiscoveryState = LoginDiscoveryState.Idle,
   val availableLoginMethods: List<LoginMethod> = listOf(LoginMethod.Local),
-  val loginDiscoveryMessage: String? = null,
+  val loginDiscoveryMessage: LoginDiscoveryMessage? = null,
   val authLoginCustomMessage: String? = null,
   val authOpenIdButtonText: String? = null,
   val authOpenIdAutoLaunch: Boolean? = null,
@@ -134,6 +133,11 @@ enum class LoginFieldError {
 enum class LoginMethod {
   Local,
   OpenId,
+}
+
+enum class LoginDiscoveryMessage {
+  MethodsUnconfirmed,
+  LocalLoginUnavailable,
 }
 
 sealed interface LoginDiscoveryState {
@@ -150,14 +154,15 @@ data class LoginDiscoveryResult(
   val normalizedServer: String? = null,
   val discoveryState: LoginDiscoveryState = LoginDiscoveryState.Idle,
   val availableLoginMethods: List<LoginMethod> = listOf(LoginMethod.Local),
-  val loginDiscoveryMessage: String? = null,
+  val loginDiscoveryMessage: LoginDiscoveryMessage? = null,
   val authLoginCustomMessage: String? = null,
   val authOpenIdButtonText: String? = null,
   val authOpenIdAutoLaunch: Boolean? = null,
 )
 
 fun LoginUiState.supportsLocalLogin(): Boolean {
-  return discoveryState !is LoginDiscoveryState.Success || LoginMethod.Local in availableLoginMethods
+  return discoveryState !is LoginDiscoveryState.Success ||
+    LoginMethod.Local in availableLoginMethods
 }
 
 fun LoginUiState.supportsOpenIdLogin(): Boolean = LoginMethod.OpenId in availableLoginMethods

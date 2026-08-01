@@ -38,10 +38,11 @@ import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
+import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
+import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
-import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.data.screen.logs.LogsUiState
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.RssFeedsUiState
@@ -70,8 +71,7 @@ object Defaults {
       normalizedServer = "https://example.com",
       discoveryState = LoginDiscoveryState.Success,
       availableLoginMethods = listOf(LoginMethod.OpenId),
-      loginDiscoveryMessage =
-        "This server does not offer Local login. OpenID login is not supported on Android yet.",
+      loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
       authOpenIdButtonText = "Login with Acme SSO",
     )
   val LOGIN_RELOGIN_UI_STATE =
