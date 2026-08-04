@@ -26,6 +26,32 @@ import org.junit.Test
 class AnonymousRequestTest {
 
   @Test
+  fun intercept_afterLogin_usesSavedServerAndAccessToken() = runTest {
+    val dataStoreScope = dataStoreScope()
+    try {
+      val dataStoreManager = dataStoreManager(dataStoreScope)
+      val client =
+        OkHttpClient.Builder()
+          .addInterceptor(HostSelectionInterceptor(dataStoreManager))
+          .addInterceptor { chain -> okResponse(chain.request()) }
+          .build()
+      dataStoreManager.updateBaseUrl("https://audio.example.com")
+      dataStoreManager.updateUserPrefs(UserPrefs(accessToken = "access-token"))
+
+      val response =
+        client.newCall(Request.Builder().url("https://audiobooks.dev/api/libraries").build()).execute()
+
+      assertEquals("audio.example.com", response.request.url.host)
+      assertEquals("Bearer access-token", response.request.header("Authorization"))
+      response.close()
+      client.dispatcher.executorService.shutdown()
+      client.connectionPool.evictAll()
+    } finally {
+      dataStoreScope.cancel()
+    }
+  }
+
+  @Test
   fun intercept_whenRequestIsTaggedAnonymous_skipsAuthorization() = runTest {
     val dataStoreScope = dataStoreScope()
     try {

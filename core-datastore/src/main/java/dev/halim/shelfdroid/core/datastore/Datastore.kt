@@ -73,11 +73,11 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
 
   fun baseUrl(): String = runBlocking { baseUrl.firstOrNull() ?: "" }
 
-  suspend fun updateBaseUrl(baseUrl: String) =
-    dataStore.updatePreference(
-      Keys.BASE_URL,
-      AudiobookshelfBaseUrl.parse(baseUrl)?.value ?: baseUrl.trim(),
-    )
+  suspend fun updateBaseUrl(baseUrl: String) {
+    val normalizedBaseUrl = AudiobookshelfBaseUrl.parse(baseUrl)?.value ?: baseUrl.trim()
+    dataStore.updatePreference(Keys.BASE_URL, normalizedBaseUrl)
+    BASE_URL = normalizedBaseUrl
+  }
 
   suspend fun getDeviceId(): String {
     val currentDeviceId = dataStore.preferenceFlow(Keys.DEVICE_ID, "").first()
