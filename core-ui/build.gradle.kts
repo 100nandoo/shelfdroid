@@ -53,6 +53,7 @@ dependencies {
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.core.splashscreen)
+  implementation(libs.androidx.browser)
 
   // Arch Components
   implementation(libs.androidx.hilt.navigation.compose)

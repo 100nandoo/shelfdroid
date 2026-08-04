@@ -1,6 +1,4 @@
 package dev.halim.shelfdroid.core.ui.screen.login
-
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,7 +46,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.AuthPromptReason
@@ -86,6 +83,7 @@ fun LoginScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
+  val openIdLoginLauncher = remember(context) { AndroidOpenIdLoginLauncher(context) }
   val focusManager = LocalFocusManager.current
   val openIdRedirectUri = "audiobookshelf://oauth"
 
@@ -104,12 +102,9 @@ fun LoginScreen(
     }
   }
 
-  LaunchedEffect(viewModel, context) {
+  LaunchedEffect(viewModel, openIdLoginLauncher) {
     viewModel.events.collect { event ->
-      when (event) {
-        is LoginUiEvent.LaunchOpenIdLogin ->
-          context.startActivity(Intent(Intent.ACTION_VIEW, event.authorizationUrl.toUri()))
-      }
+      handleLoginUiEvent(event, openIdLoginLauncher::launch)
     }
   }
 
