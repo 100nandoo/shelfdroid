@@ -23,6 +23,8 @@ constructor(
   prefsRepository: PrefsRepository,
   private val loginSuccessHandler: LoginSuccessHandler,
   private val pendingOpenIdLoginStore: PendingOpenIdLoginStore,
+  private val pendingOpenIdCallbackStore: PendingOpenIdCallbackStore,
+  private val openIdLoginFailureStore: OpenIdLoginFailureStore,
 ) {
 
   val userPrefs = prefsRepository.userPrefs
@@ -133,6 +135,8 @@ constructor(
     val state = generateState()
     val codeVerifier = generateCodeVerifier()
     val codeChallenge = codeChallenge(codeVerifier)
+    pendingOpenIdCallbackStore.clear()
+    openIdLoginFailureStore.clear()
     pendingOpenIdLoginStore.save(
       PendingOpenIdLogin(
         normalizedServer = normalizedServer,

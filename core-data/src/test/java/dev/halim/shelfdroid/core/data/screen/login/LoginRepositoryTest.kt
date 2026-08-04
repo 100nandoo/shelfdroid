@@ -309,6 +309,8 @@ class LoginRepositoryTest {
       prefsRepository = PrefsRepository(dataStoreManager),
       loginSuccessHandler = NoOpLoginSuccessHandler,
       pendingOpenIdLoginStore = PendingOpenIdLoginStore(dataStoreManager),
+      pendingOpenIdCallbackStore = PendingOpenIdCallbackStore(dataStoreManager),
+      openIdLoginFailureStore = OpenIdLoginFailureStore(dataStoreManager),
     )
   }
 

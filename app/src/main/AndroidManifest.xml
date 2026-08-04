@@ -24,6 +24,24 @@
             tools:targetApi="29" />
 
         <activity
+            android:name=".auth.OpenIdCallbackActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:noHistory="true"
+            android:theme="@style/Theme.ShelfDroid.MySplash">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="oauth"
+                    android:scheme="${applicationId}" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".core.ui.screen.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.ShelfDroid.MySplash"

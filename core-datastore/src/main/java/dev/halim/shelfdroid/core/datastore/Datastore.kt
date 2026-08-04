@@ -46,6 +46,8 @@ private object Keys {
   val CRUD_PREFS = stringPreferencesKey("crud_prefs")
   val LISTENING_SESSION_PREFS = stringPreferencesKey("listening_session_prefs")
   val PENDING_OPEN_ID_LOGIN = stringPreferencesKey("pending_open_id_login")
+  val PENDING_OPEN_ID_CALLBACK = stringPreferencesKey("pending_open_id_callback")
+  val OPEN_ID_LOGIN_FAILURE = stringPreferencesKey("open_id_login_failure")
 
   val TAGS = stringSetPreferencesKey("tags")
 }
@@ -238,6 +240,32 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
         prefs.remove(Keys.PENDING_OPEN_ID_LOGIN)
       } else {
         prefs[Keys.PENDING_OPEN_ID_LOGIN] = serialized
+      }
+    }
+  }
+
+  val pendingOpenIdCallback: Flow<String?> =
+    dataStore.data.map { prefs -> prefs[Keys.PENDING_OPEN_ID_CALLBACK] }
+
+  suspend fun updatePendingOpenIdCallback(serialized: String?) {
+    dataStore.edit { prefs ->
+      if (serialized == null) {
+        prefs.remove(Keys.PENDING_OPEN_ID_CALLBACK)
+      } else {
+        prefs[Keys.PENDING_OPEN_ID_CALLBACK] = serialized
+      }
+    }
+  }
+
+  val openIdLoginFailure: Flow<String?> =
+    dataStore.data.map { prefs -> prefs[Keys.OPEN_ID_LOGIN_FAILURE] }
+
+  suspend fun updateOpenIdLoginFailure(serialized: String?) {
+    dataStore.edit { prefs ->
+      if (serialized == null) {
+        prefs.remove(Keys.OPEN_ID_LOGIN_FAILURE)
+      } else {
+        prefs[Keys.OPEN_ID_LOGIN_FAILURE] = serialized
       }
     }
   }

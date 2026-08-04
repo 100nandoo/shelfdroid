@@ -12,6 +12,8 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdCallbackCoordinator
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
@@ -37,6 +39,7 @@ class LoginViewModel
 @AssistedInject
 constructor(
   private val loginRepository: LoginRepository,
+  private val openIdCallbackCoordinator: OpenIdCallbackCoordinator,
   private val settingsRepository: SettingsRepository,
   @Assisted private val navKey: Login,
 ) : ViewModel() {
@@ -114,6 +117,7 @@ constructor(
   }
 
   private fun initUiState(): LoginUiState {
+    val openIdLoginFailure = runBlocking { openIdCallbackCoordinator.consumeFailure() }
     val (username, server) =
       if (navKey.reLogin) {
         runBlocking {
@@ -124,7 +128,12 @@ constructor(
       } else {
         "" to ""
       }
-    return initLoginUiState(navKey = navKey, username = username, server = server)
+    return initLoginUiState(
+      navKey = navKey,
+      username = username,
+      server = server,
+      openIdLoginFailure = openIdLoginFailure,
+    )
   }
 
   @AssistedFactory
@@ -168,17 +177,26 @@ internal fun initLoginUiState(
   navKey: Login,
   username: String = "",
   server: String = "",
+  openIdLoginFailure: OpenIdLoginFailure? = null,
 ): LoginUiState {
+  val initialServer = if (navKey.reLogin) server else openIdLoginFailure?.normalizedServer.orEmpty()
   val state =
     if (navKey.reLogin) {
       LoginUiState(
         username = username,
-        server = if (username.isNotBlank()) server else "",
+        server = if (username.isNotBlank()) initialServer else "",
         reLogin = true,
         authPromptReason = navKey.reason,
+        loginState =
+          openIdLoginFailure?.let { GenericState.Failure(it.errorMessage) } ?: GenericState.Idle,
       )
     } else {
-      LoginUiState(authPromptReason = navKey.reason)
+      LoginUiState(
+        server = initialServer,
+        authPromptReason = navKey.reason,
+        loginState =
+          openIdLoginFailure?.let { GenericState.Failure(it.errorMessage) } ?: GenericState.Idle,
+      )
     }
   return state.prepareLoginDiscovery(state.server)
 }

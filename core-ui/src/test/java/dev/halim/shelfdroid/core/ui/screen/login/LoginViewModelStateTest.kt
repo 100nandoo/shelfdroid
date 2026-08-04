@@ -5,8 +5,10 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
 import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
@@ -35,6 +37,28 @@ class LoginViewModelStateTest {
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
     assertEquals(LoginDiscoveryState.Loading, initialized.discoveryState)
     assertEquals(listOf(LoginMethod.Local), initialized.availableLoginMethods)
+  }
+
+  @Test
+  fun initLoginUiState_whenOpenIdCallbackFailureExists_prefillsServerAndShowsFailure() {
+    val initialized =
+      initLoginUiState(
+        navKey = Login(),
+        openIdLoginFailure =
+          OpenIdLoginFailure(
+            normalizedServer = "https://example.com/audiobookshelf",
+            errorMessage = "OpenID login failed because the callback state does not match the current login.",
+          ),
+      )
+
+    assertEquals("https://example.com/audiobookshelf", initialized.server)
+    assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
+    assertEquals(LoginDiscoveryState.Loading, initialized.discoveryState)
+    assertTrue(initialized.loginState is GenericState.Failure)
+    assertEquals(
+      "OpenID login failed because the callback state does not match the current login.",
+      (initialized.loginState as GenericState.Failure).errorMessage,
+    )
   }
 
   @Test
