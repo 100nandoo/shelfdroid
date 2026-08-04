@@ -228,7 +228,7 @@ fun LoginScreenContent(
           Text(stringResource(R.string.login))
         }
       } else if (uiState.isOpenIdOnly()) {
-        OutlinedButton(
+        Button(
           onClick = { onEvent(LoginEvent.OpenIdLoginButtonPressed(openIdRedirectUri)) },
           modifier = Modifier.fillMaxWidth(),
         ) {

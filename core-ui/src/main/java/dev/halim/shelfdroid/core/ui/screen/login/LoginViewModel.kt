@@ -63,9 +63,13 @@ constructor(
 
       is LoginEvent.OpenIdLoginButtonPressed ->
         viewModelScope.launch {
-          val result = loginRepository.startOpenIdLogin(_uiState.value, event.redirectUri)
-          _uiState.update { result.uiState }
-          result.authorizationUrl?.let { _events.emit(LoginUiEvent.LaunchOpenIdLogin(it)) }
+          _uiState.value =
+            handleOpenIdLoginButtonPressed(
+              uiState = _uiState.value,
+              redirectUri = event.redirectUri,
+              startOpenIdLogin = loginRepository::startOpenIdLogin,
+              emitEvent = _events::emit,
+            )
         }
 
       LoginEvent.UseDifferentServerOrAccountConfirmed ->
@@ -131,6 +135,17 @@ constructor(
 
 sealed interface LoginUiEvent {
   data class LaunchOpenIdLogin(val authorizationUrl: String) : LoginUiEvent
+}
+
+internal suspend fun handleOpenIdLoginButtonPressed(
+  uiState: LoginUiState,
+  redirectUri: String,
+  startOpenIdLogin: suspend (LoginUiState, String) -> dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult,
+  emitEvent: suspend (LoginUiEvent) -> Unit,
+): LoginUiState {
+  val result = startOpenIdLogin(uiState, redirectUri)
+  result.authorizationUrl?.let { emitEvent(LoginUiEvent.LaunchOpenIdLogin(it)) }
+  return result.uiState
 }
 
 internal fun LoginUiState.prepareLoginDiscovery(server: String): LoginUiState {

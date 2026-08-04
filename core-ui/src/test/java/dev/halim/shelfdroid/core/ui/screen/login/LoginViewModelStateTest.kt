@@ -5,11 +5,13 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
 import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
 import dev.halim.shelfdroid.core.ui.navigation.Login
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -94,5 +96,40 @@ class LoginViewModelStateTest {
 
     assertEquals("Continue with Acme SSO", applied.authOpenIdButtonText)
     assertTrue(applied.isOpenIdOnly())
+  }
+
+  @Test
+  fun handleOpenIdLoginButtonPressed_emitsLaunchEventAndUpdatesUiState() = runBlocking {
+    val events = mutableListOf<LoginUiEvent>()
+
+    val updated =
+      handleOpenIdLoginButtonPressed(
+        uiState =
+          LoginUiState(
+            server = "https://example.com",
+            normalizedServer = "https://example.com",
+            discoveryState = LoginDiscoveryState.Success,
+            availableLoginMethods = listOf(LoginMethod.OpenId),
+            authOpenIdButtonText = "Continue with Acme SSO",
+          ),
+        redirectUri = "dev.halim.shelfdroid.debug://oauth",
+        startOpenIdLogin = { uiState, _ ->
+          OpenIdLoginStartResult(
+            uiState = uiState.copy(server = "https://example.com", normalizedServer = "https://example.com"),
+            authorizationUrl = "https://example.com/auth/openid?redirect_uri=dev.halim.shelfdroid.debug://oauth",
+          )
+        },
+        emitEvent = { events += it },
+      )
+
+    assertEquals("https://example.com", updated.server)
+    assertEquals("https://example.com", updated.normalizedServer)
+    assertEquals(1, events.size)
+    val event = events.single()
+    assertTrue(event is LoginUiEvent.LaunchOpenIdLogin)
+    assertEquals(
+      "https://example.com/auth/openid?redirect_uri=dev.halim.shelfdroid.debug://oauth",
+      (event as LoginUiEvent.LaunchOpenIdLogin).authorizationUrl,
+    )
   }
 }

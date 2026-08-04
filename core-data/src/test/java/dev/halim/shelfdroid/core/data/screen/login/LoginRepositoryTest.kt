@@ -270,6 +270,35 @@ class LoginRepositoryTest {
       }
     }
 
+  @Test
+  fun startOpenIdLogin_doesNotMakeAppNetworkRequests() = runTest {
+    val dataStoreScope = dataStoreScope()
+    var requestCount = 0
+    try {
+      val dataStoreManager = dataStoreManager(dataStoreScope)
+      val repository =
+        repository(dataStoreManager) { request ->
+          requestCount += 1
+          jsonResponse(request = request, body = """{}""")
+        }
+
+      repository.startOpenIdLogin(
+        uiState =
+          LoginUiState(
+            server = "https://example.com",
+            normalizedServer = "https://example.com",
+            discoveryState = LoginDiscoveryState.Success,
+            availableLoginMethods = listOf(LoginMethod.OpenId),
+          ),
+        redirectUri = "dev.halim.shelfdroid://oauth",
+      )
+
+      assertEquals(0, requestCount)
+    } finally {
+      dataStoreScope.cancel()
+    }
+  }
+
   private fun repository(
     dataStoreManager: DataStoreManager,
     respond: (Request) -> Response = { request -> jsonResponse(request, body = """{}""") },
