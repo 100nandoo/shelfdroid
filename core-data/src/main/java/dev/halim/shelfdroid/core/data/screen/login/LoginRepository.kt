@@ -189,6 +189,15 @@ constructor(
     )
   }
 
+  suspend fun openIdLoginRecoveryState(): OpenIdLoginRecoveryState {
+    val pendingCallback = pendingOpenIdCallbackStore.current()
+    val pendingLogin = pendingOpenIdLoginStore.current()
+    return OpenIdLoginRecoveryState(
+      normalizedServer = pendingCallback?.normalizedServer ?: pendingLogin?.normalizedServer,
+      hasPendingCallback = pendingCallback != null,
+    )
+  }
+
   suspend fun completeOpenIdLogin(): OpenIdLoginCompletionResult {
     val pendingCallback = pendingOpenIdCallbackStore.current()
     val pendingLogin = pendingOpenIdLoginStore.current()
@@ -301,6 +310,11 @@ constructor(
 data class OpenIdLoginStartResult(
   val uiState: LoginUiState,
   val authorizationUrl: String? = null,
+)
+
+data class OpenIdLoginRecoveryState(
+  val normalizedServer: String? = null,
+  val hasPendingCallback: Boolean = false,
 )
 
 sealed interface OpenIdLoginCompletionResult {

@@ -5,7 +5,9 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.GenericState
@@ -59,6 +61,19 @@ class LoginViewModelStateTest {
       "OpenID login failed because the callback state does not match the current login.",
       (initialized.loginState as GenericState.Failure).errorMessage,
     )
+  }
+
+  @Test
+  fun initLoginUiState_whenPendingOpenIdRecoveryExists_prefillsServerAndStartsDiscovery() {
+    val initialized =
+      initLoginUiState(
+        navKey = Login(),
+        pendingOpenIdServer = "https://example.com/audiobookshelf",
+      )
+
+    assertEquals("https://example.com/audiobookshelf", initialized.server)
+    assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
+    assertEquals(LoginDiscoveryState.Loading, initialized.discoveryState)
   }
 
   @Test
@@ -120,6 +135,87 @@ class LoginViewModelStateTest {
 
     assertEquals("Continue with Acme SSO", applied.authOpenIdButtonText)
     assertTrue(applied.isOpenIdOnly())
+  }
+
+  @Test
+  fun applyLoginDiscovery_whenForcedReloginServerOnlySupportsOpenId_preservesReloginContext() {
+    val applied =
+      LoginUiState(
+          server = "https://example.com",
+          reLogin = true,
+          authPromptReason = AuthPromptReason.RefreshFailed,
+        )
+        .applyLoginDiscovery(
+          LoginDiscoveryResult(
+            normalizedServer = "https://example.com",
+            discoveryState = LoginDiscoveryState.Success,
+            availableLoginMethods = listOf(LoginMethod.OpenId),
+            loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
+          )
+        )
+
+    assertTrue(applied.reLogin)
+    assertEquals(AuthPromptReason.RefreshFailed, applied.authPromptReason)
+    assertTrue(applied.isOpenIdOnly())
+  }
+
+  @Test
+  fun prepareOpenIdRecovery_whenPendingCallbackMatchesCurrentServer_showsLoadingWithoutResettingDiscovery() {
+    val prepared =
+      LoginUiState(
+          server = "https://example.com",
+          normalizedServer = "https://example.com",
+          discoveryState = LoginDiscoveryState.Success,
+          availableLoginMethods = listOf(LoginMethod.OpenId),
+          loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
+        )
+        .prepareOpenIdRecovery(
+          OpenIdLoginRecoveryState(
+            normalizedServer = "https://example.com",
+            hasPendingCallback = true,
+          )
+        )
+
+    assertEquals(GenericState.Loading, prepared.loginState)
+    assertEquals(LoginDiscoveryState.Success, prepared.discoveryState)
+    assertTrue(prepared.isOpenIdOnly())
+  }
+
+  @Test
+  fun applyOpenIdRecoveryCompletion_whenFailureTargetsCurrentServer_keepsOpenIdSurfaceAndShowsFailure() {
+    val applied =
+      LoginUiState(
+          server = "https://example.com",
+          normalizedServer = "https://example.com",
+          loginState = GenericState.Loading,
+          discoveryState = LoginDiscoveryState.Success,
+          availableLoginMethods = listOf(LoginMethod.OpenId),
+          loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
+        )
+        .applyOpenIdRecoveryCompletion(
+          OpenIdLoginCompletionResult.Failed(
+            OpenIdLoginFailure(
+              normalizedServer = "https://example.com",
+              errorMessage = "OpenID login failed. Please try again.",
+            )
+          )
+        )
+
+    assertTrue(applied.loginState is GenericState.Failure)
+    assertTrue(applied.isOpenIdOnly())
+    assertEquals(
+      "OpenID login failed. Please try again.",
+      (applied.loginState as GenericState.Failure).errorMessage,
+    )
+  }
+
+  @Test
+  fun applyOpenIdRecoveryCompletion_whenSuccess_marksStateSuccessful() {
+    val applied =
+      LoginUiState(server = "https://example.com", loginState = GenericState.Loading)
+        .applyOpenIdRecoveryCompletion(OpenIdLoginCompletionResult.Success)
+
+    assertEquals(GenericState.Success, applied.loginState)
   }
 
   @Test

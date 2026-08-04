@@ -60,6 +60,17 @@ class ShelfNavigatorTest {
   }
 
   @Test
+  fun enforce_auth_restore_policy_replaces_login_stack_when_logged_in() {
+    val backStack =
+      NavBackStack<ShelfNavKey>(Login(reLogin = true, reason = AuthPromptReason.RefreshFailed))
+    val navigator = ShelfNavigator(backStack)
+
+    enforceAuthRestorePolicy(navigator, isLoggedIn = true)
+
+    assertEquals(listOf(Home(fromLogin = true)), backStack.toList())
+  }
+
+  @Test
   fun enforce_auth_restore_policy_replaces_existing_login_when_reason_changes() {
     val backStack = NavBackStack<ShelfNavKey>(Login())
     val navigator = ShelfNavigator(backStack)

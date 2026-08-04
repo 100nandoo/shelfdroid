@@ -12,8 +12,10 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdCallbackCoordinator
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
@@ -53,6 +55,7 @@ constructor(
 
   init {
     observeLoginDiscovery()
+    recoverPendingOpenIdLogin()
   }
 
   fun onEvent(event: LoginEvent) {
@@ -117,6 +120,7 @@ constructor(
   }
 
   private fun initUiState(): LoginUiState {
+    val openIdLoginRecoveryState = runBlocking { loginRepository.openIdLoginRecoveryState() }
     val openIdLoginFailure = runBlocking { openIdCallbackCoordinator.consumeFailure() }
     val (username, server) =
       if (navKey.reLogin) {
@@ -133,7 +137,19 @@ constructor(
       username = username,
       server = server,
       openIdLoginFailure = openIdLoginFailure,
+      pendingOpenIdServer = openIdLoginRecoveryState.normalizedServer,
     )
+  }
+
+  private fun recoverPendingOpenIdLogin() {
+    viewModelScope.launch {
+      val recoveryState = loginRepository.openIdLoginRecoveryState()
+      if (!recoveryState.hasPendingCallback) return@launch
+
+      _uiState.update { it.prepareOpenIdRecovery(recoveryState) }
+      val result = loginRepository.completeOpenIdLogin()
+      _uiState.update { it.applyOpenIdRecoveryCompletion(result) }
+    }
   }
 
   @AssistedFactory
@@ -178,8 +194,15 @@ internal fun initLoginUiState(
   username: String = "",
   server: String = "",
   openIdLoginFailure: OpenIdLoginFailure? = null,
+  pendingOpenIdServer: String? = null,
 ): LoginUiState {
-  val initialServer = if (navKey.reLogin) server else openIdLoginFailure?.normalizedServer.orEmpty()
+  val initialServer =
+    when {
+      navKey.reLogin -> server
+      !openIdLoginFailure?.normalizedServer.isNullOrBlank() -> openIdLoginFailure.normalizedServer.orEmpty()
+      !pendingOpenIdServer.isNullOrBlank() -> pendingOpenIdServer.orEmpty()
+      else -> ""
+    }
   val state =
     if (navKey.reLogin) {
       LoginUiState(
@@ -199,6 +222,47 @@ internal fun initLoginUiState(
       )
     }
   return state.prepareLoginDiscovery(state.server)
+}
+
+internal fun LoginUiState.prepareOpenIdRecovery(
+  recoveryState: OpenIdLoginRecoveryState,
+): LoginUiState {
+  val recoveredServer = recoveryState.normalizedServer?.takeIf { it.isNotBlank() }
+  val prepared =
+    when {
+      recoveredServer == null -> this
+      server == recoveredServer -> copy(
+        server = recoveredServer,
+        normalizedServer = AudiobookshelfBaseUrl.parse(recoveredServer)?.value ?: normalizedServer,
+      )
+      else -> prepareLoginDiscovery(recoveredServer)
+    }
+  return prepared.copy(loginState = GenericState.Loading, serverFieldError = null)
+}
+
+internal fun LoginUiState.applyOpenIdRecoveryCompletion(
+  result: OpenIdLoginCompletionResult,
+): LoginUiState {
+  return when (result) {
+    OpenIdLoginCompletionResult.Success -> copy(loginState = GenericState.Success)
+    is OpenIdLoginCompletionResult.Failed -> {
+      val failureServer = result.failure.normalizedServer?.takeIf { it.isNotBlank() }
+      val prepared =
+        when {
+          failureServer == null -> this
+          server == failureServer -> copy(
+            server = failureServer,
+            normalizedServer =
+              AudiobookshelfBaseUrl.parse(failureServer)?.value ?: normalizedServer,
+          )
+          else -> prepareLoginDiscovery(failureServer)
+        }
+      prepared.copy(
+        loginState = GenericState.Failure(result.failure.errorMessage),
+        serverFieldError = null,
+      )
+    }
+  }
 }
 
 internal fun LoginUiState.applyLoginDiscovery(result: LoginDiscoveryResult): LoginUiState {

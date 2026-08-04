@@ -321,6 +321,63 @@ class LoginRepositoryTest {
   }
 
   @Test
+  fun openIdLoginRecoveryState_whenOnlyPendingLoginExists_prefillsServerWithoutResuming() = runTest {
+    val dataStoreScope = dataStoreScope()
+    try {
+      val dataStoreManager = dataStoreManager(dataStoreScope)
+      val pendingStore = PendingOpenIdLoginStore(dataStoreManager)
+      pendingStore.save(
+        PendingOpenIdLogin(
+          normalizedServer = "https://example.com/audiobookshelf",
+          state = "state-123",
+          codeVerifier = "verifier-123",
+          createdAtEpochMillis = 1L,
+        )
+      )
+      val repository = repository(dataStoreManager)
+
+      val result = repository.openIdLoginRecoveryState()
+
+      assertEquals("https://example.com/audiobookshelf", result.normalizedServer)
+      assertTrue(!result.hasPendingCallback)
+    } finally {
+      dataStoreScope.cancel()
+    }
+  }
+
+  @Test
+  fun openIdLoginRecoveryState_whenPendingCallbackExists_requestsCompletionForSavedServer() = runTest {
+    val dataStoreScope = dataStoreScope()
+    try {
+      val dataStoreManager = dataStoreManager(dataStoreScope)
+      PendingOpenIdLoginStore(dataStoreManager).save(
+        PendingOpenIdLogin(
+          normalizedServer = "https://example.com/audiobookshelf",
+          state = "state-123",
+          codeVerifier = "verifier-123",
+          createdAtEpochMillis = 1L,
+        )
+      )
+      PendingOpenIdCallbackStore(dataStoreManager).save(
+        PendingOpenIdCallback(
+          normalizedServer = "https://example.com/audiobookshelf",
+          state = "state-123",
+          code = "code-123",
+          receivedAtEpochMillis = 2L,
+        )
+      )
+      val repository = repository(dataStoreManager)
+
+      val result = repository.openIdLoginRecoveryState()
+
+      assertEquals("https://example.com/audiobookshelf", result.normalizedServer)
+      assertTrue(result.hasPendingCallback)
+    } finally {
+      dataStoreScope.cancel()
+    }
+  }
+
+  @Test
   fun completeOpenIdLogin_reusesBootstrapCookiesAndRunsSharedSuccessPath() = runTest {
     val dataStoreScope = dataStoreScope()
     var startRequest: Request? = null
