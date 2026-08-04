@@ -45,6 +45,7 @@ private object Keys {
   val PLAYER_PREFS = stringPreferencesKey("player_prefs")
   val CRUD_PREFS = stringPreferencesKey("crud_prefs")
   val LISTENING_SESSION_PREFS = stringPreferencesKey("listening_session_prefs")
+  val PENDING_OPEN_ID_LOGIN = stringPreferencesKey("pending_open_id_login")
 
   val TAGS = stringSetPreferencesKey("tags")
 }
@@ -227,6 +228,18 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   suspend fun updateListeningSessionPrefs(prefs: ListeningSessionPrefs) {
     val json = Json.encodeToString(prefs)
     dataStore.edit { prefs -> prefs[Keys.LISTENING_SESSION_PREFS] = json }
+  }
+
+  val pendingOpenIdLogin: Flow<String?> = dataStore.data.map { prefs -> prefs[Keys.PENDING_OPEN_ID_LOGIN] }
+
+  suspend fun updatePendingOpenIdLogin(serialized: String?) {
+    dataStore.edit { prefs ->
+      if (serialized == null) {
+        prefs.remove(Keys.PENDING_OPEN_ID_LOGIN)
+      } else {
+        prefs[Keys.PENDING_OPEN_ID_LOGIN] = serialized
+      }
+    }
   }
 
   suspend fun updateListView(listView: Boolean) {

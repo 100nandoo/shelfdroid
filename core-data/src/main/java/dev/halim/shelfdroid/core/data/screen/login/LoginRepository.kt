@@ -7,6 +7,11 @@ import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.util.Base64
 import javax.inject.Inject
 import retrofit2.HttpException
 
@@ -17,6 +22,7 @@ constructor(
   private val dataStoreManager: DataStoreManager,
   prefsRepository: PrefsRepository,
   private val loginSuccessHandler: LoginSuccessHandler,
+  private val pendingOpenIdLoginStore: PendingOpenIdLoginStore,
 ) {
 
   val userPrefs = prefsRepository.userPrefs
@@ -107,7 +113,62 @@ constructor(
       serverFieldError = null,
     )
   }
+
+  suspend fun startOpenIdLogin(
+    uiState: LoginUiState,
+    redirectUri: String,
+  ): OpenIdLoginStartResult {
+    val parsedServer =
+      uiState.normalizedServer?.let(AudiobookshelfBaseUrl::parse)
+        ?: AudiobookshelfBaseUrl.parse(uiState.server)
+        ?: return OpenIdLoginStartResult(
+          uiState =
+            uiState.copy(
+              loginState = GenericState.Idle,
+              serverFieldError = LoginFieldError.InvalidServerUrl,
+            )
+        )
+
+    val normalizedServer = parsedServer.value
+    val state = generateState()
+    val codeVerifier = generateCodeVerifier()
+    val codeChallenge = codeChallenge(codeVerifier)
+    pendingOpenIdLoginStore.save(
+      PendingOpenIdLogin(
+        normalizedServer = normalizedServer,
+        state = state,
+        codeVerifier = codeVerifier,
+        createdAtEpochMillis = System.currentTimeMillis(),
+      )
+    )
+
+    val authorizationUrl =
+      parsedServer.resolveEncoded(
+        "/auth/openid",
+        buildOpenIdStartQuery(
+          redirectUri = redirectUri,
+          state = state,
+          codeChallenge = codeChallenge,
+        ),
+      )
+
+    return OpenIdLoginStartResult(
+      uiState =
+        uiState.copy(
+          server = normalizedServer,
+          normalizedServer = normalizedServer,
+          loginState = GenericState.Idle,
+          serverFieldError = null,
+        ),
+      authorizationUrl = authorizationUrl,
+    )
+  }
 }
+
+data class OpenIdLoginStartResult(
+  val uiState: LoginUiState,
+  val authorizationUrl: String? = null,
+)
 
 data class LoginUiState(
   val loginState: GenericState = GenericState.Idle,
@@ -194,6 +255,8 @@ private fun List<String>.toLoginMethods(): List<LoginMethod> {
 sealed interface LoginEvent {
   data object LoginButtonPressed : LoginEvent
 
+  data class OpenIdLoginButtonPressed(val redirectUri: String) : LoginEvent
+
   data object UseDifferentServerOrAccountConfirmed : LoginEvent
 
   data object ErrorShown : LoginEvent
@@ -204,3 +267,39 @@ sealed interface LoginEvent {
 
   data class PasswordChanged(val password: String) : LoginEvent
 }
+
+private fun buildOpenIdStartQuery(
+  redirectUri: String,
+  state: String,
+  codeChallenge: String,
+): String {
+  return listOf(
+      "redirect_uri" to redirectUri,
+      "response_type" to "code",
+      "state" to state,
+      "code_challenge" to codeChallenge,
+      "code_challenge_method" to "S256",
+    )
+    .joinToString("&") { (key, value) -> "${key.encodeQueryValue()}=${value.encodeQueryValue()}" }
+}
+
+private fun generateState(): String = generateUrlSafeToken(byteCount = 16)
+
+private fun generateCodeVerifier(): String = generateUrlSafeToken(byteCount = 32)
+
+private fun generateUrlSafeToken(byteCount: Int): String {
+  val bytes = ByteArray(byteCount)
+  secureRandom.nextBytes(bytes)
+  return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+}
+
+private fun codeChallenge(codeVerifier: String): String {
+  val digest =
+    MessageDigest.getInstance("SHA-256").digest(codeVerifier.toByteArray(StandardCharsets.US_ASCII))
+  return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
+}
+
+private fun String.encodeQueryValue(): String =
+  URLEncoder.encode(this, StandardCharsets.UTF_8).replace("+", "%20")
+
+private val secureRandom = SecureRandom()

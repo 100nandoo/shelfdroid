@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component3
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -46,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.AuthPromptReason
@@ -82,7 +85,9 @@ fun LoginScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
+  val context = LocalContext.current
   val focusManager = LocalFocusManager.current
+  val openIdRedirectUri = remember(context.packageName) { "${context.packageName}://oauth" }
 
   LaunchedEffect(uiState.loginState) {
     when (val state = uiState.loginState) {
@@ -99,13 +104,28 @@ fun LoginScreen(
     }
   }
 
-  LoginScreenContent(uiState, focusManager, viewModel::onEvent)
+  LaunchedEffect(viewModel, context) {
+    viewModel.events.collect { event ->
+      when (event) {
+        is LoginUiEvent.LaunchOpenIdLogin ->
+          context.startActivity(Intent(Intent.ACTION_VIEW, event.authorizationUrl.toUri()))
+      }
+    }
+  }
+
+  LoginScreenContent(
+    uiState = uiState,
+    focusManager = focusManager,
+    openIdRedirectUri = openIdRedirectUri,
+    onEvent = viewModel::onEvent,
+  )
 }
 
 @Composable
 fun LoginScreenContent(
   uiState: LoginUiState = LoginUiState(),
   focusManager: FocusManager = LocalFocusManager.current,
+  openIdRedirectUri: String = "dev.halim.shelfdroid://oauth",
   onEvent: (LoginEvent) -> Unit = {},
 ) {
   val (serverRef, usernameRef, passwordRef) = remember { FocusRequester.createRefs() }
@@ -165,7 +185,11 @@ fun LoginScreenContent(
       Spacer(modifier = Modifier.height(8.dp))
 
       if (uiState.showsMixedLoginMethods()) {
-        MixedLoginMethodsSurface(uiState = uiState)
+        MixedLoginMethodsSurface(
+          uiState = uiState,
+          openIdRedirectUri = openIdRedirectUri,
+          onEvent = onEvent,
+        )
         Spacer(modifier = Modifier.height(16.dp))
       }
 
@@ -205,8 +229,7 @@ fun LoginScreenContent(
         }
       } else if (uiState.isOpenIdOnly()) {
         OutlinedButton(
-          onClick = {},
-          enabled = false,
+          onClick = { onEvent(LoginEvent.OpenIdLoginButtonPressed(openIdRedirectUri)) },
           modifier = Modifier.fillMaxWidth(),
         ) {
           Text(uiState.authOpenIdButtonText ?: stringResource(R.string.login_with_openid))
@@ -279,7 +302,11 @@ private fun LoginHeaderMessagesSection(
 }
 
 @Composable
-private fun MixedLoginMethodsSurface(uiState: LoginUiState) {
+private fun MixedLoginMethodsSurface(
+  uiState: LoginUiState,
+  openIdRedirectUri: String,
+  onEvent: (LoginEvent) -> Unit,
+) {
   Text(
     text = stringResource(R.string.login_methods),
     modifier = Modifier.fillMaxWidth(),
@@ -289,8 +316,7 @@ private fun MixedLoginMethodsSurface(uiState: LoginUiState) {
   SelectedLoginMethodCard(label = stringResource(R.string.local_login))
   Spacer(modifier = Modifier.height(8.dp))
   OutlinedButton(
-    onClick = {},
-    enabled = false,
+    onClick = { onEvent(LoginEvent.OpenIdLoginButtonPressed(openIdRedirectUri)) },
     modifier = Modifier.fillMaxWidth(),
   ) {
     Text(uiState.authOpenIdButtonText ?: stringResource(R.string.login_with_openid))

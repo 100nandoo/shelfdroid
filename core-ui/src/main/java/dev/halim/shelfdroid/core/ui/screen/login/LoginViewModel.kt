@@ -18,7 +18,9 @@ import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
@@ -43,6 +45,9 @@ constructor(
 
   val uiState: StateFlow<LoginUiState> = _uiState
 
+  private val _events = MutableSharedFlow<LoginUiEvent>()
+  val events = _events.asSharedFlow()
+
   init {
     observeLoginDiscovery()
   }
@@ -54,6 +59,13 @@ constructor(
           val currentState = _uiState.value
           _uiState.update { it.copy(loginState = GenericState.Loading) }
           _uiState.update { loginRepository.login(currentState) }
+        }
+
+      is LoginEvent.OpenIdLoginButtonPressed ->
+        viewModelScope.launch {
+          val result = loginRepository.startOpenIdLogin(_uiState.value, event.redirectUri)
+          _uiState.update { result.uiState }
+          result.authorizationUrl?.let { _events.emit(LoginUiEvent.LaunchOpenIdLogin(it)) }
         }
 
       LoginEvent.UseDifferentServerOrAccountConfirmed ->
@@ -115,6 +127,10 @@ constructor(
   interface Factory {
     fun create(navKey: Login): LoginViewModel
   }
+}
+
+sealed interface LoginUiEvent {
+  data class LaunchOpenIdLogin(val authorizationUrl: String) : LoginUiEvent
 }
 
 internal fun LoginUiState.prepareLoginDiscovery(server: String): LoginUiState {

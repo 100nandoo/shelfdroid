@@ -7,7 +7,12 @@ import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import java.net.URI
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.security.MessageDigest
+import java.util.Base64
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,6 +26,8 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Retrofit
@@ -190,18 +197,96 @@ class LoginRepositoryTest {
     }
   }
 
+  @Test
+  fun startOpenIdLogin_whenServerHasSubpath_buildsMobileAuthorizationUrlAndPersistsPendingContext() =
+    runTest {
+      val dataStoreScope = dataStoreScope()
+      try {
+        val dataStoreManager = dataStoreManager(dataStoreScope)
+        val pendingStore = PendingOpenIdLoginStore(dataStoreManager)
+        val repository = repository(dataStoreManager)
+
+        val result =
+          repository.startOpenIdLogin(
+            uiState =
+              LoginUiState(
+                server = "https://Example.com/audiobookshelf/",
+                normalizedServer = "https://example.com/audiobookshelf",
+                discoveryState = LoginDiscoveryState.Success,
+                availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+                authOpenIdButtonText = "Continue with Acme SSO",
+              ),
+            redirectUri = "dev.halim.shelfdroid.debug://oauth",
+          )
+
+        assertEquals("https://example.com/audiobookshelf", result.uiState.server)
+        assertEquals("https://example.com/audiobookshelf", result.uiState.normalizedServer)
+        val authorizationUrl = requireNotNull(result.authorizationUrl)
+        val parsed = URI(authorizationUrl)
+        assertEquals("https", parsed.scheme)
+        assertEquals("example.com", parsed.host)
+        assertEquals("/audiobookshelf/auth/openid", parsed.path)
+
+        val query = parseQuery(parsed.rawQuery)
+        assertEquals("dev.halim.shelfdroid.debug://oauth", query["redirect_uri"])
+        assertEquals("code", query["response_type"])
+        assertEquals("S256", query["code_challenge_method"])
+        assertNotNull(query["state"])
+        assertNotNull(query["code_challenge"])
+
+        val pending = pendingStore.current()
+        assertNotNull(pending)
+        requireNotNull(pending)
+        assertEquals("https://example.com/audiobookshelf", pending.normalizedServer)
+        assertEquals(query["state"], pending.state)
+        assertTrue(pending.codeVerifier.isNotBlank())
+        assertTrue(pending.createdAtEpochMillis > 0)
+        assertEquals(expectedCodeChallenge(pending.codeVerifier), query["code_challenge"])
+      } finally {
+        dataStoreScope.cancel()
+      }
+    }
+
+  @Test
+  fun startOpenIdLogin_whenServerIsInvalid_setsFieldErrorAndDoesNotPersistPendingContext() =
+    runTest {
+      val dataStoreScope = dataStoreScope()
+      try {
+        val dataStoreManager = dataStoreManager(dataStoreScope)
+        val pendingStore = PendingOpenIdLoginStore(dataStoreManager)
+        val repository = repository(dataStoreManager)
+
+        val result =
+          repository.startOpenIdLogin(
+            uiState = LoginUiState(server = "ftp://example.com"),
+            redirectUri = "dev.halim.shelfdroid://oauth",
+          )
+
+        assertEquals(LoginFieldError.InvalidServerUrl, result.uiState.serverFieldError)
+        assertNull(result.authorizationUrl)
+        assertNull(pendingStore.current())
+      } finally {
+        dataStoreScope.cancel()
+      }
+    }
+
   private fun repository(
-    scope: CoroutineScope,
-    respond: (Request) -> Response,
+    dataStoreManager: DataStoreManager,
+    respond: (Request) -> Response = { request -> jsonResponse(request, body = """{}""") },
   ): LoginRepository {
-    val dataStoreManager = dataStoreManager(scope)
     return LoginRepository(
       api = apiService(respond),
       dataStoreManager = dataStoreManager,
       prefsRepository = PrefsRepository(dataStoreManager),
       loginSuccessHandler = NoOpLoginSuccessHandler,
+      pendingOpenIdLoginStore = PendingOpenIdLoginStore(dataStoreManager),
     )
   }
+
+  private fun repository(
+    scope: CoroutineScope,
+    respond: (Request) -> Response,
+  ): LoginRepository = repository(dataStoreManager(scope), respond)
 
   private fun apiService(respond: (Request) -> Response): ApiService {
     val json = Json {
@@ -242,6 +327,22 @@ class LoginRepositoryTest {
       .message(if (code in 200..299) "OK" else "Error")
       .body(body.toResponseBody("application/json".toMediaType()))
       .build()
+  }
+
+  private fun parseQuery(rawQuery: String?): Map<String, String> {
+    if (rawQuery.isNullOrBlank()) return emptyMap()
+    return rawQuery.split("&").associate { entry ->
+      val (rawKey, rawValue) = entry.split("=", limit = 2).let { parts ->
+        parts.first() to parts.getOrElse(1) { "" }
+      }
+      URLDecoder.decode(rawKey, StandardCharsets.UTF_8) to
+        URLDecoder.decode(rawValue, StandardCharsets.UTF_8)
+    }
+  }
+
+  private fun expectedCodeChallenge(codeVerifier: String): String {
+    val hash = MessageDigest.getInstance("SHA-256").digest(codeVerifier.toByteArray(StandardCharsets.US_ASCII))
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(hash)
   }
 
   private data object NoOpLoginSuccessHandler : LoginSuccessHandler {
