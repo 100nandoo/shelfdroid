@@ -193,8 +193,8 @@ class OpenIdCallbackCoordinatorTest {
       val coordinator = coordinator(dataStoreManager)
 
       coordinator.handleCallback(
-        callbackUrl = "dev.halim.shelfdroid.debug://oauth?code=abc123&state=expected-state",
-        redirectUri = "dev.halim.shelfdroid.debug://oauth",
+        callbackUrl = "audiobookshelf://oauth?code=abc123&state=expected-state",
+        redirectUri = "audiobookshelf://oauth",
         nowMillis = 2_000L,
       )
 

@@ -229,7 +229,7 @@ class LoginRepositoryTest {
                 availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
                 authOpenIdButtonText = "Continue with Acme SSO",
               ),
-            redirectUri = "dev.halim.shelfdroid.debug://oauth",
+            redirectUri = "audiobookshelf://oauth",
           )
 
         assertEquals("https://example.com/audiobookshelf", result.uiState.server)
@@ -246,7 +246,7 @@ class LoginRepositoryTest {
 
         val query = parseQuery(parsed.rawQuery)
         assertEquals("shelfdroid", query["client_id"])
-        assertEquals("dev.halim.shelfdroid.debug://oauth", query["redirect_uri"])
+        assertEquals("audiobookshelf://oauth", query["redirect_uri"])
         assertEquals("code", query["response_type"])
         assertEquals("S256", query["code_challenge_method"])
         assertNotNull(query["state"])
@@ -512,7 +512,7 @@ class LoginRepositoryTest {
               discoveryState = LoginDiscoveryState.Success,
               availableLoginMethods = listOf(LoginMethod.OpenId),
             ),
-          redirectUri = "dev.halim.shelfdroid.debug://oauth",
+          redirectUri = "audiobookshelf://oauth",
         )
 
       val pending = requireNotNull(pendingStore.current())
@@ -535,7 +535,7 @@ class LoginRepositoryTest {
       val recordedStartRequest = requireNotNull(startRequest)
       val startQuery = parseQuery(recordedStartRequest.url.encodedQuery)
       assertEquals("shelfdroid", startQuery["client_id"])
-      assertEquals("dev.halim.shelfdroid.debug://oauth", startQuery["redirect_uri"])
+      assertEquals("audiobookshelf://oauth", startQuery["redirect_uri"])
       assertEquals("code", startQuery["response_type"])
       assertEquals("S256", startQuery["code_challenge_method"])
       assertNull(recordedStartRequest.header("Authorization"))

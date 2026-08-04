@@ -37,7 +37,7 @@
 
                 <data
                     android:host="oauth"
-                    android:scheme="${applicationId}" />
+                    android:scheme="audiobookshelf" />
             </intent-filter>
         </activity>
 

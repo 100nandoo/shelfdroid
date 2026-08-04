@@ -232,11 +232,11 @@ class LoginViewModelStateTest {
             availableLoginMethods = listOf(LoginMethod.OpenId),
             authOpenIdButtonText = "Continue with Acme SSO",
           ),
-        redirectUri = "dev.halim.shelfdroid.debug://oauth",
+        redirectUri = "audiobookshelf://oauth",
         startOpenIdLogin = { uiState, _ ->
           OpenIdLoginStartResult(
             uiState = uiState.copy(server = "https://example.com", normalizedServer = "https://example.com"),
-            authorizationUrl = "https://example.com/auth/openid?redirect_uri=dev.halim.shelfdroid.debug://oauth",
+            authorizationUrl = "https://example.com/auth/openid?redirect_uri=audiobookshelf://oauth",
           )
         },
         emitEvent = { events += it },
@@ -248,7 +248,7 @@ class LoginViewModelStateTest {
     val event = events.single()
     assertTrue(event is LoginUiEvent.LaunchOpenIdLogin)
     assertEquals(
-      "https://example.com/auth/openid?redirect_uri=dev.halim.shelfdroid.debug://oauth",
+      "https://example.com/auth/openid?redirect_uri=audiobookshelf://oauth",
       (event as LoginUiEvent.LaunchOpenIdLogin).authorizationUrl,
     )
   }

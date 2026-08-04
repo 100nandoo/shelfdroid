@@ -27,7 +27,7 @@ class OpenIdCallbackActivity : ComponentActivity() {
   }
 
   private fun handleCallbackIntent(intent: Intent) {
-    val redirectUri = "${packageName}://oauth"
+    val redirectUri = "audiobookshelf://oauth"
     lifecycleScope.launch {
       openIdCallbackCoordinator.handleCallback(
         callbackUrl = intent.dataString,

@@ -87,7 +87,7 @@ fun LoginScreen(
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
   val focusManager = LocalFocusManager.current
-  val openIdRedirectUri = remember(context.packageName) { "${context.packageName}://oauth" }
+  val openIdRedirectUri = "audiobookshelf://oauth"
 
   LaunchedEffect(uiState.loginState) {
     when (val state = uiState.loginState) {
@@ -125,7 +125,7 @@ fun LoginScreen(
 fun LoginScreenContent(
   uiState: LoginUiState = LoginUiState(),
   focusManager: FocusManager = LocalFocusManager.current,
-  openIdRedirectUri: String = "dev.halim.shelfdroid://oauth",
+  openIdRedirectUri: String = "audiobookshelf://oauth",
   onEvent: (LoginEvent) -> Unit = {},
 ) {
   val (serverRef, usernameRef, passwordRef) = remember { FocusRequester.createRefs() }
