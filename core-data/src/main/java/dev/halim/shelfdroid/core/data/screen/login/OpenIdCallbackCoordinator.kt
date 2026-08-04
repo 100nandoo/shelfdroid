@@ -34,6 +34,7 @@ constructor(
 
     if (callback == null || expectedTarget == null || !supportsTarget(callback, expectedTarget)) {
       return fail(
+        clearPendingLogin = false,
         pendingLogin = pendingLogin,
         errorMessage = "OpenID login failed because the callback target is not supported.",
       )
@@ -41,6 +42,7 @@ constructor(
 
     if (pendingLogin == null) {
       return fail(
+        clearPendingLogin = false,
         pendingLogin = null,
         errorMessage = "OpenID login failed because there is no matching login in progress.",
       )
@@ -48,6 +50,7 @@ constructor(
 
     if (pendingLogin.isExpired(nowMillis)) {
       return fail(
+        clearPendingLogin = true,
         pendingLogin = pendingLogin,
         errorMessage = "OpenID login expired before the callback returned. Please try again.",
       )
@@ -57,6 +60,7 @@ constructor(
     val returnedState = callbackQuery["state"]
     if (returnedState.isNullOrBlank()) {
       return fail(
+        clearPendingLogin = false,
         pendingLogin = pendingLogin,
         errorMessage = "OpenID login failed because the callback is missing the required state.",
       )
@@ -64,6 +68,7 @@ constructor(
 
     if (returnedState != pendingLogin.state) {
       return fail(
+        clearPendingLogin = false,
         pendingLogin = pendingLogin,
         errorMessage =
           "OpenID login failed because the callback state does not match the current login.",
@@ -73,6 +78,7 @@ constructor(
     val providerError = callbackQuery["error"]
     if (!providerError.isNullOrBlank()) {
       return fail(
+        clearPendingLogin = true,
         pendingLogin = pendingLogin,
         errorMessage =
           callbackQuery["error_description"]
@@ -85,6 +91,7 @@ constructor(
     val code = callbackQuery["code"]
     if (code.isNullOrBlank()) {
       return fail(
+        clearPendingLogin = false,
         pendingLogin = pendingLogin,
         errorMessage =
           "OpenID login failed because the callback did not include an authorization code.",
@@ -108,10 +115,13 @@ constructor(
   }
 
   private suspend fun fail(
+    clearPendingLogin: Boolean,
     pendingLogin: PendingOpenIdLogin?,
     errorMessage: String,
   ): OpenIdCallbackHandlingResult.Failed {
-    pendingOpenIdLoginStore.clear()
+    if (clearPendingLogin) {
+      pendingOpenIdLoginStore.clear()
+    }
     pendingOpenIdCallbackStore.clear()
     val failure =
       OpenIdLoginFailure(

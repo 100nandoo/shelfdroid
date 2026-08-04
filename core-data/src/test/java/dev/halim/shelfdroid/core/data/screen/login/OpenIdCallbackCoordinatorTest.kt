@@ -78,7 +78,7 @@ class OpenIdCallbackCoordinatorTest {
         )
 
       assertTrue(result is OpenIdCallbackHandlingResult.Failed)
-      assertNull(PendingOpenIdLoginStore(dataStoreManager).current())
+      assertNotNull(PendingOpenIdLoginStore(dataStoreManager).current())
       assertEquals(
         "OpenID login failed because the callback is missing the required state.",
         coordinator.consumeFailure()?.errorMessage,
@@ -111,7 +111,7 @@ class OpenIdCallbackCoordinatorTest {
         )
 
       assertTrue(result is OpenIdCallbackHandlingResult.Failed)
-      assertNull(PendingOpenIdLoginStore(dataStoreManager).current())
+      assertNotNull(PendingOpenIdLoginStore(dataStoreManager).current())
       assertEquals(
         "OpenID login failed because the callback state does not match the current login.",
         coordinator.consumeFailure()?.errorMessage,
@@ -177,7 +177,7 @@ class OpenIdCallbackCoordinatorTest {
         )
 
       assertTrue(result is OpenIdCallbackHandlingResult.Failed)
-      assertNull(PendingOpenIdLoginStore(dataStoreManager).current())
+      assertNotNull(PendingOpenIdLoginStore(dataStoreManager).current())
       assertEquals(
         "OpenID login failed because the callback target is not supported.",
         coordinator.consumeFailure()?.errorMessage,
