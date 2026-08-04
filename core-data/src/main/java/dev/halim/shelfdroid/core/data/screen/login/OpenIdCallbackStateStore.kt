@@ -53,6 +53,20 @@ class OpenIdLoginFailureStore @Inject constructor(private val dataStoreManager: 
   }
 }
 
+internal suspend fun recordOpenIdLoginFailure(
+  pendingOpenIdLoginStore: PendingOpenIdLoginStore,
+  pendingOpenIdCallbackStore: PendingOpenIdCallbackStore,
+  openIdLoginFailureStore: OpenIdLoginFailureStore,
+  normalizedServer: String?,
+  errorMessage: String,
+): OpenIdLoginFailure {
+  pendingOpenIdLoginStore.clear()
+  pendingOpenIdCallbackStore.clear()
+  val failure = OpenIdLoginFailure(normalizedServer, errorMessage)
+  openIdLoginFailureStore.save(failure)
+  return failure
+}
+
 private val json =
   Json {
     ignoreUnknownKeys = true

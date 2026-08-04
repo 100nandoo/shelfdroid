@@ -7,12 +7,6 @@ import javax.inject.Inject
 
 internal const val OPEN_ID_LOGIN_CONTEXT_MAX_AGE_MILLIS = 15 * 60 * 1000L
 
-sealed interface OpenIdCallbackHandlingResult {
-  data object Continue : OpenIdCallbackHandlingResult
-
-  data class Failed(val failure: OpenIdLoginFailure) : OpenIdCallbackHandlingResult
-}
-
 class OpenIdCallbackCoordinator
 @Inject
 constructor(
@@ -25,7 +19,7 @@ constructor(
     callbackUrl: String?,
     redirectUri: String,
     nowMillis: Long = System.currentTimeMillis(),
-  ): OpenIdCallbackHandlingResult {
+  ) {
     pendingOpenIdCallbackStore.clear()
 
     val callback = callbackUrl?.takeIf { it.isNotBlank() }?.let(::parseUri)
@@ -33,52 +27,51 @@ constructor(
     val pendingLogin = pendingOpenIdLoginStore.current()
 
     if (callback == null || expectedTarget == null || !supportsTarget(callback, expectedTarget)) {
-      return fail(
-        clearPendingLogin = false,
+      fail(
         pendingLogin = pendingLogin,
         errorMessage = "OpenID login failed because the callback target is not supported.",
       )
+      return
     }
 
     if (pendingLogin == null) {
-      return fail(
-        clearPendingLogin = false,
+      fail(
         pendingLogin = null,
         errorMessage = "OpenID login failed because there is no matching login in progress.",
       )
+      return
     }
 
     if (pendingLogin.isExpired(nowMillis)) {
-      return fail(
-        clearPendingLogin = true,
+      fail(
         pendingLogin = pendingLogin,
         errorMessage = "OpenID login expired before the callback returned. Please try again.",
       )
+      return
     }
 
     val callbackQuery = parseQuery(callback.rawQuery)
     val returnedState = callbackQuery["state"]
     if (returnedState.isNullOrBlank()) {
-      return fail(
-        clearPendingLogin = false,
+      fail(
         pendingLogin = pendingLogin,
         errorMessage = "OpenID login failed because the callback is missing the required state.",
       )
+      return
     }
 
     if (returnedState != pendingLogin.state) {
-      return fail(
-        clearPendingLogin = false,
+      fail(
         pendingLogin = pendingLogin,
         errorMessage =
           "OpenID login failed because the callback state does not match the current login.",
       )
+      return
     }
 
     val providerError = callbackQuery["error"]
     if (!providerError.isNullOrBlank()) {
-      return fail(
-        clearPendingLogin = true,
+      fail(
         pendingLogin = pendingLogin,
         errorMessage =
           callbackQuery["error_description"]
@@ -86,16 +79,17 @@ constructor(
             ?.let { "OpenID login failed: $it" }
             ?: "OpenID login was cancelled or denied by the identity provider.",
       )
+      return
     }
 
     val code = callbackQuery["code"]
     if (code.isNullOrBlank()) {
-      return fail(
-        clearPendingLogin = false,
+      fail(
         pendingLogin = pendingLogin,
         errorMessage =
           "OpenID login failed because the callback did not include an authorization code.",
       )
+      return
     }
 
     openIdLoginFailureStore.clear()
@@ -107,33 +101,23 @@ constructor(
         receivedAtEpochMillis = nowMillis,
       )
     )
-    return OpenIdCallbackHandlingResult.Continue
-  }
-
-  suspend fun consumeFailure(): OpenIdLoginFailure? {
-    return openIdLoginFailureStore.consume()
   }
 
   private suspend fun fail(
-    clearPendingLogin: Boolean,
     pendingLogin: PendingOpenIdLogin?,
     errorMessage: String,
-  ): OpenIdCallbackHandlingResult.Failed {
-    if (clearPendingLogin) {
-      pendingOpenIdLoginStore.clear()
-    }
-    pendingOpenIdCallbackStore.clear()
-    val failure =
-      OpenIdLoginFailure(
-        normalizedServer = pendingLogin?.normalizedServer,
-        errorMessage = errorMessage,
-      )
-    openIdLoginFailureStore.save(failure)
-    return OpenIdCallbackHandlingResult.Failed(failure)
+  ) {
+    recordOpenIdLoginFailure(
+      pendingOpenIdLoginStore = pendingOpenIdLoginStore,
+      pendingOpenIdCallbackStore = pendingOpenIdCallbackStore,
+      openIdLoginFailureStore = openIdLoginFailureStore,
+      normalizedServer = pendingLogin?.normalizedServer,
+      errorMessage = errorMessage,
+    )
   }
 }
 
-private fun PendingOpenIdLogin.isExpired(nowMillis: Long): Boolean {
+internal fun PendingOpenIdLogin.isExpired(nowMillis: Long): Boolean {
   return nowMillis - createdAtEpochMillis > OPEN_ID_LOGIN_CONTEXT_MAX_AGE_MILLIS
 }
 

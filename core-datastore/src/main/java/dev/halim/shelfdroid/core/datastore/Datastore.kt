@@ -235,37 +235,29 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   val pendingOpenIdLogin: Flow<String?> = dataStore.data.map { prefs -> prefs[Keys.PENDING_OPEN_ID_LOGIN] }
 
   suspend fun updatePendingOpenIdLogin(serialized: String?) {
-    dataStore.edit { prefs ->
-      if (serialized == null) {
-        prefs.remove(Keys.PENDING_OPEN_ID_LOGIN)
-      } else {
-        prefs[Keys.PENDING_OPEN_ID_LOGIN] = serialized
-      }
-    }
+    updateNullableStringPreference(Keys.PENDING_OPEN_ID_LOGIN, serialized)
   }
 
   val pendingOpenIdCallback: Flow<String?> =
     dataStore.data.map { prefs -> prefs[Keys.PENDING_OPEN_ID_CALLBACK] }
 
   suspend fun updatePendingOpenIdCallback(serialized: String?) {
-    dataStore.edit { prefs ->
-      if (serialized == null) {
-        prefs.remove(Keys.PENDING_OPEN_ID_CALLBACK)
-      } else {
-        prefs[Keys.PENDING_OPEN_ID_CALLBACK] = serialized
-      }
-    }
+    updateNullableStringPreference(Keys.PENDING_OPEN_ID_CALLBACK, serialized)
   }
 
   val openIdLoginFailure: Flow<String?> =
     dataStore.data.map { prefs -> prefs[Keys.OPEN_ID_LOGIN_FAILURE] }
 
   suspend fun updateOpenIdLoginFailure(serialized: String?) {
+    updateNullableStringPreference(Keys.OPEN_ID_LOGIN_FAILURE, serialized)
+  }
+
+  private suspend fun updateNullableStringPreference(key: Preferences.Key<String>, value: String?) {
     dataStore.edit { prefs ->
-      if (serialized == null) {
-        prefs.remove(Keys.OPEN_ID_LOGIN_FAILURE)
+      if (value == null) {
+        prefs.remove(key)
       } else {
-        prefs[Keys.OPEN_ID_LOGIN_FAILURE] = serialized
+        prefs[key] = value
       }
     }
   }

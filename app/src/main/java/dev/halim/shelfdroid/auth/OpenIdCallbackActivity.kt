@@ -6,8 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdCallbackCoordinator
-import dev.halim.shelfdroid.core.data.screen.login.OpenIdCallbackHandlingResult
-import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.ui.screen.MainActivity
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -16,7 +14,6 @@ import kotlinx.coroutines.launch
 class OpenIdCallbackActivity : ComponentActivity() {
 
   @Inject lateinit var openIdCallbackCoordinator: OpenIdCallbackCoordinator
-  @Inject lateinit var loginRepository: LoginRepository
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -32,14 +29,10 @@ class OpenIdCallbackActivity : ComponentActivity() {
   private fun handleCallbackIntent(intent: Intent) {
     val redirectUri = "${packageName}://oauth"
     lifecycleScope.launch {
-      val result =
-        openIdCallbackCoordinator.handleCallback(
-          callbackUrl = intent.dataString,
-          redirectUri = redirectUri,
-        )
-      if (result == OpenIdCallbackHandlingResult.Continue) {
-        loginRepository.completeOpenIdLogin()
-      }
+      openIdCallbackCoordinator.handleCallback(
+        callbackUrl = intent.dataString,
+        redirectUri = redirectUri,
+      )
       launchMainActivity()
       finish()
     }

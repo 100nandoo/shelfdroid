@@ -13,9 +13,9 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
-import dev.halim.shelfdroid.core.data.screen.login.OpenIdCallbackCoordinator
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
@@ -41,7 +41,7 @@ class LoginViewModel
 @AssistedInject
 constructor(
   private val loginRepository: LoginRepository,
-  private val openIdCallbackCoordinator: OpenIdCallbackCoordinator,
+  private val openIdLoginFailureStore: OpenIdLoginFailureStore,
   private val settingsRepository: SettingsRepository,
   @Assisted private val navKey: Login,
 ) : ViewModel() {
@@ -121,7 +121,7 @@ constructor(
 
   private fun initUiState(): LoginUiState {
     val openIdLoginRecoveryState = runBlocking { loginRepository.openIdLoginRecoveryState() }
-    val openIdLoginFailure = runBlocking { openIdCallbackCoordinator.consumeFailure() }
+    val openIdLoginFailure = runBlocking { openIdLoginFailureStore.consume() }
     val (username, server) =
       if (navKey.reLogin) {
         runBlocking {
@@ -227,16 +227,7 @@ internal fun initLoginUiState(
 internal fun LoginUiState.prepareOpenIdRecovery(
   recoveryState: OpenIdLoginRecoveryState,
 ): LoginUiState {
-  val recoveredServer = recoveryState.normalizedServer?.takeIf { it.isNotBlank() }
-  val prepared =
-    when {
-      recoveredServer == null -> this
-      server == recoveredServer -> copy(
-        server = recoveredServer,
-        normalizedServer = AudiobookshelfBaseUrl.parse(recoveredServer)?.value ?: normalizedServer,
-      )
-      else -> prepareLoginDiscovery(recoveredServer)
-    }
+  val prepared = reconcileOpenIdServer(recoveryState.normalizedServer)
   return prepared.copy(loginState = GenericState.Loading, serverFieldError = null)
 }
 
@@ -246,22 +237,24 @@ internal fun LoginUiState.applyOpenIdRecoveryCompletion(
   return when (result) {
     OpenIdLoginCompletionResult.Success -> copy(loginState = GenericState.Success)
     is OpenIdLoginCompletionResult.Failed -> {
-      val failureServer = result.failure.normalizedServer?.takeIf { it.isNotBlank() }
-      val prepared =
-        when {
-          failureServer == null -> this
-          server == failureServer -> copy(
-            server = failureServer,
-            normalizedServer =
-              AudiobookshelfBaseUrl.parse(failureServer)?.value ?: normalizedServer,
-          )
-          else -> prepareLoginDiscovery(failureServer)
-        }
+      val prepared = reconcileOpenIdServer(result.failure.normalizedServer)
       prepared.copy(
         loginState = GenericState.Failure(result.failure.errorMessage),
         serverFieldError = null,
       )
     }
+  }
+}
+
+private fun LoginUiState.reconcileOpenIdServer(candidateServer: String?): LoginUiState {
+  val server = candidateServer?.takeIf { it.isNotBlank() } ?: return this
+  return if (this.server == server) {
+    copy(
+      server = server,
+      normalizedServer = AudiobookshelfBaseUrl.parse(server)?.value ?: normalizedServer,
+    )
+  } else {
+    prepareLoginDiscovery(server)
   }
 }
 

@@ -198,7 +198,9 @@ constructor(
     )
   }
 
-  suspend fun completeOpenIdLogin(): OpenIdLoginCompletionResult {
+  suspend fun completeOpenIdLogin(
+    nowMillis: Long = System.currentTimeMillis(),
+  ): OpenIdLoginCompletionResult {
     val pendingCallback = pendingOpenIdCallbackStore.current()
     val pendingLogin = pendingOpenIdLoginStore.current()
 
@@ -213,6 +215,13 @@ constructor(
       return failOpenIdLoginCompletion(
         normalizedServer = pendingCallback.normalizedServer,
         errorMessage = "OpenID login failed because the login context is no longer available.",
+      )
+    }
+
+    if (pendingLogin.isExpired(nowMillis)) {
+      return failOpenIdLoginCompletion(
+        normalizedServer = pendingLogin.normalizedServer,
+        errorMessage = "OpenID login expired before the callback could be completed. Please try again.",
       )
     }
 
@@ -299,10 +308,14 @@ constructor(
     normalizedServer: String?,
     errorMessage: String,
   ): OpenIdLoginCompletionResult.Failed {
-    pendingOpenIdLoginStore.clear()
-    pendingOpenIdCallbackStore.clear()
-    val failure = OpenIdLoginFailure(normalizedServer = normalizedServer, errorMessage = errorMessage)
-    openIdLoginFailureStore.save(failure)
+    val failure =
+      recordOpenIdLoginFailure(
+        pendingOpenIdLoginStore = pendingOpenIdLoginStore,
+        pendingOpenIdCallbackStore = pendingOpenIdCallbackStore,
+        openIdLoginFailureStore = openIdLoginFailureStore,
+        normalizedServer = normalizedServer,
+        errorMessage = errorMessage,
+      )
     return OpenIdLoginCompletionResult.Failed(failure)
   }
 }
@@ -427,6 +440,7 @@ private fun buildOpenIdStartQuery(
   codeChallenge: String,
 ): String {
   return listOf(
+      "client_id" to "shelfdroid",
       "redirect_uri" to redirectUri,
       "response_type" to "code",
       "state" to state,

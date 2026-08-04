@@ -11,7 +11,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OpenIdCallbackCoordinatorTest {
@@ -32,16 +31,14 @@ class OpenIdCallbackCoordinatorTest {
         )
       )
 
-      val result =
-        coordinator.handleCallback(
-          callbackUrl = "dev.halim.shelfdroid.debug://oauth?error=access_denied&state=expected-state",
-          redirectUri = "dev.halim.shelfdroid.debug://oauth",
-          nowMillis = 2_000L,
-        )
+      coordinator.handleCallback(
+        callbackUrl = "dev.halim.shelfdroid.debug://oauth?error=access_denied&state=expected-state",
+        redirectUri = "dev.halim.shelfdroid.debug://oauth",
+        nowMillis = 2_000L,
+      )
 
-      assertTrue(result is OpenIdCallbackHandlingResult.Failed)
       assertNull(pendingOpenIdLoginStore.current())
-      val failure = coordinator.consumeFailure()
+      val failure = OpenIdLoginFailureStore(dataStoreManager).consume()
       assertNotNull(failure)
       requireNotNull(failure)
       assertEquals("https://example.com/audiobookshelf", failure.normalizedServer)
@@ -49,7 +46,7 @@ class OpenIdCallbackCoordinatorTest {
         "OpenID login was cancelled or denied by the identity provider.",
         failure.errorMessage,
       )
-      assertNull(coordinator.consumeFailure())
+      assertNull(OpenIdLoginFailureStore(dataStoreManager).consume())
     } finally {
       dataStoreScope.cancel()
     }
@@ -70,18 +67,16 @@ class OpenIdCallbackCoordinatorTest {
       )
       val coordinator = coordinator(dataStoreManager)
 
-      val result =
-        coordinator.handleCallback(
-          callbackUrl = "dev.halim.shelfdroid://oauth?code=abc123",
-          redirectUri = "dev.halim.shelfdroid://oauth",
-          nowMillis = 2_000L,
-        )
+      coordinator.handleCallback(
+        callbackUrl = "dev.halim.shelfdroid://oauth?code=abc123",
+        redirectUri = "dev.halim.shelfdroid://oauth",
+        nowMillis = 2_000L,
+      )
 
-      assertTrue(result is OpenIdCallbackHandlingResult.Failed)
-      assertNotNull(PendingOpenIdLoginStore(dataStoreManager).current())
+      assertNull(PendingOpenIdLoginStore(dataStoreManager).current())
       assertEquals(
         "OpenID login failed because the callback is missing the required state.",
-        coordinator.consumeFailure()?.errorMessage,
+        OpenIdLoginFailureStore(dataStoreManager).consume()?.errorMessage,
       )
     } finally {
       dataStoreScope.cancel()
@@ -103,18 +98,16 @@ class OpenIdCallbackCoordinatorTest {
       )
       val coordinator = coordinator(dataStoreManager)
 
-      val result =
-        coordinator.handleCallback(
-          callbackUrl = "dev.halim.shelfdroid://oauth?code=abc123&state=other-state",
-          redirectUri = "dev.halim.shelfdroid://oauth",
-          nowMillis = 2_000L,
-        )
+      coordinator.handleCallback(
+        callbackUrl = "dev.halim.shelfdroid://oauth?code=abc123&state=other-state",
+        redirectUri = "dev.halim.shelfdroid://oauth",
+        nowMillis = 2_000L,
+      )
 
-      assertTrue(result is OpenIdCallbackHandlingResult.Failed)
-      assertNotNull(PendingOpenIdLoginStore(dataStoreManager).current())
+      assertNull(PendingOpenIdLoginStore(dataStoreManager).current())
       assertEquals(
         "OpenID login failed because the callback state does not match the current login.",
-        coordinator.consumeFailure()?.errorMessage,
+        OpenIdLoginFailureStore(dataStoreManager).consume()?.errorMessage,
       )
     } finally {
       dataStoreScope.cancel()
@@ -136,18 +129,16 @@ class OpenIdCallbackCoordinatorTest {
       )
       val coordinator = coordinator(dataStoreManager)
 
-      val result =
-        coordinator.handleCallback(
-          callbackUrl = "dev.halim.shelfdroid://oauth?code=abc123&state=expected-state",
-          redirectUri = "dev.halim.shelfdroid://oauth",
-          nowMillis = 1_000L + OPEN_ID_LOGIN_CONTEXT_MAX_AGE_MILLIS + 1L,
-        )
+      coordinator.handleCallback(
+        callbackUrl = "dev.halim.shelfdroid://oauth?code=abc123&state=expected-state",
+        redirectUri = "dev.halim.shelfdroid://oauth",
+        nowMillis = 1_000L + OPEN_ID_LOGIN_CONTEXT_MAX_AGE_MILLIS + 1L,
+      )
 
-      assertTrue(result is OpenIdCallbackHandlingResult.Failed)
       assertNull(PendingOpenIdLoginStore(dataStoreManager).current())
       assertEquals(
         "OpenID login expired before the callback returned. Please try again.",
-        coordinator.consumeFailure()?.errorMessage,
+        OpenIdLoginFailureStore(dataStoreManager).consume()?.errorMessage,
       )
     } finally {
       dataStoreScope.cancel()
@@ -169,18 +160,16 @@ class OpenIdCallbackCoordinatorTest {
       )
       val coordinator = coordinator(dataStoreManager)
 
-      val result =
-        coordinator.handleCallback(
-          callbackUrl = "dev.halim.shelfdroid://unexpected?code=abc123&state=expected-state",
-          redirectUri = "dev.halim.shelfdroid://oauth",
-          nowMillis = 2_000L,
-        )
+      coordinator.handleCallback(
+        callbackUrl = "dev.halim.shelfdroid://unexpected?code=abc123&state=expected-state",
+        redirectUri = "dev.halim.shelfdroid://oauth",
+        nowMillis = 2_000L,
+      )
 
-      assertTrue(result is OpenIdCallbackHandlingResult.Failed)
-      assertNotNull(PendingOpenIdLoginStore(dataStoreManager).current())
+      assertNull(PendingOpenIdLoginStore(dataStoreManager).current())
       assertEquals(
         "OpenID login failed because the callback target is not supported.",
-        coordinator.consumeFailure()?.errorMessage,
+        OpenIdLoginFailureStore(dataStoreManager).consume()?.errorMessage,
       )
     } finally {
       dataStoreScope.cancel()
@@ -203,16 +192,14 @@ class OpenIdCallbackCoordinatorTest {
       val callbackStore = PendingOpenIdCallbackStore(dataStoreManager)
       val coordinator = coordinator(dataStoreManager)
 
-      val result =
-        coordinator.handleCallback(
-          callbackUrl = "dev.halim.shelfdroid.debug://oauth?code=abc123&state=expected-state",
-          redirectUri = "dev.halim.shelfdroid.debug://oauth",
-          nowMillis = 2_000L,
-        )
+      coordinator.handleCallback(
+        callbackUrl = "dev.halim.shelfdroid.debug://oauth?code=abc123&state=expected-state",
+        redirectUri = "dev.halim.shelfdroid.debug://oauth",
+        nowMillis = 2_000L,
+      )
 
-      assertEquals(OpenIdCallbackHandlingResult.Continue, result)
       assertNotNull(PendingOpenIdLoginStore(dataStoreManager).current())
-      assertNull(coordinator.consumeFailure())
+      assertNull(OpenIdLoginFailureStore(dataStoreManager).consume())
       assertEquals(
         PendingOpenIdCallback(
           normalizedServer = "https://example.com/audiobookshelf",

@@ -245,6 +245,7 @@ class LoginRepositoryTest {
         assertEquals("/audiobookshelf/auth/openid", parsed.path)
 
         val query = parseQuery(parsed.rawQuery)
+        assertEquals("shelfdroid", query["client_id"])
         assertEquals("dev.halim.shelfdroid.debug://oauth", query["redirect_uri"])
         assertEquals("code", query["response_type"])
         assertEquals("S256", query["code_challenge_method"])
@@ -378,6 +379,54 @@ class LoginRepositoryTest {
   }
 
   @Test
+  fun completeOpenIdLogin_whenSavedContextExpired_failsWithoutRedeemingCallback() = runTest {
+    val dataStoreScope = dataStoreScope()
+    var requestCount = 0
+    try {
+      val dataStoreManager = dataStoreManager(dataStoreScope)
+      val pendingLoginStore = PendingOpenIdLoginStore(dataStoreManager)
+      val pendingCallbackStore = PendingOpenIdCallbackStore(dataStoreManager)
+      pendingLoginStore.save(
+        PendingOpenIdLogin(
+          normalizedServer = "https://example.com/audiobookshelf",
+          state = "state-123",
+          codeVerifier = "verifier-123",
+          createdAtEpochMillis = 1_000L,
+        )
+      )
+      pendingCallbackStore.save(
+        PendingOpenIdCallback(
+          normalizedServer = "https://example.com/audiobookshelf",
+          state = "state-123",
+          code = "code-123",
+          receivedAtEpochMillis = 2_000L,
+        )
+      )
+      val repository =
+        repository(dataStoreManager) { request ->
+          requestCount += 1
+          jsonResponse(request, body = "{}")
+        }
+
+      val result =
+        repository.completeOpenIdLogin(
+          nowMillis = 1_000L + OPEN_ID_LOGIN_CONTEXT_MAX_AGE_MILLIS + 1L,
+        )
+
+      assertTrue(result is OpenIdLoginCompletionResult.Failed)
+      assertEquals(0, requestCount)
+      assertNull(pendingLoginStore.current())
+      assertNull(pendingCallbackStore.current())
+      assertEquals(
+        "OpenID login expired before the callback could be completed. Please try again.",
+        OpenIdLoginFailureStore(dataStoreManager).consume()?.errorMessage,
+      )
+    } finally {
+      dataStoreScope.cancel()
+    }
+  }
+
+  @Test
   fun completeOpenIdLogin_reusesBootstrapCookiesAndRunsSharedSuccessPath() = runTest {
     val dataStoreScope = dataStoreScope()
     var startRequest: Request? = null
@@ -485,6 +534,7 @@ class LoginRepositoryTest {
       )
       val recordedStartRequest = requireNotNull(startRequest)
       val startQuery = parseQuery(recordedStartRequest.url.encodedQuery)
+      assertEquals("shelfdroid", startQuery["client_id"])
       assertEquals("dev.halim.shelfdroid.debug://oauth", startQuery["redirect_uri"])
       assertEquals("code", startQuery["response_type"])
       assertEquals("S256", startQuery["code_challenge_method"])
