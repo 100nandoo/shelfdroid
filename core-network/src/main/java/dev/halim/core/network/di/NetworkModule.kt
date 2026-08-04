@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.client.HostSelectionInterceptor
+import dev.halim.core.network.client.SessionCookieJar
 import dev.halim.core.network.client.TokenAuthenticator
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
@@ -38,9 +39,11 @@ object NetworkModule {
   fun providesOkHttpClient(
     dataStoreManager: DataStoreManager,
     tokenAuthenticator: TokenAuthenticator,
+    sessionCookieJar: SessionCookieJar,
   ): OkHttpClient {
     return OkHttpClient.Builder()
       .addInterceptor(HostSelectionInterceptor(dataStoreManager))
+      .cookieJar(sessionCookieJar)
       .authenticator(tokenAuthenticator)
       .build()
   }

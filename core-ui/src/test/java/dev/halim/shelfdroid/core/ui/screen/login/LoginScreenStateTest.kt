@@ -39,6 +39,6 @@ private fun testDiscoveryMessageText(message: LoginDiscoveryMessage): String {
     LoginDiscoveryMessage.MethodsUnconfirmed ->
       "Could not confirm this server's login methods. Local login is still available."
     LoginDiscoveryMessage.LocalLoginUnavailable ->
-      "This server does not offer Local login. OpenID login is not supported on Android yet."
+      "This server does not offer Local login. Use OpenID login to continue."
   }
 }

@@ -123,6 +123,15 @@ interface ApiService {
   suspend fun logout(@Header("x-refresh-token") refreshToken: String): Result<LogoutResponse>
 
   @GET
+  suspend fun openIdCallback(
+    @Url url: String,
+    @Query("state") state: String,
+    @Query("code") code: String,
+    @Query("code_verifier") codeVerifier: String,
+    @Tag anonymousRequestTag: AnonymousRequestTag = AnonymousRequestTag,
+  ): Result<LoginResponse>
+
+  @GET
   suspend fun status(
     @Url url: String,
     @Tag anonymousRequestTag: AnonymousRequestTag = AnonymousRequestTag,
