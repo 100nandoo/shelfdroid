@@ -62,7 +62,7 @@ object Defaults {
       normalizedServer = "https://example.com",
       discoveryState = LoginDiscoveryState.Success,
       availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-      authLoginCustomMessage = "Use your library account for Local login.",
+      authLoginCustomMessage = "Use your library account to sign in.",
       authOpenIdButtonText = "Continue with Acme SSO",
     )
   val LOGIN_OPEN_ID_ONLY_UI_STATE =

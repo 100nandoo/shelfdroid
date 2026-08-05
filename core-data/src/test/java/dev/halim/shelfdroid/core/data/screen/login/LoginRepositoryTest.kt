@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.data.screen.login
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import com.sun.net.httpserver.HttpServer
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
+import com.sun.net.httpserver.HttpServer
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.client.AnonymousRequestTag
 import dev.halim.core.network.client.SessionCookieJar
@@ -322,61 +322,65 @@ class LoginRepositoryTest {
   }
 
   @Test
-  fun openIdLoginRecoveryState_whenOnlyPendingLoginExists_prefillsServerWithoutResuming() = runTest {
-    val dataStoreScope = dataStoreScope()
-    try {
-      val dataStoreManager = dataStoreManager(dataStoreScope)
-      val pendingStore = PendingOpenIdLoginStore(dataStoreManager)
-      pendingStore.save(
-        PendingOpenIdLogin(
-          normalizedServer = "https://example.com/audiobookshelf",
-          state = "state-123",
-          codeVerifier = "verifier-123",
-          createdAtEpochMillis = 1L,
+  fun openIdLoginRecoveryState_whenOnlyPendingLoginExists_prefillsServerWithoutResuming() =
+    runTest {
+      val dataStoreScope = dataStoreScope()
+      try {
+        val dataStoreManager = dataStoreManager(dataStoreScope)
+        val pendingStore = PendingOpenIdLoginStore(dataStoreManager)
+        pendingStore.save(
+          PendingOpenIdLogin(
+            normalizedServer = "https://example.com/audiobookshelf",
+            state = "state-123",
+            codeVerifier = "verifier-123",
+            createdAtEpochMillis = 1L,
+          )
         )
-      )
-      val repository = repository(dataStoreManager)
+        val repository = repository(dataStoreManager)
 
-      val result = repository.openIdLoginRecoveryState()
+        val result = repository.openIdLoginRecoveryState()
 
-      assertEquals("https://example.com/audiobookshelf", result.normalizedServer)
-      assertTrue(!result.hasPendingCallback)
-    } finally {
-      dataStoreScope.cancel()
+        assertEquals("https://example.com/audiobookshelf", result.normalizedServer)
+        assertTrue(!result.hasPendingCallback)
+      } finally {
+        dataStoreScope.cancel()
+      }
     }
-  }
 
   @Test
-  fun openIdLoginRecoveryState_whenPendingCallbackExists_requestsCompletionForSavedServer() = runTest {
-    val dataStoreScope = dataStoreScope()
-    try {
-      val dataStoreManager = dataStoreManager(dataStoreScope)
-      PendingOpenIdLoginStore(dataStoreManager).save(
-        PendingOpenIdLogin(
-          normalizedServer = "https://example.com/audiobookshelf",
-          state = "state-123",
-          codeVerifier = "verifier-123",
-          createdAtEpochMillis = 1L,
-        )
-      )
-      PendingOpenIdCallbackStore(dataStoreManager).save(
-        PendingOpenIdCallback(
-          normalizedServer = "https://example.com/audiobookshelf",
-          state = "state-123",
-          code = "code-123",
-          receivedAtEpochMillis = 2L,
-        )
-      )
-      val repository = repository(dataStoreManager)
+  fun openIdLoginRecoveryState_whenPendingCallbackExists_requestsCompletionForSavedServer() =
+    runTest {
+      val dataStoreScope = dataStoreScope()
+      try {
+        val dataStoreManager = dataStoreManager(dataStoreScope)
+        PendingOpenIdLoginStore(dataStoreManager)
+          .save(
+            PendingOpenIdLogin(
+              normalizedServer = "https://example.com/audiobookshelf",
+              state = "state-123",
+              codeVerifier = "verifier-123",
+              createdAtEpochMillis = 1L,
+            )
+          )
+        PendingOpenIdCallbackStore(dataStoreManager)
+          .save(
+            PendingOpenIdCallback(
+              normalizedServer = "https://example.com/audiobookshelf",
+              state = "state-123",
+              code = "code-123",
+              receivedAtEpochMillis = 2L,
+            )
+          )
+        val repository = repository(dataStoreManager)
 
-      val result = repository.openIdLoginRecoveryState()
+        val result = repository.openIdLoginRecoveryState()
 
-      assertEquals("https://example.com/audiobookshelf", result.normalizedServer)
-      assertTrue(result.hasPendingCallback)
-    } finally {
-      dataStoreScope.cancel()
+        assertEquals("https://example.com/audiobookshelf", result.normalizedServer)
+        assertTrue(result.hasPendingCallback)
+      } finally {
+        dataStoreScope.cancel()
+      }
     }
-  }
 
   @Test
   fun completeOpenIdLogin_whenSavedContextExpired_failsWithoutRedeemingCallback() = runTest {
@@ -410,7 +414,7 @@ class LoginRepositoryTest {
 
       val result =
         repository.completeOpenIdLogin(
-          nowMillis = 1_000L + OPEN_ID_LOGIN_CONTEXT_MAX_AGE_MILLIS + 1L,
+          nowMillis = 1_000L + OPEN_ID_LOGIN_CONTEXT_MAX_AGE_MILLIS + 1L
         )
 
       assertTrue(result is OpenIdLoginCompletionResult.Failed)
@@ -666,16 +670,19 @@ class LoginRepositoryTest {
   private fun parseQuery(rawQuery: String?): Map<String, String> {
     if (rawQuery.isNullOrBlank()) return emptyMap()
     return rawQuery.split("&").associate { entry ->
-      val (rawKey, rawValue) = entry.split("=", limit = 2).let { parts ->
-        parts.first() to parts.getOrElse(1) { "" }
-      }
+      val (rawKey, rawValue) =
+        entry.split("=", limit = 2).let { parts ->
+          parts.first() to parts.getOrElse(1) { "" }
+        }
       URLDecoder.decode(rawKey, StandardCharsets.UTF_8) to
         URLDecoder.decode(rawValue, StandardCharsets.UTF_8)
     }
   }
 
   private fun expectedCodeChallenge(codeVerifier: String): String {
-    val hash = MessageDigest.getInstance("SHA-256").digest(codeVerifier.toByteArray(StandardCharsets.US_ASCII))
+    val hash =
+      MessageDigest.getInstance("SHA-256")
+        .digest(codeVerifier.toByteArray(StandardCharsets.US_ASCII))
     return Base64.getUrlEncoder().withoutPadding().encodeToString(hash)
   }
 

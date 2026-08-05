@@ -142,9 +142,10 @@ private fun parseUri(value: String): URI? {
 private fun parseQuery(rawQuery: String?): Map<String, String> {
   if (rawQuery.isNullOrBlank()) return emptyMap()
   return rawQuery.split("&").associate { entry ->
-    val (rawKey, rawValue) = entry.split("=", limit = 2).let { parts ->
-      parts.first() to parts.getOrElse(1) { "" }
-    }
+    val (rawKey, rawValue) =
+      entry.split("=", limit = 2).let { parts ->
+        parts.first() to parts.getOrElse(1) { "" }
+      }
     URLDecoder.decode(rawKey, StandardCharsets.UTF_8) to
       URLDecoder.decode(rawValue, StandardCharsets.UTF_8)
   }

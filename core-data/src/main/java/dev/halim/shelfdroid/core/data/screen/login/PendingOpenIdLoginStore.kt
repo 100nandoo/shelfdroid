@@ -30,10 +30,9 @@ class PendingOpenIdLoginStore @Inject constructor(private val dataStoreManager: 
   }
 
   private companion object {
-    val json =
-      Json {
-        ignoreUnknownKeys = true
-        explicitNulls = false
-      }
+    val json = Json {
+      ignoreUnknownKeys = true
+      explicitNulls = false
+    }
   }
 }

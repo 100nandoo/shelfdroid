@@ -40,9 +40,8 @@ class OpenIdCallbackActivity : ComponentActivity() {
 
   private fun launchMainActivity() {
     startActivity(
-      Intent(this, MainActivity::class.java).addFlags(
-        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-      )
+      Intent(this, MainActivity::class.java)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
     )
   }
 }

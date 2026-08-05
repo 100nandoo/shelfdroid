@@ -1,7 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.login
+
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,11 +13,11 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -162,7 +165,10 @@ fun LoginScreenContent(
         modifier = Modifier.fillMaxWidth().focusRequester(serverRef).testTag("server"),
         enabled = uiState.reLogin.not(),
         value = uiState.server,
-        onValueChange = { onEvent(LoginEvent.ServerChanged(it)) },
+        onValueChange = {
+          onEvent(LoginEvent.ServerChanged(it.withoutServerTextFieldSpacing()))
+          if (it.containsLoginTextFieldNewline()) focusManager.moveFocus(FocusDirection.Next)
+        },
         label = stringResource(R.string.server_address),
         placeholder = stringResource(R.string.placeholder_server),
         supportingText =
@@ -179,22 +185,16 @@ fun LoginScreenContent(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      if (uiState.showsMixedLoginMethods()) {
-        MixedLoginMethodsSurface(
-          uiState = uiState,
-          openIdRedirectUri = openIdRedirectUri,
-          onEvent = onEvent,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-      }
-
       if (supportsLocalLogin) {
         MyOutlinedTextField(
           modifier =
             Modifier.testTag(stringResource(R.string.username)).focusRequester(usernameRef),
           enabled = uiState.reLogin.not(),
           value = uiState.username,
-          onValueChange = { onEvent(LoginEvent.UsernameChanged(it)) },
+          onValueChange = {
+            onEvent(LoginEvent.UsernameChanged(it.withoutLoginTextFieldNewlines()))
+            if (it.containsLoginTextFieldNewline()) focusManager.moveFocus(FocusDirection.Next)
+          },
           label = stringResource(R.string.username),
           keyboardOptions =
             KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
@@ -207,7 +207,10 @@ fun LoginScreenContent(
           modifier =
             Modifier.testTag(stringResource(R.string.password)).focusRequester(passwordRef),
           value = uiState.password,
-          onValueChange = { onEvent(LoginEvent.PasswordChanged(it)) },
+          onValueChange = {
+            onEvent(LoginEvent.PasswordChanged(it.withoutLoginTextFieldNewlines()))
+            if (it.containsLoginTextFieldNewline()) onEvent(LoginEvent.LoginButtonPressed)
+          },
           label = stringResource(R.string.password),
           keyboardOptions =
             KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
@@ -221,6 +224,20 @@ fun LoginScreenContent(
           modifier = Modifier.fillMaxWidth().testTag(stringResource(R.string.login)),
         ) {
           Text(stringResource(R.string.login))
+        }
+
+        AnimatedVisibility(visible = uiState.showsMixedLoginMethods()) {
+          Column(modifier = Modifier.fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(20.dp))
+            AlternativeSignInDivider()
+            Spacer(modifier = Modifier.height(20.dp))
+            OutlinedButton(
+              onClick = { onEvent(LoginEvent.OpenIdLoginButtonPressed(openIdRedirectUri)) },
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Text(uiState.authOpenIdButtonText ?: stringResource(R.string.login_with_openid))
+            }
+          }
         }
       } else if (uiState.isOpenIdOnly()) {
         Button(
@@ -245,6 +262,18 @@ fun LoginScreenContent(
     onDismiss = { showUseDifferentAccountDialog = false },
   )
 }
+
+internal fun String.containsLoginTextFieldNewline(): Boolean = any { it.isLoginTextFieldNewline() }
+
+internal fun String.withoutLoginTextFieldNewlines(): String = filterNot {
+  it.isLoginTextFieldNewline()
+}
+
+internal fun String.withoutServerTextFieldSpacing(): String = filterNot {
+  it == ' ' || it == '\t' || it.isLoginTextFieldNewline()
+}
+
+private fun Char.isLoginTextFieldNewline(): Boolean = this == '\n' || this == '\r'
 
 @Composable
 private fun LoginHeaderMessagesSection(
@@ -297,39 +326,19 @@ private fun LoginHeaderMessagesSection(
 }
 
 @Composable
-private fun MixedLoginMethodsSurface(
-  uiState: LoginUiState,
-  openIdRedirectUri: String,
-  onEvent: (LoginEvent) -> Unit,
-) {
-  Text(
-    text = stringResource(R.string.login_methods),
+private fun AlternativeSignInDivider() {
+  Row(
     modifier = Modifier.fillMaxWidth(),
-    style = MaterialTheme.typography.titleSmall,
-  )
-  Spacer(modifier = Modifier.height(8.dp))
-  SelectedLoginMethodCard(label = stringResource(R.string.local_login))
-  Spacer(modifier = Modifier.height(8.dp))
-  OutlinedButton(
-    onClick = { onEvent(LoginEvent.OpenIdLoginButtonPressed(openIdRedirectUri)) },
-    modifier = Modifier.fillMaxWidth(),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
-    Text(uiState.authOpenIdButtonText ?: stringResource(R.string.login_with_openid))
-  }
-}
-
-@Composable
-private fun SelectedLoginMethodCard(label: String) {
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    color = MaterialTheme.colorScheme.secondaryContainer,
-    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-    shape = MaterialTheme.shapes.large,
-  ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp)) {
-      Text(text = label, style = MaterialTheme.typography.titleMedium)
-      Text(text = stringResource(R.string.selected), style = MaterialTheme.typography.bodySmall)
-    }
+    HorizontalDivider(modifier = Modifier.weight(1f))
+    Text(
+      text = stringResource(R.string.or),
+      modifier = Modifier.padding(horizontal = 16.dp),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    HorizontalDivider(modifier = Modifier.weight(1f))
   }
 }
 

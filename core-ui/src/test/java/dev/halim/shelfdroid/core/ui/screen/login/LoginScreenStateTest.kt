@@ -27,9 +27,41 @@ class LoginScreenStateTest {
       listOf(
         "Failed to refresh token. Re-login required.",
         "Sign in again to continue.",
-        "Could not confirm this server's login methods. Local login is still available.",
+        "Could not confirm this server's login methods. You can still try signing in with your username and password.",
       ),
       messages.ordered(::testDiscoveryMessageText),
+    )
+  }
+
+  @Test
+  fun withoutServerTextFieldSpacing_removesSpacesTabsAndNewlines() {
+    assertEquals(
+      "192.168.50.150:13378",
+      " 192.168.50.150:\t13378\n ".withoutServerTextFieldSpacing(),
+    )
+  }
+
+  @Test
+  fun withoutLoginTextFieldNewlines_removesLineFeedAndCarriageReturn() {
+    assertEquals(
+      "username",
+      "user\n\rname".withoutLoginTextFieldNewlines(),
+    )
+  }
+
+  @Test
+  fun containsLoginTextFieldNewline_detectsLineFeedAndCarriageReturn() {
+    assertEquals(
+      true,
+      "user\nname".containsLoginTextFieldNewline(),
+    )
+    assertEquals(
+      true,
+      "user\rname".containsLoginTextFieldNewline(),
+    )
+    assertEquals(
+      false,
+      "username".containsLoginTextFieldNewline(),
     )
   }
 }
@@ -37,8 +69,8 @@ class LoginScreenStateTest {
 private fun testDiscoveryMessageText(message: LoginDiscoveryMessage): String {
   return when (message) {
     LoginDiscoveryMessage.MethodsUnconfirmed ->
-      "Could not confirm this server's login methods. Local login is still available."
+      "Could not confirm this server's login methods. You can still try signing in with your username and password."
     LoginDiscoveryMessage.LocalLoginUnavailable ->
-      "This server does not offer Local login. Use OpenID login to continue."
+      "This server requires OpenID login. Use OpenID login to continue."
   }
 }

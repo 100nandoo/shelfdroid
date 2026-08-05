@@ -160,6 +160,10 @@ _Avoid_: Auth method, auth mode, provider
 A username-password sign-in path handled by the **Audiobookshelf server** itself.
 _Avoid_: Local auth, password auth, regular login
 
+**Password sign-in**:
+The user-facing ShelfDroid presentation of **Local login**, where the user enters a username and password. Prefer showing or saying "username and password" directly in product copy; use **Password sign-in** only when a named concept is unavoidable.
+_Avoid_: Local login, local auth, regular login, login methods, auth methods
+
 **OpenID login**:
 A browser-based sign-in path where the **Audiobookshelf server** delegates user authentication through its configured OpenID provider.
 _Avoid_: SSO, OAuth button, external login
@@ -225,6 +229,7 @@ _Avoid_: Best-effort release, unverifiable build
 - An **E-reader device availability** belongs to one **E-reader device**
 - A **Login discovery** reads the current **Login methods** for an **Audiobookshelf server**
 - A **Login discovery** happens before ShelfDroid selects a **Login method**
+- **Password sign-in** presents **Local login** without naming that server capability to the end user
 - **Session recovery** happens before **Forced re-login**
 - A **Forced re-login** keeps the same **User** and **Audiobookshelf server**
 - A **Forced re-login** may require a fresh **Login discovery** before ShelfDroid can show the valid **Login methods**
@@ -256,3 +261,4 @@ _Avoid_: Best-effort release, unverifiable build
 - "notification settings" is overloaded; use **Apprise notification settings** for server-side automation and avoid using it for local Android notification preferences.
 - "download" and **Library file** are not the same thing; a **Library file** exists on the server, while a **Download** is a local device copy or downloaded server artifact.
 - "F-Droid release" is too vague in this repo; say **F-Droid main repository** when discussing the curated public catalog, and say **Reproducible release** when discussing release provenance.
+- "Local login" and "login methods" are accurate for server capability modeling but should not appear in end-user login copy, accessibility text, or resource strings; show username/password fields directly or say "username and password" when explanation is needed.

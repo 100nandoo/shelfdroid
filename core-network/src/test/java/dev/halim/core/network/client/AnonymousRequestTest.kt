@@ -39,7 +39,9 @@ class AnonymousRequestTest {
       dataStoreManager.updateUserPrefs(UserPrefs(accessToken = "access-token"))
 
       val response =
-        client.newCall(Request.Builder().url("https://audiobooks.dev/api/libraries").build()).execute()
+        client
+          .newCall(Request.Builder().url("https://audiobooks.dev/api/libraries").build())
+          .execute()
 
       assertEquals("audio.example.com", response.request.url.host)
       assertEquals("Bearer access-token", response.request.header("Authorization"))

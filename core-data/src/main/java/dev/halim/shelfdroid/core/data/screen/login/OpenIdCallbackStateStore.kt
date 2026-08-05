@@ -14,7 +14,9 @@ data class PendingOpenIdCallback(
   val receivedAtEpochMillis: Long,
 )
 
-class PendingOpenIdCallbackStore @Inject constructor(private val dataStoreManager: DataStoreManager) {
+class PendingOpenIdCallbackStore
+@Inject
+constructor(private val dataStoreManager: DataStoreManager) {
 
   suspend fun save(pendingOpenIdCallback: PendingOpenIdCallback) {
     dataStoreManager.updatePendingOpenIdCallback(json.encodeToString(pendingOpenIdCallback))
@@ -67,8 +69,7 @@ internal suspend fun recordOpenIdLoginFailure(
   return failure
 }
 
-private val json =
-  Json {
-    ignoreUnknownKeys = true
-    explicitNulls = false
-  }
+private val json = Json {
+  ignoreUnknownKeys = true
+  explicitNulls = false
+}

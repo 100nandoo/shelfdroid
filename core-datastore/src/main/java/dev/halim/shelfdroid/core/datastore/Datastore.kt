@@ -232,7 +232,8 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
     dataStore.edit { prefs -> prefs[Keys.LISTENING_SESSION_PREFS] = json }
   }
 
-  val pendingOpenIdLogin: Flow<String?> = dataStore.data.map { prefs -> prefs[Keys.PENDING_OPEN_ID_LOGIN] }
+  val pendingOpenIdLogin: Flow<String?> =
+    dataStore.data.map { prefs -> prefs[Keys.PENDING_OPEN_ID_LOGIN] }
 
   suspend fun updatePendingOpenIdLogin(serialized: String?) {
     updateNullableStringPreference(Keys.PENDING_OPEN_ID_LOGIN, serialized)

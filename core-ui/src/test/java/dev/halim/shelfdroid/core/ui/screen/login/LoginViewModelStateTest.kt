@@ -1,16 +1,16 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
 import dev.halim.shelfdroid.core.AuthPromptReason
+import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult
-import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
 import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
@@ -24,7 +24,7 @@ import org.junit.Test
 class LoginViewModelStateTest {
 
   @Test
-  fun initLoginUiState_whenForcedReloginHasSavedServer_startsFreshDiscovery() {
+  fun initLoginUiState_whenForcedReloginHasSavedServer_preparesDiscoveryWithoutLoading() {
     val initialized =
       initLoginUiState(
         navKey = Login(reLogin = true, reason = AuthPromptReason.RefreshFailed),
@@ -37,7 +37,7 @@ class LoginViewModelStateTest {
     assertEquals("fernando", initialized.username)
     assertEquals("https://example.com/audiobookshelf/", initialized.server)
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
-    assertEquals(LoginDiscoveryState.Loading, initialized.discoveryState)
+    assertEquals(LoginDiscoveryState.Idle, initialized.discoveryState)
     assertEquals(listOf(LoginMethod.Local), initialized.availableLoginMethods)
   }
 
@@ -49,13 +49,14 @@ class LoginViewModelStateTest {
         openIdLoginFailure =
           OpenIdLoginFailure(
             normalizedServer = "https://example.com/audiobookshelf",
-            errorMessage = "OpenID login failed because the callback state does not match the current login.",
+            errorMessage =
+              "OpenID login failed because the callback state does not match the current login.",
           ),
       )
 
     assertEquals("https://example.com/audiobookshelf", initialized.server)
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
-    assertEquals(LoginDiscoveryState.Loading, initialized.discoveryState)
+    assertEquals(LoginDiscoveryState.Idle, initialized.discoveryState)
     assertTrue(initialized.loginState is GenericState.Failure)
     assertEquals(
       "OpenID login failed because the callback state does not match the current login.",
@@ -64,7 +65,7 @@ class LoginViewModelStateTest {
   }
 
   @Test
-  fun initLoginUiState_whenPendingOpenIdRecoveryExists_prefillsServerAndStartsDiscovery() {
+  fun initLoginUiState_whenPendingOpenIdRecoveryExists_prefillsServerWithoutLoading() {
     val initialized =
       initLoginUiState(
         navKey = Login(),
@@ -73,7 +74,7 @@ class LoginViewModelStateTest {
 
     assertEquals("https://example.com/audiobookshelf", initialized.server)
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
-    assertEquals(LoginDiscoveryState.Loading, initialized.discoveryState)
+    assertEquals(LoginDiscoveryState.Idle, initialized.discoveryState)
   }
 
   @Test
@@ -93,7 +94,7 @@ class LoginViewModelStateTest {
 
     assertEquals("https://new.example.com", prepared.server)
     assertEquals("https://new.example.com", prepared.normalizedServer)
-    assertEquals(LoginDiscoveryState.Loading, prepared.discoveryState)
+    assertEquals(LoginDiscoveryState.Idle, prepared.discoveryState)
     assertEquals(listOf(LoginMethod.Local), prepared.availableLoginMethods)
     assertNull(prepared.loginDiscoveryMessage)
     assertNull(prepared.authLoginCustomMessage)
@@ -102,7 +103,16 @@ class LoginViewModelStateTest {
   }
 
   @Test
-  fun applyLoginDiscovery_whenBothMethodsExist_defaultsToLocalLoginSurface() {
+  fun prepareLoginDiscovery_whenServerHasNoTopLevelDomain_doesNotNormalizeForDiscovery() {
+    val prepared = LoginUiState().prepareLoginDiscovery("example")
+
+    assertEquals("example", prepared.server)
+    assertNull(prepared.normalizedServer)
+    assertEquals(LoginDiscoveryState.Idle, prepared.discoveryState)
+  }
+
+  @Test
+  fun applyLoginDiscovery_whenBothMethodsExist_keepsPasswordLoginAndShowsOpenIdAlternative() {
     val applied =
       LoginUiState(server = "https://example.com")
         .applyLoginDiscovery(
@@ -116,6 +126,24 @@ class LoginViewModelStateTest {
 
     assertEquals("Continue with Acme SSO", applied.authOpenIdButtonText)
     assertTrue(applied.showsMixedLoginMethods())
+    assertTrue(applied.supportsLocalLogin())
+  }
+
+  @Test
+  fun applyLoginDiscovery_whenBothMethodsExistOnHttpServer_hidesOpenIdAlternative() {
+    val applied =
+      LoginUiState(server = "http://example.com")
+        .applyLoginDiscovery(
+          LoginDiscoveryResult(
+            normalizedServer = "http://example.com",
+            discoveryState = LoginDiscoveryState.Success,
+            availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+            authOpenIdButtonText = "Continue with Acme SSO",
+          )
+        )
+
+    assertEquals("Continue with Acme SSO", applied.authOpenIdButtonText)
+    assertEquals(false, applied.showsMixedLoginMethods())
     assertTrue(applied.supportsLocalLogin())
   }
 
@@ -135,6 +163,24 @@ class LoginViewModelStateTest {
 
     assertEquals("Continue with Acme SSO", applied.authOpenIdButtonText)
     assertTrue(applied.isOpenIdOnly())
+  }
+
+  @Test
+  fun applyLoginDiscovery_whenOnlyOpenIdExistsOnHttpServer_hidesOpenIdSurface() {
+    val applied =
+      LoginUiState(server = "http://example.com")
+        .applyLoginDiscovery(
+          LoginDiscoveryResult(
+            normalizedServer = "http://example.com",
+            discoveryState = LoginDiscoveryState.Success,
+            availableLoginMethods = listOf(LoginMethod.OpenId),
+            loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
+            authOpenIdButtonText = "Continue with Acme SSO",
+          )
+        )
+
+    assertEquals("Continue with Acme SSO", applied.authOpenIdButtonText)
+    assertEquals(false, applied.isOpenIdOnly())
   }
 
   @Test
@@ -235,8 +281,13 @@ class LoginViewModelStateTest {
         redirectUri = "audiobookshelf://oauth",
         startOpenIdLogin = { uiState, _ ->
           OpenIdLoginStartResult(
-            uiState = uiState.copy(server = "https://example.com", normalizedServer = "https://example.com"),
-            authorizationUrl = "https://example.com/auth/openid?redirect_uri=audiobookshelf://oauth",
+            uiState =
+              uiState.copy(
+                server = "https://example.com",
+                normalizedServer = "https://example.com",
+              ),
+            authorizationUrl =
+              "https://example.com/auth/openid?redirect_uri=audiobookshelf://oauth",
           )
         },
         emitEvent = { events += it },

@@ -113,8 +113,8 @@
     <!--Login-->
     <string name="failed_to_refresh_token_relogin_required">Failed to refresh token, re-login required.</string>
     <string name="reenter_password_to_continue">Re-enter your password to continue using this server.</string>
-    <string name="login_discovery_methods_unconfirmed">Could not confirm this server\'s login methods. Local login is still available.</string>
-    <string name="login_discovery_local_unavailable">This server does not offer Local login. Use OpenID login to continue.</string>
+    <string name="login_discovery_methods_unconfirmed">Could not confirm how this server accepts sign-ins. You can still try signing in with your username and password.</string>
+    <string name="login_discovery_local_unavailable">This server requires OpenID login. Use OpenID login to continue.</string>
     <!--Login-->
 
     <!--Home-->
@@ -628,6 +628,7 @@
     <!--Edit Item-->
 
     <string name="ok">OK</string>
+    <string name="or">or</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="no_cover">No cover</string>
@@ -646,8 +647,6 @@
     <string name="server_address">Server URL</string>
     <string name="placeholder_server">https://audiobooks.dev/</string>
     <string name="invalid_server_url">Enter a valid server URL or host, such as example.com or https://example.com/audiobookshelf</string>
-    <string name="login_methods">Login methods</string>
-    <string name="local_login">Local login</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="login_with_openid">Login with OpenID</string>

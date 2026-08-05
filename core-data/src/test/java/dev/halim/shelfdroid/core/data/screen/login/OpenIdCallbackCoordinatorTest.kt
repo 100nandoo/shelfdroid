@@ -57,14 +57,15 @@ class OpenIdCallbackCoordinatorTest {
     val dataStoreScope = dataStoreScope()
     try {
       val dataStoreManager = dataStoreManager(dataStoreScope)
-      PendingOpenIdLoginStore(dataStoreManager).save(
-        PendingOpenIdLogin(
-          normalizedServer = "https://example.com",
-          state = "expected-state",
-          codeVerifier = "verifier",
-          createdAtEpochMillis = 1_000L,
+      PendingOpenIdLoginStore(dataStoreManager)
+        .save(
+          PendingOpenIdLogin(
+            normalizedServer = "https://example.com",
+            state = "expected-state",
+            codeVerifier = "verifier",
+            createdAtEpochMillis = 1_000L,
+          )
         )
-      )
       val coordinator = coordinator(dataStoreManager)
 
       coordinator.handleCallback(
@@ -88,14 +89,15 @@ class OpenIdCallbackCoordinatorTest {
     val dataStoreScope = dataStoreScope()
     try {
       val dataStoreManager = dataStoreManager(dataStoreScope)
-      PendingOpenIdLoginStore(dataStoreManager).save(
-        PendingOpenIdLogin(
-          normalizedServer = "https://example.com",
-          state = "expected-state",
-          codeVerifier = "verifier",
-          createdAtEpochMillis = 1_000L,
+      PendingOpenIdLoginStore(dataStoreManager)
+        .save(
+          PendingOpenIdLogin(
+            normalizedServer = "https://example.com",
+            state = "expected-state",
+            codeVerifier = "verifier",
+            createdAtEpochMillis = 1_000L,
+          )
         )
-      )
       val coordinator = coordinator(dataStoreManager)
 
       coordinator.handleCallback(
@@ -119,14 +121,15 @@ class OpenIdCallbackCoordinatorTest {
     val dataStoreScope = dataStoreScope()
     try {
       val dataStoreManager = dataStoreManager(dataStoreScope)
-      PendingOpenIdLoginStore(dataStoreManager).save(
-        PendingOpenIdLogin(
-          normalizedServer = "https://example.com",
-          state = "expected-state",
-          codeVerifier = "verifier",
-          createdAtEpochMillis = 1_000L,
+      PendingOpenIdLoginStore(dataStoreManager)
+        .save(
+          PendingOpenIdLogin(
+            normalizedServer = "https://example.com",
+            state = "expected-state",
+            codeVerifier = "verifier",
+            createdAtEpochMillis = 1_000L,
+          )
         )
-      )
       val coordinator = coordinator(dataStoreManager)
 
       coordinator.handleCallback(
@@ -150,14 +153,15 @@ class OpenIdCallbackCoordinatorTest {
     val dataStoreScope = dataStoreScope()
     try {
       val dataStoreManager = dataStoreManager(dataStoreScope)
-      PendingOpenIdLoginStore(dataStoreManager).save(
-        PendingOpenIdLogin(
-          normalizedServer = "https://example.com",
-          state = "expected-state",
-          codeVerifier = "verifier",
-          createdAtEpochMillis = 1_000L,
+      PendingOpenIdLoginStore(dataStoreManager)
+        .save(
+          PendingOpenIdLogin(
+            normalizedServer = "https://example.com",
+            state = "expected-state",
+            codeVerifier = "verifier",
+            createdAtEpochMillis = 1_000L,
+          )
         )
-      )
       val coordinator = coordinator(dataStoreManager)
 
       coordinator.handleCallback(
@@ -181,14 +185,15 @@ class OpenIdCallbackCoordinatorTest {
     val dataStoreScope = dataStoreScope()
     try {
       val dataStoreManager = dataStoreManager(dataStoreScope)
-      PendingOpenIdLoginStore(dataStoreManager).save(
-        PendingOpenIdLogin(
-          normalizedServer = "https://example.com/audiobookshelf",
-          state = "expected-state",
-          codeVerifier = "verifier",
-          createdAtEpochMillis = 1_000L,
+      PendingOpenIdLoginStore(dataStoreManager)
+        .save(
+          PendingOpenIdLogin(
+            normalizedServer = "https://example.com/audiobookshelf",
+            state = "expected-state",
+            codeVerifier = "verifier",
+            createdAtEpochMillis = 1_000L,
+          )
         )
-      )
       val callbackStore = PendingOpenIdCallbackStore(dataStoreManager)
       val coordinator = coordinator(dataStoreManager)
 

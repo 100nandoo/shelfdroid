@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">ShelfDroid</string>
     <string name="acra_crash_toast">App crashed. Report saved to Downloads/ShelfDroid.</string>
-    <string name="login_discovery_methods_unconfirmed">Could not confirm this server\'s login methods. Local login is still available.</string>
-    <string name="login_discovery_local_unavailable">This server does not offer Local login. Use OpenID login to continue.</string>
 </resources>

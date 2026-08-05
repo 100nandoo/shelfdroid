@@ -37,9 +37,10 @@ constructor(
 
   val userPrefs = prefsRepository.userPrefs
   val baseUrl = dataStoreManager.baseUrl()
-  private val openIdBootstrapClient by lazy(LazyThreadSafetyMode.NONE) {
-    okHttpClient.newBuilder().followRedirects(false).build()
-  }
+  private val openIdBootstrapClient by
+    lazy(LazyThreadSafetyMode.NONE) {
+      okHttpClient.newBuilder().followRedirects(false).build()
+    }
 
   suspend fun discoverLoginMethods(rawServer: String): LoginDiscoveryResult {
     val parsedServer = AudiobookshelfBaseUrl.parse(rawServer) ?: return LoginDiscoveryResult()
@@ -152,21 +153,22 @@ constructor(
 
     val authorizationUrl =
       fetchOpenIdAuthorizationUrl(
-        parsedServer = parsedServer,
-        redirectUri = redirectUri,
-        state = state,
-        codeChallenge = codeChallenge,
-      ).getOrElse { error ->
-        return OpenIdLoginStartResult(
-          uiState =
-            uiState.copy(
-              server = normalizedServer,
-              normalizedServer = normalizedServer,
-              loginState = GenericState.Failure(error.message),
-              serverFieldError = null,
-            )
+          parsedServer = parsedServer,
+          redirectUri = redirectUri,
+          state = state,
+          codeChallenge = codeChallenge,
         )
-      }
+        .getOrElse { error ->
+          return OpenIdLoginStartResult(
+            uiState =
+              uiState.copy(
+                server = normalizedServer,
+                normalizedServer = normalizedServer,
+                loginState = GenericState.Failure(error.message),
+                serverFieldError = null,
+              )
+          )
+        }
 
     pendingOpenIdLoginStore.save(
       PendingOpenIdLogin(
@@ -199,7 +201,7 @@ constructor(
   }
 
   suspend fun completeOpenIdLogin(
-    nowMillis: Long = System.currentTimeMillis(),
+    nowMillis: Long = System.currentTimeMillis()
   ): OpenIdLoginCompletionResult {
     val pendingCallback = pendingOpenIdCallbackStore.current()
     val pendingLogin = pendingOpenIdLoginStore.current()
@@ -221,7 +223,8 @@ constructor(
     if (pendingLogin.isExpired(nowMillis)) {
       return failOpenIdLoginCompletion(
         normalizedServer = pendingLogin.normalizedServer,
-        errorMessage = "OpenID login expired before the callback could be completed. Please try again.",
+        errorMessage =
+          "OpenID login expired before the callback could be completed. Please try again.",
       )
     }
 
@@ -231,7 +234,8 @@ constructor(
     ) {
       return failOpenIdLoginCompletion(
         normalizedServer = pendingLogin.normalizedServer,
-        errorMessage = "OpenID login failed because the callback no longer matches the current login.",
+        errorMessage =
+          "OpenID login failed because the callback no longer matches the current login.",
       )
     }
 
@@ -392,18 +396,23 @@ fun LoginUiState.supportsLocalLogin(): Boolean {
     LoginMethod.Local in availableLoginMethods
 }
 
-fun LoginUiState.supportsOpenIdLogin(): Boolean = LoginMethod.OpenId in availableLoginMethods
-
 fun LoginUiState.showsMixedLoginMethods(): Boolean {
   return discoveryState is LoginDiscoveryState.Success &&
     LoginMethod.Local in availableLoginMethods &&
-    LoginMethod.OpenId in availableLoginMethods
+    LoginMethod.OpenId in availableLoginMethods &&
+    supportsOpenIdLogin()
 }
 
 fun LoginUiState.isOpenIdOnly(): Boolean {
   return discoveryState is LoginDiscoveryState.Success &&
     LoginMethod.Local !in availableLoginMethods &&
-    LoginMethod.OpenId in availableLoginMethods
+    LoginMethod.OpenId in availableLoginMethods &&
+    supportsOpenIdLogin()
+}
+
+private fun LoginUiState.supportsOpenIdLogin(): Boolean {
+  val server = normalizedServer ?: server
+  return AudiobookshelfBaseUrl.parse(server)?.scheme == "https"
 }
 
 private fun List<String>.toLoginMethods(): List<LoginMethod> {
@@ -485,7 +494,8 @@ private fun Throwable?.toOpenIdLoginFailureMessage(): String {
   return when (this) {
     is HttpException ->
       when (code()) {
-        400, 401 -> "OpenID login failed. Please try again."
+        400,
+        401 -> "OpenID login failed. Please try again."
         404 -> "Server not found."
         429 -> "Too many requests. Please wait and try again."
         else -> message()

@@ -7,9 +7,7 @@ import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 
-internal class AndroidOpenIdLoginLauncher(
-  private val context: Context,
-) {
+internal class AndroidOpenIdLoginLauncher(private val context: Context) {
 
   fun launch(authorizationUrl: String) {
     launchOpenIdAuthorizationUrl(

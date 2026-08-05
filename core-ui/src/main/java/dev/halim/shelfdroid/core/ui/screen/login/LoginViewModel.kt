@@ -12,20 +12,20 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
-import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
-import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
-import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
-import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
 import dev.halim.shelfdroid.core.data.screen.login.LoginRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -102,7 +102,7 @@ constructor(
         .distinctUntilChanged()
         .collectLatest { server ->
           val parsed = AudiobookshelfBaseUrl.parse(server)
-          if (parsed == null) {
+          if (parsed == null || parsed.isNotReadyForDiscovery()) {
             _uiState.update { it.prepareLoginDiscovery(server) }
             return@collectLatest
           }
@@ -165,7 +165,10 @@ sealed interface LoginUiEvent {
 internal suspend fun handleOpenIdLoginButtonPressed(
   uiState: LoginUiState,
   redirectUri: String,
-  startOpenIdLogin: suspend (LoginUiState, String) -> dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult,
+  startOpenIdLogin:
+    suspend (
+      LoginUiState, String,
+    ) -> dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult,
   emitEvent: suspend (LoginUiEvent) -> Unit,
 ): LoginUiState {
   val result = startOpenIdLogin(uiState, redirectUri)
@@ -174,19 +177,25 @@ internal suspend fun handleOpenIdLoginButtonPressed(
 }
 
 internal fun LoginUiState.prepareLoginDiscovery(server: String): LoginUiState {
-  val normalizedServer = AudiobookshelfBaseUrl.parse(server)?.value
+  val parsedServer = AudiobookshelfBaseUrl.parse(server)
+  val normalizedServer = parsedServer?.takeUnless { it.isNotReadyForDiscovery() }?.value
   return copy(
     server = server,
     normalizedServer = normalizedServer,
     serverFieldError = null,
-    discoveryState =
-      if (normalizedServer != null) LoginDiscoveryState.Loading else LoginDiscoveryState.Idle,
+    discoveryState = LoginDiscoveryState.Idle,
     availableLoginMethods = listOf(LoginMethod.Local),
     loginDiscoveryMessage = null,
     authLoginCustomMessage = null,
     authOpenIdButtonText = null,
     authOpenIdAutoLaunch = null,
   )
+}
+
+private fun AudiobookshelfBaseUrl.isNotReadyForDiscovery(): Boolean {
+  val hasTopLevelDomain = host.substringAfterLast('.', missingDelimiterValue = "").isNotBlank()
+  val hasLocalServerHint = host == "localhost" || port != -1
+  return !hasTopLevelDomain && !hasLocalServerHint
 }
 
 internal fun initLoginUiState(
@@ -199,7 +208,8 @@ internal fun initLoginUiState(
   val initialServer =
     when {
       navKey.reLogin -> server
-      !openIdLoginFailure?.normalizedServer.isNullOrBlank() -> openIdLoginFailure.normalizedServer.orEmpty()
+      !openIdLoginFailure?.normalizedServer.isNullOrBlank() ->
+        openIdLoginFailure.normalizedServer.orEmpty()
       !pendingOpenIdServer.isNullOrBlank() -> pendingOpenIdServer.orEmpty()
       else -> ""
     }
@@ -225,14 +235,14 @@ internal fun initLoginUiState(
 }
 
 internal fun LoginUiState.prepareOpenIdRecovery(
-  recoveryState: OpenIdLoginRecoveryState,
+  recoveryState: OpenIdLoginRecoveryState
 ): LoginUiState {
   val prepared = reconcileOpenIdServer(recoveryState.normalizedServer)
   return prepared.copy(loginState = GenericState.Loading, serverFieldError = null)
 }
 
 internal fun LoginUiState.applyOpenIdRecoveryCompletion(
-  result: OpenIdLoginCompletionResult,
+  result: OpenIdLoginCompletionResult
 ): LoginUiState {
   return when (result) {
     OpenIdLoginCompletionResult.Success -> copy(loginState = GenericState.Success)
