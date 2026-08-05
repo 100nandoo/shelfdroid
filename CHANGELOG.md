@@ -1,3 +1,12 @@
+## 0.5.0 (2026-08-05)
+
+### Feat
+
+- Add OpenID login support
+- Add HTTP login support
+- Added Apprise notification rule management for admins
+- Added email management
+
 ## 0.4.8 (2026-07-10)
 
 ### Feat

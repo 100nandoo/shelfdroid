@@ -50,8 +50,27 @@ if [ -f "$CHANGELOG_FILE" ]; then
   ' "$CHANGELOG_FILE")
 fi
 
+plain_release_notes=""
 if [ -n "$release_notes" ]; then
-  printf "%s\n" "$release_notes" > "$changelog_file"
+  plain_release_notes=$(printf "%s\n" "$release_notes" | perl -0pe '
+    s/\r\n/\n/g;
+    s/^###\s+Feat$/Features:/gm;
+    s/^###\s+Fix$/Fixes:/gm;
+    s/^###\s+Refactor$/Improvements:/gm;
+    s/^###\s+Test$/Tests:/gm;
+    s/^###\s+(.+)$/$1:/gm;
+    s/^\s*-\s+/• /gm;
+    s/\*\*([^*]+)\*\*/$1/g;
+    s/`([^`]+)`/$1/g;
+    s/\[([^\]]+)\]\([^)]+\)/$1/g;
+    s/^[ \t]+|[ \t]+$//gm;
+    s/\n{3,}/\n\n/g;
+    s/\A\s+|\s+\z//g;
+  ')
+fi
+
+if [ -n "$plain_release_notes" ]; then
+  printf "%s\n" "$plain_release_notes" > "$changelog_file"
 else
   touch "$changelog_file"
 fi

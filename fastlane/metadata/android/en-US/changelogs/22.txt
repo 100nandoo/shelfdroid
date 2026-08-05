@@ -1,0 +1,5 @@
+Features:
+• Add OpenID login support
+• Add HTTP login support
+• Added Apprise notification rule management for admins
+• Added email management
