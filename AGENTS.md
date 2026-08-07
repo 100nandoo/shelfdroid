@@ -1,7 +1,7 @@
 ## Approach
 
-- Always use Context7 when I need library/API documentation, code generation, setup or configuration
-  steps without me having to explicitly ask.
+- Always use Android CLI (android docs) when I need library/API documentation, code generation,
+  setup or configuration steps without me having to explicitly ask.
 - Think before acting. Read existing files before writing code.
 - Be concise in output but thorough in reasoning.
 - Prefer editing to rewriting whole files.
@@ -9,6 +9,7 @@
 - Test your code before declaring done.
 - No sycophantic openers or closing fluff.
 - Keep solutions simple and direct.
+- Use Conventional Commit titles in Commitizen format for every commit.
 - User instructions always override this file.
 - For icons, fetch from Google Fonts icons in the Rounded
   style: https://fonts.google.com/icons?icon.style=Rounded
