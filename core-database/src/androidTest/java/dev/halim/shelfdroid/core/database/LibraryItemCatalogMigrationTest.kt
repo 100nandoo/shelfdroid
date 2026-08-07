@@ -147,7 +147,7 @@ class LibraryItemCatalogMigrationTest {
   }
 
   @Test
-  fun openingVersionThreeDatabaseMovesBookMediaOutOfCatalog() {
+  fun openingVersionThreeDatabaseDiscardsBookJson() {
     context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
       database.execSQL(
         """
@@ -195,21 +195,10 @@ class LibraryItemCatalogMigrationTest {
     }
 
     AndroidSqliteDriver(MyDatabase.Schema, context, databaseName).use { driver ->
-      assertEquals(
-        BookEntity(libraryItemId = "book-1", media = "book-media"),
-        BookEntityQueries(driver).byLibraryItemId("book-1").executeAsOne(),
-      )
+      assertEquals(null, BookEntityQueries(driver).byLibraryItemId("book-1").executeAsOneOrNull())
     }
 
     context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
-      assertEquals(
-        "book-media",
-        database.rawQuery("SELECT media FROM BookEntity WHERE libraryItemId = 'book-1'", null).use {
-          cursor ->
-          cursor.moveToFirst()
-          cursor.getString(0)
-        },
-      )
       assertEquals(
         "",
         database.rawQuery("SELECT media FROM LibraryItemEntity WHERE id = 'book-1'", null).use { cursor ->
