@@ -8,7 +8,6 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.DeviceInfo
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
-import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.BookMetadata
 import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_BOOK
@@ -132,14 +131,15 @@ constructor(
     val userPrefs = prefsRepository.userPrefs.firstOrNull()
     val serverPrefs = prefsRepository.serverPrefs.firstOrNull()
     val book = libraryItemRepo.byId(uiState.id)
+    val media = libraryItemRepo.bookById(uiState.id)
     if (userPrefs == null) return
     if (serverPrefs == null) return
     if (book == null) return
+    if (media == null) return
 
     book
       .takeIf { it.isBook.toBoolean() }
       .let {
-        val media = json.decodeFromString<Book>(book.media)
         val mediaMetadata = json.encodeToString(media.metadata)
         val chapters = json.encodeToString(media.chapters)
         val coverPath = media.coverPath ?: ""

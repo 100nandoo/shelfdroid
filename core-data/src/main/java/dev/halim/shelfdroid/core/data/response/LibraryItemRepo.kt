@@ -23,13 +23,12 @@ import dev.halim.shelfdroid.download.BookCleanupRequest
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 class LibraryItemRepo
@@ -41,9 +40,8 @@ constructor(
   private val json: Json,
   private val downloadRepo: DownloadRepo,
   private val progressRepo: ProgressRepo,
+  private val bookMediaRepo: BookMediaRepo,
 ) {
-
-  private val repoScope = CoroutineScope(Dispatchers.IO)
 
   private val queries = db.libraryItemEntityQueries
   private val libraryQueries = db.libraryEntityQueries
@@ -51,32 +49,37 @@ constructor(
   suspend fun remote() {
     val libraryIds = libraryQueries.allIds().executeAsList()
     coroutineScope {
-      libraryIds.forEach { libraryId ->
-        async {
-          val ids = idsByLibraryId(libraryId)
-          if (ids.isEmpty()) return@async
-          val result = api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()
+      libraryIds
+        .map { libraryId ->
+          async {
+            val ids = idsByLibraryId(libraryId)
+            if (ids.isEmpty()) return@async
+            val result = api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()
 
-          if (result != null) {
-            val entities = convert(libraryId, result)
-            repoScope.launch {
+            if (result != null) {
+              val items = result.libraryItems
+              val entities = convert(libraryId, result)
               cleanupPodcasts(libraryId, entities)
-              cleanupBooks(libraryId, entities)
-              entities.forEach { queries.insert(it) }
+              val booksToDelete = cleanupBooks(libraryId, entities)
+              queries.transaction {
+                booksToDelete.forEach { entity ->
+                  deleteInTransaction(entity.id)
+                }
+                items.forEach { item -> insertInTransaction(item, libraryId) }
+              }
             }
           }
         }
-      }
+        .awaitAll()
     }
   }
 
   fun createPodcast(libraryItem: LibraryItem, libraryId: String) {
-    val entity = toEntity(libraryItem, libraryId)
-    queries.insert(entity)
+    insert(libraryItem, libraryId)
   }
 
   fun updateItem(item: LibraryItem) {
-    queries.insert(toEntity(item, item.libraryId))
+    insert(item, item.libraryId)
   }
 
   suspend fun refreshItem(id: String, include: String? = null): Result<LibraryItem> {
@@ -130,6 +133,12 @@ constructor(
     return queries.byId(id).asFlow().mapToOneOrNull(Dispatchers.IO)
   }
 
+  fun bookById(id: String): Book? {
+    return bookMediaRepo.byId(id)
+  }
+
+  fun flowBookById(id: String): Flow<Book?> = bookMediaRepo.flowById(id)
+
   suspend fun idsByLibraryId(libraryId: String): List<String> {
     val result = api.libraryItems(libraryId).getOrNull()
     val ids = result?.results?.map { it.id }
@@ -159,24 +168,28 @@ constructor(
   suspend fun cleanupItem(id: String) {
     val entity = queries.byId(id).executeAsOneOrNull()
     if (entity?.isBook == 1L) {
-      val book = Json.decodeFromString<Book>(entity.media)
-      downloadRepo.deleteBook(
-        title = entity.title,
-        author = entity.author,
-        tracks =
-          book.audioTracks.map { track ->
-            dev.halim.shelfdroid.core.DownloadUiState(
-              id =
-                if (book.audioTracks.size == 1) entity.id
-                else helper.generateDownloadId(entity.id, track.index.toString()),
-              filename = track.metadata.filename,
-            )
-          },
-      )
+      val book = bookById(id)
+      if (book != null) {
+        downloadRepo.deleteBook(
+          title = entity.title,
+          author = entity.author,
+          tracks =
+            book.audioTracks.map { track ->
+              dev.halim.shelfdroid.core.DownloadUiState(
+                id =
+                  if (book.audioTracks.size == 1) entity.id
+                  else helper.generateDownloadId(entity.id, track.index.toString()),
+                filename = track.metadata.filename,
+              )
+            },
+        )
+      }
     } else {
       downloadRepo.delete(id)
     }
-    queries.deleteById(id)
+    queries.transaction {
+      deleteInTransaction(id)
+    }
     progressRepo.deleteItem(id)
   }
 
@@ -200,15 +213,18 @@ constructor(
     return entities
   }
 
-  private suspend fun cleanupBooks(libraryId: String, entities: List<LibraryItemEntity>) {
+  private suspend fun cleanupBooks(
+    libraryId: String,
+    entities: List<LibraryItemEntity>,
+  ): List<LibraryItemEntity> {
     val existingEntities = queries.byLibraryId(libraryId).executeAsList().filter { it.isBook == 1L }
     val newIds = entities.map { it.id }.toSet()
     val toDelete = existingEntities.filter { it.id !in newIds }
-    if (toDelete.isEmpty()) return
+    if (toDelete.isEmpty()) return emptyList()
 
     downloadRepo.cleanupBooks(
-      toDelete.map { entity ->
-        val book = Json.decodeFromString<Book>(entity.media)
+      toDelete.mapNotNull { entity ->
+        val book = bookById(entity.id) ?: return@mapNotNull null
         BookCleanupRequest(
           itemId = entity.id,
           title = entity.title,
@@ -218,7 +234,7 @@ constructor(
       }
     )
 
-    queries.transaction { toDelete.forEach { queries.deleteById(it.id) } }
+    return toDelete
   }
 
   private fun cleanupPodcasts(libraryId: String, entities: List<LibraryItemEntity>) {
@@ -255,7 +271,7 @@ constructor(
         updatedAt = item.updatedAt,
         duration = helper.formatDuration(media.duration ?: 0.0),
         isBook = 1,
-        media = json.encodeToString(media),
+        media = "",
         rssFeed = item.rssFeed?.let(json::encodeToString),
         addedAt = item.addedAt,
       )
@@ -277,6 +293,27 @@ constructor(
         addedAt = item.addedAt,
       )
     }
+  }
+
+  private fun insert(item: LibraryItem, libraryId: String) {
+    queries.transaction {
+      insertInTransaction(item, libraryId)
+    }
+  }
+
+  private fun insertInTransaction(item: LibraryItem, libraryId: String) {
+    val media = item.media
+    queries.insert(toEntity(item, libraryId))
+    if (media is Book) {
+      bookMediaRepo.insert(item.id, media)
+    } else {
+      bookMediaRepo.deleteById(item.id)
+    }
+  }
+
+  private fun deleteInTransaction(id: String) {
+    queries.deleteById(id)
+    bookMediaRepo.deleteById(id)
   }
 
   private fun patchRssFeed(itemId: String, feed: RssFeed?) {

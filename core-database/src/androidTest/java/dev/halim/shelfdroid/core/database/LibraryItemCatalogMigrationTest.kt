@@ -145,4 +145,78 @@ class LibraryItemCatalogMigrationTest {
       )
     }
   }
+
+  @Test
+  fun openingVersionThreeDatabaseMovesBookMediaOutOfCatalog() {
+    context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
+      database.execSQL(
+        """
+          CREATE TABLE LibraryItemEntity (
+            id TEXT PRIMARY KEY NOT NULL,
+            libraryId TEXT NOT NULL,
+            author TEXT NOT NULL DEFAULT '',
+            title TEXT NOT NULL DEFAULT '',
+            description TEXT NOT NULL DEFAULT '',
+            cover TEXT NOT NULL DEFAULT '',
+            updatedAt INTEGER NOT NULL DEFAULT 0,
+            media TEXT NOT NULL DEFAULT '',
+            rssFeed TEXT,
+            isBook INTEGER NOT NULL DEFAULT 1,
+            inoId TEXT NOT NULL DEFAULT '',
+            duration TEXT NOT NULL DEFAULT '',
+            addedAt INTEGER NOT NULL
+          )
+        """.trimIndent(),
+      )
+      database.execSQL(
+        """
+          INSERT INTO LibraryItemEntity(
+            id, libraryId, author, title, description, cover, updatedAt, media, rssFeed,
+            isBook, inoId, duration, addedAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent(),
+        arrayOf<Any?>(
+          "book-1",
+          "library-1",
+          "Author",
+          "Book",
+          "",
+          "cover",
+          0,
+          "book-media",
+          null,
+          1,
+          "",
+          "",
+          1,
+        ),
+      )
+      database.version = 3
+    }
+
+    AndroidSqliteDriver(MyDatabase.Schema, context, databaseName).use { driver ->
+      assertEquals(
+        BookEntity(libraryItemId = "book-1", media = "book-media"),
+        BookEntityQueries(driver).byLibraryItemId("book-1").executeAsOne(),
+      )
+    }
+
+    context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
+      assertEquals(
+        "book-media",
+        database.rawQuery("SELECT media FROM BookEntity WHERE libraryItemId = 'book-1'", null).use {
+          cursor ->
+          cursor.moveToFirst()
+          cursor.getString(0)
+        },
+      )
+      assertEquals(
+        "",
+        database.rawQuery("SELECT media FROM LibraryItemEntity WHERE id = 'book-1'", null).use { cursor ->
+          cursor.moveToFirst()
+          cursor.getString(0)
+        },
+      )
+    }
+  }
 }

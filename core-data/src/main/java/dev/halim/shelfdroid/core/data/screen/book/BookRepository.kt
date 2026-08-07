@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.book
 
 import android.annotation.SuppressLint
-import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
@@ -31,92 +30,95 @@ constructor(
 
   @SuppressLint("UnsafeOptInUsageError")
   fun item(id: String): Flow<BookUiState> {
-    val bookFlow = libraryItemRepo.flowById(id)
+    val bookAndMediaFlow =
+      combine(libraryItemRepo.flowById(id), libraryItemRepo.flowBookById(id)) { entity, media ->
+        entity?.takeIf { it.isBook.toBoolean() }?.let { it to media }
+      }
     val progressFlow = progressRepo.flowBookById(id)
     val userPrefsFlow = prefsRepository.userPrefs
 
     return combine(
-      bookFlow,
+      bookAndMediaFlow,
       progressFlow,
       downloadRepo.downloads,
       downloadRepo.durableDownloads,
       userPrefsFlow,
-    ) { book, progress, _, _, userPrefs ->
-      book
-        ?.takeIf { it.isBook.toBoolean() }
-        ?.let {
-          val media = Json.decodeFromString<Book>(book.media)
-          val subtitle = media.metadata.subtitle ?: ""
-          val description = media.metadata.description ?: ""
-          val narrator = media.metadata.narrators.joinToString()
-          val publishYear = media.metadata.publishedYear ?: ""
-          val publisher = media.metadata.publisher ?: ""
-          val genres = media.metadata.genres.joinToString()
-          val language = media.metadata.language ?: ""
+    ) { bookAndMedia, progress, _, _, userPrefs ->
+      bookAndMedia
+        ?.let { (book, media) ->
+          media?.let {
+            val subtitle = it.metadata.subtitle ?: ""
+            val description = it.metadata.description ?: ""
+            val narrator = it.metadata.narrators.joinToString()
+            val publishYear = it.metadata.publishedYear ?: ""
+            val publisher = it.metadata.publisher ?: ""
+            val genres = it.metadata.genres.joinToString()
+            val language = it.metadata.language ?: ""
 
-          val progress = progress?.progress?.toFloat() ?: 0f
-          val formattedProgress = (progress * 100).roundToInt()
-          val remaining = helper.calculateRemaining(media.duration ?: 0.0, progress)
+            val progress = progress?.progress?.toFloat() ?: 0f
+            val formattedProgress = (progress * 100).roundToInt()
+            val remaining = helper.calculateRemaining(it.duration ?: 0.0, progress)
 
-          val isEbook = media.ebookFile != null
-          val canManageGeneratedRss = userPrefs.isAdmin
-          val isSingleTrack = media.audioTracks.size == 1
-          val generatedRssFeed =
-            GeneratedRssFeedMapper.map(
-              itemId = id,
-              feed = it.rssFeed?.let { rssFeed -> Json.decodeFromString(rssFeed) },
-              webBaseUrl = currentWebBaseUrl(),
-              canManage = canManageGeneratedRss,
-              hasAudioContent = media.audioTracks.isNotEmpty(),
-              hasEpisodesWithoutPubDate = false,
+            val isEbook = it.ebookFile != null
+            val canManageGeneratedRss = userPrefs.isAdmin
+            val isSingleTrack = it.audioTracks.size == 1
+            val generatedRssFeed =
+              GeneratedRssFeedMapper.map(
+                itemId = id,
+                feed = book.rssFeed?.let { rssFeed -> Json.decodeFromString(rssFeed) },
+                webBaseUrl = currentWebBaseUrl(),
+                canManage = canManageGeneratedRss,
+                hasAudioContent = it.audioTracks.isNotEmpty(),
+                hasEpisodesWithoutPubDate = false,
+              )
+
+            val download =
+              if (isSingleTrack) {
+                downloadRepo.bookItem(
+                  itemId = id,
+                  bookTitle = book.title,
+                  author = book.author,
+                  track = it.audioTracks.first(),
+                )
+              } else {
+                DownloadUiState()
+              }
+
+            val downloads =
+              if (isSingleTrack.not()) {
+                downloadRepo.multipleTrackItem(
+                  itemId = id,
+                  title = book.title,
+                  author = book.author,
+                  tracks = it.audioTracks,
+                )
+              } else {
+                MultipleTrackDownloadUiState()
+              }
+
+            BookUiState(
+              state = GenericState.Success,
+              author = book.author,
+              narrator = narrator,
+              title = book.title,
+              subtitle = subtitle,
+              duration = book.duration,
+              remaining = remaining,
+              cover = book.cover,
+              description = description,
+              publishYear = publishYear,
+              publisher = publisher,
+              genres = genres,
+              language = language,
+              progress = formattedProgress,
+              isEbook = isEbook,
+              isSingleTrack = isSingleTrack,
+              canEdit = userPrefs.update,
+              generatedRssFeed = generatedRssFeed,
+              download = download,
+              downloads = downloads,
             )
-
-          val download =
-            if (isSingleTrack) {
-              downloadRepo.bookItem(
-                itemId = id,
-                bookTitle = book.title,
-                author = book.author,
-                track = media.audioTracks.first(),
-              )
-            } else {
-              DownloadUiState()
-            }
-
-          val downloads =
-            if (isSingleTrack.not()) {
-              downloadRepo.multipleTrackItem(
-                itemId = id,
-                title = book.title,
-                author = book.author,
-                tracks = media.audioTracks,
-              )
-            } else {
-              MultipleTrackDownloadUiState()
-            }
-
-          BookUiState(
-            state = GenericState.Success,
-            author = book.author,
-            narrator = narrator,
-            title = book.title,
-            subtitle = subtitle,
-            duration = book.duration,
-            remaining = remaining,
-            cover = book.cover,
-            description = description,
-            publishYear = publishYear,
-            publisher = publisher,
-            genres = genres,
-            language = language,
-            progress = formattedProgress,
-            isEbook = isEbook,
-            isSingleTrack = isSingleTrack,
-            canEdit = userPrefs.update,
-            generatedRssFeed = generatedRssFeed,
-            download = download,
-            downloads = downloads,
-          )
+          }
         } ?: BookUiState(state = GenericState.Failure("Failed to fetch book"))
     }
   }

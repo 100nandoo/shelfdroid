@@ -1,0 +1,13 @@
+CREATE TABLE BookEntity (
+  libraryItemId TEXT PRIMARY KEY NOT NULL,
+  media TEXT NOT NULL
+);
+
+INSERT INTO BookEntity(libraryItemId, media)
+SELECT id, media
+FROM LibraryItemEntity
+WHERE isBook = 1;
+
+UPDATE LibraryItemEntity
+SET media = ''
+WHERE isBook = 1;

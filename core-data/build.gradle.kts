@@ -68,4 +68,9 @@ dependencies {
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.retrofit.kotlinx.serialization)
   testImplementation(libs.retrofit.result)
+
+  androidTestImplementation(libs.androidx.test.core)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.sqldelight.driver)
+  androidTestImplementation(project(libs.versions.coreTesting.get()))
 }

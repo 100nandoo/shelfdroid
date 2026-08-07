@@ -1,0 +1,17 @@
+CREATE TABLE BookEntity (
+  libraryItemId TEXT PRIMARY KEY NOT NULL,
+  media TEXT NOT NULL
+);
+
+byLibraryItemId:
+SELECT *
+FROM BookEntity
+WHERE libraryItemId = :libraryItemId;
+
+insert:
+INSERT OR REPLACE INTO BookEntity(libraryItemId, media)
+VALUES ?;
+
+deleteByLibraryItemId:
+DELETE FROM BookEntity
+WHERE libraryItemId = :libraryItemId;

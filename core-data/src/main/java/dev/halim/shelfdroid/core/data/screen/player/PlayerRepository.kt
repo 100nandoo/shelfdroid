@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.core.data.screen.player
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BookmarkRequest
-import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.AdvancedControl
 import dev.halim.shelfdroid.core.ChangeBehaviour
@@ -95,12 +94,12 @@ constructor(
     changeBehaviour: ChangeBehaviour,
   ): PlayerUiState {
     val result = libraryItemRepo.byId(id)
+    val media = libraryItemRepo.bookById(id)
     val progress = progressRepo.bookById(id)
     val bookmarks = bookmarkRepo.byLibraryItemId(id)
     val playerBookmarks = bookmarks.map { mapper.toPlayerBookmark(it) }
     val playerPrefs = prefsRepository.playerPrefs.first()
-    return if (result != null) {
-      val media = Json.decodeFromString<Book>(result.media)
+    return if (result != null && media != null) {
       val chapters =
         media.chapters.mapIndexed { i, bookChapter ->
           mapper.toPlayerChapter(i, bookChapter, media.chapters.size)
