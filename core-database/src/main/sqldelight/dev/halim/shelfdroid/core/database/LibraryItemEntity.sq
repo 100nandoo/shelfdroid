@@ -17,6 +17,10 @@ CREATE TABLE LibraryItemEntity (
 all:
 SELECT * FROM LibraryItemEntity;
 
+libraryItemCatalog:
+SELECT id, libraryId, author, title, cover, isBook, addedAt
+FROM LibraryItemEntity;
+
 idsByLibraryId:
 SELECT id
 FROM LibraryItemEntity

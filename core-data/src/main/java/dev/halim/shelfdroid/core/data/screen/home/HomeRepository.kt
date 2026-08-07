@@ -45,7 +45,7 @@ constructor(
 
   fun item(): Flow<Pair<Prefs, List<LibraryUiState>>> {
     val libraries = libraryRepo.flowEntities()
-    val libraryItems = libraryItemRepo.flowEntities()
+    val libraryItems = libraryItemRepo.flowCatalog()
     val progresses = progressRepo.flowAll()
     val prefs = prefsRepository.prefsFlow()
     val downloads = downloadRepo.completedDownloads

@@ -1,0 +1,2 @@
+DELETE FROM LibraryItemEntity
+WHERE isBook = 0;

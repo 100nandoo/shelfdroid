@@ -12,7 +12,7 @@ android {
   defaultConfig {
     minSdk = libs.versions.minSdk.get().toInt()
 
-    testInstrumentationRunner = "dev.halim.shelfdroid.core.testing.HiltTestRunner"
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     consumerProguardFiles("consumer-rules.pro")
   }
 
@@ -45,4 +45,8 @@ dependencies {
   implementation(libs.sqldelight.driver)
   implementation(libs.sqldelight.coroutines)
   implementation(libs.sqldelight.primitives)
+
+  androidTestImplementation(libs.androidx.test.core)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.runner)
 }

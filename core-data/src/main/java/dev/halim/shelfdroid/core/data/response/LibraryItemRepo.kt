@@ -14,6 +14,7 @@ import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
+import dev.halim.shelfdroid.core.database.LibraryItemCatalog
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
@@ -135,8 +136,8 @@ constructor(
     return ids ?: queries.idsByLibraryId(libraryId).executeAsList()
   }
 
-  fun flowEntities(): Flow<Map<String, List<LibraryItemEntity>>> {
-    return queries.all().asFlow().mapToList(Dispatchers.IO).map { list ->
+  fun flowCatalog(): Flow<Map<String, List<LibraryItemCatalog>>> {
+    return queries.libraryItemCatalog().asFlow().mapToList(Dispatchers.IO).map { list ->
       list.groupBy { it.libraryId }
     }
   }
