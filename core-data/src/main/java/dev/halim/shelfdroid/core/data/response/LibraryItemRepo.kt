@@ -41,6 +41,7 @@ constructor(
   private val downloadRepo: DownloadRepo,
   private val progressRepo: ProgressRepo,
   private val bookMediaRepo: BookMediaRepo,
+  private val podcastEpisodeRepo: PodcastEpisodeRepo,
 ) {
 
   private val queries = db.libraryItemEntityQueries
@@ -201,6 +202,7 @@ constructor(
     val updatedPodcast = podcast.copy(episodes = podcast.episodes.filterNot { it.id in episodeIds })
 
     queries.updateMediaById(media = json.encodeToString(updatedPodcast), id = id)
+    podcastEpisodeRepo.deleteByIds(episodeIds)
 
     downloadRepo.cleanupEpisode(episodeIds.toList())
   }
@@ -306,14 +308,18 @@ constructor(
     queries.insert(toEntity(item, libraryId))
     if (media is Book) {
       bookMediaRepo.insert(item.id, media)
+      podcastEpisodeRepo.deleteByLibraryItemId(item.id)
     } else {
+      media as Podcast
       bookMediaRepo.deleteById(item.id)
+      podcastEpisodeRepo.replace(item.id, media.episodes)
     }
   }
 
   private fun deleteInTransaction(id: String) {
     queries.deleteById(id)
     bookMediaRepo.deleteById(id)
+    podcastEpisodeRepo.deleteByLibraryItemId(id)
   }
 
   private fun patchRssFeed(itemId: String, feed: RssFeed?) {

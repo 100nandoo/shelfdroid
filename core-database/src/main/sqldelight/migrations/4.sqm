@@ -1,0 +1,8 @@
+CREATE TABLE PodcastEpisodeEntity (
+  id TEXT PRIMARY KEY NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  media TEXT NOT NULL
+);
+
+CREATE INDEX PodcastEpisodeEntity_libraryItemId
+ON PodcastEpisodeEntity(libraryItemId);

@@ -51,6 +51,7 @@ class LibraryItemCatalogMigrationTest {
           cover = "cover",
           isBook = 0,
           addedAt = 1,
+          episodeCount = 0,
         ),
         queries.libraryItemCatalog().executeAsOne(),
       )

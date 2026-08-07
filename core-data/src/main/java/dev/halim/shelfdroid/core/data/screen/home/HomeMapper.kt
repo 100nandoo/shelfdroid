@@ -27,7 +27,7 @@ constructor(private val progressRepo: ProgressRepo) {
     val finished = progressRepo.byLibraryItemIdAndFinished(item.id)
     val finishedCount = finished.count()
 
-    val episodeCount = 0
+    val episodeCount = item.episodeCount.toInt()
     val unfinishedCount = (episodeCount - finishedCount).coerceAtLeast(0)
 
     return PodcastUiState(

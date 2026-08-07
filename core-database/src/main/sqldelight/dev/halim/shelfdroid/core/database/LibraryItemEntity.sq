@@ -18,7 +18,19 @@ all:
 SELECT * FROM LibraryItemEntity;
 
 libraryItemCatalog:
-SELECT id, libraryId, author, title, cover, isBook, addedAt
+SELECT
+  id,
+  libraryId,
+  author,
+  title,
+  cover,
+  isBook,
+  addedAt,
+  (
+    SELECT COUNT(*)
+    FROM PodcastEpisodeEntity
+    WHERE PodcastEpisodeEntity.libraryItemId = LibraryItemEntity.id
+  ) AS episodeCount
 FROM LibraryItemEntity;
 
 idsByLibraryId:
