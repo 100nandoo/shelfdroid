@@ -12,7 +12,6 @@ import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.BookMetadata
 import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_BOOK
 import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_PODCAST
-import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.core.network.response.libraryitem.PodcastMetadata
 import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
@@ -21,6 +20,7 @@ import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.LocalSessionEntity
@@ -53,6 +53,7 @@ constructor(
   private val api: ApiService,
   private val json: Json,
   private val state: PlayerInternalStateHolder,
+  private val podcastEpisodeRepo: PodcastEpisodeRepo,
   db: MyDatabase,
 ) {
 
@@ -171,10 +172,18 @@ constructor(
     podcast
       .takeIf { it.isBook != 1L }
       .let {
-        val media = json.decodeFromString<Podcast>(podcast.media)
-        val episode = media.episodes.firstOrNull { it.id == uiState.episodeId }
-        val mediaMetadata = json.encodeToString(media.metadata)
-        val coverPath = media.coverPath ?: ""
+        val cachedPodcast = libraryItemRepo.podcastById(uiState.id)
+        val episode = podcastEpisodeRepo.byId(uiState.episodeId)
+        val mediaMetadata =
+          json.encodeToString(
+            cachedPodcast?.metadata
+              ?: PodcastMetadata(
+                title = podcast.title,
+                author = podcast.author,
+                description = podcast.description,
+              )
+          )
+        val coverPath = cachedPodcast?.coverPath.orEmpty()
         val entity =
           createEntity(
             coverPath,

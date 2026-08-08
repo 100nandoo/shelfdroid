@@ -144,4 +144,8 @@ dependencies {
   // ACRA crash reporting
   implementation(libs.acra.core)
   implementation(libs.acra.toast)
+
+  androidTestImplementation(libs.androidx.test.core)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.runner)
 }

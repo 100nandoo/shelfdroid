@@ -108,9 +108,10 @@ constructor(
   }
 
   suspend fun fetchEpisode(itemId: String): PodcastApiState {
-    val item = api.item(itemId).getOrNull() ?: return failureState("Failed to fetch podcast")
-    val podcast = item.media as? Podcast ?: return failureState("Podcast not found")
-    val feedUrl = podcast.metadata.feedUrl ?: return failureState("Podcast feed URL not found")
+    val feedUrl =
+      libraryItemRepo.podcastById(itemId)?.metadata?.feedUrl?.takeIf { it.isNotBlank() }
+        ?: refreshFeedUrl(itemId)
+        ?: return failureState("Podcast source feed not found")
 
     val result = podcastFeedRepo.fetch(feedUrl)
     return if (result is GenericState.Success) {
@@ -145,6 +146,12 @@ constructor(
 
   suspend fun closeGeneratedRssFeed(itemId: String, feedId: String): Result<Unit> {
     return libraryItemRepo.closeGeneratedRssFeedForItem(itemId = itemId, feedId = feedId)
+  }
+
+  private suspend fun refreshFeedUrl(itemId: String): String? {
+    val item = api.item(itemId).getOrNull() ?: return null
+    libraryItemRepo.updateItem(item)
+    return (item.media as? Podcast)?.metadata?.feedUrl?.takeIf { it.isNotBlank() }
   }
 
   private fun failureState(message: String) = PodcastApiState.AddFailure(message)

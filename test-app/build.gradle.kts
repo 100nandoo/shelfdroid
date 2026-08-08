@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   alias(libs.plugins.android.test)
-  alias(libs.plugins.ksp)
 }
 
 android {
@@ -13,7 +12,7 @@ android {
   defaultConfig {
     minSdk = libs.versions.minSdk.get().toInt()
 
-    testInstrumentationRunner = "dev.halim.shelfdroid.core.testing.HiltTestRunner"
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
   buildFeatures {
@@ -31,15 +30,10 @@ android {
 
 dependencies {
   implementation(project(libs.versions.app.get()))
-  implementation(project(libs.versions.coreData.get()))
-  implementation(project(libs.versions.coreTesting.get()))
+  implementation(project(libs.versions.coreUi.get()))
 
   // Testing
   implementation(libs.androidx.test.core)
-
-  // Hilt and instrumented tests.
-  implementation(libs.hilt.android.testing)
-  ksp(libs.hilt.android.compiler)
 
   // Compose
   implementation(platform(libs.androidx.compose.bom))

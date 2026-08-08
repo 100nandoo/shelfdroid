@@ -6,34 +6,33 @@ import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
 import dev.halim.shelfdroid.core.data.response.PodcastFeedRepo
 import javax.inject.Inject
-import kotlinx.serialization.json.Json
 
 class AddEpisodeRepository
 @Inject
 constructor(
   private val prefsRepository: PrefsRepository,
   private val libraryItemRepo: LibraryItemRepo,
+  private val podcastEpisodeRepo: PodcastEpisodeRepo,
   private val podcastFeedRepo: PodcastFeedRepo,
   private val apiService: ApiService,
   private val mapper: AddEpisodeMapper,
-  private val json: Json,
 ) {
-  lateinit var podcast: Podcast
   lateinit var podcastFeed: PodcastFeed
   val crudPrefs = prefsRepository.crudPrefs
 
-  fun item(id: String): AddEpisodeUiState {
+  suspend fun item(id: String): AddEpisodeUiState {
     val entity = libraryItemRepo.byId(id) ?: return failureState("Failed to fetch podcast")
+    val podcast = loadPodcast(id) ?: return failureState("Invalid podcast data")
 
-    podcast = decodePodcast(entity.media) ?: return failureState("Invalid podcast data")
-
-    val feedUrl = podcast.metadata.feedUrl
+    val feedUrl = podcast.metadata.feedUrl?.takeIf { it.isNotBlank() }
+      ?: return failureState("Podcast source feed not found")
     podcastFeed =
       podcastFeedRepo.cache[feedUrl] ?: return failureState("Failed to fetch podcast feed")
 
-    val episodes: List<AddEpisode> = mapper.mapEpisodes(podcast.episodes, podcastFeed)
+    val episodes = mapper.mapEpisodes(podcastEpisodeRepo.byLibraryItemId(id), podcastFeed)
 
     return AddEpisodeUiState(
       state = GenericState.Success,
@@ -57,8 +56,16 @@ constructor(
     }
   }
 
-  private fun decodePodcast(raw: String): Podcast? =
-    runCatching { json.decodeFromString<Podcast>(raw) }.getOrNull()
+  private suspend fun loadPodcast(id: String): Podcast? {
+    val cached = libraryItemRepo.podcastById(id)
+    if (cached?.metadata?.feedUrl.isNullOrBlank().not()) {
+      return cached
+    }
+
+    val remote = apiService.item(id).getOrNull() ?: return cached
+    libraryItemRepo.updateItem(remote)
+    return remote.media as? Podcast ?: cached
+  }
 
   private fun failureState(message: String) =
     AddEpisodeUiState(state = GenericState.Failure(message))

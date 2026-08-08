@@ -26,6 +26,10 @@ android {
 }
 
 dependencies {
+  androidTestImplementation(libs.androidx.test.core)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.runner)
+
   implementation(libs.androidx.test.runner)
   implementation(libs.hilt.android.testing)
 }

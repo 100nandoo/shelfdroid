@@ -89,4 +89,7 @@ dependencies {
   implementation(libs.coil.okhttp)
 
   testImplementation(libs.junit)
+  androidTestImplementation(libs.androidx.test.core)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.runner)
 }

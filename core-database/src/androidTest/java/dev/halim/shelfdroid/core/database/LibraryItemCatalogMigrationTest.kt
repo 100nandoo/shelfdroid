@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import dev.halim.shelfdroid.core.database.PodcastEntityQueries
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -203,6 +204,141 @@ class LibraryItemCatalogMigrationTest {
       assertEquals(
         "",
         database.rawQuery("SELECT media FROM LibraryItemEntity WHERE id = 'book-1'", null).use { cursor ->
+          cursor.moveToFirst()
+          cursor.getString(0)
+        },
+      )
+    }
+  }
+
+  @Test
+  fun openingVersionSevenDatabaseClearsLegacyPodcastMediaAndPreservesEpisodeCatalog() {
+    context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
+      database.execSQL(
+        """
+          CREATE TABLE LibraryItemEntity (
+            id TEXT PRIMARY KEY NOT NULL,
+            libraryId TEXT NOT NULL,
+            author TEXT NOT NULL DEFAULT '',
+            title TEXT NOT NULL DEFAULT '',
+            description TEXT NOT NULL DEFAULT '',
+            cover TEXT NOT NULL DEFAULT '',
+            updatedAt INTEGER NOT NULL DEFAULT 0,
+            media TEXT NOT NULL DEFAULT '',
+            rssFeed TEXT,
+            isBook INTEGER NOT NULL DEFAULT 1,
+            inoId TEXT NOT NULL DEFAULT '',
+            duration TEXT NOT NULL DEFAULT '',
+            addedAt INTEGER NOT NULL
+          )
+        """.trimIndent(),
+      )
+      database.execSQL(
+        """
+          CREATE TABLE PodcastEpisodeEntity (
+            id TEXT PRIMARY KEY NOT NULL,
+            libraryItemId TEXT NOT NULL,
+            episodeIndex INTEGER,
+            season TEXT,
+            episode TEXT,
+            episodeType TEXT,
+            title TEXT NOT NULL,
+            subtitle TEXT,
+            description TEXT,
+            enclosureUrl TEXT,
+            enclosureType TEXT,
+            enclosureLength TEXT,
+            pubDate TEXT,
+            audioFile TEXT NOT NULL,
+            audioTrack TEXT NOT NULL,
+            publishedAt INTEGER,
+            addedAt INTEGER NOT NULL,
+            updatedAt INTEGER NOT NULL
+          )
+        """.trimIndent(),
+      )
+      database.execSQL(
+        """
+          CREATE INDEX PodcastEpisodeEntity_libraryItemId
+          ON PodcastEpisodeEntity(libraryItemId)
+        """.trimIndent(),
+      )
+      database.execSQL(
+        """
+          INSERT INTO LibraryItemEntity(
+            id, libraryId, author, title, description, cover, updatedAt, media, rssFeed,
+            isBook, inoId, duration, addedAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent(),
+        arrayOf<Any?>(
+          "podcast-1",
+          "library-1",
+          "Author",
+          "Podcast",
+          "Description",
+          "cover",
+          0,
+          "x".repeat(3_000_000),
+          null,
+          0,
+          "",
+          "",
+          1,
+        ),
+      )
+      database.execSQL(
+        """
+          INSERT INTO PodcastEpisodeEntity(
+            id, libraryItemId, episodeIndex, season, episode, episodeType, title, subtitle,
+            description, enclosureUrl, enclosureType, enclosureLength, pubDate, audioFile,
+            audioTrack, publishedAt, addedAt, updatedAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent(),
+        arrayOf<Any?>(
+          "episode-1",
+          "podcast-1",
+          1,
+          null,
+          null,
+          null,
+          "Episode",
+          null,
+          null,
+          "https://example.com/episode.mp3",
+          null,
+          null,
+          null,
+          "{}",
+          "{}",
+          null,
+          1,
+          1,
+        ),
+      )
+      database.version = 7
+    }
+
+    AndroidSqliteDriver(MyDatabase.Schema, context, databaseName).use { driver ->
+      assertEquals(
+        LibraryItemCatalog(
+          id = "podcast-1",
+          libraryId = "library-1",
+          author = "Author",
+          title = "Podcast",
+          cover = "cover",
+          isBook = 0,
+          addedAt = 1,
+          episodeCount = 1,
+        ),
+        LibraryItemEntityQueries(driver).libraryItemCatalog().executeAsOne(),
+      )
+      assertEquals(null, PodcastEntityQueries(driver).byLibraryItemId("podcast-1").executeAsOneOrNull())
+    }
+
+    context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
+      assertEquals(
+        "",
+        database.rawQuery("SELECT media FROM LibraryItemEntity WHERE id = 'podcast-1'", null).use { cursor ->
           cursor.moveToFirst()
           cursor.getString(0)
         },

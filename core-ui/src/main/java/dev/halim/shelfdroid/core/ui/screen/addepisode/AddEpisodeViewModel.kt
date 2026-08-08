@@ -32,7 +32,7 @@ constructor(
   val id: String = navKey.id
   private val downloadEpisodeState = MutableStateFlow<GenericState>(GenericState.Idle)
 
-  private val _uiState = MutableStateFlow(repository.item(id))
+  private val _uiState = MutableStateFlow(AddEpisodeUiState())
 
   val uiState: StateFlow<AddEpisodeUiState> =
     combine(_uiState, repository.crudPrefs, downloadEpisodeState) {
@@ -49,6 +49,12 @@ constructor(
         SharingStarted.WhileSubscribed(5000),
         _uiState.value.copy(downloadEpisodeState = downloadEpisodeState.value),
       )
+
+  init {
+    viewModelScope.launch {
+      _uiState.value = repository.item(id)
+    }
+  }
 
   fun onEvent(event: AddEpisodeEvent) {
     when (event) {

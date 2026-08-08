@@ -1,0 +1,8 @@
+CREATE TABLE PodcastEntity (
+  libraryItemId TEXT PRIMARY KEY NOT NULL,
+  media TEXT NOT NULL
+);
+
+UPDATE LibraryItemEntity
+SET media = ''
+WHERE isBook = 0;

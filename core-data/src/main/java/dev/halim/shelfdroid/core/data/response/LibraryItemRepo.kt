@@ -41,6 +41,7 @@ constructor(
   private val downloadRepo: DownloadRepo,
   private val progressRepo: ProgressRepo,
   private val bookMediaRepo: BookMediaRepo,
+  private val podcastMediaRepo: PodcastMediaRepo,
   private val podcastEpisodeRepo: PodcastEpisodeRepo,
 ) {
 
@@ -140,6 +141,8 @@ constructor(
 
   fun flowBookById(id: String): Flow<Book?> = bookMediaRepo.flowById(id)
 
+  fun podcastById(id: String): Podcast? = podcastMediaRepo.byId(id)
+
   suspend fun idsByLibraryId(libraryId: String): List<String> {
     val result = api.libraryItems(libraryId).getOrNull()
     val ids = result?.results?.map { it.id }
@@ -154,14 +157,13 @@ constructor(
 
   fun podcastInfoList(libraryId: String): List<PodcastInfo> {
     return queries.podcastsByLibraryId(libraryId).executeAsList().map { entity ->
-      val podcast = Json.decodeFromString<Podcast>(entity.media)
-      val metadata = podcast.metadata
+      val metadata = podcastMediaRepo.byId(entity.id)?.metadata
       PodcastInfo(
         id = entity.id,
-        itunesId = metadata.itunesId,
-        artist = podcast.metadata.author ?: "",
-        title = podcast.metadata.title ?: "",
-        feedUrl = metadata.feedUrl ?: "",
+        itunesId = metadata?.itunesId.orEmpty(),
+        artist = metadata?.author?.ifBlank { null } ?: entity.author,
+        title = metadata?.title?.ifBlank { null } ?: entity.title,
+        feedUrl = metadata?.feedUrl.orEmpty(),
       )
     }
   }
@@ -195,13 +197,7 @@ constructor(
   }
 
   fun deleteEpisodes(id: String, episodeIds: Set<String>) {
-    val entity = queries.byId(id).executeAsOne()
-
-    val podcast = Json.decodeFromString<Podcast>(entity.media)
-
-    val updatedPodcast = podcast.copy(episodes = podcast.episodes.filterNot { it.id in episodeIds })
-
-    queries.updateMediaById(media = json.encodeToString(updatedPodcast), id = id)
+    if (episodeIds.isEmpty()) return
     podcastEpisodeRepo.deleteByIds(episodeIds)
 
     downloadRepo.cleanupEpisode(episodeIds.toList())
@@ -283,7 +279,7 @@ constructor(
         updatedAt = item.updatedAt,
         duration = "",
         isBook = 0,
-        media = json.encodeToString(media),
+        media = "",
         rssFeed = item.rssFeed?.let(json::encodeToString),
         addedAt = item.addedAt,
       )
@@ -301,10 +297,12 @@ constructor(
     queries.insert(toEntity(item, libraryId))
     if (media is Book) {
       bookMediaRepo.insert(item.id, media)
+      podcastMediaRepo.deleteById(item.id)
       podcastEpisodeRepo.deleteByLibraryItemId(item.id)
     } else {
       media as Podcast
       bookMediaRepo.deleteById(item.id)
+      podcastMediaRepo.insert(item.id, media)
       podcastEpisodeRepo.replace(item.id, media.episodes)
     }
   }
@@ -312,6 +310,7 @@ constructor(
   private fun deleteInTransaction(id: String) {
     queries.deleteById(id)
     bookMediaRepo.deleteById(id)
+    podcastMediaRepo.deleteById(id)
     podcastEpisodeRepo.deleteByLibraryItemId(id)
   }
 
