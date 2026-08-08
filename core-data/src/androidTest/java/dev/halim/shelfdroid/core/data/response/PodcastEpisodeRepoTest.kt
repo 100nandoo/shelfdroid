@@ -60,6 +60,23 @@ class PodcastEpisodeRepoTest {
   }
 
   @Test
+  fun byLibraryItemId_returnsEpisodesForSelectedPodcast() {
+    database { database ->
+      val repository = PodcastEpisodeRepo(database, Json)
+      repository.replace(
+        "podcast-1",
+        listOf(episode("episode-1", "First episode"), episode("episode-2", "Second episode")),
+      )
+      repository.replace("podcast-2", listOf(episode("episode-3", "Third episode")))
+
+      assertEquals(
+        setOf("episode-1", "episode-2"),
+        repository.byLibraryItemId("podcast-1").map { episode -> episode.id }.toSet(),
+      )
+    }
+  }
+
+  @Test
   fun catalog_reportsPodcastEpisodeTotalWithoutEpisodePayload() {
     database { database ->
       database.libraryItemEntityQueries.insert(

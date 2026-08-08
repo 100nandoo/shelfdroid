@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.core.data.screen.player
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BookmarkRequest
-import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.AdvancedControl
 import dev.halim.shelfdroid.core.ChangeBehaviour
 import dev.halim.shelfdroid.core.PlayerBookmark
@@ -13,6 +12,7 @@ import dev.halim.shelfdroid.core.RawPlaybackProgress
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.BookmarkRepo
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
@@ -20,12 +20,12 @@ import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.json.Json
 
 class PlayerRepository
 @Inject
 constructor(
   private val libraryItemRepo: LibraryItemRepo,
+  private val podcastEpisodeRepo: PodcastEpisodeRepo,
   private val progressRepo: ProgressRepo,
   private val bookmarkRepo: BookmarkRepo,
   private val helper: Helper,
@@ -163,10 +163,8 @@ constructor(
     val progress = progressRepo.episodeById(episodeId)
     val playerPrefs = prefsRepository.playerPrefs.first()
     return if (result != null && result.isBook.toBoolean().not()) {
-      val media = Json.decodeFromString<Podcast>(result.media)
-
       val episode =
-        media.episodes.find { it.id == episodeId }
+        podcastEpisodeRepo.byId(episodeId)?.takeIf { it.libraryItemId == itemId }
           ?: return PlayerUiState(state = PlayerState.Hidden(Error("Failed to find episode")))
 
       val downloadState =

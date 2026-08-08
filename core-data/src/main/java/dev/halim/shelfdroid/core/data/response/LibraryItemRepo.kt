@@ -60,7 +60,7 @@ constructor(
             if (result != null) {
               val items = result.libraryItems
               val entities = convert(libraryId, result)
-              cleanupPodcasts(libraryId, entities)
+              cleanupPodcasts(libraryId, items)
               val booksToDelete = cleanupBooks(libraryId, entities)
               queries.transaction {
                 booksToDelete.forEach { entity ->
@@ -239,24 +239,17 @@ constructor(
     return toDelete
   }
 
-  private fun cleanupPodcasts(libraryId: String, entities: List<LibraryItemEntity>) {
-    val episodeIds =
+  private fun cleanupPodcasts(libraryId: String, items: List<LibraryItem>) {
+    val existingEpisodeIds =
       queries
         .byLibraryId(libraryId)
         .executeAsList()
         .filter { it.isBook == 0L }
-        .map { Json.decodeFromString<Podcast>(it.media) }
-        .flatMap { it.episodes }
+        .flatMap { entity -> podcastEpisodeRepo.byLibraryItemId(entity.id) }
         .map { it.id }
-    val newEpisodeIds =
-      entities
-        .filter { it.isBook.toBoolean().not() }
-        .map { Json.decodeFromString<Podcast>(it.media) }
-        .flatMap { it.episodes }
-        .map { it.id }
+        .toSet()
 
-    val toDeleteEpisode = episodeIds.filter { !newEpisodeIds.contains(it) }
-    downloadRepo.cleanupEpisode(toDeleteEpisode)
+    downloadRepo.cleanupEpisode(stalePodcastEpisodeIds(existingEpisodeIds, items))
   }
 
   private fun toEntity(item: LibraryItem, libraryId: String): LibraryItemEntity {
@@ -330,6 +323,19 @@ constructor(
   private fun currentWebBaseUrl(): String =
     AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL)?.value
       ?: AudiobookshelfBaseUrl.DEFAULT_VALUE
+}
+
+internal fun stalePodcastEpisodeIds(
+  existingEpisodeIds: Set<String>,
+  items: List<LibraryItem>,
+): List<String> {
+  val newEpisodeIds =
+    items
+      .mapNotNull { item -> (item.media as? Podcast)?.episodes }
+      .flatten()
+      .map { episode -> episode.id }
+      .toSet()
+  return (existingEpisodeIds - newEpisodeIds).toList()
 }
 
 internal fun Book.primaryInoId(): String = audioFiles.firstOrNull()?.ino.orEmpty()

@@ -1,5 +1,8 @@
 package dev.halim.shelfdroid.core.data.response
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import dev.halim.core.network.response.libraryitem.AudioFile
 import dev.halim.core.network.response.libraryitem.Enclosure
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
@@ -7,6 +10,9 @@ import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.PodcastEpisodeEntity
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -20,6 +26,23 @@ class PodcastEpisodeRepo @Inject constructor(
 
   fun byId(id: String): PodcastEpisode? =
     queries.byId(id).executeAsOneOrNull()?.let(::toPodcastEpisode)
+
+  fun flowById(id: String): Flow<PodcastEpisode?> =
+    queries
+      .byId(id)
+      .asFlow()
+      .mapToOneOrNull(Dispatchers.IO)
+      .map { entity -> entity?.let(::toPodcastEpisode) }
+
+  fun byLibraryItemId(libraryItemId: String): List<PodcastEpisode> =
+    queries.byLibraryItemId(libraryItemId).executeAsList().map(::toPodcastEpisode)
+
+  fun flowByLibraryItemId(libraryItemId: String): Flow<List<PodcastEpisode>> =
+    queries
+      .byLibraryItemId(libraryItemId)
+      .asFlow()
+      .mapToList(Dispatchers.IO)
+      .map { entities -> entities.map(::toPodcastEpisode) }
 
   fun replace(libraryItemId: String, episodes: List<PodcastEpisode>) {
     queries.transaction {

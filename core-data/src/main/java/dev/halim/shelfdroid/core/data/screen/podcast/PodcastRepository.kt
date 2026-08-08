@@ -6,6 +6,7 @@ import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
 import dev.halim.shelfdroid.core.data.response.PodcastFeedRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
@@ -30,37 +31,36 @@ constructor(
   private val downloadRepo: DownloadRepo,
   private val prefsRepository: PrefsRepository,
   private val api: ApiService,
+  private val podcastEpisodeRepo: PodcastEpisodeRepo,
   private val podcastFeedRepo: PodcastFeedRepo,
   private val mapper: PodcastMapper,
 ) {
   private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
-  var podcast: Podcast? = null
-
   fun item(id: String): Flow<PodcastUiState> {
     val entity = libraryItemRepo.flowById(id)
+    val episodes = podcastEpisodeRepo.flowByLibraryItemId(id)
     val progresses = progressRepo.flowByLibraryItemId(id)
+    val downloadSignal = combine(downloadRepo.downloads, downloadRepo.durableDownloads) { _, _ -> }
     val prefs = prefsRepository.prefsFlow()
 
     return combine(
       entity,
+      episodes,
       progresses,
-      downloadRepo.downloads,
-      downloadRepo.durableDownloads,
+      downloadSignal,
       prefs,
-    ) { entity, progresses, _, _, prefs ->
+    ) { entity, episodes, progresses, _, prefs ->
       entity?.let {
-        podcast = Json.decodeFromString<Podcast>(it.media)
-        val episodes = mapper.mapEpisodes(it.title, podcast?.episodes ?: emptyList(), progresses)
+        val mappedEpisodes = mapper.mapEpisodes(it.title, episodes, progresses)
         val generatedRssFeed =
           GeneratedRssFeedMapper.map(
             itemId = id,
             feed = it.rssFeed?.let { rssFeed -> Json.decodeFromString(rssFeed) },
             webBaseUrl = currentWebBaseUrl(),
             canManage = prefs.userPrefs.isAdmin,
-            hasAudioContent = podcast?.episodes?.isNotEmpty() == true,
-            hasEpisodesWithoutPubDate =
-              podcast?.episodes?.any { episode -> episode.pubDate == null } == true,
+            hasAudioContent = episodes.isNotEmpty(),
+            hasEpisodesWithoutPubDate = episodes.any { episode -> episode.pubDate == null },
           )
 
         PodcastUiState(
@@ -73,7 +73,7 @@ constructor(
           canEditEpisode = prefs.userPrefs.isAdmin || prefs.userPrefs.update,
           canDeleteEpisode = prefs.userPrefs.isAdmin || prefs.userPrefs.delete,
           generatedRssFeed = generatedRssFeed,
-          episodes = episodes,
+          episodes = mappedEpisodes,
           prefs = prefs,
         )
       } ?: PodcastUiState(state = GenericState.Failure("Failed to fetch podcast"))
@@ -107,10 +107,10 @@ constructor(
     return result.isSuccess
   }
 
-  suspend fun fetchEpisode(): PodcastApiState {
-    if (podcast == null) return failureState("Podcast not found")
-
-    val feedUrl = podcast?.metadata?.feedUrl ?: return failureState("Podcast feed URL not found")
+  suspend fun fetchEpisode(itemId: String): PodcastApiState {
+    val item = api.item(itemId).getOrNull() ?: return failureState("Failed to fetch podcast")
+    val podcast = item.media as? Podcast ?: return failureState("Podcast not found")
+    val feedUrl = podcast.metadata.feedUrl ?: return failureState("Podcast feed URL not found")
 
     val result = podcastFeedRepo.fetch(feedUrl)
     return if (result is GenericState.Success) {
