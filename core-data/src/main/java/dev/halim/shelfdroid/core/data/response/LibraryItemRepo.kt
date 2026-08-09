@@ -261,7 +261,6 @@ constructor(
         updatedAt = item.updatedAt,
         duration = helper.formatDuration(media.duration ?: 0.0),
         isBook = 1,
-        media = "",
         rssFeed = item.rssFeed?.let(json::encodeToString),
         addedAt = item.addedAt,
       )
@@ -278,7 +277,6 @@ constructor(
         updatedAt = item.updatedAt,
         duration = "",
         isBook = 0,
-        media = "",
         rssFeed = item.rssFeed?.let(json::encodeToString),
         addedAt = item.addedAt,
       )

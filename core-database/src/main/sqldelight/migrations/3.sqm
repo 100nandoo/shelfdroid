@@ -1,0 +1,48 @@
+CREATE TABLE LibraryItemEntity_new (
+  id TEXT PRIMARY KEY NOT NULL,
+  libraryId TEXT NOT NULL,
+  author TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  cover TEXT NOT NULL DEFAULT '',
+  updatedAt INTEGER NOT NULL DEFAULT 0,
+  rssFeed TEXT,
+  isBook INTEGER NOT NULL DEFAULT 1,
+  inoId TEXT NOT NULL DEFAULT '',
+  duration TEXT NOT NULL DEFAULT '',
+  addedAt INTEGER NOT NULL
+);
+
+INSERT INTO LibraryItemEntity_new(
+  id,
+  libraryId,
+  author,
+  title,
+  description,
+  cover,
+  updatedAt,
+  rssFeed,
+  isBook,
+  inoId,
+  duration,
+  addedAt
+)
+SELECT
+  id,
+  libraryId,
+  author,
+  title,
+  description,
+  cover,
+  updatedAt,
+  rssFeed,
+  isBook,
+  inoId,
+  duration,
+  addedAt
+FROM LibraryItemEntity;
+
+DROP TABLE LibraryItemEntity;
+
+ALTER TABLE LibraryItemEntity_new
+RENAME TO LibraryItemEntity;

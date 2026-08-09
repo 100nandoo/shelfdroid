@@ -21,7 +21,7 @@ class LibraryItemCatalogMigrationTest {
   }
 
   @Test
-  fun catalog_readsCompactLibraryItemFieldsWithoutMaterializingMedia() {
+  fun catalog_readsCurrentLibraryItemFields() {
     AndroidSqliteDriver(MyDatabase.Schema, context).use { driver ->
       val queries = LibraryItemEntityQueries(driver)
       queries.insert(
@@ -33,7 +33,6 @@ class LibraryItemCatalogMigrationTest {
           description = "",
           cover = "cover",
           updatedAt = 0,
-          media = "x".repeat(3_000_000),
           rssFeed = null,
           isBook = 0,
           inoId = "",
@@ -217,11 +216,27 @@ class LibraryItemCatalogMigrationTest {
         },
       )
       assertEquals(
-        "",
-        database.rawQuery("SELECT media FROM LibraryItemEntity WHERE id = 'book-1'", null).use {
+        listOf(
+          "id",
+          "libraryId",
+          "author",
+          "title",
+          "description",
+          "cover",
+          "updatedAt",
+          "rssFeed",
+          "isBook",
+          "inoId",
+          "duration",
+          "addedAt",
+        ),
+        database.rawQuery("PRAGMA table_info(LibraryItemEntity)", null).use {
           cursor ->
-          cursor.moveToFirst()
-          cursor.getString(0)
+          buildList {
+            while (cursor.moveToNext()) {
+              add(cursor.getString(1))
+            }
+          }
         },
       )
     }

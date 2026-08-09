@@ -6,7 +6,6 @@ CREATE TABLE LibraryItemEntity (
   description TEXT NOT NULL DEFAULT '',
   cover TEXT NOT NULL DEFAULT '',
   updatedAt INTEGER NOT NULL DEFAULT 0,
-  media TEXT NOT NULL DEFAULT '',
   rssFeed TEXT,
   isBook INTEGER NOT NULL DEFAULT 1,
   inoId TEXT NOT NULL DEFAULT '',
@@ -49,14 +48,8 @@ FROM LibraryItemEntity
 WHERE id = :id;
 
 insert:
-INSERT OR REPLACE INTO LibraryItemEntity(id, libraryId, author, title, description, cover, updatedAt, media, rssFeed, isBook, inoId,
-duration, addedAt)
+INSERT OR REPLACE INTO LibraryItemEntity(id, libraryId, author, title, description, cover, updatedAt, rssFeed, isBook, inoId, duration, addedAt)
 VALUES ?;
-
-updateMediaById:
-UPDATE LibraryItemEntity
-SET media = :media
-WHERE id = :id;
 
 deleteById:
 DELETE FROM LibraryItemEntity WHERE id = ?;

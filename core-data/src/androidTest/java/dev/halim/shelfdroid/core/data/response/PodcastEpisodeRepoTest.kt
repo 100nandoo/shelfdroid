@@ -88,7 +88,6 @@ class PodcastEpisodeRepoTest {
           description = "",
           cover = "cover",
           updatedAt = 0,
-          media = "",
           rssFeed = null,
           isBook = 0,
           inoId = "",
