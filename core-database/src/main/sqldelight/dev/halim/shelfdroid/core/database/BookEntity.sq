@@ -1,30 +1,6 @@
 CREATE TABLE BookEntity (
   libraryItemId TEXT PRIMARY KEY NOT NULL,
-  coverPath TEXT,
-  title TEXT,
-  language TEXT,
-  explicit INTEGER NOT NULL,
-  description TEXT,
-  subtitle TEXT,
-  publishedYear TEXT,
-  publishedDate TEXT,
-  publisher TEXT,
-  isbn TEXT,
-  asin TEXT,
-  descriptionPlain TEXT,
-  duration REAL,
-  ebookIno TEXT,
-  ebookFilename TEXT,
-  ebookExt TEXT,
-  ebookPath TEXT,
-  ebookRelPath TEXT,
-  ebookSize INTEGER,
-  ebookMtimeMs INTEGER,
-  ebookCtimeMs INTEGER,
-  ebookBirthtimeMs INTEGER,
-  ebookFormat TEXT,
-  ebookAddedAt INTEGER,
-  ebookUpdatedAt INTEGER
+  media TEXT NOT NULL
 );
 
 byLibraryItemId:
@@ -33,7 +9,8 @@ FROM BookEntity
 WHERE libraryItemId = :libraryItemId;
 
 insert:
-INSERT OR REPLACE INTO BookEntity VALUES ?;
+INSERT OR REPLACE INTO BookEntity(libraryItemId, media)
+VALUES ?;
 
 deleteByLibraryItemId:
 DELETE FROM BookEntity
