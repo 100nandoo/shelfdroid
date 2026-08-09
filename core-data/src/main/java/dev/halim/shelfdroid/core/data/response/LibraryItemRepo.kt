@@ -18,7 +18,6 @@ import dev.halim.shelfdroid.core.database.LibraryItemCatalog
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
-import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.BookCleanupRequest
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper

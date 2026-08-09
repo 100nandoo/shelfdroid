@@ -6,7 +6,9 @@ import dev.halim.shelfdroid.core.database.PodcastEntity
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 
-class PodcastMediaRepo @Inject constructor(
+class PodcastMediaRepo
+@Inject
+constructor(
   db: MyDatabase,
   private val json: Json,
 ) {
@@ -20,7 +22,8 @@ class PodcastMediaRepo @Inject constructor(
     queries.insert(
       PodcastEntity(
         libraryItemId = libraryItemId,
-        media = json.encodeToString(podcast.copy(libraryItemId = libraryItemId, episodes = emptyList())),
+        media =
+          json.encodeToString(podcast.copy(libraryItemId = libraryItemId, episodes = emptyList())),
       )
     )
   }

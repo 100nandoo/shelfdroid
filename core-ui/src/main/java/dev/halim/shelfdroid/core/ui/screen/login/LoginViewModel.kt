@@ -167,7 +167,8 @@ internal suspend fun handleOpenIdLoginButtonPressed(
   redirectUri: String,
   startOpenIdLogin:
     suspend (
-      LoginUiState, String,
+      LoginUiState,
+      String,
     ) -> dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult,
   emitEvent: suspend (LoginUiEvent) -> Unit,
 ): LoginUiState {

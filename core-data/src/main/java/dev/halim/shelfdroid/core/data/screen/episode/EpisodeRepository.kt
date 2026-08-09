@@ -43,8 +43,7 @@ constructor(
         ?.takeIf { it.isBook.toBoolean().not() }
         ?.let { item ->
           val podcastEpisode =
-            episode
-              ?.takeIf { it.libraryItemId == item.id }
+            episode?.takeIf { it.libraryItemId == item.id }
               ?: return@combine EpisodeUiState(
                 state = GenericState.Failure("Failed to find episode")
               )

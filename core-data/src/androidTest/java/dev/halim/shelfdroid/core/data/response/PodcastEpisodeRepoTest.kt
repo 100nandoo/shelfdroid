@@ -15,11 +15,11 @@ import dev.halim.shelfdroid.core.data.di.DatabaseModule
 import dev.halim.shelfdroid.core.database.LibraryItemCatalog
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlinx.serialization.json.Json
 
 @RunWith(AndroidJUnit4::class)
 class PodcastEpisodeRepoTest {
@@ -94,12 +94,13 @@ class PodcastEpisodeRepoTest {
           inoId = "",
           duration = "",
           addedAt = 1,
-        ),
+        )
       )
-      PodcastEpisodeRepo(database, Json).replace(
-        "podcast-1",
-        listOf(episode("episode-1", "First"), episode("episode-2", "Second")),
-      )
+      PodcastEpisodeRepo(database, Json)
+        .replace(
+          "podcast-1",
+          listOf(episode("episode-1", "First"), episode("episode-2", "Second")),
+        )
 
       assertEquals(
         LibraryItemCatalog(

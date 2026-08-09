@@ -7,7 +7,8 @@ import org.junit.Test
 
 class AppTest {
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<dev.halim.shelfdroid.core.ui.screen.MainActivity>()
+  @get:Rule
+  val composeTestRule = createAndroidComposeRule<dev.halim.shelfdroid.core.ui.screen.MainActivity>()
 
   @Test
   fun mainActivityLaunches() {

@@ -53,5 +53,4 @@ class BookMediaRepoTest {
       assertNull(repository.byId("book-1"))
     }
   }
-
 }

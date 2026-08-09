@@ -27,8 +27,9 @@ constructor(
     val entity = libraryItemRepo.byId(id) ?: return failureState("Failed to fetch podcast")
     val podcast = loadPodcast(id) ?: return failureState("Invalid podcast data")
 
-    val feedUrl = podcast.metadata.feedUrl?.takeIf { it.isNotBlank() }
-      ?: return failureState("Podcast source feed not found")
+    val feedUrl =
+      podcast.metadata.feedUrl?.takeIf { it.isNotBlank() }
+        ?: return failureState("Podcast source feed not found")
     podcastFeed =
       podcastFeedRepo.cache[feedUrl] ?: return failureState("Failed to fetch podcast feed")
 

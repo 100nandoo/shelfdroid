@@ -21,11 +21,9 @@ class BookMediaRepo @Inject constructor(db: MyDatabase) {
     queries.byLibraryItemId(libraryItemId).executeAsOneOrNull()?.let(::toBook)
 
   fun flowById(libraryItemId: String): Flow<Book?> =
-    queries
-      .byLibraryItemId(libraryItemId)
-      .asFlow()
-      .mapToOneOrNull(Dispatchers.IO)
-      .map { entity -> entity?.let(::toBook) }
+    queries.byLibraryItemId(libraryItemId).asFlow().mapToOneOrNull(Dispatchers.IO).map { entity ->
+      entity?.let(::toBook)
+    }
 
   fun insert(libraryItemId: String, book: Book) {
     val metadata = book.metadata
@@ -59,7 +57,7 @@ class BookMediaRepo @Inject constructor(db: MyDatabase) {
         ebookFormat = ebook?.ebookFormat,
         ebookAddedAt = ebook?.addedAt,
         ebookUpdatedAt = ebook?.updatedAt,
-      ),
+      )
     )
   }
 
