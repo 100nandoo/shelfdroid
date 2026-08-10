@@ -6,14 +6,14 @@ import dev.halim.core.network.request.emailmanagement.UpdateEreaderDevicesReques
 import dev.halim.core.network.response.emailmanagement.EmailSettings
 import dev.halim.core.network.response.emailmanagement.EreaderDevice
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.data.users.UserRepository
 import javax.inject.Inject
 
 class EmailManagementRepository
 @Inject
 constructor(
   private val api: ApiService,
-  private val userRepo: UserRepo,
+  private val userRepo: UserRepository,
 ) {
 
   suspend fun load(): EmailManagementUiState {
@@ -115,7 +115,7 @@ constructor(
   }
 
   private suspend fun loadUsersInternal(): Result<List<UserOption>> {
-    val result = userRepo.remote(include = null)
+    val result = userRepo.refreshUsers()
     val response = result.getOrElse {
       return Result.failure(it)
     }

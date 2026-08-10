@@ -47,7 +47,7 @@ constructor(
   private val queries = db.libraryItemEntityQueries
   private val libraryQueries = db.libraryEntityQueries
 
-  suspend fun remote() {
+  suspend fun refreshLibraryItems() {
     val libraryIds = libraryQueries.allIds().executeAsList()
     coroutineScope {
       libraryIds
@@ -74,6 +74,8 @@ constructor(
         .awaitAll()
     }
   }
+
+  suspend fun remote() = refreshLibraryItems()
 
   fun createPodcast(libraryItem: LibraryItem, libraryId: String) {
     insert(libraryItem, libraryId)
@@ -148,11 +150,13 @@ constructor(
     return ids ?: queries.idsByLibraryId(libraryId).executeAsList()
   }
 
-  fun flowCatalog(): Flow<Map<String, List<LibraryItemCatalog>>> {
+  fun observeLibraryItemCatalog(): Flow<Map<String, List<LibraryItemCatalog>>> {
     return queries.libraryItemCatalog().asFlow().mapToList(Dispatchers.IO).map { list ->
       list.groupBy { it.libraryId }
     }
   }
+
+  fun flowCatalog(): Flow<Map<String, List<LibraryItemCatalog>>> = observeLibraryItemCatalog()
 
   fun listExistingPodcastSummaries(libraryId: String): List<ExistingPodcastSummary> {
     return queries.podcastsByLibraryId(libraryId).executeAsList().map { entity ->

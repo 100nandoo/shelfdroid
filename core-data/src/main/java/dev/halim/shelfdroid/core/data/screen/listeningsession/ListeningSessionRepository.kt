@@ -31,7 +31,7 @@ constructor(
           return ListeningSessionUiState(state = GenericState.Failure(it.message))
         }
 
-    val users = userRepo.all()
+    val users = userRepo.listUsers()
 
     return mapper.map(response, users, listeningSessionPrefs.defaultUserId)
   }

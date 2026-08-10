@@ -1,24 +1,24 @@
 package dev.halim.shelfdroid.core.data.screen.userinfo
 
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.response.ListeningStatRepo
-import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.data.listening.ListeningStatsRepository
+import dev.halim.shelfdroid.core.data.users.UserRepository
 import javax.inject.Inject
 
 class UserInfoRepository
 @Inject
 constructor(
-  private val repo: ListeningStatRepo,
-  private val userRepo: UserRepo,
+  private val listeningStatsRepository: ListeningStatsRepository,
+  private val userRepository: UserRepository,
   private val mapper: UserInfoMapper,
 ) {
 
   suspend fun item(userId: String): UserInfoUiState {
-    repo.remote(userId)
+    listeningStatsRepository.refreshListeningStats(userId)
     val entity =
-      repo.byUserId(userId)
+      listeningStatsRepository.byUserId(userId)
         ?: return UserInfoUiState(state = GenericState.Failure("Unable to load listening stats."))
-    val mediaProgress = userRepo.userWithProgress(userId)
+    val mediaProgress = userRepository.fetchUserWithProgress(userId)
 
     val uiState = mapper.toUiState(entity, mediaProgress)
     return uiState

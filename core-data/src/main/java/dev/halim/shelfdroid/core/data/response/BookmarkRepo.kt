@@ -17,7 +17,7 @@ class BookmarkRepo @Inject constructor(db: MyDatabase) {
   fun byLibraryItemId(libraryItemId: String) =
     queries.byLibraryItemId(libraryItemId).executeAsList()
 
-  fun saveAndConvert(user: User): List<BookmarkEntity> {
+  fun replaceUserBookmarks(user: User): List<BookmarkEntity> {
     val entities = user.bookmarks.map { toEntity(it) }
     repoScope.launch {
       cleanup(entities)
@@ -25,6 +25,8 @@ class BookmarkRepo @Inject constructor(db: MyDatabase) {
     }
     return entities
   }
+
+  fun saveAndConvert(user: User): List<BookmarkEntity> = replaceUserBookmarks(user)
 
   fun insertAndConvert(audioBookmark: AudioBookmark): BookmarkEntity {
     val entity = toEntity(audioBookmark)

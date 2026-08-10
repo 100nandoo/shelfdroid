@@ -5,17 +5,17 @@ import dev.halim.core.network.request.CreateApiKeyRequest
 import dev.halim.core.network.request.UpdateApiKeyRequest
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
-import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.data.users.UserRepository
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 class CreateEditApiKeysRepository
 @Inject
-constructor(private val api: ApiService, private val userRepo: UserRepo) {
+constructor(private val api: ApiService, private val userRepo: UserRepository) {
 
   fun item(nav: NavEditApiKeys): CreateEditApiKeysUiState {
-    val users = userRepo.all().map { CreateEditApiKeysUiState.User(it.id, it.username) }
+    val users = userRepo.listUsers().map { CreateEditApiKeysUiState.User(it.id, it.username) }
     return CreateEditApiKeysUiState(
       state = GenericState.Success,
       apiKeyId = nav.id,

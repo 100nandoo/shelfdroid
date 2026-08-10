@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.database.LibraryItemCatalog
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import javax.inject.Inject
 
-class HomeMapper @Inject constructor(private val progressRepo: ProgressRepo) {
+class HomeMapper @Inject constructor(private val progressRepo: ProgressRepository) {
 
   suspend fun toBookUiState(item: LibraryItemCatalog): BookUiState {
     val progress = progressRepo.bookById(item.id)

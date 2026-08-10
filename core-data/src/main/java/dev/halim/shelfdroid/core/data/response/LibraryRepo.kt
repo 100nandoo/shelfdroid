@@ -20,11 +20,11 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
 
   private val queries = db.libraryEntityQueries
 
-  fun local(): List<LibraryEntity> {
-    return queries.all().executeAsList()
-  }
+  fun listLibraries(): List<LibraryEntity> = queries.all().executeAsList()
 
-  suspend fun remote() {
+  fun local(): List<LibraryEntity> = listLibraries()
+
+  suspend fun refreshLibraries() {
     val response = api.libraries().getOrNull()
     if (response != null) {
       val entities = convert(response)
@@ -32,6 +32,8 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
       entities.forEach { entity -> queries.insert(entity) }
     }
   }
+
+  suspend fun remote() = refreshLibraries()
 
   fun byId(id: String): LibraryEntity? {
     return queries.byId(id).executeAsOneOrNull()
@@ -46,9 +48,9 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
 
   fun foldersByLibraryId(id: String): List<PodcastFolder> = listLibraryFolders(id)
 
-  fun flowEntities(): Flow<List<LibraryEntity>> {
-    return queries.all().asFlow().mapToList(Dispatchers.IO)
-  }
+  fun observeLibraries(): Flow<List<LibraryEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
+
+  fun flowEntities(): Flow<List<LibraryEntity>> = observeLibraries()
 
   private fun convert(response: LibrariesResponse): List<LibraryEntity> {
     val entities = response.libraries.map { toEntity(it) }

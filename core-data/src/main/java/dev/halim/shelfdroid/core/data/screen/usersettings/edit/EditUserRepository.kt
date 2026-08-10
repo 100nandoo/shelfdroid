@@ -5,9 +5,9 @@ import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.login.Permissions as NetworkPermissions
 import dev.halim.shelfdroid.core.Permissions
 import dev.halim.shelfdroid.core.data.GenericUiEvent
-import dev.halim.shelfdroid.core.data.response.LibraryRepo
-import dev.halim.shelfdroid.core.data.response.TagRepo
-import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.data.catalog.LibraryRepository
+import dev.halim.shelfdroid.core.data.tags.TagRepository
+import dev.halim.shelfdroid.core.data.users.UserRepository
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.navigation.NavEditUser
 import javax.inject.Inject
@@ -17,9 +17,9 @@ import kotlinx.serialization.json.Json
 class EditUserRepository
 @Inject
 constructor(
-  private val userRepo: UserRepo,
-  private val tagRepo: TagRepo,
-  private val libraryRepo: LibraryRepo,
+  private val userRepo: UserRepository,
+  private val tagRepo: TagRepository,
+  private val libraryRepo: LibraryRepository,
 ) {
 
   fun item(editUser: NavEditUser): EditUserUiState {
@@ -30,8 +30,8 @@ constructor(
       state = EditUserState.Success,
       editUser = editUser,
       permissions = permissions,
-      tags = tagRepo.localList(),
-      libraries = libraries(libraryRepo.local()),
+      tags = tagRepo.listTags(),
+      libraries = libraries(libraryRepo.listLibraries()),
     )
   }
 

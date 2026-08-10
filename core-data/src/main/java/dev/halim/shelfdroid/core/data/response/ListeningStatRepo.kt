@@ -19,17 +19,22 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
   private val queries = db.listeningStatEntityQueries
   private val userQueries = db.userEntityQueries
 
-  fun flowAll(): Flow<List<ListeningStatEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
+  fun observeListeningStats(): Flow<List<ListeningStatEntity>> =
+    queries.all().asFlow().mapToList(Dispatchers.IO)
 
-  fun all(): List<ListeningStatEntity> = queries.all().executeAsList()
+  fun flowAll(): Flow<List<ListeningStatEntity>> = observeListeningStats()
+
+  fun listListeningStats(): List<ListeningStatEntity> = queries.all().executeAsList()
+
+  fun all(): List<ListeningStatEntity> = listListeningStats()
 
   fun byUserId(userId: String) = queries.byUserId(userId).executeAsOneOrNull()
 
-  suspend fun remote(userId: String): Result<ListeningStatResponse> {
+  suspend fun refreshListeningStats(userId: String): Result<ListeningStatResponse> {
     val result = api.listeningStats(userId)
     val response = result.getOrNull()
     if (result.isFailure) {
-      Log.e("ListeningStatRepo", "remote($userId): ${result.exceptionOrNull()}")
+      Log.e("ListeningStatRepo", "refreshListeningStats($userId): ${result.exceptionOrNull()}")
     }
     if (response != null) {
       queries.insert(toEntity(userId, response))
@@ -37,7 +42,9 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
     return result
   }
 
-  suspend fun remote() = supervisorScope {
+  suspend fun remote(userId: String): Result<ListeningStatResponse> = refreshListeningStats(userId)
+
+  suspend fun refreshListeningStats() = supervisorScope {
     val userIds = userQueries.allIds().executeAsList()
 
     val results =
@@ -47,7 +54,7 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
             val result = api.listeningStats(userId)
             val response = result.getOrNull()
             if (result.isFailure) {
-              Log.e("ListeningStatRepo", "remote: ${result.exceptionOrNull()}")
+              Log.e("ListeningStatRepo", "refreshListeningStats: ${result.exceptionOrNull()}")
             }
             response?.let { userId to it }
           }
@@ -59,6 +66,8 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
       save(results)
     }
   }
+
+  suspend fun remote() = refreshListeningStats()
 
   fun save(data: List<Pair<String, ListeningStatResponse>>) {
     queries.transaction {

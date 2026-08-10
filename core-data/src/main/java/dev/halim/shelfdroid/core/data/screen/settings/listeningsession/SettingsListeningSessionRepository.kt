@@ -12,7 +12,7 @@ class SettingsListeningSessionRepository
 constructor(private val userRepo: UserRepository, private val prefsRepository: PrefsRepository) {
 
   fun users(): List<User> {
-    return listOf(User.ALL_USER) + userRepo.all().map { map(it) }
+    return listOf(User.ALL_USER) + userRepo.listUsers().map { map(it) }
   }
 
   suspend fun updateItemsPerPage(itemsPerPage: Int) {

@@ -2,7 +2,7 @@ package dev.halim.shelfdroid.core.data.screen.usersettings
 
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.data.users.UserRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -10,14 +10,14 @@ import kotlinx.coroutines.flow.combine
 class UserSettingsRepository
 @Inject
 constructor(
-  private val userRepo: UserRepo,
+  private val userRepo: UserRepository,
   private val mapper: UserSettingsMapper,
   private val prefsRepository: PrefsRepository,
 ) {
 
   fun item(): Flow<UserSettingsUiState> {
     val result =
-      combine(userRepo.flowAll(), prefsRepository.userPrefs) { entityList, userPrefs ->
+      combine(userRepo.observeUsers(), prefsRepository.userPrefs) { entityList, userPrefs ->
         val users = entityList.map { entity -> mapper.user(entity) }
         val isLoginUserRoot = userPrefs.type.isRoot()
         UserSettingsUiState(
@@ -29,9 +29,11 @@ constructor(
     return result
   }
 
-  suspend fun remote() {
-    userRepo.remote("latestSession")
+  suspend fun refreshUsers() {
+    userRepo.refreshUsers("latestSession")
   }
+
+  suspend fun remote() = refreshUsers()
 
   suspend fun deleteUser(userId: String): UserSettingsApiState {
     userRepo.delete(userId).getOrElse {

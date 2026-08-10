@@ -28,7 +28,7 @@ class UserSettingsViewModel @Inject constructor(private val repository: UserSett
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), UserSettingsUiState())
 
   init {
-    viewModelScope.launch { repository.remote() }
+    viewModelScope.launch { repository.refreshUsers() }
   }
 
   fun onEvent(event: UserSettingsEvent) {

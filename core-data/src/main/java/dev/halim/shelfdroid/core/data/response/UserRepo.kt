@@ -31,9 +31,13 @@ class UserRepo @Inject constructor(db: MyDatabase, private val api: ApiService) 
 
   private val queries = db.userEntityQueries
 
-  fun flowAll(): Flow<List<UserEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
+  fun observeUsers(): Flow<List<UserEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
 
-  fun all(): List<UserEntity> = queries.all().executeAsList()
+  fun flowAll(): Flow<List<UserEntity>> = observeUsers()
+
+  fun listUsers(): List<UserEntity> = queries.all().executeAsList()
+
+  fun all(): List<UserEntity> = listUsers()
 
   fun byId(id: String) = queries.byId(id).executeAsOneOrNull()
 
@@ -47,15 +51,15 @@ class UserRepo @Inject constructor(db: MyDatabase, private val api: ApiService) 
     return result
   }
 
-  suspend fun userWithProgress(userId: String): Result<UserWithMediaProgressDetail> {
-    val result = api.user(userId)
-    val response = result.getOrNull()
-    return result
-  }
+  suspend fun fetchUserWithProgress(userId: String): Result<UserWithMediaProgressDetail> =
+    api.user(userId)
 
-  suspend fun remote(include: String? = null): Result<UsersResponse> {
-    return fetch(include)
-  }
+  suspend fun userWithProgress(userId: String): Result<UserWithMediaProgressDetail> =
+    fetchUserWithProgress(userId)
+
+  suspend fun refreshUsers(include: String? = null): Result<UsersResponse> = fetch(include)
+
+  suspend fun remote(include: String? = null): Result<UsersResponse> = refreshUsers(include)
 
   suspend fun update(id: String, request: UpdateUserRequest): Result<UpdateUserResponse> {
     val result = api.updateUser(id, request)

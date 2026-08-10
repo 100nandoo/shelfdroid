@@ -21,7 +21,10 @@ class ProgressRepo @Inject constructor(db: MyDatabase, val helper: Helper) {
   private val queries = db.progressEntityQueries
   private val repoScope = CoroutineScope(Dispatchers.IO)
 
-  fun flowAll(): Flow<List<ProgressEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
+  fun observeAllProgress(): Flow<List<ProgressEntity>> =
+    queries.all().asFlow().mapToList(Dispatchers.IO)
+
+  fun flowAll(): Flow<List<ProgressEntity>> = observeAllProgress()
 
   fun byLibraryItemId(id: String): List<ProgressEntity> =
     queries.byLibraryItemId(id).executeAsList()
@@ -42,7 +45,7 @@ class ProgressRepo @Inject constructor(db: MyDatabase, val helper: Helper) {
   fun flowEpisodeById(id: String): Flow<ProgressEntity?> =
     queries.episodeById(id).asFlow().mapToOneOrNull(Dispatchers.IO)
 
-  fun saveAndConvert(user: User): List<ProgressEntity> {
+  fun replaceUserProgress(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map(::toEntity)
     repoScope.launch {
       cleanup()
@@ -50,6 +53,8 @@ class ProgressRepo @Inject constructor(db: MyDatabase, val helper: Helper) {
     }
     return entities
   }
+
+  fun saveAndConvert(user: User): List<ProgressEntity> = replaceUserProgress(user)
 
   fun toggleIsFinishedByEpisodeId(episodeId: String): Boolean =
     queries.toggleIsFinishedByEpisodeId(episodeId).value.toBoolean()

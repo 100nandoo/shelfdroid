@@ -8,14 +8,14 @@ import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.catalog.LibraryRepository
+import dev.halim.shelfdroid.core.data.listening.BookmarkRepository
+import dev.halim.shelfdroid.core.data.listening.ListeningStatsRepository
+import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.BookmarkRepo
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
-import dev.halim.shelfdroid.core.data.response.LibraryRepo
-import dev.halim.shelfdroid.core.data.response.ListeningStatRepo
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
-import dev.halim.shelfdroid.core.data.response.TagRepo
-import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.data.tags.TagRepository
+import dev.halim.shelfdroid.core.data.users.UserRepository
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
@@ -30,13 +30,13 @@ class HomeRepository
 @Inject
 constructor(
   private val api: ApiService,
-  private val libraryItemRepo: LibraryItemRepo,
-  private val progressRepo: ProgressRepo,
-  private val bookmarkRepo: BookmarkRepo,
-  private val libraryRepo: LibraryRepo,
-  private val userRepo: UserRepo,
-  private val tagRepo: TagRepo,
-  private val listeningStatRepo: ListeningStatRepo,
+  private val libraryItemRepo: LibraryItemRepository,
+  private val progressRepo: ProgressRepository,
+  private val bookmarkRepo: BookmarkRepository,
+  private val libraryRepo: LibraryRepository,
+  private val userRepo: UserRepository,
+  private val tagRepo: TagRepository,
+  private val listeningStatRepo: ListeningStatsRepository,
   private val mapper: HomeMapper,
   private val prefsRepository: PrefsRepository,
   private val downloadRepo: DownloadRepo,
@@ -44,9 +44,9 @@ constructor(
 ) {
 
   fun item(): Flow<Pair<Prefs, List<LibraryUiState>>> {
-    val libraries = libraryRepo.flowEntities()
-    val libraryItems = libraryItemRepo.flowCatalog()
-    val progresses = progressRepo.flowAll()
+    val libraries = libraryRepo.observeLibraries()
+    val libraryItems = libraryItemRepo.observeLibraryItemCatalog()
+    val progresses = progressRepo.observeAllProgress()
     val prefs = prefsRepository.prefsFlow()
     val downloads = downloadRepo.completedDownloads
     val downloadSignals = combine(downloads, downloadRepo.durableDownloads) { _, _ -> Unit }
@@ -79,18 +79,18 @@ constructor(
     if (fromLogin.not()) {
       getUser()
     }
-    libraryRepo.remote()
-    libraryItemRepo.remote()
+    libraryRepo.refreshLibraries()
+    libraryItemRepo.refreshLibraryItems()
 
-    backgroundRemoteSync()
+    backgroundRefresh()
 
     return homeUiState.copy(state = GenericState.Success)
   }
 
-  private fun backgroundRemoteSync() {
-    ioScope.launch { listeningStatRepo.remote() }
-    ioScope.launch { userRepo.remote() }
-    ioScope.launch { tagRepo.remote() }
+  private fun backgroundRefresh() {
+    ioScope.launch { listeningStatRepo.refreshListeningStats() }
+    ioScope.launch { userRepo.refreshUsers() }
+    ioScope.launch { tagRepo.refreshTags() }
   }
 
   suspend fun getUser() {
@@ -99,8 +99,8 @@ constructor(
     val user = result?.user
 
     if (user != null) {
-      progressRepo.saveAndConvert(user)
-      bookmarkRepo.saveAndConvert(user)
+      progressRepo.replaceUserProgress(user)
+      bookmarkRepo.replaceUserBookmarks(user)
       updateDataStore(result)
     }
   }

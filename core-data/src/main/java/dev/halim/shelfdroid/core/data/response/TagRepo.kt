@@ -16,16 +16,20 @@ constructor(private val api: ApiService, private val dataStoreManager: DataStore
 
   private val repoScope = CoroutineScope(Dispatchers.IO)
 
-  fun localList(): List<String> = runBlocking {
+  fun listTags(): List<String> = runBlocking {
     dataStoreManager.tags.firstOrNull()?.toList()?.sorted() ?: emptyList()
   }
 
-  suspend fun remote(): Result<TagsResponse> {
+  fun localList(): List<String> = listTags()
+
+  suspend fun refreshTags(): Result<TagsResponse> {
     val result = api.tags()
     val response = result.getOrNull()
     if (response != null) save(response)
     return result
   }
+
+  suspend fun remote() = refreshTags()
 
   private fun save(response: TagsResponse) {
     val tags = response.tags
