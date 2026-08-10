@@ -69,7 +69,7 @@ constructor(
 
   private fun load() {
     viewModelScope.launch {
-      _uiState.value = repository.item(itemId = itemId, episodeId = episodeId)
+      _uiState.value = repository.loadEpisode(itemId = itemId, episodeId = episodeId)
     }
   }
 

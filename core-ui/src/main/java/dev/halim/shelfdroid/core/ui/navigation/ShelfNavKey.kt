@@ -5,7 +5,7 @@ import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditAppriseNotificationRule
 import dev.halim.shelfdroid.core.navigation.NavEditUser
-import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
+import dev.halim.shelfdroid.core.navigation.PodcastSourceFeedNavPayload
 import kotlinx.serialization.Serializable
 
 @Serializable sealed interface ShelfNavKey : NavKey
@@ -29,7 +29,7 @@ data class Login(val reLogin: Boolean = false, val reason: AuthPromptReason? = n
 
 @Serializable data class SearchPodcast(val libraryId: String) : ShelfNavKey
 
-@Serializable data class AddPodcast(val payload: PodcastFeedNavPayload) : ShelfNavKey
+@Serializable data class AddPodcast(val payload: PodcastSourceFeedNavPayload) : ShelfNavKey
 
 @Serializable data class Podcast(val id: String) : ShelfNavKey
 

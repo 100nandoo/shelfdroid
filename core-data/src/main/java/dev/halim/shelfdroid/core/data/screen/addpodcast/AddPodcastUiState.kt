@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.addpodcast
 
-import dev.halim.shelfdroid.core.data.response.PodcastFolder
+import dev.halim.shelfdroid.core.data.catalog.LibraryFolder
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 
 data class AddPodcastUiState(
@@ -13,8 +13,8 @@ data class AddPodcastUiState(
   val language: String = "",
   val explicit: Boolean = false,
   val description: String = "",
-  val folders: List<PodcastFolder> = emptyList(),
-  val selectedFolder: PodcastFolder = PodcastFolder("", ""),
+  val folders: List<LibraryFolder> = emptyList(),
+  val selectedFolder: LibraryFolder = LibraryFolder("", ""),
   val path: String = "",
   val autoDownload: Boolean = false,
 )
@@ -22,7 +22,7 @@ data class AddPodcastUiState(
 sealed interface AddPodcastState {
   data object Loading : AddPodcastState
 
-  data object ApiFeedSuccess : AddPodcastState
+  data object ApiSourceFeedSuccess : AddPodcastState
 
   data class ApiCreateSuccess(val result: CreatePodcastNavResult) : AddPodcastState
 

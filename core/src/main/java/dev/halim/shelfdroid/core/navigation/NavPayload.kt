@@ -21,6 +21,8 @@ data class PodcastFeedNavPayload(
   val isAdded: Boolean = false,
 )
 
+typealias PodcastSourceFeedNavPayload = PodcastFeedNavPayload
+
 @Serializable
 data class NavEditUser(
   val id: String = "",

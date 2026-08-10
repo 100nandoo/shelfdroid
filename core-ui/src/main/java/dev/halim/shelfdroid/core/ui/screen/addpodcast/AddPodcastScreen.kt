@@ -82,7 +82,7 @@ fun AddPodcastScreen(
 @Composable
 private fun AddPodcastScreenContent(
   uiState: AddPodcastUiState,
-  onEvent: (PodcastFeedEvent) -> Unit = {},
+  onEvent: (PodcastSourceFeedEvent) -> Unit = {},
   onCreateSuccess: (CreatePodcastNavResult) -> Unit = { _ -> },
 ) {
   val focusManager = LocalFocusManager.current
@@ -93,7 +93,7 @@ private fun AddPodcastScreenContent(
     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
   }
 
-  VisibilityUp(visible = uiState.state is AddPodcastState.ApiFeedSuccess) {
+  VisibilityUp(visible = uiState.state is AddPodcastState.ApiSourceFeedSuccess) {
     var title by remember { mutableStateOf(TextFieldValue(uiState.title)) }
     var author by remember { mutableStateOf(TextFieldValue(uiState.author)) }
     var feedUrl by remember { mutableStateOf(TextFieldValue(uiState.feedUrl)) }
@@ -111,7 +111,7 @@ private fun AddPodcastScreenContent(
         value = title,
         onValueChange = {
           title = it
-          onEvent(PodcastFeedEvent.TitleChanged(it.text))
+          onEvent(PodcastSourceFeedEvent.TitleChanged(it.text))
         },
         label = stringResource(R.string.title),
         keyboardOptions =
@@ -123,7 +123,7 @@ private fun AddPodcastScreenContent(
         value = author,
         onValueChange = {
           author = it
-          onEvent(PodcastFeedEvent.AuthorChanged(it.text))
+          onEvent(PodcastSourceFeedEvent.AuthorChanged(it.text))
         },
         label = stringResource(R.string.author),
         keyboardOptions =
@@ -135,7 +135,7 @@ private fun AddPodcastScreenContent(
         value = feedUrl,
         onValueChange = {
           feedUrl = it
-          onEvent(PodcastFeedEvent.FeedUrlChanged(it.text))
+          onEvent(PodcastSourceFeedEvent.FeedUrlChanged(it.text))
         },
         label = stringResource(R.string.feed_url),
         keyboardOptions =
@@ -153,7 +153,7 @@ private fun AddPodcastScreenContent(
         maxLines = 3,
         onValueChange = {
           description = it
-          onEvent(PodcastFeedEvent.DescriptionChanged(it.text))
+          onEvent(PodcastSourceFeedEvent.DescriptionChanged(it.text))
         },
         onNext = { focusManager.moveFocus(FocusDirection.Next) },
       )
@@ -161,7 +161,7 @@ private fun AddPodcastScreenContent(
         value = language,
         onValueChange = {
           language = it
-          onEvent(PodcastFeedEvent.LanguageChanged(it.text))
+          onEvent(PodcastSourceFeedEvent.LanguageChanged(it.text))
         },
         label = stringResource(R.string.language),
         keyboardOptions =
@@ -174,7 +174,7 @@ private fun AddPodcastScreenContent(
         value = path,
         onValueChange = {
           path = it
-          onEvent(PodcastFeedEvent.PathChanged(it.text))
+          onEvent(PodcastSourceFeedEvent.PathChanged(it.text))
         },
         label = stringResource(R.string.path),
         keyboardOptions =
@@ -194,12 +194,12 @@ private fun AddPodcastScreenContent(
       ) {
         Checkbox(
           checked = uiState.autoDownload,
-          onCheckedChange = { onEvent(PodcastFeedEvent.AutoDownloadChanged(it)) },
+          onCheckedChange = { onEvent(PodcastSourceFeedEvent.AutoDownloadChanged(it)) },
         )
         Text(text = stringResource(R.string.auto_download_episodes))
 
         Button(
-          onClick = { onEvent(PodcastFeedEvent.SubmitButtonPressed) },
+          onClick = { onEvent(PodcastSourceFeedEvent.SubmitButtonPressed) },
           modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
         ) {
           Text(stringResource(R.string.submit))
@@ -221,7 +221,7 @@ private fun GenreSection(
   uiState: AddPodcastUiState,
   scrollState: ScrollState,
   genreRef: FocusRequester,
-  onEvent: (PodcastFeedEvent) -> Unit,
+  onEvent: (PodcastSourceFeedEvent) -> Unit,
 ) {
   var genreInput by remember { mutableStateOf(TextFieldValue("")) }
   val coroutineScope = rememberCoroutineScope()
@@ -235,7 +235,7 @@ private fun GenreSection(
     onNext = {
       val text = genreInput.text.trim()
       if (text.isNotBlank()) {
-        onEvent(PodcastFeedEvent.GenreAdded(text))
+        onEvent(PodcastSourceFeedEvent.GenreAdded(text))
         coroutineScope.launch { scrollState.scrollTo(scrollState.maxValue) }
         genreInput = TextFieldValue("")
       }
@@ -245,14 +245,14 @@ private fun GenreSection(
         uiState.genres.forEach { genre ->
           GenreChip(
             genre = genre,
-            onRemove = { onEvent(PodcastFeedEvent.GenreRemoved(it)) },
+            onRemove = { onEvent(PodcastSourceFeedEvent.GenreRemoved(it)) },
             onEdit = {
               if (genreInput.text.isNotEmpty()) {
-                onEvent(PodcastFeedEvent.GenreAdded(genreInput.text))
+                onEvent(PodcastSourceFeedEvent.GenreAdded(genreInput.text))
               }
               genreInput = TextFieldValue(it)
               genreRef.requestFocus()
-              onEvent(PodcastFeedEvent.GenreRemoved(it))
+              onEvent(PodcastSourceFeedEvent.GenreRemoved(it))
             },
           )
         }
@@ -282,7 +282,7 @@ private fun GenreChip(genre: String, onRemove: (String) -> Unit, onEdit: (String
 private fun PathDropdown(
   uiState: AddPodcastUiState,
   expanded: Boolean,
-  onEvent: (PodcastFeedEvent) -> Unit,
+  onEvent: (PodcastSourceFeedEvent) -> Unit,
   onExpandedChange: (Boolean) -> Unit,
 ) {
   Row(
@@ -303,7 +303,7 @@ private fun PathDropdown(
         DropdownMenuItem(
           text = { Text(folder.path) },
           onClick = {
-            onEvent(PodcastFeedEvent.FolderSelected(folder))
+            onEvent(PodcastSourceFeedEvent.FolderSelected(folder))
             onExpandedChange(false)
           },
         )
@@ -319,7 +319,7 @@ private fun AddPodcastScreenPreview() {
     AddPodcastScreenContent(
       uiState =
         AddPodcastUiState(
-          state = AddPodcastState.ApiFeedSuccess,
+          state = AddPodcastState.ApiSourceFeedSuccess,
           title = "My Awesome Podcast",
           author = "John Doe",
           feedUrl = "https://example.com/feed.xml",

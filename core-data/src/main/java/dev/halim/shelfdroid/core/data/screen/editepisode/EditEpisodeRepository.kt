@@ -3,7 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.editepisode
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 
@@ -11,7 +11,7 @@ class EditEpisodeRepository
 @Inject
 constructor(
   private val api: ApiService,
-  private val libraryItemRepo: LibraryItemRepo,
+  private val libraryItemRepo: LibraryItemRepository,
 ) {
   private val saveRunner =
     EditEpisodeSaveRunner(
@@ -31,7 +31,7 @@ constructor(
       updateCachedItem = libraryItemRepo::updateItem,
     )
 
-  suspend fun item(itemId: String, episodeId: String): EditEpisodeUiState {
+  suspend fun loadEpisode(itemId: String, episodeId: String): EditEpisodeUiState {
     val podcastTitle = libraryItemRepo.byId(itemId)?.title.orEmpty()
     val episode =
       api.podcastEpisode(itemId, episodeId).getOrElse {

@@ -37,7 +37,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUiState
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
-import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
+import dev.halim.shelfdroid.core.navigation.PodcastSourceFeedNavPayload
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.navigation.SearchPodcast
@@ -53,7 +53,7 @@ fun SearchPodcastScreen(
     hiltViewModel<SearchPodcastViewModel, SearchPodcastViewModel.Factory> { factory ->
       factory.create(navKey)
     },
-  onItemClicked: (PodcastFeedNavPayload) -> Unit,
+  onItemClicked: (PodcastSourceFeedNavPayload) -> Unit,
   onAddedClick: (String) -> Unit,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,7 +77,7 @@ fun SearchPodcastScreen(
 private fun SearchPodcastScreenContent(
   onEvent: (SearchPodcastEvent) -> Unit = {},
   uiState: SearchPodcastUiState,
-  onItemClicked: (PodcastFeedNavPayload) -> Unit = { _ -> },
+  onItemClicked: (PodcastSourceFeedNavPayload) -> Unit = { _ -> },
   onAddedClick: (String) -> Unit = { _ -> },
 ) {
   var textFieldValue by rememberSaveable { mutableStateOf("") }
@@ -128,7 +128,7 @@ private fun SearchTextField(
     OutlinedTextField(
       value = textFieldValue,
       onValueChange = onValueChange,
-      placeholder = { Text("Search term or RSS feel URL") },
+      placeholder = { Text("Search term or podcast source feed URL") },
       modifier = Modifier.fillMaxWidth().imePadding().focusRequester(searchRef),
       keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
       keyboardActions = KeyboardActions(onSearch = { onSearchTriggered() }),

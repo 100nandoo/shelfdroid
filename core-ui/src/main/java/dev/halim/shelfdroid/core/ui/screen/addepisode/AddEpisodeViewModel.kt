@@ -52,7 +52,7 @@ constructor(
 
   init {
     viewModelScope.launch {
-      _uiState.value = repository.item(id)
+      _uiState.value = repository.loadEpisodeSelection(id)
     }
   }
 

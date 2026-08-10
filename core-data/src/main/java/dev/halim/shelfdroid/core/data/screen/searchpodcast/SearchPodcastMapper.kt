@@ -1,24 +1,25 @@
 package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
 import dev.halim.core.network.response.SearchPodcast
-import dev.halim.shelfdroid.core.data.response.PodcastInfo
-import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
+import dev.halim.shelfdroid.core.data.catalog.ExistingPodcastSummary
+import dev.halim.shelfdroid.core.navigation.PodcastSourceFeedNavPayload
 import javax.inject.Inject
 
 class SearchPodcastMapper @Inject constructor() {
   fun map(
     response: List<SearchPodcast>,
-    podcastInfoList: List<PodcastInfo>,
+    existingPodcastSummaries: List<ExistingPodcastSummary>,
     libraryId: String,
   ): List<SearchPodcastUi> {
     return response.map { podcast ->
       var id = ""
-      val isAdded = podcastInfoList.any { podcastInfo ->
+      val isAdded = existingPodcastSummaries.any { existingPodcastSummary ->
         val found =
-          podcastInfo.itunesId == podcast.id.toString() ||
-            podcastInfo.feedUrl == podcast.feedUrl ||
-            (podcastInfo.title == podcast.title && podcastInfo.artist == podcast.artistName)
-        id = podcastInfo.id
+          existingPodcastSummary.itunesId == podcast.id.toString() ||
+            existingPodcastSummary.feedUrl == podcast.feedUrl ||
+            (existingPodcastSummary.title == podcast.title &&
+              existingPodcastSummary.artist == podcast.artistName)
+        id = existingPodcastSummary.id
         found
       }
 
@@ -45,8 +46,8 @@ class SearchPodcastMapper @Inject constructor() {
     }
   }
 
-  fun toPayload(model: SearchPodcastUi): PodcastFeedNavPayload =
-    PodcastFeedNavPayload(
+  fun toPayload(model: SearchPodcastUi): PodcastSourceFeedNavPayload =
+    PodcastSourceFeedNavPayload(
       id = model.id,
       itunesId = model.itunesId,
       itunesArtistId = model.itunesArtistId,

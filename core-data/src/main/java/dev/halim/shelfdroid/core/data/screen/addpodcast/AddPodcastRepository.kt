@@ -3,9 +3,9 @@ package dev.halim.shelfdroid.core.data.screen.addpodcast
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.PodcastFeedRequest
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
-import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
+import dev.halim.shelfdroid.core.navigation.PodcastSourceFeedNavPayload
 import javax.inject.Inject
 
 class AddPodcastRepository
@@ -13,11 +13,14 @@ class AddPodcastRepository
 constructor(
   private val api: ApiService,
   private val mapper: AddPodcastMapper,
-  private val libraryItemRepo: LibraryItemRepo,
+  private val libraryItemRepo: LibraryItemRepository,
 ) {
 
-  suspend fun feed(rssFeed: String, payload: PodcastFeedNavPayload): AddPodcastUiState {
-    val response = api.podcastFeed(PodcastFeedRequest(rssFeed))
+  suspend fun fetchPodcastSourceFeed(
+    podcastSourceFeedUrl: String,
+    payload: PodcastSourceFeedNavPayload,
+  ): AddPodcastUiState {
+    val response = api.podcastFeed(PodcastFeedRequest(podcastSourceFeedUrl))
     val result = response.getOrNull()
 
     return if (result != null) {
@@ -28,7 +31,7 @@ constructor(
   }
 
   suspend fun createPodcast(
-    payload: PodcastFeedNavPayload,
+    payload: PodcastSourceFeedNavPayload,
     uiState: AddPodcastUiState,
   ): AddPodcastUiState {
     val folder = uiState.selectedFolder

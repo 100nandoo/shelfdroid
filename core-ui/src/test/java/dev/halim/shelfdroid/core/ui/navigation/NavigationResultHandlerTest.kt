@@ -3,7 +3,7 @@ package dev.halim.shelfdroid.core.ui.navigation
 import androidx.navigation3.runtime.NavBackStack
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
-import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
+import dev.halim.shelfdroid.core.navigation.PodcastSourceFeedNavPayload
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -15,7 +15,7 @@ class NavigationResultHandlerTest {
     val result = CreatePodcastNavResult(id = "podcast-id", feedUrl = "feed-url")
 
     navigator.navigate(
-      AddPodcast(PodcastFeedNavPayload(libraryId = "library-id", feedUrl = "feed-url"))
+      AddPodcast(PodcastSourceFeedNavPayload(libraryId = "library-id", feedUrl = "feed-url"))
     )
     completeCreatePodcastNavigation(navigator, result)
 

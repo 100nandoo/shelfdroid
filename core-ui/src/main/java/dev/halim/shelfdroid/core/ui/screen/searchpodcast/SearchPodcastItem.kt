@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
-import dev.halim.shelfdroid.core.navigation.PodcastFeedNavPayload
+import dev.halim.shelfdroid.core.navigation.PodcastSourceFeedNavPayload
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CoverNoAnimation
 import dev.halim.shelfdroid.core.ui.preview.Defaults
@@ -31,7 +31,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun SearchPodcastItem(
   model: SearchPodcastUi,
-  onClick: (PodcastFeedNavPayload) -> Unit = { _ -> },
+  onClick: (PodcastSourceFeedNavPayload) -> Unit = { _ -> },
   onAddedClick: (String) -> Unit = { _ -> },
 ) {
   Row(

@@ -172,7 +172,9 @@ constructor(
       }
       PodcastEvent.AddEpisode -> {
         apiState.update { PodcastApiState.AddLoading }
-        viewModelScope.launch(Dispatchers.IO) { apiState.update { repository.fetchEpisode(id) } }
+        viewModelScope.launch(Dispatchers.IO) {
+          apiState.update { repository.fetchPodcastSourceFeed(id) }
+        }
       }
       is PodcastEvent.OpenGeneratedRssFeed -> {
         apiState.update { PodcastApiState.OpenRssFeedLoading }

@@ -8,7 +8,7 @@ import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.response.PodcastFolder
+import dev.halim.shelfdroid.core.data.catalog.LibraryFolder
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeyUi
@@ -263,8 +263,8 @@ object Defaults {
       PlayerBookmark("Yet another bookmark", "03:45", 225),
     )
 
-  val DEFAULT_PODCAST_FOLDER = PodcastFolder(id = "1", path = "/podcast")
-  val DEFAULT_PODCAST_FOLDER_2 = PodcastFolder(id = "2", path = "/other-podcast")
+  val DEFAULT_PODCAST_FOLDER = LibraryFolder(id = "1", path = "/podcast")
+  val DEFAULT_PODCAST_FOLDER_2 = LibraryFolder(id = "2", path = "/other-podcast")
 
   val SEARCH_PODCAST_1 =
     SearchPodcastUi(

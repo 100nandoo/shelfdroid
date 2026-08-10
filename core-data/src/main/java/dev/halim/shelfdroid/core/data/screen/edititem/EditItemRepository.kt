@@ -15,7 +15,7 @@ import dev.halim.core.network.response.SearchProviders
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.episodes.EditItemEpisodeUpdateRunner
 import dev.halim.shelfdroid.core.data.screen.edititem.schedule.EditItemScheduleSaveRunner
 import dev.halim.shelfdroid.core.data.screen.edititem.schedule.deriveSchedulePresentation
@@ -34,7 +34,7 @@ class EditItemRepository
 constructor(
   private val api: ApiService,
   private val helper: Helper,
-  private val libraryItemRepo: LibraryItemRepo,
+  private val libraryItemRepo: LibraryItemRepository,
 ) {
   private fun currentWebBaseUrl(): String =
     AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL)?.value

@@ -154,10 +154,10 @@ constructor(
     }
   }
 
-  fun podcastInfoList(libraryId: String): List<PodcastInfo> {
+  fun listExistingPodcastSummaries(libraryId: String): List<ExistingPodcastSummary> {
     return queries.podcastsByLibraryId(libraryId).executeAsList().map { entity ->
       val metadata = podcastMediaRepo.byId(entity.id)?.metadata
-      PodcastInfo(
+      ExistingPodcastSummary(
         id = entity.id,
         itunesId = metadata?.itunesId.orEmpty(),
         artist = metadata?.author?.ifBlank { null } ?: entity.author,
@@ -166,6 +166,9 @@ constructor(
       )
     }
   }
+
+  fun podcastInfoList(libraryId: String): List<PodcastInfo> =
+    listExistingPodcastSummaries(libraryId)
 
   suspend fun cleanupItem(id: String) {
     val entity = queries.byId(id).executeAsOneOrNull()
@@ -343,3 +346,5 @@ data class PodcastInfo(
   val artist: String,
   val feedUrl: String,
 )
+
+typealias ExistingPodcastSummary = PodcastInfo

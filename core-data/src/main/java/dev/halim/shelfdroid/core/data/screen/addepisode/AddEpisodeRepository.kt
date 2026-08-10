@@ -4,26 +4,26 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
-import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
-import dev.halim.shelfdroid.core.data.response.PodcastFeedRepo
+import dev.halim.shelfdroid.core.data.podcastsourcefeed.PodcastSourceFeedRepository
 import javax.inject.Inject
 
 class AddEpisodeRepository
 @Inject
 constructor(
   private val prefsRepository: PrefsRepository,
-  private val libraryItemRepo: LibraryItemRepo,
-  private val podcastEpisodeRepo: PodcastEpisodeRepo,
-  private val podcastFeedRepo: PodcastFeedRepo,
+  private val libraryItemRepo: LibraryItemRepository,
+  private val podcastEpisodeRepo: PodcastEpisodeRepository,
+  private val podcastFeedRepo: PodcastSourceFeedRepository,
   private val apiService: ApiService,
   private val mapper: AddEpisodeMapper,
 ) {
   lateinit var podcastFeed: PodcastFeed
   val crudPrefs = prefsRepository.crudPrefs
 
-  suspend fun item(id: String): AddEpisodeUiState {
+  suspend fun loadEpisodeSelection(id: String): AddEpisodeUiState {
     val entity = libraryItemRepo.byId(id) ?: return failureState("Failed to fetch podcast")
     val podcast = loadPodcast(id) ?: return failureState("Invalid podcast data")
 

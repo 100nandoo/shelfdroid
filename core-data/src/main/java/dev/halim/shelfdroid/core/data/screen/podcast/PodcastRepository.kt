@@ -4,11 +4,11 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.ProgressRequest
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
-import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
-import dev.halim.shelfdroid.core.data.response.PodcastFeedRepo
 import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.data.podcastsourcefeed.PodcastSourceFeedRepository
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedMapper
 import dev.halim.shelfdroid.download.DownloadRepo
@@ -26,13 +26,13 @@ import kotlinx.serialization.json.Json
 class PodcastRepository
 @Inject
 constructor(
-  private val libraryItemRepo: LibraryItemRepo,
+  private val libraryItemRepo: LibraryItemRepository,
   private val progressRepo: ProgressRepo,
   private val downloadRepo: DownloadRepo,
   private val prefsRepository: PrefsRepository,
   private val api: ApiService,
-  private val podcastEpisodeRepo: PodcastEpisodeRepo,
-  private val podcastFeedRepo: PodcastFeedRepo,
+  private val podcastEpisodeRepo: PodcastEpisodeRepository,
+  private val podcastFeedRepo: PodcastSourceFeedRepository,
   private val mapper: PodcastMapper,
 ) {
   private val repositoryScope = CoroutineScope(Dispatchers.IO)
@@ -107,7 +107,7 @@ constructor(
     return result.isSuccess
   }
 
-  suspend fun fetchEpisode(itemId: String): PodcastApiState {
+  suspend fun fetchPodcastSourceFeed(itemId: String): PodcastApiState {
     val feedUrl =
       libraryItemRepo.podcastById(itemId)?.metadata?.feedUrl?.takeIf { it.isNotBlank() }
         ?: refreshFeedUrl(itemId)

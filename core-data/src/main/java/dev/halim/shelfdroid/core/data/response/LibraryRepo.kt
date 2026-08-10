@@ -37,12 +37,14 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
     return queries.byId(id).executeAsOneOrNull()
   }
 
-  fun foldersByLibraryId(id: String): List<PodcastFolder> {
+  fun listLibraryFolders(id: String): List<LibraryFolder> {
     val entity = byId(id)
     if (entity == null) return emptyList()
     val folders = runCatching { json.decodeFromString<List<Folder>>(entity.folders) }
-    return folders.getOrNull()?.map { PodcastFolder(it) } ?: emptyList()
+    return folders.getOrNull()?.map { LibraryFolder(it) } ?: emptyList()
   }
+
+  fun foldersByLibraryId(id: String): List<PodcastFolder> = listLibraryFolders(id)
 
   fun flowEntities(): Flow<List<LibraryEntity>> {
     return queries.all().asFlow().mapToList(Dispatchers.IO)
@@ -74,3 +76,5 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
 data class PodcastFolder(val id: String, val path: String) {
   constructor(folder: Folder) : this(folder.id, folder.fullPath)
 }
+
+typealias LibraryFolder = PodcastFolder
