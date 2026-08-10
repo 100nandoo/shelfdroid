@@ -176,6 +176,10 @@ _Avoid_: Local login, local auth, regular login, login methods, auth methods
 A browser-based sign-in path where the **Audiobookshelf server** delegates user authentication through its configured OpenID provider.
 _Avoid_: SSO, OAuth button, external login
 
+**Server access**:
+The user-declared way ShelfDroid should reach the current **Audiobookshelf server** during login, either over the Internet or over the local network.
+_Avoid_: Remote/local toggle, nearby devices permission
+
 **Login discovery**:
 A pre-login `GET /status` check that reads the current **Login methods** and login-facing server messaging before ShelfDroid decides which login UI to show.
 _Avoid_: Preflight, auth probe, status ping
