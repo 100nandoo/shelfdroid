@@ -6,8 +6,8 @@ import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
+import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.podcastsourcefeed.PodcastSourceFeedRepository
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedMapper
@@ -27,7 +27,7 @@ class PodcastRepository
 @Inject
 constructor(
   private val libraryItemRepo: LibraryItemRepository,
-  private val progressRepo: ProgressRepo,
+  private val progressRepo: ProgressRepository,
   private val downloadRepo: DownloadRepo,
   private val prefsRepository: PrefsRepository,
   private val api: ApiService,
@@ -37,7 +37,7 @@ constructor(
 ) {
   private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
-  fun item(id: String): Flow<PodcastUiState> {
+  fun observePodcast(id: String): Flow<PodcastUiState> {
     val entity = libraryItemRepo.flowById(id)
     val episodes = podcastEpisodeRepo.flowByLibraryItemId(id)
     val progresses = progressRepo.flowByLibraryItemId(id)

@@ -3,10 +3,10 @@ package dev.halim.shelfdroid.core.data.screen.episode
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
+import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
-import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
@@ -18,15 +18,15 @@ import kotlinx.coroutines.flow.combine
 class EpisodeRepository
 @Inject
 constructor(
-  private val libraryItemRepo: LibraryItemRepo,
-  private val podcastEpisodeRepo: PodcastEpisodeRepo,
-  private val progressRepo: ProgressRepo,
+  private val libraryItemRepo: LibraryItemRepository,
+  private val podcastEpisodeRepo: PodcastEpisodeRepository,
+  private val progressRepo: ProgressRepository,
   private val downloadRepo: DownloadRepo,
   private val helper: Helper,
   private val prefsRepository: PrefsRepository,
 ) {
   @OptIn(UnstableApi::class)
-  fun item(itemId: String, episodeId: String): Flow<EpisodeUiState> {
+  fun observeEpisode(itemId: String, episodeId: String): Flow<EpisodeUiState> {
     val podcastFlow = libraryItemRepo.flowById(itemId)
     val episodeFlow = podcastEpisodeRepo.flowById(episodeId)
     val progressFlow = progressRepo.flowEpisodeById(episodeId)

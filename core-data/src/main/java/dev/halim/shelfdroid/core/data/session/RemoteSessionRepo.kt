@@ -4,7 +4,7 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
+import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
 import javax.inject.Inject
 import kotlin.time.Duration
@@ -14,7 +14,7 @@ class RemoteSessionRepo
 constructor(
   private val apiService: ApiService,
   private val finder: PlayerFinder,
-  private val progressRepo: ProgressRepo,
+  private val progressRepo: ProgressRepository,
   private val state: PlayerInternalStateHolder,
 ) {
 

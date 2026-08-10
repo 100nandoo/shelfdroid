@@ -9,7 +9,7 @@ class OpenSessionRepository
 @Inject
 constructor(private val api: ApiService, private val sessionMapper: SessionMapper) {
 
-  suspend fun openSessions(): OpenSessionUiState {
+  suspend fun loadOpenSessions(): OpenSessionUiState {
     val response =
       api.openSessions().getOrElse {
         return OpenSessionUiState(state = GenericState.Failure())

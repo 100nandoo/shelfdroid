@@ -4,7 +4,7 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.DeleteSessionsRequest
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.UserRepo
+import dev.halim.shelfdroid.core.data.users.UserRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 
@@ -12,18 +12,18 @@ class ListeningSessionRepository
 @Inject
 constructor(
   private val api: ApiService,
-  private val userRepo: UserRepo,
+  private val userRepo: UserRepository,
   private val mapper: ListeningSessionMapper,
   private val prefsRepository: PrefsRepository,
 ) {
   val listeningSessionPrefs = prefsRepository.listeningSessionPrefs
 
-  suspend fun item(page: Int = 0): ListeningSessionUiState {
+  suspend fun loadInitialPage(): ListeningSessionUiState {
     val listeningSessionPrefs = prefsRepository.listeningSessionPrefs.first()
     val response =
       api
         .sessions(
-          page = page,
+          page = 0,
           itemsPerPage = listeningSessionPrefs.itemsPerPage,
           user = listeningSessionPrefs.defaultUserId,
         )
@@ -36,7 +36,7 @@ constructor(
     return mapper.map(response, users, listeningSessionPrefs.defaultUserId)
   }
 
-  suspend fun page(
+  suspend fun loadPage(
     page: Int = 0,
     itemsPerPage: Int = 10,
     userId: String? = null,

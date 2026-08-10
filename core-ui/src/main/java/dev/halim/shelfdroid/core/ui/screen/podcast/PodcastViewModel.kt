@@ -63,7 +63,7 @@ constructor(
 
   val uiState: StateFlow<PodcastUiState> =
     combine(
-        repository.item(id),
+        repository.observePodcast(id),
         playerStore.uiState,
         apiState,
         interactionState,

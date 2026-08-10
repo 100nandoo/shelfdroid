@@ -18,9 +18,9 @@ import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
-import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.LocalSessionEntity
@@ -46,14 +46,14 @@ class LocalSessionRepo
 constructor(
   private val dataStoreManager: DataStoreManager,
   private val prefsRepository: PrefsRepository,
-  private val libraryItemRepo: LibraryItemRepo,
+  private val libraryItemRepo: LibraryItemRepository,
   private val finder: PlayerFinder,
   private val helper: Helper,
   private val device: Device,
   private val api: ApiService,
   private val json: Json,
   private val state: PlayerInternalStateHolder,
-  private val podcastEpisodeRepo: PodcastEpisodeRepo,
+  private val podcastEpisodeRepo: PodcastEpisodeRepository,
   db: MyDatabase,
 ) {
 

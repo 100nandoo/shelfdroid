@@ -54,7 +54,7 @@ constructor(
 
   private fun initUiState() {
     viewModelScope.launch {
-      repository.item(itemId, episodeId).collect { episodeUiState ->
+      repository.observeEpisode(itemId, episodeId).collect { episodeUiState ->
         _uiState.value = episodeUiState
       }
     }

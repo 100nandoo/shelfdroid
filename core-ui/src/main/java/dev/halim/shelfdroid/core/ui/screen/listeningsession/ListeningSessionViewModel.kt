@@ -105,7 +105,7 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
   private fun initialPage() {
     loadingState()
     viewModelScope.launch {
-      val result = repository.item(0)
+      val result = repository.loadInitialPage()
       _uiState.value = result
     }
   }
@@ -114,7 +114,7 @@ constructor(private val repository: ListeningSessionRepository) : ViewModel() {
     loadingState()
     viewModelScope.launch {
       val result =
-        repository.page(
+        repository.loadPage(
           targetPage,
           repository.listeningSessionPrefs.first().itemsPerPage,
           uiState.value.userAndCountFilter.selectedUser.id,

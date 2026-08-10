@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.MultipleTrackDownloadUiState
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedMapper
 import dev.halim.shelfdroid.core.extensions.toBoolean
@@ -21,15 +21,15 @@ import kotlinx.serialization.json.Json
 class BookRepository
 @Inject
 constructor(
-  private val libraryItemRepo: LibraryItemRepo,
-  private val progressRepo: ProgressRepo,
+  private val libraryItemRepo: LibraryItemRepository,
+  private val progressRepo: ProgressRepository,
   private val downloadRepo: DownloadRepo,
   private val helper: Helper,
   private val prefsRepository: PrefsRepository,
 ) {
 
   @SuppressLint("UnsafeOptInUsageError")
-  fun item(id: String): Flow<BookUiState> {
+  fun observeBook(id: String): Flow<BookUiState> {
     val bookAndMediaFlow =
       combine(libraryItemRepo.flowById(id), libraryItemRepo.flowBookById(id)) { entity, media ->
         entity?.takeIf { it.isBook.toBoolean() }?.let { it to media }

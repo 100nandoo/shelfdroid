@@ -9,11 +9,11 @@ import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.RawPlaybackProgress
+import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
+import dev.halim.shelfdroid.core.data.listening.BookmarkRepository
+import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.response.BookmarkRepo
-import dev.halim.shelfdroid.core.data.response.LibraryItemRepo
-import dev.halim.shelfdroid.core.data.response.PodcastEpisodeRepo
-import dev.halim.shelfdroid.core.data.response.ProgressRepo
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
@@ -24,10 +24,10 @@ import kotlinx.coroutines.flow.first
 class PlayerRepository
 @Inject
 constructor(
-  private val libraryItemRepo: LibraryItemRepo,
-  private val podcastEpisodeRepo: PodcastEpisodeRepo,
-  private val progressRepo: ProgressRepo,
-  private val bookmarkRepo: BookmarkRepo,
+  private val libraryItemRepo: LibraryItemRepository,
+  private val podcastEpisodeRepo: PodcastEpisodeRepository,
+  private val progressRepo: ProgressRepository,
+  private val bookmarkRepo: BookmarkRepository,
   private val helper: Helper,
   private val apiService: ApiService,
   private val mapper: PlayerMapper,
@@ -43,7 +43,7 @@ constructor(
     advancedControl: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
   ): PlayerUiState {
-    val playerUiState = book(id, advancedControl, changeBehaviour)
+    val playerUiState = buildBookPlaybackState(id, advancedControl, changeBehaviour)
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
@@ -69,7 +69,8 @@ constructor(
     advancedControl: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
   ): PlayerUiState {
-    val playerUiState = podcast(itemId, episodeId, advancedControl, changeBehaviour)
+    val playerUiState =
+      buildPodcastPlaybackState(itemId, episodeId, advancedControl, changeBehaviour)
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
@@ -88,7 +89,7 @@ constructor(
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
   }
 
-  suspend fun book(
+  private suspend fun buildBookPlaybackState(
     id: String,
     existing: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
@@ -153,7 +154,7 @@ constructor(
     } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
   }
 
-  suspend fun podcast(
+  private suspend fun buildPodcastPlaybackState(
     itemId: String,
     episodeId: String,
     existing: AdvancedControl,

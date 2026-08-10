@@ -35,7 +35,7 @@ class OpenSessionViewModel @Inject constructor(private val repository: OpenSessi
   }
 
   private fun initialPage() {
-    viewModelScope.launch { _uiState.update { repository.openSessions() } }
+    viewModelScope.launch { _uiState.update { repository.loadOpenSessions() } }
   }
 }
 

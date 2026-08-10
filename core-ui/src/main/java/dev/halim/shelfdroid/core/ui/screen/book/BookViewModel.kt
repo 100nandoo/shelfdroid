@@ -34,7 +34,7 @@ constructor(
 
   private val apiState = MutableStateFlow<BookApiState>(BookApiState.Idle)
   val uiState: StateFlow<BookUiState> =
-    combine(repository.item(id), apiState) { uiState, apiState ->
+    combine(repository.observeBook(id), apiState) { uiState, apiState ->
         uiState.copy(apiState = apiState)
       }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), BookUiState())
