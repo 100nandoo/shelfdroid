@@ -81,7 +81,18 @@ data class UserPrefs(
   val refreshToken: String = "",
 )
 
-@Serializable data class ServerPrefs(val version: String = "", val logLevel: Int = 1)
+@Serializable
+enum class ServerAccessMode {
+  Internet,
+  LocalNetwork,
+}
+
+@Serializable
+data class ServerPrefs(
+  val version: String = "",
+  val logLevel: Int = 1,
+  val accessMode: ServerAccessMode = ServerAccessMode.Internet,
+)
 
 enum class Filter {
   All,

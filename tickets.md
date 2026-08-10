@@ -10,8 +10,8 @@ Work the **frontier**: any ticket whose blockers are all done. For this chain, w
 
 **Blocked by:** None — can start immediately.
 
-- [ ] `LoginScreen` shows a `Server access` choice with `Internet` and `Local network`, and new login sessions default to `Internet`.
-- [ ] ShelfDroid persists the selected server access mode with the current **Audiobookshelf server**, restores it on later sign-in attempts, and disables the selector during **Forced re-login**.
+- [x] `LoginScreen` shows a `Server access` choice with `Internet` and `Local network`, and new login sessions default to `Internet`.
+- [x] ShelfDroid persists the selected server access mode with the current **Audiobookshelf server**, restores it on later sign-in attempts, and disables the selector during **Forced re-login**.
 
 ## Gate login discovery and password sign-in with local-network permission
 

@@ -155,7 +155,6 @@ constructor(
     }
 
     val server = loginResponse.serverSettings
-    val serverPrefs = ServerPrefs(version = server.version, logLevel = server.logLevel)
-    prefsRepository.updateServerPrefs(serverPrefs)
+    prefsRepository.updateServerPrefs(server)
   }
 }

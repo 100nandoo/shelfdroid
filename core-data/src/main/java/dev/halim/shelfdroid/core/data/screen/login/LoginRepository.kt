@@ -6,6 +6,7 @@ import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.AuthPromptReason
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
@@ -36,6 +37,7 @@ constructor(
 ) {
 
   val userPrefs = prefsRepository.userPrefs
+  val serverPrefs = prefsRepository.serverPrefs
   val baseUrl = dataStoreManager.baseUrl()
   private val openIdBootstrapClient by
     lazy(LazyThreadSafetyMode.NONE) {
@@ -100,7 +102,7 @@ constructor(
     val response = api.login(request)
     val result = response.getOrNull()
     if (result != null) {
-      loginSuccessHandler.onLoginSuccess(normalizedServer, result)
+      loginSuccessHandler.onLoginSuccess(normalizedServer, uiState.serverAccessMode, result)
       return uiState.copy(
         server = normalizedServer,
         normalizedServer = normalizedServer,
@@ -173,6 +175,7 @@ constructor(
     pendingOpenIdLoginStore.save(
       PendingOpenIdLogin(
         normalizedServer = normalizedServer,
+        serverAccessMode = uiState.serverAccessMode,
         state = state,
         codeVerifier = codeVerifier,
         createdAtEpochMillis = System.currentTimeMillis(),
@@ -196,6 +199,7 @@ constructor(
     val pendingLogin = pendingOpenIdLoginStore.current()
     return OpenIdLoginRecoveryState(
       normalizedServer = pendingCallback?.normalizedServer ?: pendingLogin?.normalizedServer,
+      serverAccessMode = pendingLogin?.serverAccessMode ?: ServerAccessMode.Internet,
       hasPendingCallback = pendingCallback != null,
     )
   }
@@ -209,6 +213,7 @@ constructor(
     if (pendingCallback == null) {
       return failOpenIdLoginCompletion(
         normalizedServer = pendingLogin?.normalizedServer,
+        serverAccessMode = pendingLogin?.serverAccessMode ?: ServerAccessMode.Internet,
         errorMessage = "OpenID login failed because the callback is no longer available.",
       )
     }
@@ -223,6 +228,7 @@ constructor(
     if (pendingLogin.isExpired(nowMillis)) {
       return failOpenIdLoginCompletion(
         normalizedServer = pendingLogin.normalizedServer,
+        serverAccessMode = pendingLogin.serverAccessMode,
         errorMessage =
           "OpenID login expired before the callback could be completed. Please try again.",
       )
@@ -234,6 +240,7 @@ constructor(
     ) {
       return failOpenIdLoginCompletion(
         normalizedServer = pendingLogin.normalizedServer,
+        serverAccessMode = pendingLogin.serverAccessMode,
         errorMessage =
           "OpenID login failed because the callback no longer matches the current login.",
       )
@@ -243,6 +250,7 @@ constructor(
       AudiobookshelfBaseUrl.parse(pendingLogin.normalizedServer)
         ?: return failOpenIdLoginCompletion(
           normalizedServer = pendingLogin.normalizedServer,
+          serverAccessMode = pendingLogin.serverAccessMode,
           errorMessage = "OpenID login failed because the saved server is invalid.",
         )
 
@@ -259,10 +267,15 @@ constructor(
       if (normalizedResponse.user.accessToken.isBlank()) {
         return failOpenIdLoginCompletion(
           normalizedServer = pendingLogin.normalizedServer,
+          serverAccessMode = pendingLogin.serverAccessMode,
           errorMessage = "OpenID login failed because the server did not return an access token.",
         )
       }
-      loginSuccessHandler.onLoginSuccess(pendingLogin.normalizedServer, normalizedResponse)
+      loginSuccessHandler.onLoginSuccess(
+        pendingLogin.normalizedServer,
+        pendingLogin.serverAccessMode,
+        normalizedResponse,
+      )
       pendingOpenIdLoginStore.clear()
       pendingOpenIdCallbackStore.clear()
       openIdLoginFailureStore.clear()
@@ -271,6 +284,7 @@ constructor(
 
     return failOpenIdLoginCompletion(
       normalizedServer = pendingLogin.normalizedServer,
+      serverAccessMode = pendingLogin.serverAccessMode,
       errorMessage = response.exceptionOrNull().toOpenIdLoginFailureMessage(),
     )
   }
@@ -310,6 +324,7 @@ constructor(
 
   private suspend fun failOpenIdLoginCompletion(
     normalizedServer: String?,
+    serverAccessMode: ServerAccessMode = ServerAccessMode.Internet,
     errorMessage: String,
   ): OpenIdLoginCompletionResult.Failed {
     val failure =
@@ -318,6 +333,7 @@ constructor(
         pendingOpenIdCallbackStore = pendingOpenIdCallbackStore,
         openIdLoginFailureStore = openIdLoginFailureStore,
         normalizedServer = normalizedServer,
+        serverAccessMode = serverAccessMode,
         errorMessage = errorMessage,
       )
     return OpenIdLoginCompletionResult.Failed(failure)
@@ -331,6 +347,7 @@ data class OpenIdLoginStartResult(
 
 data class OpenIdLoginRecoveryState(
   val normalizedServer: String? = null,
+  val serverAccessMode: ServerAccessMode = ServerAccessMode.Internet,
   val hasPendingCallback: Boolean = false,
 )
 
@@ -345,6 +362,7 @@ data class LoginUiState(
   val server: String = "",
   val normalizedServer: String? = null,
   val serverFieldError: LoginFieldError? = null,
+  val serverAccessMode: ServerAccessMode = ServerAccessMode.Internet,
   val username: String = "",
   val password: String = "",
   val reLogin: Boolean = false,
@@ -431,6 +449,8 @@ sealed interface LoginEvent {
   data object LoginButtonPressed : LoginEvent
 
   data class OpenIdLoginButtonPressed(val redirectUri: String) : LoginEvent
+
+  data class ServerAccessModeChanged(val serverAccessMode: ServerAccessMode) : LoginEvent
 
   data object UseDifferentServerOrAccountConfirmed : LoginEvent
 

@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.login
 
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.firstOrNull
@@ -35,6 +36,7 @@ constructor(private val dataStoreManager: DataStoreManager) {
 @Serializable
 data class OpenIdLoginFailure(
   val normalizedServer: String? = null,
+  val serverAccessMode: ServerAccessMode = ServerAccessMode.Internet,
   val errorMessage: String,
 )
 
@@ -60,11 +62,12 @@ internal suspend fun recordOpenIdLoginFailure(
   pendingOpenIdCallbackStore: PendingOpenIdCallbackStore,
   openIdLoginFailureStore: OpenIdLoginFailureStore,
   normalizedServer: String?,
+  serverAccessMode: ServerAccessMode,
   errorMessage: String,
 ): OpenIdLoginFailure {
   pendingOpenIdLoginStore.clear()
   pendingOpenIdCallbackStore.clear()
-  val failure = OpenIdLoginFailure(normalizedServer, errorMessage)
+  val failure = OpenIdLoginFailure(normalizedServer, serverAccessMode, errorMessage)
   openIdLoginFailureStore.save(failure)
   return failure
 }

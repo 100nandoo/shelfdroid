@@ -6,6 +6,7 @@ import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.Prefs
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.catalog.LibraryFolder
@@ -76,6 +77,9 @@ object Defaults {
     )
   val LOGIN_RELOGIN_UI_STATE =
     LoginUiState(
+      server = "https://example.com",
+      normalizedServer = "https://example.com",
+      serverAccessMode = ServerAccessMode.LocalNetwork,
       reLogin = true,
       authPromptReason = AuthPromptReason.RefreshFailed,
       authLoginCustomMessage = "Sign in again to continue.",

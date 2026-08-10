@@ -645,6 +645,9 @@
     <string name="language">Language</string>
     <string name="no_libraries_available">No libraries available.</string>
     <string name="server_address">Server URL</string>
+    <string name="server_access">Server access</string>
+    <string name="server_access_internet">Internet</string>
+    <string name="server_access_local_network">Local network</string>
     <string name="placeholder_server">https://audiobooks.dev/</string>
     <string name="invalid_server_url">Enter a valid server URL or host, such as example.com or https://example.com/audiobookshelf</string>
     <string name="username">Username</string>

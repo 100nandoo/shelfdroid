@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.AuthPromptReason
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
@@ -64,6 +65,7 @@ import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
@@ -184,6 +186,31 @@ fun LoginScreenContent(
       )
 
       Spacer(modifier = Modifier.height(8.dp))
+
+      val internetLabel = stringResource(R.string.server_access_internet)
+      val localNetworkLabel = stringResource(R.string.server_access_local_network)
+      MySegmentedButton(
+        modifier = Modifier.fillMaxWidth(),
+        label = stringResource(R.string.server_access),
+        options = listOf(internetLabel, localNetworkLabel),
+        selectedValue =
+          when (uiState.serverAccessMode) {
+            ServerAccessMode.Internet -> internetLabel
+            ServerAccessMode.LocalNetwork -> localNetworkLabel
+          },
+        enabled = uiState.reLogin.not(),
+        onClick = { selectedLabel ->
+          onEvent(
+            LoginEvent.ServerAccessModeChanged(
+              if (selectedLabel == localNetworkLabel) {
+                ServerAccessMode.LocalNetwork
+              } else {
+                ServerAccessMode.Internet
+              }
+            )
+          )
+        },
+      )
 
       if (supportsLocalLogin) {
         MyOutlinedTextField(

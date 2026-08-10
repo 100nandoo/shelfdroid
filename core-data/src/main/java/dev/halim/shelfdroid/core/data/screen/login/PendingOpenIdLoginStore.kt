@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.login
 
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.firstOrNull
@@ -9,6 +10,7 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class PendingOpenIdLogin(
   val normalizedServer: String,
+  val serverAccessMode: ServerAccessMode = ServerAccessMode.Internet,
   val state: String,
   val codeVerifier: String,
   val createdAtEpochMillis: Long,

@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
 import dev.halim.shelfdroid.core.AuthPromptReason
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
@@ -24,12 +25,24 @@ import org.junit.Test
 class LoginViewModelStateTest {
 
   @Test
+  fun initLoginUiState_whenFreshLoginDefaultsToInternetAccessMode() {
+    val initialized =
+      initLoginUiState(
+        navKey = Login(),
+        savedServerAccessMode = ServerAccessMode.LocalNetwork,
+      )
+
+    assertEquals(ServerAccessMode.Internet, initialized.serverAccessMode)
+  }
+
+  @Test
   fun initLoginUiState_whenForcedReloginHasSavedServer_preparesDiscoveryWithoutLoading() {
     val initialized =
       initLoginUiState(
         navKey = Login(reLogin = true, reason = AuthPromptReason.RefreshFailed),
         username = "fernando",
         server = "https://example.com/audiobookshelf/",
+        savedServerAccessMode = ServerAccessMode.LocalNetwork,
       )
 
     assertTrue(initialized.reLogin)
@@ -37,6 +50,7 @@ class LoginViewModelStateTest {
     assertEquals("fernando", initialized.username)
     assertEquals("https://example.com/audiobookshelf/", initialized.server)
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
+    assertEquals(ServerAccessMode.LocalNetwork, initialized.serverAccessMode)
     assertEquals(LoginDiscoveryState.Idle, initialized.discoveryState)
     assertEquals(listOf(LoginMethod.Local), initialized.availableLoginMethods)
   }
@@ -52,10 +66,12 @@ class LoginViewModelStateTest {
             errorMessage =
               "OpenID login failed because the callback state does not match the current login.",
           ),
+        savedServerAccessMode = ServerAccessMode.LocalNetwork,
       )
 
     assertEquals("https://example.com/audiobookshelf", initialized.server)
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
+    assertEquals(ServerAccessMode.LocalNetwork, initialized.serverAccessMode)
     assertEquals(LoginDiscoveryState.Idle, initialized.discoveryState)
     assertTrue(initialized.loginState is GenericState.Failure)
     assertEquals(
@@ -70,10 +86,12 @@ class LoginViewModelStateTest {
       initLoginUiState(
         navKey = Login(),
         pendingOpenIdServer = "https://example.com/audiobookshelf",
+        savedServerAccessMode = ServerAccessMode.LocalNetwork,
       )
 
     assertEquals("https://example.com/audiobookshelf", initialized.server)
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
+    assertEquals(ServerAccessMode.LocalNetwork, initialized.serverAccessMode)
     assertEquals(LoginDiscoveryState.Idle, initialized.discoveryState)
   }
 

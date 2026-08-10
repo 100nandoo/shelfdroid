@@ -7,6 +7,7 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.client.AnonymousRequestTag
 import dev.halim.core.network.client.SessionCookieJar
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
@@ -203,6 +204,61 @@ class LoginRepositoryTest {
   }
 
   @Test
+  fun login_whenSuccessful_runsSharedSuccessPathWithSelectedServerAccessMode() = runTest {
+    val dataStoreScope = dataStoreScope()
+    try {
+      val dataStoreManager = dataStoreManager(dataStoreScope)
+      val successHandler = RecordingLoginSuccessHandler()
+      val repository =
+        repository(dataStoreManager, loginSuccessHandler = successHandler) { request ->
+          jsonResponse(
+            request = request,
+            body =
+              """
+              {
+                "user": {
+                  "id": "user-1",
+                  "username": "fernando",
+                  "type": "admin",
+                  "token": "legacy-access-token",
+                  "refreshToken": "refresh-token",
+                  "permissions": {
+                    "download": true,
+                    "update": true,
+                    "delete": true,
+                    "upload": true
+                  }
+                },
+                "serverSettings": {
+                  "version": "2.31.0",
+                  "logLevel": 1
+                }
+              }
+              """
+                .trimIndent(),
+          )
+        }
+
+      val result =
+        repository.login(
+          LoginUiState(
+            server = "https://example.com",
+            normalizedServer = "https://example.com",
+            username = "fernando",
+            password = "secret",
+            serverAccessMode = ServerAccessMode.LocalNetwork,
+          )
+        )
+
+      assertEquals(GenericState.Success, result.loginState)
+      assertEquals("https://example.com", successHandler.server)
+      assertEquals(ServerAccessMode.LocalNetwork, successHandler.serverAccessMode)
+    } finally {
+      dataStoreScope.cancel()
+    }
+  }
+
+  @Test
   fun startOpenIdLogin_whenServerHasSubpath_buildsMobileAuthorizationUrlAndPersistsPendingContext() =
     runTest {
       val dataStoreScope = dataStoreScope()
@@ -225,6 +281,7 @@ class LoginRepositoryTest {
               LoginUiState(
                 server = "https://Example.com/audiobookshelf/",
                 normalizedServer = "https://example.com/audiobookshelf",
+                serverAccessMode = ServerAccessMode.LocalNetwork,
                 discoveryState = LoginDiscoveryState.Success,
                 availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
                 authOpenIdButtonText = "Continue with Acme SSO",
@@ -258,6 +315,7 @@ class LoginRepositoryTest {
         assertNotNull(pending)
         requireNotNull(pending)
         assertEquals("https://example.com/audiobookshelf", pending.normalizedServer)
+        assertEquals(ServerAccessMode.LocalNetwork, pending.serverAccessMode)
         assertEquals(query["state"], pending.state)
         assertTrue(pending.codeVerifier.isNotBlank())
         assertTrue(pending.createdAtEpochMillis > 0)
@@ -331,6 +389,7 @@ class LoginRepositoryTest {
         pendingStore.save(
           PendingOpenIdLogin(
             normalizedServer = "https://example.com/audiobookshelf",
+            serverAccessMode = ServerAccessMode.LocalNetwork,
             state = "state-123",
             codeVerifier = "verifier-123",
             createdAtEpochMillis = 1L,
@@ -341,6 +400,7 @@ class LoginRepositoryTest {
         val result = repository.openIdLoginRecoveryState()
 
         assertEquals("https://example.com/audiobookshelf", result.normalizedServer)
+        assertEquals(ServerAccessMode.LocalNetwork, result.serverAccessMode)
         assertTrue(!result.hasPendingCallback)
       } finally {
         dataStoreScope.cancel()
@@ -357,6 +417,7 @@ class LoginRepositoryTest {
           .save(
             PendingOpenIdLogin(
               normalizedServer = "https://example.com/audiobookshelf",
+              serverAccessMode = ServerAccessMode.LocalNetwork,
               state = "state-123",
               codeVerifier = "verifier-123",
               createdAtEpochMillis = 1L,
@@ -376,6 +437,7 @@ class LoginRepositoryTest {
         val result = repository.openIdLoginRecoveryState()
 
         assertEquals("https://example.com/audiobookshelf", result.normalizedServer)
+        assertEquals(ServerAccessMode.LocalNetwork, result.serverAccessMode)
         assertTrue(result.hasPendingCallback)
       } finally {
         dataStoreScope.cancel()
@@ -393,6 +455,7 @@ class LoginRepositoryTest {
       pendingLoginStore.save(
         PendingOpenIdLogin(
           normalizedServer = "https://example.com/audiobookshelf",
+          serverAccessMode = ServerAccessMode.LocalNetwork,
           state = "state-123",
           codeVerifier = "verifier-123",
           createdAtEpochMillis = 1_000L,
@@ -561,6 +624,7 @@ class LoginRepositoryTest {
       assertNull(callbackStore.current())
       assertNull(OpenIdLoginFailureStore(dataStoreManager).consume())
       assertEquals("http://127.0.0.1:${server.address.port}/audiobookshelf", successHandler.server)
+      assertEquals(ServerAccessMode.Internet, successHandler.serverAccessMode)
       val successResponse = requireNotNull(successHandler.response)
       assertEquals("legacy-access-token", successResponse.user.accessToken)
       assertEquals("refresh-token", successResponse.user.refreshToken)
@@ -689,19 +753,23 @@ class LoginRepositoryTest {
   private data object NoOpLoginSuccessHandler : LoginSuccessHandler {
     override suspend fun onLoginSuccess(
       server: String,
+      serverAccessMode: ServerAccessMode,
       response: dev.halim.core.network.response.login.LoginResponse,
     ) = Unit
   }
 
   private class RecordingLoginSuccessHandler : LoginSuccessHandler {
     var server: String? = null
+    var serverAccessMode: ServerAccessMode? = null
     var response: dev.halim.core.network.response.login.LoginResponse? = null
 
     override suspend fun onLoginSuccess(
       server: String,
+      serverAccessMode: ServerAccessMode,
       response: dev.halim.core.network.response.login.LoginResponse,
     ) {
       this.server = server
+      this.serverAccessMode = serverAccessMode
       this.response = response
     }
   }

@@ -7,6 +7,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
@@ -86,6 +87,8 @@ constructor(
         }
 
       is LoginEvent.ServerChanged -> _uiState.update { it.prepareLoginDiscovery(event.server) }
+      is LoginEvent.ServerAccessModeChanged ->
+        _uiState.update { it.copy(serverAccessMode = event.serverAccessMode) }
       is LoginEvent.UsernameChanged -> _uiState.update { it.copy(username = event.username) }
       is LoginEvent.PasswordChanged -> _uiState.update { it.copy(password = event.password) }
       LoginEvent.ErrorShown -> {
@@ -122,6 +125,15 @@ constructor(
   private fun initUiState(): LoginUiState {
     val openIdLoginRecoveryState = runBlocking { loginRepository.openIdLoginRecoveryState() }
     val openIdLoginFailure = runBlocking { openIdLoginFailureStore.consume() }
+    val savedServerAccessMode =
+      when {
+        openIdLoginFailure != null -> openIdLoginFailure.serverAccessMode
+        openIdLoginRecoveryState.normalizedServer != null -> openIdLoginRecoveryState.serverAccessMode
+        else ->
+          runBlocking {
+            loginRepository.serverPrefs.firstOrNull()?.accessMode ?: ServerAccessMode.Internet
+          }
+      }
     val (username, server) =
       if (navKey.reLogin) {
         runBlocking {
@@ -138,6 +150,7 @@ constructor(
       server = server,
       openIdLoginFailure = openIdLoginFailure,
       pendingOpenIdServer = openIdLoginRecoveryState.normalizedServer,
+      savedServerAccessMode = savedServerAccessMode,
     )
   }
 
@@ -205,6 +218,7 @@ internal fun initLoginUiState(
   server: String = "",
   openIdLoginFailure: OpenIdLoginFailure? = null,
   pendingOpenIdServer: String? = null,
+  savedServerAccessMode: ServerAccessMode = ServerAccessMode.Internet,
 ): LoginUiState {
   val initialServer =
     when {
@@ -214,11 +228,14 @@ internal fun initLoginUiState(
       !pendingOpenIdServer.isNullOrBlank() -> pendingOpenIdServer.orEmpty()
       else -> ""
     }
+  val initialServerAccessMode =
+    if (initialServer.isNotBlank()) savedServerAccessMode else ServerAccessMode.Internet
   val state =
     if (navKey.reLogin) {
       LoginUiState(
         username = username,
         server = if (username.isNotBlank()) initialServer else "",
+        serverAccessMode = initialServerAccessMode,
         reLogin = true,
         authPromptReason = navKey.reason,
         loginState =
@@ -227,6 +244,7 @@ internal fun initLoginUiState(
     } else {
       LoginUiState(
         server = initialServer,
+        serverAccessMode = initialServerAccessMode,
         authPromptReason = navKey.reason,
         loginState =
           openIdLoginFailure?.let { GenericState.Failure(it.errorMessage) } ?: GenericState.Idle,

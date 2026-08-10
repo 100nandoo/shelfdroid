@@ -41,7 +41,12 @@ class PrefsRepository @Inject constructor(private val dataStoreManager: DataStor
   }
 
   suspend fun updateServerPrefs(server: ServerSettings) {
-    val serverPrefs = ServerPrefs(version = server.version, logLevel = server.logLevel)
+    val serverPrefs =
+      ServerPrefs(
+        version = server.version,
+        logLevel = server.logLevel,
+        accessMode = this.serverPrefs.first().accessMode,
+      )
     dataStoreManager.updateServerPrefs(serverPrefs)
   }
 

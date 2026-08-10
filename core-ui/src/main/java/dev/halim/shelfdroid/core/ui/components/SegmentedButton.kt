@@ -23,6 +23,7 @@ fun MySegmentedButton(
   label: String? = null,
   selectedValue: String,
   onClick: (String) -> Unit = {},
+  enabled: Boolean = true,
 ) {
   val selectedIndex = options.indexOf(selectedValue).coerceAtLeast(0)
 
@@ -36,6 +37,7 @@ fun MySegmentedButton(
         SegmentedButton(
           shape = SegmentedButtonDefaults.itemShape(index, options.size),
           selected = selectedIndex == index,
+          enabled = enabled,
           onClick = { onClick(option) },
         ) {
           Text(option, maxLines = 1, overflow = TextOverflow.Ellipsis)
