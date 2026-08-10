@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.catalog
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -15,7 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class BookMediaRepoTest {
+class BookLocalDataSourceTest {
 
   private val context = ApplicationProvider.getApplicationContext<Context>()
 
@@ -24,7 +24,7 @@ class BookMediaRepoTest {
     AndroidSqliteDriver(MyDatabase.Schema, context).use { driver ->
       val database =
         DatabaseModule.provideSqlDelightAppDatabase(driver, DatabaseModule.provideMapAdapter())
-      val repository = BookMediaRepo(database, Json)
+      val repository = BookLocalDataSource(database, Json)
       val book = Book(audioFiles = listOf(AudioFile(ino = "ino-1")))
 
       repository.insert("book-1", book)

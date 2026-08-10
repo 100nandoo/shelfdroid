@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.catalog
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
-class BookMediaRepo @Inject constructor(db: MyDatabase, private val json: Json) {
+class BookLocalDataSource @Inject constructor(db: MyDatabase, private val json: Json) {
 
   private val queries = db.bookEntityQueries
 

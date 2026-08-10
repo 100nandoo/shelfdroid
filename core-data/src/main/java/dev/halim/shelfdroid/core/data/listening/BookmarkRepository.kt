@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.listening
 
 import dev.halim.core.network.response.login.AudioBookmark
 import dev.halim.core.network.response.login.User
@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class BookmarkRepo @Inject constructor(db: MyDatabase) {
+class BookmarkRepository @Inject constructor(db: MyDatabase) {
 
   private val queries = db.bookmarkEntityQueries
   private val repoScope = CoroutineScope(Dispatchers.IO)
@@ -25,8 +25,6 @@ class BookmarkRepo @Inject constructor(db: MyDatabase) {
     }
     return entities
   }
-
-  fun saveAndConvert(user: User): List<BookmarkEntity> = replaceUserBookmarks(user)
 
   fun insertAndConvert(audioBookmark: AudioBookmark): BookmarkEntity {
     val entity = toEntity(audioBookmark)

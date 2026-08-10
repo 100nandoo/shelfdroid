@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.catalog
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -22,14 +22,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class PodcastEpisodeRepoTest {
+class PodcastEpisodeRepositoryTest {
 
   private val context = ApplicationProvider.getApplicationContext<Context>()
 
   @Test
   fun sync_storesEpisodesForDirectLookup() {
     database { database ->
-      val repository = PodcastEpisodeRepo(database, Json)
+      val repository = PodcastEpisodeRepository(database, Json)
 
       repository.replace("podcast-1", listOf(episode("episode-1", "First episode")))
 
@@ -49,7 +49,7 @@ class PodcastEpisodeRepoTest {
   @Test
   fun sync_replacesStaleEpisodesAfterReplacementIsAvailable() {
     database { database ->
-      val repository = PodcastEpisodeRepo(database, Json)
+      val repository = PodcastEpisodeRepository(database, Json)
       repository.replace("podcast-1", listOf(episode("episode-1", "Stale episode")))
 
       repository.replace("podcast-1", listOf(episode("episode-2", "Fresh episode")))
@@ -62,7 +62,7 @@ class PodcastEpisodeRepoTest {
   @Test
   fun byLibraryItemId_returnsEpisodesForSelectedPodcast() {
     database { database ->
-      val repository = PodcastEpisodeRepo(database, Json)
+      val repository = PodcastEpisodeRepository(database, Json)
       repository.replace(
         "podcast-1",
         listOf(episode("episode-1", "First episode"), episode("episode-2", "Second episode")),
@@ -95,7 +95,7 @@ class PodcastEpisodeRepoTest {
           addedAt = 1,
         )
       )
-      PodcastEpisodeRepo(database, Json)
+      PodcastEpisodeRepository(database, Json)
         .replace(
           "podcast-1",
           listOf(episode("episode-1", "First"), episode("episode-2", "Second")),

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.listening
 
 import android.util.Log
 import app.cash.sqldelight.coroutines.asFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.supervisorScope
 
-class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: ApiService) {
+class ListeningStatsRepository @Inject constructor(db: MyDatabase, private val api: ApiService) {
 
   private val queries = db.listeningStatEntityQueries
   private val userQueries = db.userEntityQueries
@@ -22,11 +22,7 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
   fun observeListeningStats(): Flow<List<ListeningStatEntity>> =
     queries.all().asFlow().mapToList(Dispatchers.IO)
 
-  fun flowAll(): Flow<List<ListeningStatEntity>> = observeListeningStats()
-
   fun listListeningStats(): List<ListeningStatEntity> = queries.all().executeAsList()
-
-  fun all(): List<ListeningStatEntity> = listListeningStats()
 
   fun byUserId(userId: String) = queries.byUserId(userId).executeAsOneOrNull()
 
@@ -34,15 +30,13 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
     val result = api.listeningStats(userId)
     val response = result.getOrNull()
     if (result.isFailure) {
-      Log.e("ListeningStatRepo", "refreshListeningStats($userId): ${result.exceptionOrNull()}")
+      Log.e("ListeningStatsRepository", "refreshListeningStats($userId): ${result.exceptionOrNull()}")
     }
     if (response != null) {
       queries.insert(toEntity(userId, response))
     }
     return result
   }
-
-  suspend fun remote(userId: String): Result<ListeningStatResponse> = refreshListeningStats(userId)
 
   suspend fun refreshListeningStats() = supervisorScope {
     val userIds = userQueries.allIds().executeAsList()
@@ -54,7 +48,7 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
             val result = api.listeningStats(userId)
             val response = result.getOrNull()
             if (result.isFailure) {
-              Log.e("ListeningStatRepo", "refreshListeningStats: ${result.exceptionOrNull()}")
+              Log.e("ListeningStatsRepository", "refreshListeningStats: ${result.exceptionOrNull()}")
             }
             response?.let { userId to it }
           }
@@ -66,8 +60,6 @@ class ListeningStatRepo @Inject constructor(db: MyDatabase, private val api: Api
       save(results)
     }
   }
-
-  suspend fun remote() = refreshListeningStats()
 
   fun save(data: List<Pair<String, ListeningStatResponse>>) {
     queries.transaction {

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.users
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
-class UserRepo @Inject constructor(db: MyDatabase, private val api: ApiService) {
+class UserRepository @Inject constructor(db: MyDatabase, private val api: ApiService) {
 
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -33,11 +33,7 @@ class UserRepo @Inject constructor(db: MyDatabase, private val api: ApiService) 
 
   fun observeUsers(): Flow<List<UserEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
 
-  fun flowAll(): Flow<List<UserEntity>> = observeUsers()
-
   fun listUsers(): List<UserEntity> = queries.all().executeAsList()
-
-  fun all(): List<UserEntity> = listUsers()
 
   fun byId(id: String) = queries.byId(id).executeAsOneOrNull()
 
@@ -54,12 +50,7 @@ class UserRepo @Inject constructor(db: MyDatabase, private val api: ApiService) 
   suspend fun fetchUserWithProgress(userId: String): Result<UserWithMediaProgressDetail> =
     api.user(userId)
 
-  suspend fun userWithProgress(userId: String): Result<UserWithMediaProgressDetail> =
-    fetchUserWithProgress(userId)
-
   suspend fun refreshUsers(include: String? = null): Result<UsersResponse> = fetch(include)
-
-  suspend fun remote(include: String? = null): Result<UsersResponse> = refreshUsers(include)
 
   suspend fun update(id: String, request: UpdateUserRequest): Result<UpdateUserResponse> {
     val result = api.updateUser(id, request)

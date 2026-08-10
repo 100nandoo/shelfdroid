@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.listening
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -16,15 +16,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class ProgressRepo @Inject constructor(db: MyDatabase, val helper: Helper) {
+class ProgressRepository @Inject constructor(db: MyDatabase, val helper: Helper) {
 
   private val queries = db.progressEntityQueries
   private val repoScope = CoroutineScope(Dispatchers.IO)
 
   fun observeAllProgress(): Flow<List<ProgressEntity>> =
     queries.all().asFlow().mapToList(Dispatchers.IO)
-
-  fun flowAll(): Flow<List<ProgressEntity>> = observeAllProgress()
 
   fun byLibraryItemId(id: String): List<ProgressEntity> =
     queries.byLibraryItemId(id).executeAsList()
@@ -53,8 +51,6 @@ class ProgressRepo @Inject constructor(db: MyDatabase, val helper: Helper) {
     }
     return entities
   }
-
-  fun saveAndConvert(user: User): List<ProgressEntity> = replaceUserProgress(user)
 
   fun toggleIsFinishedByEpisodeId(episodeId: String): Boolean =
     queries.toggleIsFinishedByEpisodeId(episodeId).value.toBoolean()

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.catalog
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -14,15 +14,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
 
-class LibraryRepo
+class LibraryRepository
 @Inject
 constructor(private val api: ApiService, db: MyDatabase, private val json: Json) {
 
   private val queries = db.libraryEntityQueries
 
   fun listLibraries(): List<LibraryEntity> = queries.all().executeAsList()
-
-  fun local(): List<LibraryEntity> = listLibraries()
 
   suspend fun refreshLibraries() {
     val response = api.libraries().getOrNull()
@@ -32,8 +30,6 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
       entities.forEach { entity -> queries.insert(entity) }
     }
   }
-
-  suspend fun remote() = refreshLibraries()
 
   fun byId(id: String): LibraryEntity? {
     return queries.byId(id).executeAsOneOrNull()
@@ -46,11 +42,7 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
     return folders.getOrNull()?.map { LibraryFolder(it) } ?: emptyList()
   }
 
-  fun foldersByLibraryId(id: String): List<PodcastFolder> = listLibraryFolders(id)
-
   fun observeLibraries(): Flow<List<LibraryEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
-
-  fun flowEntities(): Flow<List<LibraryEntity>> = observeLibraries()
 
   private fun convert(response: LibrariesResponse): List<LibraryEntity> {
     val entities = response.libraries.map { toEntity(it) }
@@ -75,8 +67,6 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
     )
 }
 
-data class PodcastFolder(val id: String, val path: String) {
+data class LibraryFolder(val id: String, val path: String) {
   constructor(folder: Folder) : this(folder.id, folder.fullPath)
 }
-
-typealias LibraryFolder = PodcastFolder

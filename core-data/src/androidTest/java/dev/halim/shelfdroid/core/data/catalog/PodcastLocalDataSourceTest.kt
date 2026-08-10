@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.catalog
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
@@ -19,7 +19,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class PodcastMediaRepoTest {
+class PodcastLocalDataSourceTest {
 
   private val context = ApplicationProvider.getApplicationContext<Context>()
 
@@ -28,7 +28,7 @@ class PodcastMediaRepoTest {
     AndroidSqliteDriver(MyDatabase.Schema, context).use { driver ->
       val database =
         DatabaseModule.provideSqlDelightAppDatabase(driver, DatabaseModule.provideMapAdapter())
-      val repository = PodcastMediaRepo(database, Json)
+      val repository = PodcastLocalDataSource(database, Json)
       val podcast =
         Podcast(
           coverPath = "/library/podcasts/cover.jpg",

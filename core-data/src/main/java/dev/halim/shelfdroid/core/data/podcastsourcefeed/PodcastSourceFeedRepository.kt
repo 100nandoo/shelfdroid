@@ -1,6 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.podcastsourcefeed
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.PodcastFeedRequest
@@ -13,7 +13,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 @Singleton
-class PodcastFeedRepo @Inject constructor(private val api: ApiService) {
+class PodcastSourceFeedRepository @Inject constructor(private val api: ApiService) {
 
   val cache: Map<String, PodcastFeed>
     get() = _cache.mapValues { it.value.feed }

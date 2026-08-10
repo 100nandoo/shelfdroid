@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.catalog
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -13,6 +13,7 @@ import dev.halim.core.network.response.RssFeed
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.database.LibraryItemCatalog
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
@@ -30,7 +31,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
-class LibraryItemRepo
+class LibraryItemRepository
 @Inject
 constructor(
   private val api: ApiService,
@@ -38,10 +39,10 @@ constructor(
   private val helper: Helper,
   private val json: Json,
   private val downloadRepo: DownloadRepo,
-  private val progressRepo: ProgressRepo,
-  private val bookMediaRepo: BookMediaRepo,
-  private val podcastMediaRepo: PodcastMediaRepo,
-  private val podcastEpisodeRepo: PodcastEpisodeRepo,
+  private val progressRepository: ProgressRepository,
+  private val bookLocalDataSource: BookLocalDataSource,
+  private val podcastLocalDataSource: PodcastLocalDataSource,
+  private val podcastEpisodeRepository: PodcastEpisodeRepository,
 ) {
 
   private val queries = db.libraryItemEntityQueries
@@ -74,8 +75,6 @@ constructor(
         .awaitAll()
     }
   }
-
-  suspend fun remote() = refreshLibraryItems()
 
   fun createPodcast(libraryItem: LibraryItem, libraryId: String) {
     insert(libraryItem, libraryId)
@@ -137,12 +136,12 @@ constructor(
   }
 
   fun bookById(id: String): Book? {
-    return bookMediaRepo.byId(id)
+    return bookLocalDataSource.byId(id)
   }
 
-  fun flowBookById(id: String): Flow<Book?> = bookMediaRepo.flowById(id)
+  fun flowBookById(id: String): Flow<Book?> = bookLocalDataSource.flowById(id)
 
-  fun podcastById(id: String): Podcast? = podcastMediaRepo.byId(id)
+  fun podcastById(id: String): Podcast? = podcastLocalDataSource.byId(id)
 
   suspend fun idsByLibraryId(libraryId: String): List<String> {
     val result = api.libraryItems(libraryId).getOrNull()
@@ -160,7 +159,7 @@ constructor(
 
   fun listExistingPodcastSummaries(libraryId: String): List<ExistingPodcastSummary> {
     return queries.podcastsByLibraryId(libraryId).executeAsList().map { entity ->
-      val metadata = podcastMediaRepo.byId(entity.id)?.metadata
+      val metadata = podcastLocalDataSource.byId(entity.id)?.metadata
       ExistingPodcastSummary(
         id = entity.id,
         itunesId = metadata?.itunesId.orEmpty(),
@@ -170,9 +169,6 @@ constructor(
       )
     }
   }
-
-  fun podcastInfoList(libraryId: String): List<PodcastInfo> =
-    listExistingPodcastSummaries(libraryId)
 
   suspend fun cleanupItem(id: String) {
     val entity = queries.byId(id).executeAsOneOrNull()
@@ -199,12 +195,12 @@ constructor(
     queries.transaction {
       deleteInTransaction(id)
     }
-    progressRepo.deleteItem(id)
+    progressRepository.deleteItem(id)
   }
 
   fun deleteEpisodes(id: String, episodeIds: Set<String>) {
     if (episodeIds.isEmpty()) return
-    podcastEpisodeRepo.deleteByIds(episodeIds)
+    podcastEpisodeRepository.deleteByIds(episodeIds)
 
     downloadRepo.cleanupEpisode(episodeIds.toList())
   }
@@ -247,7 +243,7 @@ constructor(
         .byLibraryId(libraryId)
         .executeAsList()
         .filter { it.isBook == 0L }
-        .flatMap { entity -> podcastEpisodeRepo.byLibraryItemId(entity.id) }
+        .flatMap { entity -> podcastEpisodeRepository.byLibraryItemId(entity.id) }
         .map { it.id }
         .toSet()
 
@@ -300,22 +296,22 @@ constructor(
     val media = item.media
     queries.insert(toEntity(item, libraryId))
     if (media is Book) {
-      bookMediaRepo.insert(item.id, media)
-      podcastMediaRepo.deleteById(item.id)
-      podcastEpisodeRepo.deleteByLibraryItemId(item.id)
+      bookLocalDataSource.insert(item.id, media)
+      podcastLocalDataSource.deleteById(item.id)
+      podcastEpisodeRepository.deleteByLibraryItemId(item.id)
     } else {
       media as Podcast
-      bookMediaRepo.deleteById(item.id)
-      podcastMediaRepo.insert(item.id, media)
-      podcastEpisodeRepo.replace(item.id, media.episodes)
+      bookLocalDataSource.deleteById(item.id)
+      podcastLocalDataSource.insert(item.id, media)
+      podcastEpisodeRepository.replace(item.id, media.episodes)
     }
   }
 
   private fun deleteInTransaction(id: String) {
     queries.deleteById(id)
-    bookMediaRepo.deleteById(id)
-    podcastMediaRepo.deleteById(id)
-    podcastEpisodeRepo.deleteByLibraryItemId(id)
+    bookLocalDataSource.deleteById(id)
+    podcastLocalDataSource.deleteById(id)
+    podcastEpisodeRepository.deleteByLibraryItemId(id)
   }
 
   private fun patchRssFeed(itemId: String, feed: RssFeed?) {
@@ -343,12 +339,10 @@ internal fun stalePodcastEpisodeIds(
 
 internal fun Book.primaryInoId(): String = audioFiles.firstOrNull()?.ino.orEmpty()
 
-data class PodcastInfo(
+data class ExistingPodcastSummary(
   val id: String,
   val itunesId: String?,
   val title: String,
   val artist: String,
   val feedUrl: String,
 )
-
-typealias ExistingPodcastSummary = PodcastInfo

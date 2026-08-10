@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.catalog
 
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.database.MyDatabase
@@ -6,7 +6,7 @@ import dev.halim.shelfdroid.core.database.PodcastEntity
 import javax.inject.Inject
 import kotlinx.serialization.json.Json
 
-class PodcastMediaRepo
+class PodcastLocalDataSource
 @Inject
 constructor(
   db: MyDatabase,

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.response
+package dev.halim.shelfdroid.core.data.catalog
 
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.libraryitem.AudioFile
@@ -8,7 +8,7 @@ import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class LibraryItemRepoTest {
+class LibraryItemRepositoryTest {
 
   @Test
   fun primaryInoId_returnsFirstAudioFileIno() {
