@@ -127,6 +127,30 @@ class LoginViewModelStateTest {
   }
 
   @Test
+  fun resolveSavedServerAccessMode_whenServerMatchesSavedServer_returnsSavedMode() {
+    val resolved =
+      resolveSavedServerAccessMode(
+        server = "https://example.com/audiobookshelf/",
+        savedServerForAccessMode = "https://example.com/audiobookshelf",
+        savedServerAccessMode = ServerAccessMode.LocalNetwork,
+      )
+
+    assertEquals(ServerAccessMode.LocalNetwork, resolved)
+  }
+
+  @Test
+  fun resolveSavedServerAccessMode_whenServerDiffersFromSavedServer_returnsInternet() {
+    val resolved =
+      resolveSavedServerAccessMode(
+        server = "https://other.example.com",
+        savedServerForAccessMode = "https://example.com",
+        savedServerAccessMode = ServerAccessMode.LocalNetwork,
+      )
+
+    assertEquals(ServerAccessMode.Internet, resolved)
+  }
+
+  @Test
   fun prepareLoginDiscovery_whenServerChanges_clearsStaleDiscoveryState() {
     val prepared =
       LoginUiState(
