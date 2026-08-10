@@ -108,19 +108,65 @@ classDef primary stroke: #FFC981
 
 ## 🏷️ Naming & Coding Convention
 
-#### Each screen can have their own repository to retrieve data.
+#### Each screen can have its own repository to retrieve and shape UI data.
 
 ```kotlin
 HomeScreen.kt
 HomeRepository.kt
 ```
 
-#### There are 2 types of repositories
+#### The data layer uses domain-oriented repositories and data sources.
 
-* Related to Screen `HomeRepository.kt`
-* Related to Data `ProgressRepo.kt`
+- Screen repositories assemble data for a specific screen or flow, such as `HomeRepository`.
+- Data-layer repositories are named after the data they own, such as `LibraryRepository`,
+  `LibraryItemRepository`, `PodcastEpisodeRepository`, `ProgressRepository`, or
+  `UserRepository`.
+- Single-source helpers should not be named `*Repository`. Use `*LocalDataSource` or
+  `*RemoteDataSource` when a class only talks to one source of truth.
+- Repository methods should use explicit verbs such as `refresh`, `sync`, `fetch`, `list`,
+  `observe`, `update`, and `delete` instead of vague names like `local()` or `remote()`.
 
-More documentation will be added in the future.
+#### `Catalog` is the main data-layer umbrella for media browsing.
+
+In ShelfDroid, the **Catalog** is the app view of the media available on the current
+Audiobookshelf server. It includes:
+
+- **Libraries**
+- **Library folders**
+- **Library items**
+- **Books**
+- **Podcasts**
+- **Episodes**
+
+Catalog-related repositories live under `core.data.catalog`. The main public seams are:
+
+- `LibraryRepository`
+- `LibraryItemRepository`
+- `PodcastEpisodeRepository`
+
+#### Screen repositories may depend on more than one public repository.
+
+ShelfDroid does not force every read through a single facade. If a screen reflects multiple
+real domain seams, it can depend on multiple public repositories directly.
+
+For example:
+
+- Podcast- and player-related flows may use both `LibraryItemRepository` and
+  `PodcastEpisodeRepository`
+- Listening flows may combine Catalog repositories with `ProgressRepository` or
+  `BookmarkRepository`
+
+#### Other public repository areas follow domain concepts, not technical buckets.
+
+- `core.data.catalog` for Catalog data
+- `core.data.listening` for `ProgressRepository`, `BookmarkRepository`, and
+  `ListeningStatsRepository`
+- `core.data.users` for `UserRepository`
+- `core.data.tags` for `TagRepository`
+- `core.data.podcastsourcefeed` for `PodcastSourceFeedRepository`
+
+This is intentional. Avoid catch-all packages that group classes by legacy implementation
+history instead of domain ownership.
 
 ## 🎨 Code Style And Formatting
 
@@ -148,4 +194,5 @@ ShelfDroid follows
 the [Android Architecture Templates (Multi-Module)](https://github.com/android/architecture-templates/tree/multimodule)
 to keep the codebase scalable and maintainable.
 
+- [Data Layer Seams ADR](./adr/0007-domain-oriented-data-layer-seams.md)
 - [Download Module](./architecture/download-module.md)

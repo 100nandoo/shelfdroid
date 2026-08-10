@@ -19,7 +19,7 @@
 
 ### Issue tracker
 
-Issues for this repo are tracked in GitHub Issues via the local `gh` CLI context. See
+Issues for this repo are tracked as local markdown files under `docs/scratch/`. See
 `docs/agents/issue-tracker.md`.
 
 ### Triage labels
@@ -31,8 +31,3 @@ This repo uses the default triage label vocabulary: `needs-triage`, `needs-info`
 
 This repo is configured as a single-context repo with root-level domain docs and ADR lookup rules.
 See `docs/agents/domain.md`.
-
-### Orchestration labels
-
-This repo uses the default orchestration-label scheme with stage-based `f<N>-<C>` and `p<N><L>-<C>`
-labels. See `docs/agents/orchestration-labels.md`.
