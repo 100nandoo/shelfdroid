@@ -18,6 +18,7 @@ import java.security.SecureRandom
 import java.util.Base64
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -37,12 +38,15 @@ constructor(
 ) {
 
   val userPrefs = prefsRepository.userPrefs
-  val serverPrefs = prefsRepository.serverPrefs
   val baseUrl = dataStoreManager.baseUrl()
   private val openIdBootstrapClient by
     lazy(LazyThreadSafetyMode.NONE) {
       okHttpClient.newBuilder().followRedirects(false).build()
     }
+
+  suspend fun currentServerAccessMode(): ServerAccessMode {
+    return dataStoreManager.serverPrefs.firstOrNull()?.accessMode ?: ServerAccessMode.Internet
+  }
 
   suspend fun discoverLoginMethods(rawServer: String): LoginDiscoveryResult {
     val parsedServer = AudiobookshelfBaseUrl.parse(rawServer) ?: return LoginDiscoveryResult()

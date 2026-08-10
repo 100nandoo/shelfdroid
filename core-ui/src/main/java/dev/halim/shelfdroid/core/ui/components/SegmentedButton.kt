@@ -17,13 +17,14 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
-fun MySegmentedButton(
+fun <T> MySegmentedButton(
   modifier: Modifier = Modifier,
-  options: List<String> = emptyList(),
+  options: List<T> = emptyList(),
   label: String? = null,
-  selectedValue: String,
-  onClick: (String) -> Unit = {},
+  selectedValue: T,
+  onClick: (T) -> Unit = {},
   enabled: Boolean = true,
+  optionLabel: (T) -> String = { it.toString() },
 ) {
   val selectedIndex = options.indexOf(selectedValue).coerceAtLeast(0)
 
@@ -40,7 +41,7 @@ fun MySegmentedButton(
           enabled = enabled,
           onClick = { onClick(option) },
         ) {
-          Text(option, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          Text(optionLabel(option), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
       }
     }

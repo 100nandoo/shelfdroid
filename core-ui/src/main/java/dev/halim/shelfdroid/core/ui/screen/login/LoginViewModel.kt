@@ -125,24 +125,28 @@ constructor(
   private fun initUiState(): LoginUiState {
     val openIdLoginRecoveryState = runBlocking { loginRepository.openIdLoginRecoveryState() }
     val openIdLoginFailure = runBlocking { openIdLoginFailureStore.consume() }
+    val savedServer = loginRepository.baseUrl
     val savedServerAccessMode =
       when {
         openIdLoginFailure != null -> openIdLoginFailure.serverAccessMode
         openIdLoginRecoveryState.normalizedServer != null -> openIdLoginRecoveryState.serverAccessMode
-        else ->
-          runBlocking {
-            loginRepository.serverPrefs.firstOrNull()?.accessMode ?: ServerAccessMode.Internet
-          }
+        else -> runBlocking { loginRepository.currentServerAccessMode() }
+      }
+    val savedServerForAccessMode =
+      when {
+        openIdLoginFailure != null -> openIdLoginFailure.normalizedServer
+        openIdLoginRecoveryState.normalizedServer != null -> openIdLoginRecoveryState.normalizedServer
+        else -> savedServer
       }
     val (username, server) =
       if (navKey.reLogin) {
         runBlocking {
           val username = loginRepository.userPrefs.firstOrNull()?.username ?: ""
-          val server = if (username.isNotBlank()) loginRepository.baseUrl else ""
+          val server = if (username.isNotBlank()) savedServer else ""
           username to server
         }
       } else {
-        "" to ""
+        "" to savedServer
       }
     return initLoginUiState(
       navKey = navKey,
@@ -151,6 +155,7 @@ constructor(
       openIdLoginFailure = openIdLoginFailure,
       pendingOpenIdServer = openIdLoginRecoveryState.normalizedServer,
       savedServerAccessMode = savedServerAccessMode,
+      savedServerForAccessMode = savedServerForAccessMode,
     )
   }
 
@@ -219,6 +224,7 @@ internal fun initLoginUiState(
   openIdLoginFailure: OpenIdLoginFailure? = null,
   pendingOpenIdServer: String? = null,
   savedServerAccessMode: ServerAccessMode = ServerAccessMode.Internet,
+  savedServerForAccessMode: String? = null,
 ): LoginUiState {
   val initialServer =
     when {
@@ -226,10 +232,22 @@ internal fun initLoginUiState(
       !openIdLoginFailure?.normalizedServer.isNullOrBlank() ->
         openIdLoginFailure.normalizedServer.orEmpty()
       !pendingOpenIdServer.isNullOrBlank() -> pendingOpenIdServer.orEmpty()
+      server.isNotBlank() -> server
       else -> ""
     }
+  val normalizedInitialServer = AudiobookshelfBaseUrl.parse(initialServer)?.value ?: initialServer
+  val normalizedSavedServer =
+    savedServerForAccessMode
+      ?.let { AudiobookshelfBaseUrl.parse(it)?.value ?: it }
+      ?: normalizedInitialServer.takeIf { it.isNotBlank() }
   val initialServerAccessMode =
-    if (initialServer.isNotBlank()) savedServerAccessMode else ServerAccessMode.Internet
+    if (
+      normalizedInitialServer.isNotBlank() && normalizedInitialServer == normalizedSavedServer
+    ) {
+      savedServerAccessMode
+    } else {
+      ServerAccessMode.Internet
+    }
   val state =
     if (navKey.reLogin) {
       LoginUiState(

@@ -75,6 +75,8 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
+private data class ServerAccessOption(val accessMode: ServerAccessMode, val label: String)
+
 @Composable
 fun LoginScreen(
   navKey: Login = Login(),
@@ -187,29 +189,26 @@ fun LoginScreenContent(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      val internetLabel = stringResource(R.string.server_access_internet)
-      val localNetworkLabel = stringResource(R.string.server_access_local_network)
+      val serverAccessOptions =
+        listOf(
+          ServerAccessOption(
+            accessMode = ServerAccessMode.Internet,
+            label = stringResource(R.string.server_access_internet),
+          ),
+          ServerAccessOption(
+            accessMode = ServerAccessMode.LocalNetwork,
+            label = stringResource(R.string.server_access_local_network),
+          ),
+        )
       MySegmentedButton(
         modifier = Modifier.fillMaxWidth(),
         label = stringResource(R.string.server_access),
-        options = listOf(internetLabel, localNetworkLabel),
+        options = serverAccessOptions,
         selectedValue =
-          when (uiState.serverAccessMode) {
-            ServerAccessMode.Internet -> internetLabel
-            ServerAccessMode.LocalNetwork -> localNetworkLabel
-          },
+          serverAccessOptions.first { it.accessMode == uiState.serverAccessMode },
         enabled = uiState.reLogin.not(),
-        onClick = { selectedLabel ->
-          onEvent(
-            LoginEvent.ServerAccessModeChanged(
-              if (selectedLabel == localNetworkLabel) {
-                ServerAccessMode.LocalNetwork
-              } else {
-                ServerAccessMode.Internet
-              }
-            )
-          )
-        },
+        onClick = { onEvent(LoginEvent.ServerAccessModeChanged(it.accessMode)) },
+        optionLabel = { it.label },
       )
 
       if (supportsLocalLogin) {

@@ -36,6 +36,21 @@ class LoginViewModelStateTest {
   }
 
   @Test
+  fun initLoginUiState_whenSavedServerExists_restoresSavedServerAndAccessMode() {
+    val initialized =
+      initLoginUiState(
+        navKey = Login(),
+        server = "https://example.com/audiobookshelf/",
+        savedServerAccessMode = ServerAccessMode.LocalNetwork,
+        savedServerForAccessMode = "https://example.com/audiobookshelf",
+      )
+
+    assertEquals("https://example.com/audiobookshelf/", initialized.server)
+    assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
+    assertEquals(ServerAccessMode.LocalNetwork, initialized.serverAccessMode)
+  }
+
+  @Test
   fun initLoginUiState_whenForcedReloginHasSavedServer_preparesDiscoveryWithoutLoading() {
     val initialized =
       initLoginUiState(
@@ -43,6 +58,7 @@ class LoginViewModelStateTest {
         username = "fernando",
         server = "https://example.com/audiobookshelf/",
         savedServerAccessMode = ServerAccessMode.LocalNetwork,
+        savedServerForAccessMode = "https://example.com/audiobookshelf",
       )
 
     assertTrue(initialized.reLogin)
@@ -67,6 +83,7 @@ class LoginViewModelStateTest {
               "OpenID login failed because the callback state does not match the current login.",
           ),
         savedServerAccessMode = ServerAccessMode.LocalNetwork,
+        savedServerForAccessMode = "https://example.com/audiobookshelf",
       )
 
     assertEquals("https://example.com/audiobookshelf", initialized.server)
@@ -87,12 +104,26 @@ class LoginViewModelStateTest {
         navKey = Login(),
         pendingOpenIdServer = "https://example.com/audiobookshelf",
         savedServerAccessMode = ServerAccessMode.LocalNetwork,
+        savedServerForAccessMode = "https://example.com/audiobookshelf",
       )
 
     assertEquals("https://example.com/audiobookshelf", initialized.server)
     assertEquals("https://example.com/audiobookshelf", initialized.normalizedServer)
     assertEquals(ServerAccessMode.LocalNetwork, initialized.serverAccessMode)
     assertEquals(LoginDiscoveryState.Idle, initialized.discoveryState)
+  }
+
+  @Test
+  fun initLoginUiState_whenSavedAccessModeTargetsDifferentServer_defaultsToInternet() {
+    val initialized =
+      initLoginUiState(
+        navKey = Login(),
+        server = "https://other.example.com",
+        savedServerAccessMode = ServerAccessMode.LocalNetwork,
+        savedServerForAccessMode = "https://example.com",
+      )
+
+    assertEquals(ServerAccessMode.Internet, initialized.serverAccessMode)
   }
 
   @Test
