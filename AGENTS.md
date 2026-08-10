@@ -1,6 +1,7 @@
 ## Approach
 
-- Always use Android CLI (android docs) when I need library/API documentation, code generation,
+- Do not use Context7 MCP in this repo.
+- Always use Android CLI (`android docs`) when I need library/API documentation, code generation,
   setup or configuration steps without me having to explicitly ask.
 - Think before acting. Read existing files before writing code.
 - Be concise in output but thorough in reasoning.

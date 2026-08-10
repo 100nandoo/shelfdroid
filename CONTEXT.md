@@ -10,9 +10,17 @@ ShelfDroid is an Android client for an Audiobookshelf server. Its context is bro
 The remote server that stores media, metadata, users, and administrative settings for ShelfDroid.
 _Avoid_: Backend, API
 
+**Catalog**:
+The ShelfDroid view of the media available on an **Audiobookshelf server**, spanning **Libraries**, **Library folders**, and **Library items** for browsing and management.
+_Avoid_: Response bucket, inventory, listing
+
 **Library**:
 A server-managed collection of media of a single primary kind, exposed in ShelfDroid as either a book library or a podcast library.
 _Avoid_: Shelf, folder
+
+**Library folder**:
+A server-reported folder inside a **Library** that ShelfDroid may present as a placement target when creating or organizing a **Library item**.
+_Avoid_: Podcast folder, path, directory
 
 **Library item**:
 A single media entry inside a library that ShelfDroid can open, play, edit, or download files from.
@@ -201,6 +209,9 @@ _Avoid_: Best-effort release, unverifiable build
 ## Relationships
 
 - An **Audiobookshelf server** contains one or more **Libraries**
+- ShelfDroid presents one **Catalog** for the current **Audiobookshelf server**
+- A **Catalog** contains one or more **Libraries**
+- A **Library** may contain many **Library folders**
 - A **Library** contains many **Library items**
 - A **Library item** is either a **Book** or a **Podcast**
 - A **Podcast** contains many **Episodes**
@@ -251,6 +262,8 @@ _Avoid_: Best-effort release, unverifiable build
 ## Flagged ambiguities
 
 - "item" is too vague on its own in this repo; prefer **Library item** when referring to a server catalog entry.
+- "catalog" is the app-level browsing surface for the current **Audiobookshelf server**; do not use it as a synonym for a single **Library**.
+- "folder" is overloaded; use **Library folder** for a server-reported folder choice inside a **Library**, and do not shorten it to just "folder" when catalog placement matters.
 - "session" is overloaded; use **Listening session** for historical playback records and **Open session** for active server-tracked playback, where the server may hold many concurrent sessions and a user may have more than one.
 - "schedule" is overloaded; use **Podcast auto-download schedule** for recurring podcast downloads and say backup schedule explicitly when discussing server backups.
 - "RSS feed" is overloaded; use **Podcast source feed** for upstream podcast ingestion and **Generated RSS feed** for the public Audiobookshelf-managed feed exposed to external clients.
