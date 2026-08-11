@@ -51,8 +51,7 @@ constructor(
   @Assisted private val navKey: Login,
 ) : ViewModel() {
 
-  private val loginInitialization = createLoginInitialization()
-  private val _uiState = MutableStateFlow(loginInitialization.uiState)
+  private val _uiState = MutableStateFlow(initUiState())
 
   val uiState: StateFlow<LoginUiState> = _uiState
 
@@ -100,18 +99,7 @@ constructor(
           }
         }
 
-      is LoginEvent.ServerChanged ->
-        _uiState.update {
-          it.prepareLoginDiscovery(
-            server = event.server,
-            serverAccessMode =
-              resolveSavedServerAccessMode(
-                server = event.server,
-                savedServerForAccessMode = loginInitialization.savedServerForAccessMode,
-                savedServerAccessMode = loginInitialization.savedServerAccessMode,
-              ),
-          )
-        }
+      is LoginEvent.ServerChanged -> _uiState.update { it.prepareLoginDiscovery(event.server) }
       is LoginEvent.LocalNetworkPermissionResult ->
         viewModelScope.launch {
           _uiState.value =
@@ -176,27 +164,21 @@ constructor(
     _events.emit(LoginUiEvent.RequestLocalNetworkPermission)
   }
 
-  private fun createLoginInitialization(): LoginInitialization {
+  private fun initUiState(): LoginUiState {
     val openIdLoginRecoveryState = runBlocking { loginRepository.openIdLoginRecoveryState() }
     val openIdLoginFailure = runBlocking { openIdLoginFailureStore.consume() }
     val savedServer = loginRepository.baseUrl
-    val savedServerContext =
+    val savedServerAccessMode =
       when {
-        openIdLoginFailure != null ->
-          LoginSavedServerContext(
-            server = openIdLoginFailure.normalizedServer,
-            accessMode = openIdLoginFailure.serverAccessMode,
-          )
-        openIdLoginRecoveryState.normalizedServer != null ->
-          LoginSavedServerContext(
-            server = openIdLoginRecoveryState.normalizedServer,
-            accessMode = openIdLoginRecoveryState.serverAccessMode,
-          )
-        else ->
-          LoginSavedServerContext(
-            server = savedServer,
-            accessMode = runBlocking { loginRepository.currentServerAccessMode() },
-          )
+        openIdLoginFailure != null -> openIdLoginFailure.serverAccessMode
+        openIdLoginRecoveryState.normalizedServer != null -> openIdLoginRecoveryState.serverAccessMode
+        else -> runBlocking { loginRepository.currentServerAccessMode() }
+      }
+    val savedServerForAccessMode =
+      when {
+        openIdLoginFailure != null -> openIdLoginFailure.normalizedServer
+        openIdLoginRecoveryState.normalizedServer != null -> openIdLoginRecoveryState.normalizedServer
+        else -> savedServer
       }
     val (username, server) =
       if (navKey.reLogin) {
@@ -208,19 +190,14 @@ constructor(
       } else {
         "" to savedServer
       }
-    return LoginInitialization(
-      uiState =
-        initLoginUiState(
-          navKey = navKey,
-          username = username,
-          server = server,
-          openIdLoginFailure = openIdLoginFailure,
-          pendingOpenIdServer = openIdLoginRecoveryState.normalizedServer,
-          savedServerAccessMode = savedServerContext.accessMode,
-          savedServerForAccessMode = savedServerContext.server,
-        ),
-      savedServerForAccessMode = savedServerContext.server,
-      savedServerAccessMode = savedServerContext.accessMode,
+    return initLoginUiState(
+      navKey = navKey,
+      username = username,
+      server = server,
+      openIdLoginFailure = openIdLoginFailure,
+      pendingOpenIdServer = openIdLoginRecoveryState.normalizedServer,
+      savedServerAccessMode = savedServerAccessMode,
+      savedServerForAccessMode = savedServerForAccessMode,
     )
   }
 
@@ -352,17 +329,6 @@ private fun LoginUiState.clearLocalNetworkPermissionState(): LoginUiState {
   )
 }
 
-private data class LoginInitialization(
-  val uiState: LoginUiState,
-  val savedServerForAccessMode: String?,
-  val savedServerAccessMode: ServerAccessMode,
-)
-
-private data class LoginSavedServerContext(
-  val server: String?,
-  val accessMode: ServerAccessMode,
-)
-
 internal suspend fun handleLocalNetworkPermissionResult(
   uiState: LoginUiState,
   granted: Boolean,
@@ -417,24 +383,6 @@ internal suspend fun handleLocalNetworkPermissionResult(
   }
 }
 
-internal fun resolveSavedServerAccessMode(
-  server: String,
-  savedServerForAccessMode: String?,
-  savedServerAccessMode: ServerAccessMode,
-): ServerAccessMode {
-  val normalizedServer = AudiobookshelfBaseUrl.parse(server)?.value ?: server
-  if (normalizedServer.isBlank()) return ServerAccessMode.Internet
-  val normalizedSavedServer =
-    savedServerForAccessMode
-      ?.let { AudiobookshelfBaseUrl.parse(it)?.value ?: it }
-      ?: normalizedServer
-  return if (normalizedServer == normalizedSavedServer) {
-    savedServerAccessMode
-  } else {
-    ServerAccessMode.Internet
-  }
-}
-
 internal fun initLoginUiState(
   navKey: Login,
   username: String = "",
@@ -453,12 +401,19 @@ internal fun initLoginUiState(
       server.isNotBlank() -> server
       else -> ""
     }
+  val normalizedInitialServer = AudiobookshelfBaseUrl.parse(initialServer)?.value ?: initialServer
+  val normalizedSavedServer =
+    savedServerForAccessMode
+      ?.let { AudiobookshelfBaseUrl.parse(it)?.value ?: it }
+      ?: normalizedInitialServer.takeIf { it.isNotBlank() }
   val initialServerAccessMode =
-    resolveSavedServerAccessMode(
-      server = initialServer,
-      savedServerForAccessMode = savedServerForAccessMode,
-      savedServerAccessMode = savedServerAccessMode,
-    )
+    if (
+      normalizedInitialServer.isNotBlank() && normalizedInitialServer == normalizedSavedServer
+    ) {
+      savedServerAccessMode
+    } else {
+      ServerAccessMode.Internet
+    }
   val state =
     if (navKey.reLogin) {
       LoginUiState(

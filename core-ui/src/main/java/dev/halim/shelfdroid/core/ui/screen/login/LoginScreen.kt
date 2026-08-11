@@ -1,14 +1,5 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
-import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,8 +51,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
@@ -74,7 +63,6 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
 import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
-import dev.halim.shelfdroid.core.ui.extensions.findActivity
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -83,6 +71,7 @@ import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.navigation.Login
+import dev.halim.shelfdroid.core.ui.permissions.rememberLocalNetworkPermissionHandler
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -93,7 +82,6 @@ internal data class ServerAccessControlState(
   val options: List<ServerAccessOption>,
   val enabled: Boolean,
 )
-private const val ANDROID_17_API_LEVEL = 37
 
 @Composable
 fun LoginScreen(
@@ -109,8 +97,8 @@ fun LoginScreen(
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
   val openIdLoginLauncher = remember(context) { AndroidOpenIdLoginLauncher(context) }
-  val requestLocalNetworkPermission =
-    rememberLocalNetworkPermissionRequester { granted, permanentlyDenied ->
+  val localNetworkPermissionHandler =
+    rememberLocalNetworkPermissionHandler { granted, permanentlyDenied ->
       viewModel.onEvent(
         LoginEvent.LocalNetworkPermissionResult(
           granted = granted,
@@ -136,12 +124,12 @@ fun LoginScreen(
     }
   }
 
-  LaunchedEffect(viewModel, openIdLoginLauncher, requestLocalNetworkPermission) {
+  LaunchedEffect(viewModel, openIdLoginLauncher, localNetworkPermissionHandler) {
     viewModel.events.collect { event ->
       handleLoginUiEvent(
         event = event,
         launchOpenIdLogin = openIdLoginLauncher::launch,
-        requestLocalNetworkPermission = requestLocalNetworkPermission,
+        requestLocalNetworkPermission = localNetworkPermissionHandler.requestPermission,
       )
     }
   }
@@ -150,7 +138,7 @@ fun LoginScreen(
     uiState = uiState,
     focusManager = focusManager,
     openIdRedirectUri = openIdRedirectUri,
-    onOpenAppSettings = { context.openAppSettings() },
+    onOpenAppSettings = localNetworkPermissionHandler.openAppSettings,
     onEvent = viewModel::onEvent,
   )
 }
@@ -500,45 +488,6 @@ private fun LoginDiscoveryMessage.asStringRes(): Int {
       R.string.login_discovery_methods_unconfirmed_try_local_network
     LoginDiscoveryMessage.LocalLoginUnavailable -> R.string.login_discovery_local_unavailable
   }
-}
-
-@Composable
-private fun rememberLocalNetworkPermissionRequester(
-  onPermissionResult: (granted: Boolean, permanentlyDenied: Boolean) -> Unit
-): () -> Unit {
-  val context = LocalContext.current
-  val activity = remember(context) { context.findActivity() }
-  val launcher =
-    rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-      val permanentlyDenied =
-        !granted &&
-          !ActivityCompat.shouldShowRequestPermissionRationale(
-            activity,
-            Manifest.permission.ACCESS_LOCAL_NETWORK,
-          )
-      onPermissionResult(granted, permanentlyDenied)
-    }
-
-  return {
-    val granted =
-      Build.VERSION.SDK_INT < ANDROID_17_API_LEVEL ||
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_LOCAL_NETWORK) ==
-          PackageManager.PERMISSION_GRANTED
-    if (granted) {
-      onPermissionResult(true, false)
-    } else {
-      launcher.launch(Manifest.permission.ACCESS_LOCAL_NETWORK)
-    }
-  }
-}
-
-private fun Context.openAppSettings() {
-  startActivity(
-    Intent(
-      Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-      Uri.fromParts("package", packageName, null),
-    )
-  )
 }
 
 @ShelfDroidPreview
