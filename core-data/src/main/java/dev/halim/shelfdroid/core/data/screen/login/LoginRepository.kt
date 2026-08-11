@@ -381,9 +381,14 @@ data class LoginUiState(
   val authOpenIdAutoLaunch: Boolean? = null,
 )
 
-enum class PendingLocalNetworkAction {
-  DiscoverLoginMethods,
-  PasswordLogin,
+sealed interface PendingLocalNetworkAction {
+  data object DiscoverLoginMethods : PendingLocalNetworkAction
+
+  data object PasswordLogin : PendingLocalNetworkAction
+
+  data class OpenIdLoginStart(val redirectUri: String) : PendingLocalNetworkAction
+
+  data object CompleteOpenIdLogin : PendingLocalNetworkAction
 }
 
 enum class LocalNetworkPermissionState {

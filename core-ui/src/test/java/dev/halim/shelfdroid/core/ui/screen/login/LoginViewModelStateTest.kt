@@ -309,6 +309,99 @@ class LoginViewModelStateTest {
   }
 
   @Test
+  fun handleLocalNetworkPermissionResult_whenGranted_resumesPendingOpenIdLoginStart() =
+    runBlocking {
+      val events = mutableListOf<LoginUiEvent>()
+      var loginStartRequest: Pair<LoginUiState, String>? = null
+
+      val updated =
+        handleLocalNetworkPermissionResult(
+          uiState =
+            LoginUiState(
+                server = "https://example.com",
+                normalizedServer = "https://example.com",
+                serverAccessMode = ServerAccessMode.LocalNetwork,
+                discoveryState = LoginDiscoveryState.Success,
+                availableLoginMethods = listOf(LoginMethod.OpenId),
+              )
+              .prepareLocalNetworkPermissionRequest(
+                PendingLocalNetworkAction.OpenIdLoginStart("audiobookshelf://oauth")
+              ),
+          granted = true,
+          permanentlyDenied = false,
+          login = { throw AssertionError("password login should not run for OpenID start") },
+          discoverLoginMethods = {
+            throw AssertionError("discovery should not run for OpenID start")
+          },
+          startOpenIdLogin = { state, redirectUri ->
+            loginStartRequest = state to redirectUri
+            OpenIdLoginStartResult(
+              uiState = state,
+              authorizationUrl = "https://example.com/auth/openid?redirect_uri=$redirectUri",
+            )
+          },
+          completeOpenIdLogin = {
+            throw AssertionError("callback completion should not run for OpenID start")
+          },
+          emitEvent = { events += it },
+        )
+
+      assertEquals("audiobookshelf://oauth", loginStartRequest?.second)
+      assertNull(loginStartRequest?.first?.pendingLocalNetworkAction)
+      assertNull(loginStartRequest?.first?.localNetworkPermissionState)
+      assertEquals(updated, loginStartRequest?.first)
+      assertEquals(1, events.size)
+      val event = events.single()
+      assertTrue(event is LoginUiEvent.LaunchOpenIdLogin)
+      assertEquals(
+        "https://example.com/auth/openid?redirect_uri=audiobookshelf://oauth",
+        (event as LoginUiEvent.LaunchOpenIdLogin).authorizationUrl,
+      )
+    }
+
+  @Test
+  fun handleLocalNetworkPermissionResult_whenGranted_resumesPendingOpenIdRecoveryCompletion() =
+    runBlocking {
+      var callbackCompletionRequested = false
+
+      val updated =
+        handleLocalNetworkPermissionResult(
+          uiState =
+            LoginUiState(
+                server = "https://example.com",
+                normalizedServer = "https://example.com",
+                serverAccessMode = ServerAccessMode.LocalNetwork,
+                loginState = GenericState.Loading,
+                discoveryState = LoginDiscoveryState.Success,
+                availableLoginMethods = listOf(LoginMethod.OpenId),
+                loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
+              )
+              .prepareLocalNetworkPermissionRequest(
+                PendingLocalNetworkAction.CompleteOpenIdLogin
+              ),
+          granted = true,
+          permanentlyDenied = false,
+          login = { throw AssertionError("password login should not run for OpenID recovery") },
+          discoverLoginMethods = {
+            throw AssertionError("discovery should not run for OpenID recovery")
+          },
+          startOpenIdLogin = { _, _ ->
+            throw AssertionError("OpenID start should not run for OpenID recovery")
+          },
+          completeOpenIdLogin = {
+            callbackCompletionRequested = true
+            OpenIdLoginCompletionResult.Success
+          },
+          emitEvent = { throw AssertionError("no event should be emitted after permission grant") },
+        )
+
+      assertTrue(callbackCompletionRequested)
+      assertEquals(GenericState.Success, updated.loginState)
+      assertNull(updated.pendingLocalNetworkAction)
+      assertNull(updated.localNetworkPermissionState)
+    }
+
+  @Test
   fun applyLoginDiscovery_whenBothMethodsExist_keepsPasswordLoginAndShowsOpenIdAlternative() {
     val applied =
       LoginUiState(server = "https://example.com")
@@ -460,6 +553,77 @@ class LoginViewModelStateTest {
 
     assertEquals(GenericState.Success, applied.loginState)
   }
+
+  @Test
+  fun handlePendingOpenIdRecovery_whenLocalNetworkAccessSelected_requestsPermissionAndDefersCompletion() =
+    runBlocking {
+      val events = mutableListOf<LoginUiEvent>()
+
+      val updated =
+        handlePendingOpenIdRecovery(
+          uiState =
+            LoginUiState(
+              server = "https://example.com",
+              normalizedServer = "https://example.com",
+              discoveryState = LoginDiscoveryState.Success,
+              availableLoginMethods = listOf(LoginMethod.OpenId),
+              loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
+            ),
+          recoveryState =
+            OpenIdLoginRecoveryState(
+              normalizedServer = "https://example.com",
+              serverAccessMode = ServerAccessMode.LocalNetwork,
+              hasPendingCallback = true,
+            ),
+          completeOpenIdLogin = {
+            throw AssertionError("callback completion should wait for permission grant")
+          },
+          emitEvent = { events += it },
+        )
+
+      assertEquals(GenericState.Loading, updated.loginState)
+      assertEquals(
+        PendingLocalNetworkAction.CompleteOpenIdLogin,
+        updated.pendingLocalNetworkAction,
+      )
+      assertNull(updated.localNetworkPermissionState)
+      assertEquals(1, events.size)
+      assertEquals(LoginUiEvent.RequestLocalNetworkPermission, events.single())
+    }
+
+  @Test
+  fun handleOpenIdLoginButtonPressed_whenLocalNetworkSelected_requestsPermissionInsteadOfStartingLogin() =
+    runBlocking {
+      val events = mutableListOf<LoginUiEvent>()
+      var loginStartRequested = false
+
+      val updated =
+        handleOpenIdLoginButtonPressed(
+          uiState =
+            LoginUiState(
+              server = "https://example.com",
+              normalizedServer = "https://example.com",
+              serverAccessMode = ServerAccessMode.LocalNetwork,
+              discoveryState = LoginDiscoveryState.Success,
+              availableLoginMethods = listOf(LoginMethod.OpenId),
+            ),
+          redirectUri = "audiobookshelf://oauth",
+          startOpenIdLogin = { _, _ ->
+            loginStartRequested = true
+            throw AssertionError("OpenID login should wait for permission grant")
+          },
+          emitEvent = { events += it },
+        )
+
+      assertEquals(false, loginStartRequested)
+      assertEquals(
+        PendingLocalNetworkAction.OpenIdLoginStart("audiobookshelf://oauth"),
+        updated.pendingLocalNetworkAction,
+      )
+      assertNull(updated.localNetworkPermissionState)
+      assertEquals(1, events.size)
+      assertEquals(LoginUiEvent.RequestLocalNetworkPermission, events.single())
+    }
 
   @Test
   fun handleOpenIdLoginButtonPressed_emitsLaunchEventAndUpdatesUiState() = runBlocking {

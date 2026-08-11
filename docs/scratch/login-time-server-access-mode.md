@@ -1,7 +1,7 @@
 ---
 title: Spec: Login-time server access mode for local-network servers
 labels:
-  - ready-for-agent
+  - ready-for-human
 related:
   - "#289"
 ---

@@ -20,6 +20,7 @@ import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
+import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult
 import dev.halim.shelfdroid.core.data.screen.login.PendingLocalNetworkAction
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
@@ -119,6 +120,9 @@ constructor(
               permanentlyDenied = event.permanentlyDenied,
               login = loginRepository::login,
               discoverLoginMethods = loginRepository::discoverLoginMethods,
+              startOpenIdLogin = loginRepository::startOpenIdLogin,
+              completeOpenIdLogin = loginRepository::completeOpenIdLogin,
+              emitEvent = _events::emit,
             )
         }
       is LoginEvent.ServerAccessModeChanged ->
@@ -222,11 +226,13 @@ constructor(
   private fun recoverPendingOpenIdLogin() {
     viewModelScope.launch {
       val recoveryState = loginRepository.openIdLoginRecoveryState()
-      if (!recoveryState.hasPendingCallback) return@launch
-
-      _uiState.update { it.prepareOpenIdRecovery(recoveryState) }
-      val result = loginRepository.completeOpenIdLogin()
-      _uiState.update { it.applyOpenIdRecoveryCompletion(result) }
+      _uiState.value =
+        handlePendingOpenIdRecovery(
+          uiState = _uiState.value,
+          recoveryState = recoveryState,
+          completeOpenIdLogin = loginRepository::completeOpenIdLogin,
+          emitEvent = _events::emit,
+        )
     }
   }
 
@@ -249,7 +255,32 @@ internal suspend fun handleOpenIdLoginButtonPressed(
     suspend (
       LoginUiState,
       String,
-    ) -> dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult,
+    ) -> OpenIdLoginStartResult,
+  emitEvent: suspend (LoginUiEvent) -> Unit,
+): LoginUiState {
+  if (uiState.requiresLocalNetworkPermission() && uiState.hasValidServer()) {
+    emitEvent(LoginUiEvent.RequestLocalNetworkPermission)
+    return uiState.prepareLocalNetworkPermissionRequest(
+      PendingLocalNetworkAction.OpenIdLoginStart(redirectUri)
+    )
+  }
+
+  return launchOpenIdLogin(
+    uiState = uiState,
+    redirectUri = redirectUri,
+    startOpenIdLogin = startOpenIdLogin,
+    emitEvent = emitEvent,
+  )
+}
+
+private suspend fun launchOpenIdLogin(
+  uiState: LoginUiState,
+  redirectUri: String,
+  startOpenIdLogin:
+    suspend (
+      LoginUiState,
+      String,
+    ) -> OpenIdLoginStartResult,
   emitEvent: suspend (LoginUiEvent) -> Unit,
 ): LoginUiState {
   val result = startOpenIdLogin(uiState, redirectUri)
@@ -302,6 +333,7 @@ private fun LoginUiState.recordLocalNetworkPermissionDenial(
   permanentlyDenied: Boolean
 ): LoginUiState {
   return copy(
+    loginState = GenericState.Idle,
     pendingLocalNetworkAction = null,
     localNetworkPermissionState =
       if (permanentlyDenied) {
@@ -336,6 +368,11 @@ internal suspend fun handleLocalNetworkPermissionResult(
   permanentlyDenied: Boolean,
   login: suspend (LoginUiState) -> LoginUiState,
   discoverLoginMethods: suspend (String) -> LoginDiscoveryResult,
+  startOpenIdLogin: suspend (LoginUiState, String) -> OpenIdLoginStartResult =
+    { _, _ -> error("OpenID login start should not run for this action") },
+  completeOpenIdLogin: suspend () -> OpenIdLoginCompletionResult =
+    { error("OpenID login completion should not run for this action") },
+  emitEvent: suspend (LoginUiEvent) -> Unit = {},
 ): LoginUiState {
   val pendingAction = uiState.pendingLocalNetworkAction ?: return uiState
   if (!granted) {
@@ -362,6 +399,19 @@ internal suspend fun handleLocalNetworkPermissionResult(
     PendingLocalNetworkAction.PasswordLogin -> {
       val loadingState = clearedState.copy(loginState = GenericState.Loading)
       login(loadingState)
+    }
+
+    is PendingLocalNetworkAction.OpenIdLoginStart ->
+      launchOpenIdLogin(
+        uiState = clearedState,
+        redirectUri = pendingAction.redirectUri,
+        startOpenIdLogin = startOpenIdLogin,
+        emitEvent = emitEvent,
+      )
+
+    PendingLocalNetworkAction.CompleteOpenIdLogin -> {
+      val result = completeOpenIdLogin()
+      clearedState.applyOpenIdRecoveryCompletion(result)
     }
   }
 }
@@ -435,7 +485,31 @@ internal fun LoginUiState.prepareOpenIdRecovery(
   recoveryState: OpenIdLoginRecoveryState
 ): LoginUiState {
   val prepared = reconcileOpenIdServer(recoveryState.normalizedServer)
-  return prepared.copy(loginState = GenericState.Loading, serverFieldError = null)
+  return prepared.copy(
+    loginState = GenericState.Loading,
+    serverFieldError = null,
+    serverAccessMode = recoveryState.serverAccessMode,
+  )
+}
+
+internal suspend fun handlePendingOpenIdRecovery(
+  uiState: LoginUiState,
+  recoveryState: OpenIdLoginRecoveryState,
+  completeOpenIdLogin: suspend () -> OpenIdLoginCompletionResult,
+  emitEvent: suspend (LoginUiEvent) -> Unit,
+): LoginUiState {
+  if (!recoveryState.hasPendingCallback) return uiState
+
+  val prepared = uiState.prepareOpenIdRecovery(recoveryState)
+  if (prepared.requiresLocalNetworkPermission()) {
+    emitEvent(LoginUiEvent.RequestLocalNetworkPermission)
+    return prepared.prepareLocalNetworkPermissionRequest(
+      PendingLocalNetworkAction.CompleteOpenIdLogin
+    )
+  }
+
+  val result = completeOpenIdLogin()
+  return prepared.applyOpenIdRecoveryCompletion(result)
 }
 
 internal fun LoginUiState.applyOpenIdRecoveryCompletion(
@@ -476,4 +550,12 @@ internal fun LoginUiState.applyLoginDiscovery(result: LoginDiscoveryResult): Log
     authOpenIdButtonText = result.authOpenIdButtonText,
     authOpenIdAutoLaunch = result.authOpenIdAutoLaunch,
   )
+}
+
+private fun LoginUiState.requiresLocalNetworkPermission(): Boolean {
+  return serverAccessMode == ServerAccessMode.LocalNetwork
+}
+
+private fun LoginUiState.hasValidServer(): Boolean {
+  return normalizedServer != null || AudiobookshelfBaseUrl.parse(server) != null
 }
