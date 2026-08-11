@@ -496,6 +496,8 @@ internal fun localNetworkPermissionGuidance(
 private fun LoginDiscoveryMessage.asStringRes(): Int {
   return when (this) {
     LoginDiscoveryMessage.MethodsUnconfirmed -> R.string.login_discovery_methods_unconfirmed
+    LoginDiscoveryMessage.MethodsUnconfirmedTryLocalNetwork ->
+      R.string.login_discovery_methods_unconfirmed_try_local_network
     LoginDiscoveryMessage.LocalLoginUnavailable -> R.string.login_discovery_local_unavailable
   }
 }

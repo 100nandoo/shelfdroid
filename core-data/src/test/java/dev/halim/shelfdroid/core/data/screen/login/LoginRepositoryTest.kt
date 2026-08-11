@@ -11,6 +11,7 @@ import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.URI
 import java.net.URLDecoder
@@ -204,6 +205,34 @@ class LoginRepositoryTest {
   }
 
   @Test
+  fun login_whenNetworkFailsInInternetMode_suggestsLocalNetwork() = runTest {
+    val dataStoreScope = dataStoreScope()
+    try {
+      val repository =
+        repository(dataStoreScope) { throw IOException("Connection refused.") }
+
+      val result =
+        repository.login(
+          LoginUiState(
+            server = "https://example.com",
+            normalizedServer = "https://example.com",
+            username = "fernando",
+            password = "secret",
+            serverAccessMode = ServerAccessMode.Internet,
+          )
+        )
+
+      assertTrue(result.loginState is GenericState.Failure)
+      assertEquals(
+        "Connection refused. If this Audiobookshelf server is on your local network, switch Server access to Local network and try again.",
+        (result.loginState as GenericState.Failure).errorMessage,
+      )
+    } finally {
+      dataStoreScope.cancel()
+    }
+  }
+
+  @Test
   fun login_whenSuccessful_runsSharedSuccessPathWithSelectedServerAccessMode() = runTest {
     val dataStoreScope = dataStoreScope()
     try {
@@ -374,6 +403,37 @@ class LoginRepositoryTest {
       assertNull(result.authorizationUrl)
       assertTrue(result.uiState.loginState is GenericState.Failure)
       assertNull(pendingStore.current())
+    } finally {
+      dataStoreScope.cancel()
+    }
+  }
+
+  @Test
+  fun startOpenIdLogin_whenBootstrapNetworkFailsInInternetMode_suggestsLocalNetwork() = runTest {
+    val dataStoreScope = dataStoreScope()
+    try {
+      val dataStoreManager = dataStoreManager(dataStoreScope)
+      val repository =
+        repository(dataStoreManager) { throw IOException("Connection refused.") }
+
+      val result =
+        repository.startOpenIdLogin(
+          uiState =
+            LoginUiState(
+              server = "https://example.com",
+              normalizedServer = "https://example.com",
+              serverAccessMode = ServerAccessMode.Internet,
+              discoveryState = LoginDiscoveryState.Success,
+              availableLoginMethods = listOf(LoginMethod.OpenId),
+            ),
+          redirectUri = "audiobookshelf://oauth",
+        )
+
+      assertTrue(result.uiState.loginState is GenericState.Failure)
+      assertEquals(
+        "Connection refused. If this Audiobookshelf server is on your local network, switch Server access to Local network and try again.",
+        (result.uiState.loginState as GenericState.Failure).errorMessage,
+      )
     } finally {
       dataStoreScope.cancel()
     }
@@ -630,6 +690,51 @@ class LoginRepositoryTest {
       assertEquals("refresh-token", successResponse.user.refreshToken)
     } finally {
       server?.stop(0)
+      dataStoreScope.cancel()
+    }
+  }
+
+  @Test
+  fun completeOpenIdLogin_whenCallbackNetworkFailsInInternetMode_suggestsLocalNetwork() = runTest {
+    val dataStoreScope = dataStoreScope()
+    try {
+      val dataStoreManager = dataStoreManager(dataStoreScope)
+      val pendingLoginStore = PendingOpenIdLoginStore(dataStoreManager)
+      val pendingCallbackStore = PendingOpenIdCallbackStore(dataStoreManager)
+      val failureStore = OpenIdLoginFailureStore(dataStoreManager)
+      pendingLoginStore.save(
+        PendingOpenIdLogin(
+          normalizedServer = "https://example.com/audiobookshelf",
+          serverAccessMode = ServerAccessMode.Internet,
+          state = "state-123",
+          codeVerifier = "verifier-123",
+          createdAtEpochMillis = 1_000L,
+        )
+      )
+      pendingCallbackStore.save(
+        PendingOpenIdCallback(
+          normalizedServer = "https://example.com/audiobookshelf",
+          state = "state-123",
+          code = "code-123",
+          receivedAtEpochMillis = 1_001L,
+        )
+      )
+      val repository =
+        repository(dataStoreManager) { throw IOException("Connection refused.") }
+
+      val result = repository.completeOpenIdLogin(nowMillis = 1_001L)
+
+      assertTrue(result is OpenIdLoginCompletionResult.Failed)
+      require(result is OpenIdLoginCompletionResult.Failed)
+      assertEquals(
+        "Connection refused. If this Audiobookshelf server is on your local network, switch Server access to Local network and try again.",
+        result.failure.errorMessage,
+      )
+      assertEquals(
+        "Connection refused. If this Audiobookshelf server is on your local network, switch Server access to Local network and try again.",
+        failureStore.consume()?.errorMessage,
+      )
+    } finally {
       dataStoreScope.cancel()
     }
   }

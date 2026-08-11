@@ -132,6 +132,8 @@ private fun testDiscoveryMessageText(message: LoginDiscoveryMessage): String {
   return when (message) {
     LoginDiscoveryMessage.MethodsUnconfirmed ->
       "Could not confirm this server's login methods. You can still try signing in with your username and password."
+    LoginDiscoveryMessage.MethodsUnconfirmedTryLocalNetwork ->
+      "Could not confirm how this server accepts sign-ins. If this Audiobookshelf server is on your local network, switch Server access to Local network and try again. You can still try signing in with your username and password."
     LoginDiscoveryMessage.LocalLoginUnavailable ->
       "This server requires OpenID login. Use OpenID login to continue."
   }

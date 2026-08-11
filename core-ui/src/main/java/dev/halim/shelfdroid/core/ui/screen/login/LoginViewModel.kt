@@ -10,6 +10,7 @@ import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
+import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
@@ -541,11 +542,21 @@ private fun LoginUiState.reconcileOpenIdServer(candidateServer: String?): LoginU
 
 internal fun LoginUiState.applyLoginDiscovery(result: LoginDiscoveryResult): LoginUiState {
   val availableLoginMethods = result.availableLoginMethods.ifEmpty { listOf(LoginMethod.Local) }
+  val loginDiscoveryMessage =
+    if (
+      result.discoveryState is LoginDiscoveryState.Failure &&
+        serverAccessMode == ServerAccessMode.Internet &&
+        result.loginDiscoveryMessage == LoginDiscoveryMessage.MethodsUnconfirmed
+    ) {
+      LoginDiscoveryMessage.MethodsUnconfirmedTryLocalNetwork
+    } else {
+      result.loginDiscoveryMessage
+    }
   return copy(
     normalizedServer = result.normalizedServer,
     discoveryState = result.discoveryState,
     availableLoginMethods = availableLoginMethods,
-    loginDiscoveryMessage = result.loginDiscoveryMessage,
+    loginDiscoveryMessage = loginDiscoveryMessage,
     authLoginCustomMessage = result.authLoginCustomMessage,
     authOpenIdButtonText = result.authOpenIdButtonText,
     authOpenIdAutoLaunch = result.authOpenIdAutoLaunch,

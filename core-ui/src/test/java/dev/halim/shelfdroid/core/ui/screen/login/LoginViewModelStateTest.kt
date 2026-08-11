@@ -474,6 +474,27 @@ class LoginViewModelStateTest {
   }
 
   @Test
+  fun applyLoginDiscovery_whenFailureHappensInInternetMode_suggestsLocalNetwork() {
+    val applied =
+      LoginUiState(
+          server = "https://example.com",
+          serverAccessMode = ServerAccessMode.Internet,
+        )
+        .applyLoginDiscovery(
+          LoginDiscoveryResult(
+            normalizedServer = "https://example.com",
+            discoveryState = LoginDiscoveryState.Failure,
+            loginDiscoveryMessage = LoginDiscoveryMessage.MethodsUnconfirmed,
+          )
+        )
+
+    assertEquals(
+      LoginDiscoveryMessage.MethodsUnconfirmedTryLocalNetwork,
+      applied.loginDiscoveryMessage,
+    )
+  }
+
+  @Test
   fun applyLoginDiscovery_whenForcedReloginServerOnlySupportsOpenId_preservesReloginContext() {
     val applied =
       LoginUiState(

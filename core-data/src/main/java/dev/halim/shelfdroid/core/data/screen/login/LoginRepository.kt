@@ -10,6 +10,7 @@ import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -115,21 +116,10 @@ constructor(
       )
     }
     val exception = response.exceptionOrNull()
-    val message =
-      if (exception is HttpException) {
-        when (exception.code()) {
-          401 -> "Invalid username or password."
-          404 -> "Server not found."
-          429 -> "Too many requests. Please wait and try again."
-          else -> exception.message()
-        }
-      } else {
-        exception?.message
-      }
     return uiState.copy(
       server = normalizedServer,
       normalizedServer = normalizedServer,
-      loginState = GenericState.Failure(message),
+      loginState = GenericState.Failure(exception.toLoginFailureMessage(uiState.serverAccessMode)),
       serverFieldError = null,
     )
   }
@@ -170,7 +160,9 @@ constructor(
               uiState.copy(
                 server = normalizedServer,
                 normalizedServer = normalizedServer,
-                loginState = GenericState.Failure(error.message),
+                loginState = GenericState.Failure(
+                  error.toOpenIdStartFailureMessage(uiState.serverAccessMode)
+                ),
                 serverFieldError = null,
               )
           )
@@ -289,7 +281,8 @@ constructor(
     return failOpenIdLoginCompletion(
       normalizedServer = pendingLogin.normalizedServer,
       serverAccessMode = pendingLogin.serverAccessMode,
-      errorMessage = response.exceptionOrNull().toOpenIdLoginFailureMessage(),
+      errorMessage =
+        response.exceptionOrNull().toOpenIdLoginFailureMessage(pendingLogin.serverAccessMode),
     )
   }
 
@@ -407,6 +400,7 @@ enum class LoginMethod {
 
 enum class LoginDiscoveryMessage {
   MethodsUnconfirmed,
+  MethodsUnconfirmedTryLocalNetwork,
   LocalLoginUnavailable,
 }
 
@@ -536,20 +530,54 @@ private fun okhttp3.Response.toOpenIdStartFailureMessage(location: String?): Str
   }
 }
 
-private fun Throwable?.toOpenIdLoginFailureMessage(): String {
-  return when (this) {
-    is HttpException ->
-      when (code()) {
-        400,
-        401 -> "OpenID login failed. Please try again."
-        404 -> "Server not found."
-        429 -> "Too many requests. Please wait and try again."
-        else -> message()
-      }
+private fun Throwable?.toLoginFailureMessage(serverAccessMode: ServerAccessMode): String? {
+  val baseMessage =
+    when (this) {
+      is HttpException ->
+        when (code()) {
+          401 -> "Invalid username or password."
+          404 -> "Server not found."
+          429 -> "Too many requests. Please wait and try again."
+          else -> message()
+        }
+      else -> this?.message
+    }
+  return baseMessage?.appendLocalNetworkRetryHintIfNeeded(serverAccessMode, this)
+}
 
-    null -> "OpenID login failed. Please try again."
-    else -> message ?: "OpenID login failed. Please try again."
+private fun Throwable.toOpenIdStartFailureMessage(serverAccessMode: ServerAccessMode): String {
+  val baseMessage = message?.takeUnless { it.isBlank() } ?: OPEN_ID_LOGIN_START_FAILURE_MESSAGE
+  return baseMessage.appendLocalNetworkRetryHintIfNeeded(serverAccessMode, this)
+}
+
+private fun Throwable?.toOpenIdLoginFailureMessage(serverAccessMode: ServerAccessMode): String {
+  val baseMessage =
+    when (this) {
+      is HttpException ->
+        when (code()) {
+          400,
+          401 -> "OpenID login failed. Please try again."
+          404 -> "Server not found."
+          429 -> "Too many requests. Please wait and try again."
+          else -> message()
+        }
+      null -> "OpenID login failed. Please try again."
+      else -> message ?: "OpenID login failed. Please try again."
+    }
+  return baseMessage.appendLocalNetworkRetryHintIfNeeded(serverAccessMode, this)
+}
+
+private fun String.appendLocalNetworkRetryHintIfNeeded(
+  serverAccessMode: ServerAccessMode,
+  error: Throwable?,
+): String {
+  if (serverAccessMode != ServerAccessMode.Internet || error !is IOException) {
+    return this
   }
+  if (contains(LOCAL_NETWORK_RETRY_HINT)) {
+    return this
+  }
+  return "$this $LOCAL_NETWORK_RETRY_HINT"
 }
 
 private fun LoginResponse.normalizeOpenIdLoginResponse(): LoginResponse {
@@ -558,5 +586,11 @@ private fun LoginResponse.normalizeOpenIdLoginResponse(): LoginResponse {
   }
   return copy(user = user.copy(accessToken = user.token))
 }
+
+private const val OPEN_ID_LOGIN_START_FAILURE_MESSAGE =
+  "OpenID login failed while starting the browser sign-in."
+
+private const val LOCAL_NETWORK_RETRY_HINT =
+  "If this Audiobookshelf server is on your local network, switch Server access to Local network and try again."
 
 private val secureRandom = SecureRandom()

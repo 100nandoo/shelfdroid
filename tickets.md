@@ -28,5 +28,5 @@ Work the **frontier**: any ticket whose blockers are all done. For this chain, w
 
 **Blocked by:** Gate login discovery and password sign-in with local-network permission.
 
-- [ ] **OpenID login** start and **OpenID callback completion** use the selected server access mode and request local-network permission when `Local network` is selected.
-- [ ] Failed login-time requests in `Internet` mode may suggest trying `Local network`, but ShelfDroid does not silently switch modes or retry with a different mode.
+- [x] **OpenID login** start and **OpenID callback completion** use the selected server access mode and request local-network permission when `Local network` is selected.
+- [x] Failed login-time requests in `Internet` mode may suggest trying `Local network`, but ShelfDroid does not silently switch modes or retry with a different mode.
