@@ -367,6 +367,8 @@ data class LoginUiState(
   val normalizedServer: String? = null,
   val serverFieldError: LoginFieldError? = null,
   val serverAccessMode: ServerAccessMode = ServerAccessMode.Internet,
+  val pendingLocalNetworkAction: PendingLocalNetworkAction? = null,
+  val localNetworkPermissionState: LocalNetworkPermissionState? = null,
   val username: String = "",
   val password: String = "",
   val reLogin: Boolean = false,
@@ -378,6 +380,16 @@ data class LoginUiState(
   val authOpenIdButtonText: String? = null,
   val authOpenIdAutoLaunch: Boolean? = null,
 )
+
+enum class PendingLocalNetworkAction {
+  DiscoverLoginMethods,
+  PasswordLogin,
+}
+
+enum class LocalNetworkPermissionState {
+  Denied,
+  PermanentlyDenied,
+}
 
 enum class LoginFieldError {
   InvalidServerUrl
@@ -453,6 +465,11 @@ sealed interface LoginEvent {
   data object LoginButtonPressed : LoginEvent
 
   data class OpenIdLoginButtonPressed(val redirectUri: String) : LoginEvent
+
+  data class LocalNetworkPermissionResult(
+    val granted: Boolean,
+    val permanentlyDenied: Boolean = false,
+  ) : LoginEvent
 
   data class ServerAccessModeChanged(val serverAccessMode: ServerAccessMode) : LoginEvent
 

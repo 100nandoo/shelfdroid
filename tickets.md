@@ -19,8 +19,8 @@ Work the **frontier**: any ticket whose blockers are all done. For this chain, w
 
 **Blocked by:** Add explicit server access mode to LoginScreen.
 
-- [ ] Selecting `Local network` causes ShelfDroid to request Android 17 local-network permission before **Login discovery** and **Password sign-in**.
-- [ ] After grant, the pending login action resumes automatically; after denial, `LoginScreen` stays in place with clear guidance and a settings call-to-action for permanent denial.
+- [x] Selecting `Local network` causes ShelfDroid to request Android 17 local-network permission before **Login discovery** and **Password sign-in**.
+- [x] After grant, the pending login action resumes automatically; after denial, `LoginScreen` stays in place with clear guidance and a settings call-to-action for permanent denial.
 
 ## Carry local-network access mode through OpenID login
 

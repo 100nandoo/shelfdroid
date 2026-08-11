@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.login
 import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
@@ -12,6 +13,7 @@ import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult
+import dev.halim.shelfdroid.core.data.screen.login.PendingLocalNetworkAction
 import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
 import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
@@ -156,6 +158,8 @@ class LoginViewModelStateTest {
       LoginUiState(
           server = "https://old.example.com",
           normalizedServer = "https://old.example.com",
+          pendingLocalNetworkAction = PendingLocalNetworkAction.DiscoverLoginMethods,
+          localNetworkPermissionState = LocalNetworkPermissionState.PermanentlyDenied,
           discoveryState = LoginDiscoveryState.Success,
           availableLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
           loginDiscoveryMessage = LoginDiscoveryMessage.MethodsUnconfirmed,
@@ -173,6 +177,8 @@ class LoginViewModelStateTest {
     assertNull(prepared.authLoginCustomMessage)
     assertNull(prepared.authOpenIdButtonText)
     assertNull(prepared.authOpenIdAutoLaunch)
+    assertNull(prepared.pendingLocalNetworkAction)
+    assertNull(prepared.localNetworkPermissionState)
   }
 
   @Test
@@ -182,6 +188,124 @@ class LoginViewModelStateTest {
     assertEquals("example", prepared.server)
     assertNull(prepared.normalizedServer)
     assertEquals(LoginDiscoveryState.Idle, prepared.discoveryState)
+  }
+
+  @Test
+  fun prepareLocalNetworkPermissionRequest_tracksPendingActionAndClearsPriorGuidance() {
+    val prepared =
+      LoginUiState(localNetworkPermissionState = LocalNetworkPermissionState.PermanentlyDenied)
+        .prepareLocalNetworkPermissionRequest(PendingLocalNetworkAction.PasswordLogin)
+
+    assertEquals(PendingLocalNetworkAction.PasswordLogin, prepared.pendingLocalNetworkAction)
+    assertNull(prepared.localNetworkPermissionState)
+  }
+
+  @Test
+  fun handleLocalNetworkPermissionResult_whenDeniedOnce_recordsRecoverableGuidance() = runBlocking {
+    val updated =
+      handleLocalNetworkPermissionResult(
+        uiState =
+          LoginUiState(serverAccessMode = ServerAccessMode.LocalNetwork)
+            .prepareLocalNetworkPermissionRequest(PendingLocalNetworkAction.PasswordLogin),
+        granted = false,
+        permanentlyDenied = false,
+        login = { throw AssertionError("login should not run when permission is denied") },
+        discoverLoginMethods = {
+          throw AssertionError("discovery should not run when permission is denied")
+        },
+      )
+
+    assertEquals(LocalNetworkPermissionState.Denied, updated.localNetworkPermissionState)
+    assertNull(updated.pendingLocalNetworkAction)
+  }
+
+  @Test
+  fun handleLocalNetworkPermissionResult_whenPermanentlyDenied_recordsSettingsGuidance() =
+    runBlocking {
+      val updated =
+        handleLocalNetworkPermissionResult(
+          uiState =
+            LoginUiState(serverAccessMode = ServerAccessMode.LocalNetwork)
+              .prepareLocalNetworkPermissionRequest(PendingLocalNetworkAction.DiscoverLoginMethods),
+          granted = false,
+          permanentlyDenied = true,
+          login = { throw AssertionError("login should not run when permission is denied") },
+          discoverLoginMethods = {
+            throw AssertionError("discovery should not run when permission is denied")
+          },
+        )
+
+      assertEquals(
+        LocalNetworkPermissionState.PermanentlyDenied,
+        updated.localNetworkPermissionState,
+      )
+      assertNull(updated.pendingLocalNetworkAction)
+    }
+
+  @Test
+  fun handleLocalNetworkPermissionResult_whenGranted_resumesPendingDiscovery() = runBlocking {
+    var discoveredServer: String? = null
+
+    val updated =
+      handleLocalNetworkPermissionResult(
+        uiState =
+          LoginUiState(
+              server = "https://example.com",
+              serverAccessMode = ServerAccessMode.LocalNetwork,
+            )
+            .prepareLocalNetworkPermissionRequest(PendingLocalNetworkAction.DiscoverLoginMethods),
+        granted = true,
+        permanentlyDenied = false,
+        login = { throw AssertionError("login should not run for a discovery action") },
+        discoverLoginMethods = { server ->
+          discoveredServer = server
+          LoginDiscoveryResult(
+            normalizedServer = "https://example.com",
+            discoveryState = LoginDiscoveryState.Success,
+            availableLoginMethods = listOf(LoginMethod.OpenId),
+            loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
+          )
+        },
+      )
+
+    assertEquals("https://example.com", discoveredServer)
+    assertEquals(LoginDiscoveryState.Success, updated.discoveryState)
+    assertEquals(listOf(LoginMethod.OpenId), updated.availableLoginMethods)
+    assertEquals(LoginDiscoveryMessage.LocalLoginUnavailable, updated.loginDiscoveryMessage)
+    assertNull(updated.pendingLocalNetworkAction)
+    assertNull(updated.localNetworkPermissionState)
+  }
+
+  @Test
+  fun handleLocalNetworkPermissionResult_whenGranted_resumesPendingPasswordLogin() = runBlocking {
+    var loginRequestState: LoginUiState? = null
+
+    val updated =
+      handleLocalNetworkPermissionResult(
+        uiState =
+          LoginUiState(
+              server = "https://example.com",
+              normalizedServer = "https://example.com",
+              serverAccessMode = ServerAccessMode.LocalNetwork,
+              username = "fernando",
+              password = "secret",
+            )
+            .prepareLocalNetworkPermissionRequest(PendingLocalNetworkAction.PasswordLogin),
+        granted = true,
+        permanentlyDenied = false,
+        login = { state ->
+          loginRequestState = state
+          state.copy(loginState = GenericState.Success)
+        },
+        discoverLoginMethods = {
+          throw AssertionError("discovery should not run for a password login action")
+        },
+      )
+
+    assertEquals(GenericState.Loading, loginRequestState?.loginState)
+    assertNull(loginRequestState?.pendingLocalNetworkAction)
+    assertNull(loginRequestState?.localNetworkPermissionState)
+    assertEquals(GenericState.Success, updated.loginState)
   }
 
   @Test

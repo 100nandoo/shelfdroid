@@ -76,12 +76,30 @@ class OpenIdLoginLauncherTest {
   @Test
   fun handleLoginUiEvent_whenLaunchOpenIdLoginEvent_delegatesToLauncher() {
     val launchedUrls = mutableListOf<String>()
+    var localNetworkPermissionRequested = false
 
     handleLoginUiEvent(
       event = LoginUiEvent.LaunchOpenIdLogin("https://example.com/auth/openid"),
       launchOpenIdLogin = { launchedUrls += it },
+      requestLocalNetworkPermission = { localNetworkPermissionRequested = true },
     )
 
     assertEquals(listOf("https://example.com/auth/openid"), launchedUrls)
+    assertEquals(false, localNetworkPermissionRequested)
+  }
+
+  @Test
+  fun handleLoginUiEvent_whenRequestLocalNetworkPermissionEvent_delegatesToPermissionRequester() {
+    val launchedUrls = mutableListOf<String>()
+    var localNetworkPermissionRequested = false
+
+    handleLoginUiEvent(
+      event = LoginUiEvent.RequestLocalNetworkPermission,
+      launchOpenIdLogin = { launchedUrls += it },
+      requestLocalNetworkPermission = { localNetworkPermissionRequested = true },
+    )
+
+    assertEquals(emptyList<String>(), launchedUrls)
+    assertEquals(true, localNetworkPermissionRequested)
   }
 }

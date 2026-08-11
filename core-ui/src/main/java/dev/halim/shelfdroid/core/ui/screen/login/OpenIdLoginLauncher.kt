@@ -48,8 +48,10 @@ internal fun launchOpenIdAuthorizationUrl(
 internal fun handleLoginUiEvent(
   event: LoginUiEvent,
   launchOpenIdLogin: (String) -> Unit,
+  requestLocalNetworkPermission: () -> Unit,
 ) {
   when (event) {
     is LoginUiEvent.LaunchOpenIdLogin -> launchOpenIdLogin(event.authorizationUrl)
+    LoginUiEvent.RequestLocalNetworkPermission -> requestLocalNetworkPermission()
   }
 }

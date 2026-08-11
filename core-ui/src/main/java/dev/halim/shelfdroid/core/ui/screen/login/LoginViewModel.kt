@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginEvent
@@ -19,6 +20,7 @@ import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginCompletionResult
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailure
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
+import dev.halim.shelfdroid.core.data.screen.login.PendingLocalNetworkAction
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlin.time.Duration.Companion.milliseconds
@@ -65,8 +67,17 @@ constructor(
       is LoginEvent.LoginButtonPressed ->
         viewModelScope.launch {
           val currentState = _uiState.value
-          _uiState.update { it.copy(loginState = GenericState.Loading) }
-          _uiState.update { loginRepository.login(currentState) }
+          val hasValidServer =
+            currentState.normalizedServer != null ||
+              AudiobookshelfBaseUrl.parse(currentState.server) != null
+          if (currentState.serverAccessMode == ServerAccessMode.LocalNetwork && hasValidServer) {
+            requestLocalNetworkPermission(PendingLocalNetworkAction.PasswordLogin)
+            return@launch
+          }
+
+          val loadingState = currentState.copy(loginState = GenericState.Loading)
+          _uiState.value = loadingState
+          _uiState.value = loginRepository.login(loadingState)
         }
 
       is LoginEvent.OpenIdLoginButtonPressed ->
@@ -99,8 +110,24 @@ constructor(
               ),
           )
         }
+      is LoginEvent.LocalNetworkPermissionResult ->
+        viewModelScope.launch {
+          _uiState.value =
+            handleLocalNetworkPermissionResult(
+              uiState = _uiState.value,
+              granted = event.granted,
+              permanentlyDenied = event.permanentlyDenied,
+              login = loginRepository::login,
+              discoverLoginMethods = loginRepository::discoverLoginMethods,
+            )
+        }
       is LoginEvent.ServerAccessModeChanged ->
-        _uiState.update { it.copy(serverAccessMode = event.serverAccessMode) }
+        _uiState.update {
+          it.prepareLoginDiscovery(
+            server = it.server,
+            serverAccessMode = event.serverAccessMode,
+          )
+        }
       is LoginEvent.UsernameChanged -> _uiState.update { it.copy(username = event.username) }
       is LoginEvent.PasswordChanged -> _uiState.update { it.copy(password = event.password) }
       LoginEvent.ErrorShown -> {
@@ -112,13 +139,18 @@ constructor(
   private fun observeLoginDiscovery() {
     viewModelScope.launch {
       uiState
-        .map { it.server }
+        .map { it.server to it.serverAccessMode }
         .debounce(500.milliseconds)
         .distinctUntilChanged()
-        .collectLatest { server ->
+        .collectLatest { (server, serverAccessMode) ->
           val parsed = AudiobookshelfBaseUrl.parse(server)
           if (parsed == null || parsed.isNotReadyForDiscovery()) {
             _uiState.update { it.prepareLoginDiscovery(server) }
+            return@collectLatest
+          }
+
+          if (serverAccessMode == ServerAccessMode.LocalNetwork) {
+            requestLocalNetworkPermission(PendingLocalNetworkAction.DiscoverLoginMethods)
             return@collectLatest
           }
 
@@ -132,6 +164,11 @@ constructor(
           _uiState.update { it.applyLoginDiscovery(result) }
         }
     }
+  }
+
+  private suspend fun requestLocalNetworkPermission(action: PendingLocalNetworkAction) {
+    _uiState.update { it.prepareLocalNetworkPermissionRequest(action) }
+    _events.emit(LoginUiEvent.RequestLocalNetworkPermission)
   }
 
   private fun createLoginInitialization(): LoginInitialization {
@@ -201,6 +238,8 @@ constructor(
 
 sealed interface LoginUiEvent {
   data class LaunchOpenIdLogin(val authorizationUrl: String) : LoginUiEvent
+
+  data object RequestLocalNetworkPermission : LoginUiEvent
 }
 
 internal suspend fun handleOpenIdLoginButtonPressed(
@@ -233,6 +272,8 @@ internal fun LoginUiState.prepareLoginDiscovery(
     normalizedServer = normalizedServer,
     serverFieldError = null,
     serverAccessMode = serverAccessMode,
+    pendingLocalNetworkAction = null,
+    localNetworkPermissionState = null,
     discoveryState = LoginDiscoveryState.Idle,
     availableLoginMethods = listOf(LoginMethod.Local),
     loginDiscoveryMessage = null,
@@ -248,6 +289,36 @@ private fun AudiobookshelfBaseUrl.isNotReadyForDiscovery(): Boolean {
   return !hasTopLevelDomain && !hasLocalServerHint
 }
 
+internal fun LoginUiState.prepareLocalNetworkPermissionRequest(
+  action: PendingLocalNetworkAction
+): LoginUiState {
+  return copy(
+    pendingLocalNetworkAction = action,
+    localNetworkPermissionState = null,
+  )
+}
+
+private fun LoginUiState.recordLocalNetworkPermissionDenial(
+  permanentlyDenied: Boolean
+): LoginUiState {
+  return copy(
+    pendingLocalNetworkAction = null,
+    localNetworkPermissionState =
+      if (permanentlyDenied) {
+        LocalNetworkPermissionState.PermanentlyDenied
+      } else {
+        LocalNetworkPermissionState.Denied
+      },
+  )
+}
+
+private fun LoginUiState.clearLocalNetworkPermissionState(): LoginUiState {
+  return copy(
+    pendingLocalNetworkAction = null,
+    localNetworkPermissionState = null,
+  )
+}
+
 private data class LoginInitialization(
   val uiState: LoginUiState,
   val savedServerForAccessMode: String?,
@@ -258,6 +329,42 @@ private data class LoginSavedServerContext(
   val server: String?,
   val accessMode: ServerAccessMode,
 )
+
+internal suspend fun handleLocalNetworkPermissionResult(
+  uiState: LoginUiState,
+  granted: Boolean,
+  permanentlyDenied: Boolean,
+  login: suspend (LoginUiState) -> LoginUiState,
+  discoverLoginMethods: suspend (String) -> LoginDiscoveryResult,
+): LoginUiState {
+  val pendingAction = uiState.pendingLocalNetworkAction ?: return uiState
+  if (!granted) {
+    return uiState.recordLocalNetworkPermissionDenial(permanentlyDenied)
+  }
+
+  val clearedState = uiState.clearLocalNetworkPermissionState()
+  return when (pendingAction) {
+    PendingLocalNetworkAction.DiscoverLoginMethods -> {
+      val parsedServer = AudiobookshelfBaseUrl.parse(clearedState.server)
+      if (parsedServer == null || parsedServer.isNotReadyForDiscovery()) {
+        clearedState.prepareLoginDiscovery(clearedState.server)
+      } else {
+        val loadingState =
+          clearedState.copy(
+            normalizedServer = parsedServer.value,
+            discoveryState = LoginDiscoveryState.Loading,
+          )
+        val result = discoverLoginMethods(clearedState.server)
+        loadingState.applyLoginDiscovery(result)
+      }
+    }
+
+    PendingLocalNetworkAction.PasswordLogin -> {
+      val loadingState = clearedState.copy(loginState = GenericState.Loading)
+      login(loadingState)
+    }
+  }
+}
 
 internal fun resolveSavedServerAccessMode(
   server: String,

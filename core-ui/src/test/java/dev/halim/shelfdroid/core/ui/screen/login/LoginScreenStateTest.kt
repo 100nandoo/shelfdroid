@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
 import dev.halim.shelfdroid.core.AuthPromptReason
+import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
 import org.junit.Assert.assertEquals
@@ -63,6 +64,35 @@ class LoginScreenStateTest {
       false,
       "username".containsLoginTextFieldNewline(),
     )
+  }
+
+  @Test
+  fun localNetworkPermissionGuidance_whenDeniedOnce_showsMessageWithoutSettingsButton() {
+    val guidance =
+      localNetworkPermissionGuidance(
+        uiState = LoginUiState(localNetworkPermissionState = LocalNetworkPermissionState.Denied),
+        deniedMessage = "Allow local network access to continue.",
+        permanentlyDeniedMessage = "Open settings to allow local network access.",
+      )
+
+    assertEquals("Allow local network access to continue.", guidance.message)
+    assertEquals(false, guidance.showSettingsButton)
+  }
+
+  @Test
+  fun localNetworkPermissionGuidance_whenPermanentlyDenied_showsSettingsButton() {
+    val guidance =
+      localNetworkPermissionGuidance(
+        uiState =
+          LoginUiState(
+            localNetworkPermissionState = LocalNetworkPermissionState.PermanentlyDenied
+          ),
+        deniedMessage = "Allow local network access to continue.",
+        permanentlyDeniedMessage = "Open settings to allow local network access.",
+      )
+
+    assertEquals("Open settings to allow local network access.", guidance.message)
+    assertEquals(true, guidance.showSettingsButton)
   }
 }
 

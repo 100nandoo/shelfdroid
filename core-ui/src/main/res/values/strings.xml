@@ -115,6 +115,8 @@
     <string name="reenter_password_to_continue">Re-enter your password to continue using this server.</string>
     <string name="login_discovery_methods_unconfirmed">Could not confirm how this server accepts sign-ins. You can still try signing in with your username and password.</string>
     <string name="login_discovery_local_unavailable">This server requires OpenID login. Use OpenID login to continue.</string>
+    <string name="local_network_permission_denied">Local network access is required to reach this Audiobookshelf server in Local network mode. Allow it to continue.</string>
+    <string name="local_network_permission_permanently_denied">Local network access is blocked for ShelfDroid. Open system settings to allow it and continue with this server.</string>
     <!--Login-->
 
     <!--Home-->
