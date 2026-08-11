@@ -88,7 +88,11 @@ import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
-private data class ServerAccessOption(val accessMode: ServerAccessMode, val label: String)
+internal data class ServerAccessOption(val accessMode: ServerAccessMode, val label: String)
+internal data class ServerAccessControlState(
+  val options: List<ServerAccessOption>,
+  val enabled: Boolean,
+)
 private const val ANDROID_17_API_LEVEL = 37
 
 @Composable
@@ -174,6 +178,12 @@ fun LoginScreenContent(
       deniedMessage = stringResource(R.string.local_network_permission_denied),
       permanentlyDeniedMessage = stringResource(R.string.local_network_permission_permanently_denied),
     )
+  val serverAccessControlState =
+    serverAccessControlState(
+      uiState = uiState,
+      internetLabel = stringResource(R.string.server_access_internet),
+      localNetworkLabel = stringResource(R.string.server_access_local_network),
+    )
 
   LaunchedEffect(uiState.reLogin, supportsLocalLogin) {
     when {
@@ -224,24 +234,13 @@ fun LoginScreenContent(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      val serverAccessOptions =
-        listOf(
-          ServerAccessOption(
-            accessMode = ServerAccessMode.Internet,
-            label = stringResource(R.string.server_access_internet),
-          ),
-          ServerAccessOption(
-            accessMode = ServerAccessMode.LocalNetwork,
-            label = stringResource(R.string.server_access_local_network),
-          ),
-        )
       MySegmentedButton(
         modifier = Modifier.fillMaxWidth(),
         label = stringResource(R.string.server_access),
-        options = serverAccessOptions,
+        options = serverAccessControlState.options,
         selectedValue =
-          serverAccessOptions.first { it.accessMode == uiState.serverAccessMode },
-        enabled = uiState.reLogin.not(),
+          serverAccessControlState.options.first { it.accessMode == uiState.serverAccessMode },
+        enabled = serverAccessControlState.enabled,
         onClick = { onEvent(LoginEvent.ServerAccessModeChanged(it.accessMode)) },
         optionLabel = { it.label },
       )
@@ -448,6 +447,27 @@ internal fun loginHeaderMessages(
     promptReasonMessage = promptReasonMessage,
     customMessage = uiState.authLoginCustomMessage,
     discoveryMessage = uiState.loginDiscoveryMessage,
+  )
+}
+
+internal fun serverAccessControlState(
+  uiState: LoginUiState,
+  internetLabel: String,
+  localNetworkLabel: String,
+): ServerAccessControlState {
+  return ServerAccessControlState(
+    options =
+      listOf(
+        ServerAccessOption(
+          accessMode = ServerAccessMode.Internet,
+          label = internetLabel,
+        ),
+        ServerAccessOption(
+          accessMode = ServerAccessMode.LocalNetwork,
+          label = localNetworkLabel,
+        ),
+      ),
+    enabled = uiState.reLogin.not(),
   )
 }
 

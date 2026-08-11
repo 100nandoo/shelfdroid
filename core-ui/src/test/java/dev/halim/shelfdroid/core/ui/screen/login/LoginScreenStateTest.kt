@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
 import dev.halim.shelfdroid.core.AuthPromptReason
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
@@ -93,6 +94,37 @@ class LoginScreenStateTest {
 
     assertEquals("Open settings to allow local network access.", guidance.message)
     assertEquals(true, guidance.showSettingsButton)
+  }
+
+  @Test
+  fun serverAccessControlState_includesInternetAndLocalNetworkOptionsInOrder() {
+    val controlState =
+      serverAccessControlState(
+        uiState = LoginUiState(),
+        internetLabel = "Internet",
+        localNetworkLabel = "Local network",
+      )
+
+    assertEquals(
+      listOf(
+        ServerAccessOption(ServerAccessMode.Internet, "Internet"),
+        ServerAccessOption(ServerAccessMode.LocalNetwork, "Local network"),
+      ),
+      controlState.options,
+    )
+    assertEquals(true, controlState.enabled)
+  }
+
+  @Test
+  fun serverAccessControlState_whenForcedRelogin_disablesSelector() {
+    val controlState =
+      serverAccessControlState(
+        uiState = LoginUiState(reLogin = true),
+        internetLabel = "Internet",
+        localNetworkLabel = "Local network",
+      )
+
+    assertEquals(false, controlState.enabled)
   }
 }
 
