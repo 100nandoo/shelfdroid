@@ -13,6 +13,7 @@ class LocalSessionCleanupTest {
     val events = mutableListOf<String>()
     val cleanup =
       LocalSessionCleanup(
+        clearCurrentPlayback = { events += "current playback" },
         clearTransientDownloads = { events += "transient downloads" },
         resetLocalAppPreferences = { events += "local app preferences" },
         clearDatabase = { events += "database" },
@@ -23,7 +24,13 @@ class LocalSessionCleanupTest {
 
     assertTrue(result.isSuccess)
     assertEquals(
-      listOf("transient downloads", "local app preferences", "database", "app storage"),
+      listOf(
+        "current playback",
+        "transient downloads",
+        "local app preferences",
+        "database",
+        "app storage",
+      ),
       events,
     )
   }
@@ -35,6 +42,7 @@ class LocalSessionCleanupTest {
     var appStorageCleared = false
     val cleanup =
       LocalSessionCleanup(
+        clearCurrentPlayback = {},
         clearTransientDownloads = {},
         resetLocalAppPreferences = { throw failure },
         clearDatabase = { databaseCleared = true },
@@ -55,6 +63,7 @@ class LocalSessionCleanupTest {
     var appStorageCleared = false
     val cleanup =
       LocalSessionCleanup(
+        clearCurrentPlayback = {},
         clearTransientDownloads = {},
         resetLocalAppPreferences = {},
         clearDatabase = { throw failure },

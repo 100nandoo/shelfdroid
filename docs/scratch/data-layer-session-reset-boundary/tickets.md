@@ -87,9 +87,20 @@ Work the **frontier**: any ticket whose blockers are all done. For this work, st
 
 **Blocked by:** Contract SettingsRepository back to settings-only.
 
-- [ ] Relevant unit tests for the session reset boundary pass.
-- [ ] Relevant UI or view-model tests for settings full logout and login account switch pass if present or added.
-- [ ] The relevant Android/Kotlin build target compiles.
-- [ ] Dependency injection wiring resolves for the new data-layer collaborators.
-- [ ] Current playback cleanup is represented in the session reset path or explicitly documented as a remaining follow-up if no reset collaborator exists yet.
-- [ ] The final implementation still respects the accepted ADRs for forced re-login, full logout, and the data-layer session boundary.
+- [x] Relevant unit tests for the session reset boundary pass.
+- [x] Relevant UI or view-model tests for settings full logout and login account switch pass if present or added.
+- [x] The relevant Android/Kotlin build target compiles.
+- [x] Dependency injection wiring resolves for the new data-layer collaborators.
+- [x] Current playback cleanup is represented in the session reset path or explicitly documented as a remaining follow-up if no reset collaborator exists yet.
+- [x] The final implementation still respects the accepted ADRs for forced re-login, full logout, and the data-layer session boundary.
+
+Verification completed with the focused `core-data` session-reset tests, the existing `core-ui`
+login account-switch view-model tests, the full debug unit-test suite, and `:app:assembleDebug`.
+There is no focused settings full-logout view-model test. Hilt aggregation and Java compilation in
+the app build resolve `SessionResetRepository`, `LocalSessionCleanup`, `CurrentPlaybackCleanup`,
+`LocalDatabaseCleanup`, and `AppStorageCleanup` through their constructor-injected dependency graph.
+
+Current playback cleanup is represented by the data-layer `CurrentPlaybackCleanup` contract.
+`LocalSessionCleanup` invokes it before clearing authentication-bearing local app preferences, and
+the activity-retained media adapter empties `PlayerStore` and stops and clears Media3. The existing
+UI `LoggedOut` callback remains as an idempotent compatibility path.

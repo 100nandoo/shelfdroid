@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.first
 
 class LocalSessionCleanup
 internal constructor(
+  private val clearCurrentPlayback: () -> Unit,
   private val clearTransientDownloads: () -> Unit,
   private val resetLocalAppPreferences: suspend () -> Unit,
   private val clearDatabase: () -> Unit,
@@ -16,11 +17,13 @@ internal constructor(
 ) {
   @Inject
   constructor(
+    currentPlaybackCleanup: CurrentPlaybackCleanup,
     downloadRepo: DownloadRepo,
     dataStoreManager: DataStoreManager,
     localDatabaseCleanup: LocalDatabaseCleanup,
     appStorageCleanup: AppStorageCleanup,
   ) : this(
+    clearCurrentPlayback = currentPlaybackCleanup::clearCurrentPlayback,
     clearTransientDownloads = downloadRepo::clearTransientDownloads,
     resetLocalAppPreferences = dataStoreManager::clear,
     clearDatabase = localDatabaseCleanup::clear,
@@ -29,6 +32,7 @@ internal constructor(
 
   suspend fun clear(): Result<Unit> =
     runCatching {
+      clearCurrentPlayback()
       clearTransientDownloads()
       resetLocalAppPreferences()
       clearDatabase()

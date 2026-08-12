@@ -50,10 +50,11 @@ class SessionResetRepositoryTest {
   }
 
   @Test
-  fun fullLogout_afterRemoteLogoutSucceeds_resetsLocalAppPreferences() = runTest {
+  fun fullLogout_afterRemoteLogoutSucceeds_runsOrderedLocalCleanup() = runTest {
     val events = mutableListOf<String>()
     val localCleanup =
       LocalSessionCleanup(
+        clearCurrentPlayback = { events += "current playback" },
         clearTransientDownloads = { events += "transient downloads" },
         resetLocalAppPreferences = { events += "local app preferences" },
         clearDatabase = { events += "database" },
@@ -75,6 +76,7 @@ class SessionResetRepositoryTest {
     assertEquals(
       listOf(
         "remote logout",
+        "current playback",
         "transient downloads",
         "local app preferences",
         "database",
@@ -85,11 +87,13 @@ class SessionResetRepositoryTest {
   }
 
   @Test
-  fun logoutForAccountSwitch_withoutRefreshToken_resetsLocalAppPreferences() = runTest {
+  fun logoutForAccountSwitch_withoutRefreshToken_clearsPlaybackAndPreferences() = runTest {
     var remoteLogoutRan = false
+    var currentPlaybackCleared = false
     var localAppPreferencesReset = false
     val localCleanup =
       LocalSessionCleanup(
+        clearCurrentPlayback = { currentPlaybackCleared = true },
         clearTransientDownloads = {},
         resetLocalAppPreferences = { localAppPreferencesReset = true },
         clearDatabase = {},
@@ -109,6 +113,7 @@ class SessionResetRepositoryTest {
 
     assertTrue(result.isSuccess)
     assertFalse(remoteLogoutRan)
+    assertTrue(currentPlaybackCleared)
     assertTrue(localAppPreferencesReset)
   }
 
