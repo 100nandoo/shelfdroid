@@ -25,12 +25,12 @@ Work the **frontier**: any ticket whose blockers are all done. For this work, st
 
 **Blocked by:** Create the session reset boundary.
 
-- [ ] Local database cleanup is owned by a dedicated data-layer collaborator.
-- [ ] App storage cleanup is owned by a dedicated data-layer collaborator.
-- [ ] The session reset boundary uses the cleanup collaborators rather than owning SQLDelight table deletion or Android cache deletion directly.
-- [ ] Database cleanup preserves the required deletion transaction behavior.
-- [ ] App storage cleanup deletes app cache locations without adding Android context dependencies to the settings repository.
-- [ ] Completed **Downloads** are not deleted as part of **Cached content** cleanup.
+- [x] Local database cleanup is owned by a dedicated data-layer collaborator.
+- [x] App storage cleanup is owned by a dedicated data-layer collaborator.
+- [x] The session reset boundary uses the cleanup collaborators rather than owning SQLDelight table deletion or Android cache deletion directly.
+- [x] Database cleanup preserves the required deletion transaction behavior.
+- [x] App storage cleanup deletes app cache locations without adding Android context dependencies to the settings repository.
+- [x] Completed **Downloads** are not deleted as part of **Cached content** cleanup.
 
 ## Add factory-reset local app preference cleanup
 

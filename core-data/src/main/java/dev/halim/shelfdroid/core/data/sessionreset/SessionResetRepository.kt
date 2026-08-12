@@ -5,8 +5,25 @@ import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 
-fun interface LocalSessionCleanup {
-  suspend fun clear(): Result<Unit>
+class LocalSessionCleanup
+internal constructor(
+  private val clearDatabase: () -> Unit,
+  private val clearAppStorage: () -> Unit,
+) {
+  @Inject
+  constructor(
+    localDatabaseCleanup: LocalDatabaseCleanup,
+    appStorageCleanup: AppStorageCleanup,
+  ) : this(
+    clearDatabase = localDatabaseCleanup::clear,
+    clearAppStorage = appStorageCleanup::clear,
+  )
+
+  suspend fun clear(): Result<Unit> =
+    runCatching {
+      clearDatabase()
+      clearAppStorage()
+    }
 }
 
 class SessionResetRepository

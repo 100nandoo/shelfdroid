@@ -1,7 +1,5 @@
 package dev.halim.shelfdroid.core.data.screen.settings
 
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.BookSort
@@ -9,7 +7,7 @@ import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.database.MyDatabase
+import dev.halim.shelfdroid.core.data.sessionreset.LocalSessionCleanup
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
@@ -23,8 +21,7 @@ constructor(
   private val dataStoreManager: DataStoreManager,
   private val prefsRepository: PrefsRepository,
   private val downloadRepo: DownloadRepo,
-  private val database: MyDatabase,
-  @ApplicationContext private val context: Context,
+  private val localSessionCleanup: LocalSessionCleanup,
 ) {
 
   val darkMode = dataStoreManager.darkMode
@@ -64,8 +61,7 @@ constructor(
     return runCatching {
       dataStoreManager.clear()
       downloadRepo.clearTransientDownloads()
-      clearLocalDatabase()
-      clearAppStorage()
+      localSessionCleanup.clear().getOrThrow()
     }
   }
 
@@ -110,23 +106,4 @@ constructor(
     dataStoreManager.updatePodcastSortOrder(podcastSortOrder)
   }
 
-  private fun clearLocalDatabase() {
-    database.libraryEntityQueries.transaction {
-      database.localSessionEntityQueries.deleteAll()
-      database.progressEntityQueries.deleteAll()
-      database.bookmarkEntityQueries.deleteAll()
-      database.listeningStatEntityQueries.deleteAll()
-      database.podcastEpisodeEntityQueries.deleteAll()
-      database.bookEntityQueries.deleteAll()
-      database.podcastEntityQueries.deleteAll()
-      database.libraryItemEntityQueries.deleteAll()
-      database.libraryEntityQueries.deleteAll()
-      database.userEntityQueries.deleteAll()
-    }
-  }
-
-  private fun clearAppStorage() {
-    context.cacheDir.deleteRecursively()
-    context.externalCacheDir?.deleteRecursively()
-  }
 }
