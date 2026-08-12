@@ -208,8 +208,7 @@ class LoginRepositoryTest {
   fun login_whenNetworkFailsInInternetMode_suggestsLocalNetwork() = runTest {
     val dataStoreScope = dataStoreScope()
     try {
-      val repository =
-        repository(dataStoreScope) { throw IOException("Connection refused.") }
+      val repository = repository(dataStoreScope) { throw IOException("Connection refused.") }
 
       val result =
         repository.login(
@@ -413,8 +412,7 @@ class LoginRepositoryTest {
     val dataStoreScope = dataStoreScope()
     try {
       val dataStoreManager = dataStoreManager(dataStoreScope)
-      val repository =
-        repository(dataStoreManager) { throw IOException("Connection refused.") }
+      val repository = repository(dataStoreManager) { throw IOException("Connection refused.") }
 
       val result =
         repository.startOpenIdLogin(
@@ -719,8 +717,7 @@ class LoginRepositoryTest {
           receivedAtEpochMillis = 1_001L,
         )
       )
-      val repository =
-        repository(dataStoreManager) { throw IOException("Connection refused.") }
+      val repository = repository(dataStoreManager) { throw IOException("Connection refused.") }
 
       val result = repository.completeOpenIdLogin(nowMillis = 1_001L)
 

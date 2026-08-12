@@ -14,9 +14,11 @@ import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import javax.inject.Inject
 import javax.inject.Named
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -29,6 +31,7 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
   ViewModel() {
 
   private val _uiState = MutableStateFlow(SettingsUiState())
+  private val _events = MutableSharedFlow<SettingsUiEvent>(extraBufferCapacity = 1)
   val uiState: StateFlow<SettingsUiState> =
     combine(_uiState, repository.darkMode, repository.dynamicTheme, repository.prefs) {
         uiState: SettingsUiState,
@@ -46,6 +49,7 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
         )
       }
       .stateIn(viewModelScope, SharingStarted.Lazily, SettingsUiState())
+  val events = _events.asSharedFlow()
 
   fun onEvent(event: SettingsEvent) {
     when (event) {
@@ -94,8 +98,12 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
   }
 
   private suspend fun logout() {
-    repository.logout().apply {
-      onSuccess { _uiState.update { it.copy(settingsState = SettingsState.Success) } }
+    _uiState.update { it.copy(settingsState = SettingsState.Loading) }
+    repository.fullLogout().apply {
+      onSuccess {
+        _uiState.update { it.copy(settingsState = SettingsState.Success) }
+        _events.tryEmit(SettingsUiEvent.LoggedOut)
+      }
       onFailure { error ->
         _uiState.update { it.copy(settingsState = SettingsState.Failure(error.message)) }
       }
@@ -117,4 +125,8 @@ sealed interface SettingsEvent {
   data class SwitchHardDelete(val hardDelete: Boolean) : SettingsEvent
 
   data class SettingsDisplayPrefsEvent(val displayPrefsEvent: DisplayPrefsEvent) : SettingsEvent
+}
+
+sealed interface SettingsUiEvent {
+  data object LoggedOut : SettingsUiEvent
 }

@@ -10,16 +10,13 @@ import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 
 class ProgressRepository @Inject constructor(db: MyDatabase, val helper: Helper) {
 
   private val queries = db.progressEntityQueries
-  private val repoScope = CoroutineScope(Dispatchers.IO)
 
   fun observeAllProgress(): Flow<List<ProgressEntity>> =
     queries.all().asFlow().mapToList(Dispatchers.IO)
@@ -43,9 +40,9 @@ class ProgressRepository @Inject constructor(db: MyDatabase, val helper: Helper)
   fun flowEpisodeById(id: String): Flow<ProgressEntity?> =
     queries.episodeById(id).asFlow().mapToOneOrNull(Dispatchers.IO)
 
-  fun replaceUserProgress(user: User): List<ProgressEntity> {
+  suspend fun replaceUserProgress(user: User): List<ProgressEntity> {
     val entities = user.mediaProgress.map(::toEntity)
-    repoScope.launch {
+    queries.transaction {
       cleanup()
       entities.forEach { entity -> queries.insert(entity) }
     }

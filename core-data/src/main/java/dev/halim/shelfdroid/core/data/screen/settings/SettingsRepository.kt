@@ -1,9 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.settings
 
-import android.annotation.SuppressLint
 import android.content.Context
-import androidx.media3.database.StandaloneDatabaseProvider.DATABASE_NAME as EXOPLAYER_DATABASE_NAME
-import com.jakewharton.processphoenix.ProcessPhoenix
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.AuthPromptReason
@@ -11,10 +8,10 @@ import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
-import dev.halim.shelfdroid.core.data.di.DatabaseModule.DATABASE_NAME
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
+import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
-import java.io.File
+import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -24,8 +21,9 @@ class SettingsRepository
 constructor(
   private val api: ApiService,
   private val dataStoreManager: DataStoreManager,
-  private val fileDir: File,
   private val prefsRepository: PrefsRepository,
+  private val downloadRepo: DownloadRepo,
+  private val database: MyDatabase,
   @ApplicationContext private val context: Context,
 ) {
 
@@ -35,14 +33,39 @@ constructor(
   val token = prefsRepository.userPrefs.map { it.accessToken }
   val prefs = prefsRepository.prefsFlow()
 
-  suspend fun logout(): Result<Unit> {
+  suspend fun fullLogout(): Result<Unit> {
+    val refreshToken = prefsRepository.userPrefs.first().refreshToken
+    if (refreshToken.isBlank()) {
+      return Result.failure(
+        IllegalStateException(
+          "Unable to log out because the current session is missing its refresh token."
+        )
+      )
+    }
+
+    val remoteLogoutResult = api.logout(refreshToken)
+    remoteLogoutResult.exceptionOrNull()?.let {
+      return Result.failure(it)
+    }
+
+    return clearLocalSessionAndAppData()
+  }
+
+  suspend fun logoutForAccountSwitch(): Result<Unit> {
     val refreshToken = prefsRepository.userPrefs.first().refreshToken
     if (refreshToken.isNotBlank()) {
       api.logout(refreshToken)
     }
+
+    return clearLocalSessionAndAppData()
+  }
+
+  private suspend fun clearLocalSessionAndAppData(): Result<Unit> {
     return runCatching {
       dataStoreManager.clear()
-      clearDir()
+      downloadRepo.clearTransientDownloads()
+      clearLocalDatabase()
+      clearAppStorage()
     }
   }
 
@@ -87,19 +110,23 @@ constructor(
     dataStoreManager.updatePodcastSortOrder(podcastSortOrder)
   }
 
-  @SuppressLint("UnsafeOptInUsageError")
-  private fun clearDir() {
-    val cacheDir = context.cacheDir
-    cacheDir.deleteRecursively()
+  private fun clearLocalDatabase() {
+    database.libraryEntityQueries.transaction {
+      database.localSessionEntityQueries.deleteAll()
+      database.progressEntityQueries.deleteAll()
+      database.bookmarkEntityQueries.deleteAll()
+      database.listeningStatEntityQueries.deleteAll()
+      database.podcastEpisodeEntityQueries.deleteAll()
+      database.bookEntityQueries.deleteAll()
+      database.podcastEntityQueries.deleteAll()
+      database.libraryItemEntityQueries.deleteAll()
+      database.libraryEntityQueries.deleteAll()
+      database.userEntityQueries.deleteAll()
+    }
+  }
 
-    context.deleteDatabase(EXOPLAYER_DATABASE_NAME)
-    context.deleteDatabase(DATABASE_NAME)
-
-    val externalCacheDir = context.externalCacheDir
-    externalCacheDir?.deleteRecursively()
-
-    fileDir.deleteRecursively()
-
-    ProcessPhoenix.triggerRebirth(context)
+  private fun clearAppStorage() {
+    context.cacheDir.deleteRecursively()
+    context.externalCacheDir?.deleteRecursively()
   }
 }

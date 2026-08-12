@@ -46,7 +46,8 @@ constructor(
       is PodcastSourceFeedEvent.FeedUrlChanged -> _uiState.update { it.copy(feedUrl = event.text) }
       is PodcastSourceFeedEvent.DescriptionChanged ->
         _uiState.update { it.copy(description = event.text) }
-      is PodcastSourceFeedEvent.LanguageChanged -> _uiState.update { it.copy(language = event.text) }
+      is PodcastSourceFeedEvent.LanguageChanged ->
+        _uiState.update { it.copy(language = event.text) }
       is PodcastSourceFeedEvent.PathChanged -> _uiState.update { it.copy(path = event.text) }
       is PodcastSourceFeedEvent.AutoDownloadChanged ->
         _uiState.update { it.copy(autoDownload = event.enabled) }

@@ -142,15 +142,18 @@ object PlayerModule {
         }
         .build()
     return object : MediaLibrarySession.Callback {
-      override fun onConnect(
+
+      override fun onConnectAsync(
         session: MediaSession,
         controller: MediaSession.ControllerInfo,
-      ): MediaSession.ConnectionResult {
-        return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
-          .setAvailableSessionCommands(sessionCommands)
-          .setCustomLayout(commandButtons)
-          .setMediaButtonPreferences(commandButtons)
-          .build()
+      ): ListenableFuture<MediaSession.ConnectionResult> {
+        return Futures.immediateFuture(
+          MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
+            .setAvailableSessionCommands(sessionCommands)
+            .setCustomLayout(commandButtons)
+            .setMediaButtonPreferences(commandButtons)
+            .build()
+        )
       }
 
       override fun onCustomCommand(

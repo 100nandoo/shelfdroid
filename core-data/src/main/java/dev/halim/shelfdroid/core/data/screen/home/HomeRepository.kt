@@ -4,7 +4,6 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.core.network.response.login.UserType as NetworkUserType
 import dev.halim.shelfdroid.core.Prefs
-import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.GenericState

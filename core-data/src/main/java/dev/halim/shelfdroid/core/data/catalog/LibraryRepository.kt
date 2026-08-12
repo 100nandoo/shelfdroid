@@ -42,7 +42,8 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
     return folders.getOrNull()?.map { LibraryFolder(it) } ?: emptyList()
   }
 
-  fun observeLibraries(): Flow<List<LibraryEntity>> = queries.all().asFlow().mapToList(Dispatchers.IO)
+  fun observeLibraries(): Flow<List<LibraryEntity>> =
+    queries.all().asFlow().mapToList(Dispatchers.IO)
 
   private fun convert(response: LibrariesResponse): List<LibraryEntity> {
     val entities = response.libraries.map { toEntity(it) }

@@ -112,7 +112,8 @@ constructor(
       pendingOpenIdCallbackStore = pendingOpenIdCallbackStore,
       openIdLoginFailureStore = openIdLoginFailureStore,
       normalizedServer = pendingLogin?.normalizedServer,
-      serverAccessMode = pendingLogin?.serverAccessMode ?: dev.halim.shelfdroid.core.ServerAccessMode.Internet,
+      serverAccessMode =
+        pendingLogin?.serverAccessMode ?: dev.halim.shelfdroid.core.ServerAccessMode.Internet,
       errorMessage = errorMessage,
     )
   }

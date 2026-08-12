@@ -209,11 +209,12 @@ class LibraryItemCatalogMigrationTest {
     context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
       assertEquals(
         "book-media",
-        database.rawQuery("SELECT media FROM BookEntity WHERE libraryItemId = 'book-1'", null).use {
-          cursor ->
-          cursor.moveToFirst()
-          cursor.getString(0)
-        },
+        database
+          .rawQuery("SELECT media FROM BookEntity WHERE libraryItemId = 'book-1'", null)
+          .use { cursor ->
+            cursor.moveToFirst()
+            cursor.getString(0)
+          },
       )
       assertEquals(
         listOf(
@@ -230,8 +231,7 @@ class LibraryItemCatalogMigrationTest {
           "duration",
           "addedAt",
         ),
-        database.rawQuery("PRAGMA table_info(LibraryItemEntity)", null).use {
-          cursor ->
+        database.rawQuery("PRAGMA table_info(LibraryItemEntity)", null).use { cursor ->
           buildList {
             while (cursor.moveToNext()) {
               add(cursor.getString(1))

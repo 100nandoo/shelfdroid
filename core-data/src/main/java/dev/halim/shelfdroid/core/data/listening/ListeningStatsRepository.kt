@@ -30,7 +30,10 @@ class ListeningStatsRepository @Inject constructor(db: MyDatabase, private val a
     val result = api.listeningStats(userId)
     val response = result.getOrNull()
     if (result.isFailure) {
-      Log.e("ListeningStatsRepository", "refreshListeningStats($userId): ${result.exceptionOrNull()}")
+      Log.e(
+        "ListeningStatsRepository",
+        "refreshListeningStats($userId): ${result.exceptionOrNull()}",
+      )
     }
     if (response != null) {
       queries.insert(toEntity(userId, response))
@@ -48,7 +51,10 @@ class ListeningStatsRepository @Inject constructor(db: MyDatabase, private val a
             val result = api.listeningStats(userId)
             val response = result.getOrNull()
             if (result.isFailure) {
-              Log.e("ListeningStatsRepository", "refreshListeningStats: ${result.exceptionOrNull()}")
+              Log.e(
+                "ListeningStatsRepository",
+                "refreshListeningStats: ${result.exceptionOrNull()}",
+              )
             }
             response?.let { userId to it }
           }

@@ -85,9 +85,7 @@ class LoginScreenStateTest {
     val guidance =
       localNetworkPermissionGuidance(
         uiState =
-          LoginUiState(
-            localNetworkPermissionState = LocalNetworkPermissionState.PermanentlyDenied
-          ),
+          LoginUiState(localNetworkPermissionState = LocalNetworkPermissionState.PermanentlyDenied),
         deniedMessage = "Allow local network access to continue.",
         permanentlyDeniedMessage = "Open settings to allow local network access.",
       )

@@ -86,6 +86,7 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
   }
 
   fun clearAndStop() {
+    if (!::mediaController.isInitialized) return
     mediaController.apply {
       stop()
       clearMediaItems()

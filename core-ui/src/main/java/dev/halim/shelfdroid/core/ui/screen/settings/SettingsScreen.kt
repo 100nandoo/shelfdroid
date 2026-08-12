@@ -15,9 +15,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,6 +30,7 @@ import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
+import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
@@ -48,9 +51,28 @@ fun SettingsScreen(
   onPodcastClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   changePassword: () -> Unit = {},
+  onLoggedOut: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val version = remember { viewModel.version }
+  val logoutFailedMessage = stringResource(R.string.logout_failed_message)
+  var logoutErrorMessage by rememberSaveable { mutableStateOf<String?>(null) }
+
+  LaunchedEffect(uiState.settingsState) {
+    val state = uiState.settingsState
+    if (state is SettingsState.Failure) {
+      logoutErrorMessage = state.errorMessage ?: logoutFailedMessage
+    }
+  }
+
+  LaunchedEffect(viewModel) {
+    viewModel.events.collect { event ->
+      when (event) {
+        SettingsUiEvent.LoggedOut -> onLoggedOut()
+      }
+    }
+  }
+
   SettingsScreenContent(
     uiState = uiState,
     version = version,
@@ -62,6 +84,16 @@ fun SettingsScreen(
     onListeningSessionClicked = onListeningSessionClicked,
     changePassword = changePassword,
     { settingsEvent -> viewModel.onEvent(settingsEvent) },
+  )
+
+  MyAlertDialog(
+    showDialog = logoutErrorMessage != null,
+    title = stringResource(R.string.logout_failed),
+    text = logoutErrorMessage.orEmpty(),
+    confirmText = stringResource(R.string.ok),
+    dismissText = null,
+    onConfirm = { logoutErrorMessage = null },
+    onDismiss = {},
   )
 }
 

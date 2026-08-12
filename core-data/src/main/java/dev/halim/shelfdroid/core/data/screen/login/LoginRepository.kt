@@ -160,9 +160,8 @@ constructor(
               uiState.copy(
                 server = normalizedServer,
                 normalizedServer = normalizedServer,
-                loginState = GenericState.Failure(
-                  error.toOpenIdStartFailureMessage(uiState.serverAccessMode)
-                ),
+                loginState =
+                  GenericState.Failure(error.toOpenIdStartFailureMessage(uiState.serverAccessMode)),
                 serverFieldError = null,
               )
           )

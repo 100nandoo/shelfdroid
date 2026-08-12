@@ -94,9 +94,12 @@ constructor(
 
       LoginEvent.UseDifferentServerOrAccountConfirmed ->
         viewModelScope.launch {
-          settingsRepository.logout().onFailure { error ->
+          val result = settingsRepository.logoutForAccountSwitch()
+          result.exceptionOrNull()?.let { error ->
             _uiState.update { it.copy(loginState = GenericState.Failure(error.message)) }
+            return@launch
           }
+          _events.emit(LoginUiEvent.LoggedOut)
         }
 
       is LoginEvent.ServerChanged -> _uiState.update { it.prepareLoginDiscovery(event.server) }
@@ -171,13 +174,15 @@ constructor(
     val savedServerAccessMode =
       when {
         openIdLoginFailure != null -> openIdLoginFailure.serverAccessMode
-        openIdLoginRecoveryState.normalizedServer != null -> openIdLoginRecoveryState.serverAccessMode
+        openIdLoginRecoveryState.normalizedServer != null ->
+          openIdLoginRecoveryState.serverAccessMode
         else -> runBlocking { loginRepository.currentServerAccessMode() }
       }
     val savedServerForAccessMode =
       when {
         openIdLoginFailure != null -> openIdLoginFailure.normalizedServer
-        openIdLoginRecoveryState.normalizedServer != null -> openIdLoginRecoveryState.normalizedServer
+        openIdLoginRecoveryState.normalizedServer != null ->
+          openIdLoginRecoveryState.normalizedServer
         else -> savedServer
       }
     val (username, server) =
@@ -224,6 +229,8 @@ sealed interface LoginUiEvent {
   data class LaunchOpenIdLogin(val authorizationUrl: String) : LoginUiEvent
 
   data object RequestLocalNetworkPermission : LoginUiEvent
+
+  data object LoggedOut : LoginUiEvent
 }
 
 internal suspend fun handleOpenIdLoginButtonPressed(
@@ -335,10 +342,12 @@ internal suspend fun handleLocalNetworkPermissionResult(
   permanentlyDenied: Boolean,
   login: suspend (LoginUiState) -> LoginUiState,
   discoverLoginMethods: suspend (String) -> LoginDiscoveryResult,
-  startOpenIdLogin: suspend (LoginUiState, String) -> OpenIdLoginStartResult =
-    { _, _ -> error("OpenID login start should not run for this action") },
-  completeOpenIdLogin: suspend () -> OpenIdLoginCompletionResult =
-    { error("OpenID login completion should not run for this action") },
+  startOpenIdLogin: suspend (LoginUiState, String) -> OpenIdLoginStartResult = { _, _ ->
+    error("OpenID login start should not run for this action")
+  },
+  completeOpenIdLogin: suspend () -> OpenIdLoginCompletionResult = {
+    error("OpenID login completion should not run for this action")
+  },
   emitEvent: suspend (LoginUiEvent) -> Unit = {},
 ): LoginUiState {
   val pendingAction = uiState.pendingLocalNetworkAction ?: return uiState
@@ -403,13 +412,10 @@ internal fun initLoginUiState(
     }
   val normalizedInitialServer = AudiobookshelfBaseUrl.parse(initialServer)?.value ?: initialServer
   val normalizedSavedServer =
-    savedServerForAccessMode
-      ?.let { AudiobookshelfBaseUrl.parse(it)?.value ?: it }
+    savedServerForAccessMode?.let { AudiobookshelfBaseUrl.parse(it)?.value ?: it }
       ?: normalizedInitialServer.takeIf { it.isNotBlank() }
   val initialServerAccessMode =
-    if (
-      normalizedInitialServer.isNotBlank() && normalizedInitialServer == normalizedSavedServer
-    ) {
+    if (normalizedInitialServer.isNotBlank() && normalizedInitialServer == normalizedSavedServer) {
       savedServerAccessMode
     } else {
       ServerAccessMode.Internet

@@ -78,6 +78,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.launch
 
 internal data class ServerAccessOption(val accessMode: ServerAccessMode, val label: String)
+
 internal data class ServerAccessControlState(
   val options: List<ServerAccessOption>,
   val enabled: Boolean,
@@ -92,6 +93,7 @@ fun LoginScreen(
     },
   snackbarHostState: SnackbarHostState,
   onLoginSuccess: () -> Unit,
+  onLoggedOut: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
@@ -126,11 +128,18 @@ fun LoginScreen(
 
   LaunchedEffect(viewModel, openIdLoginLauncher, localNetworkPermissionHandler) {
     viewModel.events.collect { event ->
-      handleLoginUiEvent(
-        event = event,
-        launchOpenIdLogin = openIdLoginLauncher::launch,
-        requestLocalNetworkPermission = localNetworkPermissionHandler.requestPermission,
-      )
+      when (event) {
+        LoginUiEvent.LoggedOut -> {
+          focusManager.clearFocus()
+          onLoggedOut()
+        }
+        else ->
+          handleLoginUiEvent(
+            event = event,
+            launchOpenIdLogin = openIdLoginLauncher::launch,
+            requestLocalNetworkPermission = localNetworkPermissionHandler.requestPermission,
+          )
+      }
     }
   }
 
@@ -164,7 +173,8 @@ fun LoginScreenContent(
     localNetworkPermissionGuidance(
       uiState = uiState,
       deniedMessage = stringResource(R.string.local_network_permission_denied),
-      permanentlyDeniedMessage = stringResource(R.string.local_network_permission_permanently_denied),
+      permanentlyDeniedMessage =
+        stringResource(R.string.local_network_permission_permanently_denied),
     )
   val serverAccessControlState =
     serverAccessControlState(
@@ -470,8 +480,7 @@ internal fun localNetworkPermissionGuidance(
   permanentlyDeniedMessage: String,
 ): LocalNetworkPermissionGuidance {
   return when (uiState.localNetworkPermissionState) {
-    LocalNetworkPermissionState.Denied ->
-      LocalNetworkPermissionGuidance(message = deniedMessage)
+    LocalNetworkPermissionState.Denied -> LocalNetworkPermissionGuidance(message = deniedMessage)
     LocalNetworkPermissionState.PermanentlyDenied ->
       LocalNetworkPermissionGuidance(
         message = permanentlyDeniedMessage,

@@ -82,6 +82,17 @@ class ShelfNavigatorTest {
   }
 
   @Test
+  fun enforce_auth_restore_policy_replaces_relogin_stack_with_plain_login_after_full_logout() {
+    val currentLogin = Login(reLogin = true, reason = AuthPromptReason.ManualReLogin)
+    val backStack = NavBackStack<ShelfNavKey>(currentLogin)
+    val navigator = ShelfNavigator(backStack)
+
+    enforceAuthRestorePolicy(navigator, isLoggedIn = false, loginKey = Login())
+
+    assertEquals(listOf(Login()), backStack.toList())
+  }
+
+  @Test
   fun pop_returns_false_at_root() {
     val backStack = NavBackStack<ShelfNavKey>(Home(false))
     val navigator = ShelfNavigator(backStack)

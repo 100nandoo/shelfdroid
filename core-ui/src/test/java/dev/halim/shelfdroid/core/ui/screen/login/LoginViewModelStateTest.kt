@@ -354,9 +354,7 @@ class LoginViewModelStateTest {
                 availableLoginMethods = listOf(LoginMethod.OpenId),
                 loginDiscoveryMessage = LoginDiscoveryMessage.LocalLoginUnavailable,
               )
-              .prepareLocalNetworkPermissionRequest(
-                PendingLocalNetworkAction.CompleteOpenIdLogin
-              ),
+              .prepareLocalNetworkPermissionRequest(PendingLocalNetworkAction.CompleteOpenIdLogin),
           granted = true,
           permanentlyDenied = false,
           login = { throw AssertionError("password login should not run for OpenID recovery") },

@@ -53,7 +53,6 @@ coil = "3.4.0"
 retrofit = "3.0.0"
 retrofit-result = "1.1.0"
 socketioClient = "2.1.2"
-process-phoenix = "3.0.0"
 espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.14.0"
@@ -116,8 +115,6 @@ coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 retrofit-result = { module = "com.github.skydoves:retrofit-adapters-result", version.ref = "retrofit-result" }
-
-process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "process-phoenix" }
 
 acra-core = { module = "ch.acra:acra-core", version.ref = "acra" }
 acra-toast = { module = "ch.acra:acra-toast", version.ref = "acra" }

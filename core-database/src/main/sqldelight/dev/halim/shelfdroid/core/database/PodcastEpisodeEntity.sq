@@ -42,3 +42,6 @@ WHERE libraryItemId = :libraryItemId;
 deleteByIds:
 DELETE FROM PodcastEpisodeEntity
 WHERE id IN :ids;
+
+deleteAll:
+DELETE FROM PodcastEpisodeEntity;

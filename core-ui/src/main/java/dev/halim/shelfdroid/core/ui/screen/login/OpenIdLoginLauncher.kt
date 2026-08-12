@@ -52,6 +52,7 @@ internal fun handleLoginUiEvent(
 ) {
   when (event) {
     is LoginUiEvent.LaunchOpenIdLogin -> launchOpenIdLogin(event.authorizationUrl)
+    LoginUiEvent.LoggedOut -> Unit
     LoginUiEvent.RequestLocalNetworkPermission -> requestLocalNetworkPermission()
   }
 }

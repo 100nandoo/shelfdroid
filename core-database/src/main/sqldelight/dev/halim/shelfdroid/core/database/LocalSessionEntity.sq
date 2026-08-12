@@ -77,6 +77,9 @@ SELECT * FROM LocalSessionEntity WHERE synced = 0;
 deleteById:
 DELETE FROM LocalSessionEntity WHERE id = ?;
 
+deleteAll:
+DELETE FROM LocalSessionEntity;
+
 count:
 SELECT count(*) FROM LocalSessionEntity;
 

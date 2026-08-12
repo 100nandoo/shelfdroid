@@ -16,18 +16,16 @@ class BookLocalDataSource @Inject constructor(db: MyDatabase, private val json: 
   private val queries = db.bookEntityQueries
 
   fun byId(libraryItemId: String): Book? {
-    return queries
-      .byLibraryItemId(libraryItemId)
-      .executeAsOneOrNull()
-      ?.let { entity -> json.decodeFromString(entity.media) }
+    return queries.byLibraryItemId(libraryItemId).executeAsOneOrNull()?.let { entity ->
+      json.decodeFromString(entity.media)
+    }
   }
 
   fun flowById(libraryItemId: String): Flow<Book?> {
-    return queries
-      .byLibraryItemId(libraryItemId)
-      .asFlow()
-      .mapToOneOrNull(Dispatchers.IO)
-      .map { entity -> entity?.let { json.decodeFromString(it.media) } }
+    return queries.byLibraryItemId(libraryItemId).asFlow().mapToOneOrNull(Dispatchers.IO).map {
+      entity ->
+      entity?.let { json.decodeFromString(it.media) }
+    }
   }
 
   fun insert(libraryItemId: String, book: Book) {

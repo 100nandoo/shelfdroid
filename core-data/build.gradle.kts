@@ -53,9 +53,6 @@ dependencies {
   // exoplayer
   implementation(libs.androidx.media3.exoplayer)
 
-  // process phoenix
-  implementation(libs.process.phoenix)
-
   // sqldelight
   implementation(libs.sqldelight.driver)
   implementation(libs.sqldelight.coroutines)

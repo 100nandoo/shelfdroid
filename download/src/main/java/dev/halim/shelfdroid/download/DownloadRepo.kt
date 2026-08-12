@@ -214,6 +214,7 @@ constructor(
         items.any { it.state == DownloadState.Downloading } -> DownloadState.Downloading
         items.any { it.state == DownloadState.Failed } &&
           items.any { it.state == DownloadState.Completed } -> DownloadState.Incomplete
+
         else -> DownloadState.Unknown
       }
     return MultipleTrackDownloadUiState(state = state, items = items)
@@ -312,6 +313,10 @@ constructor(
 
   fun delete(id: String) {
     DownloadService.sendRemoveDownload(context, ShelfDownloadService::class.java, id, false)
+  }
+
+  fun clearTransientDownloads() {
+    DownloadService.sendRemoveAllDownloads(context, ShelfDownloadService::class.java, false)
   }
 
   suspend fun deletePodcastEpisode(download: DownloadUiState) {

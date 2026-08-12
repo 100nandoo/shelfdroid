@@ -14,3 +14,6 @@ INSERT OR REPLACE INTO PodcastEntity VALUES ?;
 deleteByLibraryItemId:
 DELETE FROM PodcastEntity
 WHERE libraryItemId = :libraryItemId;
+
+deleteAll:
+DELETE FROM PodcastEntity;

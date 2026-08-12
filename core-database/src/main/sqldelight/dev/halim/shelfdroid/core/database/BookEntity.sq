@@ -15,3 +15,6 @@ VALUES ?;
 deleteByLibraryItemId:
 DELETE FROM BookEntity
 WHERE libraryItemId = :libraryItemId;
+
+deleteAll:
+DELETE FROM BookEntity;

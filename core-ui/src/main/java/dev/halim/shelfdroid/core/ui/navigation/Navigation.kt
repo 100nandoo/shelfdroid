@@ -33,6 +33,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MySnackbarHost
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.player.PlayerController
+import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.core.ui.player.PlayerHandler
 import dev.halim.shelfdroid.core.ui.screen.addepisode.AddEpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.addpodcast.AddPodcastScreen
@@ -123,6 +124,7 @@ private fun ColumnScope.NavHostContainer(
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
   val notificationRuleSavedMessage = stringResource(R.string.notification_rule_saved)
+  val onLoggedOut = { playerController.onEvent(PlayerEvent.Logout) }
   val entryProvider =
     entryProvider<ShelfNavKey> {
       entry<Login> { key ->
@@ -131,6 +133,7 @@ private fun ColumnScope.NavHostContainer(
             navKey = key,
             snackbarHostState = snackbarHostState,
             onLoginSuccess = { navigator.replaceStack(Home(fromLogin = true)) },
+            onLoggedOut = onLoggedOut,
           )
         }
       }
@@ -263,6 +266,7 @@ private fun ColumnScope.NavHostContainer(
             onPodcastClicked = { navigator.navigate(SettingsPodcast) },
             onListeningSessionClicked = { navigator.navigate(SettingsListeningSession) },
             changePassword = { navigator.navigate(ChangePassword) },
+            onLoggedOut = onLoggedOut,
           )
         }
       }

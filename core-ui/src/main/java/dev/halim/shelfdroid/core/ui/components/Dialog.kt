@@ -30,7 +30,7 @@ fun MyAlertDialog(
   title: String,
   text: String,
   confirmText: String,
-  dismissText: String = stringResource(R.string.cancel),
+  dismissText: String? = stringResource(R.string.cancel),
   onConfirm: () -> Unit,
   onDismiss: () -> Unit = {},
 ) {
@@ -43,7 +43,10 @@ fun MyAlertDialog(
       },
       text = { Text(text) },
       confirmButton = { TextButton(onClick = { onConfirm() }) { Text(confirmText) } },
-      dismissButton = { TextButton(onClick = { onDismiss() }) { Text(dismissText) } },
+      dismissButton =
+        dismissText?.let { label ->
+          { TextButton(onClick = { onDismiss() }) { Text(label) } }
+        },
     )
   }
 }
