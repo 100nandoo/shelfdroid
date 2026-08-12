@@ -9,10 +9,11 @@ import org.junit.Test
 class LocalSessionCleanupTest {
 
   @Test
-  fun clear_runsDatabaseAndAppStorageCleanupInOrder() = runTest {
+  fun clear_resetsLocalAppPreferencesBeforeDatabaseAndAppStorageCleanup() = runTest {
     val events = mutableListOf<String>()
     val cleanup =
       LocalSessionCleanup(
+        resetLocalAppPreferences = { events += "local app preferences" },
         clearDatabase = { events += "database" },
         clearAppStorage = { events += "app storage" },
       )
@@ -20,7 +21,27 @@ class LocalSessionCleanupTest {
     val result = cleanup.clear()
 
     assertTrue(result.isSuccess)
-    assertEquals(listOf("database", "app storage"), events)
+    assertEquals(listOf("local app preferences", "database", "app storage"), events)
+  }
+
+  @Test
+  fun clear_whenPreferenceResetFails_returnsFailureWithoutFurtherCleanup() = runTest {
+    val failure = IllegalStateException("Preference reset failed")
+    var databaseCleared = false
+    var appStorageCleared = false
+    val cleanup =
+      LocalSessionCleanup(
+        resetLocalAppPreferences = { throw failure },
+        clearDatabase = { databaseCleared = true },
+        clearAppStorage = { appStorageCleared = true },
+      )
+
+    val result = cleanup.clear()
+
+    assertTrue(result.isFailure)
+    assertSame(failure, result.exceptionOrNull())
+    assertTrue(!databaseCleared)
+    assertTrue(!appStorageCleared)
   }
 
   @Test
@@ -29,6 +50,7 @@ class LocalSessionCleanupTest {
     var appStorageCleared = false
     val cleanup =
       LocalSessionCleanup(
+        resetLocalAppPreferences = {},
         clearDatabase = { throw failure },
         clearAppStorage = { appStorageCleared = true },
       )

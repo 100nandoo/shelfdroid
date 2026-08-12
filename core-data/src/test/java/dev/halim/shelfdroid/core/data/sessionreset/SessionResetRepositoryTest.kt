@@ -50,8 +50,14 @@ class SessionResetRepositoryTest {
   }
 
   @Test
-  fun fullLogout_afterRemoteLogoutSucceeds_runsLocalCleanup() = runTest {
+  fun fullLogout_afterRemoteLogoutSucceeds_resetsLocalAppPreferences() = runTest {
     val events = mutableListOf<String>()
+    val localCleanup =
+      LocalSessionCleanup(
+        resetLocalAppPreferences = { events += "local app preferences" },
+        clearDatabase = { events += "database" },
+        clearAppStorage = { events += "app storage" },
+      )
     val repository =
       SessionResetRepository(
         refreshToken = { "refresh-token" },
@@ -59,22 +65,28 @@ class SessionResetRepositoryTest {
           events += "remote logout"
           Result.success(Unit)
         },
-        localCleanup = {
-          events += "local cleanup"
-          Result.success(Unit)
-        },
+        localCleanup = localCleanup::clear,
       )
 
     val result = repository.fullLogout()
 
     assertTrue(result.isSuccess)
-    assertEquals(listOf("remote logout", "local cleanup"), events)
+    assertEquals(
+      listOf("remote logout", "local app preferences", "database", "app storage"),
+      events,
+    )
   }
 
   @Test
-  fun logoutForAccountSwitch_withoutRefreshToken_runsLocalCleanup() = runTest {
+  fun logoutForAccountSwitch_withoutRefreshToken_resetsLocalAppPreferences() = runTest {
     var remoteLogoutRan = false
-    var localCleanupRan = false
+    var localAppPreferencesReset = false
+    val localCleanup =
+      LocalSessionCleanup(
+        resetLocalAppPreferences = { localAppPreferencesReset = true },
+        clearDatabase = {},
+        clearAppStorage = {},
+      )
     val repository =
       SessionResetRepository(
         refreshToken = { "" },
@@ -82,17 +94,14 @@ class SessionResetRepositoryTest {
           remoteLogoutRan = true
           Result.success(Unit)
         },
-        localCleanup = {
-          localCleanupRan = true
-          Result.success(Unit)
-        },
+        localCleanup = localCleanup::clear,
       )
 
     val result = repository.logoutForAccountSwitch()
 
     assertTrue(result.isSuccess)
     assertFalse(remoteLogoutRan)
-    assertTrue(localCleanupRan)
+    assertTrue(localAppPreferencesReset)
   }
 
   @Test

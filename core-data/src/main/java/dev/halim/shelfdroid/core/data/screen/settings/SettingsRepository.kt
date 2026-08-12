@@ -59,7 +59,6 @@ constructor(
 
   private suspend fun clearLocalSessionAndAppData(): Result<Unit> {
     return runCatching {
-      dataStoreManager.clear()
       downloadRepo.clearTransientDownloads()
       localSessionCleanup.clear().getOrThrow()
     }

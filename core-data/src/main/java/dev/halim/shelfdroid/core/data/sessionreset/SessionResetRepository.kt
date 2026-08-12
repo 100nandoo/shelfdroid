@@ -2,25 +2,30 @@ package dev.halim.shelfdroid.core.data.sessionreset
 
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 
 class LocalSessionCleanup
 internal constructor(
+  private val resetLocalAppPreferences: suspend () -> Unit,
   private val clearDatabase: () -> Unit,
   private val clearAppStorage: () -> Unit,
 ) {
   @Inject
   constructor(
+    dataStoreManager: DataStoreManager,
     localDatabaseCleanup: LocalDatabaseCleanup,
     appStorageCleanup: AppStorageCleanup,
   ) : this(
+    resetLocalAppPreferences = dataStoreManager::clear,
     clearDatabase = localDatabaseCleanup::clear,
     clearAppStorage = appStorageCleanup::clear,
   )
 
   suspend fun clear(): Result<Unit> =
     runCatching {
+      resetLocalAppPreferences()
       clearDatabase()
       clearAppStorage()
     }

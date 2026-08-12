@@ -38,11 +38,11 @@ Work the **frontier**: any ticket whose blockers are all done. For this work, st
 
 **Blocked by:** Create the session reset boundary.
 
-- [ ] Local app preference reset is explicit in the session reset boundary's local cleanup path.
-- [ ] Full logout resets local app preferences after successful remote logout.
-- [ ] Account switch resets local app preferences as part of local cleanup.
-- [ ] Forced re-login behavior remains unchanged and does not use the destructive local preference reset path.
-- [ ] Tests cover local app preference reset as externally visible cleanup behavior.
+- [x] Local app preference reset is explicit in the session reset boundary's local cleanup path.
+- [x] Full logout resets local app preferences after successful remote logout.
+- [x] Account switch resets local app preferences as part of local cleanup.
+- [x] Forced re-login behavior remains unchanged and does not use the destructive local preference reset path.
+- [x] Tests cover local app preference reset as externally visible cleanup behavior.
 
 ## Wire Settings full logout through the session reset boundary
 
