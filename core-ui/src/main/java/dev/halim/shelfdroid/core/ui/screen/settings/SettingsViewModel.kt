@@ -8,6 +8,7 @@ import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.SortOrder
+import dev.halim.shelfdroid.core.data.sessionreset.SessionResetRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
@@ -27,13 +28,21 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SettingsViewModel
 @Inject
-constructor(private val repository: SettingsRepository, @Named("version") val version: String) :
-  ViewModel() {
+constructor(
+  private val settingsRepository: SettingsRepository,
+  private val sessionResetRepository: SessionResetRepository,
+  @Named("version") val version: String,
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow(SettingsUiState())
   private val _events = MutableSharedFlow<SettingsUiEvent>(extraBufferCapacity = 1)
   val uiState: StateFlow<SettingsUiState> =
-    combine(_uiState, repository.darkMode, repository.dynamicTheme, repository.prefs) {
+    combine(
+        _uiState,
+        settingsRepository.darkMode,
+        settingsRepository.dynamicTheme,
+        settingsRepository.prefs,
+      ) {
         uiState: SettingsUiState,
         isDarkMode: Boolean,
         isDynamicTheme: Boolean,
@@ -55,42 +64,42 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
     when (event) {
       is SettingsEvent.LogoutButtonPressed -> viewModelScope.launch { logout() }
       SettingsEvent.ReLoginButtonPressed -> {
-        viewModelScope.launch { repository.startManualReLogin() }
+        viewModelScope.launch { settingsRepository.startManualReLogin() }
       }
       is SettingsEvent.SwitchDarkTheme -> {
-        viewModelScope.launch { repository.updateDarkMode(event.isDarkMode) }
+        viewModelScope.launch { settingsRepository.updateDarkMode(event.isDarkMode) }
       }
       is SettingsEvent.SwitchDynamicTheme -> {
-        viewModelScope.launch { repository.updateDynamicTheme(event.isDynamic) }
+        viewModelScope.launch { settingsRepository.updateDynamicTheme(event.isDynamic) }
       }
       is SettingsEvent.SwitchListView -> {
-        viewModelScope.launch { repository.updateListView(event.isListView) }
+        viewModelScope.launch { settingsRepository.updateListView(event.isListView) }
       }
       is SettingsEvent.SwitchHardDelete -> {
-        viewModelScope.launch { repository.updateHardDelete(event.hardDelete) }
+        viewModelScope.launch { settingsRepository.updateHardDelete(event.hardDelete) }
       }
 
       is SettingsEvent.SettingsDisplayPrefsEvent -> {
         when (event.displayPrefsEvent) {
           is DisplayPrefsEvent.BookSort -> {
             val bookSort = BookSort.fromLabel(event.displayPrefsEvent.bookSort)
-            viewModelScope.launch { repository.updateBookSort(bookSort) }
+            viewModelScope.launch { settingsRepository.updateBookSort(bookSort) }
           }
           is DisplayPrefsEvent.Filter -> {
             val filter = Filter.valueOf(event.displayPrefsEvent.filter)
-            viewModelScope.launch { repository.updateFilter(filter) }
+            viewModelScope.launch { settingsRepository.updateFilter(filter) }
           }
           is DisplayPrefsEvent.PodcastSort -> {
             val podcastSort = PodcastSort.fromLabel(event.displayPrefsEvent.podcastSort)
-            viewModelScope.launch { repository.updatePodcastSort(podcastSort) }
+            viewModelScope.launch { settingsRepository.updatePodcastSort(podcastSort) }
           }
           is DisplayPrefsEvent.PodcastSortOrder -> {
             val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
-            viewModelScope.launch { repository.updatePodcastSortOrder(sortOrder) }
+            viewModelScope.launch { settingsRepository.updatePodcastSortOrder(sortOrder) }
           }
           is DisplayPrefsEvent.SortOrder -> {
             val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
-            viewModelScope.launch { repository.updateSortOrder(sortOrder) }
+            viewModelScope.launch { settingsRepository.updateSortOrder(sortOrder) }
           }
         }
       }
@@ -99,7 +108,7 @@ constructor(private val repository: SettingsRepository, @Named("version") val ve
 
   private suspend fun logout() {
     _uiState.update { it.copy(settingsState = SettingsState.Loading) }
-    repository.fullLogout().apply {
+    sessionResetRepository.fullLogout().apply {
       onSuccess {
         _uiState.update { it.copy(settingsState = SettingsState.Success) }
         _events.tryEmit(SettingsUiEvent.LoggedOut)

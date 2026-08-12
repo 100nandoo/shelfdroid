@@ -54,6 +54,7 @@ class SessionResetRepositoryTest {
     val events = mutableListOf<String>()
     val localCleanup =
       LocalSessionCleanup(
+        clearTransientDownloads = { events += "transient downloads" },
         resetLocalAppPreferences = { events += "local app preferences" },
         clearDatabase = { events += "database" },
         clearAppStorage = { events += "app storage" },
@@ -72,7 +73,13 @@ class SessionResetRepositoryTest {
 
     assertTrue(result.isSuccess)
     assertEquals(
-      listOf("remote logout", "local app preferences", "database", "app storage"),
+      listOf(
+        "remote logout",
+        "transient downloads",
+        "local app preferences",
+        "database",
+        "app storage",
+      ),
       events,
     )
   }
@@ -83,6 +90,7 @@ class SessionResetRepositoryTest {
     var localAppPreferencesReset = false
     val localCleanup =
       LocalSessionCleanup(
+        clearTransientDownloads = {},
         resetLocalAppPreferences = { localAppPreferencesReset = true },
         clearDatabase = {},
         clearAppStorage = {},

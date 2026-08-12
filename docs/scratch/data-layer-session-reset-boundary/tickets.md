@@ -50,11 +50,11 @@ Work the **frontier**: any ticket whose blockers are all done. For this work, st
 
 **Blocked by:** Create the session reset boundary; Extract local database and app storage cleanup; Add factory-reset local app preference cleanup.
 
-- [ ] The settings-screen full logout flow calls the session reset boundary.
-- [ ] Remote logout failure is still surfaced to the settings-screen user.
-- [ ] Remote logout failure still prevents destructive local cleanup.
-- [ ] Successful full logout still routes the user away from the current local session as before.
-- [ ] Settings preference reads and updates remain available to settings UI.
+- [x] The settings-screen full logout flow calls the session reset boundary.
+- [x] Remote logout failure is still surfaced to the settings-screen user.
+- [x] Remote logout failure still prevents destructive local cleanup.
+- [x] Successful full logout still routes the user away from the current local session as before.
+- [x] Settings preference reads and updates remain available to settings UI.
 
 ## Wire login Account switch through the session reset boundary
 

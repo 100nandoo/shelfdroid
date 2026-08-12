@@ -9,10 +9,11 @@ import org.junit.Test
 class LocalSessionCleanupTest {
 
   @Test
-  fun clear_resetsLocalAppPreferencesBeforeDatabaseAndAppStorageCleanup() = runTest {
+  fun clear_clearsTransientDownloadsBeforePreferencesDatabaseAndAppStorage() = runTest {
     val events = mutableListOf<String>()
     val cleanup =
       LocalSessionCleanup(
+        clearTransientDownloads = { events += "transient downloads" },
         resetLocalAppPreferences = { events += "local app preferences" },
         clearDatabase = { events += "database" },
         clearAppStorage = { events += "app storage" },
@@ -21,7 +22,10 @@ class LocalSessionCleanupTest {
     val result = cleanup.clear()
 
     assertTrue(result.isSuccess)
-    assertEquals(listOf("local app preferences", "database", "app storage"), events)
+    assertEquals(
+      listOf("transient downloads", "local app preferences", "database", "app storage"),
+      events,
+    )
   }
 
   @Test
@@ -31,6 +35,7 @@ class LocalSessionCleanupTest {
     var appStorageCleared = false
     val cleanup =
       LocalSessionCleanup(
+        clearTransientDownloads = {},
         resetLocalAppPreferences = { throw failure },
         clearDatabase = { databaseCleared = true },
         clearAppStorage = { appStorageCleared = true },
@@ -50,6 +55,7 @@ class LocalSessionCleanupTest {
     var appStorageCleared = false
     val cleanup =
       LocalSessionCleanup(
+        clearTransientDownloads = {},
         resetLocalAppPreferences = {},
         clearDatabase = { throw failure },
         clearAppStorage = { appStorageCleared = true },
