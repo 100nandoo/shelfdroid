@@ -12,6 +12,7 @@ import dagger.hilt.components.SingletonComponent
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.database.ListeningStatEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
+import dev.halim.shelfdroid.core.database.SessionDatabaseCleanup
 import dev.halim.shelfdroid.core.database.UserEntity
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
@@ -58,6 +59,12 @@ object DatabaseModule {
       ListeningStatEntity.Adapter(mapAdapter, mapAdapter),
       UserEntity.Adapter(userTypeAdapter, listOfStringsAdapter, listOfStringsAdapter),
     )
+  }
+
+  @Provides
+  @Singleton
+  fun provideSessionDatabaseCleanup(database: MyDatabase): SessionDatabaseCleanup {
+    return SessionDatabaseCleanup(database)
   }
 
   @Provides

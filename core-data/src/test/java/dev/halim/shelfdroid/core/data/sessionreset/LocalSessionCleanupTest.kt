@@ -16,7 +16,7 @@ class LocalSessionCleanupTest {
         clearCurrentPlayback = { events += "current playback" },
         clearTransientDownloads = { events += "transient downloads" },
         resetLocalAppPreferences = { events += "local app preferences" },
-        clearDatabase = { events += "database" },
+        clearSessionScopedDatabase = { events += "database" },
         clearAppStorage = { events += "app storage" },
       )
 
@@ -45,7 +45,7 @@ class LocalSessionCleanupTest {
         clearCurrentPlayback = {},
         clearTransientDownloads = {},
         resetLocalAppPreferences = { throw failure },
-        clearDatabase = { databaseCleared = true },
+        clearSessionScopedDatabase = { databaseCleared = true },
         clearAppStorage = { appStorageCleared = true },
       )
 
@@ -66,7 +66,7 @@ class LocalSessionCleanupTest {
         clearCurrentPlayback = {},
         clearTransientDownloads = {},
         resetLocalAppPreferences = {},
-        clearDatabase = { throw failure },
+        clearSessionScopedDatabase = { throw failure },
         clearAppStorage = { appStorageCleared = true },
       )
 

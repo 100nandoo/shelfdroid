@@ -2,43 +2,9 @@ package dev.halim.shelfdroid.core.data.sessionreset
 
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
-import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 
-class LocalSessionCleanup
-internal constructor(
-  private val clearCurrentPlayback: () -> Unit,
-  private val clearTransientDownloads: () -> Unit,
-  private val resetLocalAppPreferences: suspend () -> Unit,
-  private val clearDatabase: () -> Unit,
-  private val clearAppStorage: () -> Unit,
-) {
-  @Inject
-  constructor(
-    currentPlaybackCleanup: CurrentPlaybackCleanup,
-    downloadRepo: DownloadRepo,
-    dataStoreManager: DataStoreManager,
-    localDatabaseCleanup: LocalDatabaseCleanup,
-    appStorageCleanup: AppStorageCleanup,
-  ) : this(
-    clearCurrentPlayback = currentPlaybackCleanup::clearCurrentPlayback,
-    clearTransientDownloads = downloadRepo::clearTransientDownloads,
-    resetLocalAppPreferences = dataStoreManager::clear,
-    clearDatabase = localDatabaseCleanup::clear,
-    clearAppStorage = appStorageCleanup::clear,
-  )
-
-  suspend fun clear(): Result<Unit> =
-    runCatching {
-      clearCurrentPlayback()
-      clearTransientDownloads()
-      resetLocalAppPreferences()
-      clearDatabase()
-      clearAppStorage()
-    }
-}
 
 class SessionResetRepository
 internal constructor(
@@ -62,8 +28,8 @@ internal constructor(
     if (currentRefreshToken.isBlank()) {
       return Result.failure(
         IllegalStateException(
-          "Unable to log out because the current session is missing its refresh token."
-        )
+          "Unable to log out because the current session is missing its refresh token.",
+        ),
       )
     }
 

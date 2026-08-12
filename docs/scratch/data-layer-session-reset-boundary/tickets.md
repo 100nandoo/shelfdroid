@@ -98,7 +98,7 @@ Verification completed with the focused `core-data` session-reset tests, the exi
 login account-switch view-model tests, the full debug unit-test suite, and `:app:assembleDebug`.
 There is no focused settings full-logout view-model test. Hilt aggregation and Java compilation in
 the app build resolve `SessionResetRepository`, `LocalSessionCleanup`, `CurrentPlaybackCleanup`,
-`LocalDatabaseCleanup`, and `AppStorageCleanup` through their constructor-injected dependency graph.
+`SessionDatabaseCleanup`, and `AppStorageCleanup` through their dependency graph.
 
 Current playback cleanup is represented by the data-layer `CurrentPlaybackCleanup` contract.
 `LocalSessionCleanup` invokes it before clearing authentication-bearing local app preferences, and

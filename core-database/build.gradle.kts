@@ -46,6 +46,8 @@ dependencies {
   implementation(libs.sqldelight.coroutines)
   implementation(libs.sqldelight.primitives)
 
+  testImplementation(libs.junit)
+
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)

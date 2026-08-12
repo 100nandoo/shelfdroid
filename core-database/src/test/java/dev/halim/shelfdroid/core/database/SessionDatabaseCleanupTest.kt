@@ -1,24 +1,24 @@
-package dev.halim.shelfdroid.core.data.sessionreset
+package dev.halim.shelfdroid.core.database
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class LocalDatabaseCleanupTest {
+class SessionDatabaseCleanupTest {
 
   @Test
-  fun clear_deletesTablesInsideOneTransaction() {
+  fun clearSessionScopedData_deletesTablesInsideOneTransaction() {
     val events = mutableListOf<String>()
     val cleanup =
-      LocalDatabaseCleanup(
+      SessionDatabaseCleanup(
         inTransaction = { deleteTables ->
           events += "transaction started"
           deleteTables()
           events += "transaction finished"
         },
-        deleteTables = { events += "tables deleted" },
+        deleteSessionScopedTables = { events += "tables deleted" },
       )
 
-    cleanup.clear()
+    cleanup.clearSessionScopedData()
 
     assertEquals(
       listOf("transaction started", "tables deleted", "transaction finished"),

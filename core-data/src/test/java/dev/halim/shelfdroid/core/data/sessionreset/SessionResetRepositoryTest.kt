@@ -57,7 +57,7 @@ class SessionResetRepositoryTest {
         clearCurrentPlayback = { events += "current playback" },
         clearTransientDownloads = { events += "transient downloads" },
         resetLocalAppPreferences = { events += "local app preferences" },
-        clearDatabase = { events += "database" },
+        clearSessionScopedDatabase = { events += "database" },
         clearAppStorage = { events += "app storage" },
       )
     val repository =
@@ -96,7 +96,7 @@ class SessionResetRepositoryTest {
         clearCurrentPlayback = { currentPlaybackCleared = true },
         clearTransientDownloads = {},
         resetLocalAppPreferences = { localAppPreferencesReset = true },
-        clearDatabase = {},
+        clearSessionScopedDatabase = {},
         clearAppStorage = {},
       )
     val repository =

@@ -1,21 +1,17 @@
-package dev.halim.shelfdroid.core.data.sessionreset
+package dev.halim.shelfdroid.core.database
 
-import dev.halim.shelfdroid.core.database.MyDatabase
-import javax.inject.Inject
-
-class LocalDatabaseCleanup
+class SessionDatabaseCleanup
 internal constructor(
   private val inTransaction: (() -> Unit) -> Unit,
-  private val deleteTables: () -> Unit,
+  private val deleteSessionScopedTables: () -> Unit,
 ) {
-  @Inject
   constructor(
     database: MyDatabase
   ) : this(
     inTransaction = { deleteTables ->
       database.libraryEntityQueries.transaction { deleteTables() }
     },
-    deleteTables = {
+    deleteSessionScopedTables = {
       database.localSessionEntityQueries.deleteAll()
       database.progressEntityQueries.deleteAll()
       database.bookmarkEntityQueries.deleteAll()
@@ -29,7 +25,7 @@ internal constructor(
     },
   )
 
-  fun clear() {
-    inTransaction(deleteTables)
+  fun clearSessionScopedData() {
+    inTransaction(deleteSessionScopedTables)
   }
 }
