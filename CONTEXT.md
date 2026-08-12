@@ -188,13 +188,25 @@ _Avoid_: Preflight, auth probe, status ping
 The attempt to keep the current signed-in state alive without user input before ShelfDroid asks for credentials again.
 _Avoid_: Auto login, refresh loop
 
+**Account switch**:
+An intentional login-flow transition where the user leaves the current **User** or **Audiobookshelf server** and signs in as a different user or to a different server.
+_Avoid_: Re-login, logout, profile switch
+
 **Forced re-login**:
 A recovery flow where ShelfDroid requires the current **User** to sign in again to the current **Audiobookshelf server** after **Session recovery** fails, while preserving local app data and cached content. A **Forced re-login** still obeys the server's current **Login methods** rather than assuming **Local login** remains available.
 _Avoid_: Logout, fresh login, account switch
 
 **Full logout**:
-An explicit sign-out that clears local authentication state and local app data instead of recovering the current session.
+An explicit sign-out that clears local authentication state, cached catalog and playback data, transient download state, current playback, and local app preferences instead of recovering the current session.
 _Avoid_: Re-login, session recovery
+
+**Local app preferences**:
+On-device ShelfDroid preferences controlled by the app rather than the **Audiobookshelf server**, such as theme, list presentation, filters, and sort order.
+_Avoid_: Server settings, user settings
+
+**Cached content**:
+Server-derived data kept locally to make ShelfDroid faster or usable between requests, excluding completed **Downloads**.
+_Avoid_: Downloads, local app preferences
 
 ### Distribution
 
@@ -248,7 +260,10 @@ _Avoid_: Best-effort release, unverifiable build
 - **Session recovery** happens before **Forced re-login**
 - A **Forced re-login** keeps the same **User** and **Audiobookshelf server**
 - A **Forced re-login** may require a fresh **Login discovery** before ShelfDroid can show the valid **Login methods**
+- An **Account switch** changes the current **User** or **Audiobookshelf server**
 - A **Full logout** ends the current local session instead of recovering it
+- A **Full logout** clears **Local app preferences** as part of returning ShelfDroid to a factory-reset local state
+- **Cached content** excludes completed **Downloads**
 - ShelfDroid may be distributed through the **F-Droid main repository**
 - Every **Reproducible release** is also an **Upstream release**
 
