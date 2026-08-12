@@ -1,0 +1,119 @@
+package dev.halim.shelfdroid.core.data.sessionreset
+
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class SessionResetRepositoryTest {
+
+  @Test
+  fun fullLogout_withoutRefreshToken_failsWithoutLocalCleanup() = runTest {
+    var localCleanupRan = false
+    val repository =
+      SessionResetRepository(
+        refreshToken = { "" },
+        remoteLogout = { Result.success(Unit) },
+        localCleanup = {
+          localCleanupRan = true
+          Result.success(Unit)
+        },
+      )
+
+    val result = repository.fullLogout()
+
+    assertTrue(result.isFailure)
+    assertFalse(localCleanupRan)
+  }
+
+  @Test
+  fun fullLogout_whenRemoteLogoutFails_returnsFailureWithoutLocalCleanup() = runTest {
+    val remoteFailure = IllegalStateException("Remote logout failed")
+    var localCleanupRan = false
+    val repository =
+      SessionResetRepository(
+        refreshToken = { "refresh-token" },
+        remoteLogout = { Result.failure(remoteFailure) },
+        localCleanup = {
+          localCleanupRan = true
+          Result.success(Unit)
+        },
+      )
+
+    val result = repository.fullLogout()
+
+    assertTrue(result.isFailure)
+    assertSame(remoteFailure, result.exceptionOrNull())
+    assertFalse(localCleanupRan)
+  }
+
+  @Test
+  fun fullLogout_afterRemoteLogoutSucceeds_runsLocalCleanup() = runTest {
+    val events = mutableListOf<String>()
+    val repository =
+      SessionResetRepository(
+        refreshToken = { "refresh-token" },
+        remoteLogout = {
+          events += "remote logout"
+          Result.success(Unit)
+        },
+        localCleanup = {
+          events += "local cleanup"
+          Result.success(Unit)
+        },
+      )
+
+    val result = repository.fullLogout()
+
+    assertTrue(result.isSuccess)
+    assertEquals(listOf("remote logout", "local cleanup"), events)
+  }
+
+  @Test
+  fun logoutForAccountSwitch_withoutRefreshToken_runsLocalCleanup() = runTest {
+    var remoteLogoutRan = false
+    var localCleanupRan = false
+    val repository =
+      SessionResetRepository(
+        refreshToken = { "" },
+        remoteLogout = {
+          remoteLogoutRan = true
+          Result.success(Unit)
+        },
+        localCleanup = {
+          localCleanupRan = true
+          Result.success(Unit)
+        },
+      )
+
+    val result = repository.logoutForAccountSwitch()
+
+    assertTrue(result.isSuccess)
+    assertFalse(remoteLogoutRan)
+    assertTrue(localCleanupRan)
+  }
+
+  @Test
+  fun logoutForAccountSwitch_withRefreshToken_attemptsRemoteLogoutBeforeLocalCleanup() = runTest {
+    val events = mutableListOf<String>()
+    val repository =
+      SessionResetRepository(
+        refreshToken = { "refresh-token" },
+        remoteLogout = { token ->
+          events += "remote logout with $token"
+          Result.failure(IllegalStateException("Remote logout failed"))
+        },
+        localCleanup = {
+          events += "local cleanup"
+          Result.success(Unit)
+        },
+      )
+
+    val result = repository.logoutForAccountSwitch()
+
+    assertTrue(result.isSuccess)
+    assertEquals(listOf("remote logout with refresh-token", "local cleanup"), events)
+  }
+}
