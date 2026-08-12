@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.sessionreset.SessionResetRepository
 import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
@@ -23,7 +24,6 @@ import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult
 import dev.halim.shelfdroid.core.data.screen.login.PendingLocalNetworkAction
-import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.FlowPreview
@@ -47,7 +47,7 @@ class LoginViewModel
 constructor(
   private val loginRepository: LoginRepository,
   private val openIdLoginFailureStore: OpenIdLoginFailureStore,
-  private val settingsRepository: SettingsRepository,
+  private val sessionResetRepository: SessionResetRepository,
   @Assisted private val navKey: Login,
 ) : ViewModel() {
 
@@ -94,12 +94,14 @@ constructor(
 
       LoginEvent.UseDifferentServerOrAccountConfirmed ->
         viewModelScope.launch {
-          val result = settingsRepository.logoutForAccountSwitch()
-          result.exceptionOrNull()?.let { error ->
-            _uiState.update { it.copy(loginState = GenericState.Failure(error.message)) }
-            return@launch
+          val errorMessage =
+            handleAccountSwitch(
+              resetSessionForAccountSwitch = sessionResetRepository::logoutForAccountSwitch,
+              emitEvent = _events::emit,
+            )
+          errorMessage?.let { error ->
+            _uiState.update { it.copy(loginState = GenericState.Failure(error)) }
           }
-          _events.emit(LoginUiEvent.LoggedOut)
         }
 
       is LoginEvent.ServerChanged -> _uiState.update { it.prepareLoginDiscovery(event.server) }
@@ -231,6 +233,19 @@ sealed interface LoginUiEvent {
   data object RequestLocalNetworkPermission : LoginUiEvent
 
   data object LoggedOut : LoginUiEvent
+}
+
+internal suspend fun handleAccountSwitch(
+  resetSessionForAccountSwitch: suspend () -> Result<Unit>,
+  emitEvent: suspend (LoginUiEvent) -> Unit,
+): String? {
+  val result = resetSessionForAccountSwitch()
+  result.exceptionOrNull()?.let { error ->
+    return error.message
+  }
+
+  emitEvent(LoginUiEvent.LoggedOut)
+  return null
 }
 
 internal suspend fun handleOpenIdLoginButtonPressed(

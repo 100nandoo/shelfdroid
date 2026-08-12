@@ -661,4 +661,39 @@ class LoginViewModelStateTest {
       (event as LoginUiEvent.LaunchOpenIdLogin).authorizationUrl,
     )
   }
+
+  @Test
+  fun handleAccountSwitch_whenResetSucceeds_emitsLoggedOutEvent() = runBlocking {
+    val events = mutableListOf<LoginUiEvent>()
+    var accountSwitchRequested = false
+
+    val errorMessage =
+      handleAccountSwitch(
+        resetSessionForAccountSwitch = {
+          accountSwitchRequested = true
+          Result.success(Unit)
+        },
+        emitEvent = { events += it },
+      )
+
+    assertTrue(accountSwitchRequested)
+    assertNull(errorMessage)
+    assertEquals(listOf(LoginUiEvent.LoggedOut), events)
+  }
+
+  @Test
+  fun handleAccountSwitch_whenResetFails_exposesFailureWithoutLoggingOut() = runBlocking {
+    val events = mutableListOf<LoginUiEvent>()
+
+    val errorMessage =
+      handleAccountSwitch(
+        resetSessionForAccountSwitch = {
+          Result.failure(IllegalStateException("Reset failed"))
+        },
+        emitEvent = { events += it },
+      )
+
+    assertTrue(events.isEmpty())
+    assertEquals("Reset failed", errorMessage)
+  }
 }

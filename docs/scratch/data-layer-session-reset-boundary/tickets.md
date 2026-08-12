@@ -62,11 +62,11 @@ Work the **frontier**: any ticket whose blockers are all done. For this work, st
 
 **Blocked by:** Create the session reset boundary; Extract local database and app storage cleanup; Add factory-reset local app preference cleanup.
 
-- [ ] The login-flow account-switch path calls the session reset boundary.
-- [ ] Account switch clears local state when the current session has a refresh token.
-- [ ] Account switch clears local state when the refresh token is already gone.
-- [ ] Account switch still returns the user to the login flow for another **User** or **Audiobookshelf server**.
-- [ ] Login behavior unrelated to account switching remains unchanged.
+- [x] The login-flow account-switch path calls the session reset boundary.
+- [x] Account switch clears local state when the current session has a refresh token.
+- [x] Account switch clears local state when the refresh token is already gone.
+- [x] Account switch still returns the user to the login flow for another **User** or **Audiobookshelf server**.
+- [x] Login behavior unrelated to account switching remains unchanged.
 
 ## Contract SettingsRepository back to settings-only
 
