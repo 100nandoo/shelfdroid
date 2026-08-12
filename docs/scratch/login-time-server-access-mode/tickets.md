@@ -1,6 +1,6 @@
 # Tickets: Login-time server access mode
 
-A tracer-bullet breakdown for the login-time local-network server access fix. Source spec: [../login-time-server-access-mode.md](../login-time-server-access-mode.md).
+A tracer-bullet breakdown for the login-time local-network server access fix. Source spec: [spec.md](spec.md).
 
 Work the **frontier**: any ticket whose blockers are all done. For this chain, work top to bottom.
 

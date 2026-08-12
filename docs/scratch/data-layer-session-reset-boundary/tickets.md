@@ -1,6 +1,6 @@
 # Tickets: Data-layer session reset boundary
 
-These tickets move **Full logout** and **Account switch** orchestration out of the settings repository and into a data-layer session reset boundary. Source spec: [Spec: Data-layer session reset boundary](../data-layer-session-reset-boundary.md).
+These tickets move **Full logout** and **Account switch** orchestration out of the settings repository and into a data-layer session reset boundary. Source spec: [Spec: Data-layer session reset boundary](spec.md).
 
 Work the **frontier**: any ticket whose blockers are all done. For this work, start with the session reset boundary, then local cleanup collaborators, then UI wiring, then contract and verification.
 
