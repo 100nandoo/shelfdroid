@@ -10,14 +10,14 @@ Work the **frontier**: any ticket whose blockers are all done. For this work, st
 
 **Blocked by:** None — can start immediately.
 
-- [ ] A data-layer session reset boundary exposes full logout behavior.
-- [ ] A data-layer session reset boundary exposes account-switch behavior.
-- [ ] Full logout returns failure and does not run local cleanup when remote logout fails.
-- [ ] Full logout returns failure and does not run local cleanup when the current session has no refresh token.
-- [ ] Full logout runs local cleanup only after successful remote logout.
-- [ ] Account switch attempts remote logout when a refresh token exists.
-- [ ] Account switch still runs local cleanup when no refresh token exists.
-- [ ] Existing settings and login callers can continue compiling until they are migrated.
+- [x] A data-layer session reset boundary exposes full logout behavior.
+- [x] A data-layer session reset boundary exposes account-switch behavior.
+- [x] Full logout returns failure and does not run local cleanup when remote logout fails.
+- [x] Full logout returns failure and does not run local cleanup when the current session has no refresh token.
+- [x] Full logout runs local cleanup only after successful remote logout.
+- [x] Account switch attempts remote logout when a refresh token exists.
+- [x] Account switch still runs local cleanup when no refresh token exists.
+- [x] Existing settings and login callers can continue compiling until they are migrated.
 
 ## Extract local database and app storage cleanup
 
