@@ -8,6 +8,7 @@ import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.SortOrder
+import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
 import dev.halim.shelfdroid.core.data.sessionreset.SessionResetRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
@@ -31,6 +32,7 @@ class SettingsViewModel
 constructor(
   private val settingsRepository: SettingsRepository,
   private val sessionResetRepository: SessionResetRepository,
+  private val authStateRepository: AuthStateRepository,
   @Named("version") val version: String,
 ) : ViewModel() {
 
@@ -64,7 +66,7 @@ constructor(
     when (event) {
       is SettingsEvent.LogoutButtonPressed -> viewModelScope.launch { logout() }
       SettingsEvent.ReLoginButtonPressed -> {
-        viewModelScope.launch { settingsRepository.startManualReLogin() }
+        viewModelScope.launch { authStateRepository.startManualReLogin() }
       }
       is SettingsEvent.SwitchDarkTheme -> {
         viewModelScope.launch { settingsRepository.updateDarkMode(event.isDarkMode) }

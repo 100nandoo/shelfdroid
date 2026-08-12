@@ -74,12 +74,12 @@ Work the **frontier**: any ticket whose blockers are all done. For this work, st
 
 **Blocked by:** Wire Settings full logout through the session reset boundary; Wire login Account switch through the session reset boundary.
 
-- [ ] The settings repository no longer exposes full logout behavior.
-- [ ] The settings repository no longer exposes account-switch behavior.
-- [ ] The settings repository no longer depends on remote logout, database cleanup, app storage cleanup, or download cleanup dependencies.
-- [ ] The settings repository continues to expose local app preference streams needed by current callers.
-- [ ] The settings repository continues to update theme, list presentation, filter, sort order, and related local app preferences.
-- [ ] No UI caller depends on settings repository for session reset behavior.
+- [x] The settings repository no longer exposes full logout behavior.
+- [x] The settings repository no longer exposes account-switch behavior.
+- [x] The settings repository no longer depends on remote logout, database cleanup, app storage cleanup, or download cleanup dependencies.
+- [x] The settings repository continues to expose local app preference streams needed by current callers.
+- [x] The settings repository continues to update theme, list presentation, filter, sort order, and related local app preferences.
+- [x] No UI caller depends on settings repository for session reset behavior.
 
 ## Verify full session reset behavior end to end
 

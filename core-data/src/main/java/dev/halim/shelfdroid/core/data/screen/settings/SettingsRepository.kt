@@ -1,72 +1,24 @@
 package dev.halim.shelfdroid.core.data.screen.settings
 
-import dev.halim.core.network.ApiService
-import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.sessionreset.LocalSessionCleanup
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
-import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 
 class SettingsRepository
 @Inject
 constructor(
-  private val api: ApiService,
   private val dataStoreManager: DataStoreManager,
   private val prefsRepository: PrefsRepository,
-  private val downloadRepo: DownloadRepo,
-  private val localSessionCleanup: LocalSessionCleanup,
 ) {
 
   val darkMode = dataStoreManager.darkMode
   val dynamicTheme = dataStoreManager.dynamicTheme
-  val authPromptReason = dataStoreManager.authPromptReason
-  val token = prefsRepository.userPrefs.map { it.accessToken }
   val prefs = prefsRepository.prefsFlow()
-
-  suspend fun fullLogout(): Result<Unit> {
-    val refreshToken = prefsRepository.userPrefs.first().refreshToken
-    if (refreshToken.isBlank()) {
-      return Result.failure(
-        IllegalStateException(
-          "Unable to log out because the current session is missing its refresh token."
-        )
-      )
-    }
-
-    val remoteLogoutResult = api.logout(refreshToken)
-    remoteLogoutResult.exceptionOrNull()?.let {
-      return Result.failure(it)
-    }
-
-    return clearLocalSessionAndAppData()
-  }
-
-  suspend fun logoutForAccountSwitch(): Result<Unit> {
-    val refreshToken = prefsRepository.userPrefs.first().refreshToken
-    if (refreshToken.isNotBlank()) {
-      api.logout(refreshToken)
-    }
-
-    return clearLocalSessionAndAppData()
-  }
-
-  private suspend fun clearLocalSessionAndAppData(): Result<Unit> {
-    return runCatching {
-      downloadRepo.clearTransientDownloads()
-      localSessionCleanup.clear().getOrThrow()
-    }
-  }
-
-  suspend fun startManualReLogin() {
-    dataStoreManager.beginForcedReLogin(AuthPromptReason.ManualReLogin)
-  }
 
   suspend fun updateDarkMode(enabled: Boolean) {
     dataStoreManager.updateDarkMode(enabled)

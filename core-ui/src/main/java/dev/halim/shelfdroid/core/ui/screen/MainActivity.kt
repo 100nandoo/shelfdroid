@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.MainNavigation
 import dev.halim.shelfdroid.core.ui.navigation.NavRequest
@@ -41,6 +42,7 @@ class MainActivity : ComponentActivity() {
   }
 
   @Inject lateinit var settingsRepository: SettingsRepository
+  @Inject lateinit var authStateRepository: AuthStateRepository
   @Inject lateinit var mediaControllerManager: Lazy<MediaControllerManager>
   @Inject lateinit var playerStore: PlayerStore
   @Inject lateinit var playerController: PlayerController
@@ -58,12 +60,12 @@ class MainActivity : ComponentActivity() {
       val isDarkMode by settingsRepository.darkMode.collectAsStateWithLifecycle(true)
       val isDynamic by settingsRepository.dynamicTheme.collectAsStateWithLifecycle(false)
       val token by
-        settingsRepository.token.collectAsStateWithLifecycle(
-          runBlocking { settingsRepository.token.first() }
+        authStateRepository.token.collectAsStateWithLifecycle(
+          runBlocking { authStateRepository.token.first() }
         )
       val authPromptReason by
-        settingsRepository.authPromptReason.collectAsStateWithLifecycle(
-          runBlocking { settingsRepository.authPromptReason.first() }
+        authStateRepository.authPromptReason.collectAsStateWithLifecycle(
+          runBlocking { authStateRepository.authPromptReason.first() }
         )
       ShelfDroidTheme(darkTheme = isDarkMode, dynamicColor = isDynamic) {
         Surface(
