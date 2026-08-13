@@ -1,3 +1,16 @@
+## 0.5.1 (2026-08-13)
+
+### What's new
+
+- Allow login through local network.
+- Switching accounts and logging out now cleanly reset local app data and playback state.
+
+### Fixes
+
+- Fixed the Home screen sometimes appearing blank after API calls.
+- Fixed crashes and loading issues caused by missing optional library item information.
+- Fixed login access settings being restored or reset incorrectly when changing servers.
+
 ## 0.5.0 (2026-08-05)
 
 ### Feat
@@ -193,7 +206,8 @@
 - **ListeningSession**: add multiple delete functionality
 - **ListeningSessionSheet**: add player info and play method helper
 - **ListeningSessionItem**: add detail bottom sheet on click
-- **SettingsListeningSessionScreen**: add setting screen for listening sessions and save users on sqldelight
+- **SettingsListeningSessionScreen**: add setting screen for listening sessions and save users on
+  sqldelight
 - **ListeningSession**: add user filter
 - **SegmentedButton**: add segment button component
 - **ListeningSession**: add items per page prefs
@@ -362,7 +376,8 @@
 - **HomeScreen**: make download state for books reactive
 - **HomeScreen**: collect downloads stateflow to update the ui state
 - **DownloadRepo**: implement cleanup when item is removed from the server
-- **Downloaded-Filter**: save filter to datastore and filter podcast screen episode according to the filter
+- **Downloaded-Filter**: save filter to datastore and filter podcast screen episode according to the
+  filter
 - **HomeScreen**: add download filter
 - **HomeScreen**: make podcast episode unfinished count reactive
 - **PlayerEventListener**: when podcast is finished auto mark it as finished on the progressEntity
@@ -392,7 +407,8 @@
 - **Download**: create seperate gradle module for download
 - **State**: use isbook from internal state
 - **PlayerRepository**: migrate to internal state
-- **Session-&-Timer**: improve how sync work and timer now use player manager instead of it's own listener
+- **Session-&-Timer**: improve how sync work and timer now use player manager instead of it's own
+  listener
 
 ## 0.2.4 (2025-08-09)
 
@@ -491,7 +507,8 @@
 - **deps**: update dependency androidx.navigation:navigation-compose to v2.9.2
 - **BigPlayer**: fix create bookmark wrong starttime
 - **Player**: clip media item so it only start and end based on chapter
-- **PlayerViewModel**: ui state not in the right state when activity finish but there is ongoing playback
+- **PlayerViewModel**: ui state not in the right state when activity finish but there is ongoing
+  playback
 - **deps**: update dependency androidx.navigation:navigation-compose to v2.9.1
 - **Player**: auto change chapter when book only have one file
 - **deps**: update dependency org.jetbrains.kotlinx:kotlinx-serialization-json to v1.9.0
@@ -547,7 +564,8 @@
 
 ### Fix
 
-- **PlayResponse**: fix crash calling play api, somehow can't be wrap with `Result` adapter on `ApiService`
+- **PlayResponse**: fix crash calling play api, somehow can't be wrap with `Result` adapter on
+  `ApiService`
 - **HomeScreen**: show progress only if progress at least at 1%
 - **BookScreen**: percentage progress
 - **deps**: update dependency androidx.compose:compose-bom to v2025.06.00
