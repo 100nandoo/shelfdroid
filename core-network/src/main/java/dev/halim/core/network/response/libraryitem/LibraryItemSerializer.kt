@@ -10,6 +10,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -62,9 +63,15 @@ object LibraryItemSerializer : KSerializer<LibraryItem> {
       isInvalid = jsonObject["isInvalid"]?.jsonPrimitive?.booleanOrNull ?: false,
       mediaType = mediaType,
       media = media,
-      rssFeed = jsonObject["rssFeed"]?.let { decoder.json.decodeFromJsonElement<RssFeed>(it) },
+      rssFeed =
+        jsonObject["rssFeed"]
+          ?.takeUnless { it is JsonNull }
+          ?.let { decoder.json.decodeFromJsonElement<RssFeed>(it) },
       libraryFiles =
-        jsonObject["libraryFiles"]?.let { decoder.json.decodeFromJsonElement(it) } ?: emptyList(),
+        jsonObject["libraryFiles"]
+          ?.takeUnless { it is JsonNull }
+          ?.let { decoder.json.decodeFromJsonElement(it) }
+          ?: emptyList(),
     )
   }
 

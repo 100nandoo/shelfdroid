@@ -1,5 +1,6 @@
 package dev.halim.core.network.response.libraryitem
 
+import dev.halim.core.network.response.LibraryItem
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -91,6 +92,29 @@ class MetadataSerializerTest {
 
     assertEquals("", podcast.autoDownloadSchedule)
     assertEquals(0L, podcast.lastEpisodeCheck)
+  }
+
+  @Test
+  fun decodeLibraryItem_whenOptionalFieldsAreExplicitNull_usesSafeDefaults() {
+    val item =
+      json.decodeFromString<LibraryItem>(
+        """
+        {
+          "id": "item-1",
+          "libraryId": "library-1",
+          "mediaType": "book",
+          "media": {
+            "libraryItemId": "item-1",
+            "metadata": { "title": "Book title" }
+          },
+          "rssFeed": null,
+          "libraryFiles": null
+        }
+        """
+      )
+
+    assertEquals(null, item.rssFeed)
+    assertTrue(item.libraryFiles.isEmpty())
   }
 
   @Test
