@@ -156,7 +156,14 @@ interface ApiService {
   @GET("api/libraries") suspend fun libraries(): Result<LibrariesResponse>
 
   @GET("/api/libraries/{libraryId}/items")
-  suspend fun libraryItems(@Path("libraryId") libraryId: String): Result<LibraryItemsResponse>
+  suspend fun libraryItems(
+    @Path("libraryId") libraryId: String,
+    @Query("limit") limit: Int? = null,
+    @Query("page") page: Int? = null,
+    @Query("minified") minified: Int? = null,
+    @Query("sort") sort: LibraryItemsSort? = null,
+    @Query("desc") desc: Int? = null,
+  ): Result<LibraryItemsResponse>
 
   @GET("/api/libraries/{libraryId}/series")
   suspend fun librarySeries(
