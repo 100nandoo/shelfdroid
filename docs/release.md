@@ -23,6 +23,35 @@ A successful `cz bump` run:
 
 The GitHub release workflow then uses that Fastlane changelog file as the GitHub Release body.
 
+## How `update_version.sh` works
+
+`update_version.sh` is configured as a Commitizen `pre_bump_hook` in `.cz.toml`:
+
+```toml
+pre_bump_hooks = [
+    "./update_version.sh $CZ_PRE_NEW_VERSION",
+]
+```
+
+With the current Commitizen behavior, the release flow is:
+
+1. Commitizen generates the new release section in `CHANGELOG.md`.
+2. Commitizen updates the configured version file.
+3. Commitizen runs `update_version.sh`.
+4. The script reads the newly generated release section and writes the Fastlane changelog.
+5. Commitizen commits the changes and creates the tag.
+
+The script performs these updates:
+
+- increments `VERSION_CODE` in `app/version.properties`
+- sets `VERSION_NAME` to the new version passed by Commitizen
+- creates `fastlane/metadata/android/en-US/changelogs/<VERSION_CODE>.txt`
+- extracts the matching `## <VERSION_NAME> (<DATE>)` section from `CHANGELOG.md`
+- converts the Markdown notes to plain text suitable for Fastlane
+- stages the generated Fastlane changelog so it is included in the bump commit
+
+The script uses `CZ_PRE_CHANGELOG_FILE_NAME` when Commitizen provides it, and otherwise falls back to `./CHANGELOG.md`. If no matching release section is found, it creates an empty Fastlane changelog file. Keep this script as a `pre_bump_hook`: a `post_bump_hook` runs after the commit and tag, which would leave the generated Fastlane changelog out of the bump commit.
+
 ## Release steps
 
 1. Switch to `dev` and make sure it is current.

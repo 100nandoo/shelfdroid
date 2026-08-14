@@ -1,0 +1,8 @@
+What's new:
+• Allow login through local network.
+• Switching accounts and logging out now cleanly reset local app data and playback state.
+
+Fixes:
+• Fixed the Home screen sometimes appearing blank after API calls.
+• Fixed crashes and loading issues caused by missing optional library item information.
+• Fixed login access settings being restored or reset incorrectly when changing servers.
