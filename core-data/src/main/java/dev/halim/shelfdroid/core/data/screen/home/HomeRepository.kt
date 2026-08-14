@@ -81,15 +81,24 @@ constructor(
     libraryRepo.refreshLibraries()
     libraryItemRepo.refreshLibraryItems()
 
-    backgroundRefresh()
+    val userPrefs = prefsRepository.userPrefs.firstOrNull()
+    backgroundRefresh(isAdmin = userPrefs?.isAdmin == true, userId = userPrefs?.id)
 
     return homeUiState.copy(state = GenericState.Success)
   }
 
-  private fun backgroundRefresh() {
-    ioScope.launch { listeningStatRepo.refreshListeningStats() }
-    ioScope.launch { userRepo.refreshUsers() }
-    ioScope.launch { tagRepo.refreshTags() }
+  private fun backgroundRefresh(isAdmin: Boolean, userId: String?) {
+    ioScope.launch {
+      if (isAdmin) {
+        listeningStatRepo.refreshListeningStats()
+      } else {
+        userId?.takeIf(String::isNotBlank)?.let { listeningStatRepo.refreshListeningStats(it) }
+      }
+    }
+    if (isAdmin) {
+      ioScope.launch { userRepo.refreshUsers() }
+      ioScope.launch { tagRepo.refreshTags() }
+    }
   }
 
   suspend fun getUser() {
