@@ -56,11 +56,14 @@ constructor(
           async {
             val ids = idsByLibraryId(libraryId)
             if (ids.isEmpty()) return@async
-            val result = api.batchLibraryItems(BatchLibraryItemsRequest(ids)).getOrNull()
+            val result =
+              fetchLibraryItemsInBatches(ids) { chunk ->
+                api.batchLibraryItems(BatchLibraryItemsRequest(chunk)).map { it.libraryItems }
+              }
 
-            if (result != null) {
-              val items = result.libraryItems
-              val entities = convert(libraryId, result)
+            if (result.isSuccess) {
+              val items = result.getOrThrow()
+              val entities = convert(libraryId, BatchLibraryItemsResponse(items))
               cleanupPodcasts(libraryId, items)
               val booksToDelete = cleanupBooks(libraryId, entities)
               queries.transaction {
@@ -322,6 +325,20 @@ constructor(
   private fun currentWebBaseUrl(): String =
     AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL)?.value
       ?: AudiobookshelfBaseUrl.DEFAULT_VALUE
+}
+
+internal suspend fun fetchLibraryItemsInBatches(
+  ids: List<String>,
+  fetch: suspend (List<String>) -> Result<List<LibraryItem>>,
+): Result<List<LibraryItem>> {
+  val chunks = ids.distinct().chunked(BatchLibraryItemsRequest.MAX_LIBRARY_ITEM_IDS)
+  if (chunks.isEmpty()) return Result.success(emptyList())
+
+  val results = coroutineScope { chunks.map { chunk -> async { fetch(chunk) } }.awaitAll() }
+  val failure = results.firstOrNull { it.isFailure }
+  if (failure != null) return Result.failure(requireNotNull(failure.exceptionOrNull()))
+
+  return Result.success(results.flatMap { it.getOrThrow() })
 }
 
 internal fun stalePodcastEpisodeIds(
