@@ -12,6 +12,9 @@ import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.catalog.CatalogSynchronizer
+import dev.halim.shelfdroid.core.data.screen.home.HomeRefreshCoordinator
+import dev.halim.shelfdroid.core.data.screen.home.HomeRefreshIntent
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
@@ -32,6 +35,8 @@ class HomeViewModel
 constructor(
   @Assisted private val navKey: Home,
   private val repository: HomeRepository,
+  private val catalogSynchronizer: CatalogSynchronizer,
+  private val refreshCoordinator: HomeRefreshCoordinator,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(HomeUiState())
@@ -42,14 +47,14 @@ constructor(
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
   init {
-    viewModelScope.launch { _uiState.update { repository.remoteSync(it, navKey.fromLogin) } }
+    refresh(if (navKey.fromLogin) HomeRefreshIntent.AfterLogin else HomeRefreshIntent.UserRequested)
   }
 
   fun onEvent(event: HomeEvent) {
     when (event) {
       is HomeEvent.RefreshLibrary -> {
         _uiState.update { it.copy(state = GenericState.Loading, currentPage = event.page) }
-        viewModelScope.launch { _uiState.update { repository.remoteSync(it) } }
+        refresh(HomeRefreshIntent.UserRequested)
       }
       is HomeEvent.ChangeLibrary -> {
         _uiState.update { it.copy(currentPage = event.page) }
@@ -109,6 +114,24 @@ constructor(
             repository.deleteItem(it, event.libraryId, event.itemId, event.isBook, event.hardDelete)
           }
         }
+      }
+    }
+  }
+
+  private fun refresh(intent: HomeRefreshIntent) {
+    viewModelScope.launch {
+      refreshCoordinator.prepareRefresh(intent)
+      val result = catalogSynchronizer.synchronize()
+      refreshCoordinator.refreshBackgroundData()
+      _uiState.update { state ->
+        state.copy(
+          state =
+            if (result.isSuccess) {
+              GenericState.Success
+            } else {
+              GenericState.Failure(result.error?.message)
+            }
+        )
       }
     }
   }

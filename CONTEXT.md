@@ -14,6 +14,10 @@ _Avoid_: Backend, API
 The ShelfDroid view of the media available on an **Audiobookshelf server**, spanning **Libraries**, **Library folders**, and **Library items** for browsing and management.
 _Avoid_: Response bucket, inventory, listing
 
+**Catalog synchronization**:
+The reconciliation of ShelfDroid's locally cached **Libraries** and **Library items** with the current **Catalog** on the Audiobookshelf server. It excludes user, listening, and administrative data.
+_Avoid_: Home refresh, full refresh, remote sync
+
 **Library**:
 A server-managed collection of media of a single primary kind, exposed in ShelfDroid as either a book library or a podcast library.
 _Avoid_: Shelf, folder
@@ -105,6 +109,10 @@ An active server-tracked playback session for a user on a specific client, where
 _Avoid_: Listening session, current player
 
 ### Administration
+
+**Admin data**:
+The server-managed **Users** and tags that ShelfDroid caches for administrative workflows. It excludes the media **Catalog** and listening data.
+_Avoid_: Admin catalog, Catalog, user stats
 
 **Backup**:
 A server backup artifact that can be created, downloaded, uploaded, restored, or deleted from ShelfDroid.

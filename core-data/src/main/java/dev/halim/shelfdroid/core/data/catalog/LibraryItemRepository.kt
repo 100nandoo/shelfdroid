@@ -23,6 +23,7 @@ import dev.halim.shelfdroid.download.BookCleanupRequest
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -48,34 +49,60 @@ constructor(
   private val queries = db.libraryItemEntityQueries
   private val libraryQueries = db.libraryEntityQueries
 
-  suspend fun refreshLibraryItems() {
+  suspend fun refreshLibraryItems(): LibraryItemRefreshResult {
     val libraryIds = libraryQueries.allIds().executeAsList()
-    coroutineScope {
-      libraryIds
-        .map { libraryId ->
-          async {
-            val ids = idsByLibraryId(libraryId)
-            if (ids.isEmpty()) return@async
-            val result =
-              fetchLibraryItemsInBatches(ids) { chunk ->
-                api.batchLibraryItems(BatchLibraryItemsRequest(chunk)).map { it.libraryItems }
-              }
+    val results = coroutineScope {
+      libraryIds.map { libraryId -> async { refreshLibrary(libraryId) } }.awaitAll()
+    }
 
-            if (result.isSuccess) {
-              val items = result.getOrThrow()
-              val entities = convert(libraryId, BatchLibraryItemsResponse(items))
-              cleanupPodcasts(libraryId, items)
-              val booksToDelete = cleanupBooks(libraryId, entities)
-              queries.transaction {
-                booksToDelete.forEach { entity ->
-                  deleteInTransaction(entity.id)
-                }
-                items.forEach { item -> insertInTransaction(item, libraryId) }
-              }
-            }
+    return LibraryItemRefreshResult(
+      refreshedLibraryIds =
+        results
+          .mapIndexedNotNull { index, result ->
+            result.getOrNull()?.let { libraryIds[index] }
           }
+          .toSet(),
+      failures =
+        results.mapIndexedNotNull { index, result ->
+          result.exceptionOrNull()?.let { LibraryItemRefreshFailure(libraryIds[index], it) }
+        },
+    )
+  }
+
+  private suspend fun refreshLibrary(libraryId: String): Result<Unit> {
+    return try {
+      val ids =
+        remoteIdsByLibraryId(libraryId).getOrElse {
+          return Result.failure(it)
         }
-        .awaitAll()
+      if (ids.isEmpty()) return Result.success(Unit)
+
+      val result =
+        fetchLibraryItemsInBatches(ids) { chunk ->
+          api.batchLibraryItems(BatchLibraryItemsRequest(chunk)).map { it.libraryItems }
+        }
+      if (result.isFailure) return Result.failure(requireNotNull(result.exceptionOrNull()))
+
+      val items = result.getOrThrow()
+      val entities = convert(libraryId, BatchLibraryItemsResponse(items))
+      cleanupPodcasts(libraryId, items)
+      val booksToDelete = cleanupBooks(libraryId, entities)
+      queries.transaction {
+        booksToDelete.forEach { entity ->
+          deleteInTransaction(entity.id)
+        }
+        items.forEach { item -> insertInTransaction(item, libraryId) }
+      }
+      Result.success(Unit)
+    } catch (error: Throwable) {
+      if (error is CancellationException) throw error
+      Result.failure(error)
+    }
+  }
+
+  private suspend fun remoteIdsByLibraryId(libraryId: String): Result<List<String>> {
+    return api.libraryItems(libraryId).map { response ->
+      response.results.map { it.id }
     }
   }
 

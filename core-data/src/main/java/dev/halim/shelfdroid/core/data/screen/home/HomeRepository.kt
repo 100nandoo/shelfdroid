@@ -1,29 +1,16 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.response.login.LoginResponse
-import dev.halim.core.network.response.login.UserType as NetworkUserType
 import dev.halim.shelfdroid.core.Prefs
-import dev.halim.shelfdroid.core.UserPrefs
-import dev.halim.shelfdroid.core.UserType
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.catalog.LibraryRepository
-import dev.halim.shelfdroid.core.data.listening.BookmarkRepository
-import dev.halim.shelfdroid.core.data.listening.ListeningStatsRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.data.tags.TagRepository
-import dev.halim.shelfdroid.core.data.users.UserRepository
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
-import javax.inject.Named
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.launch
 
 class HomeRepository
 @Inject
@@ -31,15 +18,10 @@ constructor(
   private val api: ApiService,
   private val libraryItemRepo: LibraryItemRepository,
   private val progressRepo: ProgressRepository,
-  private val bookmarkRepo: BookmarkRepository,
   private val libraryRepo: LibraryRepository,
-  private val userRepo: UserRepository,
-  private val tagRepo: TagRepository,
-  private val listeningStatRepo: ListeningStatsRepository,
   private val mapper: HomeMapper,
   private val prefsRepository: PrefsRepository,
   private val downloadRepo: DownloadRepo,
-  @Named("io") private val ioScope: CoroutineScope,
 ) {
 
   fun item(): Flow<Pair<Prefs, List<LibraryUiState>>> {
@@ -74,45 +56,6 @@ constructor(
     }
   }
 
-  suspend fun remoteSync(homeUiState: HomeUiState, fromLogin: Boolean = false): HomeUiState {
-    if (fromLogin.not()) {
-      getUser()
-    }
-    libraryRepo.refreshLibraries()
-    libraryItemRepo.refreshLibraryItems()
-
-    val userPrefs = prefsRepository.userPrefs.firstOrNull()
-    backgroundRefresh(isAdmin = userPrefs?.isAdmin == true, userId = userPrefs?.id)
-
-    return homeUiState.copy(state = GenericState.Success)
-  }
-
-  private fun backgroundRefresh(isAdmin: Boolean, userId: String?) {
-    ioScope.launch {
-      if (isAdmin) {
-        listeningStatRepo.refreshListeningStats()
-      } else {
-        userId?.takeIf(String::isNotBlank)?.let { listeningStatRepo.refreshListeningStats(it) }
-      }
-    }
-    if (isAdmin) {
-      ioScope.launch { userRepo.refreshUsers() }
-      ioScope.launch { tagRepo.refreshTags() }
-    }
-  }
-
-  suspend fun getUser() {
-    val response = api.authorize()
-    val result = response.getOrNull()
-    val user = result?.user
-
-    if (user != null) {
-      progressRepo.replaceUserProgress(user)
-      bookmarkRepo.replaceUserBookmarks(user)
-      updateDataStore(result)
-    }
-  }
-
   suspend fun deleteItem(
     state: HomeUiState,
     libraryId: String,
@@ -140,29 +83,5 @@ constructor(
 
     libraryItemRepo.cleanupItem(itemId)
     return state.copy(librariesUiState = updatedLibraries)
-  }
-
-  private suspend fun updateDataStore(loginResponse: LoginResponse) {
-    val user = loginResponse.user
-    val old = prefsRepository.userPrefs.firstOrNull()?.copy()
-    old?.let {
-      val userPrefs =
-        UserPrefs(
-          id = user.id,
-          username = user.username,
-          type = UserType.toUserType(user.type.name),
-          isAdmin = user.type == NetworkUserType.ADMIN || user.type == NetworkUserType.ROOT,
-          download = user.permissions.download,
-          upload = user.permissions.upload,
-          delete = user.permissions.delete,
-          update = user.permissions.update,
-          accessToken = old.accessToken,
-          refreshToken = old.refreshToken,
-        )
-      prefsRepository.updateUserPrefs(userPrefs)
-    }
-
-    val server = loginResponse.serverSettings
-    prefsRepository.updateServerPrefs(server)
   }
 }

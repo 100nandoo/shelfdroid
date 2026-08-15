@@ -10,6 +10,7 @@ import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.Json
@@ -22,12 +23,21 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
 
   fun listLibraries(): List<LibraryEntity> = queries.all().executeAsList()
 
-  suspend fun refreshLibraries() {
-    val response = api.libraries().getOrNull()
-    if (response != null) {
-      val entities = convert(response)
-      cleanup(entities)
-      entities.forEach { entity -> queries.insert(entity) }
+  suspend fun refreshLibraries(): Result<Unit> {
+    val response = api.libraries()
+    val failure = response.exceptionOrNull()
+    if (failure != null) return Result.failure(failure)
+
+    return try {
+      val entities = convert(response.getOrThrow())
+      queries.transaction {
+        cleanup(entities)
+        entities.forEach { entity -> queries.insert(entity) }
+      }
+      Result.success(Unit)
+    } catch (error: Throwable) {
+      if (error is CancellationException) throw error
+      Result.failure(error)
     }
   }
 
@@ -51,12 +61,10 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
   }
 
   private fun cleanup(entities: List<LibraryEntity>) {
-    queries.transaction {
-      val ids = queries.allIds().executeAsList()
-      val newIds = entities.map { it.id }
-      val toDelete = ids.filter { !newIds.contains(it) }
-      toDelete.forEach { queries.deleteById(it) }
-    }
+    val ids = queries.allIds().executeAsList()
+    val newIds = entities.map { it.id }
+    val toDelete = ids.filter { !newIds.contains(it) }
+    toDelete.forEach { queries.deleteById(it) }
   }
 
   private fun toEntity(library: Library): LibraryEntity =

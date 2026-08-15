@@ -50,6 +50,8 @@ class UserRepository @Inject constructor(db: MyDatabase, private val api: ApiSer
   suspend fun fetchUserWithProgress(userId: String): Result<UserWithMediaProgressDetail> =
     api.user(userId)
 
+  suspend fun authorize() = api.authorize()
+
   suspend fun refreshUsers(include: String? = null): Result<UsersResponse> = fetch(include)
 
   suspend fun update(id: String, request: UpdateUserRequest): Result<UpdateUserResponse> {
