@@ -70,8 +70,7 @@ object LibraryItemSerializer : KSerializer<LibraryItem> {
       libraryFiles =
         jsonObject["libraryFiles"]
           ?.takeUnless { it is JsonNull }
-          ?.let { decoder.json.decodeFromJsonElement(it) }
-          ?: emptyList(),
+          ?.let { decoder.json.decodeFromJsonElement(it) } ?: emptyList(),
     )
   }
 

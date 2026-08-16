@@ -5,7 +5,7 @@ import dev.halim.core.network.request.UpdateUserRequest
 import dev.halim.core.network.response.login.Permissions as NetworkPermissions
 import dev.halim.shelfdroid.core.Permissions
 import dev.halim.shelfdroid.core.data.GenericUiEvent
-import dev.halim.shelfdroid.core.data.catalog.LibraryRepository
+import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.tags.TagRepository
 import dev.halim.shelfdroid.core.data.users.UserRepository
 import dev.halim.shelfdroid.core.database.LibraryEntity

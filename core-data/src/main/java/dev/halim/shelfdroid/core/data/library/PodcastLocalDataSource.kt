@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.catalog
+package dev.halim.shelfdroid.core.data.library
 
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.database.MyDatabase

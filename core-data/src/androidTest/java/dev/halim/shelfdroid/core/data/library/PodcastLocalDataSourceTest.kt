@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.catalog
+package dev.halim.shelfdroid.core.data.library
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider

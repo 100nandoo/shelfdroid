@@ -18,8 +18,8 @@ import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.UserPrefs
-import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
-import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
+import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
 import dev.halim.shelfdroid.core.database.LibraryItemEntity

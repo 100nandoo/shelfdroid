@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.addpodcast
 
-import dev.halim.shelfdroid.core.data.catalog.LibraryFolder
+import dev.halim.shelfdroid.core.data.library.LibraryFolder
 import dev.halim.shelfdroid.core.navigation.CreatePodcastNavResult
 
 data class AddPodcastUiState(

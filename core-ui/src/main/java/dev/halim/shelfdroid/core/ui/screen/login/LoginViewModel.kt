@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.sessionreset.SessionResetRepository
 import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryResult
@@ -24,6 +23,7 @@ import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginRecoveryState
 import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginStartResult
 import dev.halim.shelfdroid.core.data.screen.login.PendingLocalNetworkAction
+import dev.halim.shelfdroid.core.data.sessionreset.SessionResetRepository
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.FlowPreview

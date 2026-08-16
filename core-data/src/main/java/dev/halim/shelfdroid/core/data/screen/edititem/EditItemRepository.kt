@@ -15,7 +15,7 @@ import dev.halim.core.network.response.SearchProviders
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
-import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.episodes.EditItemEpisodeUpdateRunner
 import dev.halim.shelfdroid.core.data.screen.edititem.schedule.EditItemScheduleSaveRunner
 import dev.halim.shelfdroid.core.data.screen.edititem.schedule.deriveSchedulePresentation

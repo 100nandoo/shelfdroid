@@ -29,12 +29,12 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
 
     scope.launch {
       runCatching {
-          if (::mediaController.isInitialized) {
-            mediaController.release()
-          }
-          mediaController = mediaControllerFuture.await()
-          Log.d("media3", "MediaController connected=${mediaController.isConnected}")
+        if (::mediaController.isInitialized) {
+          mediaController.release()
         }
+        mediaController = mediaControllerFuture.await()
+        Log.d("media3", "MediaController connected=${mediaController.isConnected}")
+      }
         .onFailure { Log.e("media3", "Failed to init MediaController", it) }
     }
   }

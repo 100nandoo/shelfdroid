@@ -18,14 +18,13 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 class LibraryItemsQueryTest {
 
-  private val json =
-    Json {
-      coerceInputValues = true
-      ignoreUnknownKeys = true
-      isLenient = true
-      prettyPrint = true
-      explicitNulls = false
-    }
+  private val json = Json {
+    coerceInputValues = true
+    ignoreUnknownKeys = true
+    isLenient = true
+    prettyPrint = true
+    explicitNulls = false
+  }
 
   @Test
   fun libraryItems_whenTypedQueryProvided_serializesAudiobookshelfParameters() = runTest {

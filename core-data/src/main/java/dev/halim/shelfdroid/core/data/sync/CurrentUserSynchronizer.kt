@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.screen.home
+package dev.halim.shelfdroid.core.data.sync
 
 import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.core.network.response.login.UserType as NetworkUserType

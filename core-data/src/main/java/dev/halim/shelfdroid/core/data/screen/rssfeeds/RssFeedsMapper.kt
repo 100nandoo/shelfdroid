@@ -83,10 +83,8 @@ internal object RssFeedsMapper {
   internal fun parsePubDateMillis(pubDate: String?): Long? {
     if (pubDate.isNullOrBlank()) return null
     return runCatching {
-        ZonedDateTime.parse(pubDate, DateTimeFormatter.RFC_1123_DATE_TIME)
-          .toInstant()
-          .toEpochMilli()
-      }
+      ZonedDateTime.parse(pubDate, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli()
+    }
       .getOrNull()
   }
 }

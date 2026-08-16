@@ -17,14 +17,15 @@ constructor(private val urlResolver: LibraryFileDownloadUrlResolver) {
       )
     }
 
-    val url =
-      runCatching { urlResolver.resolve(state.itemId, ino) }
-        .getOrElse {
-          return EditItemLibraryFileDownloadResult.Failure(
-            state = state.copy(activeFileActionIno = null),
-            message = it.message ?: "Failed to download file",
-          )
-        }
+    val url = runCatching {
+      urlResolver.resolve(state.itemId, ino)
+    }
+      .getOrElse {
+        return EditItemLibraryFileDownloadResult.Failure(
+          state = state.copy(activeFileActionIno = null),
+          message = it.message ?: "Failed to download file",
+        )
+      }
 
     return EditItemLibraryFileDownloadResult.Success(
       state = state.copy(activeFileActionIno = null),

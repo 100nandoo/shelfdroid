@@ -4,8 +4,8 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.PodcastFeed
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
-import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
+import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.podcastsourcefeed.PodcastSourceFeedRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import javax.inject.Inject

@@ -9,10 +9,10 @@ import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
-import dev.halim.shelfdroid.core.data.sessionreset.SessionResetRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
+import dev.halim.shelfdroid.core.data.sessionreset.SessionResetRepository
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import javax.inject.Inject
 import javax.inject.Named
@@ -44,11 +44,7 @@ constructor(
         settingsRepository.darkMode,
         settingsRepository.dynamicTheme,
         settingsRepository.prefs,
-      ) {
-        uiState: SettingsUiState,
-        isDarkMode: Boolean,
-        isDynamicTheme: Boolean,
-        prefs: Prefs ->
+      ) { uiState: SettingsUiState, isDarkMode: Boolean, isDynamicTheme: Boolean, prefs: Prefs ->
         uiState.copy(
           isDarkMode = isDarkMode,
           isDynamicTheme = isDynamicTheme,

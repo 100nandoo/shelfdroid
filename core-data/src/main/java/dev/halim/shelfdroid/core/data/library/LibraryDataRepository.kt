@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.catalog
+package dev.halim.shelfdroid.core.data.library
 
 import javax.inject.Inject
 import javax.inject.Named
@@ -11,29 +11,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-data class CatalogSyncResult(
-  val libraries: Result<Unit>,
-  val items: LibraryItemRefreshResult?,
-) {
-  val isSuccess: Boolean
-    get() = libraries.isSuccess && items?.isSuccess == true
-
-  val error: Throwable?
-    get() = libraries.exceptionOrNull() ?: items?.failures?.firstOrNull()?.error
-}
-
-data class LibraryItemRefreshResult(
-  val refreshedLibraryIds: Set<String>,
-  val failures: List<LibraryItemRefreshFailure>,
-) {
-  val isSuccess: Boolean
-    get() = failures.isEmpty()
-}
-
-data class LibraryItemRefreshFailure(val libraryId: String, val error: Throwable)
-
 @Singleton
-class CatalogSynchronizer
+class LibraryDataRepository
 internal constructor(
   private val refreshLibraries: suspend () -> Result<Unit>,
   private val refreshLibraryItems: suspend () -> LibraryItemRefreshResult,
@@ -52,9 +31,9 @@ internal constructor(
   )
 
   private val mutex = Mutex()
-  private var inFlight: Deferred<CatalogSyncResult>? = null
+  private var inFlight: Deferred<LibraryDataSyncResult>? = null
 
-  suspend fun synchronize(): CatalogSyncResult {
+  suspend fun synchronize(): LibraryDataSyncResult {
     val refresh = mutex.withLock {
       inFlight?.takeUnless { it.isCompleted }
         ?: scope.async(start = CoroutineStart.LAZY) { synchronizeOnce() }.also { inFlight = it }
@@ -71,20 +50,20 @@ internal constructor(
     }
   }
 
-  private suspend fun synchronizeOnce(): CatalogSyncResult {
+  private suspend fun synchronizeOnce(): LibraryDataSyncResult {
     return try {
       val libraries = refreshLibraries()
       if (libraries.isFailure) {
-        return CatalogSyncResult(libraries = libraries, items = null)
+        return LibraryDataSyncResult(libraries = libraries, items = null)
       }
 
-      CatalogSyncResult(
+      LibraryDataSyncResult(
         libraries = libraries,
         items = refreshLibraryItems(),
       )
     } catch (error: Throwable) {
       if (error is CancellationException) throw error
-      CatalogSyncResult(libraries = Result.failure(error), items = null)
+      LibraryDataSyncResult(libraries = Result.failure(error), items = null)
     }
   }
 }

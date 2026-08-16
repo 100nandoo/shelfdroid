@@ -28,12 +28,11 @@ internal constructor(
     clearAppStorage = appStorageCleanup::clear,
   )
 
-  suspend fun clear(): Result<Unit> =
-    runCatching {
-      clearCurrentPlayback()
-      clearTransientDownloads()
-      resetLocalAppPreferences()
-      clearSessionScopedDatabase()
-      clearAppStorage()
-    }
+  suspend fun clear(): Result<Unit> = runCatching {
+    clearCurrentPlayback()
+    clearTransientDownloads()
+    resetLocalAppPreferences()
+    clearSessionScopedDatabase()
+    clearAppStorage()
+  }
 }

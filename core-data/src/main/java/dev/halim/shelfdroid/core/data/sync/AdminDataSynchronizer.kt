@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.screen.home
+package dev.halim.shelfdroid.core.data.sync
 
 import dev.halim.shelfdroid.core.data.tags.TagRepository
 import dev.halim.shelfdroid.core.data.users.UserRepository
@@ -7,7 +7,7 @@ import javax.inject.Named
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-class AdminDataRefresher
+class AdminDataSynchronizer
 @Inject
 constructor(
   private val userRepository: UserRepository,

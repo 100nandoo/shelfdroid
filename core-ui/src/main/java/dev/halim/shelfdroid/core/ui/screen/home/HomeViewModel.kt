@@ -12,12 +12,12 @@ import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.catalog.CatalogSynchronizer
-import dev.halim.shelfdroid.core.data.screen.home.HomeRefreshCoordinator
-import dev.halim.shelfdroid.core.data.screen.home.HomeRefreshIntent
+import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
+import dev.halim.shelfdroid.core.data.sync.SyncCoordinator
+import dev.halim.shelfdroid.core.data.sync.SyncEvent
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.navigation.Home
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,8 +35,8 @@ class HomeViewModel
 constructor(
   @Assisted private val navKey: Home,
   private val repository: HomeRepository,
-  private val catalogSynchronizer: CatalogSynchronizer,
-  private val refreshCoordinator: HomeRefreshCoordinator,
+  private val libraryDataRepository: LibraryDataRepository,
+  private val syncCoordinator: SyncCoordinator,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(HomeUiState())
@@ -47,14 +47,14 @@ constructor(
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
   init {
-    refresh(if (navKey.fromLogin) HomeRefreshIntent.AfterLogin else HomeRefreshIntent.UserRequested)
+    refresh(if (navKey.fromLogin) SyncEvent.AfterLogin else SyncEvent.UserRequested)
   }
 
   fun onEvent(event: HomeEvent) {
     when (event) {
       is HomeEvent.RefreshLibrary -> {
         _uiState.update { it.copy(state = GenericState.Loading, currentPage = event.page) }
-        refresh(HomeRefreshIntent.UserRequested)
+        refresh(SyncEvent.UserRequested)
       }
       is HomeEvent.ChangeLibrary -> {
         _uiState.update { it.copy(currentPage = event.page) }
@@ -118,11 +118,11 @@ constructor(
     }
   }
 
-  private fun refresh(intent: HomeRefreshIntent) {
+  private fun refresh(event: SyncEvent) {
     viewModelScope.launch {
-      refreshCoordinator.prepareRefresh(intent)
-      val result = catalogSynchronizer.synchronize()
-      refreshCoordinator.refreshBackgroundData()
+      syncCoordinator.prepareSync(event)
+      val result = libraryDataRepository.synchronize()
+      syncCoordinator.syncBackgroundData()
       _uiState.update { state ->
         state.copy(
           state =

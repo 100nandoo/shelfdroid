@@ -97,9 +97,9 @@ constructor(
   fun toReadableDate(timestamp: String?, includeTime: Boolean = false): String? {
     if (timestamp.isNullOrBlank()) return null
     return runCatching {
-        val instant = parse(timestamp)
-        toReadableDate(instant.toEpochMilliseconds(), includeTime)
-      }
+      val instant = parse(timestamp)
+      toReadableDate(instant.toEpochMilliseconds(), includeTime)
+    }
       .getOrNull() ?: timestamp
   }
 

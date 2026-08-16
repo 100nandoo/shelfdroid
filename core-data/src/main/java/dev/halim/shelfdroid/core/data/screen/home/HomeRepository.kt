@@ -2,8 +2,8 @@ package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.Prefs
-import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
-import dev.halim.shelfdroid.core.data.catalog.LibraryRepository
+import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.extensions.toBoolean

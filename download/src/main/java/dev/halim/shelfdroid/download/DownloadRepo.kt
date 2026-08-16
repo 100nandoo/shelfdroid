@@ -449,14 +449,14 @@ constructor(
 
   private fun fetch(): List<Download> {
     return runCatching {
-        buildList {
-          downloadManager.downloadIndex.getDownloads().use { cursor ->
-            while (cursor.moveToNext()) {
-              add(cursor.download)
-            }
+      buildList {
+        downloadManager.downloadIndex.getDownloads().use { cursor ->
+          while (cursor.moveToNext()) {
+            add(cursor.download)
           }
         }
       }
+    }
       .getOrElse { emptyList() }
   }
 }

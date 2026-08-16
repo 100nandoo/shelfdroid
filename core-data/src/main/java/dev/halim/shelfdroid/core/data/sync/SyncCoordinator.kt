@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.screen.home
+package dev.halim.shelfdroid.core.data.sync
 
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.listening.ListeningStatsRepository
@@ -9,12 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-enum class HomeRefreshIntent {
-  AfterLogin,
-  UserRequested,
-}
-
-class HomeRefreshCoordinator
+class SyncCoordinator
 internal constructor(
   private val refreshCurrentUser: suspend () -> Unit,
   private val readUserPrefs: suspend () -> UserPrefs?,
@@ -26,7 +21,7 @@ internal constructor(
   constructor(
     currentUserSynchronizer: CurrentUserSynchronizer,
     listeningStatsRepository: ListeningStatsRepository,
-    adminDataRefresher: AdminDataRefresher,
+    adminDataSynchronizer: AdminDataSynchronizer,
     prefsRepository: PrefsRepository,
     @Named("io") ioScope: CoroutineScope,
   ) : this(
@@ -43,16 +38,16 @@ internal constructor(
         }
       }
     },
-    refreshAdminData = adminDataRefresher::refreshIfAdmin,
+    refreshAdminData = adminDataSynchronizer::refreshIfAdmin,
   )
 
-  suspend fun prepareRefresh(intent: HomeRefreshIntent) {
-    if (intent == HomeRefreshIntent.UserRequested) {
+  suspend fun prepareSync(event: SyncEvent) {
+    if (event == SyncEvent.UserRequested) {
       refreshCurrentUser()
     }
   }
 
-  suspend fun refreshBackgroundData() {
+  suspend fun syncBackgroundData() {
     val userPrefs = readUserPrefs()
     val isAdmin = userPrefs?.isAdmin == true
     refreshListeningStats(isAdmin, userPrefs?.id)

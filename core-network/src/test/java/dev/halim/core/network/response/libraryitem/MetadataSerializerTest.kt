@@ -8,12 +8,11 @@ import org.junit.Test
 
 class MetadataSerializerTest {
 
-  private val json =
-    Json {
-      coerceInputValues = true
-      explicitNulls = false
-      ignoreUnknownKeys = true
-    }
+  private val json = Json {
+    coerceInputValues = true
+    explicitNulls = false
+    ignoreUnknownKeys = true
+  }
 
   @Test
   fun decodePodcastMetadata_whenFeedUrlPresent_usesPodcastDeserializer() {

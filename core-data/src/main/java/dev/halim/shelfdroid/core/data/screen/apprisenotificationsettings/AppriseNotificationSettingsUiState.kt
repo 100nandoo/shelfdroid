@@ -197,12 +197,13 @@ private fun positiveIntegerError(value: String): AppriseGlobalSettingsFieldError
     else -> null
   }
 
-private fun String.toAbsoluteUriOrNull(): URI? =
-  runCatching { URI(this) }
-    .getOrNull()
-    ?.takeIf { uri ->
-      uri.isAbsolute && uri.scheme != null && !uri.host.isNullOrBlank()
-    }
+private fun String.toAbsoluteUriOrNull(): URI? = runCatching {
+  URI(this)
+}
+  .getOrNull()
+  ?.takeIf { uri ->
+    uri.isAbsolute && uri.scheme != null && !uri.host.isNullOrBlank()
+  }
 
 internal fun notificationRuleTestFailureReason(
   error: Throwable

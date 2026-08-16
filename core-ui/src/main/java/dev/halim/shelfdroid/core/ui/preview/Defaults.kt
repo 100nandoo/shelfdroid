@@ -9,7 +9,7 @@ import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.catalog.LibraryFolder
+import dev.halim.shelfdroid.core.data.library.LibraryFolder
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisode
 import dev.halim.shelfdroid.core.data.screen.addepisode.AddEpisodeDownloadState
 import dev.halim.shelfdroid.core.data.screen.apikeys.ApiKeyUi

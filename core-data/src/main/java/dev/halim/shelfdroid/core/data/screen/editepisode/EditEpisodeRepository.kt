@@ -3,7 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.editepisode
 import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
-import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 

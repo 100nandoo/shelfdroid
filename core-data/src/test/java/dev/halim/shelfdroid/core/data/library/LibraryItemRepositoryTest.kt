@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.catalog
+package dev.halim.shelfdroid.core.data.library
 
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.libraryitem.AudioFile
@@ -9,8 +9,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -78,14 +78,13 @@ class LibraryItemRepositoryTest {
   fun fetchLibraryItemsInBatches_runsChunksConcurrently() = runTest {
     val started = Channel<Unit>(Channel.UNLIMITED)
     val release = CompletableDeferred<Unit>()
-    val result =
-      async {
-        fetchLibraryItemsInBatches((1..201).map { "item-$it" }) {
-          started.send(Unit)
-          release.await()
-          Result.success(emptyList())
-        }
+    val result = async {
+      fetchLibraryItemsInBatches((1..201).map { "item-$it" }) {
+        started.send(Unit)
+        release.await()
+        Result.success(emptyList())
       }
+    }
 
     started.receive()
     started.receive()
@@ -101,8 +100,7 @@ class LibraryItemRepositoryTest {
 
     val result =
       fetchLibraryItemsInBatches((1..101).map { "item-$it" }) { chunk ->
-        if (chunk.first() == "item-101") Result.failure(failure)
-        else Result.success(emptyList())
+        if (chunk.first() == "item-101") Result.failure(failure) else Result.success(emptyList())
       }
 
     assertTrue(result.isFailure)

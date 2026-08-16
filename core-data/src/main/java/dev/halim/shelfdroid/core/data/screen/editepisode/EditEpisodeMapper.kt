@@ -136,13 +136,10 @@ internal object EditEpisodeMapper {
       subtitle = subtitle.trim(),
     )
 
-  private fun parsePubDateMillis(pubDate: String): Long? =
-    runCatching {
-        ZonedDateTime.parse(pubDate, DateTimeFormatter.RFC_1123_DATE_TIME)
-          .toInstant()
-          .toEpochMilli()
-      }
-      .getOrNull()
+  private fun parsePubDateMillis(pubDate: String): Long? = runCatching {
+    ZonedDateTime.parse(pubDate, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli()
+  }
+    .getOrNull()
 
   private fun delta(original: String, current: String): String? = current.takeIf { it != original }
 

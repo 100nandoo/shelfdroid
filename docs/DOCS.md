@@ -126,7 +126,7 @@ HomeRepository.kt
 - Repository methods should use explicit verbs such as `refresh`, `sync`, `fetch`, `list`,
   `observe`, `update`, and `delete` instead of vague names like `local()` or `remote()`.
 
-#### `Catalog` is the main data-layer umbrella for media browsing.
+#### Library data repositories own media library data.
 
 In ShelfDroid, the **Catalog** is the app view of the media available on the current
 Audiobookshelf server. It includes:
@@ -138,8 +138,9 @@ Audiobookshelf server. It includes:
 - **Podcasts**
 - **Episodes**
 
-Catalog-related repositories live under `core.data.catalog`. The main public seams are:
+Library-related repositories live under `core.data.library`. The main public seams are:
 
+- `LibraryDataRepository`
 - `LibraryRepository`
 - `LibraryItemRepository`
 - `PodcastEpisodeRepository`
@@ -153,12 +154,12 @@ For example:
 
 - Podcast- and player-related flows may use both `LibraryItemRepository` and
   `PodcastEpisodeRepository`
-- Listening flows may combine Catalog repositories with `ProgressRepository` or
+- Listening flows may combine Library repositories with `ProgressRepository` or
   `BookmarkRepository`
 
 #### Other public repository areas follow domain concepts, not technical buckets.
 
-- `core.data.catalog` for Catalog data
+- `core.data.library` for Library and LibraryItem data
 - `core.data.listening` for `ProgressRepository`, `BookmarkRepository`, and
   `ListeningStatsRepository`
 - `core.data.users` for `UserRepository`

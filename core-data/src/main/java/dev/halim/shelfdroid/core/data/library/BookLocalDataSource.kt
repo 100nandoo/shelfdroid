@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.catalog
+package dev.halim.shelfdroid.core.data.library
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull

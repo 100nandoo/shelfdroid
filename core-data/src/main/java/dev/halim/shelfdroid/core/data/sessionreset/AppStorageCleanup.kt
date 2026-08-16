@@ -5,8 +5,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
 
-class AppStorageCleanup
-internal constructor(private val cacheDirectories: () -> List<File>) {
+class AppStorageCleanup internal constructor(private val cacheDirectories: () -> List<File>) {
   @Inject
   constructor(
     @ApplicationContext context: Context

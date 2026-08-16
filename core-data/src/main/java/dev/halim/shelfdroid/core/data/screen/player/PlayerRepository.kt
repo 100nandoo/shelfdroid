@@ -9,8 +9,8 @@ import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.RawPlaybackProgress
-import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
-import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
+import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.listening.BookmarkRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
@@ -47,18 +47,17 @@ constructor(
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
-    val result =
-      runCatching {
-          val sessionId =
-            playbackSessionResolver.resolve(playerUiState.downloadState) {
-              val request = mapper.toPlayRequest()
-              val response = apiService.playBook(id, request)
-              response.id
-            }
-          state.changeMedia(playerUiState, sessionId)
-          playerUiState
+    val result = runCatching {
+      val sessionId =
+        playbackSessionResolver.resolve(playerUiState.downloadState) {
+          val request = mapper.toPlayRequest()
+          val response = apiService.playBook(id, request)
+          response.id
         }
-        .getOrNull()
+      state.changeMedia(playerUiState, sessionId)
+      playerUiState
+    }
+      .getOrNull()
 
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Book")))
   }
@@ -74,18 +73,17 @@ constructor(
     if (playerUiState.state is PlayerState.Hidden) {
       return playerUiState
     }
-    val result =
-      runCatching {
-          val sessionId =
-            playbackSessionResolver.resolve(playerUiState.downloadState) {
-              val request = mapper.toPlayRequest()
-              val response = apiService.playPodcast(itemId, episodeId, request)
-              response.id
-            }
-          state.changeMedia(playerUiState, sessionId)
-          playerUiState
+    val result = runCatching {
+      val sessionId =
+        playbackSessionResolver.resolve(playerUiState.downloadState) {
+          val request = mapper.toPlayRequest()
+          val response = apiService.playPodcast(itemId, episodeId, request)
+          response.id
         }
-        .getOrNull()
+      state.changeMedia(playerUiState, sessionId)
+      playerUiState
+    }
+      .getOrNull()
     return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
   }
 

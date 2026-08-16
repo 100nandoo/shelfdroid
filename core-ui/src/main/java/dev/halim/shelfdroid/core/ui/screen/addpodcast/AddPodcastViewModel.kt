@@ -6,7 +6,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.catalog.LibraryFolder
+import dev.halim.shelfdroid.core.data.library.LibraryFolder
 import dev.halim.shelfdroid.core.data.screen.addpodcast.AddPodcastRepository
 import dev.halim.shelfdroid.core.data.screen.addpodcast.AddPodcastUiState
 import dev.halim.shelfdroid.core.navigation.PodcastSourceFeedNavPayload

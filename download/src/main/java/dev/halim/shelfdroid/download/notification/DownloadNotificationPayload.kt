@@ -119,19 +119,19 @@ data class DownloadNotificationPayload(
     fun fromBytes(bytes: ByteArray, fallbackDownloadId: String): DownloadNotificationPayload {
       val raw = bytes.decodeToString()
       return runCatching {
-          val json = JSONObject(raw)
-          DownloadNotificationPayload(
-            title = json.optString(KEY_TITLE, raw),
-            openDetailId = json.optString(KEY_OPEN_DETAIL_ID, fallbackDownloadId),
-            secondaryLabel = json.optString(KEY_SECONDARY_LABEL).ifBlank { null },
-            kind = json.optString(KEY_KIND, KIND_SINGLE),
-            batchId = json.optString(KEY_BATCH_ID).ifBlank { null },
-            batchTitle = json.optString(KEY_BATCH_TITLE).ifBlank { null },
-            trackCount = json.optInt(KEY_TRACK_COUNT).takeIf { it > 0 },
-            filename = json.optString(KEY_FILENAME).ifBlank { null },
-            relativePath = json.optString(KEY_RELATIVE_PATH).ifBlank { null },
-          )
-        }
+        val json = JSONObject(raw)
+        DownloadNotificationPayload(
+          title = json.optString(KEY_TITLE, raw),
+          openDetailId = json.optString(KEY_OPEN_DETAIL_ID, fallbackDownloadId),
+          secondaryLabel = json.optString(KEY_SECONDARY_LABEL).ifBlank { null },
+          kind = json.optString(KEY_KIND, KIND_SINGLE),
+          batchId = json.optString(KEY_BATCH_ID).ifBlank { null },
+          batchTitle = json.optString(KEY_BATCH_TITLE).ifBlank { null },
+          trackCount = json.optInt(KEY_TRACK_COUNT).takeIf { it > 0 },
+          filename = json.optString(KEY_FILENAME).ifBlank { null },
+          relativePath = json.optString(KEY_RELATIVE_PATH).ifBlank { null },
+        )
+      }
         .getOrElse { single(title = raw, openDetailId = fallbackDownloadId) }
     }
   }

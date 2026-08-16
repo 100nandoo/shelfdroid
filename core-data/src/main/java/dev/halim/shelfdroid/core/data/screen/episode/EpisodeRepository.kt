@@ -3,8 +3,8 @@ package dev.halim.shelfdroid.core.data.screen.episode
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.catalog.LibraryItemRepository
-import dev.halim.shelfdroid.core.data.catalog.PodcastEpisodeRepository
+import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.extensions.toBoolean

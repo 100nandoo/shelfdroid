@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.catalog
+package dev.halim.shelfdroid.core.data.library
 
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
@@ -16,14 +16,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class CatalogSynchronizerTest {
+class LibraryDataRepositoryTest {
 
   @Test
   fun synchronize_whenLibrariesFail_doesNotRefreshItems() = runTest {
     val failure = IllegalStateException("libraries unavailable")
     var itemRefreshes = 0
     val synchronizer =
-      CatalogSynchronizer(
+      LibraryDataRepository(
         refreshLibraries = { Result.failure(failure) },
         refreshLibraryItems = {
           itemRefreshes++
@@ -49,7 +49,7 @@ class CatalogSynchronizerTest {
         failures = listOf(LibraryItemRefreshFailure("podcasts", failure)),
       )
     val synchronizer =
-      CatalogSynchronizer(
+      LibraryDataRepository(
         refreshLibraries = { Result.success(Unit) },
         refreshLibraryItems = { items },
         scope = CoroutineScope(StandardTestDispatcher(testScheduler)),
@@ -66,7 +66,7 @@ class CatalogSynchronizerTest {
   fun synchronize_whenRefreshThrows_returnsFailureResult() = runTest {
     val failure = IllegalStateException("unexpected failure")
     val synchronizer =
-      CatalogSynchronizer(
+      LibraryDataRepository(
         refreshLibraries = { throw failure },
         refreshLibraryItems = { error("items should not refresh") },
         scope = CoroutineScope(StandardTestDispatcher(testScheduler)),
@@ -84,7 +84,7 @@ class CatalogSynchronizerTest {
     val libraryRefreshes = AtomicInteger(0)
     val dispatcher = StandardTestDispatcher(testScheduler)
     val synchronizer =
-      CatalogSynchronizer(
+      LibraryDataRepository(
         refreshLibraries = {
           libraryRefreshes.incrementAndGet()
           release.await()

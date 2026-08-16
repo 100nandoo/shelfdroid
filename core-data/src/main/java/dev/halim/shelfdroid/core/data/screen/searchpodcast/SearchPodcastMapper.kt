@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.searchpodcast
 
 import dev.halim.core.network.response.SearchPodcast
-import dev.halim.shelfdroid.core.data.catalog.ExistingPodcastSummary
+import dev.halim.shelfdroid.core.data.library.ExistingPodcastSummary
 import dev.halim.shelfdroid.core.navigation.PodcastSourceFeedNavPayload
 import javax.inject.Inject
 

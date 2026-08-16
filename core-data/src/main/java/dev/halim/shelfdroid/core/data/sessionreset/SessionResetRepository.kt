@@ -5,7 +5,6 @@ import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 
-
 class SessionResetRepository
 internal constructor(
   private val refreshToken: suspend () -> String,
@@ -28,13 +27,15 @@ internal constructor(
     if (currentRefreshToken.isBlank()) {
       return Result.failure(
         IllegalStateException(
-          "Unable to log out because the current session is missing its refresh token.",
-        ),
+          "Unable to log out because the current session is missing its refresh token."
+        )
       )
     }
 
     val remoteLogoutResult = remoteLogout(currentRefreshToken)
-    remoteLogoutResult.exceptionOrNull()?.let { return Result.failure(it) }
+    remoteLogoutResult.exceptionOrNull()?.let {
+      return Result.failure(it)
+    }
 
     return localCleanup()
   }

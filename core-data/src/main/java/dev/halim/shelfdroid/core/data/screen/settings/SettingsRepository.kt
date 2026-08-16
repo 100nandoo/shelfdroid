@@ -56,5 +56,4 @@ constructor(
   suspend fun updatePodcastSortOrder(podcastSortOrder: SortOrder) {
     dataStoreManager.updatePodcastSortOrder(podcastSortOrder)
   }
-
 }

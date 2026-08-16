@@ -14,8 +14,8 @@ _Avoid_: Backend, API
 The ShelfDroid view of the media available on an **Audiobookshelf server**, spanning **Libraries**, **Library folders**, and **Library items** for browsing and management.
 _Avoid_: Response bucket, inventory, listing
 
-**Catalog synchronization**:
-The reconciliation of ShelfDroid's locally cached **Libraries** and **Library items** with the current **Catalog** on the Audiobookshelf server. It excludes user, listening, and administrative data.
+**Library data synchronization**:
+The reconciliation of ShelfDroid's locally cached **Libraries** and **Library items** with the corresponding data on the Audiobookshelf server. It excludes user, listening, and administrative data.
 _Avoid_: Home refresh, full refresh, remote sync
 
 **Library**:
