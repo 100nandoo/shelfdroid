@@ -51,6 +51,7 @@ import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySwitch
+import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.TextTitleLarge
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -62,6 +63,7 @@ fun AuthenticationSettingsScreen(
   onBackClicked: () -> Unit = {},
 ) {
   val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+  val clientSecretReplacement = viewModel.clientSecretReplacement.collectAsStateWithLifecycle().value
 
   BackHandler { viewModel.onEvent(AuthenticationSettingsEvent.RequestBack) }
 
@@ -82,6 +84,8 @@ fun AuthenticationSettingsScreen(
       when (uiState.pendingConfirmation) {
         AuthenticationSettingsConfirmation.DisablePasswordSignIn ->
           viewModel.onEvent(AuthenticationSettingsEvent.ConfirmDisablePasswordSignIn)
+        AuthenticationSettingsConfirmation.ClearClientSecret ->
+          viewModel.onEvent(AuthenticationSettingsEvent.ConfirmClearClientSecret)
         AuthenticationSettingsConfirmation.LeaveWithUnsavedChanges ->
           viewModel.onEvent(AuthenticationSettingsEvent.ConfirmLeave)
         null -> Unit
@@ -93,6 +97,7 @@ fun AuthenticationSettingsScreen(
   AuthenticationSettingsContent(
     state = uiState.state,
     uiState = uiState,
+    clientSecretReplacement = clientSecretReplacement,
     onRetry = { viewModel.onEvent(AuthenticationSettingsEvent.Retry) },
     onBackClicked = onBackClicked,
     onEvent = viewModel::onEvent,
@@ -103,6 +108,7 @@ fun AuthenticationSettingsScreen(
 fun AuthenticationSettingsContent(
   state: AuthenticationSettingsState = AuthenticationSettingsState.Loading,
   uiState: AuthenticationSettingsUiState? = null,
+  clientSecretReplacement: String = "",
   onRetry: () -> Unit = {},
   onBackClicked: () -> Unit = {},
   onEvent: (AuthenticationSettingsEvent) -> Unit = {},
@@ -125,7 +131,12 @@ fun AuthenticationSettingsContent(
       )
     is AuthenticationSettingsState.Ready ->
       if (uiState == null) ReadySummaryContent(settings = state.settings)
-      else ReadyEditorContent(uiState = uiState, onEvent = onEvent)
+      else
+        ReadyEditorContent(
+          uiState = uiState,
+          clientSecretReplacement = clientSecretReplacement,
+          onEvent = onEvent,
+        )
   }
 }
 
@@ -163,6 +174,7 @@ private fun MessageContent(
 @Composable
 private fun ReadyEditorContent(
   uiState: AuthenticationSettingsUiState,
+  clientSecretReplacement: String,
   onEvent: (AuthenticationSettingsEvent) -> Unit,
 ) {
   val draft = uiState.draftSettings ?: return
@@ -249,6 +261,7 @@ private fun ReadyEditorContent(
     Spacer(modifier = Modifier.height(24.dp))
     OpenIdProviderEditor(
       settings = draft.openId,
+      clientSecretReplacement = clientSecretReplacement,
       signingAlgorithmOptions = uiState.signingAlgorithmOptions,
       enabled = enabled,
       discoveryState = uiState.apiState,
@@ -314,6 +327,7 @@ private fun ReadyEditorContent(
 @Composable
 private fun OpenIdProviderEditor(
   settings: dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary,
+  clientSecretReplacement: String,
   signingAlgorithmOptions: List<String>,
   enabled: Boolean,
   discoveryState: AuthenticationSettingsApiState,
@@ -384,6 +398,26 @@ private fun OpenIdProviderEditor(
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
   )
+  SummaryRow(
+    label = stringResource(R.string.authentication_client_secret),
+    value =
+      if (settings.clientSecretConfigured) stringResource(R.string.configured)
+      else stringResource(R.string.not_configured),
+  )
+  PasswordTextField(
+    modifier = Modifier.padding(top = 12.dp),
+    value = clientSecretReplacement,
+    onValueChange = { onEvent(AuthenticationSettingsEvent.UpdateClientSecret(it)) },
+    label = stringResource(R.string.authentication_client_secret_replacement),
+    enabled = enabled,
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+  )
+  TextButton(
+    enabled = enabled && (settings.clientSecretConfigured || clientSecretReplacement.isNotEmpty()),
+    onClick = { onEvent(AuthenticationSettingsEvent.RequestClearClientSecret) },
+  ) {
+    Text(stringResource(R.string.authentication_clear_client_secret))
+  }
   if (signingAlgorithmOptions.isNotEmpty()) {
     ChipDropdownMenu(
       modifier = Modifier.padding(top = 12.dp),
@@ -558,6 +592,8 @@ private fun confirmationText(confirmation: AuthenticationSettingsConfirmation?):
   when (confirmation) {
     AuthenticationSettingsConfirmation.DisablePasswordSignIn ->
       stringResource(R.string.authentication_disable_password_confirm)
+    AuthenticationSettingsConfirmation.ClearClientSecret ->
+      stringResource(R.string.authentication_clear_client_secret_confirm)
     AuthenticationSettingsConfirmation.LeaveWithUnsavedChanges ->
       stringResource(R.string.authentication_unsaved_changes_confirm)
     null -> ""

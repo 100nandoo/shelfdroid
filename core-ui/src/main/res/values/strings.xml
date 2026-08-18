@@ -156,6 +156,9 @@
     <string name="authentication_logout_url">Logout URL</string>
     <string name="authentication_client_id">Client ID</string>
     <string name="authentication_client_secret">Client secret</string>
+    <string name="authentication_client_secret_replacement">Replacement client secret</string>
+    <string name="authentication_clear_client_secret">Clear client secret</string>
+    <string name="authentication_clear_client_secret_confirm">Clear the configured client secret? OpenID login may stop working until a replacement is saved.</string>
     <string name="authentication_signing_algorithm">Signing algorithm</string>
     <string name="authentication_callbacks">Callbacks</string>
     <string name="authentication_callback_subfolder">Callback subfolder</string>

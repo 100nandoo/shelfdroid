@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -130,5 +131,39 @@ class AuthenticationSettingsContentTest {
       .onNodeWithText("Restart the Audiobookshelf server for all OpenID changes to take effect.")
       .assertExists()
     composeRule.onNodeWithText("Save").assertIsNotEnabled()
+  }
+
+  @Test
+  fun editorState_masksReplacementAndDoesNotExposeSecretText() {
+    val settings =
+      AuthenticationSettingsSummary(
+        activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+        openId =
+          OpenIdSettingsSummary(
+            issuerUrl = "https://issuer.example.com",
+            clientId = "shelfdroid",
+            clientSecretConfigured = true,
+          ),
+      )
+    val uiState =
+      AuthenticationSettingsUiState(
+        state = AuthenticationSettingsState.Ready(settings),
+        savedSettings = settings,
+        draftSettings = settings,
+      )
+
+    composeRule.setContent {
+      AuthenticationSettingsContent(
+        state = uiState.state,
+        uiState = uiState,
+        clientSecretReplacement = "secret-value",
+      )
+    }
+
+    composeRule.onNodeWithText("Configured").assertIsDisplayed()
+    composeRule.onNodeWithText("Clear client secret").assertIsDisplayed()
+    composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
+    composeRule.onNodeWithContentDescription("Show password").assertIsDisplayed().performClick()
+    composeRule.onNodeWithText("secret-value").assertIsDisplayed()
   }
 }

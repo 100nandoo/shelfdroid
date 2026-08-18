@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsConfirmation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsRepository
+import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSecretUpdate
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
@@ -33,6 +34,10 @@ internal constructor(
   private val saveOperation: suspend (AuthenticationSettingsUiState) -> AuthenticationSettingsUiState,
   private val discoverOperation: suspend (AuthenticationSettingsUiState) -> AuthenticationSettingsUiState =
     { it },
+  private val saveWithSecretOperation:
+    suspend (AuthenticationSettingsUiState, AuthenticationSettingsSecretUpdate) ->
+      AuthenticationSettingsUiState =
+    { state, _ -> saveOperation(state) },
 ) : ViewModel() {
 
   @Inject
@@ -40,9 +45,14 @@ internal constructor(
     loadOperation = { repository.load() },
     saveOperation = { repository.save(it) },
     discoverOperation = { repository.discover(it) },
+    saveWithSecretOperation = { state, secretUpdate -> repository.save(state, secretUpdate) },
   )
 
   private val _uiState = MutableStateFlow(AuthenticationSettingsUiState())
+  private val _clientSecretReplacement = MutableStateFlow("")
+  val clientSecretReplacement: StateFlow<String> = _clientSecretReplacement
+  private var clientSecretUpdate: AuthenticationSettingsSecretUpdate =
+    AuthenticationSettingsSecretUpdate.Untouched
   val uiState: StateFlow<AuthenticationSettingsUiState> =
     _uiState
       .onStart { load() }
@@ -76,6 +86,9 @@ internal constructor(
       is AuthenticationSettingsEvent.SetPasswordSignInEnabled ->
         setPasswordSignInEnabled(event.enabled)
       AuthenticationSettingsEvent.ConfirmDisablePasswordSignIn -> confirmDisablePasswordSignIn()
+      is AuthenticationSettingsEvent.UpdateClientSecret -> updateClientSecret(event.value)
+      AuthenticationSettingsEvent.RequestClearClientSecret -> requestClearClientSecret()
+      AuthenticationSettingsEvent.ConfirmClearClientSecret -> confirmClearClientSecret()
       AuthenticationSettingsEvent.DismissConfirmation ->
         _uiState.update { it.copy(pendingConfirmation = null) }
       AuthenticationSettingsEvent.ResetDraftSettings -> resetDraft()
@@ -90,6 +103,7 @@ internal constructor(
   }
 
   private fun load() {
+    clearClientSecret()
     viewModelScope.launch {
       _uiState.update {
         it.copy(
@@ -101,7 +115,9 @@ internal constructor(
           signingAlgorithmOptions = emptyList(),
         )
       }
-      _uiState.update { loadOperation() }
+      val loaded = loadOperation()
+      clearClientSecret()
+      _uiState.update { loaded }
     }
   }
 
@@ -113,7 +129,7 @@ internal constructor(
       current.copy(
         state = AuthenticationSettingsState.Ready(updated),
         draftSettings = updated,
-        validation = updated.validation(),
+        validation = updated.validation(clientSecretUpdate),
         apiState = AuthenticationSettingsApiState.Idle,
         leaveRequested = false,
       )
@@ -129,7 +145,7 @@ internal constructor(
     val draft = _uiState.value.draftSettings ?: return
     if (
       LoginMethod.OpenId !in draft.activeLoginMethods ||
-        !draft.isOpenIdConfigurationValid()
+        !draft.isOpenIdConfigurationValid(clientSecretUpdate)
     ) {
       _uiState.update {
         it.copy(
@@ -150,7 +166,7 @@ internal constructor(
     val draft = _uiState.value.draftSettings ?: return
     if (
       LoginMethod.OpenId !in draft.activeLoginMethods ||
-        !draft.isOpenIdConfigurationValid()
+        !draft.isOpenIdConfigurationValid(clientSecretUpdate)
     ) {
       setPasswordSignInEnabled(false)
       return
@@ -159,7 +175,54 @@ internal constructor(
     _uiState.update { it.copy(pendingConfirmation = null) }
   }
 
+  private fun updateClientSecret(value: String) {
+    if (_uiState.value.apiState is AuthenticationSettingsApiState.Loading) return
+    if (value.isBlank()) {
+      clientSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched
+      _clientSecretReplacement.value = ""
+    } else {
+      clientSecretUpdate = AuthenticationSettingsSecretUpdate.Replace(value)
+      _clientSecretReplacement.value = value
+    }
+    _uiState.update { current ->
+      val draft = current.draftSettings ?: return@update current
+      current.copy(
+        validation = draft.validation(clientSecretUpdate),
+        clientSecretChangePending =
+          clientSecretUpdate != AuthenticationSettingsSecretUpdate.Untouched,
+        apiState = AuthenticationSettingsApiState.Idle,
+        leaveRequested = false,
+      )
+    }
+  }
+
+  private fun requestClearClientSecret() {
+    if (
+      _uiState.value.draftSettings == null ||
+        _uiState.value.apiState is AuthenticationSettingsApiState.Loading
+    ) return
+    _uiState.update {
+      it.copy(pendingConfirmation = AuthenticationSettingsConfirmation.ClearClientSecret)
+    }
+  }
+
+  private fun confirmClearClientSecret() {
+    clientSecretUpdate = AuthenticationSettingsSecretUpdate.Clear
+    _clientSecretReplacement.value = ""
+    _uiState.update { current ->
+      val draft = current.draftSettings ?: return@update current
+      current.copy(
+        validation = draft.validation(clientSecretUpdate),
+        clientSecretChangePending = true,
+        pendingConfirmation = null,
+        apiState = AuthenticationSettingsApiState.Idle,
+        leaveRequested = false,
+      )
+    }
+  }
+
   private fun resetDraft() {
+    clearClientSecret()
     _uiState.update { current ->
       val saved = current.savedSettings ?: return@update current
       current.copy(
@@ -167,6 +230,7 @@ internal constructor(
         draftSettings = saved,
         validation = saved.validation(),
         apiState = AuthenticationSettingsApiState.Idle,
+        clientSecretChangePending = false,
         signingAlgorithmOptions = emptyList(),
         pendingConfirmation = null,
         leaveRequested = false,
@@ -186,7 +250,10 @@ internal constructor(
           pendingConfirmation = null,
         )
       }
-      _uiState.update { saveOperation(it) }
+      val secretUpdate = clientSecretUpdate
+      val result = saveWithSecretOperation(_uiState.value, secretUpdate)
+      clearClientSecret()
+      _uiState.update { result.copy(clientSecretChangePending = false) }
     }
   }
 
@@ -205,17 +272,26 @@ internal constructor(
         )
       }
       val discovered = discoverOperation(initial)
+      val secretUpdateFailed =
+        discovered.state is AuthenticationSettingsState.AccessDenied ||
+          discovered.apiState is AuthenticationSettingsApiState.Failure
+      if (secretUpdateFailed) {
+        clearClientSecret()
+      }
       _uiState.update { current ->
         // A discovery operation receives an immutable snapshot. If a caller changed the draft
         // while the request was in flight, keep that newer draft instead of applying stale data.
         if (current.draftSettings != initial.draftSettings) {
           current.copy(
             apiState = discovered.apiState,
+            clientSecretChangePending =
+              if (secretUpdateFailed) false else current.clientSecretChangePending,
             state = current.draftSettings?.let(AuthenticationSettingsState::Ready)
               ?: current.state,
           )
         } else {
-          discovered
+          if (secretUpdateFailed) discovered.copy(clientSecretChangePending = false)
+          else discovered
         }
       }
     }
@@ -228,19 +304,31 @@ internal constructor(
           pendingConfirmation = AuthenticationSettingsConfirmation.LeaveWithUnsavedChanges
         )
       } else {
+        clearClientSecret()
         current.copy(leaveRequested = true)
       }
     }
   }
 
   private fun confirmLeave() {
+    clearClientSecret()
     _uiState.update {
       it.copy(
         pendingConfirmation = null,
         apiState = AuthenticationSettingsApiState.Idle,
+        clientSecretChangePending = false,
         leaveRequested = true,
       )
     }
+  }
+
+  private fun clearClientSecret() {
+    clientSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched
+    _clientSecretReplacement.value = ""
+  }
+
+  override fun onCleared() {
+    clearClientSecret()
   }
 }
 
@@ -274,6 +362,12 @@ sealed interface AuthenticationSettingsEvent {
   data class SetPasswordSignInEnabled(val enabled: Boolean) : AuthenticationSettingsEvent
 
   data object ConfirmDisablePasswordSignIn : AuthenticationSettingsEvent
+
+  data class UpdateClientSecret(val value: String) : AuthenticationSettingsEvent
+
+  data object RequestClearClientSecret : AuthenticationSettingsEvent
+
+  data object ConfirmClearClientSecret : AuthenticationSettingsEvent
 
   data class SetOpenIdLoginEnabled(val enabled: Boolean) : AuthenticationSettingsEvent
 

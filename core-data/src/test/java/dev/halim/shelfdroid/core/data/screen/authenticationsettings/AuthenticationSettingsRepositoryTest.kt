@@ -350,6 +350,97 @@ class AuthenticationSettingsRepositoryTest {
   }
 
   @Test
+  fun save_secretReplacementSendsOnlyReplacementAndReloadsConfiguredState() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses =
+          listOf(
+            Stub(200, completeSettingsJson()),
+            Stub(200, "{\"updated\":true}"),
+            Stub(200, completeSettingsJson()),
+          ),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val saved =
+        fixture.repository.save(
+          loaded.copy(clientSecretChangePending = true),
+          AuthenticationSettingsSecretUpdate.Replace("replacement-secret"),
+        )
+
+      assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
+      assertTrue(saved.draftSettings!!.openId.clientSecretConfigured)
+      assertEquals(
+        "{\"authOpenIDClientSecret\":\"replacement-secret\"}",
+        fixture.requestBodies[1],
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun save_clearSecretSendsExplicitEmptyString() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses =
+          listOf(
+            Stub(200, completeSettingsJson()),
+            Stub(200, "{\"updated\":true}"),
+            Stub(200, completeSettingsJson()),
+          ),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val draft =
+        loaded.draftSettings!!.copy(activeLoginMethods = listOf(LoginMethod.Local))
+      val saved =
+        fixture.repository.save(
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(AuthenticationSettingsSecretUpdate.Clear),
+            clientSecretChangePending = true,
+          ),
+          AuthenticationSettingsSecretUpdate.Clear,
+        )
+
+      assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
+      assertEquals(
+        "{\"authActiveAuthMethods\":[\"local\"],\"authOpenIDClientSecret\":\"\"}",
+        fixture.requestBodies[1],
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun save_clearConfiguredSecretIsBlockedWhenOpenIdRemainsEnabled() = runTest {
+    val fixture = fixture(UserType.Admin, responseBody = completeSettingsJson())
+    try {
+      val loaded = fixture.repository.load()
+      val blocked =
+        fixture.repository.save(
+          loaded.copy(clientSecretChangePending = true),
+          AuthenticationSettingsSecretUpdate.Clear,
+        )
+
+      assertTrue(
+        AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete in
+          blocked.validation.errors
+      )
+      assertEquals(1, fixture.requestedUrls.size)
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
   fun save_updatedFalseSurfacesRejectedWithoutReload() = runTest {
     val fixture =
       fixture(

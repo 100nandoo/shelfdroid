@@ -49,6 +49,8 @@ object AuthenticationSettingsMapper {
   fun toUpdateRequest(
     saved: AuthenticationSettingsForm,
     draft: AuthenticationSettingsForm,
+    secretUpdate: AuthenticationSettingsSecretUpdate =
+      AuthenticationSettingsSecretUpdate.Untouched,
   ): UpdateAuthenticationSettingsRequest? {
     val customMessage =
       draft.customMessageValue().takeIf { it != saved.customMessageValue() }
@@ -58,7 +60,13 @@ object AuthenticationSettingsMapper {
       }
     val savedOpenId = saved.openId
     val draftOpenId = draft.openId
-    if (customMessage == null && methods == null && !hasOpenIdProviderChanges(savedOpenId, draftOpenId)) {
+    val clientSecret = secretUpdate.toRequestValue()
+    if (
+      customMessage == null &&
+        methods == null &&
+        !hasOpenIdProviderChanges(savedOpenId, draftOpenId) &&
+        clientSecret == null
+    ) {
       return null
     }
     return UpdateAuthenticationSettingsRequest(
@@ -72,6 +80,7 @@ object AuthenticationSettingsMapper {
       authOpenIDJwksURL = draftOpenId.jwksUrl.takeIf { it != savedOpenId.jwksUrl },
       authOpenIDLogoutURL = draftOpenId.logoutUrl.takeIf { it != savedOpenId.logoutUrl },
       authOpenIDClientID = draftOpenId.clientId.takeIf { it != savedOpenId.clientId },
+      authOpenIDClientSecret = clientSecret,
       authOpenIDTokenSigningAlgorithm =
         draftOpenId.tokenSigningAlgorithm.takeIf {
           it != savedOpenId.tokenSigningAlgorithm
@@ -79,8 +88,21 @@ object AuthenticationSettingsMapper {
     )
   }
 
-  fun hasOpenIdChanges(saved: AuthenticationSettingsForm, draft: AuthenticationSettingsForm): Boolean =
-    hasOpenIdProviderChanges(saved.openId, draft.openId)
+  fun hasOpenIdChanges(
+    saved: AuthenticationSettingsForm,
+    draft: AuthenticationSettingsForm,
+    secretUpdate: AuthenticationSettingsSecretUpdate =
+      AuthenticationSettingsSecretUpdate.Untouched,
+  ): Boolean =
+    hasOpenIdProviderChanges(saved.openId, draft.openId) ||
+      secretUpdate != AuthenticationSettingsSecretUpdate.Untouched
+
+  private fun AuthenticationSettingsSecretUpdate.toRequestValue(): String? =
+    when (this) {
+      AuthenticationSettingsSecretUpdate.Untouched -> null
+      is AuthenticationSettingsSecretUpdate.Replace -> value
+      AuthenticationSettingsSecretUpdate.Clear -> ""
+    }
 
   private fun hasOpenIdProviderChanges(
     saved: OpenIdSettingsSummary,

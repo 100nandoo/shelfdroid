@@ -15,6 +15,7 @@ data class UpdateAuthenticationSettingsRequest(
   @SerialName("authOpenIDJwksURL") val authOpenIDJwksURL: String? = null,
   @SerialName("authOpenIDLogoutURL") val authOpenIDLogoutURL: String? = null,
   @SerialName("authOpenIDClientID") val authOpenIDClientID: String? = null,
+  @SerialName("authOpenIDClientSecret") val authOpenIDClientSecret: String? = null,
   @SerialName("authOpenIDTokenSigningAlgorithm")
   val authOpenIDTokenSigningAlgorithm: String? = null,
 )

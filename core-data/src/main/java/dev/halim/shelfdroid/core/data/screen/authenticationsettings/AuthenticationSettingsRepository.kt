@@ -41,6 +41,13 @@ constructor(
   }
 
   suspend fun save(uiState: AuthenticationSettingsUiState): AuthenticationSettingsUiState {
+    return save(uiState, AuthenticationSettingsSecretUpdate.Untouched)
+  }
+
+  suspend fun save(
+    uiState: AuthenticationSettingsUiState,
+    secretUpdate: AuthenticationSettingsSecretUpdate,
+  ): AuthenticationSettingsUiState {
     if (!adminDestinationGuard.canAccess()) {
       return uiState.copy(
         state = AuthenticationSettingsState.AccessDenied,
@@ -49,14 +56,19 @@ constructor(
         signingAlgorithmOptions = emptyList(),
         pendingConfirmation = null,
         restartRequired = false,
+        clientSecretChangePending = false,
       )
     }
 
     val saved = uiState.savedSettings ?: return uiState
     val draft = uiState.draftSettings ?: return uiState
-    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)
+    val validation = draft.validation(secretUpdate)
+    if (!validation.isValid) {
+      return uiState.copy(validation = validation)
+    }
+    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft, secretUpdate)
       ?: return uiState.copy(apiState = AuthenticationSettingsApiState.Idle)
-    val restartRequired = AuthenticationSettingsMapper.hasOpenIdChanges(saved, draft)
+    val restartRequired = AuthenticationSettingsMapper.hasOpenIdChanges(saved, draft, secretUpdate)
 
     val response =
       api.updateAuthenticationSettings(request).getOrElse { error ->
@@ -68,6 +80,7 @@ constructor(
             signingAlgorithmOptions = emptyList(),
             pendingConfirmation = null,
             restartRequired = false,
+            clientSecretChangePending = false,
           )
         }
         return uiState.copy(
@@ -75,12 +88,16 @@ constructor(
             AuthenticationSettingsApiState.Failure(
               AuthenticationSettingsOperation.Save,
               error.message,
-            )
+            ),
+          clientSecretChangePending = false,
         )
       }
 
     if (!response.updated) {
-      return uiState.copy(apiState = AuthenticationSettingsApiState.Rejected)
+      return uiState.copy(
+        apiState = AuthenticationSettingsApiState.Rejected,
+        clientSecretChangePending = false,
+      )
     }
 
     val canonical = load()
@@ -100,6 +117,7 @@ constructor(
           apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save),
           signingAlgorithmOptions = uiState.signingAlgorithmOptions,
           restartRequired = uiState.restartRequired || restartRequired,
+          clientSecretChangePending = false,
         )
     }
   }
@@ -125,6 +143,7 @@ constructor(
         signingAlgorithmOptions = emptyList(),
         pendingConfirmation = null,
         restartRequired = false,
+        clientSecretChangePending = false,
       )
     }
 
@@ -150,6 +169,7 @@ constructor(
           signingAlgorithmOptions = emptyList(),
           pendingConfirmation = null,
           restartRequired = false,
+          clientSecretChangePending = false,
         )
       }
       return uiState.copy(

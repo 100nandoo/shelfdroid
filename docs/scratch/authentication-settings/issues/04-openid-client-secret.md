@@ -6,23 +6,23 @@ value or retaining replacement text after it is needed.
 
 **Blocked by:** 03 — Configure and discover the OpenID provider.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Loaded state exposes only configured/not-configured, and the raw response value does not enter
+- [x] Loaded state exposes only configured/not-configured, and the raw response value does not enter
       form, persistence, navigation, preview, log, analytics, or accessibility state.
-- [ ] Replacement input is masked by default and supports a temporary reveal action.
-- [ ] Secret update intent distinguishes untouched, replace, and explicit clear.
-- [ ] Untouched intent omits the secret from every update, including saves of unrelated
+- [x] Replacement input is masked by default and supports a temporary reveal action.
+- [x] Secret update intent distinguishes untouched, replace, and explicit clear.
+- [x] Untouched intent omits the secret from every update, including saves of unrelated
       Authentication settings.
-- [ ] Replacement intent sends entered text exactly once and never substitutes a visual mask.
-- [ ] Clear intent requires explicit confirmation and sends the server's supported explicit-clear
+- [x] Replacement intent sends entered text exactly once and never substitutes a visual mask.
+- [x] Clear intent requires explicit confirmation and sends the server's supported explicit-clear
       representation.
-- [ ] Secret replacement text is cleared after success, failure, Reset, access denial, confirmed
+- [x] Secret replacement text is cleared after success, failure, Reset, access denial, confirmed
       Back, and navigation away.
-- [ ] Save validation prevents clearing required secret configuration when doing so would leave
+- [x] Save validation prevents clearing required secret configuration when doing so would leave
       enabled OpenID login structurally invalid.
-- [ ] Repository serialization tests prove untouched omission, replacement, explicit clear, and
+- [x] Repository serialization tests prove untouched omission, replacement, explicit clear, and
       post-save canonical configured state.
-- [ ] ViewModel and UI tests cover masking, temporary reveal, clear confirmation, cleanup paths,
+- [x] ViewModel and UI tests cover masking, temporary reveal, clear confirmation, cleanup paths,
       and absence of secret text from previews and accessibility output.
-- [ ] Screen-capture and recent-app-preview behavior is unchanged by this ticket.
+- [x] Screen-capture and recent-app-preview behavior is unchanged by this ticket.

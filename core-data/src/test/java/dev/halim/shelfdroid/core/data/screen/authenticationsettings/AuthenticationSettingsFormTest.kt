@@ -101,6 +101,74 @@ class AuthenticationSettingsFormTest {
   }
 
   @Test
+  fun toUpdateRequest_untouchedSecretIsOmitted() {
+    val saved = form(message = "", methods = listOf(LoginMethod.Local))
+    val draft = saved.copy(customMessage = "<p>Changed</p>", customMessageEnabled = true)
+
+    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
+
+    assertNull(request.authOpenIDClientSecret)
+    assertFalse(Json { explicitNulls = false }.encodeToString(request).contains("ClientSecret"))
+  }
+
+  @Test
+  fun toUpdateRequest_replacementSendsEnteredSecretExactly() {
+    val saved = form(message = "", methods = listOf(LoginMethod.Local))
+
+    val request =
+      AuthenticationSettingsMapper.toUpdateRequest(
+        saved,
+        saved,
+        AuthenticationSettingsSecretUpdate.Replace("replacement-secret"),
+      )!!
+
+    assertEquals("replacement-secret", request.authOpenIDClientSecret)
+    assertEquals(
+      "{\"authOpenIDClientSecret\":\"replacement-secret\"}",
+      Json { explicitNulls = false }.encodeToString(request),
+    )
+  }
+
+  @Test
+  fun toUpdateRequest_clearSendsExplicitEmptyString() {
+    val saved =
+      form(message = "", methods = listOf(LoginMethod.Local, LoginMethod.OpenId)).copy(
+        openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
+          clientSecretConfigured = true,
+        ),
+      )
+
+    val request =
+      AuthenticationSettingsMapper.toUpdateRequest(
+        saved,
+        saved,
+        AuthenticationSettingsSecretUpdate.Clear,
+      )!!
+
+    assertEquals("", request.authOpenIDClientSecret)
+    assertEquals(
+      "{\"authOpenIDClientSecret\":\"\"}",
+      Json { explicitNulls = false }.encodeToString(request),
+    )
+  }
+
+  @Test
+  fun validation_rejectsClearingConfiguredSecretWhileOpenIdIsEnabled() {
+    val settings =
+      form(message = "", methods = listOf(LoginMethod.Local, LoginMethod.OpenId)).copy(
+        openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
+          clientSecretConfigured = true,
+        ),
+      )
+
+    assertFalse(settings.validation(AuthenticationSettingsSecretUpdate.Clear).isValid)
+    assertTrue(
+      AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete in
+        settings.validation(AuthenticationSettingsSecretUpdate.Clear).errors
+    )
+  }
+
+  @Test
   fun requestSerialization_omitsUnchangedFields() {
     val request =
       AuthenticationSettingsMapper.toUpdateRequest(

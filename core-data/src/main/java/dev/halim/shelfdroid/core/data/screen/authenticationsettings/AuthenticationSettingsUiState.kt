@@ -10,6 +10,8 @@ data class AuthenticationSettingsUiState(
   val signingAlgorithmOptions: List<String> = emptyList(),
   val apiState: AuthenticationSettingsApiState = AuthenticationSettingsApiState.Idle,
   val validation: AuthenticationSettingsValidation = AuthenticationSettingsValidation(),
+  /** True while the ViewModel holds an explicit client-secret replacement or clear intent. */
+  val clientSecretChangePending: Boolean = false,
   val pendingConfirmation: AuthenticationSettingsConfirmation? = null,
   val leaveRequested: Boolean = false,
   /** Remains visible after an accepted OIDC update until the screen is left or reset. */
@@ -17,7 +19,9 @@ data class AuthenticationSettingsUiState(
 )
 
 val AuthenticationSettingsUiState.hasChanges: Boolean
-  get() = savedSettings != null && draftSettings != null && savedSettings != draftSettings
+  get() =
+    clientSecretChangePending ||
+      (savedSettings != null && draftSettings != null && savedSettings != draftSettings)
 
 val AuthenticationSettingsUiState.canSave: Boolean
   get() = hasChanges && validation.isValid && apiState !is AuthenticationSettingsApiState.Loading
@@ -45,6 +49,15 @@ enum class AuthenticationSettingsOperation {
   Load,
   Discovery,
   Save,
+}
+
+/** A secret update is never inferred from the redacted loaded settings. */
+sealed interface AuthenticationSettingsSecretUpdate {
+  data object Untouched : AuthenticationSettingsSecretUpdate
+
+  data class Replace(val value: String) : AuthenticationSettingsSecretUpdate
+
+  data object Clear : AuthenticationSettingsSecretUpdate
 }
 
 sealed interface AuthenticationSettingsApiState {
@@ -78,17 +91,20 @@ data class AuthenticationSettingsValidation(
 
 enum class AuthenticationSettingsConfirmation {
   DisablePasswordSignIn,
+  ClearClientSecret,
   LeaveWithUnsavedChanges,
 }
 
-fun AuthenticationSettingsSummary.validation(): AuthenticationSettingsValidation {
+fun AuthenticationSettingsSummary.validation(
+  secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
+): AuthenticationSettingsValidation {
   val errors = buildSet {
     if (activeLoginMethods.isEmpty()) {
       add(AuthenticationSettingsValidationError.NoLoginMethod)
     }
     if (
       LoginMethod.OpenId in activeLoginMethods &&
-        !openId.hasStructurallyValidConfiguration()
+        !openId.isStructurallyValid(secretUpdate)
     ) {
       add(AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete)
     }
@@ -96,17 +112,30 @@ fun AuthenticationSettingsSummary.validation(): AuthenticationSettingsValidation
   return AuthenticationSettingsValidation(errors)
 }
 
-fun AuthenticationSettingsSummary.isOpenIdConfigurationValid(): Boolean =
-  openId.hasStructurallyValidConfiguration()
+fun AuthenticationSettingsSummary.isOpenIdConfigurationValid(
+  secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
+): Boolean = openId.isStructurallyValid(secretUpdate)
 
-private fun OpenIdSettingsSummary.hasStructurallyValidConfiguration(): Boolean =
+private fun OpenIdSettingsSummary.isStructurallyValid(
+  secretUpdate: AuthenticationSettingsSecretUpdate,
+): Boolean =
   issuerUrl.isNotBlank() &&
     authorizationUrl.isNotBlank() &&
     tokenUrl.isNotBlank() &&
     userInfoUrl.isNotBlank() &&
     jwksUrl.isNotBlank() &&
     clientId.isNotBlank() &&
-    tokenSigningAlgorithm.isNotBlank()
+    tokenSigningAlgorithm.isNotBlank() &&
+    secretUpdate.isAllowedFor(clientSecretConfigured)
+
+private fun AuthenticationSettingsSecretUpdate.isAllowedFor(
+  clientSecretConfigured: Boolean,
+): Boolean =
+  when (this) {
+    AuthenticationSettingsSecretUpdate.Untouched -> true
+    is AuthenticationSettingsSecretUpdate.Replace -> value.isNotBlank()
+    AuthenticationSettingsSecretUpdate.Clear -> !clientSecretConfigured
+  }
 
 data class OpenIdSettingsSummary(
   val issuerUrl: String = "",
