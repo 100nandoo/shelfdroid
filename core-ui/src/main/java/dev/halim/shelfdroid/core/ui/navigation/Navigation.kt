@@ -41,6 +41,7 @@ import dev.halim.shelfdroid.core.ui.screen.apikeys.ApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apikeys.createedit.CreateEditApiKeysScreen
 import dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.AppriseNotificationSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.apprisenotificationsettings.notificationruleeditor.NotificationRuleEditorScreen
+import dev.halim.shelfdroid.core.ui.screen.authenticationsettings.AuthenticationSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.backups.BackupsScreen
 import dev.halim.shelfdroid.core.ui.screen.book.BookScreen
 import dev.halim.shelfdroid.core.ui.screen.editepisode.EditEpisodeScreen
@@ -151,6 +152,7 @@ private fun ColumnScope.NavHostContainer(
             onLibrariesClicked = {},
             onApiKeysClicked = { navigator.navigate(NavApiKeys) },
             onServerSettingsClicked = { navigator.navigate(ServerSettings) },
+            onAuthenticationSettingsClicked = { navigator.navigate(AuthenticationSettings) },
             onEmailManagementClicked = { navigator.navigate(EmailManagement) },
             onAppriseNotificationSettingsClicked = {
               navigator.navigate(AppriseNotificationSettings)
@@ -350,6 +352,11 @@ private fun ColumnScope.NavHostContainer(
       entry<ServerSettings> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           ServerSettingsScreen(snackbarHostState = snackbarHostState)
+        }
+      }
+      entry<AuthenticationSettings> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          AuthenticationSettingsScreen(onBackClicked = { navigator.pop() })
         }
       }
       entry<EmailManagement> {

@@ -83,6 +83,7 @@ fun HomeScreen(
   onLogsClicked: () -> Unit,
   onBackupsClicked: () -> Unit,
   onEditItemClicked: (String) -> Unit = {},
+  onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size + 1
@@ -114,6 +115,7 @@ fun HomeScreen(
     onLogsClicked,
     onBackupsClicked,
     onEditItemClicked,
+    onAuthenticationSettingsClicked,
   )
 }
 
@@ -140,6 +142,7 @@ fun HomeScreenContent(
   onLogsClicked: () -> Unit = {},
   onBackupsClicked: () -> Unit = {},
   onEditItemClicked: (String) -> Unit = {},
+  onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
   if (libraryCount == 0 && uiState.state is GenericState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
@@ -165,6 +168,7 @@ fun HomeScreenContent(
           onLibrariesClicked = onLibrariesClicked,
           onApiKeysClicked = onApiKeysClicked,
           onServerSettingsClicked = onServerSettingsClicked,
+          onAuthenticationSettingsClicked = onAuthenticationSettingsClicked,
           onEmailManagementClicked = onEmailManagementClicked,
           onAppriseNotificationSettingsClicked = onAppriseNotificationSettingsClicked,
           onRssFeedsClicked = onRssFeedsClicked,

@@ -65,6 +65,7 @@ import dev.halim.core.network.response.UserWithMediaProgressDetail
 import dev.halim.core.network.response.UsersResponse
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettings
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettingsResponse
+import dev.halim.core.network.response.authenticationsettings.AuthenticationSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EmailSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EreaderDevicesResponse
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
@@ -405,6 +406,9 @@ interface ApiService {
   @GET("/api/tags") suspend fun tags(): Result<TagsResponse>
 
   // settings
+  @GET("api/auth-settings")
+  suspend fun authenticationSettings(): Result<AuthenticationSettingsResponse>
+
   @PATCH("/api/settings")
   suspend fun updateSettings(
     @Body request: UpdateServerSettingsRequest

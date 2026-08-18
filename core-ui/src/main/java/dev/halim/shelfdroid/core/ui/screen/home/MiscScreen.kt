@@ -34,6 +34,7 @@ fun MiscScreen(
   onRssFeedsClicked: () -> Unit,
   onLogsClicked: () -> Unit,
   onBackupsClicked: () -> Unit,
+  onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
   MiscScreenContent(
     isAdmin = isAdmin,
@@ -44,6 +45,7 @@ fun MiscScreen(
     onLibrariesClicked = onLibrariesClicked,
     onApiKeysClicked = onApiKeysClicked,
     onServerSettingsClicked = onServerSettingsClicked,
+    onAuthenticationSettingsClicked = onAuthenticationSettingsClicked,
     onEmailManagementClicked = onEmailManagementClicked,
     onAppriseNotificationSettingsClicked = onAppriseNotificationSettingsClicked,
     onRssFeedsClicked = onRssFeedsClicked,
@@ -51,6 +53,8 @@ fun MiscScreen(
     onBackupsClicked = onBackupsClicked,
   )
 }
+
+fun shouldShowAuthenticationSettings(isAdmin: Boolean): Boolean = isAdmin
 
 @Composable
 private fun MiscScreenContent(
@@ -62,6 +66,7 @@ private fun MiscScreenContent(
   onLibrariesClicked: () -> Unit = {},
   onApiKeysClicked: () -> Unit = {},
   onServerSettingsClicked: () -> Unit = {},
+  onAuthenticationSettingsClicked: () -> Unit = {},
   onEmailManagementClicked: () -> Unit = {},
   onAppriseNotificationSettingsClicked: () -> Unit = {},
   onRssFeedsClicked: () -> Unit = {},
@@ -70,7 +75,7 @@ private fun MiscScreenContent(
 ) {
   val modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-    if (isAdmin) {
+    if (shouldShowAuthenticationSettings(isAdmin)) {
       TextHeadlineSmall(
         modifier.padding(top = 16.dp),
         text = stringResource(R.string.server),
@@ -117,6 +122,13 @@ private fun MiscScreenContent(
         modifier = modifier,
       ) {
         Text(text = stringResource(R.string.settings))
+      }
+
+      TextButton(
+        onClick = onAuthenticationSettingsClicked,
+        modifier = modifier,
+      ) {
+        Text(text = stringResource(R.string.authentication_settings))
       }
 
       TextButton(

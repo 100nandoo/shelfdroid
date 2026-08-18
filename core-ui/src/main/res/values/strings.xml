@@ -137,6 +137,41 @@
     <string name="backups">Backups</string>
     <string name="server">Server</string>
     <string name="client">Client</string>
+    <string name="authentication_settings">Authentication</string>
+    <string name="authentication_settings_loading">Loading Authentication settings…</string>
+    <string name="authentication_settings_failed">Authentication settings unavailable</string>
+    <string name="authentication_settings_failed_message">Could not load Authentication settings.</string>
+    <string name="authentication_access_denied">Access denied</string>
+    <string name="authentication_access_denied_message">Only admin and root Users can view Authentication settings.</string>
+    <string name="authentication_login_message">Login message</string>
+    <string name="authentication_custom_message">Custom message</string>
+    <string name="authentication_login_methods">Login methods</string>
+    <string name="authentication_active_login_methods">Active Login methods</string>
+    <string name="authentication_openid_provider">OpenID provider</string>
+    <string name="authentication_issuer_url">Issuer URL</string>
+    <string name="authentication_authorization_url">Authorization URL</string>
+    <string name="authentication_token_url">Token URL</string>
+    <string name="authentication_userinfo_url">Userinfo URL</string>
+    <string name="authentication_jwks_url">JWKS URL</string>
+    <string name="authentication_logout_url">Logout URL</string>
+    <string name="authentication_client_id">Client ID</string>
+    <string name="authentication_client_secret">Client secret</string>
+    <string name="authentication_signing_algorithm">Signing algorithm</string>
+    <string name="authentication_callbacks">Callbacks</string>
+    <string name="authentication_callback_subfolder">Callback subfolder</string>
+    <string name="authentication_mobile_redirect_uris">Mobile redirect URIs</string>
+    <string name="authentication_button_text">OpenID button text</string>
+    <string name="authentication_user_mapping">User mapping</string>
+    <string name="authentication_match_existing_by">Match existing Users by</string>
+    <string name="authentication_auto_launch">Automatic OpenID launch</string>
+    <string name="authentication_auto_register">Automatic User registration</string>
+    <string name="authentication_group_claim">Group claim</string>
+    <string name="authentication_advanced_permissions_claim">Advanced permissions claim</string>
+    <string name="authentication_sample_permissions">Sample permissions</string>
+    <string name="configured">Configured</string>
+    <string name="not_configured">Not configured</string>
+    <string name="back">Back</string>
+    <string name="retry">Retry</string>
     <!--Misc-->
 
     <!--Backups-->

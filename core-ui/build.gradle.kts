@@ -72,6 +72,7 @@ dependencies {
 
   // Tooling
   debugImplementation(libs.androidx.compose.ui.tooling)
+  debugImplementation(libs.androidx.compose.ui.test.manifest)
   screenshotTestImplementation(libs.androidx.compose.ui.tooling)
   screenshotTestImplementation(libs.screenshot.validation.api)
 
@@ -89,6 +90,7 @@ dependencies {
   implementation(libs.coil.okhttp)
 
   testImplementation(libs.junit)
+  androidTestImplementation(libs.androidx.compose.ui.test.junit4)
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)
