@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -200,6 +201,45 @@ class AuthenticationSettingsViewModelStateTest {
   }
 
   @Test
+  fun resetAfterOidcSave_preservesRestartRequiredWarning() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val original = settings().copy(openId = validOpenId())
+    val canonical = original.copy(openId = original.openId.copy(clientId = "saved-client"))
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = { readyState(original, original) },
+        saveOperation = { state ->
+          state.copy(
+            state = AuthenticationSettingsState.Ready(canonical),
+            savedSettings = canonical,
+            draftSettings = canonical,
+            validation = canonical.validation(),
+            apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save),
+            restartRequired = true,
+          )
+        },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(
+      AuthenticationSettingsEvent.UpdateDraftSettings {
+        it.copy(openId = it.openId.copy(clientId = "edited-client"))
+      }
+    )
+    viewModel.onEvent(AuthenticationSettingsEvent.SaveSettings)
+    advanceUntilIdle()
+
+    assertFalse(viewModel.uiState.value.hasChanges)
+    assertTrue(viewModel.uiState.value.restartRequired)
+    viewModel.onEvent(AuthenticationSettingsEvent.ResetDraftSettings)
+    assertEquals(canonical, viewModel.uiState.value.draftSettings)
+    assertTrue(viewModel.uiState.value.restartRequired)
+    collection.cancelAndJoin()
+  }
+
+  @Test
   fun rejectedSaveOutcome_isSurfaced() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val original = settings()
@@ -222,6 +262,92 @@ class AuthenticationSettingsViewModelStateTest {
 
     assertEquals(1, saveCount)
     assertEquals(AuthenticationSettingsApiState.Rejected, viewModel.uiState.value.apiState)
+    collection.cancelAndJoin()
+  }
+
+  @Test
+  fun discoveryEvent_appliesProviderResultAndSigningAlgorithmOptions() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val original = settings().copy(openId = validOpenId())
+    val discovered =
+      original.copy(
+        openId =
+          original.openId.copy(
+            authorizationUrl = "https://issuer.example/discovered-authorize",
+            tokenUrl = "https://issuer.example/discovered-token",
+          )
+      )
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = { readyState(original, original) },
+        saveOperation = { it },
+        discoverOperation = {
+          it.copy(
+            state = AuthenticationSettingsState.Ready(discovered),
+            draftSettings = discovered,
+            signingAlgorithmOptions = listOf("RS256", "ES256"),
+            validation = discovered.validation(),
+            apiState =
+              AuthenticationSettingsApiState.Success(
+                AuthenticationSettingsOperation.Discovery
+              ),
+          )
+        },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(AuthenticationSettingsEvent.DiscoverOpenId)
+    advanceUntilIdle()
+
+    assertEquals("https://issuer.example/discovered-authorize", viewModel.uiState.value.draftSettings?.openId?.authorizationUrl)
+    assertEquals(listOf("RS256", "ES256"), viewModel.uiState.value.signingAlgorithmOptions)
+    assertEquals(
+      AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery),
+      viewModel.uiState.value.apiState,
+    )
+    collection.cancelAndJoin()
+  }
+
+  @Test
+  fun discoveryInFlight_serializesSaveAndDraftEdits() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val original = settings().copy(openId = validOpenId())
+    val gate = CompletableDeferred<AuthenticationSettingsUiState>()
+    var saveCount = 0
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = { readyState(original, original) },
+        saveOperation = {
+          saveCount += 1
+          it
+        },
+        discoverOperation = { gate.await() },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(AuthenticationSettingsEvent.DiscoverOpenId)
+    assertEquals(
+      AuthenticationSettingsApiState.Loading(AuthenticationSettingsOperation.Discovery),
+      viewModel.uiState.value.apiState,
+    )
+    viewModel.onEvent(AuthenticationSettingsEvent.UpdateCustomMessage("ignored while discovering"))
+    viewModel.onEvent(AuthenticationSettingsEvent.SaveSettings)
+    assertEquals(0, saveCount)
+    assertEquals(original.customMessage, viewModel.uiState.value.draftSettings?.customMessage)
+
+    gate.complete(
+      viewModel.uiState.value.copy(
+        state = AuthenticationSettingsState.Ready(original),
+        draftSettings = original,
+        validation = original.validation(),
+        apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery),
+      )
+    )
+    advanceUntilIdle()
     collection.cancelAndJoin()
   }
 

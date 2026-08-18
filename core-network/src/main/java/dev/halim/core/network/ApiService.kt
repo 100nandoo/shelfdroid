@@ -67,6 +67,7 @@ import dev.halim.core.network.response.UsersResponse
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettings
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettingsResponse
 import dev.halim.core.network.response.authenticationsettings.AuthenticationSettingsResponse
+import dev.halim.core.network.response.authenticationsettings.OpenIdIssuerConfigurationResponse
 import dev.halim.core.network.response.authenticationsettings.UpdateAuthenticationSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EmailSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EreaderDevicesResponse
@@ -415,6 +416,11 @@ interface ApiService {
   suspend fun updateAuthenticationSettings(
     @Body request: UpdateAuthenticationSettingsRequest
   ): Result<UpdateAuthenticationSettingsResponse>
+
+  @GET("auth/openid/config")
+  suspend fun openIdIssuerConfiguration(
+    @Query("issuer") issuer: String,
+  ): Result<OpenIdIssuerConfigurationResponse>
 
   @PATCH("/api/settings")
   suspend fun updateSettings(

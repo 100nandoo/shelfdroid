@@ -31,12 +31,15 @@ class AuthenticationSettingsViewModel
 internal constructor(
   private val loadOperation: suspend () -> AuthenticationSettingsUiState,
   private val saveOperation: suspend (AuthenticationSettingsUiState) -> AuthenticationSettingsUiState,
+  private val discoverOperation: suspend (AuthenticationSettingsUiState) -> AuthenticationSettingsUiState =
+    { it },
 ) : ViewModel() {
 
   @Inject
   constructor(repository: AuthenticationSettingsRepository) : this(
     loadOperation = { repository.load() },
     saveOperation = { repository.save(it) },
+    discoverOperation = { repository.discover(it) },
   )
 
   private val _uiState = MutableStateFlow(AuthenticationSettingsUiState())
@@ -52,6 +55,9 @@ internal constructor(
   fun onEvent(event: AuthenticationSettingsEvent) {
     when (event) {
       AuthenticationSettingsEvent.Retry -> load()
+      AuthenticationSettingsEvent.DiscoverOpenId,
+      AuthenticationSettingsEvent.AutoPopulateOpenId,
+      AuthenticationSettingsEvent.DiscoverIssuer -> discover()
       is AuthenticationSettingsEvent.UpdateDraftSettings -> updateDraft(event.transform)
       is AuthenticationSettingsEvent.UpdateCustomMessage ->
         updateDraft {
@@ -91,6 +97,8 @@ internal constructor(
           apiState = AuthenticationSettingsApiState.Loading(AuthenticationSettingsOperation.Load),
           pendingConfirmation = null,
           leaveRequested = false,
+          restartRequired = false,
+          signingAlgorithmOptions = emptyList(),
         )
       }
       _uiState.update { loadOperation() }
@@ -99,6 +107,7 @@ internal constructor(
 
   private fun updateDraft(transform: (AuthenticationSettingsSummary) -> AuthenticationSettingsSummary) {
     _uiState.update { current ->
+      if (current.apiState is AuthenticationSettingsApiState.Loading) return@update current
       val draft = current.draftSettings ?: return@update current
       val updated = transform(draft)
       current.copy(
@@ -158,6 +167,7 @@ internal constructor(
         draftSettings = saved,
         validation = saved.validation(),
         apiState = AuthenticationSettingsApiState.Idle,
+        signingAlgorithmOptions = emptyList(),
         pendingConfirmation = null,
         leaveRequested = false,
       )
@@ -177,6 +187,37 @@ internal constructor(
         )
       }
       _uiState.update { saveOperation(it) }
+    }
+  }
+
+  private fun discover() {
+    val initial = _uiState.value
+    if (initial.apiState is AuthenticationSettingsApiState.Loading) return
+    if (initial.draftSettings == null) return
+    viewModelScope.launch {
+      _uiState.update {
+        it.copy(
+          apiState =
+            AuthenticationSettingsApiState.Loading(
+              AuthenticationSettingsOperation.Discovery
+            ),
+          pendingConfirmation = null,
+        )
+      }
+      val discovered = discoverOperation(initial)
+      _uiState.update { current ->
+        // A discovery operation receives an immutable snapshot. If a caller changed the draft
+        // while the request was in flight, keep that newer draft instead of applying stale data.
+        if (current.draftSettings != initial.draftSettings) {
+          current.copy(
+            apiState = discovered.apiState,
+            state = current.draftSettings?.let(AuthenticationSettingsState::Ready)
+              ?: current.state,
+          )
+        } else {
+          discovered
+        }
+      }
     }
   }
 
@@ -215,6 +256,12 @@ private fun AuthenticationSettingsSummary.withLoginMethod(
 
 sealed interface AuthenticationSettingsEvent {
   data object Retry : AuthenticationSettingsEvent
+
+  data object DiscoverOpenId : AuthenticationSettingsEvent
+
+  data object AutoPopulateOpenId : AuthenticationSettingsEvent
+
+  data object DiscoverIssuer : AuthenticationSettingsEvent
 
   data class UpdateDraftSettings(
     val transform: (AuthenticationSettingsSummary) -> AuthenticationSettingsSummary,

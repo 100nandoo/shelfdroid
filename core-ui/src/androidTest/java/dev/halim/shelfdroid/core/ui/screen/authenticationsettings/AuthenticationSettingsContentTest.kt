@@ -111,6 +111,7 @@ class AuthenticationSettingsContentTest {
         state = AuthenticationSettingsState.Ready(settings),
         savedSettings = settings,
         draftSettings = settings,
+        restartRequired = true,
       )
 
     composeRule.setContent {
@@ -122,7 +123,12 @@ class AuthenticationSettingsContentTest {
 
     composeRule.onNodeWithText("Custom message HTML").assertIsDisplayed()
     composeRule.onNodeWithText("<p>Welcome <strong>back</strong></p>").assertIsDisplayed()
-    composeRule.onNodeWithText("Welcome back").assertIsDisplayed()
+    composeRule.onNodeWithText("Welcome back", substring = true).assertExists()
+    composeRule.onNodeWithText("Issuer URL").assertIsDisplayed()
+    composeRule.onNodeWithText("Authorization URL").assertIsDisplayed()
+    composeRule
+      .onNodeWithText("Restart the Audiobookshelf server for all OpenID changes to take effect.")
+      .assertExists()
     composeRule.onNodeWithText("Save").assertIsNotEnabled()
   }
 }

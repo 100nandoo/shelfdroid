@@ -32,3 +32,16 @@ data class AuthenticationSettingsResponse(
 data class UpdateAuthenticationSettingsResponse(
   @SerialName("updated") val updated: Boolean = false,
 )
+
+/** OpenID Connect metadata returned by Audiobookshelf's authenticated discovery route. */
+@Serializable
+data class OpenIdIssuerConfigurationResponse(
+  @SerialName("issuer") val issuer: String? = null,
+  @SerialName("authorization_endpoint") val authorizationEndpoint: String? = null,
+  @SerialName("token_endpoint") val tokenEndpoint: String? = null,
+  @SerialName("userinfo_endpoint") val userInfoEndpoint: String? = null,
+  @SerialName("end_session_endpoint") val endSessionEndpoint: String? = null,
+  @SerialName("jwks_uri") val jwksUri: String? = null,
+  @SerialName("id_token_signing_alg_values_supported")
+  val signingAlgorithms: List<String> = emptyList(),
+)

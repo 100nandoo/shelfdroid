@@ -125,6 +125,170 @@ class AuthenticationSettingsRepositoryTest {
   }
 
   @Test
+  fun discover_root_usesAuthenticatedServerRouteAndMergesProviderMetadata() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses =
+          listOf(
+            Stub(200, completeSettingsJson()),
+            Stub(200, issuerConfigurationJson()),
+          ),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val draft =
+        loaded.draftSettings!!.copy(
+          openId =
+            loaded.draftSettings.openId.copy(
+              clientId = "edited-client",
+              mobileRedirectUris = listOf("audiobookshelf://oauth", "https://mobile.example/cb"),
+              buttonText = "Company login",
+              subfolderForRedirectUrls = "/audiobookshelf",
+            )
+        )
+      val discovered =
+        fixture.repository.discover(
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(),
+          )
+        )
+
+      assertTrue(discovered.state is AuthenticationSettingsState.Ready)
+      val settings = discovered.draftSettings!!.openId
+      assertEquals("https://issuer.example.com/", settings.issuerUrl)
+      assertEquals("https://issuer.example.com/authorize-new", settings.authorizationUrl)
+      assertEquals("https://issuer.example.com/token-new", settings.tokenUrl)
+      assertEquals("https://issuer.example.com/userinfo-new", settings.userInfoUrl)
+      assertEquals("https://issuer.example.com/jwks-new", settings.jwksUrl)
+      assertEquals("https://issuer.example.com/logout-new", settings.logoutUrl)
+      assertEquals("edited-client", settings.clientId)
+      assertEquals(listOf("audiobookshelf://oauth", "https://mobile.example/cb"), settings.mobileRedirectUris)
+      assertEquals("/audiobookshelf", settings.subfolderForRedirectUrls)
+      assertEquals("Company login", settings.buttonText)
+      assertEquals("RS256", settings.tokenSigningAlgorithm)
+      assertEquals(listOf("RS256", "ES256"), discovered.signingAlgorithmOptions)
+      assertTrue(
+        discovered.apiState ==
+          AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery)
+      )
+      assertEquals(
+        "https://audiobooks.dev/auth/openid/config?issuer=https%3A%2F%2Fissuer.example.com",
+        fixture.requestedUrls[1],
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun discover_subpath_preservesConfiguredBasePath() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses = listOf(Stub(200, completeSettingsJson()), Stub(200, issuerConfigurationJson())),
+      )
+    try {
+      fixture.dataStoreManager.updateBaseUrl("https://example.com/audiobookshelf/")
+      val loaded = fixture.repository.load()
+      fixture.repository.discover(loaded)
+
+      assertEquals(
+        "https://example.com/audiobookshelf/auth/openid/config?issuer=https%3A%2F%2Fissuer.example.com",
+        fixture.requestedUrls[1],
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun discover_failure_preservesDraftAndReportsDiscoveryOperation() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses = listOf(Stub(200, completeSettingsJson()), Stub(500, "provider unavailable")),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val draft =
+        loaded.draftSettings!!.copy(
+          openId = loaded.draftSettings.openId.copy(clientId = "draft-client")
+        )
+      val result =
+        fixture.repository.discover(
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(),
+          )
+        )
+
+      assertEquals(draft, result.draftSettings)
+      assertTrue(result.apiState is AuthenticationSettingsApiState.Failure)
+      assertEquals(
+        AuthenticationSettingsOperation.Discovery,
+        (result.apiState as AuthenticationSettingsApiState.Failure).operation,
+      )
+      assertEquals(2, fixture.requestedUrls.size)
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun discover_nonAdmin_doesNotSendHttpRequest() = runTest {
+    val fixture = fixture(UserType.User, responseBody = completeSettingsJson())
+    try {
+      val result = fixture.repository.discover(AuthenticationSettingsUiState())
+
+      assertEquals(AuthenticationSettingsState.AccessDenied, result.state)
+      assertTrue(fixture.requestedUrls.isEmpty())
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun save_openIdChangeShowsRestartRequiredAfterCanonicalReload() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses =
+          listOf(
+            Stub(200, completeSettingsJson()),
+            Stub(200, "{\"updated\":true}"),
+            Stub(200, completeSettingsJson()),
+          ),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val draft = loaded.draftSettings!!.copy(openId = loaded.draftSettings.openId.copy(clientId = "new-client"))
+      val saved =
+        fixture.repository.save(
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(),
+          )
+        )
+
+      assertTrue(saved.restartRequired)
+      assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
+      assertTrue(fixture.requestBodies[1]!!.contains("authOpenIDClientID"))
+      assertFalse(fixture.requestBodies[1]!!.contains("authOpenIDIssuerURL"))
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
   fun save_noChangesDoesNotSendPatch() = runTest {
     val fixture = fixture(UserType.Admin, responseBody = completeSettingsJson())
     try {
@@ -299,6 +463,19 @@ class AuthenticationSettingsRepositoryTest {
       "authOpenIDGroupClaim": "groups",
       "authOpenIDAdvancedPermsClaim": "permissions",
       "authOpenIDSamplePermissions": "{\"download\":true}"
+    }
+    """.trimIndent()
+
+  private fun issuerConfigurationJson(): String =
+    """
+    {
+      "issuer": "https://issuer.example.com/",
+      "authorization_endpoint": "https://issuer.example.com/authorize-new",
+      "token_endpoint": "https://issuer.example.com/token-new",
+      "userinfo_endpoint": "https://issuer.example.com/userinfo-new",
+      "end_session_endpoint": "https://issuer.example.com/logout-new",
+      "jwks_uri": "https://issuer.example.com/jwks-new",
+      "id_token_signing_alg_values_supported": ["RS256", "ES256"]
     }
     """.trimIndent()
 

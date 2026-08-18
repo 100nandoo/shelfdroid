@@ -2,9 +2,21 @@ package dev.halim.shelfdroid.core.data.screen.authenticationsettings
 
 import dev.halim.core.network.request.authenticationsettings.UpdateAuthenticationSettingsRequest
 import dev.halim.core.network.response.authenticationsettings.AuthenticationSettingsResponse
+import dev.halim.core.network.response.authenticationsettings.OpenIdIssuerConfigurationResponse
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 
 object AuthenticationSettingsMapper {
+
+  fun mapDiscovery(response: OpenIdIssuerConfigurationResponse): OpenIdDiscoveryResult =
+    OpenIdDiscoveryResult(
+      issuerUrl = response.issuer,
+      authorizationUrl = response.authorizationEndpoint,
+      tokenUrl = response.tokenEndpoint,
+      userInfoUrl = response.userInfoEndpoint,
+      jwksUrl = response.jwksUri,
+      logoutUrl = response.endSessionEndpoint,
+      signingAlgorithms = response.signingAlgorithms.distinct().filter(String::isNotBlank),
+    )
 
   fun map(response: AuthenticationSettingsResponse): AuthenticationSettingsSummary =
     AuthenticationSettingsSummary(
@@ -44,12 +56,76 @@ object AuthenticationSettingsMapper {
       draft.activeLoginMethods.normalizedMethods().takeIf {
         it != saved.activeLoginMethods.normalizedMethods()
       }
-    if (customMessage == null && methods == null) return null
+    val savedOpenId = saved.openId
+    val draftOpenId = draft.openId
+    if (customMessage == null && methods == null && !hasOpenIdProviderChanges(savedOpenId, draftOpenId)) {
+      return null
+    }
     return UpdateAuthenticationSettingsRequest(
       authLoginCustomMessage = customMessage,
       authActiveAuthMethods = methods?.map { it.toWireValue() },
+      authOpenIDIssuerURL = draftOpenId.issuerUrl.takeIf { it != savedOpenId.issuerUrl },
+      authOpenIDAuthorizationURL =
+        draftOpenId.authorizationUrl.takeIf { it != savedOpenId.authorizationUrl },
+      authOpenIDTokenURL = draftOpenId.tokenUrl.takeIf { it != savedOpenId.tokenUrl },
+      authOpenIDUserInfoURL = draftOpenId.userInfoUrl.takeIf { it != savedOpenId.userInfoUrl },
+      authOpenIDJwksURL = draftOpenId.jwksUrl.takeIf { it != savedOpenId.jwksUrl },
+      authOpenIDLogoutURL = draftOpenId.logoutUrl.takeIf { it != savedOpenId.logoutUrl },
+      authOpenIDClientID = draftOpenId.clientId.takeIf { it != savedOpenId.clientId },
+      authOpenIDTokenSigningAlgorithm =
+        draftOpenId.tokenSigningAlgorithm.takeIf {
+          it != savedOpenId.tokenSigningAlgorithm
+        },
     )
   }
+
+  fun hasOpenIdChanges(saved: AuthenticationSettingsForm, draft: AuthenticationSettingsForm): Boolean =
+    hasOpenIdProviderChanges(saved.openId, draft.openId)
+
+  private fun hasOpenIdProviderChanges(
+    saved: OpenIdSettingsSummary,
+    draft: OpenIdSettingsSummary,
+  ): Boolean =
+    saved.issuerUrl != draft.issuerUrl ||
+      saved.authorizationUrl != draft.authorizationUrl ||
+      saved.tokenUrl != draft.tokenUrl ||
+      saved.userInfoUrl != draft.userInfoUrl ||
+      saved.jwksUrl != draft.jwksUrl ||
+      saved.logoutUrl != draft.logoutUrl ||
+      saved.clientId != draft.clientId ||
+      saved.tokenSigningAlgorithm != draft.tokenSigningAlgorithm
+
+  fun mergeDiscovery(
+    current: AuthenticationSettingsSummary,
+    operationStart: AuthenticationSettingsSummary,
+    discovery: OpenIdDiscoveryResult,
+  ): AuthenticationSettingsSummary {
+    val draft = current.openId
+    val started = operationStart.openId
+    val discovered =
+      draft.copy(
+        issuerUrl = discoveredValue(draft.issuerUrl, started.issuerUrl, discovery.issuerUrl),
+        authorizationUrl =
+          discoveredValue(draft.authorizationUrl, started.authorizationUrl, discovery.authorizationUrl),
+        tokenUrl = discoveredValue(draft.tokenUrl, started.tokenUrl, discovery.tokenUrl),
+        userInfoUrl = discoveredValue(draft.userInfoUrl, started.userInfoUrl, discovery.userInfoUrl),
+        jwksUrl = discoveredValue(draft.jwksUrl, started.jwksUrl, discovery.jwksUrl),
+        logoutUrl = discoveredValue(draft.logoutUrl, started.logoutUrl, discovery.logoutUrl),
+        tokenSigningAlgorithm =
+          if (draft.tokenSigningAlgorithm == started.tokenSigningAlgorithm &&
+            discovery.signingAlgorithms.isNotEmpty() &&
+            draft.tokenSigningAlgorithm !in discovery.signingAlgorithms
+          ) {
+            discovery.signingAlgorithms.first()
+          } else {
+            draft.tokenSigningAlgorithm
+          },
+      )
+    return current.copy(openId = discovered)
+  }
+
+  private fun discoveredValue(current: String, started: String, discovered: String?): String =
+    if (current == started) discovered ?: current else current
 
   private fun String.toLoginMethodOrNull(): LoginMethod? =
     when (trim().lowercase()) {

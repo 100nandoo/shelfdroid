@@ -46,7 +46,9 @@ constructor(
         state = AuthenticationSettingsState.AccessDenied,
         savedSettings = null,
         draftSettings = null,
+        signingAlgorithmOptions = emptyList(),
         pendingConfirmation = null,
+        restartRequired = false,
       )
     }
 
@@ -54,6 +56,7 @@ constructor(
     val draft = uiState.draftSettings ?: return uiState
     val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)
       ?: return uiState.copy(apiState = AuthenticationSettingsApiState.Idle)
+    val restartRequired = AuthenticationSettingsMapper.hasOpenIdChanges(saved, draft)
 
     val response =
       api.updateAuthenticationSettings(request).getOrElse { error ->
@@ -62,7 +65,9 @@ constructor(
             state = AuthenticationSettingsState.AccessDenied,
             savedSettings = null,
             draftSettings = null,
+            signingAlgorithmOptions = emptyList(),
             pendingConfirmation = null,
+            restartRequired = false,
           )
         }
         return uiState.copy(
@@ -92,10 +97,89 @@ constructor(
       AuthenticationSettingsState.Loading -> canonical
       is AuthenticationSettingsState.Ready ->
         canonical.copy(
-          apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save)
+          apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save),
+          signingAlgorithmOptions = uiState.signingAlgorithmOptions,
+          restartRequired = uiState.restartRequired || restartRequired,
         )
     }
   }
+
+  /**
+   * Fetches provider metadata through Audiobookshelf. The server owns the request to the
+   * identity provider, so this call remains authenticated and respects the configured base path.
+   */
+  suspend fun discover(uiState: AuthenticationSettingsUiState): AuthenticationSettingsUiState {
+    val start = uiState.draftSettings ?: AuthenticationSettingsSummary()
+    return discover(uiState, start)
+  }
+
+  suspend fun discover(
+    uiState: AuthenticationSettingsUiState,
+    operationStart: AuthenticationSettingsSummary,
+  ): AuthenticationSettingsUiState {
+    if (!adminDestinationGuard.canAccess()) {
+      return uiState.copy(
+        state = AuthenticationSettingsState.AccessDenied,
+        savedSettings = null,
+        draftSettings = null,
+        signingAlgorithmOptions = emptyList(),
+        pendingConfirmation = null,
+        restartRequired = false,
+      )
+    }
+
+    val draft = uiState.draftSettings ?: return uiState
+    val issuer = operationStart.openId.issuerUrl.trim()
+    if (issuer.isEmpty()) {
+      return uiState.copy(
+        state = AuthenticationSettingsState.Ready(draft),
+        apiState =
+          AuthenticationSettingsApiState.Failure(
+            AuthenticationSettingsOperation.Discovery,
+            "Issuer URL is required.",
+          ),
+      )
+    }
+
+    val response = api.openIdIssuerConfiguration(issuer).getOrElse { error ->
+      if (error is HttpException && error.code() == 403) {
+        return uiState.copy(
+          state = AuthenticationSettingsState.AccessDenied,
+          savedSettings = null,
+          draftSettings = null,
+          signingAlgorithmOptions = emptyList(),
+          pendingConfirmation = null,
+          restartRequired = false,
+        )
+      }
+      return uiState.copy(
+        state = AuthenticationSettingsState.Ready(draft),
+        apiState =
+          AuthenticationSettingsApiState.Failure(
+            AuthenticationSettingsOperation.Discovery,
+            error.message,
+          ),
+      )
+    }
+
+    val discovery = AuthenticationSettingsMapper.mapDiscovery(response)
+    val merged =
+      AuthenticationSettingsMapper.mergeDiscovery(
+        current = draft,
+        operationStart = operationStart,
+        discovery = discovery,
+      )
+    return uiState.copy(
+      state = AuthenticationSettingsState.Ready(merged),
+      draftSettings = merged,
+      signingAlgorithmOptions = discovery.signingAlgorithms,
+      validation = merged.validation(),
+      apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery),
+    )
+  }
+
+  suspend fun discoverIssuer(uiState: AuthenticationSettingsUiState): AuthenticationSettingsUiState =
+    discover(uiState)
 
   suspend fun saveSettings(uiState: AuthenticationSettingsUiState): AuthenticationSettingsUiState =
     save(uiState)

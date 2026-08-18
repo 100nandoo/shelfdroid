@@ -30,12 +30,14 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsConfirmation
+import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsOperation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
@@ -45,6 +47,9 @@ import dev.halim.shelfdroid.core.data.screen.authenticationsettings.canSave
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
+import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.LabelPosition
+import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleLarge
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
@@ -242,8 +247,18 @@ private fun ReadyEditorContent(
     }
 
     Spacer(modifier = Modifier.height(24.dp))
+    OpenIdProviderEditor(
+      settings = draft.openId,
+      signingAlgorithmOptions = uiState.signingAlgorithmOptions,
+      enabled = enabled,
+      discoveryState = uiState.apiState,
+      onEvent = onEvent,
+    )
+
+    Spacer(modifier = Modifier.height(24.dp))
+    val successState = uiState.apiState as? AuthenticationSettingsApiState.Success
     if (
-      uiState.apiState is AuthenticationSettingsApiState.Success ||
+      successState?.operation == AuthenticationSettingsOperation.Save ||
         uiState.apiState is AuthenticationSettingsApiState.Rejected
     ) {
       Text(
@@ -256,7 +271,7 @@ private fun ReadyEditorContent(
             else -> ""
           },
         color =
-          if (uiState.apiState is AuthenticationSettingsApiState.Success) {
+          if (successState?.operation == AuthenticationSettingsOperation.Save) {
             MaterialTheme.colorScheme.primary
           } else MaterialTheme.colorScheme.error,
       )
@@ -266,6 +281,13 @@ private fun ReadyEditorContent(
       Text(
         text =
           apiState.message ?: stringResource(R.string.authentication_settings_save_failed),
+        color = MaterialTheme.colorScheme.error,
+      )
+    }
+    if (uiState.restartRequired) {
+      Text(
+        text = stringResource(R.string.authentication_restart_required),
+        modifier = Modifier.padding(top = 8.dp),
         color = MaterialTheme.colorScheme.error,
       )
     }
@@ -287,6 +309,137 @@ private fun ReadyEditorContent(
       }
     }
   }
+}
+
+@Composable
+private fun OpenIdProviderEditor(
+  settings: dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary,
+  signingAlgorithmOptions: List<String>,
+  enabled: Boolean,
+  discoveryState: AuthenticationSettingsApiState,
+  onEvent: (AuthenticationSettingsEvent) -> Unit,
+) {
+  TextTitleMedium(text = stringResource(R.string.authentication_openid_provider))
+  val update: ((dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary) -> dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary) -> Unit = { transform ->
+    onEvent(
+      AuthenticationSettingsEvent.UpdateDraftSettings { summary ->
+        summary.copy(openId = transform(summary.openId))
+      }
+    )
+  }
+  MyOutlinedTextField(
+    value = settings.issuerUrl,
+    onValueChange = { changed -> update { openId -> openId.copy(issuerUrl = changed) } },
+    label = stringResource(R.string.authentication_issuer_url),
+    enabled = enabled,
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+  )
+  Button(
+    enabled = enabled && settings.issuerUrl.isNotBlank(),
+    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+    onClick = { onEvent(AuthenticationSettingsEvent.DiscoverOpenId) },
+  ) {
+    Text(
+      if (discoveryState is AuthenticationSettingsApiState.Loading &&
+        discoveryState.operation == AuthenticationSettingsOperation.Discovery
+      ) stringResource(R.string.authentication_openid_discovering)
+      else stringResource(R.string.authentication_openid_discover)
+    )
+  }
+  OpenIdEndpointField(
+    label = stringResource(R.string.authentication_authorization_url),
+    value = settings.authorizationUrl,
+    enabled = enabled,
+    onValueChange = { changed -> update { openId -> openId.copy(authorizationUrl = changed) } },
+  )
+  OpenIdEndpointField(
+    label = stringResource(R.string.authentication_token_url),
+    value = settings.tokenUrl,
+    enabled = enabled,
+    onValueChange = { changed -> update { openId -> openId.copy(tokenUrl = changed) } },
+  )
+  OpenIdEndpointField(
+    label = stringResource(R.string.authentication_userinfo_url),
+    value = settings.userInfoUrl,
+    enabled = enabled,
+    onValueChange = { changed -> update { openId -> openId.copy(userInfoUrl = changed) } },
+  )
+  OpenIdEndpointField(
+    label = stringResource(R.string.authentication_jwks_url),
+    value = settings.jwksUrl,
+    enabled = enabled,
+    onValueChange = { changed -> update { openId -> openId.copy(jwksUrl = changed) } },
+  )
+  OpenIdEndpointField(
+    label = stringResource(R.string.authentication_logout_url),
+    value = settings.logoutUrl,
+    enabled = enabled,
+    onValueChange = { changed -> update { openId -> openId.copy(logoutUrl = changed) } },
+  )
+  MyOutlinedTextField(
+    modifier = Modifier.padding(top = 12.dp),
+    value = settings.clientId,
+    onValueChange = { changed -> update { openId -> openId.copy(clientId = changed) } },
+    label = stringResource(R.string.authentication_client_id),
+    enabled = enabled,
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+  )
+  if (signingAlgorithmOptions.isNotEmpty()) {
+    ChipDropdownMenu(
+      modifier = Modifier.padding(top = 12.dp),
+      options = signingAlgorithmOptions,
+      label = stringResource(R.string.authentication_signing_algorithm),
+      labelPosition = LabelPosition.Top,
+      initialValue = settings.tokenSigningAlgorithm,
+      enabled = enabled,
+      onClick = { selected -> update { it.copy(tokenSigningAlgorithm = selected) } },
+    )
+  } else {
+    MyOutlinedTextField(
+      modifier = Modifier.padding(top = 12.dp),
+      value = settings.tokenSigningAlgorithm,
+      onValueChange = { changed -> update { openId -> openId.copy(tokenSigningAlgorithm = changed) } },
+      label = stringResource(R.string.authentication_signing_algorithm),
+      enabled = enabled,
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+    )
+  }
+  if (signingAlgorithmOptions.isNotEmpty()) {
+    Text(
+      text =
+        stringResource(
+          R.string.authentication_openid_discovery_algorithms,
+        ) + ": " + signingAlgorithmOptions.joinToString(),
+      modifier = Modifier.padding(top = 8.dp),
+      style = MaterialTheme.typography.bodyMedium,
+    )
+  }
+  if (discoveryState is AuthenticationSettingsApiState.Failure &&
+    discoveryState.operation == AuthenticationSettingsOperation.Discovery
+  ) {
+    Text(
+      text = discoveryState.message ?: stringResource(R.string.authentication_openid_discovery_failed),
+      modifier = Modifier.padding(top = 8.dp),
+      color = MaterialTheme.colorScheme.error,
+    )
+  }
+}
+
+@Composable
+private fun OpenIdEndpointField(
+  label: String,
+  value: String,
+  enabled: Boolean,
+  onValueChange: (String) -> Unit,
+) {
+  MyOutlinedTextField(
+    modifier = Modifier.padding(top = 12.dp),
+    value = value,
+    onValueChange = onValueChange,
+    label = label,
+    enabled = enabled,
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+  )
 }
 
 @Composable

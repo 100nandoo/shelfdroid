@@ -60,6 +60,47 @@ class AuthenticationSettingsFormTest {
   }
 
   @Test
+  fun toUpdateRequest_changesOnlyEditedOpenIdFields() {
+    val saved = form(message = "", methods = listOf(LoginMethod.Local))
+    val draft =
+      saved.copy(
+        openId = saved.openId.copy(
+          issuerUrl = "https://new-issuer.example",
+          clientId = "new-client",
+        )
+      )
+
+    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
+
+    assertEquals("https://new-issuer.example", request.authOpenIDIssuerURL)
+    assertEquals("new-client", request.authOpenIDClientID)
+    assertNull(request.authOpenIDAuthorizationURL)
+    assertNull(request.authOpenIDTokenURL)
+    assertNull(request.authOpenIDTokenSigningAlgorithm)
+    assertEquals(
+      "{\"authOpenIDIssuerURL\":\"https://new-issuer.example\",\"authOpenIDClientID\":\"new-client\"}",
+      Json { explicitNulls = false }.encodeToString(request),
+    )
+  }
+
+  @Test
+  fun toUpdateRequest_ignoresNonProviderOpenIdFields() {
+    val saved = form(message = "", methods = listOf(LoginMethod.Local))
+    val draft =
+      saved.copy(
+        openId =
+          saved.openId.copy(
+            clientSecretConfigured = !saved.openId.clientSecretConfigured,
+            mobileRedirectUris = listOf("shelfdroid://oauth"),
+            buttonText = "Edited button",
+          )
+      )
+
+    assertNull(AuthenticationSettingsMapper.toUpdateRequest(saved, draft))
+    assertFalse(AuthenticationSettingsMapper.hasOpenIdChanges(saved, draft))
+  }
+
+  @Test
   fun requestSerialization_omitsUnchangedFields() {
     val request =
       AuthenticationSettingsMapper.toUpdateRequest(
@@ -93,6 +134,43 @@ class AuthenticationSettingsFormTest {
       AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete in
         incompleteOpenId.validation().errors
     )
+  }
+
+  @Test
+  fun mergeDiscovery_updatesProviderFieldsAndKeepsUnrelatedDraftValues() {
+    val start = form(message = "", methods = listOf(LoginMethod.Local))
+    val draft =
+      start.copy(
+        openId =
+          start.openId.copy(
+            clientId = "edited-client",
+            mobileRedirectUris = listOf("audiobookshelf://oauth"),
+            buttonText = "Use company login",
+          )
+      )
+
+    val merged =
+      AuthenticationSettingsMapper.mergeDiscovery(
+        current = draft,
+        operationStart = start,
+        discovery =
+          OpenIdDiscoveryResult(
+            issuerUrl = "https://issuer.example/normalized",
+            authorizationUrl = "https://issuer.example/authorize-new",
+            tokenUrl = "https://issuer.example/token-new",
+            userInfoUrl = "https://issuer.example/userinfo-new",
+            jwksUrl = "https://issuer.example/jwks-new",
+            logoutUrl = "https://issuer.example/logout-new",
+            signingAlgorithms = listOf("RS256", "ES256"),
+          ),
+      )
+
+    assertEquals("https://issuer.example/normalized", merged.openId.issuerUrl)
+    assertEquals("https://issuer.example/authorize-new", merged.openId.authorizationUrl)
+    assertEquals("edited-client", merged.openId.clientId)
+    assertEquals(listOf("audiobookshelf://oauth"), merged.openId.mobileRedirectUris)
+    assertEquals("Use company login", merged.openId.buttonText)
+    assertEquals("RS256", merged.openId.tokenSigningAlgorithm)
   }
 
   private fun form(

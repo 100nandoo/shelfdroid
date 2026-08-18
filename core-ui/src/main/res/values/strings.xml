@@ -183,6 +183,11 @@
     <string name="authentication_settings_saved">Authentication settings saved.</string>
     <string name="authentication_settings_rejected">The server skipped this update. No Authentication settings were changed.</string>
     <string name="authentication_settings_save_failed">Could not save Authentication settings.</string>
+    <string name="authentication_openid_discover">Auto-populate from issuer</string>
+    <string name="authentication_openid_discovering">Discovering OpenID provider…</string>
+    <string name="authentication_openid_discovery_failed">Could not discover the OpenID provider.</string>
+    <string name="authentication_openid_discovery_algorithms">Supported signing algorithms</string>
+    <string name="authentication_restart_required">Restart the Audiobookshelf server for all OpenID changes to take effect.</string>
     <string name="continue_text">Continue</string>
     <string name="configured">Configured</string>
     <string name="not_configured">Not configured</string>

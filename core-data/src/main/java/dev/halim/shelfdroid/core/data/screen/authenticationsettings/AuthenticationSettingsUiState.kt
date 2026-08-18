@@ -6,10 +6,14 @@ data class AuthenticationSettingsUiState(
   val state: AuthenticationSettingsState = AuthenticationSettingsState.Loading,
   val savedSettings: AuthenticationSettingsForm? = null,
   val draftSettings: AuthenticationSettingsForm? = null,
+  /** Algorithms offered by the most recent successful issuer discovery. */
+  val signingAlgorithmOptions: List<String> = emptyList(),
   val apiState: AuthenticationSettingsApiState = AuthenticationSettingsApiState.Idle,
   val validation: AuthenticationSettingsValidation = AuthenticationSettingsValidation(),
   val pendingConfirmation: AuthenticationSettingsConfirmation? = null,
   val leaveRequested: Boolean = false,
+  /** Remains visible after an accepted OIDC update until the screen is left or reset. */
+  val restartRequired: Boolean = false,
 )
 
 val AuthenticationSettingsUiState.hasChanges: Boolean
@@ -39,6 +43,7 @@ data class AuthenticationSettingsSummary(
 
 enum class AuthenticationSettingsOperation {
   Load,
+  Discovery,
   Save,
 }
 
@@ -122,4 +127,14 @@ data class OpenIdSettingsSummary(
   val groupClaim: String = "",
   val advancedPermsClaim: String = "",
   val samplePermissions: String = "",
+)
+
+data class OpenIdDiscoveryResult(
+  val issuerUrl: String? = null,
+  val authorizationUrl: String? = null,
+  val tokenUrl: String? = null,
+  val userInfoUrl: String? = null,
+  val jwksUrl: String? = null,
+  val logoutUrl: String? = null,
+  val signingAlgorithms: List<String> = emptyList(),
 )
