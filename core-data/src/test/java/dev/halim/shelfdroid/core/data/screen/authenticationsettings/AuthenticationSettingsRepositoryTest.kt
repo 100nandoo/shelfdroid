@@ -26,6 +26,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import okio.Buffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -123,10 +124,99 @@ class AuthenticationSettingsRepositoryTest {
     }
   }
 
+  @Test
+  fun save_noChangesDoesNotSendPatch() = runTest {
+    val fixture = fixture(UserType.Admin, responseBody = completeSettingsJson())
+    try {
+      val loaded = fixture.repository.load()
+      val saved = fixture.repository.save(loaded)
+
+      assertEquals(loaded.savedSettings, saved.savedSettings)
+      assertEquals(1, fixture.requestedUrls.size)
+      assertTrue(saved.apiState is AuthenticationSettingsApiState.Idle)
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun save_partialPatchReloadsCanonicalSettings() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses =
+          listOf(
+            Stub(200, completeSettingsJson()),
+            Stub(200, "{\"updated\":true}"),
+            Stub(
+              200,
+              completeSettingsJson()
+                .replace("<p>Welcome</p>", "<p>Canonical</p>")
+                .replace("[\"local\", \"openid\"]", "[\"openid\"]"),
+            ),
+          ),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val draft =
+        loaded.draftSettings!!.copy(
+          customMessage = "<p>Changed</p>",
+          customMessageEnabled = true,
+        )
+      val saved =
+        fixture.repository.save(
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(),
+          )
+        )
+
+      assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
+      assertEquals("<p>Canonical</p>", saved.draftSettings?.customMessage)
+      assertEquals(3, fixture.requestedUrls.size)
+      assertEquals(
+        "{\"authLoginCustomMessage\":\"<p>Changed</p>\"}",
+        fixture.requestBodies[1],
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun save_updatedFalseSurfacesRejectedWithoutReload() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses = listOf(Stub(200, completeSettingsJson()), Stub(200, "{\"updated\":false}")),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val draft = loaded.draftSettings!!.copy(customMessage = "<p>Changed</p>")
+      val saved =
+        fixture.repository.save(
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(),
+          )
+        )
+
+      assertEquals(AuthenticationSettingsApiState.Rejected, saved.apiState)
+      assertEquals(2, fixture.requestedUrls.size)
+    } finally {
+      fixture.close()
+    }
+  }
+
   private fun fixture(
     type: UserType,
     responseCode: Int = 200,
     responseBody: String,
+    responses: List<Stub> = listOf(Stub(responseCode, responseBody)),
   ): Fixture {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val file = Files.createTempFile("authentication-settings", ".preferences_pb").toFile()
@@ -139,13 +229,19 @@ class AuthenticationSettingsRepositoryTest {
       )
     }
     val requestedUrls = mutableListOf<String>()
+    val requestBodies = mutableListOf<String?>()
     val client =
       OkHttpClient.Builder()
         .cookieJar(SessionCookieJar())
         .addInterceptor(HostSelectionInterceptor(dataStoreManager))
         .addInterceptor { chain ->
+          val requestIndex = requestedUrls.size
           requestedUrls += chain.request().url.toString()
-          response(chain.request(), responseCode, responseBody)
+          requestBodies += chain.request().body?.let { body ->
+            Buffer().also { buffer -> body.writeTo(buffer) }.readUtf8()
+          }
+          val stub = responses.getOrElse(requestIndex) { responses.last() }
+          response(chain.request(), stub.code, stub.body)
         }
         .build()
     val json =
@@ -168,7 +264,7 @@ class AuthenticationSettingsRepositoryTest {
         api = api,
         adminDestinationGuard = AdminDestinationGuard(PrefsRepository(dataStoreManager)),
       )
-    return Fixture(repository, dataStoreManager, requestedUrls, scope, file)
+    return Fixture(repository, dataStoreManager, requestedUrls, requestBodies, scope, file)
   }
 
   private fun response(request: Request, code: Int, body: String): Response =
@@ -210,6 +306,7 @@ class AuthenticationSettingsRepositoryTest {
     val repository: AuthenticationSettingsRepository,
     val dataStoreManager: DataStoreManager,
     val requestedUrls: MutableList<String>,
+    val requestBodies: MutableList<String?>,
     val scope: CoroutineScope,
     val file: File,
   ) {
@@ -218,4 +315,6 @@ class AuthenticationSettingsRepositoryTest {
       file.delete()
     }
   }
+
+  private data class Stub(val code: Int, val body: String)
 }

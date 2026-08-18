@@ -29,6 +29,7 @@ import dev.halim.core.network.request.apprisenotificationsettings.NotificationRu
 import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEmailSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEreaderDevicesRequest
+import dev.halim.core.network.request.authenticationsettings.UpdateAuthenticationSettingsRequest
 import dev.halim.core.network.response.ApiKeysResponse
 import dev.halim.core.network.response.BackupsResponse
 import dev.halim.core.network.response.BatchLibraryItemsResponse
@@ -66,6 +67,7 @@ import dev.halim.core.network.response.UsersResponse
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettings
 import dev.halim.core.network.response.apprisenotificationsettings.AppriseNotificationSettingsResponse
 import dev.halim.core.network.response.authenticationsettings.AuthenticationSettingsResponse
+import dev.halim.core.network.response.authenticationsettings.UpdateAuthenticationSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EmailSettingsResponse
 import dev.halim.core.network.response.emailmanagement.EreaderDevicesResponse
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
@@ -408,6 +410,11 @@ interface ApiService {
   // settings
   @GET("api/auth-settings")
   suspend fun authenticationSettings(): Result<AuthenticationSettingsResponse>
+
+  @PATCH("api/auth-settings")
+  suspend fun updateAuthenticationSettings(
+    @Body request: UpdateAuthenticationSettingsRequest
+  ): Result<UpdateAuthenticationSettingsResponse>
 
   @PATCH("/api/settings")
   suspend fun updateSettings(

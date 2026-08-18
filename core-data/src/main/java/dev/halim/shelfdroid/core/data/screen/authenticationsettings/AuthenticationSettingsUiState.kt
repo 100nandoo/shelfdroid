@@ -4,7 +4,21 @@ import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 
 data class AuthenticationSettingsUiState(
   val state: AuthenticationSettingsState = AuthenticationSettingsState.Loading,
+  val savedSettings: AuthenticationSettingsForm? = null,
+  val draftSettings: AuthenticationSettingsForm? = null,
+  val apiState: AuthenticationSettingsApiState = AuthenticationSettingsApiState.Idle,
+  val validation: AuthenticationSettingsValidation = AuthenticationSettingsValidation(),
+  val pendingConfirmation: AuthenticationSettingsConfirmation? = null,
+  val leaveRequested: Boolean = false,
 )
+
+val AuthenticationSettingsUiState.hasChanges: Boolean
+  get() = savedSettings != null && draftSettings != null && savedSettings != draftSettings
+
+val AuthenticationSettingsUiState.canSave: Boolean
+  get() = hasChanges && validation.isValid && apiState !is AuthenticationSettingsApiState.Loading
+
+typealias AuthenticationSettingsForm = AuthenticationSettingsSummary
 
 sealed interface AuthenticationSettingsState {
   data object Loading : AuthenticationSettingsState
@@ -18,9 +32,76 @@ sealed interface AuthenticationSettingsState {
 
 data class AuthenticationSettingsSummary(
   val customMessageEnabled: Boolean = false,
+  val customMessage: String = "",
   val activeLoginMethods: List<LoginMethod> = emptyList(),
   val openId: OpenIdSettingsSummary = OpenIdSettingsSummary(),
 )
+
+enum class AuthenticationSettingsOperation {
+  Load,
+  Save,
+}
+
+sealed interface AuthenticationSettingsApiState {
+  data object Idle : AuthenticationSettingsApiState
+
+  data class Loading(val operation: AuthenticationSettingsOperation) :
+    AuthenticationSettingsApiState
+
+  data class Success(val operation: AuthenticationSettingsOperation) :
+    AuthenticationSettingsApiState
+
+  data class Failure(
+    val operation: AuthenticationSettingsOperation,
+    val message: String?,
+  ) : AuthenticationSettingsApiState
+
+  data object Rejected : AuthenticationSettingsApiState
+}
+
+enum class AuthenticationSettingsValidationError {
+  NoLoginMethod,
+  OpenIdConfigurationIncomplete,
+}
+
+data class AuthenticationSettingsValidation(
+  val errors: Set<AuthenticationSettingsValidationError> = emptySet(),
+) {
+  val isValid: Boolean
+    get() = errors.isEmpty()
+}
+
+enum class AuthenticationSettingsConfirmation {
+  DisablePasswordSignIn,
+  LeaveWithUnsavedChanges,
+}
+
+fun AuthenticationSettingsSummary.validation(): AuthenticationSettingsValidation {
+  val errors = buildSet {
+    if (activeLoginMethods.isEmpty()) {
+      add(AuthenticationSettingsValidationError.NoLoginMethod)
+    }
+    if (
+      LoginMethod.OpenId in activeLoginMethods &&
+        !openId.hasStructurallyValidConfiguration()
+    ) {
+      add(AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete)
+    }
+  }
+  return AuthenticationSettingsValidation(errors)
+}
+
+fun AuthenticationSettingsSummary.isOpenIdConfigurationValid(): Boolean =
+  openId.hasStructurallyValidConfiguration()
+
+private fun OpenIdSettingsSummary.hasStructurallyValidConfiguration(): Boolean =
+  issuerUrl.isNotBlank() &&
+    authorizationUrl.isNotBlank() &&
+    tokenUrl.isNotBlank() &&
+    userInfoUrl.isNotBlank() &&
+    jwksUrl.isNotBlank() &&
+    clientId.isNotBlank() &&
+    tokenSigningAlgorithm.isNotBlank()
 
 data class OpenIdSettingsSummary(
   val issuerUrl: String = "",

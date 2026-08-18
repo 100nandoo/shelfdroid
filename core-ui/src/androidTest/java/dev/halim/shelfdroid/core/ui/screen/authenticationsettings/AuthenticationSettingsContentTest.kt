@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.ui.screen.authenticationsettings
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -9,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
+import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import org.junit.Assert.assertTrue
@@ -94,5 +96,33 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("Back").assertIsDisplayed().performClick()
 
     assertTrue(wentBack)
+  }
+
+  @Test
+  fun editorState_preservesHtmlPreviewAndDisablesCleanSave() {
+    val settings =
+      AuthenticationSettingsSummary(
+        customMessageEnabled = true,
+        customMessage = "<p>Welcome <strong>back</strong></p>",
+        activeLoginMethods = listOf(LoginMethod.Local),
+      )
+    val uiState =
+      AuthenticationSettingsUiState(
+        state = AuthenticationSettingsState.Ready(settings),
+        savedSettings = settings,
+        draftSettings = settings,
+      )
+
+    composeRule.setContent {
+      AuthenticationSettingsContent(
+        state = uiState.state,
+        uiState = uiState,
+      )
+    }
+
+    composeRule.onNodeWithText("Custom message HTML").assertIsDisplayed()
+    composeRule.onNodeWithText("<p>Welcome <strong>back</strong></p>").assertIsDisplayed()
+    composeRule.onNodeWithText("Welcome back").assertIsDisplayed()
+    composeRule.onNodeWithText("Save").assertIsNotEnabled()
   }
 }

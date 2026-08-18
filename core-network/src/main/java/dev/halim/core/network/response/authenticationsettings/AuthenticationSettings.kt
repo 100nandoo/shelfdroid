@@ -27,3 +27,8 @@ data class AuthenticationSettingsResponse(
   @SerialName("authOpenIDAdvancedPermsClaim") val authOpenIDAdvancedPermsClaim: String? = null,
   @SerialName("authOpenIDSamplePermissions") val authOpenIDSamplePermissions: String = "",
 )
+
+@Serializable
+data class UpdateAuthenticationSettingsResponse(
+  @SerialName("updated") val updated: Boolean = false,
+)
