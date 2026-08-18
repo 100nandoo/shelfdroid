@@ -168,6 +168,12 @@ _Avoid_: Episode check schedule, cron, podcast sync timer
 
 ### Authentication
 
+**Authentication settings**:
+The server-wide configuration that determines available **Login methods**, login-facing messaging,
+and OpenID provider and User-mapping behavior. It is managed separately from **Users** and broader
+**Server settings**.
+_Avoid_: Auth settings, login settings, authentication management
+
 **Login method**:
 A server-advertised way for a **User** to start sign-in to an **Audiobookshelf server**, such as **Local login** or **OpenID login**.
 _Avoid_: Auth method, auth mode, provider
@@ -258,6 +264,8 @@ _Avoid_: Best-effort release, unverifiable build
 - **Server settings** belong to the **Audiobookshelf server**
 - **Email settings** belong to the **Audiobookshelf server**
 - **Apprise notification settings** belong to the **Audiobookshelf server**
+- **Authentication settings** belong to the **Audiobookshelf server**
+- **Authentication settings** determine the available **Login methods**
 - A **Notification rule** belongs to **Apprise notification settings**
 - A **Notification rule** listens for one **Notification event**
 - An **E-reader device** belongs to **Email settings**
