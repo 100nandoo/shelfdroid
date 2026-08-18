@@ -167,6 +167,7 @@
     <string name="authentication_mobile_redirect_uri_number">Mobile redirect URI %1$d</string>
     <string name="authentication_mobile_redirect_uri_new">New mobile redirect URI</string>
     <string name="authentication_remove_mobile_redirect_uri">Remove</string>
+    <string name="authentication_remove_mobile_redirect_uri_number">Remove mobile redirect URI %1$d</string>
     <string name="authentication_add_mobile_redirect_uri">Add</string>
     <string name="authentication_web_callback_url">Effective web callback URL</string>
     <string name="authentication_mobile_callback_url">Effective mobile callback URL</string>

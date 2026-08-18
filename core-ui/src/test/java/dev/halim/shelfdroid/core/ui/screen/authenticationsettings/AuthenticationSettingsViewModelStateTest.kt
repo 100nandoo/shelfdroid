@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -428,6 +429,165 @@ class AuthenticationSettingsViewModelStateTest {
       )
     )
     advanceUntilIdle()
+    collection.cancelAndJoin()
+  }
+
+  @Test
+  fun saveInFlight_disablesDuplicateSaveAndSerializesCompletion() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val original = settings()
+    val saveGate = CompletableDeferred<Unit>()
+    var saveCount = 0
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = { readyState(original, original) },
+        saveOperation = {
+          saveCount += 1
+          saveGate.await()
+          it
+        },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(AuthenticationSettingsEvent.UpdateCustomMessage("<p>Changed</p>"))
+    viewModel.onEvent(AuthenticationSettingsEvent.SaveSettings)
+    assertEquals(
+      AuthenticationSettingsApiState.Loading(AuthenticationSettingsOperation.Save),
+      viewModel.uiState.value.apiState,
+    )
+    viewModel.onEvent(AuthenticationSettingsEvent.SaveSettings)
+    assertEquals(1, saveCount)
+
+    saveGate.complete(Unit)
+    advanceUntilIdle()
+    assertEquals(1, saveCount)
+    assertEquals(AuthenticationSettingsApiState.Idle, viewModel.uiState.value.apiState)
+    collection.cancelAndJoin()
+  }
+
+  @Test
+  fun staleLoadResult_cannotOverwriteNewerRetry() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val firstLoadGate = CompletableDeferred<Unit>()
+    val secondLoadGate = CompletableDeferred<Unit>()
+    val first = settings().copy(customMessage = "first")
+    val second = settings().copy(customMessage = "second")
+    var loadCount = 0
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = {
+          val currentLoad = ++loadCount
+          if (currentLoad == 1) firstLoadGate.await() else secondLoadGate.await()
+          readyState(if (currentLoad == 1) first else second, if (currentLoad == 1) first else second)
+        },
+        saveOperation = { it },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    runCurrent()
+    assertEquals(1, loadCount)
+
+    viewModel.onEvent(AuthenticationSettingsEvent.Retry)
+    assertEquals(
+      AuthenticationSettingsApiState.Loading(AuthenticationSettingsOperation.Load),
+      viewModel.uiState.value.apiState,
+    )
+    firstLoadGate.complete(Unit)
+    runCurrent()
+    assertEquals(2, loadCount)
+    assertEquals(null, viewModel.uiState.value.draftSettings)
+
+    secondLoadGate.complete(Unit)
+    advanceUntilIdle()
+    assertEquals("second", viewModel.uiState.value.draftSettings?.customMessage)
+    collection.cancelAndJoin()
+  }
+
+  @Test
+  fun staleDiscoveryResult_cannotOverwriteNewerLoad() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val discoveryGate = CompletableDeferred<Unit>()
+    val discoveryStarted = CompletableDeferred<Unit>()
+    val loadGate = CompletableDeferred<Unit>()
+    val original = settings().copy(openId = validOpenId())
+    val staleDiscovery = original.copy(customMessage = "stale discovery")
+    val latest = original.copy(customMessage = "latest load")
+    var loadCount = 0
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = {
+          val currentLoad = ++loadCount
+          if (currentLoad > 1) loadGate.await()
+          readyState(
+            if (currentLoad == 1) original else latest,
+            if (currentLoad == 1) original else latest,
+          )
+        },
+        saveOperation = { it },
+        discoverOperation = {
+          discoveryStarted.complete(Unit)
+          discoveryGate.await()
+          readyState(staleDiscovery, staleDiscovery).copy(
+            apiState = AuthenticationSettingsApiState.Success(
+              AuthenticationSettingsOperation.Discovery,
+            ),
+          )
+        },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(AuthenticationSettingsEvent.DiscoverOpenId)
+    runCurrent()
+    assertTrue(discoveryStarted.isCompleted)
+    viewModel.onEvent(AuthenticationSettingsEvent.Retry)
+    discoveryGate.complete(Unit)
+    runCurrent()
+    assertEquals(
+      AuthenticationSettingsApiState.Loading(AuthenticationSettingsOperation.Load),
+      viewModel.uiState.value.apiState,
+    )
+    assertEquals(original.customMessage, viewModel.uiState.value.draftSettings?.customMessage)
+
+    loadGate.complete(Unit)
+    advanceUntilIdle()
+    assertEquals("latest load", viewModel.uiState.value.draftSettings?.customMessage)
+    collection.cancelAndJoin()
+  }
+
+  @Test
+  fun accessDeniedResult_discardsReplacementSecretAndSettings() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val original = settings()
+    val denied =
+      AuthenticationSettingsUiState(
+        state = AuthenticationSettingsState.AccessDenied,
+        apiState = AuthenticationSettingsApiState.Failure(
+          AuthenticationSettingsOperation.Discovery,
+          "Forbidden",
+        ),
+      )
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = { readyState(original, original) },
+        saveOperation = { it },
+        discoverOperation = { denied },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(AuthenticationSettingsEvent.UpdateClientSecret("replacement-secret"))
+    viewModel.onEvent(AuthenticationSettingsEvent.DiscoverOpenId)
+    advanceUntilIdle()
+
+    assertEquals(AuthenticationSettingsState.AccessDenied, viewModel.uiState.value.state)
+    assertEquals(null, viewModel.uiState.value.draftSettings)
+    assertEquals("", viewModel.clientSecretReplacement.value)
+    assertFalse(viewModel.uiState.value.clientSecretChangePending)
     collection.cancelAndJoin()
   }
 

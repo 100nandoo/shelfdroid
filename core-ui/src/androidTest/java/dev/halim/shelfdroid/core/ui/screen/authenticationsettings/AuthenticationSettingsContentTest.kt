@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -192,5 +193,36 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("Configured").assertExists()
     composeRule.onNodeWithText("Clear client secret").assertExists()
     composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
+  }
+
+  @Test
+  fun editorActions_haveAccessibleLabels() {
+    val settings =
+      AuthenticationSettingsSummary(
+        activeLoginMethods = listOf(LoginMethod.Local),
+        openId =
+          OpenIdSettingsSummary(
+            mobileRedirectUris = listOf("audiobookshelf://oauth"),
+          ),
+      )
+    val uiState =
+      AuthenticationSettingsUiState(
+        state = AuthenticationSettingsState.Ready(settings),
+        savedSettings = settings,
+        draftSettings = settings,
+      )
+
+    composeRule.setContent {
+      AuthenticationSettingsContent(
+        state = uiState.state,
+        uiState = uiState,
+      )
+    }
+
+    composeRule.onNodeWithContentDescription("Username and password").assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("OpenID login").assertIsDisplayed()
+    composeRule
+      .onNodeWithContentDescription("Remove mobile redirect URI 1")
+      .assertExists()
   }
 }

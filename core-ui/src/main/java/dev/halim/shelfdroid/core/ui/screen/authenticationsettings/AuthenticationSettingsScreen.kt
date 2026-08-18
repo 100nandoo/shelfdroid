@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,6 +36,10 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,6 +54,7 @@ import dev.halim.shelfdroid.core.data.screen.authenticationsettings.OPENID_MATCH
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.callbackUrls
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.hasChanges
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.canSave
+import dev.halim.shelfdroid.core.data.screen.authenticationsettings.validation
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.ui.R
@@ -191,7 +197,11 @@ private fun ReadyEditorContent(
   val draft = uiState.draftSettings ?: return
   val enabled = uiState.apiState !is AuthenticationSettingsApiState.Loading
   Column(
-    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+    modifier =
+      Modifier.fillMaxSize()
+        .verticalScroll(rememberScrollState())
+        .imePadding()
+        .padding(16.dp),
   ) {
     TextTitleLarge(text = stringResource(R.string.authentication_settings))
     Spacer(modifier = Modifier.height(20.dp))
@@ -255,7 +265,9 @@ private fun ReadyEditorContent(
     uiState.validation.errors.forEach { error ->
       Text(
         text = error.toDisplayText(),
-        modifier = Modifier.padding(top = 8.dp),
+        modifier = Modifier.padding(top = 8.dp).semantics {
+          liveRegion = LiveRegionMode.Polite
+        },
         color = MaterialTheme.colorScheme.error,
         style = MaterialTheme.typography.bodyMedium,
       )
@@ -301,6 +313,7 @@ private fun ReadyEditorContent(
           if (successState?.operation == AuthenticationSettingsOperation.Save) {
             MaterialTheme.colorScheme.primary
           } else MaterialTheme.colorScheme.error,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       )
     }
     val apiState = uiState.apiState
@@ -309,13 +322,16 @@ private fun ReadyEditorContent(
         text =
           apiState.message ?: stringResource(R.string.authentication_settings_save_failed),
         color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       )
     }
     if (uiState.restartRequired) {
       Text(
         text = stringResource(R.string.authentication_restart_required),
-        modifier = Modifier.padding(top = 8.dp),
         color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.padding(top = 8.dp).semantics {
+          liveRegion = LiveRegionMode.Polite
+        },
       )
     }
     Row(
@@ -470,7 +486,9 @@ private fun OpenIdProviderEditor(
   ) {
     Text(
       text = discoveryState.message ?: stringResource(R.string.authentication_openid_discovery_failed),
-      modifier = Modifier.padding(top = 8.dp),
+      modifier = Modifier.padding(top = 8.dp).semantics {
+        liveRegion = LiveRegionMode.Polite
+      },
       color = MaterialTheme.colorScheme.error,
     )
   }
@@ -484,6 +502,8 @@ private fun OpenIdProviderEditor(
   )
   var newMobileRedirectUri by remember { mutableStateOf("") }
   settings.mobileRedirectUris.forEachIndexed { index, uri ->
+    val removeLabel =
+      stringResource(R.string.authentication_remove_mobile_redirect_uri_number, index + 1)
     Row(
       modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
       verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
@@ -499,7 +519,9 @@ private fun OpenIdProviderEditor(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
       )
       TextButton(
-        modifier = Modifier.padding(start = 8.dp),
+        modifier = Modifier.padding(start = 8.dp).semantics {
+          contentDescription = removeLabel
+        },
         enabled = enabled,
         onClick = { onEvent(AuthenticationSettingsEvent.RemoveMobileRedirectUri(index)) },
       ) {
@@ -842,3 +864,161 @@ private fun AuthenticationSettingsAccessDeniedPreview() {
     AuthenticationSettingsContent(state = AuthenticationSettingsState.AccessDenied)
   }
 }
+
+@ShelfDroidPreview
+@Composable
+private fun AuthenticationSettingsDirtyPreview() {
+  val saved = authenticationPreviewSettings()
+  val draft = saved.copy(customMessage = "<p>Updated</p>", customMessageEnabled = true)
+  PreviewWrapper(dynamicColor = false) {
+    AuthenticationSettingsContent(
+      state = AuthenticationSettingsState.Ready(draft),
+      uiState = authenticationPreviewUiState(saved, draft),
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AuthenticationSettingsInvalidPreview() {
+  val settings = authenticationPreviewSettings().copy(activeLoginMethods = emptyList())
+  PreviewWrapper(dynamicColor = false) {
+    AuthenticationSettingsContent(
+      state = AuthenticationSettingsState.Ready(settings),
+      uiState = authenticationPreviewUiState(settings, settings),
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AuthenticationSettingsSavingPreview() {
+  val settings = authenticationPreviewSettings()
+  PreviewWrapper(dynamicColor = false) {
+    AuthenticationSettingsContent(
+      state = AuthenticationSettingsState.Ready(settings),
+      uiState =
+        authenticationPreviewUiState(
+          settings,
+          settings.copy(customMessage = "<p>Saving…</p>"),
+          apiState = AuthenticationSettingsApiState.Loading(AuthenticationSettingsOperation.Save),
+        ),
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AuthenticationSettingsDiscoveryPreview() {
+  val settings = authenticationPreviewSettings()
+  PreviewWrapper(dynamicColor = false) {
+    AuthenticationSettingsContent(
+      state = AuthenticationSettingsState.Ready(settings),
+      uiState =
+        authenticationPreviewUiState(
+          settings,
+          settings,
+          apiState =
+            AuthenticationSettingsApiState.Loading(AuthenticationSettingsOperation.Discovery),
+        ),
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AuthenticationSettingsDiscoveryFailurePreview() {
+  val settings = authenticationPreviewSettings()
+  PreviewWrapper(dynamicColor = false) {
+    AuthenticationSettingsContent(
+      state = AuthenticationSettingsState.Ready(settings),
+      uiState =
+        authenticationPreviewUiState(
+          settings,
+          settings,
+          apiState =
+            AuthenticationSettingsApiState.Failure(
+              AuthenticationSettingsOperation.Discovery,
+              "The provider did not return metadata.",
+            ),
+        ),
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AuthenticationSettingsPasswordOnlyPreview() {
+  val settings = authenticationPreviewSettings().copy(activeLoginMethods = listOf(LoginMethod.Local))
+  PreviewWrapper(dynamicColor = false) {
+    AuthenticationSettingsContent(
+      state = AuthenticationSettingsState.Ready(settings),
+      uiState = authenticationPreviewUiState(settings),
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AuthenticationSettingsOpenIdOnlyPreview() {
+  val settings =
+    authenticationPreviewSettings().copy(activeLoginMethods = listOf(LoginMethod.OpenId))
+  PreviewWrapper(dynamicColor = false) {
+    AuthenticationSettingsContent(
+      state = AuthenticationSettingsState.Ready(settings),
+      uiState = authenticationPreviewUiState(settings),
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun AuthenticationSettingsSecretReplacementPreview() {
+  val settings =
+    authenticationPreviewSettings().copy(
+      activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+      openId = authenticationPreviewSettings().openId.copy(clientSecretConfigured = true),
+    )
+  PreviewWrapper(dynamicColor = false) {
+    AuthenticationSettingsContent(
+      state = AuthenticationSettingsState.Ready(settings),
+      uiState = authenticationPreviewUiState(settings, clientSecretChangePending = true),
+      clientSecretReplacement = "replacement-secret",
+    )
+  }
+}
+
+private fun authenticationPreviewSettings(): AuthenticationSettingsSummary =
+  AuthenticationSettingsSummary(
+    customMessageEnabled = true,
+    customMessage = "<p>Welcome to ShelfDroid</p>",
+    activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+    openId =
+      dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary(
+        issuerUrl = "https://issuer.example.com",
+        authorizationUrl = "https://issuer.example.com/authorize",
+        tokenUrl = "https://issuer.example.com/token",
+        userInfoUrl = "https://issuer.example.com/userinfo",
+        jwksUrl = "https://issuer.example.com/jwks",
+        clientId = "shelfdroid",
+        clientSecretConfigured = true,
+        tokenSigningAlgorithm = "RS256",
+        mobileRedirectUris = listOf("audiobookshelf://oauth"),
+        matchExistingBy = "email",
+      ),
+  )
+
+private fun authenticationPreviewUiState(
+  saved: AuthenticationSettingsSummary,
+  draft: AuthenticationSettingsSummary = saved,
+  apiState: AuthenticationSettingsApiState = AuthenticationSettingsApiState.Idle,
+  clientSecretChangePending: Boolean = false,
+): AuthenticationSettingsUiState =
+  AuthenticationSettingsUiState(
+    state = AuthenticationSettingsState.Ready(draft),
+    savedSettings = saved,
+    draftSettings = draft,
+    apiState = apiState,
+    clientSecretChangePending = clientSecretChangePending,
+    validation = draft.validation(),
+  )
