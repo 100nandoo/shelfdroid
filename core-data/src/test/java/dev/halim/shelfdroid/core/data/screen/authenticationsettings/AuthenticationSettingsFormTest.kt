@@ -31,6 +31,30 @@ class AuthenticationSettingsFormTest {
   }
 
   @Test
+  fun map_preservesOpenIdMappingAndReadOnlySample() {
+    val settings =
+      AuthenticationSettingsMapper.map(
+        AuthenticationSettingsResponse(
+          authOpenIDButtonText = "Continue with Acme",
+          authOpenIDMatchExistingBy = "username",
+          authOpenIDAutoLaunch = true,
+          authOpenIDAutoRegister = true,
+          authOpenIDGroupClaim = "groups",
+          authOpenIDAdvancedPermsClaim = "abspermissions",
+          authOpenIDSamplePermissions = "{\"download\":true}",
+        )
+      )
+
+    assertEquals("Continue with Acme", settings.openId.buttonText)
+    assertEquals("username", settings.openId.matchExistingBy)
+    assertTrue(settings.openId.autoLaunch)
+    assertTrue(settings.openId.autoRegister)
+    assertEquals("groups", settings.openId.groupClaim)
+    assertEquals("abspermissions", settings.openId.advancedPermsClaim)
+    assertEquals("{\"download\":true}", settings.openId.samplePermissions)
+  }
+
+  @Test
   fun toUpdateRequest_noChangesOmitsPatch() {
     val saved = form(message = "<p>Welcome</p>", methods = listOf(LoginMethod.Local))
 
@@ -80,6 +104,86 @@ class AuthenticationSettingsFormTest {
     assertEquals(
       "{\"authOpenIDIssuerURL\":\"https://new-issuer.example\",\"authOpenIDClientID\":\"new-client\"}",
       Json { explicitNulls = false }.encodeToString(request),
+    )
+  }
+
+  @Test
+  fun toUpdateRequest_includesChangedMappingFieldsAndExplicitClears() {
+    val saved =
+      form(message = "", methods = listOf(LoginMethod.Local)).copy(
+        openId =
+          form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
+            buttonText = "Continue with Acme",
+            matchExistingBy = "email",
+            autoLaunch = false,
+            autoRegister = false,
+            groupClaim = "groups",
+            advancedPermsClaim = "abspermissions",
+          ),
+      )
+    val draft =
+      saved.copy(
+        openId =
+          saved.openId.copy(
+            buttonText = "Sign in",
+            matchExistingBy = "",
+            autoLaunch = true,
+            autoRegister = true,
+            groupClaim = "",
+            advancedPermsClaim = "permissions",
+            samplePermissions = "should never be submitted",
+          ),
+      )
+
+    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
+
+    assertEquals("Sign in", request.authOpenIDButtonText)
+    assertEquals("", request.authOpenIDMatchExistingBy)
+    assertEquals(true, request.authOpenIDAutoLaunch)
+    assertEquals(true, request.authOpenIDAutoRegister)
+    assertEquals("", request.authOpenIDGroupClaim)
+    assertEquals("permissions", request.authOpenIDAdvancedPermsClaim)
+    assertFalse(Json { explicitNulls = false }.encodeToString(request).contains("SamplePermissions"))
+    assertFalse(Json { explicitNulls = false }.encodeToString(request).contains("should never be submitted"))
+  }
+
+  @Test
+  fun validation_restrictsMatchingValuesAndClaimNames() {
+    val base = form(message = "", methods = listOf(LoginMethod.Local))
+    OPENID_MATCH_EXISTING_BY_OPTIONS.forEach { value ->
+      assertTrue(
+        "Audiobookshelf supports match-existing value '$value'",
+        base.copy(openId = base.openId.copy(matchExistingBy = value)).validation().isValid,
+      )
+    }
+
+    val invalid =
+      base.copy(
+        openId =
+          base.openId.copy(
+            matchExistingBy = "displayName",
+            groupClaim = " groups ",
+            advancedPermsClaim = "permissions claim",
+          ),
+      )
+    assertTrue(
+      AuthenticationSettingsValidationError.InvalidExistingUserMatching in
+        invalid.validation().errors
+    )
+    assertTrue(
+      AuthenticationSettingsValidationError.InvalidGroupClaim in invalid.validation().errors
+    )
+    assertTrue(
+      AuthenticationSettingsValidationError.InvalidAdvancedPermissionsClaim in
+        invalid.validation().errors
+    )
+    assertTrue(
+      base.copy(
+        openId = base.openId.copy(groupClaim = "groups_1", advancedPermsClaim = "permissions-2")
+      ).validation().isValid
+    )
+    assertFalse(
+      base.copy(openId = base.openId.copy(groupClaim = "   ")).validation().isValid
     )
   }
 

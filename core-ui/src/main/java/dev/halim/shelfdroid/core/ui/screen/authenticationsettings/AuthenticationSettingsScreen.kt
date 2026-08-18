@@ -45,6 +45,7 @@ import dev.halim.shelfdroid.core.data.screen.authenticationsettings.Authenticati
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsValidationError
+import dev.halim.shelfdroid.core.data.screen.authenticationsettings.OPENID_MATCH_EXISTING_BY_OPTIONS
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.callbackUrls
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.hasChanges
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.canSave
@@ -55,6 +56,7 @@ import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.TextTitleLarge
@@ -276,6 +278,7 @@ private fun ReadyEditorContent(
       serverBaseUrl = uiState.serverBaseUrl,
       enabled = enabled,
       discoveryState = uiState.apiState,
+      validationErrors = uiState.validation.errors,
       onEvent = onEvent,
     )
 
@@ -344,6 +347,7 @@ private fun OpenIdProviderEditor(
   serverBaseUrl: String,
   enabled: Boolean,
   discoveryState: AuthenticationSettingsApiState,
+  validationErrors: Set<AuthenticationSettingsValidationError>,
   onEvent: (AuthenticationSettingsEvent) -> Unit,
 ) {
   TextTitleMedium(text = stringResource(R.string.authentication_openid_provider))
@@ -538,6 +542,96 @@ private fun OpenIdProviderEditor(
   val callbackUrls = settings.callbackUrls(serverBaseUrl)
   SummaryRow(stringResource(R.string.authentication_web_callback_url), callbackUrls.web)
   SummaryRow(stringResource(R.string.authentication_mobile_callback_url), callbackUrls.mobile)
+
+  Spacer(modifier = Modifier.height(20.dp))
+  TextTitleMedium(text = stringResource(R.string.authentication_user_mapping))
+  MyOutlinedTextField(
+    modifier = Modifier.padding(top = 12.dp),
+    value = settings.buttonText,
+    onValueChange = { changed -> update { it.copy(buttonText = changed) } },
+    label = stringResource(R.string.authentication_button_text),
+    enabled = enabled,
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+  )
+  MySegmentedButton(
+    modifier = Modifier.padding(top = 12.dp),
+    options = OPENID_MATCH_EXISTING_BY_OPTIONS,
+    selectedValue = settings.matchExistingBy,
+    label = stringResource(R.string.authentication_match_existing_by),
+    optionLabel = { value ->
+      when (value) {
+        "email" -> "Email"
+        "username" -> "Username"
+        else -> "None"
+      }
+    },
+    enabled = enabled,
+    onClick = { selected -> update { it.copy(matchExistingBy = selected) } },
+  )
+  if (AuthenticationSettingsValidationError.InvalidExistingUserMatching in validationErrors) {
+    Text(
+      text = stringResource(R.string.authentication_validation_match_existing_by),
+      modifier = Modifier.padding(top = 4.dp),
+      color = MaterialTheme.colorScheme.error,
+    )
+  }
+  MySwitch(
+    modifier = Modifier.padding(top = 12.dp),
+    title = stringResource(R.string.authentication_auto_launch),
+    checked = settings.autoLaunch,
+    contentDescription = stringResource(R.string.authentication_auto_launch),
+    enabled = enabled,
+    onCheckedChange = { checked -> update { it.copy(autoLaunch = checked) } },
+  )
+  Text(
+    text = stringResource(R.string.authentication_auto_launch_hint),
+    modifier = Modifier.padding(top = 4.dp),
+    style = MaterialTheme.typography.bodySmall,
+  )
+  MySwitch(
+    modifier = Modifier.padding(top = 12.dp),
+    title = stringResource(R.string.authentication_auto_register),
+    checked = settings.autoRegister,
+    contentDescription = stringResource(R.string.authentication_auto_register),
+    enabled = enabled,
+    onCheckedChange = { checked -> update { it.copy(autoRegister = checked) } },
+  )
+  Text(
+    text = stringResource(R.string.authentication_auto_register_hint),
+    modifier = Modifier.padding(top = 4.dp),
+    style = MaterialTheme.typography.bodySmall,
+  )
+  MyOutlinedTextField(
+    modifier = Modifier.padding(top = 12.dp),
+    value = settings.groupClaim,
+    onValueChange = { changed -> update { it.copy(groupClaim = changed) } },
+    label = stringResource(R.string.authentication_group_claim),
+    supportingText = stringResource(R.string.authentication_group_claim_hint),
+    isError = AuthenticationSettingsValidationError.InvalidGroupClaim in validationErrors,
+    enabled = enabled,
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+  )
+  MyOutlinedTextField(
+    modifier = Modifier.padding(top = 12.dp),
+    value = settings.advancedPermsClaim,
+    onValueChange = { changed -> update { it.copy(advancedPermsClaim = changed) } },
+    label = stringResource(R.string.authentication_advanced_permissions_claim),
+    supportingText = stringResource(R.string.authentication_advanced_permissions_claim_hint),
+    isError =
+      AuthenticationSettingsValidationError.InvalidAdvancedPermissionsClaim in validationErrors,
+    enabled = enabled,
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+  )
+  OutlinedTextField(
+    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+    value = settings.samplePermissions,
+    onValueChange = {},
+    readOnly = true,
+    label = { Text(stringResource(R.string.authentication_sample_permissions)) },
+    minLines = 6,
+    maxLines = 12,
+    keyboardOptions = KeyboardOptions.Default,
+  )
 }
 
 @Composable
@@ -669,6 +763,12 @@ private fun AuthenticationSettingsValidationError.toDisplayText(): String =
       stringResource(R.string.authentication_validation_no_login_method)
     AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete ->
       stringResource(R.string.authentication_validation_openid_incomplete)
+    AuthenticationSettingsValidationError.InvalidExistingUserMatching ->
+      stringResource(R.string.authentication_validation_match_existing_by)
+    AuthenticationSettingsValidationError.InvalidGroupClaim ->
+      stringResource(R.string.authentication_validation_group_claim)
+    AuthenticationSettingsValidationError.InvalidAdvancedPermissionsClaim ->
+      stringResource(R.string.authentication_validation_advanced_permissions_claim)
     AuthenticationSettingsValidationError.InvalidMobileRedirectUri ->
       stringResource(R.string.authentication_validation_mobile_redirect_uri)
     AuthenticationSettingsValidationError.WildcardMobileRedirectUriMustBeSoleEntry ->

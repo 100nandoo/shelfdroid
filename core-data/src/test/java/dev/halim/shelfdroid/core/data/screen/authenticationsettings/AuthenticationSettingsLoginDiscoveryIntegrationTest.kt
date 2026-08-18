@@ -51,6 +51,8 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
 
       var customMessage = "<p>Before the update</p>"
       var activeMethods = listOf("local")
+      var buttonText = "Before OpenID"
+      var autoLaunch = false
       val client =
         OkHttpClient.Builder()
           .addInterceptor { chain ->
@@ -64,16 +66,29 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
               if (body?.contains("authActiveAuthMethods") == true) {
                 activeMethods = listOf("local", "openid")
               }
+              if (body?.contains("authOpenIDButtonText") == true) {
+                buttonText = "Continue with Acme"
+              }
+              if (body?.contains("authOpenIDAutoLaunch") == true) {
+                autoLaunch = true
+              }
               response(request, "{\"updated\":true}")
             } else if (path == "/api/auth-settings") {
-              response(request, authenticationSettingsJson(customMessage, activeMethods))
+              response(
+                request,
+                authenticationSettingsJson(customMessage, activeMethods, buttonText, autoLaunch),
+              )
             } else if (path == "/status") {
               response(
                 request,
                 """
                 {
                   "authMethods": ${activeMethods.joinToString(prefix = "[\"", postfix = "\"]", separator = "\",\"")},
-                  "authFormData": {"authLoginCustomMessage": "$customMessage"}
+                  "authFormData": {
+                    "authLoginCustomMessage": "$customMessage",
+                    "authOpenIDButtonText": "$buttonText",
+                    "authOpenIDAutoLaunch": $autoLaunch
+                  }
                 }
                 """.trimIndent(),
               )
@@ -121,6 +136,11 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
           customMessage = "<p>After the update</p>",
           customMessageEnabled = true,
           activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+          openId =
+            loaded.draftSettings.openId.copy(
+              buttonText = "Continue with Acme",
+              autoLaunch = true,
+            ),
         )
       val saved =
         authenticationRepository.save(
@@ -137,13 +157,20 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
       assertEquals(LoginDiscoveryState.Success, discovered.discoveryState)
       assertEquals(listOf(LoginMethod.Local, LoginMethod.OpenId), discovered.availableLoginMethods)
       assertEquals("<p>After the update</p>", discovered.authLoginCustomMessage)
+      assertEquals("Continue with Acme", discovered.authOpenIdButtonText)
+      assertEquals(true, discovered.authOpenIdAutoLaunch)
     } finally {
       scope.cancel()
       file.delete()
     }
   }
 
-  private fun authenticationSettingsJson(message: String, methods: List<String>): String =
+  private fun authenticationSettingsJson(
+    message: String,
+    methods: List<String>,
+    buttonText: String,
+    autoLaunch: Boolean,
+  ): String =
     """
     {
       "authLoginCustomMessage": "$message",
@@ -154,7 +181,9 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
       "authOpenIDUserInfoURL": "https://issuer.example.com/userinfo",
       "authOpenIDJwksURL": "https://issuer.example.com/jwks",
       "authOpenIDClientID": "shelfdroid",
-      "authOpenIDTokenSigningAlgorithm": "RS256"
+      "authOpenIDTokenSigningAlgorithm": "RS256",
+      "authOpenIDButtonText": "$buttonText",
+      "authOpenIDAutoLaunch": $autoLaunch
     }
     """.trimIndent()
 

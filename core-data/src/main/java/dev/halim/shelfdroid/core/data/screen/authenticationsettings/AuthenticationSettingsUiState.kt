@@ -85,6 +85,9 @@ sealed interface AuthenticationSettingsApiState {
 enum class AuthenticationSettingsValidationError {
   NoLoginMethod,
   OpenIdConfigurationIncomplete,
+  InvalidExistingUserMatching,
+  InvalidGroupClaim,
+  InvalidAdvancedPermissionsClaim,
   InvalidMobileRedirectUri,
   WildcardMobileRedirectUriMustBeSoleEntry,
   InvalidCallbackSubfolder,
@@ -118,6 +121,15 @@ fun AuthenticationSettingsSummary.validation(
         !openId.isStructurallyValid(secretUpdate)
     ) {
       add(AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete)
+    }
+    if (openId.matchExistingBy !in OPENID_MATCH_EXISTING_BY_OPTIONS) {
+      add(AuthenticationSettingsValidationError.InvalidExistingUserMatching)
+    }
+    if (!openId.groupClaim.isValidOpenIdClaim()) {
+      add(AuthenticationSettingsValidationError.InvalidGroupClaim)
+    }
+    if (!openId.advancedPermsClaim.isValidOpenIdClaim()) {
+      add(AuthenticationSettingsValidationError.InvalidAdvancedPermissionsClaim)
     }
     val redirectUris = openId.mobileRedirectUris
     if ("*" in redirectUris && redirectUris.size > 1) {
@@ -181,6 +193,14 @@ data class OpenIdSettingsSummary(
   val advancedPermsClaim: String = "",
   val samplePermissions: String = "",
 )
+
+/** Values supported by Audiobookshelf for matching an existing User during OpenID login. */
+val OPENID_MATCH_EXISTING_BY_OPTIONS: List<String> = listOf("", "email", "username")
+
+private val OPENID_CLAIM_PATTERN = Regex("^[a-zA-Z][a-zA-Z0-9_-]*$")
+
+/** Mirrors the Audiobookshelf web client's optional claim-name validation. */
+private fun String.isValidOpenIdClaim(): Boolean = isEmpty() || matches(OPENID_CLAIM_PATTERN)
 
 data class OpenIdDiscoveryResult(
   val issuerUrl: String? = null,

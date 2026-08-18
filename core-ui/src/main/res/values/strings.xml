@@ -178,6 +178,16 @@
     <string name="authentication_group_claim">Group claim</string>
     <string name="authentication_advanced_permissions_claim">Advanced permissions claim</string>
     <string name="authentication_sample_permissions">Sample permissions</string>
+    <string name="authentication_match_existing_none">None</string>
+    <string name="authentication_match_existing_email">Email</string>
+    <string name="authentication_match_existing_username">Username</string>
+    <string name="authentication_auto_launch_hint">Start OpenID login automatically from Login when enabled.</string>
+    <string name="authentication_auto_register_hint">Create a User when the provider identity is not matched.</string>
+    <string name="authentication_group_claim_hint">Optional provider claim containing admin, user, or guest groups.</string>
+    <string name="authentication_advanced_permissions_claim_hint">Optional provider claim containing non-admin permissions.</string>
+    <string name="authentication_validation_match_existing_by">Choose None, Email, or Username for existing-User matching.</string>
+    <string name="authentication_validation_group_claim">Group claim must be empty or a claim name beginning with a letter.</string>
+    <string name="authentication_validation_advanced_permissions_claim">Advanced permissions claim must be empty or a claim name beginning with a letter.</string>
     <string name="authentication_custom_message_html">Custom message HTML</string>
     <string name="authentication_custom_message_html_hint">Use the same HTML supported on the Login screen.</string>
     <string name="authentication_message_preview">Rendered preview</string>

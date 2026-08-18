@@ -105,6 +105,16 @@ class AuthenticationSettingsContentTest {
         customMessageEnabled = true,
         customMessage = "<p>Welcome <strong>back</strong></p>",
         activeLoginMethods = listOf(LoginMethod.Local),
+        openId =
+          OpenIdSettingsSummary(
+            buttonText = "Continue with Acme",
+            matchExistingBy = "email",
+            autoLaunch = true,
+            autoRegister = true,
+            groupClaim = "groups",
+            advancedPermsClaim = "abspermissions",
+            samplePermissions = "{\"download\":true}",
+          ),
       )
     val uiState =
       AuthenticationSettingsUiState(
@@ -134,6 +144,18 @@ class AuthenticationSettingsContentTest {
     composeRule
       .onNodeWithText("https://audiobooks.dev/auth/openid/mobile-redirect")
       .assertExists()
+    composeRule.onNodeWithText("User mapping").assertExists()
+    composeRule.onNodeWithText("OpenID button text").assertExists()
+    composeRule.onNodeWithText("Match existing Users by").assertExists()
+    composeRule.onNodeWithText("None").assertExists()
+    composeRule.onNodeWithText("Email").assertExists()
+    composeRule.onNodeWithText("Username").assertExists()
+    composeRule.onNodeWithText("Automatic OpenID launch").assertExists()
+    composeRule.onNodeWithText("Automatic User registration").assertExists()
+    composeRule.onNodeWithText("Group claim").assertExists()
+    composeRule.onNodeWithText("Advanced permissions claim").assertExists()
+    composeRule.onNodeWithText("Sample permissions").assertExists()
+    composeRule.onNodeWithText("download", substring = true).assertExists()
     composeRule
       .onNodeWithText("Restart the Audiobookshelf server for all OpenID changes to take effect.")
       .assertExists()

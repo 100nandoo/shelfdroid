@@ -22,4 +22,10 @@ data class UpdateAuthenticationSettingsRequest(
   val authOpenIDMobileRedirectURIs: List<String>? = null,
   @SerialName("authOpenIDSubfolderForRedirectURLs")
   val authOpenIDSubfolderForRedirectURLs: String? = null,
+  @SerialName("authOpenIDButtonText") val authOpenIDButtonText: String? = null,
+  @SerialName("authOpenIDMatchExistingBy") val authOpenIDMatchExistingBy: String? = null,
+  @SerialName("authOpenIDAutoLaunch") val authOpenIDAutoLaunch: Boolean? = null,
+  @SerialName("authOpenIDAutoRegister") val authOpenIDAutoRegister: Boolean? = null,
+  @SerialName("authOpenIDGroupClaim") val authOpenIDGroupClaim: String? = null,
+  @SerialName("authOpenIDAdvancedPermsClaim") val authOpenIDAdvancedPermsClaim: String? = null,
 )

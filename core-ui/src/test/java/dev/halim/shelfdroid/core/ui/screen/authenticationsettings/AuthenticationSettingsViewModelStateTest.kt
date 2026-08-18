@@ -267,6 +267,85 @@ class AuthenticationSettingsViewModelStateTest {
   }
 
   @Test
+  fun mappingControls_updateDirtyStateResetAndSave() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val original =
+      settings().copy(
+        openId =
+          validOpenId().copy(
+            buttonText = "Before OpenID",
+            matchExistingBy = "email",
+            autoLaunch = true,
+            autoRegister = false,
+            groupClaim = "groups",
+            advancedPermsClaim = "permissions",
+            samplePermissions = "{\"download\":false}",
+          ),
+      )
+    val canonical =
+      original.copy(
+        openId =
+          original.openId.copy(
+            buttonText = "Continue with Acme",
+            matchExistingBy = "username",
+            autoLaunch = false,
+            autoRegister = true,
+            groupClaim = "roles",
+            advancedPermsClaim = "abspermissions",
+          ),
+      )
+    var savedDraft: AuthenticationSettingsSummary? = null
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = { readyState(original, original) },
+        saveOperation = { state ->
+          savedDraft = state.draftSettings
+          readyState(canonical, canonical).copy(
+            apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save),
+            restartRequired = true,
+          )
+        },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(
+      AuthenticationSettingsEvent.UpdateDraftSettings {
+        it.copy(
+          openId =
+            it.openId.copy(
+              buttonText = "Continue with Acme",
+              matchExistingBy = "username",
+              autoLaunch = false,
+              autoRegister = true,
+              groupClaim = "roles",
+              advancedPermsClaim = "abspermissions",
+            ),
+        )
+      }
+    )
+    assertTrue(viewModel.uiState.value.hasChanges)
+    assertTrue(viewModel.uiState.value.canSave)
+    viewModel.onEvent(AuthenticationSettingsEvent.ResetDraftSettings)
+    assertEquals(original, viewModel.uiState.value.draftSettings)
+    assertFalse(viewModel.uiState.value.hasChanges)
+
+    viewModel.onEvent(
+      AuthenticationSettingsEvent.UpdateDraftSettings {
+        it.copy(openId = it.openId.copy(buttonText = "Continue with Acme"))
+      }
+    )
+    viewModel.onEvent(AuthenticationSettingsEvent.SaveSettings)
+    advanceUntilIdle()
+
+    assertEquals("Continue with Acme", savedDraft?.openId?.buttonText)
+    assertEquals(canonical, viewModel.uiState.value.draftSettings)
+    assertTrue(viewModel.uiState.value.restartRequired)
+    collection.cancelAndJoin()
+  }
+
+  @Test
   fun discoveryEvent_appliesProviderResultAndSigningAlgorithmOptions() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val original = settings().copy(openId = validOpenId())

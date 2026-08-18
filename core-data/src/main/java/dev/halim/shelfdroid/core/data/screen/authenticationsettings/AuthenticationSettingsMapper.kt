@@ -93,6 +93,24 @@ object AuthenticationSettingsMapper {
         draftOpenId.subfolderForRedirectUrls.takeIf {
           it != savedOpenId.subfolderForRedirectUrls
         },
+      authOpenIDButtonText =
+        draftOpenId.buttonText.takeIf { it != savedOpenId.buttonText },
+      authOpenIDMatchExistingBy =
+        draftOpenId.matchExistingBy.normalizedClaimValue().takeIf {
+          it != savedOpenId.matchExistingBy
+        },
+      authOpenIDAutoLaunch =
+        draftOpenId.autoLaunch.takeIf { it != savedOpenId.autoLaunch },
+      authOpenIDAutoRegister =
+        draftOpenId.autoRegister.takeIf { it != savedOpenId.autoRegister },
+      authOpenIDGroupClaim =
+        draftOpenId.groupClaim.normalizedClaimValue().takeIf {
+          it != savedOpenId.groupClaim
+        },
+      authOpenIDAdvancedPermsClaim =
+        draftOpenId.advancedPermsClaim.normalizedClaimValue().takeIf {
+          it != savedOpenId.advancedPermsClaim
+        },
     )
   }
 
@@ -125,7 +143,15 @@ object AuthenticationSettingsMapper {
       saved.clientId != draft.clientId ||
       saved.tokenSigningAlgorithm != draft.tokenSigningAlgorithm ||
       saved.mobileRedirectUris != draft.mobileRedirectUris ||
-      saved.subfolderForRedirectUrls != draft.subfolderForRedirectUrls
+      saved.subfolderForRedirectUrls != draft.subfolderForRedirectUrls ||
+      saved.buttonText != draft.buttonText ||
+      saved.matchExistingBy != draft.matchExistingBy ||
+      saved.autoLaunch != draft.autoLaunch ||
+      saved.autoRegister != draft.autoRegister ||
+      saved.groupClaim != draft.groupClaim ||
+      saved.advancedPermsClaim != draft.advancedPermsClaim
+
+  private fun String.normalizedClaimValue(): String = if (isBlank()) "" else this
 
   fun mergeDiscovery(
     current: AuthenticationSettingsSummary,

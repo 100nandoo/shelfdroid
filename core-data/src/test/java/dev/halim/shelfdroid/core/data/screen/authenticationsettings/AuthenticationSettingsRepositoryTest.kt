@@ -333,6 +333,54 @@ class AuthenticationSettingsRepositoryTest {
   }
 
   @Test
+  fun save_mappingChangeSendsOnlyMappingFieldsAndReloadsCanonicalSettings() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses =
+          listOf(
+            Stub(200, completeSettingsJson()),
+            Stub(200, "{\"updated\":true}"),
+            Stub(200, completeSettingsJson()),
+          ),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val draft =
+        loaded.draftSettings!!.copy(
+          openId =
+            loaded.draftSettings.openId.copy(
+              buttonText = "Continue with Acme",
+              matchExistingBy = "username",
+              autoLaunch = false,
+              autoRegister = true,
+              groupClaim = "roles",
+              advancedPermsClaim = "abspermissions",
+            ),
+        )
+      val saved =
+        fixture.repository.save(
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(callbackSubfolderOptions = loaded.callbackSubfolderOptions),
+          ),
+        )
+
+      assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
+      assertTrue(saved.restartRequired)
+      assertEquals(
+        "{\"authOpenIDButtonText\":\"Continue with Acme\",\"authOpenIDMatchExistingBy\":\"username\",\"authOpenIDAutoLaunch\":false,\"authOpenIDAutoRegister\":true,\"authOpenIDGroupClaim\":\"roles\",\"authOpenIDAdvancedPermsClaim\":\"abspermissions\"}",
+        fixture.requestBodies[1],
+      )
+      assertEquals(3, fixture.requestedUrls.size)
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
   fun save_noChangesDoesNotSendPatch() = runTest {
     val fixture = fixture(UserType.Admin, responseBody = completeSettingsJson())
     try {
