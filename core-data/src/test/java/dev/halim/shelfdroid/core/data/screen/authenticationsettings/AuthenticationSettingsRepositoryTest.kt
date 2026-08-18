@@ -289,6 +289,50 @@ class AuthenticationSettingsRepositoryTest {
   }
 
   @Test
+  fun save_changedCallbacksSendsOnlyCallbackFieldsAndReloadsCanonicalSettings() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responseBody = completeSettingsJson(),
+        responses =
+          listOf(
+            Stub(200, completeSettingsJson()),
+            Stub(200, "{\"updated\":true}"),
+            Stub(200, completeSettingsJson()),
+          ),
+      )
+    try {
+      val loaded = fixture.repository.load()
+      val draft =
+        loaded.draftSettings!!.copy(
+          openId =
+            loaded.draftSettings.openId.copy(
+              mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth/callback"),
+              subfolderForRedirectUrls = "",
+            ),
+        )
+      val saved =
+        fixture.repository.save(
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(callbackSubfolderOptions = loaded.callbackSubfolderOptions),
+          ),
+        )
+
+      assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
+      assertTrue(saved.restartRequired)
+      assertEquals(
+        "{\"authOpenIDMobileRedirectURIs\":[\"audiobookshelf://oauth\",\"sampleapp://oauth/callback\"],\"authOpenIDSubfolderForRedirectURLs\":\"\"}",
+        fixture.requestBodies[1],
+      )
+      assertEquals(3, fixture.requestedUrls.size)
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
   fun save_noChangesDoesNotSendPatch() = runTest {
     val fixture = fixture(UserType.Admin, responseBody = completeSettingsJson())
     try {

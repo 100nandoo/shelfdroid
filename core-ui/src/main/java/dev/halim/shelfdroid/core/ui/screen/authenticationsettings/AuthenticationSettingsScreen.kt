@@ -23,7 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -42,9 +45,11 @@ import dev.halim.shelfdroid.core.data.screen.authenticationsettings.Authenticati
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsValidationError
+import dev.halim.shelfdroid.core.data.screen.authenticationsettings.callbackUrls
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.hasChanges
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.canSave
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
@@ -86,6 +91,10 @@ fun AuthenticationSettingsScreen(
           viewModel.onEvent(AuthenticationSettingsEvent.ConfirmDisablePasswordSignIn)
         AuthenticationSettingsConfirmation.ClearClientSecret ->
           viewModel.onEvent(AuthenticationSettingsEvent.ConfirmClearClientSecret)
+        AuthenticationSettingsConfirmation.RemoveShelfDroidCallback ->
+          viewModel.onEvent(AuthenticationSettingsEvent.ConfirmRemoveShelfDroidCallback)
+        AuthenticationSettingsConfirmation.UseWildcardMobileRedirect ->
+          viewModel.onEvent(AuthenticationSettingsEvent.ConfirmWildcardMobileRedirect)
         AuthenticationSettingsConfirmation.LeaveWithUnsavedChanges ->
           viewModel.onEvent(AuthenticationSettingsEvent.ConfirmLeave)
         null -> Unit
@@ -263,6 +272,8 @@ private fun ReadyEditorContent(
       settings = draft.openId,
       clientSecretReplacement = clientSecretReplacement,
       signingAlgorithmOptions = uiState.signingAlgorithmOptions,
+      callbackSubfolderOptions = uiState.callbackSubfolderOptions,
+      serverBaseUrl = uiState.serverBaseUrl,
       enabled = enabled,
       discoveryState = uiState.apiState,
       onEvent = onEvent,
@@ -329,6 +340,8 @@ private fun OpenIdProviderEditor(
   settings: dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary,
   clientSecretReplacement: String,
   signingAlgorithmOptions: List<String>,
+  callbackSubfolderOptions: List<String>,
+  serverBaseUrl: String,
   enabled: Boolean,
   discoveryState: AuthenticationSettingsApiState,
   onEvent: (AuthenticationSettingsEvent) -> Unit,
@@ -457,6 +470,74 @@ private fun OpenIdProviderEditor(
       color = MaterialTheme.colorScheme.error,
     )
   }
+
+  Spacer(modifier = Modifier.height(20.dp))
+  TextTitleMedium(text = stringResource(R.string.authentication_callbacks))
+  Text(
+    text = stringResource(R.string.authentication_mobile_redirect_uris_hint),
+    modifier = Modifier.padding(top = 8.dp),
+    style = MaterialTheme.typography.bodyMedium,
+  )
+  var newMobileRedirectUri by remember { mutableStateOf("") }
+  settings.mobileRedirectUris.forEachIndexed { index, uri ->
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+      verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
+      MyOutlinedTextField(
+        modifier = Modifier.weight(1f),
+        value = uri,
+        onValueChange = { changed ->
+          onEvent(AuthenticationSettingsEvent.UpdateMobileRedirectUri(index, changed))
+        },
+        label = stringResource(R.string.authentication_mobile_redirect_uri_number, index + 1),
+        enabled = enabled,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+      )
+      TextButton(
+        modifier = Modifier.padding(start = 8.dp),
+        enabled = enabled,
+        onClick = { onEvent(AuthenticationSettingsEvent.RemoveMobileRedirectUri(index)) },
+      ) {
+        Text(stringResource(R.string.authentication_remove_mobile_redirect_uri))
+      }
+    }
+  }
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+  ) {
+    MyOutlinedTextField(
+      modifier = Modifier.weight(1f),
+      value = newMobileRedirectUri,
+      onValueChange = { newMobileRedirectUri = it },
+      label = stringResource(R.string.authentication_mobile_redirect_uri_new),
+      enabled = enabled,
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+    )
+    Button(
+      modifier = Modifier.padding(start = 8.dp),
+      enabled = enabled && newMobileRedirectUri.isNotBlank(),
+      onClick = {
+        onEvent(AuthenticationSettingsEvent.AddMobileRedirectUri(newMobileRedirectUri))
+        newMobileRedirectUri = ""
+      },
+    ) {
+      Text(stringResource(R.string.authentication_add_mobile_redirect_uri))
+    }
+  }
+  ChipDropdownMenu(
+    modifier = Modifier.padding(top = 12.dp),
+    options = callbackSubfolderOptions,
+    label = stringResource(R.string.authentication_callback_subfolder),
+    labelPosition = LabelPosition.Top,
+    initialValue = settings.subfolderForRedirectUrls,
+    enabled = enabled,
+    onClick = { selected -> onEvent(AuthenticationSettingsEvent.SetCallbackSubfolder(selected)) },
+  )
+  val callbackUrls = settings.callbackUrls(serverBaseUrl)
+  SummaryRow(stringResource(R.string.authentication_web_callback_url), callbackUrls.web)
+  SummaryRow(stringResource(R.string.authentication_mobile_callback_url), callbackUrls.mobile)
 }
 
 @Composable
@@ -540,6 +621,9 @@ private fun OpenIdSummary(settings: dev.halim.shelfdroid.core.data.screen.authen
     stringResource(R.string.authentication_mobile_redirect_uris),
     settings.mobileRedirectUris.joinToString(separator = "\n"),
   )
+  val callbackUrls = settings.callbackUrls(AudiobookshelfBaseUrl.DEFAULT_VALUE)
+  SummaryRow(stringResource(R.string.authentication_web_callback_url), callbackUrls.web)
+  SummaryRow(stringResource(R.string.authentication_mobile_callback_url), callbackUrls.mobile)
   SummaryRow(stringResource(R.string.authentication_button_text), settings.buttonText)
   Spacer(modifier = Modifier.height(16.dp))
   TextTitleMedium(text = stringResource(R.string.authentication_user_mapping))
@@ -585,6 +669,12 @@ private fun AuthenticationSettingsValidationError.toDisplayText(): String =
       stringResource(R.string.authentication_validation_no_login_method)
     AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete ->
       stringResource(R.string.authentication_validation_openid_incomplete)
+    AuthenticationSettingsValidationError.InvalidMobileRedirectUri ->
+      stringResource(R.string.authentication_validation_mobile_redirect_uri)
+    AuthenticationSettingsValidationError.WildcardMobileRedirectUriMustBeSoleEntry ->
+      stringResource(R.string.authentication_validation_mobile_redirect_wildcard)
+    AuthenticationSettingsValidationError.InvalidCallbackSubfolder ->
+      stringResource(R.string.authentication_validation_callback_subfolder)
   }
 
 @Composable
@@ -594,6 +684,10 @@ private fun confirmationText(confirmation: AuthenticationSettingsConfirmation?):
       stringResource(R.string.authentication_disable_password_confirm)
     AuthenticationSettingsConfirmation.ClearClientSecret ->
       stringResource(R.string.authentication_clear_client_secret_confirm)
+    AuthenticationSettingsConfirmation.RemoveShelfDroidCallback ->
+      stringResource(R.string.authentication_remove_shelf_callback_confirm)
+    AuthenticationSettingsConfirmation.UseWildcardMobileRedirect ->
+      stringResource(R.string.authentication_wildcard_redirect_confirm)
     AuthenticationSettingsConfirmation.LeaveWithUnsavedChanges ->
       stringResource(R.string.authentication_unsaved_changes_confirm)
     null -> ""

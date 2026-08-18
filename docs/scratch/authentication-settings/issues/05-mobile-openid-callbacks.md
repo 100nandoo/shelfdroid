@@ -7,24 +7,24 @@ updates.
 
 **Blocked by:** 03 — Configure and discover the OpenID provider.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Admins can add, edit, and remove mobile redirect URIs through a list-oriented control.
-- [ ] Each redirect URI is validated against the Audiobookshelf server's accepted mobile URI
+- [x] Admins can add, edit, and remove mobile redirect URIs through a list-oriented control.
+- [x] Each redirect URI is validated against the Audiobookshelf server's accepted mobile URI
       contract before Save.
-- [ ] Wildcard redirect is accepted only when it is the sole allowlist entry and after high-risk
+- [x] Wildcard redirect is accepted only when it is the sole allowlist entry and after high-risk
       confirmation.
-- [ ] Removing `audiobookshelf://oauth` requires warning and confirmation that ShelfDroid OpenID
+- [x] Removing `audiobookshelf://oauth` requires warning and confirmation that ShelfDroid OpenID
       login will stop working.
-- [ ] The callback subfolder preserves the loaded value and offers only no subfolder or the
+- [x] The callback subfolder preserves the loaded value and offers only no subfolder or the
       server-provided base-path option.
-- [ ] Empty callback subfolder is serialized as an intentional empty string rather than omitted or
+- [x] Empty callback subfolder is serialized as an intentional empty string rather than omitted or
       null.
-- [ ] The screen shows effective web and mobile callback details needed for identity-provider
+- [x] The screen shows effective web and mobile callback details needed for identity-provider
       configuration without exposing unrelated secrets.
-- [ ] Redirect and subfolder edits participate in dirty-state, Reset, unsaved Back, partial Save,
+- [x] Redirect and subfolder edits participate in dirty-state, Reset, unsaved Back, partial Save,
       skipped-update, canonical-reload, and restart-warning behavior.
-- [ ] Repository tests cover valid URIs, invalid URIs, wildcard exclusivity and confirmation,
+- [x] Repository tests cover valid URIs, invalid URIs, wildcard exclusivity and confirmation,
       explicit empty subfolder, root installation, subpath installation, and changed-field updates.
-- [ ] UI and ViewModel tests cover list editing, validation, callback warning, confirmations,
+- [x] UI and ViewModel tests cover list editing, validation, callback warning, confirmations,
       subfolder choices, calculated callback details, Reset, and accepted Save.

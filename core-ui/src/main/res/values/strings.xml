@@ -163,6 +163,13 @@
     <string name="authentication_callbacks">Callbacks</string>
     <string name="authentication_callback_subfolder">Callback subfolder</string>
     <string name="authentication_mobile_redirect_uris">Mobile redirect URIs</string>
+    <string name="authentication_mobile_redirect_uris_hint">Add only redirect URIs accepted by the Audiobookshelf server. Removing the ShelfDroid callback disables OpenID login in this app.</string>
+    <string name="authentication_mobile_redirect_uri_number">Mobile redirect URI %1$d</string>
+    <string name="authentication_mobile_redirect_uri_new">New mobile redirect URI</string>
+    <string name="authentication_remove_mobile_redirect_uri">Remove</string>
+    <string name="authentication_add_mobile_redirect_uri">Add</string>
+    <string name="authentication_web_callback_url">Effective web callback URL</string>
+    <string name="authentication_mobile_callback_url">Effective mobile callback URL</string>
     <string name="authentication_button_text">OpenID button text</string>
     <string name="authentication_user_mapping">User mapping</string>
     <string name="authentication_match_existing_by">Match existing Users by</string>
@@ -180,8 +187,13 @@
     <string name="authentication_openid_configuration_edit_next">OpenID configuration details are managed in the provider section.</string>
     <string name="authentication_validation_no_login_method">Select at least one Login method.</string>
     <string name="authentication_validation_openid_incomplete">OpenID configuration is incomplete. Finish it before disabling username and password.</string>
+    <string name="authentication_validation_mobile_redirect_uri">One or more mobile redirect URIs is invalid.</string>
+    <string name="authentication_validation_mobile_redirect_wildcard">The wildcard redirect must be the only mobile redirect URI.</string>
+    <string name="authentication_validation_callback_subfolder">Choose no callback subfolder or the server-provided base path.</string>
     <string name="authentication_confirm_change">Confirm Authentication change</string>
     <string name="authentication_disable_password_confirm">Disabling username and password requires a valid OpenID configuration. Continue?</string>
+    <string name="authentication_remove_shelf_callback_confirm">Removing audiobookshelf://oauth will stop OpenID login in ShelfDroid. Continue?</string>
+    <string name="authentication_wildcard_redirect_confirm">A wildcard mobile redirect allows any callback URI. Continue only if this broad access is intentional?</string>
     <string name="authentication_unsaved_changes_confirm">You have unsaved Authentication changes. Leave and discard them?</string>
     <string name="authentication_settings_saved">Authentication settings saved.</string>
     <string name="authentication_settings_rejected">The server skipped this update. No Authentication settings were changed.</string>

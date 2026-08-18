@@ -84,7 +84,130 @@ class AuthenticationSettingsFormTest {
   }
 
   @Test
-  fun toUpdateRequest_ignoresNonProviderOpenIdFields() {
+  fun toUpdateRequest_changedCallbacksIncludeExplicitEmptySubfolder() {
+    val saved = form(message = "", methods = listOf(LoginMethod.Local)).copy(
+      openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
+        mobileRedirectUris = listOf("audiobookshelf://oauth"),
+        subfolderForRedirectUrls = "/shelf",
+      ),
+    )
+    val draft = saved.copy(
+      openId = saved.openId.copy(
+        mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth/callback"),
+        subfolderForRedirectUrls = "",
+      ),
+    )
+
+    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
+
+    assertEquals(
+      listOf("audiobookshelf://oauth", "sampleapp://oauth/callback"),
+      request.authOpenIDMobileRedirectURIs,
+    )
+    assertEquals("", request.authOpenIDSubfolderForRedirectURLs)
+    assertEquals(
+      "{\"authOpenIDMobileRedirectURIs\":[\"audiobookshelf://oauth\",\"sampleapp://oauth/callback\"],\"authOpenIDSubfolderForRedirectURLs\":\"\"}",
+      Json { explicitNulls = false }.encodeToString(request),
+    )
+  }
+
+  @Test
+  fun validation_acceptsServerRedirectUrisAndSoleWildcard() {
+    val settings = form(message = "", methods = listOf(LoginMethod.Local)).copy(
+      openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
+        mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth/callback"),
+      ),
+    )
+    assertTrue(settings.validation().isValid)
+    assertTrue(
+      settings.copy(openId = settings.openId.copy(mobileRedirectUris = listOf("*")))
+        .validation()
+        .isValid
+    )
+  }
+
+  @Test
+  fun validation_rejectsInvalidRedirectUriAndWildcardCombination() {
+    val base = form(message = "", methods = listOf(LoginMethod.Local))
+    val invalid = base.copy(openId = base.openId.copy(mobileRedirectUris = listOf("https://")))
+    assertTrue(
+      AuthenticationSettingsValidationError.InvalidMobileRedirectUri in invalid.validation().errors
+    )
+
+    val wildcard = base.copy(
+      openId = base.openId.copy(mobileRedirectUris = listOf("*", "audiobookshelf://oauth")),
+    )
+    assertTrue(
+      AuthenticationSettingsValidationError.WildcardMobileRedirectUriMustBeSoleEntry in
+        wildcard.validation().errors
+    )
+  }
+
+  @Test
+  fun validation_matchesAudiobookshelfRedirectUriBoundaries() {
+    val base = form(message = "", methods = listOf(LoginMethod.Local))
+    val accepted =
+      listOf(
+        "audiobookshelf://oauth",
+        "sampleapp://host.example/path_1/file-name",
+        // The server contract uses JavaScript `\\w+` for the scheme, so these remain accepted.
+        "1scheme://host",
+        "_scheme://host/path",
+      )
+    accepted.forEach { uri ->
+      assertTrue(
+        "Audiobookshelf accepts $uri",
+        base.copy(openId = base.openId.copy(mobileRedirectUris = listOf(uri))).validation().isValid,
+      )
+    }
+
+    val rejected =
+      listOf(
+        "scheme://",
+        "scheme://host?query",
+        "scheme://host#fragment",
+        "scheme+plus://host",
+        "scheme://host/path with space",
+        "scheme://host/path?query",
+      )
+    rejected.forEach { uri ->
+      assertFalse(
+        "Audiobookshelf rejects $uri",
+        base.copy(openId = base.openId.copy(mobileRedirectUris = listOf(uri))).validation().isValid,
+      )
+    }
+  }
+
+  @Test
+  fun validation_rejectsCallbackSubfolderOutsideServerChoices() {
+    val settings = form(message = "", methods = listOf(LoginMethod.Local)).copy(
+      openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
+        subfolderForRedirectUrls = "/invented",
+      ),
+    )
+
+    assertTrue(
+      AuthenticationSettingsValidationError.InvalidCallbackSubfolder in
+        settings.validation(callbackSubfolderOptions = listOf("", "/shelf")).errors
+    )
+  }
+
+  @Test
+  fun callbackUrls_preserveRootAndSubpathInstallations() {
+    val settings = OpenIdSettingsSummary(subfolderForRedirectUrls = "")
+    assertEquals(
+      "https://example.com/auth/openid/callback",
+      settings.callbackUrls("https://example.com").web,
+    )
+
+    val subpath = settings.copy(subfolderForRedirectUrls = "/audiobookshelf")
+    val callbacks = subpath.callbackUrls("https://example.com/audiobookshelf/")
+    assertEquals("https://example.com/audiobookshelf/auth/openid/callback", callbacks.web)
+    assertEquals("https://example.com/audiobookshelf/auth/openid/mobile-redirect", callbacks.mobile)
+  }
+
+  @Test
+  fun toUpdateRequest_includesChangedCallbackFields() {
     val saved = form(message = "", methods = listOf(LoginMethod.Local))
     val draft =
       saved.copy(
@@ -96,8 +219,11 @@ class AuthenticationSettingsFormTest {
           )
       )
 
-    assertNull(AuthenticationSettingsMapper.toUpdateRequest(saved, draft))
-    assertFalse(AuthenticationSettingsMapper.hasOpenIdChanges(saved, draft))
+    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
+
+    assertEquals(listOf("shelfdroid://oauth"), request.authOpenIDMobileRedirectURIs)
+    assertNull(request.authOpenIDSubfolderForRedirectURLs)
+    assertTrue(AuthenticationSettingsMapper.hasOpenIdChanges(saved, draft))
   }
 
   @Test

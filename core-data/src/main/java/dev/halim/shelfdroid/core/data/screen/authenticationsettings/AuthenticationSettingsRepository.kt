@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.authenticationsettings
 
 import dev.halim.core.network.ApiService
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.data.admin.AdminDestinationGuard
 import javax.inject.Inject
 import retrofit2.HttpException
@@ -20,11 +21,14 @@ constructor(
     return api.authenticationSettings().fold(
       onSuccess = { response ->
         val settings = AuthenticationSettingsMapper.map(response)
+        val allowedSubfolders = callbackSubfolderOptions(settings)
         AuthenticationSettingsUiState(
           state = AuthenticationSettingsState.Ready(settings),
           savedSettings = settings,
           draftSettings = settings,
-          validation = settings.validation(),
+          callbackSubfolderOptions = allowedSubfolders,
+          serverBaseUrl = DataStoreManager.BASE_URL,
+          validation = settings.validation(callbackSubfolderOptions = allowedSubfolders),
         )
       },
       onFailure = { error ->
@@ -54,6 +58,7 @@ constructor(
         savedSettings = null,
         draftSettings = null,
         signingAlgorithmOptions = emptyList(),
+        callbackSubfolderOptions = listOf(""),
         pendingConfirmation = null,
         restartRequired = false,
         clientSecretChangePending = false,
@@ -62,7 +67,7 @@ constructor(
 
     val saved = uiState.savedSettings ?: return uiState
     val draft = uiState.draftSettings ?: return uiState
-    val validation = draft.validation(secretUpdate)
+    val validation = draft.validation(secretUpdate, uiState.callbackSubfolderOptions)
     if (!validation.isValid) {
       return uiState.copy(validation = validation)
     }
@@ -141,6 +146,7 @@ constructor(
         savedSettings = null,
         draftSettings = null,
         signingAlgorithmOptions = emptyList(),
+        callbackSubfolderOptions = listOf(""),
         pendingConfirmation = null,
         restartRequired = false,
         clientSecretChangePending = false,
@@ -167,6 +173,7 @@ constructor(
           savedSettings = null,
           draftSettings = null,
           signingAlgorithmOptions = emptyList(),
+          callbackSubfolderOptions = listOf(""),
           pendingConfirmation = null,
           restartRequired = false,
           clientSecretChangePending = false,
@@ -193,7 +200,7 @@ constructor(
       state = AuthenticationSettingsState.Ready(merged),
       draftSettings = merged,
       signingAlgorithmOptions = discovery.signingAlgorithms,
-      validation = merged.validation(),
+      validation = merged.validation(callbackSubfolderOptions = uiState.callbackSubfolderOptions),
       apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery),
     )
   }
@@ -211,3 +218,8 @@ private fun Throwable.toAuthenticationSettingsState(): AuthenticationSettingsSta
   } else {
     AuthenticationSettingsState.Failure(message)
   }
+
+private fun callbackSubfolderOptions(settings: AuthenticationSettingsSummary): List<String> =
+  (callbackSubfolderOptions(DataStoreManager.BASE_URL) +
+      settings.openId.subfolderForRedirectUrls.takeIf { it.isNotBlank() }.orEmpty())
+    .distinct()

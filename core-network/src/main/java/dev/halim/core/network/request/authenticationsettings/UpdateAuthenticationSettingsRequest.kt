@@ -18,4 +18,8 @@ data class UpdateAuthenticationSettingsRequest(
   @SerialName("authOpenIDClientSecret") val authOpenIDClientSecret: String? = null,
   @SerialName("authOpenIDTokenSigningAlgorithm")
   val authOpenIDTokenSigningAlgorithm: String? = null,
+  @SerialName("authOpenIDMobileRedirectURIs")
+  val authOpenIDMobileRedirectURIs: List<String>? = null,
+  @SerialName("authOpenIDSubfolderForRedirectURLs")
+  val authOpenIDSubfolderForRedirectURLs: String? = null,
 )

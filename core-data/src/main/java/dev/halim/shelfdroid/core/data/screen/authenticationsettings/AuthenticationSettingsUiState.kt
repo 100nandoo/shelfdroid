@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.authenticationsettings
 
+import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 
 data class AuthenticationSettingsUiState(
@@ -8,6 +10,9 @@ data class AuthenticationSettingsUiState(
   val draftSettings: AuthenticationSettingsForm? = null,
   /** Algorithms offered by the most recent successful issuer discovery. */
   val signingAlgorithmOptions: List<String> = emptyList(),
+  /** The only server-provided callback subfolder choices, including no subfolder. */
+  val callbackSubfolderOptions: List<String> = listOf(""),
+  val serverBaseUrl: String = AudiobookshelfBaseUrl.DEFAULT_VALUE,
   val apiState: AuthenticationSettingsApiState = AuthenticationSettingsApiState.Idle,
   val validation: AuthenticationSettingsValidation = AuthenticationSettingsValidation(),
   /** True while the ViewModel holds an explicit client-secret replacement or clear intent. */
@@ -80,6 +85,9 @@ sealed interface AuthenticationSettingsApiState {
 enum class AuthenticationSettingsValidationError {
   NoLoginMethod,
   OpenIdConfigurationIncomplete,
+  InvalidMobileRedirectUri,
+  WildcardMobileRedirectUriMustBeSoleEntry,
+  InvalidCallbackSubfolder,
 }
 
 data class AuthenticationSettingsValidation(
@@ -92,11 +100,14 @@ data class AuthenticationSettingsValidation(
 enum class AuthenticationSettingsConfirmation {
   DisablePasswordSignIn,
   ClearClientSecret,
+  RemoveShelfDroidCallback,
+  UseWildcardMobileRedirect,
   LeaveWithUnsavedChanges,
 }
 
 fun AuthenticationSettingsSummary.validation(
   secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
+  callbackSubfolderOptions: Collection<String> = listOf(""),
 ): AuthenticationSettingsValidation {
   val errors = buildSet {
     if (activeLoginMethods.isEmpty()) {
@@ -107,6 +118,19 @@ fun AuthenticationSettingsSummary.validation(
         !openId.isStructurallyValid(secretUpdate)
     ) {
       add(AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete)
+    }
+    val redirectUris = openId.mobileRedirectUris
+    if ("*" in redirectUris && redirectUris.size > 1) {
+      add(AuthenticationSettingsValidationError.WildcardMobileRedirectUriMustBeSoleEntry)
+    } else if (
+      redirectUris.any {
+        it != "*" && !it.matches(AUDIOBOOKSHELF_MOBILE_REDIRECT_URI_PATTERN)
+      }
+    ) {
+      add(AuthenticationSettingsValidationError.InvalidMobileRedirectUri)
+    }
+    if (openId.subfolderForRedirectUrls !in callbackSubfolderOptions) {
+      add(AuthenticationSettingsValidationError.InvalidCallbackSubfolder)
     }
   }
   return AuthenticationSettingsValidation(errors)
@@ -166,4 +190,36 @@ data class OpenIdDiscoveryResult(
   val jwksUrl: String? = null,
   val logoutUrl: String? = null,
   val signingAlgorithms: List<String> = emptyList(),
+)
+
+/** The two callback endpoints an administrator must register with the identity provider. */
+data class OpenIdCallbackUrls(
+  val web: String,
+  val mobile: String,
+)
+
+fun OpenIdSettingsSummary.callbackUrls(serverBaseUrl: String): OpenIdCallbackUrls {
+  val base = AudiobookshelfBaseUrl.parse(serverBaseUrl) ?: AudiobookshelfBaseUrl.DEFAULT
+  val subfolder = subfolderForRedirectUrls.trim().trimEnd('/')
+  val prefix = if (subfolder.isEmpty()) "" else "/$subfolder".replace("//", "/")
+  return OpenIdCallbackUrls(
+    web = "${base.origin}$prefix/auth/openid/callback",
+    mobile = "${base.origin}$prefix/auth/openid/mobile-redirect",
+  )
+}
+
+fun callbackSubfolderOptions(serverBaseUrl: String = DataStoreManager.BASE_URL): List<String> {
+  val basePath =
+    (AudiobookshelfBaseUrl.parse(serverBaseUrl) ?: AudiobookshelfBaseUrl.DEFAULT).pathPrefix
+  return listOf("", basePath).distinct()
+}
+
+/**
+ * Mirrors Audiobookshelf's `isValidRedirectURI` in
+ * `server/controllers/MiscController.js` (case-insensitive). Keep `*` outside this matcher: the
+ * server treats it as a separate sole-entry wildcard.
+ */
+internal val AUDIOBOOKSHELF_MOBILE_REDIRECT_URI_PATTERN = Regex(
+  "^\\w+://[\\w\\.-]+(/[\\w\\./-]*)*$",
+  RegexOption.IGNORE_CASE,
 )

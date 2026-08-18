@@ -53,6 +53,9 @@ internal constructor(
   val clientSecretReplacement: StateFlow<String> = _clientSecretReplacement
   private var clientSecretUpdate: AuthenticationSettingsSecretUpdate =
     AuthenticationSettingsSecretUpdate.Untouched
+  private var pendingMobileRedirectUris: List<String>? = null
+  private var pendingShelfDroidCallbackWarning = false
+  private var pendingWildcardConfirmation = false
   val uiState: StateFlow<AuthenticationSettingsUiState> =
     _uiState
       .onStart { load() }
@@ -89,8 +92,22 @@ internal constructor(
       is AuthenticationSettingsEvent.UpdateClientSecret -> updateClientSecret(event.value)
       AuthenticationSettingsEvent.RequestClearClientSecret -> requestClearClientSecret()
       AuthenticationSettingsEvent.ConfirmClearClientSecret -> confirmClearClientSecret()
+      is AuthenticationSettingsEvent.AddMobileRedirectUri ->
+        requestMobileRedirectUpdate(
+          _uiState.value.draftSettings?.openId?.mobileRedirectUris.orEmpty() + event.uri
+        )
+      is AuthenticationSettingsEvent.UpdateMobileRedirectUri ->
+        updateMobileRedirectUri(event.index, event.uri)
+      is AuthenticationSettingsEvent.RemoveMobileRedirectUri ->
+        removeMobileRedirectUri(event.index)
+      is AuthenticationSettingsEvent.SetCallbackSubfolder ->
+        updateDraft { it.copy(openId = it.openId.copy(subfolderForRedirectUrls = event.value)) }
+      AuthenticationSettingsEvent.ConfirmRemoveShelfDroidCallback ->
+        confirmRemoveShelfDroidCallback()
+      AuthenticationSettingsEvent.ConfirmWildcardMobileRedirect ->
+        confirmWildcardMobileRedirect()
       AuthenticationSettingsEvent.DismissConfirmation ->
-        _uiState.update { it.copy(pendingConfirmation = null) }
+        dismissConfirmation()
       AuthenticationSettingsEvent.ResetDraftSettings -> resetDraft()
       AuthenticationSettingsEvent.Reset -> resetDraft()
       AuthenticationSettingsEvent.SaveSettings,
@@ -104,6 +121,7 @@ internal constructor(
 
   private fun load() {
     clearClientSecret()
+    clearPendingMobileRedirect()
     viewModelScope.launch {
       _uiState.update {
         it.copy(
@@ -129,7 +147,7 @@ internal constructor(
       current.copy(
         state = AuthenticationSettingsState.Ready(updated),
         draftSettings = updated,
-        validation = updated.validation(clientSecretUpdate),
+        validation = updated.validation(clientSecretUpdate, current.callbackSubfolderOptions),
         apiState = AuthenticationSettingsApiState.Idle,
         leaveRequested = false,
       )
@@ -187,7 +205,7 @@ internal constructor(
     _uiState.update { current ->
       val draft = current.draftSettings ?: return@update current
       current.copy(
-        validation = draft.validation(clientSecretUpdate),
+        validation = draft.validation(clientSecretUpdate, _uiState.value.callbackSubfolderOptions),
         clientSecretChangePending =
           clientSecretUpdate != AuthenticationSettingsSecretUpdate.Untouched,
         apiState = AuthenticationSettingsApiState.Idle,
@@ -212,7 +230,7 @@ internal constructor(
     _uiState.update { current ->
       val draft = current.draftSettings ?: return@update current
       current.copy(
-        validation = draft.validation(clientSecretUpdate),
+        validation = draft.validation(clientSecretUpdate, _uiState.value.callbackSubfolderOptions),
         clientSecretChangePending = true,
         pendingConfirmation = null,
         apiState = AuthenticationSettingsApiState.Idle,
@@ -223,12 +241,13 @@ internal constructor(
 
   private fun resetDraft() {
     clearClientSecret()
+    clearPendingMobileRedirect()
     _uiState.update { current ->
       val saved = current.savedSettings ?: return@update current
       current.copy(
         state = AuthenticationSettingsState.Ready(saved),
         draftSettings = saved,
-        validation = saved.validation(),
+        validation = saved.validation(callbackSubfolderOptions = current.callbackSubfolderOptions),
         apiState = AuthenticationSettingsApiState.Idle,
         clientSecretChangePending = false,
         signingAlgorithmOptions = emptyList(),
@@ -253,6 +272,7 @@ internal constructor(
       val secretUpdate = clientSecretUpdate
       val result = saveWithSecretOperation(_uiState.value, secretUpdate)
       clearClientSecret()
+      clearPendingMobileRedirect()
       _uiState.update { result.copy(clientSecretChangePending = false) }
     }
   }
@@ -312,6 +332,7 @@ internal constructor(
 
   private fun confirmLeave() {
     clearClientSecret()
+    clearPendingMobileRedirect()
     _uiState.update {
       it.copy(
         pendingConfirmation = null,
@@ -330,7 +351,91 @@ internal constructor(
   override fun onCleared() {
     clearClientSecret()
   }
+
+  private fun updateMobileRedirectUri(index: Int, value: String) {
+    val current = _uiState.value.draftSettings?.openId?.mobileRedirectUris ?: return
+    if (index !in current.indices) return
+    val updated = current.toMutableList().also { it[index] = value }
+    if (
+      (current[index] == SHELFDROID_CALLBACK_URI && value != SHELFDROID_CALLBACK_URI) ||
+        (value == "*" && current.size == 1 && current.single() != "*")
+    ) {
+      requestMobileRedirectUpdate(updated)
+    } else {
+      updateDraft { it.copy(openId = it.openId.copy(mobileRedirectUris = updated)) }
+    }
+  }
+
+  private fun removeMobileRedirectUri(index: Int) {
+    val current = _uiState.value.draftSettings?.openId?.mobileRedirectUris ?: return
+    if (index !in current.indices) return
+    requestMobileRedirectUpdate(current.toMutableList().also { it.removeAt(index) })
+  }
+
+  private fun requestMobileRedirectUpdate(next: List<String>) {
+    val current = _uiState.value.draftSettings?.openId?.mobileRedirectUris ?: return
+    if (next == current) return
+
+    pendingMobileRedirectUris = next
+    pendingShelfDroidCallbackWarning =
+      SHELFDROID_CALLBACK_URI in current && SHELFDROID_CALLBACK_URI !in next
+    pendingWildcardConfirmation = "*" in next && next.size == 1 && "*" !in current
+    when {
+      pendingShelfDroidCallbackWarning ->
+        _uiState.update {
+          it.copy(pendingConfirmation = AuthenticationSettingsConfirmation.RemoveShelfDroidCallback)
+        }
+      pendingWildcardConfirmation ->
+        _uiState.update {
+          it.copy(pendingConfirmation = AuthenticationSettingsConfirmation.UseWildcardMobileRedirect)
+        }
+      else -> applyPendingMobileRedirectUris()
+    }
+  }
+
+  private fun confirmRemoveShelfDroidCallback() {
+    if (pendingMobileRedirectUris == null) return
+    pendingShelfDroidCallbackWarning = false
+    if (pendingWildcardConfirmation) {
+      _uiState.update {
+        it.copy(pendingConfirmation = AuthenticationSettingsConfirmation.UseWildcardMobileRedirect)
+      }
+    } else {
+      applyPendingMobileRedirectUris()
+    }
+  }
+
+  private fun confirmWildcardMobileRedirect() {
+    if (pendingMobileRedirectUris == null) return
+    pendingWildcardConfirmation = false
+    if (pendingShelfDroidCallbackWarning) {
+      _uiState.update {
+        it.copy(pendingConfirmation = AuthenticationSettingsConfirmation.RemoveShelfDroidCallback)
+      }
+    } else {
+      applyPendingMobileRedirectUris()
+    }
+  }
+
+  private fun applyPendingMobileRedirectUris() {
+    val next = pendingMobileRedirectUris ?: return
+    clearPendingMobileRedirect()
+    updateDraft { it.copy(openId = it.openId.copy(mobileRedirectUris = next)) }
+  }
+
+  private fun dismissConfirmation() {
+    clearPendingMobileRedirect()
+    _uiState.update { it.copy(pendingConfirmation = null) }
+  }
+
+  private fun clearPendingMobileRedirect() {
+    pendingMobileRedirectUris = null
+    pendingShelfDroidCallbackWarning = false
+    pendingWildcardConfirmation = false
+  }
 }
+
+private const val SHELFDROID_CALLBACK_URI = "audiobookshelf://oauth"
 
 private fun AuthenticationSettingsSummary.withLoginMethod(
   method: LoginMethod,
@@ -368,6 +473,18 @@ sealed interface AuthenticationSettingsEvent {
   data object RequestClearClientSecret : AuthenticationSettingsEvent
 
   data object ConfirmClearClientSecret : AuthenticationSettingsEvent
+
+  data class AddMobileRedirectUri(val uri: String) : AuthenticationSettingsEvent
+
+  data class UpdateMobileRedirectUri(val index: Int, val uri: String) : AuthenticationSettingsEvent
+
+  data class RemoveMobileRedirectUri(val index: Int) : AuthenticationSettingsEvent
+
+  data class SetCallbackSubfolder(val value: String) : AuthenticationSettingsEvent
+
+  data object ConfirmRemoveShelfDroidCallback : AuthenticationSettingsEvent
+
+  data object ConfirmWildcardMobileRedirect : AuthenticationSettingsEvent
 
   data class SetOpenIdLoginEnabled(val enabled: Boolean) : AuthenticationSettingsEvent
 

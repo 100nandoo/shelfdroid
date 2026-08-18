@@ -425,6 +425,98 @@ class AuthenticationSettingsViewModelStateTest {
   }
 
   @Test
+  fun mobileRedirectList_supportsAddRemoveAndWarnsBeforeRemovingShelfDroidCallback() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val original = settings()
+    val viewModel = viewModelWith(original)
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(AuthenticationSettingsEvent.AddMobileRedirectUri("audiobookshelf://oauth"))
+    assertEquals(
+      listOf("audiobookshelf://oauth"),
+      viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris,
+    )
+    viewModel.onEvent(AuthenticationSettingsEvent.RemoveMobileRedirectUri(0))
+    assertEquals(
+      AuthenticationSettingsConfirmation.RemoveShelfDroidCallback,
+      viewModel.uiState.value.pendingConfirmation,
+    )
+    viewModel.onEvent(AuthenticationSettingsEvent.ConfirmRemoveShelfDroidCallback)
+    assertTrue(viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris.orEmpty().isEmpty())
+    collection.cancelAndJoin()
+  }
+
+  @Test
+  fun mobileRedirectWildcard_requiresHighRiskConfirmation() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val viewModel = viewModelWith(settings())
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    viewModel.onEvent(AuthenticationSettingsEvent.AddMobileRedirectUri("*"))
+    assertEquals(
+      AuthenticationSettingsConfirmation.UseWildcardMobileRedirect,
+      viewModel.uiState.value.pendingConfirmation,
+    )
+    assertTrue(viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris.orEmpty().isEmpty())
+    viewModel.onEvent(AuthenticationSettingsEvent.ConfirmWildcardMobileRedirect)
+    assertEquals(listOf("*"), viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris)
+    collection.cancelAndJoin()
+  }
+
+  @Test
+  fun callbackEdits_validateUrisAndRestrictSubfolderChoices() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val original = settings().copy(
+      openId = validOpenId().copy(
+        mobileRedirectUris = listOf("audiobookshelf://oauth"),
+        subfolderForRedirectUrls = "/shelf",
+      ),
+    )
+    val state =
+      readyState(original, original).copy(
+        callbackSubfolderOptions = listOf("", "/shelf"),
+      )
+    val viewModel =
+      AuthenticationSettingsViewModel(
+        loadOperation = { state },
+        saveOperation = { it },
+      )
+    val collection =
+      backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+    advanceUntilIdle()
+
+    val currentDraft = requireNotNull(viewModel.uiState.value.draftSettings)
+    val withSecondUri =
+      currentDraft.copy(
+        openId =
+          currentDraft.openId.copy(
+            mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth"),
+          ),
+      )
+    viewModel.onEvent(AuthenticationSettingsEvent.UpdateDraftSettings { withSecondUri })
+    viewModel.onEvent(AuthenticationSettingsEvent.UpdateMobileRedirectUri(1, "not a URI"))
+    assertTrue(
+      AuthenticationSettingsValidationError.InvalidMobileRedirectUri in
+        viewModel.uiState.value.validation.errors
+    )
+    viewModel.onEvent(AuthenticationSettingsEvent.SetCallbackSubfolder("/invented"))
+    assertTrue(
+      AuthenticationSettingsValidationError.InvalidCallbackSubfolder in
+        viewModel.uiState.value.validation.errors
+    )
+    viewModel.onEvent(AuthenticationSettingsEvent.SetCallbackSubfolder(""))
+    assertFalse(
+      AuthenticationSettingsValidationError.InvalidCallbackSubfolder in
+        viewModel.uiState.value.validation.errors
+    )
+    collection.cancelAndJoin()
+  }
+
+  @Test
   fun resetAndConfirmedBackClearReplacementText() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val original = settings()

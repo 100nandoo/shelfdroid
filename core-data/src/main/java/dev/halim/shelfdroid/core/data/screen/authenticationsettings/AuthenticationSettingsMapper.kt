@@ -85,6 +85,14 @@ object AuthenticationSettingsMapper {
         draftOpenId.tokenSigningAlgorithm.takeIf {
           it != savedOpenId.tokenSigningAlgorithm
         },
+      authOpenIDMobileRedirectURIs =
+        draftOpenId.mobileRedirectUris.takeIf {
+          it != savedOpenId.mobileRedirectUris
+        },
+      authOpenIDSubfolderForRedirectURLs =
+        draftOpenId.subfolderForRedirectUrls.takeIf {
+          it != savedOpenId.subfolderForRedirectUrls
+        },
     )
   }
 
@@ -115,7 +123,9 @@ object AuthenticationSettingsMapper {
       saved.jwksUrl != draft.jwksUrl ||
       saved.logoutUrl != draft.logoutUrl ||
       saved.clientId != draft.clientId ||
-      saved.tokenSigningAlgorithm != draft.tokenSigningAlgorithm
+      saved.tokenSigningAlgorithm != draft.tokenSigningAlgorithm ||
+      saved.mobileRedirectUris != draft.mobileRedirectUris ||
+      saved.subfolderForRedirectUrls != draft.subfolderForRedirectUrls
 
   fun mergeDiscovery(
     current: AuthenticationSettingsSummary,

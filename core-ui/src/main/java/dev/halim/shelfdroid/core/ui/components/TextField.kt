@@ -31,9 +31,13 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.semantics.editableText
+import androidx.compose.ui.semantics.inputText
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -130,6 +134,7 @@ fun PasswordTextField(
   onDone: (() -> Unit)? = null,
 ) {
   var passwordVisible by remember { mutableStateOf(false) }
+  val semanticsText = if (passwordVisible) value else "••••"
 
   OutlinedTextField(
     readOnly = enabled.not(),
@@ -151,7 +156,11 @@ fun PasswordTextField(
         Icon(painter = image, contentDescription = description)
       }
     },
-    modifier = modifier.fillMaxWidth(),
+    modifier =
+      modifier.fillMaxWidth().semantics {
+        editableText = AnnotatedString(semanticsText)
+        inputText = AnnotatedString(semanticsText)
+      },
     keyboardActions =
       KeyboardActions(onNext = onNext?.let { { it() } }, onDone = onDone?.let { { it() } }),
   )

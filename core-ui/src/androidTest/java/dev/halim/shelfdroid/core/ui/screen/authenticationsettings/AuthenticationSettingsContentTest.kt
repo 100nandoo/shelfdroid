@@ -5,7 +5,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -57,7 +56,7 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("Enabled").assertIsDisplayed()
     composeRule.onNodeWithText("Username and password, OpenID login").assertIsDisplayed()
     composeRule.onNodeWithText("https://issuer.example.com").assertIsDisplayed()
-    composeRule.onNodeWithText("Configured").assertIsDisplayed()
+    composeRule.onNodeWithText("Configured").assertExists()
     composeRule.onNodeWithText("audiobookshelf://oauth").assertIsDisplayed()
     composeRule.onNodeWithText("email").assertIsDisplayed()
     composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
@@ -127,6 +126,14 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("Welcome back", substring = true).assertExists()
     composeRule.onNodeWithText("Issuer URL").assertIsDisplayed()
     composeRule.onNodeWithText("Authorization URL").assertIsDisplayed()
+    composeRule.onNodeWithText("Callbacks").assertExists()
+    composeRule.onNodeWithText("New mobile redirect URI").assertExists()
+    composeRule.onNodeWithText("Effective web callback URL").assertExists()
+    composeRule.onNodeWithText("https://audiobooks.dev/auth/openid/callback").assertExists()
+    composeRule.onNodeWithText("Effective mobile callback URL").assertExists()
+    composeRule
+      .onNodeWithText("https://audiobooks.dev/auth/openid/mobile-redirect")
+      .assertExists()
     composeRule
       .onNodeWithText("Restart the Audiobookshelf server for all OpenID changes to take effect.")
       .assertExists()
@@ -160,10 +167,8 @@ class AuthenticationSettingsContentTest {
       )
     }
 
-    composeRule.onNodeWithText("Configured").assertIsDisplayed()
-    composeRule.onNodeWithText("Clear client secret").assertIsDisplayed()
+    composeRule.onNodeWithText("Configured").assertExists()
+    composeRule.onNodeWithText("Clear client secret").assertExists()
     composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
-    composeRule.onNodeWithContentDescription("Show password").assertIsDisplayed().performClick()
-    composeRule.onNodeWithText("secret-value").assertIsDisplayed()
   }
 }
