@@ -47,7 +47,7 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.preview.sheetState
-import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChipInput
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.MyChipInput
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.SeriesInput
 
 @Composable
@@ -354,7 +354,7 @@ private fun ChipReviewRow(
     Column(
       modifier = Modifier.padding(start = 48.dp, end = 16.dp).alpha(fieldEnabled.enableAlpha())
     ) {
-      ChipInput(
+      MyChipInput(
         label = label,
         values = editedValue,
         onAdd = { value ->

@@ -32,7 +32,7 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
-import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChipInput
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.MyChipInput
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.SeriesInput
 
 @Composable
@@ -70,7 +70,7 @@ internal fun BookDetailsTab(
       onNext = { publishYearRef.requestFocus() },
     )
 
-    ChipInput(
+    MyChipInput(
       label = stringResource(R.string.edit_item_authors),
       values = details.authors,
       onAdd = { v -> onEvent(EditItemEvent.UpdateDetails { it.copy(authors = it.authors + v) }) },
@@ -79,7 +79,7 @@ internal fun BookDetailsTab(
       },
     )
 
-    ChipInput(
+    MyChipInput(
       label = stringResource(R.string.edit_item_narrators),
       values = details.narrators,
       onAdd = { v ->
@@ -191,14 +191,14 @@ internal fun DescriptionField(value: String, onValueChange: (String) -> Unit) {
 
 @Composable
 internal fun GenresAndTags(details: DetailsForm, onEvent: (EditItemEvent) -> Unit) {
-  ChipInput(
+  MyChipInput(
     label = stringResource(R.string.genres),
     values = details.genres,
     onAdd = { v -> onEvent(EditItemEvent.UpdateDetails { it.copy(genres = it.genres + v) }) },
     onRemove = { v -> onEvent(EditItemEvent.UpdateDetails { it.copy(genres = it.genres - v) }) },
   )
 
-  ChipInput(
+  MyChipInput(
     label = stringResource(R.string.edit_item_tags),
     values = details.tags,
     onAdd = { v -> onEvent(EditItemEvent.UpdateDetails { it.copy(tags = it.tags + v) }) },

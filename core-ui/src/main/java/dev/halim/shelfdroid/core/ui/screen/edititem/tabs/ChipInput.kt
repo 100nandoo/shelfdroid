@@ -37,7 +37,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun ChipInput(
+fun MyChipInput(
   label: String,
   values: List<String>,
   onAdd: (String) -> Unit,
@@ -155,7 +155,7 @@ fun ChipInput(
 @Composable
 private fun ChipInputPreview() {
   PreviewWrapper {
-    ChipInput(
+    MyChipInput(
       label = "Authors",
       values = listOf("J. R. R. Tolkien", "Christopher Tolkien"),
       onAdd = {},

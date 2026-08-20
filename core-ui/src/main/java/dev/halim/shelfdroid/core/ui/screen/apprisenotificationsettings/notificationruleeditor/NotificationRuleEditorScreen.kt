@@ -60,7 +60,7 @@ import dev.halim.shelfdroid.core.ui.navigation.EditAppriseNotificationRule
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
-import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChipInput
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.MyChipInput
 import kotlinx.coroutines.launch
 
 private enum class NotificationRuleTemplateField {
@@ -279,7 +279,7 @@ private fun NotificationRuleEditorFields(
   }
 
   Spacer(modifier = Modifier.height(12.dp))
-  ChipInput(
+  MyChipInput(
     modifier = destinationModifier,
     label = stringResource(R.string.destination_urls),
     values = form.urls,
