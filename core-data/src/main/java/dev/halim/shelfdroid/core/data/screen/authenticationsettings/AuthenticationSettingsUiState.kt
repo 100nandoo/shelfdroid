@@ -8,25 +8,18 @@ data class AuthenticationSettingsUiState(
   val state: AuthenticationSettingsState = AuthenticationSettingsState.Loading,
   val savedSettings: AuthenticationSettingsForm? = null,
   val draftSettings: AuthenticationSettingsForm? = null,
-  /** Algorithms offered by the most recent successful issuer discovery. */
   val signingAlgorithmOptions: List<String> = emptyList(),
-  /** The only server-provided callback subfolder choices, including no subfolder. */
   val callbackSubfolderOptions: List<String> = listOf(""),
   val serverBaseUrl: String = AudiobookshelfBaseUrl.DEFAULT_VALUE,
   val apiState: AuthenticationSettingsApiState = AuthenticationSettingsApiState.Idle,
   val validation: AuthenticationSettingsValidation = AuthenticationSettingsValidation(),
-  /** True while the ViewModel holds an explicit client-secret replacement or clear intent. */
-  val clientSecretChangePending: Boolean = false,
   val pendingConfirmation: AuthenticationSettingsConfirmation? = null,
   val leaveRequested: Boolean = false,
-  /** Remains visible after an accepted OIDC update until the screen is left or reset. */
   val restartRequired: Boolean = false,
 )
 
 val AuthenticationSettingsUiState.hasChanges: Boolean
-  get() =
-    clientSecretChangePending ||
-      (savedSettings != null && draftSettings != null && savedSettings != draftSettings)
+  get() = savedSettings != null && draftSettings != null && savedSettings != draftSettings
 
 val AuthenticationSettingsUiState.canSave: Boolean
   get() = hasChanges && validation.isValid && apiState !is AuthenticationSettingsApiState.Loading
@@ -37,8 +30,6 @@ sealed interface AuthenticationSettingsState {
   data object Loading : AuthenticationSettingsState
 
   data class Ready(val settings: AuthenticationSettingsSummary) : AuthenticationSettingsState
-
-  data object AccessDenied : AuthenticationSettingsState
 
   data class Failure(val message: String?) : AuthenticationSettingsState
 }
@@ -54,15 +45,6 @@ enum class AuthenticationSettingsOperation {
   Load,
   Discovery,
   Save,
-}
-
-/** A secret update is never inferred from the redacted loaded settings. */
-sealed interface AuthenticationSettingsSecretUpdate {
-  data object Untouched : AuthenticationSettingsSecretUpdate
-
-  data class Replace(val value: String) : AuthenticationSettingsSecretUpdate
-
-  data object Clear : AuthenticationSettingsSecretUpdate
 }
 
 sealed interface AuthenticationSettingsApiState {
@@ -102,21 +84,19 @@ data class AuthenticationSettingsValidation(
 
 enum class AuthenticationSettingsConfirmation {
   DisablePasswordSignIn,
-  ClearClientSecret,
   RemoveShelfDroidCallback,
   UseWildcardMobileRedirect,
   LeaveWithUnsavedChanges,
 }
 
 fun AuthenticationSettingsSummary.validation(
-  secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
-  callbackSubfolderOptions: Collection<String> = listOf(""),
+  callbackSubfolderOptions: Collection<String> = listOf("")
 ): AuthenticationSettingsValidation {
   val errors = buildSet {
     if (activeLoginMethods.isEmpty()) {
       add(AuthenticationSettingsValidationError.NoLoginMethod)
     }
-    if (LoginMethod.OpenId in activeLoginMethods && !openId.isStructurallyValid(secretUpdate)) {
+    if (LoginMethod.OpenId in activeLoginMethods && !openId.isStructurallyValid()) {
       add(AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete)
     }
     if (openId.matchExistingBy !in OPENID_MATCH_EXISTING_BY_OPTIONS) {
@@ -145,13 +125,10 @@ fun AuthenticationSettingsSummary.validation(
   return AuthenticationSettingsValidation(errors)
 }
 
-fun AuthenticationSettingsSummary.isOpenIdConfigurationValid(
-  secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched
-): Boolean = openId.isStructurallyValid(secretUpdate)
+fun AuthenticationSettingsSummary.isOpenIdConfigurationValid(): Boolean =
+  openId.isStructurallyValid()
 
-private fun OpenIdSettingsSummary.isStructurallyValid(
-  secretUpdate: AuthenticationSettingsSecretUpdate
-): Boolean =
+private fun OpenIdSettingsSummary.isStructurallyValid(): Boolean =
   issuerUrl.isNotBlank() &&
     authorizationUrl.isNotBlank() &&
     tokenUrl.isNotBlank() &&
@@ -159,16 +136,7 @@ private fun OpenIdSettingsSummary.isStructurallyValid(
     jwksUrl.isNotBlank() &&
     clientId.isNotBlank() &&
     tokenSigningAlgorithm.isNotBlank() &&
-    secretUpdate.isAllowedFor(clientSecretConfigured)
-
-private fun AuthenticationSettingsSecretUpdate.isAllowedFor(
-  clientSecretConfigured: Boolean
-): Boolean =
-  when (this) {
-    AuthenticationSettingsSecretUpdate.Untouched -> true
-    is AuthenticationSettingsSecretUpdate.Replace -> value.isNotBlank()
-    AuthenticationSettingsSecretUpdate.Clear -> !clientSecretConfigured
-  }
+    clientSecret.isNotBlank()
 
 data class OpenIdSettingsSummary(
   val issuerUrl: String = "",
@@ -178,7 +146,7 @@ data class OpenIdSettingsSummary(
   val jwksUrl: String = "",
   val logoutUrl: String = "",
   val clientId: String = "",
-  val clientSecretConfigured: Boolean = false,
+  val clientSecret: String = "",
   val tokenSigningAlgorithm: String = "",
   val mobileRedirectUris: List<String> = emptyList(),
   val subfolderForRedirectUrls: String = "",
@@ -189,14 +157,33 @@ data class OpenIdSettingsSummary(
   val groupClaim: String = "",
   val advancedPermsClaim: String = "",
   val samplePermissions: String = "",
-)
+) {
+  override fun toString(): String =
+    "OpenIdSettingsSummary(" +
+      "issuerUrl=$issuerUrl, " +
+      "authorizationUrl=$authorizationUrl, " +
+      "tokenUrl=$tokenUrl, " +
+      "userInfoUrl=$userInfoUrl, " +
+      "jwksUrl=$jwksUrl, " +
+      "logoutUrl=$logoutUrl, " +
+      "clientId=$clientId, " +
+      "clientSecret=<redacted>, " +
+      "tokenSigningAlgorithm=$tokenSigningAlgorithm, " +
+      "mobileRedirectUris=$mobileRedirectUris, " +
+      "subfolderForRedirectUrls=$subfolderForRedirectUrls, " +
+      "buttonText=$buttonText, " +
+      "matchExistingBy=$matchExistingBy, " +
+      "autoLaunch=$autoLaunch, " +
+      "autoRegister=$autoRegister, " +
+      "groupClaim=$groupClaim, " +
+      "advancedPermsClaim=$advancedPermsClaim, " +
+      "samplePermissions=$samplePermissions)"
+}
 
-/** Values supported by Audiobookshelf for matching an existing User during OpenID login. */
 val OPENID_MATCH_EXISTING_BY_OPTIONS: List<String> = listOf("", "email", "username")
 
 private val OPENID_CLAIM_PATTERN = Regex("^[a-zA-Z][a-zA-Z0-9_-]*$")
 
-/** Mirrors the Audiobookshelf web client's optional claim-name validation. */
 private fun String.isValidOpenIdClaim(): Boolean = isEmpty() || matches(OPENID_CLAIM_PATTERN)
 
 data class OpenIdDiscoveryResult(
@@ -209,7 +196,6 @@ data class OpenIdDiscoveryResult(
   val signingAlgorithms: List<String> = emptyList(),
 )
 
-/** The two callback endpoints an administrator must register with the identity provider. */
 data class OpenIdCallbackUrls(
   val web: String,
   val mobile: String,
@@ -231,11 +217,6 @@ fun callbackSubfolderOptions(serverBaseUrl: String = DataStoreManager.BASE_URL):
   return listOf("", basePath).distinct()
 }
 
-/**
- * Mirrors Audiobookshelf's `isValidRedirectURI` in `server/controllers/MiscController.js`
- * (case-insensitive). Keep `*` outside this matcher: the server treats it as a separate sole-entry
- * wildcard.
- */
 internal val AUDIOBOOKSHELF_MOBILE_REDIRECT_URI_PATTERN =
   Regex(
     "^\\w+://[\\w\\.-]+(/[\\w\\./-]*)*$",

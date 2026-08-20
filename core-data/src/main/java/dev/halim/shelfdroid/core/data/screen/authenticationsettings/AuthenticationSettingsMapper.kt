@@ -32,7 +32,7 @@ object AuthenticationSettingsMapper {
           jwksUrl = response.authOpenIDJwksURL.orEmpty(),
           logoutUrl = response.authOpenIDLogoutURL.orEmpty(),
           clientId = response.authOpenIDClientID.orEmpty(),
-          clientSecretConfigured = !response.authOpenIDClientSecret.isNullOrEmpty(),
+          clientSecret = response.authOpenIDClientSecret.orEmpty(),
           tokenSigningAlgorithm = response.authOpenIDTokenSigningAlgorithm.orEmpty(),
           mobileRedirectUris = response.authOpenIDMobileRedirectURIs,
           subfolderForRedirectUrls = response.authOpenIDSubfolderForRedirectURLs,
@@ -49,7 +49,6 @@ object AuthenticationSettingsMapper {
   fun toUpdateRequest(
     saved: AuthenticationSettingsForm,
     draft: AuthenticationSettingsForm,
-    secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
   ): UpdateAuthenticationSettingsRequest? {
     val customMessage = draft.customMessageValue().takeIf { it != saved.customMessageValue() }
     val methods =
@@ -58,7 +57,7 @@ object AuthenticationSettingsMapper {
       }
     val savedOpenId = saved.openId
     val draftOpenId = draft.openId
-    val clientSecret = secretUpdate.toRequestValue()
+    val clientSecret = draftOpenId.clientSecret.takeIf { it != savedOpenId.clientSecret }
     if (
       customMessage == null &&
         methods == null &&
@@ -112,17 +111,7 @@ object AuthenticationSettingsMapper {
   fun hasOpenIdChanges(
     saved: AuthenticationSettingsForm,
     draft: AuthenticationSettingsForm,
-    secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
-  ): Boolean =
-    hasOpenIdProviderChanges(saved.openId, draft.openId) ||
-      secretUpdate != AuthenticationSettingsSecretUpdate.Untouched
-
-  private fun AuthenticationSettingsSecretUpdate.toRequestValue(): String? =
-    when (this) {
-      AuthenticationSettingsSecretUpdate.Untouched -> null
-      is AuthenticationSettingsSecretUpdate.Replace -> value
-      AuthenticationSettingsSecretUpdate.Clear -> ""
-    }
+  ): Boolean = hasOpenIdProviderChanges(saved.openId, draft.openId)
 
   private fun hasOpenIdProviderChanges(
     saved: OpenIdSettingsSummary,
@@ -135,6 +124,7 @@ object AuthenticationSettingsMapper {
       saved.jwksUrl != draft.jwksUrl ||
       saved.logoutUrl != draft.logoutUrl ||
       saved.clientId != draft.clientId ||
+      saved.clientSecret != draft.clientSecret ||
       saved.tokenSigningAlgorithm != draft.tokenSigningAlgorithm ||
       saved.mobileRedirectUris != draft.mobileRedirectUris ||
       saved.subfolderForRedirectUrls != draft.subfolderForRedirectUrls ||

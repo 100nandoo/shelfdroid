@@ -13,7 +13,7 @@ import org.junit.Test
 class AuthenticationSettingsFormTest {
 
   @Test
-  fun map_preservesComplexHtmlAndReducesSecret() {
+  fun map_preservesComplexHtmlAndKeepsSecretOutOfToString() {
     val settings =
       AuthenticationSettingsMapper.map(
         AuthenticationSettingsResponse(
@@ -27,6 +27,7 @@ class AuthenticationSettingsFormTest {
       "<p><strong>Welcome</strong> <a href=\"/help\">help</a></p>",
       settings.customMessage,
     )
+    assertEquals("never-store-this-value", settings.openId.clientSecret)
     assertFalse(settings.toString().contains("never-store-this-value"))
   }
 
@@ -343,7 +344,6 @@ class AuthenticationSettingsFormTest {
       saved.copy(
         openId =
           saved.openId.copy(
-            clientSecretConfigured = !saved.openId.clientSecretConfigured,
             mobileRedirectUris = listOf("shelfdroid://oauth"),
             buttonText = "Edited button",
           )
@@ -370,13 +370,9 @@ class AuthenticationSettingsFormTest {
   @Test
   fun toUpdateRequest_replacementSendsEnteredSecretExactly() {
     val saved = form(message = "", methods = listOf(LoginMethod.Local))
+    val draft = saved.copy(openId = saved.openId.copy(clientSecret = "replacement-secret"))
 
-    val request =
-      AuthenticationSettingsMapper.toUpdateRequest(
-        saved,
-        saved,
-        AuthenticationSettingsSecretUpdate.Replace("replacement-secret"),
-      )!!
+    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
 
     assertEquals("replacement-secret", request.authOpenIDClientSecret)
     assertEquals(
@@ -389,19 +385,10 @@ class AuthenticationSettingsFormTest {
   fun toUpdateRequest_clearSendsExplicitEmptyString() {
     val saved =
       form(message = "", methods = listOf(LoginMethod.Local, LoginMethod.OpenId))
-        .copy(
-          openId =
-            form(message = "", methods = listOf(LoginMethod.Local))
-              .openId
-              .copy(clientSecretConfigured = true)
-        )
+        .copy(openId = form(message = "", methods = listOf(LoginMethod.Local)).openId)
+    val draft = saved.copy(openId = saved.openId.copy(clientSecret = ""))
 
-    val request =
-      AuthenticationSettingsMapper.toUpdateRequest(
-        saved,
-        saved,
-        AuthenticationSettingsSecretUpdate.Clear,
-      )!!
+    val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
 
     assertEquals("", request.authOpenIDClientSecret)
     assertEquals(
@@ -411,20 +398,18 @@ class AuthenticationSettingsFormTest {
   }
 
   @Test
-  fun validation_rejectsClearingConfiguredSecretWhileOpenIdIsEnabled() {
+  fun validation_rejectsBlankSecretWhileOpenIdIsEnabled() {
     val settings =
       form(message = "", methods = listOf(LoginMethod.Local, LoginMethod.OpenId))
         .copy(
           openId =
-            form(message = "", methods = listOf(LoginMethod.Local))
-              .openId
-              .copy(clientSecretConfigured = true)
+            form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(clientSecret = "")
         )
 
-    assertFalse(settings.validation(AuthenticationSettingsSecretUpdate.Clear).isValid)
+    assertFalse(settings.validation().isValid)
     assertTrue(
       AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete in
-        settings.validation(AuthenticationSettingsSecretUpdate.Clear).errors
+        settings.validation().errors
     )
   }
 
@@ -516,6 +501,7 @@ class AuthenticationSettingsFormTest {
           userInfoUrl = "https://issuer.example.com/userinfo",
           jwksUrl = "https://issuer.example.com/jwks",
           clientId = "shelfdroid",
+          clientSecret = "secret-value",
           tokenSigningAlgorithm = "RS256",
         ),
     )

@@ -8,7 +8,6 @@ import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
-import dev.halim.shelfdroid.core.data.admin.AdminDestinationGuard
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
@@ -115,11 +114,7 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
           .build()
           .create(ApiService::class.java)
       val prefsRepository = PrefsRepository(dataStoreManager)
-      val authenticationRepository =
-        AuthenticationSettingsRepository(
-          api = api,
-          adminDestinationGuard = AdminDestinationGuard(prefsRepository),
-        )
+      val authenticationRepository = AuthenticationSettingsRepository(api = api)
       val loginRepository =
         LoginRepository(
           api = api,
@@ -183,6 +178,7 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
       "authOpenIDUserInfoURL": "https://issuer.example.com/userinfo",
       "authOpenIDJwksURL": "https://issuer.example.com/jwks",
       "authOpenIDClientID": "shelfdroid",
+      "authOpenIDClientSecret": "secret-value",
       "authOpenIDTokenSigningAlgorithm": "RS256",
       "authOpenIDButtonText": "$buttonText",
       "authOpenIDAutoLaunch": $autoLaunch

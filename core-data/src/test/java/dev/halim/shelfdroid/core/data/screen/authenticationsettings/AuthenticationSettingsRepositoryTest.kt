@@ -8,8 +8,6 @@ import dev.halim.core.network.client.SessionCookieJar
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
-import dev.halim.shelfdroid.core.data.admin.AdminDestinationGuard
-import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.io.File
@@ -37,7 +35,7 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 class AuthenticationSettingsRepositoryTest {
 
   @Test
-  fun load_admin_mapsSettingsAndReducesClientSecret() = runTest {
+  fun load_admin_mapsSettingsAndKeepsSecretOutOfToString() = runTest {
     val fixture = fixture(UserType.Admin, responseBody = completeSettingsJson())
     try {
       val state = fixture.repository.load().state
@@ -50,7 +48,7 @@ class AuthenticationSettingsRepositoryTest {
         settings.activeLoginMethods,
       )
       assertEquals("https://issuer.example.com", settings.openId.issuerUrl)
-      assertTrue(settings.openId.clientSecretConfigured)
+      assertEquals("secret-value", settings.openId.clientSecret)
       assertFalse(settings.toString().contains("secret-value"))
     } finally {
       fixture.close()
@@ -58,7 +56,7 @@ class AuthenticationSettingsRepositoryTest {
   }
 
   @Test
-  fun load_root_isAllowedByTheSameAdminGuard() = runTest {
+  fun load_root_mapsSettings() = runTest {
     val fixture = fixture(UserType.Root, responseBody = completeSettingsJson())
     try {
       assertTrue(fixture.repository.load().state is AuthenticationSettingsState.Ready)
@@ -70,27 +68,22 @@ class AuthenticationSettingsRepositoryTest {
   }
 
   @Test
-  fun load_nonAdmin_returnsAccessDeniedWithoutAnHttpRequest() = runTest {
+  fun load_nonAdmin_usesApiLikeOtherUsers() = runTest {
     val fixture = fixture(UserType.User, responseBody = completeSettingsJson())
     try {
-      assertEquals(
-        AuthenticationSettingsState.AccessDenied,
-        fixture.repository.load().state,
-      )
-      assertTrue(fixture.requestedUrls.isEmpty())
+      assertTrue(fixture.repository.load().state is AuthenticationSettingsState.Ready)
+      assertEquals(1, fixture.requestedUrls.size)
+      assertEquals("https://audiobooks.dev/api/auth-settings", fixture.requestedUrls.single())
     } finally {
       fixture.close()
     }
   }
 
   @Test
-  fun load_serverForbidden_returnsAccessDeniedWithoutPartialSettings() = runTest {
+  fun load_serverForbidden_returnsRetryableFailure() = runTest {
     val fixture = fixture(UserType.Admin, responseCode = 403, responseBody = "{}")
     try {
-      assertEquals(
-        AuthenticationSettingsState.AccessDenied,
-        fixture.repository.load().state,
-      )
+      assertTrue(fixture.repository.load().state is AuthenticationSettingsState.Failure)
     } finally {
       fixture.close()
     }
@@ -239,19 +232,6 @@ class AuthenticationSettingsRepositoryTest {
         (result.apiState as AuthenticationSettingsApiState.Failure).operation,
       )
       assertEquals(2, fixture.requestedUrls.size)
-    } finally {
-      fixture.close()
-    }
-  }
-
-  @Test
-  fun discover_nonAdmin_doesNotSendHttpRequest() = runTest {
-    val fixture = fixture(UserType.User, responseBody = completeSettingsJson())
-    try {
-      val result = fixture.repository.discover(AuthenticationSettingsUiState())
-
-      assertEquals(AuthenticationSettingsState.AccessDenied, result.state)
-      assertTrue(fixture.requestedUrls.isEmpty())
     } finally {
       fixture.close()
     }
@@ -450,7 +430,7 @@ class AuthenticationSettingsRepositoryTest {
   }
 
   @Test
-  fun save_secretReplacementSendsOnlyReplacementAndReloadsConfiguredState() = runTest {
+  fun save_changedClientSecretSendsOnlyClientSecretAndReloadsCanonicalState() = runTest {
     val fixture =
       fixture(
         UserType.Admin,
@@ -459,19 +439,26 @@ class AuthenticationSettingsRepositoryTest {
           listOf(
             Stub(200, completeSettingsJson()),
             Stub(200, "{\"updated\":true}"),
-            Stub(200, completeSettingsJson()),
+            Stub(200, completeSettingsJson().replace("secret-value", "replacement-secret")),
           ),
       )
     try {
       val loaded = fixture.repository.load()
+      val draft =
+        loaded.draftSettings!!.copy(
+          openId = loaded.draftSettings.openId.copy(clientSecret = "replacement-secret")
+        )
       val saved =
         fixture.repository.save(
-          loaded.copy(clientSecretChangePending = true),
-          AuthenticationSettingsSecretUpdate.Replace("replacement-secret"),
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(),
+          )
         )
 
       assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
-      assertTrue(saved.draftSettings!!.openId.clientSecretConfigured)
+      assertEquals("replacement-secret", saved.draftSettings!!.openId.clientSecret)
       assertEquals(
         "{\"authOpenIDClientSecret\":\"replacement-secret\"}",
         fixture.requestBodies[1],
@@ -496,16 +483,18 @@ class AuthenticationSettingsRepositoryTest {
       )
     try {
       val loaded = fixture.repository.load()
-      val draft = loaded.draftSettings!!.copy(activeLoginMethods = listOf(LoginMethod.Local))
+      val draft =
+        loaded.draftSettings!!.copy(
+          activeLoginMethods = listOf(LoginMethod.Local),
+          openId = loaded.draftSettings.openId.copy(clientSecret = ""),
+        )
       val saved =
         fixture.repository.save(
           loaded.copy(
             state = AuthenticationSettingsState.Ready(draft),
             draftSettings = draft,
-            validation = draft.validation(AuthenticationSettingsSecretUpdate.Clear),
-            clientSecretChangePending = true,
-          ),
-          AuthenticationSettingsSecretUpdate.Clear,
+            validation = draft.validation(),
+          )
         )
 
       assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
@@ -523,10 +512,15 @@ class AuthenticationSettingsRepositoryTest {
     val fixture = fixture(UserType.Admin, responseBody = completeSettingsJson())
     try {
       val loaded = fixture.repository.load()
+      val draft =
+        loaded.draftSettings!!.copy(openId = loaded.draftSettings.openId.copy(clientSecret = ""))
       val blocked =
         fixture.repository.save(
-          loaded.copy(clientSecretChangePending = true),
-          AuthenticationSettingsSecretUpdate.Clear,
+          loaded.copy(
+            state = AuthenticationSettingsState.Ready(draft),
+            draftSettings = draft,
+            validation = draft.validation(),
+          )
         )
 
       assertTrue(
@@ -613,11 +607,7 @@ class AuthenticationSettingsRepositoryTest {
         .addCallAdapterFactory(ResultCallAdapterFactory.create())
         .build()
         .create(ApiService::class.java)
-    val repository =
-      AuthenticationSettingsRepository(
-        api = api,
-        adminDestinationGuard = AdminDestinationGuard(PrefsRepository(dataStoreManager)),
-      )
+    val repository = AuthenticationSettingsRepository(api = api)
     return Fixture(repository, dataStoreManager, requestedUrls, requestBodies, scope, file)
   }
 

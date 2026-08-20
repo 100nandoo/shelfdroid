@@ -3,6 +3,7 @@
 package dev.halim.shelfdroid.core.ui.screen.authenticationsettings
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +15,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +46,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsConfirmation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsOperation
@@ -70,6 +72,7 @@ import dev.halim.shelfdroid.core.ui.components.TextTitleLarge
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.GenericMessageActionScreen
 
 @Composable
 fun AuthenticationSettingsScreen(
@@ -77,8 +80,6 @@ fun AuthenticationSettingsScreen(
   onBackClicked: () -> Unit = {},
 ) {
   val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-  val clientSecretReplacement =
-    viewModel.clientSecretReplacement.collectAsStateWithLifecycle().value
 
   BackHandler { viewModel.onEvent(AuthenticationSettingsEvent.RequestBack) }
 
@@ -100,9 +101,6 @@ fun AuthenticationSettingsScreen(
         AuthenticationSettingsConfirmation.DisablePasswordSignIn ->
           viewModel.onEvent(AuthenticationSettingsEvent.ConfirmDisablePasswordSignIn)
 
-        AuthenticationSettingsConfirmation.ClearClientSecret ->
-          viewModel.onEvent(AuthenticationSettingsEvent.ConfirmClearClientSecret)
-
         AuthenticationSettingsConfirmation.RemoveShelfDroidCallback ->
           viewModel.onEvent(AuthenticationSettingsEvent.ConfirmRemoveShelfDroidCallback)
 
@@ -121,9 +119,7 @@ fun AuthenticationSettingsScreen(
   AuthenticationSettingsContent(
     state = uiState.state,
     uiState = uiState,
-    clientSecretReplacement = clientSecretReplacement,
     onRetry = { viewModel.onEvent(AuthenticationSettingsEvent.Retry) },
-    onBackClicked = onBackClicked,
     onEvent = viewModel::onEvent,
   )
 }
@@ -131,80 +127,43 @@ fun AuthenticationSettingsScreen(
 @Composable
 fun AuthenticationSettingsContent(
   state: AuthenticationSettingsState = AuthenticationSettingsState.Loading,
-  uiState: AuthenticationSettingsUiState? = null,
-  clientSecretReplacement: String = "",
+  uiState: AuthenticationSettingsUiState = AuthenticationSettingsUiState(),
   onRetry: () -> Unit = {},
-  onBackClicked: () -> Unit = {},
   onEvent: (AuthenticationSettingsEvent) -> Unit = {},
 ) {
   when (state) {
-    AuthenticationSettingsState.Loading -> LoadingContent()
-    AuthenticationSettingsState.AccessDenied ->
-      MessageContent(
-        title = stringResource(R.string.authentication_access_denied),
-        message = stringResource(R.string.authentication_access_denied_message),
-        actionLabel = stringResource(R.string.back),
-        onAction = onBackClicked,
-      )
+    AuthenticationSettingsState.Loading ->
+      Column(modifier = Modifier.fillMaxSize()) {
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+      }
 
     is AuthenticationSettingsState.Failure ->
-      MessageContent(
-        title = stringResource(R.string.authentication_settings_failed),
-        message = state.message ?: stringResource(R.string.authentication_settings_failed_message),
+      GenericMessageActionScreen(
+        message = state.message ?: stringResource(R.string.server_could_not_be_reached),
         actionLabel = stringResource(R.string.retry),
         onAction = onRetry,
       )
 
     is AuthenticationSettingsState.Ready ->
-      if (uiState == null) ReadySummaryContent(settings = state.settings)
-      else
-        ReadyEditorContent(
-          uiState = uiState,
-          clientSecretReplacement = clientSecretReplacement,
-          onEvent = onEvent,
-        )
+      EditorContent(
+        uiState = uiState,
+        onEvent = onEvent,
+      )
   }
 }
 
 @Composable
-private fun LoadingContent() {
-  Column(modifier = Modifier.fillMaxSize()) {
-    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-    Text(
-      text = stringResource(R.string.authentication_settings_loading),
-      modifier = Modifier.fillMaxWidth().padding(24.dp),
-      style = MaterialTheme.typography.bodyLarge,
-    )
-  }
-}
-
-@Composable
-private fun MessageContent(
-  title: String,
-  message: String,
-  actionLabel: String,
-  onAction: () -> Unit,
-) {
-  Column(
-    modifier = Modifier.fillMaxSize().padding(24.dp),
-    verticalArrangement = Arrangement.Center,
-  ) {
-    TextTitleLarge(text = title)
-    Spacer(modifier = Modifier.height(8.dp))
-    Text(text = message, style = MaterialTheme.typography.bodyLarge)
-    Spacer(modifier = Modifier.height(16.dp))
-    Button(onClick = onAction, modifier = Modifier.fillMaxWidth()) { Text(actionLabel) }
-  }
-}
-
-@Composable
-private fun ReadyEditorContent(
+private fun EditorContent(
   uiState: AuthenticationSettingsUiState,
-  clientSecretReplacement: String,
   onEvent: (AuthenticationSettingsEvent) -> Unit,
 ) {
   val draft = uiState.draftSettings ?: return
   val enabled = uiState.apiState !is AuthenticationSettingsApiState.Loading
+  val saveOutcomeVisible =
+    (uiState.apiState as? AuthenticationSettingsApiState.Success)?.operation ==
+      AuthenticationSettingsOperation.Save ||
+      uiState.apiState is AuthenticationSettingsApiState.Rejected
+  val failureState = uiState.apiState as? AuthenticationSettingsApiState.Failure
   Column(
     modifier =
       Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp)
@@ -222,23 +181,24 @@ private fun ReadyEditorContent(
         onEvent(AuthenticationSettingsEvent.SetCustomMessageEnabled(it))
       },
     )
-    if (draft.customMessageEnabled) {
-      OutlinedTextField(
-        value = draft.customMessage,
-        onValueChange = { onEvent(AuthenticationSettingsEvent.UpdateCustomMessage(it)) },
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-        enabled = enabled,
-        label = { Text(stringResource(R.string.authentication_custom_message_html)) },
-        supportingText = { Text(stringResource(R.string.authentication_custom_message_html_hint)) },
-        keyboardOptions = KeyboardOptions.Default,
-        minLines = 4,
-        maxLines = 10,
-      )
-      TextTitleMedium(
-        modifier = Modifier.padding(top = 16.dp),
-        text = stringResource(R.string.authentication_message_preview),
-      )
-      HtmlMessagePreview(draft.customMessage)
+    AnimatedVisibility(visible = draft.customMessageEnabled) {
+      Column {
+        OutlinedTextField(
+          value = draft.customMessage,
+          onValueChange = { onEvent(AuthenticationSettingsEvent.UpdateCustomMessage(it)) },
+          modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+          enabled = enabled,
+          label = { Text(stringResource(R.string.authentication_custom_message_html)) },
+          keyboardOptions = KeyboardOptions.Default,
+          minLines = 4,
+          maxLines = 10,
+        )
+        TextTitleMedium(
+          modifier = Modifier.padding(top = 16.dp),
+          text = stringResource(R.string.authentication_message_preview),
+        )
+        HtmlMessagePreview(draft.customMessage)
+      }
     }
 
     Spacer(modifier = Modifier.height(24.dp))
@@ -259,15 +219,7 @@ private fun ReadyEditorContent(
       enabled = enabled,
       onCheckedChange = { onEvent(AuthenticationSettingsEvent.SetOpenIdLoginEnabled(it)) },
     )
-    Text(
-      text =
-        stringResource(
-          R.string.authentication_active_login_methods_value,
-          draft.activeLoginMethods.toDisplayValue(),
-        ),
-      modifier = Modifier.padding(top = 8.dp),
-      style = MaterialTheme.typography.bodyMedium,
-    )
+
     uiState.validation.errors.forEach { error ->
       Text(
         text = error.toDisplayText(),
@@ -280,18 +232,9 @@ private fun ReadyEditorContent(
       )
     }
 
-    if (draft.activeLoginMethods.contains(LoginMethod.OpenId)) {
-      Text(
-        text = stringResource(R.string.authentication_openid_configuration_edit_next),
-        modifier = Modifier.padding(top = 12.dp),
-        style = MaterialTheme.typography.bodyMedium,
-      )
-    }
-
     Spacer(modifier = Modifier.height(24.dp))
     OpenIdProviderEditor(
       settings = draft.openId,
-      clientSecretReplacement = clientSecretReplacement,
       signingAlgorithmOptions = uiState.signingAlgorithmOptions,
       callbackSubfolderOptions = uiState.callbackSubfolderOptions,
       serverBaseUrl = uiState.serverBaseUrl,
@@ -302,11 +245,7 @@ private fun ReadyEditorContent(
     )
 
     Spacer(modifier = Modifier.height(24.dp))
-    val successState = uiState.apiState as? AuthenticationSettingsApiState.Success
-    if (
-      successState?.operation == AuthenticationSettingsOperation.Save ||
-        uiState.apiState is AuthenticationSettingsApiState.Rejected
-    ) {
+    AnimatedVisibility(visible = saveOutcomeVisible) {
       Text(
         text =
           when (uiState.apiState) {
@@ -319,21 +258,24 @@ private fun ReadyEditorContent(
             else -> ""
           },
         color =
-          if (successState?.operation == AuthenticationSettingsOperation.Save) {
+          if (
+            (uiState.apiState as? AuthenticationSettingsApiState.Success)?.operation ==
+              AuthenticationSettingsOperation.Save
+          ) {
             MaterialTheme.colorScheme.primary
           } else MaterialTheme.colorScheme.error,
         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       )
     }
-    val apiState = uiState.apiState
-    if (apiState is AuthenticationSettingsApiState.Failure) {
+    AnimatedVisibility(visible = failureState != null) {
       Text(
-        text = apiState.message ?: stringResource(R.string.authentication_settings_save_failed),
+        text =
+          failureState?.message ?: stringResource(R.string.authentication_settings_save_failed),
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       )
     }
-    if (uiState.restartRequired) {
+    AnimatedVisibility(visible = uiState.restartRequired) {
       Text(
         text = stringResource(R.string.authentication_restart_required),
         color = MaterialTheme.colorScheme.error,
@@ -366,7 +308,6 @@ private fun ReadyEditorContent(
 @Composable
 private fun OpenIdProviderEditor(
   settings: OpenIdSettingsSummary,
-  clientSecretReplacement: String,
   signingAlgorithmOptions: List<String>,
   callbackSubfolderOptions: List<String>,
   serverBaseUrl: String,
@@ -375,6 +316,13 @@ private fun OpenIdProviderEditor(
   validationErrors: Set<AuthenticationSettingsValidationError>,
   onEvent: (AuthenticationSettingsEvent) -> Unit,
 ) {
+  val hasSigningAlgorithmOptions = signingAlgorithmOptions.isNotEmpty()
+  val discoveryFailureState =
+    (discoveryState as? AuthenticationSettingsApiState.Failure)?.takeIf {
+      it.operation == AuthenticationSettingsOperation.Discovery
+    }
+  val invalidExistingUserMatching =
+    AuthenticationSettingsValidationError.InvalidExistingUserMatching in validationErrors
   TextTitleMedium(text = stringResource(R.string.authentication_openid_provider))
   val update: ((OpenIdSettingsSummary) -> OpenIdSettingsSummary) -> Unit = { transform ->
     onEvent(
@@ -442,27 +390,15 @@ private fun OpenIdProviderEditor(
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
   )
-  SummaryRow(
-    label = stringResource(R.string.authentication_client_secret),
-    value =
-      if (settings.clientSecretConfigured) stringResource(R.string.configured)
-      else stringResource(R.string.not_configured),
-  )
   PasswordTextField(
     modifier = Modifier.padding(top = 12.dp),
-    value = clientSecretReplacement,
+    value = settings.clientSecret,
     onValueChange = { onEvent(AuthenticationSettingsEvent.UpdateClientSecret(it)) },
-    label = stringResource(R.string.authentication_client_secret_replacement),
+    label = stringResource(R.string.authentication_client_secret),
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
   )
-  TextButton(
-    enabled = enabled && (settings.clientSecretConfigured || clientSecretReplacement.isNotEmpty()),
-    onClick = { onEvent(AuthenticationSettingsEvent.RequestClearClientSecret) },
-  ) {
-    Text(stringResource(R.string.authentication_clear_client_secret))
-  }
-  if (signingAlgorithmOptions.isNotEmpty()) {
+  AnimatedVisibility(visible = hasSigningAlgorithmOptions) {
     ChipDropdownMenu(
       modifier = Modifier.padding(top = 12.dp),
       options = signingAlgorithmOptions,
@@ -472,7 +408,8 @@ private fun OpenIdProviderEditor(
       enabled = enabled,
       onClick = { selected -> update { it.copy(tokenSigningAlgorithm = selected) } },
     )
-  } else {
+  }
+  AnimatedVisibility(visible = !hasSigningAlgorithmOptions) {
     MyOutlinedTextField(
       modifier = Modifier.padding(top = 12.dp),
       value = settings.tokenSigningAlgorithm,
@@ -484,23 +421,22 @@ private fun OpenIdProviderEditor(
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
     )
   }
-  if (signingAlgorithmOptions.isNotEmpty()) {
+  AnimatedVisibility(visible = hasSigningAlgorithmOptions) {
     Text(
       text =
-        stringResource(R.string.authentication_openid_discovery_algorithms) +
-          ": " +
+        stringResource(
+          R.string.authentication_openid_discovery_algorithms_value,
           signingAlgorithmOptions.joinToString(),
+        ),
       modifier = Modifier.padding(top = 8.dp),
       style = MaterialTheme.typography.bodyMedium,
     )
   }
-  if (
-    discoveryState is AuthenticationSettingsApiState.Failure &&
-      discoveryState.operation == AuthenticationSettingsOperation.Discovery
-  ) {
+  AnimatedVisibility(visible = discoveryFailureState != null) {
     Text(
       text =
-        discoveryState.message ?: stringResource(R.string.authentication_openid_discovery_failed),
+        discoveryFailureState?.message
+          ?: stringResource(R.string.authentication_openid_discovery_failed),
       modifier =
         Modifier.padding(top = 8.dp).semantics {
           liveRegion = LiveRegionMode.Polite
@@ -592,6 +528,9 @@ private fun OpenIdProviderEditor(
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
   )
+  val matchExistingNoneLabel = stringResource(R.string.authentication_match_existing_none)
+  val matchExistingEmailLabel = stringResource(R.string.authentication_match_existing_email)
+  val matchExistingUsernameLabel = stringResource(R.string.authentication_match_existing_username)
   MySegmentedButton(
     modifier = Modifier.padding(top = 12.dp),
     options = OPENID_MATCH_EXISTING_BY_OPTIONS,
@@ -599,15 +538,15 @@ private fun OpenIdProviderEditor(
     label = stringResource(R.string.authentication_match_existing_by),
     optionLabel = { value ->
       when (value) {
-        "email" -> "Email"
-        "username" -> "Username"
-        else -> "None"
+        "email" -> matchExistingEmailLabel
+        "username" -> matchExistingUsernameLabel
+        else -> matchExistingNoneLabel
       }
     },
     enabled = enabled,
     onClick = { selected -> update { it.copy(matchExistingBy = selected) } },
   )
-  if (AuthenticationSettingsValidationError.InvalidExistingUserMatching in validationErrors) {
+  AnimatedVisibility(visible = invalidExistingUserMatching) {
     Text(
       text = stringResource(R.string.authentication_validation_match_existing_by),
       modifier = Modifier.padding(top = 4.dp),
@@ -661,16 +600,19 @@ private fun OpenIdProviderEditor(
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
   )
-  OutlinedTextField(
-    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-    value = settings.samplePermissions,
-    onValueChange = {},
-    readOnly = true,
-    label = { Text(stringResource(R.string.authentication_sample_permissions)) },
-    minLines = 6,
-    maxLines = 12,
-    keyboardOptions = KeyboardOptions.Default,
+  TextTitleMedium(
+    text = stringResource(R.string.authentication_sample_permissions),
+    modifier = Modifier.padding(top = 12.dp),
   )
+  Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+    SelectionContainer {
+      Text(
+        text = settings.samplePermissions,
+        modifier = Modifier.padding(16.dp),
+        style = MaterialTheme.typography.bodyMedium,
+      )
+    }
+  }
 }
 
 @Composable
@@ -697,88 +639,12 @@ private fun HtmlMessagePreview(message: String) {
     remember(linkColor) {
       TextLinkStyles(SpanStyle(textDecoration = TextDecoration.Underline, color = linkColor))
     }
-  Text(
-    text = AnnotatedString.fromHtml(message, linkStyles = linkStyles),
-    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-  )
-}
-
-@Composable
-private fun ReadySummaryContent(settings: AuthenticationSettingsSummary) {
-  Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-    TextTitleLarge(text = stringResource(R.string.authentication_settings))
-    Spacer(modifier = Modifier.height(20.dp))
-
-    TextTitleMedium(text = stringResource(R.string.authentication_login_message))
-    SummaryRow(
-      label = stringResource(R.string.authentication_custom_message),
-      value =
-        if (settings.customMessageEnabled) stringResource(R.string.enabled)
-        else stringResource(R.string.disabled),
+  Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+    Text(
+      text = AnnotatedString.fromHtml(message, linkStyles = linkStyles),
+      modifier = Modifier.padding(16.dp),
     )
-    Spacer(modifier = Modifier.height(20.dp))
-
-    TextTitleMedium(text = stringResource(R.string.authentication_login_methods))
-    SummaryRow(
-      label = stringResource(R.string.authentication_active_login_methods),
-      value = settings.activeLoginMethods.toDisplayValue(),
-    )
-    Spacer(modifier = Modifier.height(20.dp))
-
-    OpenIdSummary(settings.openId)
   }
-}
-
-@Composable
-private fun OpenIdSummary(settings: OpenIdSettingsSummary) {
-  TextTitleMedium(text = stringResource(R.string.authentication_openid_provider))
-  SummaryRow(stringResource(R.string.authentication_issuer_url), settings.issuerUrl)
-  SummaryRow(stringResource(R.string.authentication_authorization_url), settings.authorizationUrl)
-  SummaryRow(stringResource(R.string.authentication_token_url), settings.tokenUrl)
-  SummaryRow(stringResource(R.string.authentication_userinfo_url), settings.userInfoUrl)
-  SummaryRow(stringResource(R.string.authentication_jwks_url), settings.jwksUrl)
-  SummaryRow(stringResource(R.string.authentication_logout_url), settings.logoutUrl)
-  SummaryRow(stringResource(R.string.authentication_client_id), settings.clientId)
-  SummaryRow(
-    stringResource(R.string.authentication_client_secret),
-    if (settings.clientSecretConfigured) stringResource(R.string.configured)
-    else stringResource(R.string.not_configured),
-  )
-  SummaryRow(
-    stringResource(R.string.authentication_signing_algorithm),
-    settings.tokenSigningAlgorithm,
-  )
-  Spacer(modifier = Modifier.height(16.dp))
-  TextTitleMedium(text = stringResource(R.string.authentication_callbacks))
-  SummaryRow(
-    stringResource(R.string.authentication_callback_subfolder),
-    settings.subfolderForRedirectUrls,
-  )
-  SummaryRow(
-    stringResource(R.string.authentication_mobile_redirect_uris),
-    settings.mobileRedirectUris.joinToString(separator = "\n"),
-  )
-  val callbackUrls = settings.callbackUrls(AudiobookshelfBaseUrl.DEFAULT_VALUE)
-  SummaryRow(stringResource(R.string.authentication_web_callback_url), callbackUrls.web)
-  SummaryRow(stringResource(R.string.authentication_mobile_callback_url), callbackUrls.mobile)
-  SummaryRow(stringResource(R.string.authentication_button_text), settings.buttonText)
-  Spacer(modifier = Modifier.height(16.dp))
-  TextTitleMedium(text = stringResource(R.string.authentication_user_mapping))
-  SummaryRow(stringResource(R.string.authentication_match_existing_by), settings.matchExistingBy)
-  SummaryRow(
-    stringResource(R.string.authentication_auto_launch),
-    settings.autoLaunch.toEnabledValue(),
-  )
-  SummaryRow(
-    stringResource(R.string.authentication_auto_register),
-    settings.autoRegister.toEnabledValue(),
-  )
-  SummaryRow(stringResource(R.string.authentication_group_claim), settings.groupClaim)
-  SummaryRow(
-    stringResource(R.string.authentication_advanced_permissions_claim),
-    settings.advancedPermsClaim,
-  )
-  SummaryRow(stringResource(R.string.authentication_sample_permissions), settings.samplePermissions)
 }
 
 @Composable
@@ -796,19 +662,6 @@ private fun SummaryRow(label: String, value: String) {
     )
   }
 }
-
-private fun List<LoginMethod>.toDisplayValue(): String =
-  joinToString(", ") {
-      when (it) {
-        LoginMethod.Local -> "Username and password"
-        LoginMethod.OpenId -> "OpenID login"
-      }
-    }
-    .ifBlank { "None" }
-
-@Composable
-private fun Boolean.toEnabledValue(): String =
-  if (this) stringResource(R.string.enabled) else stringResource(R.string.disabled)
 
 @Composable
 private fun AuthenticationSettingsValidationError.toDisplayText(): String =
@@ -844,9 +697,6 @@ private fun confirmationText(confirmation: AuthenticationSettingsConfirmation?):
     AuthenticationSettingsConfirmation.DisablePasswordSignIn ->
       stringResource(R.string.authentication_disable_password_confirm)
 
-    AuthenticationSettingsConfirmation.ClearClientSecret ->
-      stringResource(R.string.authentication_clear_client_secret_confirm)
-
     AuthenticationSettingsConfirmation.RemoveShelfDroidCallback ->
       stringResource(R.string.authentication_remove_shelf_callback_confirm)
 
@@ -868,25 +718,11 @@ private fun AuthenticationSettingsLoadingPreview() {
 @ShelfDroidPreview
 @Composable
 private fun AuthenticationSettingsReadyPreview() {
+  val settings = authenticationPreviewSettings()
   PreviewWrapper(dynamicColor = false) {
     AuthenticationSettingsContent(
-      state =
-        AuthenticationSettingsState.Ready(
-          AuthenticationSettingsSummary(
-            customMessageEnabled = true,
-            customMessage = "<p>Welcome</p>",
-            activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-            openId =
-              dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary(
-                issuerUrl = "https://issuer.example.com",
-                clientId = "shelfdroid",
-                clientSecretConfigured = true,
-                mobileRedirectUris = listOf("audiobookshelf://oauth"),
-                matchExistingBy = "email",
-                autoLaunch = true,
-              ),
-          )
-        )
+      state = AuthenticationSettingsState.Ready(settings),
+      uiState = authenticationPreviewUiState(settings),
     )
   }
 }
@@ -896,16 +732,9 @@ private fun AuthenticationSettingsReadyPreview() {
 private fun AuthenticationSettingsFailurePreview() {
   PreviewWrapper(dynamicColor = false) {
     AuthenticationSettingsContent(
-      state = AuthenticationSettingsState.Failure("The server could not be reached.")
+      state =
+        AuthenticationSettingsState.Failure(stringResource(R.string.server_could_not_be_reached))
     )
-  }
-}
-
-@ShelfDroidPreview
-@Composable
-private fun AuthenticationSettingsAccessDeniedPreview() {
-  PreviewWrapper(dynamicColor = false) {
-    AuthenticationSettingsContent(state = AuthenticationSettingsState.AccessDenied)
   }
 }
 
@@ -1016,38 +845,20 @@ private fun AuthenticationSettingsOpenIdOnlyPreview() {
   }
 }
 
-@ShelfDroidPreview
-@Composable
-private fun AuthenticationSettingsSecretReplacementPreview() {
-  val settings =
-    authenticationPreviewSettings()
-      .copy(
-        activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-        openId = authenticationPreviewSettings().openId.copy(clientSecretConfigured = true),
-      )
-  PreviewWrapper(dynamicColor = false) {
-    AuthenticationSettingsContent(
-      state = AuthenticationSettingsState.Ready(settings),
-      uiState = authenticationPreviewUiState(settings, clientSecretChangePending = true),
-      clientSecretReplacement = "replacement-secret",
-    )
-  }
-}
-
 private fun authenticationPreviewSettings(): AuthenticationSettingsSummary =
   AuthenticationSettingsSummary(
     customMessageEnabled = true,
     customMessage = "<p>Welcome to ShelfDroid</p>",
     activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
     openId =
-      dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary(
+      OpenIdSettingsSummary(
         issuerUrl = "https://issuer.example.com",
         authorizationUrl = "https://issuer.example.com/authorize",
         tokenUrl = "https://issuer.example.com/token",
         userInfoUrl = "https://issuer.example.com/userinfo",
         jwksUrl = "https://issuer.example.com/jwks",
         clientId = "shelfdroid",
-        clientSecretConfigured = true,
+        clientSecret = "secret-value",
         tokenSigningAlgorithm = "RS256",
         mobileRedirectUris = listOf("audiobookshelf://oauth"),
         matchExistingBy = "email",
@@ -1058,13 +869,11 @@ private fun authenticationPreviewUiState(
   saved: AuthenticationSettingsSummary,
   draft: AuthenticationSettingsSummary = saved,
   apiState: AuthenticationSettingsApiState = AuthenticationSettingsApiState.Idle,
-  clientSecretChangePending: Boolean = false,
 ): AuthenticationSettingsUiState =
   AuthenticationSettingsUiState(
     state = AuthenticationSettingsState.Ready(draft),
     savedSettings = saved,
     draftSettings = draft,
     apiState = apiState,
-    clientSecretChangePending = clientSecretChangePending,
     validation = draft.validation(),
   )

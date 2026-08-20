@@ -3,7 +3,6 @@ package dev.halim.shelfdroid.core.ui.screen.authenticationsettings
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsConfirmation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsOperation
-import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSecretUpdate
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
@@ -573,23 +572,22 @@ class AuthenticationSettingsViewModelStateTest {
   }
 
   @Test
-  fun accessDeniedResult_discardsReplacementSecretAndSettings() = runTest {
+  fun discoveryFailure_preservesEditedClientSecret() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val original = settings()
-    val denied =
-      AuthenticationSettingsUiState(
-        state = AuthenticationSettingsState.AccessDenied,
-        apiState =
-          AuthenticationSettingsApiState.Failure(
-            AuthenticationSettingsOperation.Discovery,
-            "Forbidden",
-          ),
-      )
+    val original = settings().copy(openId = validOpenId())
     val viewModel =
       AuthenticationSettingsViewModel(
         loadOperation = { readyState(original, original) },
         saveOperation = { it },
-        discoverOperation = { denied },
+        discoverOperation = { state ->
+          state.copy(
+            apiState =
+              AuthenticationSettingsApiState.Failure(
+                AuthenticationSettingsOperation.Discovery,
+                "Forbidden",
+              )
+          )
+        },
       )
     val collection =
       backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
@@ -599,31 +597,35 @@ class AuthenticationSettingsViewModelStateTest {
     viewModel.onEvent(AuthenticationSettingsEvent.DiscoverOpenId)
     advanceUntilIdle()
 
-    assertEquals(AuthenticationSettingsState.AccessDenied, viewModel.uiState.value.state)
-    assertEquals(null, viewModel.uiState.value.draftSettings)
-    assertEquals("", viewModel.clientSecretReplacement.value)
-    assertFalse(viewModel.uiState.value.clientSecretChangePending)
+    val edited = original.copy(openId = original.openId.copy(clientSecret = "replacement-secret"))
+    assertEquals(AuthenticationSettingsState.Ready(edited), viewModel.uiState.value.state)
+    assertEquals(
+      "replacement-secret",
+      viewModel.uiState.value.draftSettings?.openId?.clientSecret,
+    )
     collection.cancelAndJoin()
   }
 
   @Test
-  fun replacementIsMaskedInputStateAndClearedAfterSave() = runTest {
+  fun clientSecretEditPersistsThroughSave() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val original = settings()
-    var receivedSecret: AuthenticationSettingsSecretUpdate? = null
+    val original = settings().copy(openId = validOpenId())
+    var savedState: AuthenticationSettingsUiState? = null
     val viewModel =
       AuthenticationSettingsViewModel(
         loadOperation = { readyState(original, original) },
-        saveOperation = { it },
-        saveWithSecretOperation = { state, secretUpdate ->
-          receivedSecret = secretUpdate
-          state.copy(
-            state = AuthenticationSettingsState.Ready(original),
-            savedSettings = original,
-            draftSettings = original,
-            validation = original.validation(),
-            apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save),
-          )
+        saveOperation = { state ->
+          savedState = state
+          val canonical =
+            original.copy(
+              openId =
+                original.openId.copy(clientSecret = state.draftSettings!!.openId.clientSecret)
+            )
+          readyState(canonical, canonical)
+            .copy(
+              apiState =
+                AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save)
+            )
         },
       )
     val collection =
@@ -631,46 +633,40 @@ class AuthenticationSettingsViewModelStateTest {
     advanceUntilIdle()
 
     viewModel.onEvent(AuthenticationSettingsEvent.UpdateClientSecret("replacement-secret"))
-    assertEquals("replacement-secret", viewModel.clientSecretReplacement.value)
-    assertTrue(viewModel.uiState.value.clientSecretChangePending)
+    assertEquals(
+      "replacement-secret",
+      viewModel.uiState.value.draftSettings?.openId?.clientSecret,
+    )
     assertTrue(viewModel.uiState.value.canSave)
 
     viewModel.onEvent(AuthenticationSettingsEvent.SaveSettings)
     advanceUntilIdle()
 
+    assertEquals("replacement-secret", savedState?.draftSettings?.openId?.clientSecret)
     assertEquals(
-      AuthenticationSettingsSecretUpdate.Replace("replacement-secret"),
-      receivedSecret,
+      "replacement-secret",
+      viewModel.uiState.value.draftSettings?.openId?.clientSecret,
     )
-    assertEquals("", viewModel.clientSecretReplacement.value)
-    assertFalse(viewModel.uiState.value.clientSecretChangePending)
+    assertFalse(viewModel.uiState.value.hasChanges)
     collection.cancelAndJoin()
   }
 
   @Test
-  fun clearRequiresConfirmationAndInvalidatesEnabledOpenId() = runTest {
+  fun blankClientSecretInvalidatesEnabledOpenIdImmediately() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val original =
       settings()
         .copy(
           activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-          openId = validOpenId().copy(clientSecretConfigured = true),
+          openId = validOpenId(),
         )
     val viewModel = viewModelWith(original)
     val collection =
       backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
     advanceUntilIdle()
 
-    viewModel.onEvent(AuthenticationSettingsEvent.RequestClearClientSecret)
-    assertEquals(
-      AuthenticationSettingsConfirmation.ClearClientSecret,
-      viewModel.uiState.value.pendingConfirmation,
-    )
-    assertFalse(viewModel.uiState.value.clientSecretChangePending)
-
-    viewModel.onEvent(AuthenticationSettingsEvent.ConfirmClearClientSecret)
-    assertEquals(null, viewModel.uiState.value.pendingConfirmation)
-    assertTrue(viewModel.uiState.value.clientSecretChangePending)
+    viewModel.onEvent(AuthenticationSettingsEvent.UpdateClientSecret(""))
+    assertEquals("", viewModel.uiState.value.draftSettings?.openId?.clientSecret)
     assertTrue(
       AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete in
         viewModel.uiState.value.validation.errors
@@ -777,9 +773,14 @@ class AuthenticationSettingsViewModelStateTest {
   }
 
   @Test
-  fun resetAndConfirmedBackClearReplacementText() = runTest {
+  fun resetRestoresSavedClientSecretAndConfirmedBackRequestsLeave() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val original = settings()
+    val original =
+      settings()
+        .copy(
+          activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+          openId = validOpenId(),
+        )
     val viewModel = viewModelWith(original)
     val collection =
       backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
@@ -787,13 +788,12 @@ class AuthenticationSettingsViewModelStateTest {
 
     viewModel.onEvent(AuthenticationSettingsEvent.UpdateClientSecret("replacement-secret"))
     viewModel.onEvent(AuthenticationSettingsEvent.ResetDraftSettings)
-    assertEquals("", viewModel.clientSecretReplacement.value)
-    assertFalse(viewModel.uiState.value.clientSecretChangePending)
+    assertEquals("secret-value", viewModel.uiState.value.draftSettings?.openId?.clientSecret)
+    assertFalse(viewModel.uiState.value.hasChanges)
 
     viewModel.onEvent(AuthenticationSettingsEvent.UpdateClientSecret("replacement-secret"))
     viewModel.onEvent(AuthenticationSettingsEvent.RequestBack)
     viewModel.onEvent(AuthenticationSettingsEvent.ConfirmLeave)
-    assertEquals("", viewModel.clientSecretReplacement.value)
     assertTrue(viewModel.uiState.value.leaveRequested)
     collection.cancelAndJoin()
   }
@@ -824,6 +824,7 @@ class AuthenticationSettingsViewModelStateTest {
       userInfoUrl = "https://issuer.example/userinfo",
       jwksUrl = "https://issuer.example/jwks",
       clientId = "client-id",
+      clientSecret = "secret-value",
       tokenSigningAlgorithm = "RS256",
     )
 

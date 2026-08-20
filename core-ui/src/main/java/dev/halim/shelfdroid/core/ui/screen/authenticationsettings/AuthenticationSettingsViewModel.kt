@@ -7,7 +7,6 @@ import dev.halim.shelfdroid.core.data.screen.authenticationsettings.Authenticati
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsConfirmation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsOperation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsRepository
-import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSecretUpdate
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
@@ -40,13 +39,6 @@ internal constructor(
     {
       it
     },
-  private val saveWithSecretOperation:
-    suspend (
-      AuthenticationSettingsUiState, AuthenticationSettingsSecretUpdate,
-    ) -> AuthenticationSettingsUiState =
-    { state, _ ->
-      saveOperation(state)
-    },
 ) : ViewModel() {
 
   @Inject
@@ -56,14 +48,9 @@ internal constructor(
     loadOperation = { repository.load() },
     saveOperation = { repository.save(it) },
     discoverOperation = { repository.discover(it) },
-    saveWithSecretOperation = { state, secretUpdate -> repository.save(state, secretUpdate) },
   )
 
   private val _uiState = MutableStateFlow(AuthenticationSettingsUiState())
-  private val _clientSecretReplacement = MutableStateFlow("")
-  val clientSecretReplacement: StateFlow<String> = _clientSecretReplacement
-  private var clientSecretUpdate: AuthenticationSettingsSecretUpdate =
-    AuthenticationSettingsSecretUpdate.Untouched
   private var pendingMobileRedirectUris: List<String>? = null
   private var pendingShelfDroidCallbackWarning = false
   private var pendingWildcardConfirmation = false
@@ -103,8 +90,6 @@ internal constructor(
         setPasswordSignInEnabled(event.enabled)
       AuthenticationSettingsEvent.ConfirmDisablePasswordSignIn -> confirmDisablePasswordSignIn()
       is AuthenticationSettingsEvent.UpdateClientSecret -> updateClientSecret(event.value)
-      AuthenticationSettingsEvent.RequestClearClientSecret -> requestClearClientSecret()
-      AuthenticationSettingsEvent.ConfirmClearClientSecret -> confirmClearClientSecret()
       is AuthenticationSettingsEvent.AddMobileRedirectUri ->
         requestMobileRedirectUpdate(
           _uiState.value.draftSettings?.openId?.mobileRedirectUris.orEmpty() + event.uri
@@ -130,13 +115,11 @@ internal constructor(
   }
 
   private fun load() {
-    clearClientSecret()
     clearPendingMobileRedirect()
     val generation = beginOperation(AuthenticationSettingsOperation.Load)
     viewModelScope.launch {
       operationMutex.withLock {
         val loaded = loadOperation()
-        clearClientSecret()
         if (generation == operationGeneration) {
           _uiState.update { loaded }
         }
@@ -154,7 +137,8 @@ internal constructor(
       current.copy(
         state = AuthenticationSettingsState.Ready(updated),
         draftSettings = updated,
-        validation = updated.validation(clientSecretUpdate, current.callbackSubfolderOptions),
+        validation =
+          updated.validation(callbackSubfolderOptions = current.callbackSubfolderOptions),
         apiState = AuthenticationSettingsApiState.Idle,
         leaveRequested = false,
       )
@@ -169,10 +153,7 @@ internal constructor(
     }
 
     val draft = _uiState.value.draftSettings ?: return
-    if (
-      LoginMethod.OpenId !in draft.activeLoginMethods ||
-        !draft.isOpenIdConfigurationValid(clientSecretUpdate)
-    ) {
+    if (LoginMethod.OpenId !in draft.activeLoginMethods || !draft.isOpenIdConfigurationValid()) {
       _uiState.update {
         it.copy(
           validation =
@@ -191,10 +172,7 @@ internal constructor(
   private fun confirmDisablePasswordSignIn() {
     if (_uiState.value.apiState is AuthenticationSettingsApiState.Loading) return
     val draft = _uiState.value.draftSettings ?: return
-    if (
-      LoginMethod.OpenId !in draft.activeLoginMethods ||
-        !draft.isOpenIdConfigurationValid(clientSecretUpdate)
-    ) {
+    if (LoginMethod.OpenId !in draft.activeLoginMethods || !draft.isOpenIdConfigurationValid()) {
       setPasswordSignInEnabled(false)
       return
     }
@@ -203,56 +181,13 @@ internal constructor(
   }
 
   private fun updateClientSecret(value: String) {
-    if (_uiState.value.apiState is AuthenticationSettingsApiState.Loading) return
-    if (value.isBlank()) {
-      clientSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched
-      _clientSecretReplacement.value = ""
-    } else {
-      clientSecretUpdate = AuthenticationSettingsSecretUpdate.Replace(value)
-      _clientSecretReplacement.value = value
-    }
-    _uiState.update { current ->
-      val draft = current.draftSettings ?: return@update current
-      current.copy(
-        validation = draft.validation(clientSecretUpdate, _uiState.value.callbackSubfolderOptions),
-        clientSecretChangePending =
-          clientSecretUpdate != AuthenticationSettingsSecretUpdate.Untouched,
-        apiState = AuthenticationSettingsApiState.Idle,
-        leaveRequested = false,
-      )
-    }
-  }
-
-  private fun requestClearClientSecret() {
-    if (
-      _uiState.value.draftSettings == null ||
-        _uiState.value.apiState is AuthenticationSettingsApiState.Loading
-    )
-      return
-    _uiState.update {
-      it.copy(pendingConfirmation = AuthenticationSettingsConfirmation.ClearClientSecret)
-    }
-  }
-
-  private fun confirmClearClientSecret() {
-    if (_uiState.value.apiState is AuthenticationSettingsApiState.Loading) return
-    clientSecretUpdate = AuthenticationSettingsSecretUpdate.Clear
-    _clientSecretReplacement.value = ""
-    _uiState.update { current ->
-      val draft = current.draftSettings ?: return@update current
-      current.copy(
-        validation = draft.validation(clientSecretUpdate, _uiState.value.callbackSubfolderOptions),
-        clientSecretChangePending = true,
-        pendingConfirmation = null,
-        apiState = AuthenticationSettingsApiState.Idle,
-        leaveRequested = false,
-      )
+    updateDraft { summary ->
+      summary.copy(openId = summary.openId.copy(clientSecret = value))
     }
   }
 
   private fun resetDraft() {
     if (_uiState.value.apiState is AuthenticationSettingsApiState.Loading) return
-    clearClientSecret()
     clearPendingMobileRedirect()
     _uiState.update { current ->
       val saved = current.savedSettings ?: return@update current
@@ -261,7 +196,6 @@ internal constructor(
         draftSettings = saved,
         validation = saved.validation(callbackSubfolderOptions = current.callbackSubfolderOptions),
         apiState = AuthenticationSettingsApiState.Idle,
-        clientSecretChangePending = false,
         signingAlgorithmOptions = emptyList(),
         pendingConfirmation = null,
         leaveRequested = false,
@@ -273,14 +207,12 @@ internal constructor(
     if (!_uiState.value.canSave) return
     val snapshot = _uiState.value
     val generation = beginOperation(AuthenticationSettingsOperation.Save)
-    val secretUpdate = clientSecretUpdate
     viewModelScope.launch {
       operationMutex.withLock {
-        val result = saveWithSecretOperation(snapshot, secretUpdate)
-        clearClientSecret()
+        val result = saveOperation(snapshot)
         clearPendingMobileRedirect()
         if (generation == operationGeneration) {
-          _uiState.update { result.copy(clientSecretChangePending = false) }
+          _uiState.update { result }
         }
       }
     }
@@ -294,12 +226,6 @@ internal constructor(
     viewModelScope.launch {
       operationMutex.withLock {
         val discovered = discoverOperation(initial)
-        val secretUpdateFailed =
-          discovered.state is AuthenticationSettingsState.AccessDenied ||
-            discovered.apiState is AuthenticationSettingsApiState.Failure
-        if (secretUpdateFailed) {
-          clearClientSecret()
-        }
         if (generation == operationGeneration) {
           _uiState.update { current ->
             // A discovery operation receives an immutable snapshot. If a caller changed the draft
@@ -308,14 +234,11 @@ internal constructor(
             if (current.draftSettings != initial.draftSettings) {
               current.copy(
                 apiState = discovered.apiState,
-                clientSecretChangePending =
-                  if (secretUpdateFailed) false else current.clientSecretChangePending,
                 state =
                   current.draftSettings?.let(AuthenticationSettingsState::Ready) ?: current.state,
               )
             } else {
-              if (secretUpdateFailed) discovered.copy(clientSecretChangePending = false)
-              else discovered
+              discovered
             }
           }
         }
@@ -354,7 +277,6 @@ internal constructor(
           pendingConfirmation = AuthenticationSettingsConfirmation.LeaveWithUnsavedChanges
         )
       } else {
-        clearClientSecret()
         current.copy(leaveRequested = true)
       }
     }
@@ -362,25 +284,14 @@ internal constructor(
 
   private fun confirmLeave() {
     if (_uiState.value.apiState is AuthenticationSettingsApiState.Loading) return
-    clearClientSecret()
     clearPendingMobileRedirect()
     _uiState.update {
       it.copy(
         pendingConfirmation = null,
         apiState = AuthenticationSettingsApiState.Idle,
-        clientSecretChangePending = false,
         leaveRequested = true,
       )
     }
-  }
-
-  private fun clearClientSecret() {
-    clientSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched
-    _clientSecretReplacement.value = ""
-  }
-
-  override fun onCleared() {
-    clearClientSecret()
   }
 
   private fun updateMobileRedirectUri(index: Int, value: String) {
@@ -507,10 +418,6 @@ sealed interface AuthenticationSettingsEvent {
   data object ConfirmDisablePasswordSignIn : AuthenticationSettingsEvent
 
   data class UpdateClientSecret(val value: String) : AuthenticationSettingsEvent
-
-  data object RequestClearClientSecret : AuthenticationSettingsEvent
-
-  data object ConfirmClearClientSecret : AuthenticationSettingsEvent
 
   data class AddMobileRedirectUri(val uri: String) : AuthenticationSettingsEvent
 

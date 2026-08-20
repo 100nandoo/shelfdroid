@@ -1,8 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.authenticationsettings
 
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -30,11 +32,11 @@ class AuthenticationSettingsContentTest {
       AuthenticationSettingsContent(state = AuthenticationSettingsState.Loading)
     }
 
-    composeRule.onNodeWithText("Loading Authentication settings…").assertIsDisplayed()
+    composeRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertExists()
   }
 
   @Test
-  fun readyState_showsSettingsSummaryWithoutSecret() {
+  fun readyState_showsClientSecretFieldWithoutExposingSecretText() {
     composeRule.setContent {
       AuthenticationSettingsContent(
         state =
@@ -46,7 +48,7 @@ class AuthenticationSettingsContentTest {
                 OpenIdSettingsSummary(
                   issuerUrl = "https://issuer.example.com",
                   clientId = "shelfdroid",
-                  clientSecretConfigured = true,
+                  clientSecret = "secret-value",
                   mobileRedirectUris = listOf("audiobookshelf://oauth"),
                   matchExistingBy = "email",
                 ),
@@ -59,7 +61,7 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("Enabled").assertIsDisplayed()
     composeRule.onNodeWithText("Username and password, OpenID login").assertIsDisplayed()
     composeRule.onNodeWithText("https://issuer.example.com").assertIsDisplayed()
-    composeRule.onNodeWithText("Configured").assertExists()
+    composeRule.onNodeWithText("Client secret").assertIsDisplayed()
     composeRule.onNodeWithText("audiobookshelf://oauth").assertIsDisplayed()
     composeRule.onNodeWithText("email").assertIsDisplayed()
     composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
@@ -75,30 +77,11 @@ class AuthenticationSettingsContentTest {
       )
     }
 
-    composeRule.onNodeWithText("Authentication settings unavailable").assertIsDisplayed()
+    composeRule.onAllNodesWithText("Authentication settings unavailable").assertCountEquals(0)
     composeRule.onNodeWithText("The server could not be reached.").assertIsDisplayed()
     composeRule.onNodeWithText("Retry").assertIsDisplayed().performClick()
 
     assertTrue(retried)
-  }
-
-  @Test
-  fun accessDeniedState_showsMessageAndBackAction() {
-    var wentBack = false
-    composeRule.setContent {
-      AuthenticationSettingsContent(
-        state = AuthenticationSettingsState.AccessDenied,
-        onBackClicked = { wentBack = true },
-      )
-    }
-
-    composeRule.onNodeWithText("Access denied").assertIsDisplayed()
-    composeRule
-      .onNodeWithText("Only admin and root Users can view Authentication settings.")
-      .assertIsDisplayed()
-    composeRule.onNodeWithText("Back").assertIsDisplayed().performClick()
-
-    assertTrue(wentBack)
   }
 
   @Test
@@ -164,7 +147,7 @@ class AuthenticationSettingsContentTest {
   }
 
   @Test
-  fun editorState_masksReplacementAndDoesNotExposeSecretText() {
+  fun editorState_masksLoadedSecretAndDoesNotExposeSecretText() {
     val settings =
       AuthenticationSettingsSummary(
         activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
@@ -172,7 +155,7 @@ class AuthenticationSettingsContentTest {
           OpenIdSettingsSummary(
             issuerUrl = "https://issuer.example.com",
             clientId = "shelfdroid",
-            clientSecretConfigured = true,
+            clientSecret = "secret-value",
           ),
       )
     val uiState =
@@ -186,12 +169,10 @@ class AuthenticationSettingsContentTest {
       AuthenticationSettingsContent(
         state = uiState.state,
         uiState = uiState,
-        clientSecretReplacement = "secret-value",
       )
     }
 
-    composeRule.onNodeWithText("Configured").assertExists()
-    composeRule.onNodeWithText("Clear client secret").assertExists()
+    composeRule.onNodeWithText("Client secret").assertIsDisplayed()
     composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
   }
 
