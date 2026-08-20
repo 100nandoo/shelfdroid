@@ -6,9 +6,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.datastore.di.DatastoreModule
 import java.io.File
 import java.util.UUID

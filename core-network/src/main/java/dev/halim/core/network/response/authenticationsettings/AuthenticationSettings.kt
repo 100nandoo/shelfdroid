@@ -15,8 +15,10 @@ data class AuthenticationSettingsResponse(
   @SerialName("authOpenIDLogoutURL") val authOpenIDLogoutURL: String? = null,
   @SerialName("authOpenIDClientID") val authOpenIDClientID: String? = null,
   @SerialName("authOpenIDClientSecret") val authOpenIDClientSecret: String? = null,
-  @SerialName("authOpenIDTokenSigningAlgorithm") val authOpenIDTokenSigningAlgorithm: String? = null,
-  @SerialName("authOpenIDMobileRedirectURIs") val authOpenIDMobileRedirectURIs: List<String> = emptyList(),
+  @SerialName("authOpenIDTokenSigningAlgorithm")
+  val authOpenIDTokenSigningAlgorithm: String? = null,
+  @SerialName("authOpenIDMobileRedirectURIs")
+  val authOpenIDMobileRedirectURIs: List<String> = emptyList(),
   @SerialName("authOpenIDSubfolderForRedirectURLs")
   val authOpenIDSubfolderForRedirectURLs: String = "",
   @SerialName("authOpenIDButtonText") val authOpenIDButtonText: String? = null,
@@ -29,9 +31,7 @@ data class AuthenticationSettingsResponse(
 )
 
 @Serializable
-data class UpdateAuthenticationSettingsResponse(
-  @SerialName("updated") val updated: Boolean = false,
-)
+data class UpdateAuthenticationSettingsResponse(@SerialName("updated") val updated: Boolean = false)
 
 /** OpenID Connect metadata returned by Audiobookshelf's authenticated discovery route. */
 @Serializable

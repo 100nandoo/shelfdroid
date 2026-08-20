@@ -11,10 +11,10 @@ import dev.halim.core.network.response.*
 import dev.halim.core.network.response.apprisenotificationsettings.*
 import dev.halim.core.network.response.authenticationsettings.*
 import dev.halim.core.network.response.emailmanagement.*
-import dev.halim.core.network.response.login.*
 import dev.halim.core.network.response.libraryitem.*
-import dev.halim.core.network.response.libraryitem.PodcastMetadata as LibraryPodcastMetadata
 import dev.halim.core.network.response.libraryitem.Podcast as LibraryPodcast
+import dev.halim.core.network.response.libraryitem.PodcastMetadata as LibraryPodcastMetadata
+import dev.halim.core.network.response.login.*
 import dev.halim.core.network.response.play.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -86,7 +86,8 @@ class FakeApiService @Inject constructor() : ApiService {
       id = BOOK_LIBRARY_ID,
       name = "Books",
       mediaType = MediaType.BOOK,
-      folders = listOf(dev.halim.core.network.response.Folder(id = "folder-books", fullPath = "/books")),
+      folders =
+        listOf(dev.halim.core.network.response.Folder(id = "folder-books", fullPath = "/books")),
     )
 
   private val podcastLibrary =
@@ -181,11 +182,12 @@ class FakeApiService @Inject constructor() : ApiService {
     synchronized(this) {
       items.clear()
       items[BOOK_ITEM_ID] = createBookItem()
-      items[PODCAST_ITEM_ID] = createPodcastItem(
-        id = PODCAST_ITEM_ID,
-        title = "Daily Bytes",
-        feedUrl = "https://example.com/daily-bytes.rss",
-      )
+      items[PODCAST_ITEM_ID] =
+        createPodcastItem(
+          id = PODCAST_ITEM_ID,
+          title = "Daily Bytes",
+          feedUrl = "https://example.com/daily-bytes.rss",
+        )
 
       apiKeys.clear()
       apiKeys +=
@@ -203,7 +205,7 @@ class FakeApiService @Inject constructor() : ApiService {
           createdByUserId = ROOT_USER_ID,
           user = ApiKeysResponse.ApiKey.User(ROOT_USER_ID, "root", "root"),
           createdByUser = ApiKeysResponse.ApiKey.User(ROOT_USER_ID, "root", "root"),
-          )
+        )
       users.clear()
       users += rootUser
       users += appUser
@@ -420,7 +422,8 @@ class FakeApiService @Inject constructor() : ApiService {
 
   override suspend fun embedItemMetadata(itemId: String): Result<Unit> = Result.success(Unit)
 
-  override suspend fun validateCron(request: ValidateCronRequest): Result<Unit> = Result.success(Unit)
+  override suspend fun validateCron(request: ValidateCronRequest): Result<Unit> =
+    Result.success(Unit)
 
   override suspend fun searchBooks(
     provider: String,
@@ -452,14 +455,16 @@ class FakeApiService @Inject constructor() : ApiService {
   override suspend fun createBookmark(
     itemId: String,
     request: BookmarkRequest,
-  ): Result<AudioBookmark> = Result.success(AudioBookmark(libraryItemId = itemId, title = request.title))
+  ): Result<AudioBookmark> =
+    Result.success(AudioBookmark(libraryItemId = itemId, title = request.title))
 
   override suspend fun updateBookmark(
     itemId: String,
     request: BookmarkRequest,
   ): Result<Unit> = Result.success(Unit)
 
-  override suspend fun deleteBookmark(itemId: String, time: Int): Result<Unit> = Result.success(Unit)
+  override suspend fun deleteBookmark(itemId: String, time: Int): Result<Unit> =
+    Result.success(Unit)
 
   override suspend fun changePassword(request: ChangePasswordRequest): Result<Unit> =
     Result.success(Unit)
@@ -474,8 +479,7 @@ class FakeApiService @Inject constructor() : ApiService {
 
   override suspend fun syncLocalAllSession(
     sessions: SyncLocalAllSessionRequest
-  ): Result<SyncLocalAllSessionResponse> =
-    Result.success(SyncLocalAllSessionResponse(emptyList()))
+  ): Result<SyncLocalAllSessionResponse> = Result.success(SyncLocalAllSessionResponse(emptyList()))
 
   override suspend fun sessions(
     itemsPerPage: Int,
@@ -565,7 +569,8 @@ class FakeApiService @Inject constructor() : ApiService {
   override suspend fun updateUser(
     userId: String,
     request: UpdateUserRequest,
-  ): Result<UpdateUserResponse> = Result.failure(UnsupportedOperationException("Unused in test-app"))
+  ): Result<UpdateUserResponse> =
+    Result.failure(UnsupportedOperationException("Unused in test-app"))
 
   override suspend fun deleteUser(userId: String): Result<DeleteUserResponse> {
     synchronized(this) { users.removeAll { it.id == userId } }
@@ -702,7 +707,8 @@ class FakeApiService @Inject constructor() : ApiService {
     ruleId: String
   ): Result<AppriseNotificationSettings> = Result.success(AppriseNotificationSettings())
 
-  override suspend fun testAppriseNotificationRule(ruleId: String): Result<Unit> = Result.success(Unit)
+  override suspend fun testAppriseNotificationRule(ruleId: String): Result<Unit> =
+    Result.success(Unit)
 
   override suspend fun emailSettings(): Result<EmailSettingsResponse> =
     Result.success(EmailSettingsResponse())
@@ -786,7 +792,10 @@ class FakeApiService @Inject constructor() : ApiService {
       media = createPodcastMedia(title = title, feedUrl = feedUrl),
     )
 
-  private fun createPodcastMedia(title: String, feedUrl: String = searchResult.feedUrl): LibraryPodcast =
+  private fun createPodcastMedia(
+    title: String,
+    feedUrl: String = searchResult.feedUrl,
+  ): LibraryPodcast =
     LibraryPodcast(
       libraryItemId = PODCAST_ITEM_ID,
       coverPath = "",

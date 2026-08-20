@@ -1,10 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.authenticationsettings
 
-import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsConfirmation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsOperation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSecretUpdate
+import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsValidationError
@@ -13,22 +13,22 @@ import dev.halim.shelfdroid.core.data.screen.authenticationsettings.canSave
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.hasChanges
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.validation
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runCurrent
-import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthenticationSettingsViewModelStateTest {
@@ -82,7 +82,8 @@ class AuthenticationSettingsViewModelStateTest {
       AuthenticationSettingsEvent.UpdateDraftSettings { it.copy(activeLoginMethods = emptyList()) }
     )
     assertTrue(
-      AuthenticationSettingsValidationError.NoLoginMethod in viewModel.uiState.value.validation.errors
+      AuthenticationSettingsValidationError.NoLoginMethod in
+        viewModel.uiState.value.validation.errors
     )
     assertFalse(viewModel.uiState.value.canSave)
 
@@ -124,10 +125,11 @@ class AuthenticationSettingsViewModelStateTest {
   fun passwordDisable_requiresConfirmationAndValidOpenId() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val original =
-      settings().copy(
-        activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-        openId = validOpenId(),
-      )
+      settings()
+        .copy(
+          activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+          openId = validOpenId(),
+        )
     val viewModel = viewModelWith(original)
     val collection =
       backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
@@ -138,7 +140,10 @@ class AuthenticationSettingsViewModelStateTest {
       AuthenticationSettingsConfirmation.DisablePasswordSignIn,
       viewModel.uiState.value.pendingConfirmation,
     )
-    assertEquals(original.activeLoginMethods, viewModel.uiState.value.draftSettings?.activeLoginMethods)
+    assertEquals(
+      original.activeLoginMethods,
+      viewModel.uiState.value.draftSettings?.activeLoginMethods,
+    )
 
     viewModel.onEvent(AuthenticationSettingsEvent.ConfirmDisablePasswordSignIn)
     assertTrue(LoginMethod.Local !in viewModel.uiState.value.draftSettings!!.activeLoginMethods)
@@ -271,18 +276,20 @@ class AuthenticationSettingsViewModelStateTest {
   fun mappingControls_updateDirtyStateResetAndSave() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val original =
-      settings().copy(
-        openId =
-          validOpenId().copy(
-            buttonText = "Before OpenID",
-            matchExistingBy = "email",
-            autoLaunch = true,
-            autoRegister = false,
-            groupClaim = "groups",
-            advancedPermsClaim = "permissions",
-            samplePermissions = "{\"download\":false}",
-          ),
-      )
+      settings()
+        .copy(
+          openId =
+            validOpenId()
+              .copy(
+                buttonText = "Before OpenID",
+                matchExistingBy = "email",
+                autoLaunch = true,
+                autoRegister = false,
+                groupClaim = "groups",
+                advancedPermsClaim = "permissions",
+                samplePermissions = "{\"download\":false}",
+              )
+        )
     val canonical =
       original.copy(
         openId =
@@ -293,7 +300,7 @@ class AuthenticationSettingsViewModelStateTest {
             autoRegister = true,
             groupClaim = "roles",
             advancedPermsClaim = "abspermissions",
-          ),
+          )
       )
     var savedDraft: AuthenticationSettingsSummary? = null
     val viewModel =
@@ -301,10 +308,12 @@ class AuthenticationSettingsViewModelStateTest {
         loadOperation = { readyState(original, original) },
         saveOperation = { state ->
           savedDraft = state.draftSettings
-          readyState(canonical, canonical).copy(
-            apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save),
-            restartRequired = true,
-          )
+          readyState(canonical, canonical)
+            .copy(
+              apiState =
+                AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Save),
+              restartRequired = true,
+            )
         },
       )
     val collection =
@@ -322,7 +331,7 @@ class AuthenticationSettingsViewModelStateTest {
               autoRegister = true,
               groupClaim = "roles",
               advancedPermsClaim = "abspermissions",
-            ),
+            )
         )
       }
     )
@@ -369,9 +378,7 @@ class AuthenticationSettingsViewModelStateTest {
             signingAlgorithmOptions = listOf("RS256", "ES256"),
             validation = discovered.validation(),
             apiState =
-              AuthenticationSettingsApiState.Success(
-                AuthenticationSettingsOperation.Discovery
-              ),
+              AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery),
           )
         },
       )
@@ -382,7 +389,10 @@ class AuthenticationSettingsViewModelStateTest {
     viewModel.onEvent(AuthenticationSettingsEvent.DiscoverOpenId)
     advanceUntilIdle()
 
-    assertEquals("https://issuer.example/discovered-authorize", viewModel.uiState.value.draftSettings?.openId?.authorizationUrl)
+    assertEquals(
+      "https://issuer.example/discovered-authorize",
+      viewModel.uiState.value.draftSettings?.openId?.authorizationUrl,
+    )
     assertEquals(listOf("RS256", "ES256"), viewModel.uiState.value.signingAlgorithmOptions)
     assertEquals(
       AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery),
@@ -425,7 +435,8 @@ class AuthenticationSettingsViewModelStateTest {
         state = AuthenticationSettingsState.Ready(original),
         draftSettings = original,
         validation = original.validation(),
-        apiState = AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery),
+        apiState =
+          AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery),
       )
     )
     advanceUntilIdle()
@@ -480,7 +491,10 @@ class AuthenticationSettingsViewModelStateTest {
         loadOperation = {
           val currentLoad = ++loadCount
           if (currentLoad == 1) firstLoadGate.await() else secondLoadGate.await()
-          readyState(if (currentLoad == 1) first else second, if (currentLoad == 1) first else second)
+          readyState(
+            if (currentLoad == 1) first else second,
+            if (currentLoad == 1) first else second,
+          )
         },
         saveOperation = { it },
       )
@@ -529,11 +543,11 @@ class AuthenticationSettingsViewModelStateTest {
         discoverOperation = {
           discoveryStarted.complete(Unit)
           discoveryGate.await()
-          readyState(staleDiscovery, staleDiscovery).copy(
-            apiState = AuthenticationSettingsApiState.Success(
-              AuthenticationSettingsOperation.Discovery,
-            ),
-          )
+          readyState(staleDiscovery, staleDiscovery)
+            .copy(
+              apiState =
+                AuthenticationSettingsApiState.Success(AuthenticationSettingsOperation.Discovery)
+            )
         },
       )
     val collection =
@@ -565,10 +579,11 @@ class AuthenticationSettingsViewModelStateTest {
     val denied =
       AuthenticationSettingsUiState(
         state = AuthenticationSettingsState.AccessDenied,
-        apiState = AuthenticationSettingsApiState.Failure(
-          AuthenticationSettingsOperation.Discovery,
-          "Forbidden",
-        ),
+        apiState =
+          AuthenticationSettingsApiState.Failure(
+            AuthenticationSettingsOperation.Discovery,
+            "Forbidden",
+          ),
       )
     val viewModel =
       AuthenticationSettingsViewModel(
@@ -636,10 +651,11 @@ class AuthenticationSettingsViewModelStateTest {
   fun clearRequiresConfirmationAndInvalidatesEnabledOpenId() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val original =
-      settings().copy(
-        activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-        openId = validOpenId().copy(clientSecretConfigured = true),
-      )
+      settings()
+        .copy(
+          activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+          openId = validOpenId().copy(clientSecretConfigured = true),
+        )
     val viewModel = viewModelWith(original)
     val collection =
       backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
@@ -683,7 +699,9 @@ class AuthenticationSettingsViewModelStateTest {
       viewModel.uiState.value.pendingConfirmation,
     )
     viewModel.onEvent(AuthenticationSettingsEvent.ConfirmRemoveShelfDroidCallback)
-    assertTrue(viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris.orEmpty().isEmpty())
+    assertTrue(
+      viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris.orEmpty().isEmpty()
+    )
     collection.cancelAndJoin()
   }
 
@@ -700,7 +718,9 @@ class AuthenticationSettingsViewModelStateTest {
       AuthenticationSettingsConfirmation.UseWildcardMobileRedirect,
       viewModel.uiState.value.pendingConfirmation,
     )
-    assertTrue(viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris.orEmpty().isEmpty())
+    assertTrue(
+      viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris.orEmpty().isEmpty()
+    )
     viewModel.onEvent(AuthenticationSettingsEvent.ConfirmWildcardMobileRedirect)
     assertEquals(listOf("*"), viewModel.uiState.value.draftSettings?.openId?.mobileRedirectUris)
     collection.cancelAndJoin()
@@ -709,16 +729,17 @@ class AuthenticationSettingsViewModelStateTest {
   @Test
   fun callbackEdits_validateUrisAndRestrictSubfolderChoices() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val original = settings().copy(
-      openId = validOpenId().copy(
-        mobileRedirectUris = listOf("audiobookshelf://oauth"),
-        subfolderForRedirectUrls = "/shelf",
-      ),
-    )
-    val state =
-      readyState(original, original).copy(
-        callbackSubfolderOptions = listOf("", "/shelf"),
-      )
+    val original =
+      settings()
+        .copy(
+          openId =
+            validOpenId()
+              .copy(
+                mobileRedirectUris = listOf("audiobookshelf://oauth"),
+                subfolderForRedirectUrls = "/shelf",
+              )
+        )
+    val state = readyState(original, original).copy(callbackSubfolderOptions = listOf("", "/shelf"))
     val viewModel =
       AuthenticationSettingsViewModel(
         loadOperation = { state },
@@ -733,8 +754,8 @@ class AuthenticationSettingsViewModelStateTest {
       currentDraft.copy(
         openId =
           currentDraft.openId.copy(
-            mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth"),
-          ),
+            mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth")
+          )
       )
     viewModel.onEvent(AuthenticationSettingsEvent.UpdateDraftSettings { withSecondUri })
     viewModel.onEvent(AuthenticationSettingsEvent.UpdateMobileRedirectUri(1, "not a URI"))
@@ -806,7 +827,9 @@ class AuthenticationSettingsViewModelStateTest {
       tokenSigningAlgorithm = "RS256",
     )
 
-  private fun viewModelWith(settings: AuthenticationSettingsSummary): AuthenticationSettingsViewModel =
+  private fun viewModelWith(
+    settings: AuthenticationSettingsSummary
+  ): AuthenticationSettingsViewModel =
     AuthenticationSettingsViewModel(
       loadOperation = { readyState(settings, settings) },
       saveOperation = { it },

@@ -2,13 +2,13 @@ package dev.halim.shelfdroid.core.data.screen.authenticationsettings
 
 import dev.halim.core.network.response.authenticationsettings.AuthenticationSettingsResponse
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 class AuthenticationSettingsFormTest {
 
@@ -88,10 +88,11 @@ class AuthenticationSettingsFormTest {
     val saved = form(message = "", methods = listOf(LoginMethod.Local))
     val draft =
       saved.copy(
-        openId = saved.openId.copy(
-          issuerUrl = "https://new-issuer.example",
-          clientId = "new-client",
-        )
+        openId =
+          saved.openId.copy(
+            issuerUrl = "https://new-issuer.example",
+            clientId = "new-client",
+          )
       )
 
     val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
@@ -110,17 +111,20 @@ class AuthenticationSettingsFormTest {
   @Test
   fun toUpdateRequest_includesChangedMappingFieldsAndExplicitClears() {
     val saved =
-      form(message = "", methods = listOf(LoginMethod.Local)).copy(
-        openId =
-          form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
-            buttonText = "Continue with Acme",
-            matchExistingBy = "email",
-            autoLaunch = false,
-            autoRegister = false,
-            groupClaim = "groups",
-            advancedPermsClaim = "abspermissions",
-          ),
-      )
+      form(message = "", methods = listOf(LoginMethod.Local))
+        .copy(
+          openId =
+            form(message = "", methods = listOf(LoginMethod.Local))
+              .openId
+              .copy(
+                buttonText = "Continue with Acme",
+                matchExistingBy = "email",
+                autoLaunch = false,
+                autoRegister = false,
+                groupClaim = "groups",
+                advancedPermsClaim = "abspermissions",
+              )
+        )
     val draft =
       saved.copy(
         openId =
@@ -132,7 +136,7 @@ class AuthenticationSettingsFormTest {
             groupClaim = "",
             advancedPermsClaim = "permissions",
             samplePermissions = "should never be submitted",
-          ),
+          )
       )
 
     val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
@@ -143,8 +147,12 @@ class AuthenticationSettingsFormTest {
     assertEquals(true, request.authOpenIDAutoRegister)
     assertEquals("", request.authOpenIDGroupClaim)
     assertEquals("permissions", request.authOpenIDAdvancedPermsClaim)
-    assertFalse(Json { explicitNulls = false }.encodeToString(request).contains("SamplePermissions"))
-    assertFalse(Json { explicitNulls = false }.encodeToString(request).contains("should never be submitted"))
+    assertFalse(
+      Json { explicitNulls = false }.encodeToString(request).contains("SamplePermissions")
+    )
+    assertFalse(
+      Json { explicitNulls = false }.encodeToString(request).contains("should never be submitted")
+    )
   }
 
   @Test
@@ -164,7 +172,7 @@ class AuthenticationSettingsFormTest {
             matchExistingBy = "displayName",
             groupClaim = " groups ",
             advancedPermsClaim = "permissions claim",
-          ),
+          )
       )
     assertTrue(
       AuthenticationSettingsValidationError.InvalidExistingUserMatching in
@@ -178,29 +186,37 @@ class AuthenticationSettingsFormTest {
         invalid.validation().errors
     )
     assertTrue(
-      base.copy(
-        openId = base.openId.copy(groupClaim = "groups_1", advancedPermsClaim = "permissions-2")
-      ).validation().isValid
+      base
+        .copy(
+          openId = base.openId.copy(groupClaim = "groups_1", advancedPermsClaim = "permissions-2")
+        )
+        .validation()
+        .isValid
     )
-    assertFalse(
-      base.copy(openId = base.openId.copy(groupClaim = "   ")).validation().isValid
-    )
+    assertFalse(base.copy(openId = base.openId.copy(groupClaim = "   ")).validation().isValid)
   }
 
   @Test
   fun toUpdateRequest_changedCallbacksIncludeExplicitEmptySubfolder() {
-    val saved = form(message = "", methods = listOf(LoginMethod.Local)).copy(
-      openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
-        mobileRedirectUris = listOf("audiobookshelf://oauth"),
-        subfolderForRedirectUrls = "/shelf",
-      ),
-    )
-    val draft = saved.copy(
-      openId = saved.openId.copy(
-        mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth/callback"),
-        subfolderForRedirectUrls = "",
-      ),
-    )
+    val saved =
+      form(message = "", methods = listOf(LoginMethod.Local))
+        .copy(
+          openId =
+            form(message = "", methods = listOf(LoginMethod.Local))
+              .openId
+              .copy(
+                mobileRedirectUris = listOf("audiobookshelf://oauth"),
+                subfolderForRedirectUrls = "/shelf",
+              )
+        )
+    val draft =
+      saved.copy(
+        openId =
+          saved.openId.copy(
+            mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth/callback"),
+            subfolderForRedirectUrls = "",
+          )
+      )
 
     val request = AuthenticationSettingsMapper.toUpdateRequest(saved, draft)!!
 
@@ -217,14 +233,20 @@ class AuthenticationSettingsFormTest {
 
   @Test
   fun validation_acceptsServerRedirectUrisAndSoleWildcard() {
-    val settings = form(message = "", methods = listOf(LoginMethod.Local)).copy(
-      openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
-        mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth/callback"),
-      ),
-    )
+    val settings =
+      form(message = "", methods = listOf(LoginMethod.Local))
+        .copy(
+          openId =
+            form(message = "", methods = listOf(LoginMethod.Local))
+              .openId
+              .copy(
+                mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth/callback")
+              )
+        )
     assertTrue(settings.validation().isValid)
     assertTrue(
-      settings.copy(openId = settings.openId.copy(mobileRedirectUris = listOf("*")))
+      settings
+        .copy(openId = settings.openId.copy(mobileRedirectUris = listOf("*")))
         .validation()
         .isValid
     )
@@ -238,9 +260,10 @@ class AuthenticationSettingsFormTest {
       AuthenticationSettingsValidationError.InvalidMobileRedirectUri in invalid.validation().errors
     )
 
-    val wildcard = base.copy(
-      openId = base.openId.copy(mobileRedirectUris = listOf("*", "audiobookshelf://oauth")),
-    )
+    val wildcard =
+      base.copy(
+        openId = base.openId.copy(mobileRedirectUris = listOf("*", "audiobookshelf://oauth"))
+      )
     assertTrue(
       AuthenticationSettingsValidationError.WildcardMobileRedirectUriMustBeSoleEntry in
         wildcard.validation().errors
@@ -284,11 +307,14 @@ class AuthenticationSettingsFormTest {
 
   @Test
   fun validation_rejectsCallbackSubfolderOutsideServerChoices() {
-    val settings = form(message = "", methods = listOf(LoginMethod.Local)).copy(
-      openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
-        subfolderForRedirectUrls = "/invented",
-      ),
-    )
+    val settings =
+      form(message = "", methods = listOf(LoginMethod.Local))
+        .copy(
+          openId =
+            form(message = "", methods = listOf(LoginMethod.Local))
+              .openId
+              .copy(subfolderForRedirectUrls = "/invented")
+        )
 
     assertTrue(
       AuthenticationSettingsValidationError.InvalidCallbackSubfolder in
@@ -362,11 +388,13 @@ class AuthenticationSettingsFormTest {
   @Test
   fun toUpdateRequest_clearSendsExplicitEmptyString() {
     val saved =
-      form(message = "", methods = listOf(LoginMethod.Local, LoginMethod.OpenId)).copy(
-        openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
-          clientSecretConfigured = true,
-        ),
-      )
+      form(message = "", methods = listOf(LoginMethod.Local, LoginMethod.OpenId))
+        .copy(
+          openId =
+            form(message = "", methods = listOf(LoginMethod.Local))
+              .openId
+              .copy(clientSecretConfigured = true)
+        )
 
     val request =
       AuthenticationSettingsMapper.toUpdateRequest(
@@ -385,11 +413,13 @@ class AuthenticationSettingsFormTest {
   @Test
   fun validation_rejectsClearingConfiguredSecretWhileOpenIdIsEnabled() {
     val settings =
-      form(message = "", methods = listOf(LoginMethod.Local, LoginMethod.OpenId)).copy(
-        openId = form(message = "", methods = listOf(LoginMethod.Local)).openId.copy(
-          clientSecretConfigured = true,
-        ),
-      )
+      form(message = "", methods = listOf(LoginMethod.Local, LoginMethod.OpenId))
+        .copy(
+          openId =
+            form(message = "", methods = listOf(LoginMethod.Local))
+              .openId
+              .copy(clientSecretConfigured = true)
+        )
 
     assertFalse(settings.validation(AuthenticationSettingsSecretUpdate.Clear).isValid)
     assertTrue(
@@ -423,11 +453,10 @@ class AuthenticationSettingsFormTest {
   fun validation_rejectsNoLoginMethodAndIncompleteEnabledOpenId() {
     val noMethods = form(message = "", methods = emptyList())
     val incompleteOpenId =
-      form(message = "", methods = listOf(LoginMethod.OpenId)).copy(openId = OpenIdSettingsSummary())
+      form(message = "", methods = listOf(LoginMethod.OpenId))
+        .copy(openId = OpenIdSettingsSummary())
 
-    assertTrue(
-      AuthenticationSettingsValidationError.NoLoginMethod in noMethods.validation().errors
-    )
+    assertTrue(AuthenticationSettingsValidationError.NoLoginMethod in noMethods.validation().errors)
     assertTrue(
       AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete in
         incompleteOpenId.validation().errors

@@ -3,9 +3,9 @@ package dev.halim.shelfdroid.test.app
 import android.content.Intent
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
@@ -107,7 +107,10 @@ class AppTest {
   }
 
   private fun launchMainActivity() {
-    scenario = ActivityScenario.launch(Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java))
+    scenario =
+      ActivityScenario.launch(
+        Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java)
+      )
     waitForText("Login", "Daily Bytes")
   }
 
@@ -131,9 +134,11 @@ class AppTest {
   private fun waitForText(vararg values: String) {
     composeTestRule.waitUntil(timeoutMillis = 10_000) {
       values.any { value ->
-        composeTestRule.onAllNodesWithText(value, substring = true).fetchSemanticsNodes().isNotEmpty()
+        composeTestRule
+          .onAllNodesWithText(value, substring = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
       }
     }
   }
-
 }

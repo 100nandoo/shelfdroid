@@ -49,11 +49,9 @@ object AuthenticationSettingsMapper {
   fun toUpdateRequest(
     saved: AuthenticationSettingsForm,
     draft: AuthenticationSettingsForm,
-    secretUpdate: AuthenticationSettingsSecretUpdate =
-      AuthenticationSettingsSecretUpdate.Untouched,
+    secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
   ): UpdateAuthenticationSettingsRequest? {
-    val customMessage =
-      draft.customMessageValue().takeIf { it != saved.customMessageValue() }
+    val customMessage = draft.customMessageValue().takeIf { it != saved.customMessageValue() }
     val methods =
       draft.activeLoginMethods.normalizedMethods().takeIf {
         it != saved.activeLoginMethods.normalizedMethods()
@@ -93,16 +91,13 @@ object AuthenticationSettingsMapper {
         draftOpenId.subfolderForRedirectUrls.takeIf {
           it != savedOpenId.subfolderForRedirectUrls
         },
-      authOpenIDButtonText =
-        draftOpenId.buttonText.takeIf { it != savedOpenId.buttonText },
+      authOpenIDButtonText = draftOpenId.buttonText.takeIf { it != savedOpenId.buttonText },
       authOpenIDMatchExistingBy =
         draftOpenId.matchExistingBy.normalizedClaimValue().takeIf {
           it != savedOpenId.matchExistingBy
         },
-      authOpenIDAutoLaunch =
-        draftOpenId.autoLaunch.takeIf { it != savedOpenId.autoLaunch },
-      authOpenIDAutoRegister =
-        draftOpenId.autoRegister.takeIf { it != savedOpenId.autoRegister },
+      authOpenIDAutoLaunch = draftOpenId.autoLaunch.takeIf { it != savedOpenId.autoLaunch },
+      authOpenIDAutoRegister = draftOpenId.autoRegister.takeIf { it != savedOpenId.autoRegister },
       authOpenIDGroupClaim =
         draftOpenId.groupClaim.normalizedClaimValue().takeIf {
           it != savedOpenId.groupClaim
@@ -117,8 +112,7 @@ object AuthenticationSettingsMapper {
   fun hasOpenIdChanges(
     saved: AuthenticationSettingsForm,
     draft: AuthenticationSettingsForm,
-    secretUpdate: AuthenticationSettingsSecretUpdate =
-      AuthenticationSettingsSecretUpdate.Untouched,
+    secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
   ): Boolean =
     hasOpenIdProviderChanges(saved.openId, draft.openId) ||
       secretUpdate != AuthenticationSettingsSecretUpdate.Untouched
@@ -164,15 +158,21 @@ object AuthenticationSettingsMapper {
       draft.copy(
         issuerUrl = discoveredValue(draft.issuerUrl, started.issuerUrl, discovery.issuerUrl),
         authorizationUrl =
-          discoveredValue(draft.authorizationUrl, started.authorizationUrl, discovery.authorizationUrl),
+          discoveredValue(
+            draft.authorizationUrl,
+            started.authorizationUrl,
+            discovery.authorizationUrl,
+          ),
         tokenUrl = discoveredValue(draft.tokenUrl, started.tokenUrl, discovery.tokenUrl),
-        userInfoUrl = discoveredValue(draft.userInfoUrl, started.userInfoUrl, discovery.userInfoUrl),
+        userInfoUrl =
+          discoveredValue(draft.userInfoUrl, started.userInfoUrl, discovery.userInfoUrl),
         jwksUrl = discoveredValue(draft.jwksUrl, started.jwksUrl, discovery.jwksUrl),
         logoutUrl = discoveredValue(draft.logoutUrl, started.logoutUrl, discovery.logoutUrl),
         tokenSigningAlgorithm =
-          if (draft.tokenSigningAlgorithm == started.tokenSigningAlgorithm &&
-            discovery.signingAlgorithms.isNotEmpty() &&
-            draft.tokenSigningAlgorithm !in discovery.signingAlgorithms
+          if (
+            draft.tokenSigningAlgorithm == started.tokenSigningAlgorithm &&
+              discovery.signingAlgorithms.isNotEmpty() &&
+              draft.tokenSigningAlgorithm !in discovery.signingAlgorithms
           ) {
             discovery.signingAlgorithms.first()
           } else {
@@ -192,11 +192,10 @@ object AuthenticationSettingsMapper {
       else -> null
     }
 
-  private fun List<LoginMethod>.normalizedMethods(): List<LoginMethod> =
-    buildList {
-      if (LoginMethod.Local in this@normalizedMethods) add(LoginMethod.Local)
-      if (LoginMethod.OpenId in this@normalizedMethods) add(LoginMethod.OpenId)
-    }
+  private fun List<LoginMethod>.normalizedMethods(): List<LoginMethod> = buildList {
+    if (LoginMethod.Local in this@normalizedMethods) add(LoginMethod.Local)
+    if (LoginMethod.OpenId in this@normalizedMethods) add(LoginMethod.OpenId)
+  }
 
   private fun LoginMethod.toWireValue(): String =
     when (this) {

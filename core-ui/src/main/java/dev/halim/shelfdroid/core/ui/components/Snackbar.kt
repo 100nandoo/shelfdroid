@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.zIndex
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -69,7 +70,7 @@ private fun PreviewSnackbar(message: String, type: SnackbarType) {
 }
 
 @Composable
-private fun snackbarContainerColor(type: SnackbarType?): androidx.compose.ui.graphics.Color =
+private fun snackbarContainerColor(type: SnackbarType?): Color =
   when (type) {
     SnackbarType.SUCCESS -> MaterialTheme.colorScheme.tertiary
     SnackbarType.ERROR -> MaterialTheme.colorScheme.error
@@ -77,7 +78,7 @@ private fun snackbarContainerColor(type: SnackbarType?): androidx.compose.ui.gra
   }
 
 @Composable
-private fun snackbarContentColor(type: SnackbarType?): androidx.compose.ui.graphics.Color =
+private fun snackbarContentColor(type: SnackbarType?): Color =
   when (type) {
     SnackbarType.SUCCESS -> MaterialTheme.colorScheme.onTertiary
     SnackbarType.ERROR -> MaterialTheme.colorScheme.onError

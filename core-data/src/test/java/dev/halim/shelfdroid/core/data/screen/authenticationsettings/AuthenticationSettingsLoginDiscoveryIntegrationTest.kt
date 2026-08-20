@@ -3,7 +3,9 @@ package dev.halim.shelfdroid.core.data.screen.authenticationsettings
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import dev.halim.core.network.ApiService
+import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.admin.AdminDestinationGuard
@@ -16,7 +18,6 @@ import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
 import dev.halim.shelfdroid.core.data.screen.login.PendingOpenIdCallbackStore
 import dev.halim.shelfdroid.core.data.screen.login.PendingOpenIdLoginStore
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
-import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +60,8 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
             val request = chain.request()
             val path = request.url.encodedPath
             if (request.method == "PATCH" && path == "/api/auth-settings") {
-              val body = request.body?.let { Buffer().also { buffer -> it.writeTo(buffer) }.readUtf8() }
+              val body =
+                request.body?.let { Buffer().also { buffer -> it.writeTo(buffer) }.readUtf8() }
               if (body?.contains("authLoginCustomMessage") == true) {
                 customMessage = "<p>After the update</p>"
               }
@@ -90,20 +92,20 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
                     "authOpenIDAutoLaunch": $autoLaunch
                   }
                 }
-                """.trimIndent(),
+                """
+                  .trimIndent(),
               )
             } else {
               response(request, "{}")
             }
           }
           .build()
-      val json =
-        Json {
-          coerceInputValues = true
-          ignoreUnknownKeys = true
-          isLenient = true
-          explicitNulls = false
-        }
+      val json = Json {
+        coerceInputValues = true
+        ignoreUnknownKeys = true
+        isLenient = true
+        explicitNulls = false
+      }
       val api =
         Retrofit.Builder()
           .baseUrl(AudiobookshelfBaseUrl.DEFAULT_VALUE)
@@ -185,7 +187,8 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
       "authOpenIDButtonText": "$buttonText",
       "authOpenIDAutoLaunch": $autoLaunch
     }
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun response(request: Request, body: String): Response =
     Response.Builder()
@@ -199,8 +202,8 @@ class AuthenticationSettingsLoginDiscoveryIntegrationTest {
   private data object NoOpLoginSuccessHandler : LoginSuccessHandler {
     override suspend fun onLoginSuccess(
       server: String,
-      serverAccessMode: dev.halim.shelfdroid.core.ServerAccessMode,
-      response: dev.halim.core.network.response.login.LoginResponse,
+      serverAccessMode: ServerAccessMode,
+      response: LoginResponse,
     ) = Unit
   }
 }

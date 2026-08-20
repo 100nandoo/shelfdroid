@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpServer
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.client.AnonymousRequestTag
 import dev.halim.core.network.client.SessionCookieJar
+import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
@@ -856,19 +857,19 @@ class LoginRepositoryTest {
     override suspend fun onLoginSuccess(
       server: String,
       serverAccessMode: ServerAccessMode,
-      response: dev.halim.core.network.response.login.LoginResponse,
+      response: LoginResponse,
     ) = Unit
   }
 
   private class RecordingLoginSuccessHandler : LoginSuccessHandler {
     var server: String? = null
     var serverAccessMode: ServerAccessMode? = null
-    var response: dev.halim.core.network.response.login.LoginResponse? = null
+    var response: LoginResponse? = null
 
     override suspend fun onLoginSuccess(
       server: String,
       serverAccessMode: ServerAccessMode,
-      response: dev.halim.core.network.response.login.LoginResponse,
+      response: LoginResponse,
     ) {
       this.server = server
       this.serverAccessMode = serverAccessMode

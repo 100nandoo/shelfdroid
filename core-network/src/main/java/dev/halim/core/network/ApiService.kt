@@ -27,9 +27,9 @@ import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.request.apprisenotificationsettings.AppriseNotificationRuleRequest
 import dev.halim.core.network.request.apprisenotificationsettings.NotificationRuleEnabledRequest
 import dev.halim.core.network.request.apprisenotificationsettings.UpdateAppriseNotificationSettingsRequest
+import dev.halim.core.network.request.authenticationsettings.UpdateAuthenticationSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEmailSettingsRequest
 import dev.halim.core.network.request.emailmanagement.UpdateEreaderDevicesRequest
-import dev.halim.core.network.request.authenticationsettings.UpdateAuthenticationSettingsRequest
 import dev.halim.core.network.response.ApiKeysResponse
 import dev.halim.core.network.response.BackupsResponse
 import dev.halim.core.network.response.BatchLibraryItemsResponse
@@ -419,7 +419,7 @@ interface ApiService {
 
   @GET("auth/openid/config")
   suspend fun openIdIssuerConfiguration(
-    @Query("issuer") issuer: String,
+    @Query("issuer") issuer: String
   ): Result<OpenIdIssuerConfigurationResponse>
 
   @PATCH("/api/settings")

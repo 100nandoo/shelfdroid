@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.data.screen.authenticationsettings
 
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 
 data class AuthenticationSettingsUiState(
   val state: AuthenticationSettingsState = AuthenticationSettingsState.Loading,
@@ -94,7 +94,7 @@ enum class AuthenticationSettingsValidationError {
 }
 
 data class AuthenticationSettingsValidation(
-  val errors: Set<AuthenticationSettingsValidationError> = emptySet(),
+  val errors: Set<AuthenticationSettingsValidationError> = emptySet()
 ) {
   val isValid: Boolean
     get() = errors.isEmpty()
@@ -116,10 +116,7 @@ fun AuthenticationSettingsSummary.validation(
     if (activeLoginMethods.isEmpty()) {
       add(AuthenticationSettingsValidationError.NoLoginMethod)
     }
-    if (
-      LoginMethod.OpenId in activeLoginMethods &&
-        !openId.isStructurallyValid(secretUpdate)
-    ) {
+    if (LoginMethod.OpenId in activeLoginMethods && !openId.isStructurallyValid(secretUpdate)) {
       add(AuthenticationSettingsValidationError.OpenIdConfigurationIncomplete)
     }
     if (openId.matchExistingBy !in OPENID_MATCH_EXISTING_BY_OPTIONS) {
@@ -149,11 +146,11 @@ fun AuthenticationSettingsSummary.validation(
 }
 
 fun AuthenticationSettingsSummary.isOpenIdConfigurationValid(
-  secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched,
+  secretUpdate: AuthenticationSettingsSecretUpdate = AuthenticationSettingsSecretUpdate.Untouched
 ): Boolean = openId.isStructurallyValid(secretUpdate)
 
 private fun OpenIdSettingsSummary.isStructurallyValid(
-  secretUpdate: AuthenticationSettingsSecretUpdate,
+  secretUpdate: AuthenticationSettingsSecretUpdate
 ): Boolean =
   issuerUrl.isNotBlank() &&
     authorizationUrl.isNotBlank() &&
@@ -165,7 +162,7 @@ private fun OpenIdSettingsSummary.isStructurallyValid(
     secretUpdate.isAllowedFor(clientSecretConfigured)
 
 private fun AuthenticationSettingsSecretUpdate.isAllowedFor(
-  clientSecretConfigured: Boolean,
+  clientSecretConfigured: Boolean
 ): Boolean =
   when (this) {
     AuthenticationSettingsSecretUpdate.Untouched -> true
@@ -235,11 +232,12 @@ fun callbackSubfolderOptions(serverBaseUrl: String = DataStoreManager.BASE_URL):
 }
 
 /**
- * Mirrors Audiobookshelf's `isValidRedirectURI` in
- * `server/controllers/MiscController.js` (case-insensitive). Keep `*` outside this matcher: the
- * server treats it as a separate sole-entry wildcard.
+ * Mirrors Audiobookshelf's `isValidRedirectURI` in `server/controllers/MiscController.js`
+ * (case-insensitive). Keep `*` outside this matcher: the server treats it as a separate sole-entry
+ * wildcard.
  */
-internal val AUDIOBOOKSHELF_MOBILE_REDIRECT_URI_PATTERN = Regex(
-  "^\\w+://[\\w\\.-]+(/[\\w\\./-]*)*$",
-  RegexOption.IGNORE_CASE,
-)
+internal val AUDIOBOOKSHELF_MOBILE_REDIRECT_URI_PATTERN =
+  Regex(
+    "^\\w+://[\\w\\.-]+(/[\\w\\./-]*)*$",
+    RegexOption.IGNORE_CASE,
+  )

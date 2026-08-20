@@ -26,7 +26,9 @@ class AuthenticationSettingsContentTest {
 
   @Test
   fun loadingState_isVisible() {
-    composeRule.setContent { AuthenticationSettingsContent(state = AuthenticationSettingsState.Loading) }
+    composeRule.setContent {
+      AuthenticationSettingsContent(state = AuthenticationSettingsState.Loading)
+    }
 
     composeRule.onNodeWithText("Loading Authentication settings…").assertIsDisplayed()
   }
@@ -142,9 +144,7 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("Effective web callback URL").assertExists()
     composeRule.onNodeWithText("https://audiobooks.dev/auth/openid/callback").assertExists()
     composeRule.onNodeWithText("Effective mobile callback URL").assertExists()
-    composeRule
-      .onNodeWithText("https://audiobooks.dev/auth/openid/mobile-redirect")
-      .assertExists()
+    composeRule.onNodeWithText("https://audiobooks.dev/auth/openid/mobile-redirect").assertExists()
     composeRule.onNodeWithText("User mapping").assertExists()
     composeRule.onNodeWithText("OpenID button text").assertExists()
     composeRule.onNodeWithText("Match existing Users by").assertExists()
@@ -200,10 +200,7 @@ class AuthenticationSettingsContentTest {
     val settings =
       AuthenticationSettingsSummary(
         activeLoginMethods = listOf(LoginMethod.Local),
-        openId =
-          OpenIdSettingsSummary(
-            mobileRedirectUris = listOf("audiobookshelf://oauth"),
-          ),
+        openId = OpenIdSettingsSummary(mobileRedirectUris = listOf("audiobookshelf://oauth")),
       )
     val uiState =
       AuthenticationSettingsUiState(
@@ -221,8 +218,6 @@ class AuthenticationSettingsContentTest {
 
     composeRule.onNodeWithContentDescription("Username and password").assertIsDisplayed()
     composeRule.onNodeWithContentDescription("OpenID login").assertIsDisplayed()
-    composeRule
-      .onNodeWithContentDescription("Remove mobile redirect URI 1")
-      .assertExists()
+    composeRule.onNodeWithContentDescription("Remove mobile redirect URI 1").assertExists()
   }
 }

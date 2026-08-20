@@ -14,7 +14,6 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
@@ -60,7 +59,9 @@ object FakeDownloadModule {
 
   @Provides
   @Singleton
-  fun provideDownloadNotificationHelper(@ApplicationContext context: Context): DownloadNotificationHelper {
+  fun provideDownloadNotificationHelper(
+    @ApplicationContext context: Context
+  ): DownloadNotificationHelper {
     return DownloadNotificationHelper(context, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
   }
 

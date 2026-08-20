@@ -17,6 +17,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.result.LocalResultEventBus
@@ -117,7 +118,7 @@ fun MainNavigation(
 @Composable
 private fun ColumnScope.NavHostContainer(
   navigator: ShelfNavigator,
-  backStack: androidx.navigation3.runtime.NavBackStack<ShelfNavKey>,
+  backStack: NavBackStack<ShelfNavKey>,
   sharedTransitionScope: SharedTransitionScope,
   playerStore: PlayerStore,
   playerController: PlayerController,

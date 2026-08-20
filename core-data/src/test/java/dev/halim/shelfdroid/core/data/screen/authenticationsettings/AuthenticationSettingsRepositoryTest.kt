@@ -10,8 +10,8 @@ import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.admin.AdminDestinationGuard
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.CoroutineScope
@@ -166,7 +166,10 @@ class AuthenticationSettingsRepositoryTest {
       assertEquals("https://issuer.example.com/jwks-new", settings.jwksUrl)
       assertEquals("https://issuer.example.com/logout-new", settings.logoutUrl)
       assertEquals("edited-client", settings.clientId)
-      assertEquals(listOf("audiobookshelf://oauth", "https://mobile.example/cb"), settings.mobileRedirectUris)
+      assertEquals(
+        listOf("audiobookshelf://oauth", "https://mobile.example/cb"),
+        settings.mobileRedirectUris,
+      )
       assertEquals("/audiobookshelf", settings.subfolderForRedirectUrls)
       assertEquals("Company login", settings.buttonText)
       assertEquals("RS256", settings.tokenSigningAlgorithm)
@@ -269,7 +272,10 @@ class AuthenticationSettingsRepositoryTest {
       )
     try {
       val loaded = fixture.repository.load()
-      val draft = loaded.draftSettings!!.copy(openId = loaded.draftSettings.openId.copy(clientId = "new-client"))
+      val draft =
+        loaded.draftSettings!!.copy(
+          openId = loaded.draftSettings.openId.copy(clientId = "new-client")
+        )
       val saved =
         fixture.repository.save(
           loaded.copy(
@@ -309,15 +315,16 @@ class AuthenticationSettingsRepositoryTest {
             loaded.draftSettings.openId.copy(
               mobileRedirectUris = listOf("audiobookshelf://oauth", "sampleapp://oauth/callback"),
               subfolderForRedirectUrls = "",
-            ),
+            )
         )
       val saved =
         fixture.repository.save(
           loaded.copy(
             state = AuthenticationSettingsState.Ready(draft),
             draftSettings = draft,
-            validation = draft.validation(callbackSubfolderOptions = loaded.callbackSubfolderOptions),
-          ),
+            validation =
+              draft.validation(callbackSubfolderOptions = loaded.callbackSubfolderOptions),
+          )
         )
 
       assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
@@ -357,15 +364,16 @@ class AuthenticationSettingsRepositoryTest {
               autoRegister = true,
               groupClaim = "roles",
               advancedPermsClaim = "abspermissions",
-            ),
+            )
         )
       val saved =
         fixture.repository.save(
           loaded.copy(
             state = AuthenticationSettingsState.Ready(draft),
             draftSettings = draft,
-            validation = draft.validation(callbackSubfolderOptions = loaded.callbackSubfolderOptions),
-          ),
+            validation =
+              draft.validation(callbackSubfolderOptions = loaded.callbackSubfolderOptions),
+          )
         )
 
       assertTrue(saved.apiState is AuthenticationSettingsApiState.Success)
@@ -488,8 +496,7 @@ class AuthenticationSettingsRepositoryTest {
       )
     try {
       val loaded = fixture.repository.load()
-      val draft =
-        loaded.draftSettings!!.copy(activeLoginMethods = listOf(LoginMethod.Local))
+      val draft = loaded.draftSettings!!.copy(activeLoginMethods = listOf(LoginMethod.Local))
       val saved =
         fixture.repository.save(
           loaded.copy(
@@ -584,20 +591,20 @@ class AuthenticationSettingsRepositoryTest {
         .addInterceptor { chain ->
           val requestIndex = requestedUrls.size
           requestedUrls += chain.request().url.toString()
-          requestBodies += chain.request().body?.let { body ->
-            Buffer().also { buffer -> body.writeTo(buffer) }.readUtf8()
-          }
+          requestBodies +=
+            chain.request().body?.let { body ->
+              Buffer().also { buffer -> body.writeTo(buffer) }.readUtf8()
+            }
           val stub = responses.getOrElse(requestIndex) { responses.last() }
           response(chain.request(), stub.code, stub.body)
         }
         .build()
-    val json =
-      Json {
-        coerceInputValues = true
-        ignoreUnknownKeys = true
-        isLenient = true
-        explicitNulls = false
-      }
+    val json = Json {
+      coerceInputValues = true
+      ignoreUnknownKeys = true
+      isLenient = true
+      explicitNulls = false
+    }
     val api =
       Retrofit.Builder()
         .baseUrl(AudiobookshelfBaseUrl.DEFAULT_VALUE)
@@ -647,7 +654,8 @@ class AuthenticationSettingsRepositoryTest {
       "authOpenIDAdvancedPermsClaim": "permissions",
       "authOpenIDSamplePermissions": "{\"download\":true}"
     }
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private fun issuerConfigurationJson(): String =
     """
@@ -660,7 +668,8 @@ class AuthenticationSettingsRepositoryTest {
       "jwks_uri": "https://issuer.example.com/jwks-new",
       "id_token_signing_alg_values_supported": ["RS256", "ES256"]
     }
-    """.trimIndent()
+    """
+      .trimIndent()
 
   private data class Fixture(
     val repository: AuthenticationSettingsRepository,

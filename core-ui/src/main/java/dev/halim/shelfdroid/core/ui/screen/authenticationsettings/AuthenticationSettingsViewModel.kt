@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsApiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsConfirmation
+import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsOperation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsRepository
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSecretUpdate
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
@@ -12,7 +13,6 @@ import dev.halim.shelfdroid.core.data.screen.authenticationsettings.Authenticati
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsUiState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsValidation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsValidationError
-import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsOperation
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.canSave
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.hasChanges
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.isOpenIdConfigurationValid
@@ -33,17 +33,26 @@ import kotlinx.coroutines.sync.withLock
 class AuthenticationSettingsViewModel
 internal constructor(
   private val loadOperation: suspend () -> AuthenticationSettingsUiState,
-  private val saveOperation: suspend (AuthenticationSettingsUiState) -> AuthenticationSettingsUiState,
-  private val discoverOperation: suspend (AuthenticationSettingsUiState) -> AuthenticationSettingsUiState =
-    { it },
+  private val saveOperation:
+    suspend (AuthenticationSettingsUiState) -> AuthenticationSettingsUiState,
+  private val discoverOperation:
+    suspend (AuthenticationSettingsUiState) -> AuthenticationSettingsUiState =
+    {
+      it
+    },
   private val saveWithSecretOperation:
-    suspend (AuthenticationSettingsUiState, AuthenticationSettingsSecretUpdate) ->
-      AuthenticationSettingsUiState =
-    { state, _ -> saveOperation(state) },
+    suspend (
+      AuthenticationSettingsUiState, AuthenticationSettingsSecretUpdate,
+    ) -> AuthenticationSettingsUiState =
+    { state, _ ->
+      saveOperation(state)
+    },
 ) : ViewModel() {
 
   @Inject
-  constructor(repository: AuthenticationSettingsRepository) : this(
+  constructor(
+    repository: AuthenticationSettingsRepository
+  ) : this(
     loadOperation = { repository.load() },
     saveOperation = { repository.save(it) },
     discoverOperation = { repository.discover(it) },
@@ -102,16 +111,13 @@ internal constructor(
         )
       is AuthenticationSettingsEvent.UpdateMobileRedirectUri ->
         updateMobileRedirectUri(event.index, event.uri)
-      is AuthenticationSettingsEvent.RemoveMobileRedirectUri ->
-        removeMobileRedirectUri(event.index)
+      is AuthenticationSettingsEvent.RemoveMobileRedirectUri -> removeMobileRedirectUri(event.index)
       is AuthenticationSettingsEvent.SetCallbackSubfolder ->
         updateDraft { it.copy(openId = it.openId.copy(subfolderForRedirectUrls = event.value)) }
       AuthenticationSettingsEvent.ConfirmRemoveShelfDroidCallback ->
         confirmRemoveShelfDroidCallback()
-      AuthenticationSettingsEvent.ConfirmWildcardMobileRedirect ->
-        confirmWildcardMobileRedirect()
-      AuthenticationSettingsEvent.DismissConfirmation ->
-        dismissConfirmation()
+      AuthenticationSettingsEvent.ConfirmWildcardMobileRedirect -> confirmWildcardMobileRedirect()
+      AuthenticationSettingsEvent.DismissConfirmation -> dismissConfirmation()
       AuthenticationSettingsEvent.ResetDraftSettings -> resetDraft()
       AuthenticationSettingsEvent.Reset -> resetDraft()
       AuthenticationSettingsEvent.SaveSettings,
@@ -138,7 +144,9 @@ internal constructor(
     }
   }
 
-  private fun updateDraft(transform: (AuthenticationSettingsSummary) -> AuthenticationSettingsSummary) {
+  private fun updateDraft(
+    transform: (AuthenticationSettingsSummary) -> AuthenticationSettingsSummary
+  ) {
     _uiState.update { current ->
       if (current.apiState is AuthenticationSettingsApiState.Loading) return@update current
       val draft = current.draftSettings ?: return@update current
@@ -219,7 +227,8 @@ internal constructor(
     if (
       _uiState.value.draftSettings == null ||
         _uiState.value.apiState is AuthenticationSettingsApiState.Loading
-    ) return
+    )
+      return
     _uiState.update {
       it.copy(pendingConfirmation = AuthenticationSettingsConfirmation.ClearClientSecret)
     }
@@ -294,14 +303,15 @@ internal constructor(
         if (generation == operationGeneration) {
           _uiState.update { current ->
             // A discovery operation receives an immutable snapshot. If a caller changed the draft
-            // while the request was in flight, keep that newer draft instead of applying stale data.
+            // while the request was in flight, keep that newer draft instead of applying stale
+            // data.
             if (current.draftSettings != initial.draftSettings) {
               current.copy(
                 apiState = discovered.apiState,
                 clientSecretChangePending =
                   if (secretUpdateFailed) false else current.clientSecretChangePending,
-                state = current.draftSettings?.let(AuthenticationSettingsState::Ready)
-                  ?: current.state,
+                state =
+                  current.draftSettings?.let(AuthenticationSettingsState::Ready) ?: current.state,
               )
             } else {
               if (secretUpdateFailed) discovered.copy(clientSecretChangePending = false)
@@ -411,7 +421,9 @@ internal constructor(
         }
       pendingWildcardConfirmation ->
         _uiState.update {
-          it.copy(pendingConfirmation = AuthenticationSettingsConfirmation.UseWildcardMobileRedirect)
+          it.copy(
+            pendingConfirmation = AuthenticationSettingsConfirmation.UseWildcardMobileRedirect
+          )
         }
       else -> applyPendingMobileRedirectUris()
     }
@@ -483,7 +495,7 @@ sealed interface AuthenticationSettingsEvent {
   data object DiscoverIssuer : AuthenticationSettingsEvent
 
   data class UpdateDraftSettings(
-    val transform: (AuthenticationSettingsSummary) -> AuthenticationSettingsSummary,
+    val transform: (AuthenticationSettingsSummary) -> AuthenticationSettingsSummary
   ) : AuthenticationSettingsEvent
 
   data class UpdateCustomMessage(val message: String) : AuthenticationSettingsEvent

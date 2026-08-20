@@ -2,7 +2,6 @@ package dev.halim.shelfdroid.test.app.testdi
 
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import dev.halim.core.network.ApiService
@@ -33,9 +32,7 @@ object FakeNetworkModule {
     return OkHttpClient.Builder().build()
   }
 
-  @Provides
-  @Singleton
-  fun provideFakeApiService(): FakeApiService = FakeApiService()
+  @Provides @Singleton fun provideFakeApiService(): FakeApiService = FakeApiService()
 
   @Provides
   @Singleton
