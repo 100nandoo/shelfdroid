@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -224,7 +225,7 @@ private fun EditorContent(
 
   Column(
     modifier =
-      Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp),
+      Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
     verticalArrangement = Arrangement.Bottom,
   ) {
     TextTitleLarge(text = stringResource(R.string.authentication_settings))
@@ -342,7 +343,7 @@ private fun EditorContent(
 }
 
 @Composable
-private fun OpenIdProviderEditor(
+private fun ColumnScope.OpenIdProviderEditor(
   settings: OpenIdSettingsSummary,
   signingAlgorithmOptions: List<String>,
   callbackSubfolderOptions: List<String>,

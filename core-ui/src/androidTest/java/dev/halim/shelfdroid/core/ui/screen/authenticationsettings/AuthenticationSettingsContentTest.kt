@@ -1,15 +1,23 @@
 package dev.halim.shelfdroid.core.ui.screen.authenticationsettings
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsState
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.AuthenticationSettingsSummary
@@ -65,6 +73,47 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("audiobookshelf://oauth").assertIsDisplayed()
     composeRule.onNodeWithText("email").assertIsDisplayed()
     composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
+  }
+
+  @Test
+  fun issuerUrlImeNext_focusesAndRevealsAuthorizationUrl() {
+    val settings =
+      AuthenticationSettingsSummary(
+        customMessageEnabled = true,
+        customMessage = "Welcome to ShelfDroid",
+        activeLoginMethods = listOf(LoginMethod.OpenId),
+        openId = OpenIdSettingsSummary(issuerUrl = "https://issuer.example.com"),
+      )
+    val uiState =
+      AuthenticationSettingsUiState(
+        state = AuthenticationSettingsState.Ready(settings),
+        savedSettings = settings,
+        draftSettings = settings,
+      )
+
+    var imeBottom = 0
+    var showSoftwareKeyboard: (() -> Unit)? = null
+    var hideSoftwareKeyboard: (() -> Unit)? = null
+    composeRule.setContent {
+      imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+      val softwareKeyboardController = LocalSoftwareKeyboardController.current
+      showSoftwareKeyboard = { softwareKeyboardController?.show() }
+      hideSoftwareKeyboard = { softwareKeyboardController?.hide() }
+      AuthenticationSettingsContent(state = uiState.state, uiState = uiState)
+    }
+
+    composeRule.onNodeWithText("Issuer URL").performScrollTo().performClick()
+    composeRule.runOnIdle { showSoftwareKeyboard?.invoke() }
+    composeRule.waitUntil(timeoutMillis = 5_000) { imeBottom > 0 }
+    composeRule.onNodeWithText("Issuer URL").performImeAction()
+
+    val authorizationUrl =
+      composeRule.onNodeWithText("Authorization URL").assertIsFocused().assertIsDisplayed()
+    val visibleBottom = composeRule.onRoot().fetchSemanticsNode().boundsInRoot.bottom - imeBottom
+    val authorizationBottom = authorizationUrl.fetchSemanticsNode().boundsInRoot.bottom
+
+    assertTrue(authorizationBottom <= visibleBottom)
+    composeRule.runOnIdle { hideSoftwareKeyboard?.invoke() }
   }
 
   @Test
