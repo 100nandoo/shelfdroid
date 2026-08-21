@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -20,15 +21,22 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProvider
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderManagementApiState
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderManagementDialog
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderManagementUiState
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderOperation
 import dev.halim.shelfdroid.core.data.metadata.GenreManagementApiState
 import dev.halim.shelfdroid.core.data.metadata.GenreManagementDialog
 import dev.halim.shelfdroid.core.data.metadata.GenreManagementUiState
@@ -39,6 +47,8 @@ import dev.halim.shelfdroid.core.data.metadata.TagManagementDialog
 import dev.halim.shelfdroid.core.data.metadata.TagManagementUiState
 import dev.halim.shelfdroid.core.data.metadata.tagRenameCollision
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.TextHeadlineSmall
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
@@ -47,6 +57,7 @@ import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 fun MetadataUtilitiesHubScreen(
   onTagsClicked: () -> Unit,
   onGenresClicked: () -> Unit = {},
+  onCustomProvidersClicked: () -> Unit = {},
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
@@ -60,10 +71,9 @@ fun MetadataUtilitiesHubScreen(
     TextButton(onClick = onGenresClicked, modifier = Modifier.fillMaxWidth()) {
       Text(stringResource(R.string.metadata_genres))
     }
-    TextButton(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
+    TextButton(onClick = onCustomProvidersClicked, modifier = Modifier.fillMaxWidth()) {
       Text(stringResource(R.string.metadata_custom_providers))
     }
-    Text(stringResource(R.string.metadata_custom_providers_not_available_yet))
   }
 }
 
@@ -87,6 +97,227 @@ fun GenreManagementScreen(
     viewModel.onEvent(GenreManagementEvent.ClearApiState)
   }
   GenreManagementContent(uiState) { viewModel.onEvent(it) }
+}
+
+@Composable
+fun CustomMetadataProviderManagementScreen(
+  viewModel: CustomMetadataProviderManagementViewModel = hiltViewModel(),
+  snackbarHostState: SnackbarHostState,
+) {
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  val createdMessage = stringResource(R.string.metadata_provider_created)
+  val deletedMessage = stringResource(R.string.metadata_provider_deleted)
+  DisposableEffect(Unit) {
+    onDispose {
+      viewModel.onEvent(CustomMetadataProviderManagementEvent.ClearSensitiveState)
+    }
+  }
+  LaunchedEffect(uiState.apiState) {
+    when (val apiState = uiState.apiState) {
+      CustomMetadataProviderManagementApiState.CreateSuccess -> {
+        snackbarHostState.showSuccessSnackbar(createdMessage)
+        viewModel.onEvent(CustomMetadataProviderManagementEvent.ClearApiState)
+      }
+      CustomMetadataProviderManagementApiState.DeleteSuccess -> {
+        snackbarHostState.showSuccessSnackbar(deletedMessage)
+        viewModel.onEvent(CustomMetadataProviderManagementEvent.ClearApiState)
+      }
+      is CustomMetadataProviderManagementApiState.Failure -> {
+        val operation = apiState.operation
+        if (!apiState.accessDenied && operation != null) {
+          snackbarHostState.showErrorSnackbar(
+            customMetadataProviderFailureMessage(operation, apiState.message)
+          )
+          viewModel.onEvent(CustomMetadataProviderManagementEvent.ClearApiState)
+        }
+      }
+      else -> Unit
+    }
+  }
+  CustomMetadataProviderManagementContent(uiState) { viewModel.onEvent(it) }
+}
+
+@Composable
+fun CustomMetadataProviderManagementContent(
+  uiState: CustomMetadataProviderManagementUiState,
+  onEvent: (CustomMetadataProviderManagementEvent) -> Unit,
+) {
+  Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    TextHeadlineSmall(text = stringResource(R.string.metadata_custom_providers))
+    Spacer(Modifier.height(8.dp))
+    when {
+      (uiState.apiState as? CustomMetadataProviderManagementApiState.Failure)?.accessDenied == true ->
+        ProviderErrorState(
+          message = stringResource(R.string.metadata_provider_access_denied),
+          retryable = false,
+          onEvent = onEvent,
+        )
+      uiState.state is GenericState.Loading -> {
+        LinearProgressIndicator(Modifier.fillMaxWidth())
+        Text(stringResource(R.string.metadata_provider_loading), Modifier.padding(vertical = 16.dp))
+      }
+      else -> {
+        ProviderCreateForm(uiState, onEvent)
+        Spacer(Modifier.height(16.dp))
+        if (uiState.state is GenericState.Failure) {
+          ProviderErrorState(
+            message = stringResource(R.string.metadata_provider_load_failed),
+            retryable = true,
+            onEvent = onEvent,
+          )
+        }
+        if (uiState.providers.isEmpty()) {
+          if (uiState.state !is GenericState.Failure) {
+            Text(stringResource(R.string.metadata_provider_empty))
+          }
+        } else {
+          LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            items(uiState.providers, key = { it.id }) { provider ->
+              CustomMetadataProviderRow(provider, uiState, onEvent)
+            }
+          }
+        }
+      }
+    }
+    if (uiState.isMutating) {
+      LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp))
+    }
+  }
+
+  when (val dialog = uiState.dialog) {
+    is CustomMetadataProviderManagementDialog.Delete ->
+      CustomMetadataProviderDeleteDialog(dialog.provider, onEvent)
+    null -> Unit
+  }
+}
+
+@Composable
+private fun ProviderCreateForm(
+  uiState: CustomMetadataProviderManagementUiState,
+  onEvent: (CustomMetadataProviderManagementEvent) -> Unit,
+) {
+  val enabled = !uiState.isMutating
+  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    MyOutlinedTextField(
+      enabled = enabled,
+      value = uiState.nameDraft,
+      onValueChange = { onEvent(CustomMetadataProviderManagementEvent.UpdateName(it)) },
+      label = stringResource(R.string.metadata_provider_name),
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+    )
+    MyOutlinedTextField(
+      enabled = enabled,
+      value = uiState.urlDraft,
+      onValueChange = { onEvent(CustomMetadataProviderManagementEvent.UpdateUrl(it)) },
+      label = stringResource(R.string.metadata_provider_url),
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+    )
+    PasswordTextField(
+      enabled = enabled,
+      value = uiState.authHeaderDraft,
+      onValueChange = { onEvent(CustomMetadataProviderManagementEvent.UpdateAuthHeader(it)) },
+      label = stringResource(R.string.metadata_provider_auth_header),
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+      visible = uiState.authHeaderVisible,
+      onVisibilityChange = {
+        onEvent(CustomMetadataProviderManagementEvent.SetAuthHeaderVisible(it))
+      },
+      showVisibilityDescription = stringResource(R.string.metadata_provider_show_auth_header),
+      hideVisibilityDescription = stringResource(R.string.metadata_provider_hide_auth_header),
+    )
+    Text(stringResource(R.string.metadata_provider_books_only))
+    Button(
+      enabled = enabled && uiState.nameDraft.isNotBlank() && uiState.urlDraft.isNotBlank(),
+      onClick = { onEvent(CustomMetadataProviderManagementEvent.SubmitCreate) },
+      modifier = Modifier.fillMaxWidth(),
+    ) {
+      Text(stringResource(R.string.metadata_provider_add))
+    }
+  }
+}
+
+@Composable
+private fun CustomMetadataProviderRow(
+  provider: CustomMetadataProvider,
+  uiState: CustomMetadataProviderManagementUiState,
+  onEvent: (CustomMetadataProviderManagementEvent) -> Unit,
+) {
+  val authHeaderValue = provider.authHeaderValue
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+      Column(modifier = Modifier.weight(1f)) {
+        Text(provider.name)
+        if (provider.url.isNotBlank()) Text(provider.url)
+      }
+      IconButton(
+        enabled = !uiState.isMutating,
+        onClick = { onEvent(CustomMetadataProviderManagementEvent.BeginDelete(provider)) },
+      ) {
+        Icon(
+          painter = painterResource(R.drawable.delete),
+          contentDescription = stringResource(R.string.metadata_provider_delete_action),
+        )
+      }
+    }
+    if (authHeaderValue != null) {
+      PasswordTextField(
+        readOnly = true,
+        value = authHeaderValue,
+        onValueChange = {},
+        label = stringResource(R.string.metadata_provider_auth_header),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        visible = provider.id in uiState.revealedProviderIds,
+        onVisibilityChange = {
+          onEvent(CustomMetadataProviderManagementEvent.SetProviderVisible(provider.id, it))
+        },
+        showVisibilityDescription = stringResource(R.string.metadata_provider_show_auth_header),
+        hideVisibilityDescription = stringResource(R.string.metadata_provider_hide_auth_header),
+      )
+    } else {
+      Text(stringResource(R.string.metadata_provider_no_auth_header))
+    }
+  }
+}
+
+@Composable
+private fun ProviderErrorState(
+  message: String,
+  retryable: Boolean,
+  onEvent: (CustomMetadataProviderManagementEvent) -> Unit,
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Text(message)
+    if (retryable) {
+      TextButton(onClick = { onEvent(CustomMetadataProviderManagementEvent.Retry) }) {
+        Text(stringResource(R.string.retry))
+      }
+    }
+  }
+}
+
+@Composable
+private fun CustomMetadataProviderDeleteDialog(
+  provider: CustomMetadataProvider,
+  onEvent: (CustomMetadataProviderManagementEvent) -> Unit,
+) {
+  AlertDialog(
+    onDismissRequest = { onEvent(CustomMetadataProviderManagementEvent.DismissDialog) },
+    title = { Text(stringResource(R.string.metadata_provider_delete)) },
+    text = { Text(stringResource(R.string.metadata_provider_delete_confirm, provider.name)) },
+    confirmButton = {
+      Button(onClick = { onEvent(CustomMetadataProviderManagementEvent.ConfirmDelete) }) {
+        Text(stringResource(R.string.delete))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = { onEvent(CustomMetadataProviderManagementEvent.DismissDialog) }) {
+        Text(stringResource(R.string.cancel))
+      }
+    },
+  )
 }
 
 @Composable

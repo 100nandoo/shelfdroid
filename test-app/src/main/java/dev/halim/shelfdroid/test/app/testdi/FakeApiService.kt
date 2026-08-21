@@ -176,8 +176,10 @@ class FakeApiService @Inject constructor() : ApiService {
   private val users = mutableListOf(rootUser, appUser)
   private val tags = mutableListOf<String>()
   private val genres = mutableListOf<String>()
+  private val customMetadataProviders = mutableListOf<CustomMetadataProvider>()
   private var createdPodcastCount = 0
   private var createdApiKeyCount = 0
+  private var createdCustomMetadataProviderCount = 0
 
   init {
     reset()
@@ -218,8 +220,10 @@ class FakeApiService @Inject constructor() : ApiService {
       tags += listOf("fiction", "technology")
       genres.clear()
       genres += listOf("Fantasy", "Technology")
+      customMetadataProviders.clear()
       createdPodcastCount = 0
       createdApiKeyCount = 0
+      createdCustomMetadataProviderCount = 0
     }
   }
 
@@ -732,6 +736,42 @@ class FakeApiService @Inject constructor() : ApiService {
       val updated = genres.count { it == decoded }
       genres.removeAll { it == decoded }
       return Result.success(GenreMutationResponse(numItemsUpdated = updated))
+    }
+  }
+
+  override suspend fun customMetadataProviders(): Result<CustomMetadataProvidersResponse> =
+    Result.success(
+      CustomMetadataProvidersResponse(
+        providers = synchronized(this) { customMetadataProviders.toList() }
+      )
+    )
+
+  override suspend fun createCustomMetadataProvider(
+    request: CreateCustomMetadataProviderRequest
+  ): Result<CustomMetadataProviderResponse> {
+    if (request.name.isBlank() || request.url.isBlank()) {
+      return Result.failure(IllegalArgumentException("Invalid custom metadata provider"))
+    }
+    synchronized(this) {
+      createdCustomMetadataProviderCount += 1
+      val provider =
+        CustomMetadataProvider(
+          id = "custom-provider-$createdCustomMetadataProviderCount",
+          name = request.name,
+          url = request.url,
+          mediaType = request.mediaType,
+          slug = "custom-custom-provider-$createdCustomMetadataProviderCount",
+          authHeaderValue = request.authHeaderValue,
+        )
+      customMetadataProviders += provider
+      return Result.success(CustomMetadataProviderResponse(provider = provider))
+    }
+  }
+
+  override suspend fun deleteCustomMetadataProvider(providerId: String): Result<Unit> {
+    synchronized(this) {
+      if (customMetadataProviders.removeAll { it.id == providerId }) return Result.success(Unit)
+      return Result.failure(NoSuchElementException("Custom metadata provider not found"))
     }
   }
 

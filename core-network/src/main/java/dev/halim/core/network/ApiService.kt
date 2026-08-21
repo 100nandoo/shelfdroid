@@ -6,6 +6,7 @@ import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.ChangePasswordRequest
 import dev.halim.core.network.request.CoverFromUrlRequest
 import dev.halim.core.network.request.CreateApiKeyRequest
+import dev.halim.core.network.request.CreateCustomMetadataProviderRequest
 import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.DeleteSessionsRequest
@@ -37,6 +38,8 @@ import dev.halim.core.network.response.BackupsResponse
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.CheckNewEpisodesResponse
 import dev.halim.core.network.response.CreateUpdateApiKeyResponse
+import dev.halim.core.network.response.CustomMetadataProviderResponse
+import dev.halim.core.network.response.CustomMetadataProvidersResponse
 import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Episode
@@ -503,6 +506,18 @@ interface ApiService {
 
   // search providers
   @GET("/api/search/providers") suspend fun searchProviders(): Result<SearchProvidersResponse>
+
+  // custom metadata providers
+  @GET("api/custom-metadata-providers")
+  suspend fun customMetadataProviders(): Result<CustomMetadataProvidersResponse>
+
+  @POST("api/custom-metadata-providers")
+  suspend fun createCustomMetadataProvider(
+    @Body request: CreateCustomMetadataProviderRequest
+  ): Result<CustomMetadataProviderResponse>
+
+  @DELETE("api/custom-metadata-providers/{providerId}")
+  suspend fun deleteCustomMetadataProvider(@Path("providerId") providerId: String): Result<Unit>
 
   // cache
   @POST("/api/cache/purge") suspend fun purgeCache(): Result<Unit>

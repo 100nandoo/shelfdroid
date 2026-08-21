@@ -54,6 +54,7 @@ import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScre
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.GenreManagementScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.CustomMetadataProviderManagementScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.MetadataUtilitiesHubScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.TagManagementScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
@@ -418,6 +419,7 @@ private fun ColumnScope.NavHostContainer(
           MetadataUtilitiesHubScreen(
             onTagsClicked = { navigator.navigate(TagManagement) },
             onGenresClicked = { navigator.navigate(GenreManagement) },
+            onCustomProvidersClicked = { navigator.navigate(CustomMetadataProviderManagement) },
           )
         }
       }
@@ -429,6 +431,11 @@ private fun ColumnScope.NavHostContainer(
       entry<GenreManagement> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           GenreManagementScreen(snackbarHostState = snackbarHostState)
+        }
+      }
+      entry<CustomMetadataProviderManagement> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          CustomMetadataProviderManagementScreen(snackbarHostState = snackbarHostState)
         }
       }
     }

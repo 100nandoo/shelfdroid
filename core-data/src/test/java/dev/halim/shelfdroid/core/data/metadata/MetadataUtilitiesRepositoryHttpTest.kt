@@ -265,6 +265,172 @@ class MetadataUtilitiesRepositoryHttpTest {
     }
   }
 
+  @Test
+  fun loadCustomProviders_adminLoadsBookProvidersWithoutPersistingSecrets() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responses =
+          listOf(
+            Stub(
+              200,
+              """{"providers":[{"id":"provider-1","name":"Community","url":"https://provider.example","mediaType":"book","slug":"custom-provider-1","authHeaderValue":"Bearer secret"}]}""",
+            )
+          ),
+      )
+    try {
+      val providers = fixture.repository.loadCustomMetadataProviders().getOrThrow()
+
+      assertEquals("provider-1", providers.single().id)
+      assertEquals("Bearer secret", providers.single().authHeaderValue)
+      assertEquals(listOf("GET /api/custom-metadata-providers"), fixture.requestSummary())
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun customProviderOperations_nonAdminNeverMakeProviderRequests() = runTest {
+    val fixture =
+      fixture(
+        UserType.User,
+        responses =
+          listOf(
+            Stub(200, "{\"providers\":[]}"),
+            Stub(200, "{}"),
+            Stub(200, "{}"),
+          ),
+      )
+    try {
+      assertTrue(fixture.repository.loadCustomMetadataProviders().isFailure)
+      assertTrue(
+        fixture.repository
+          .createCustomMetadataProvider("Provider", "https://provider.example", null)
+          .isFailure
+      )
+      assertTrue(fixture.repository.deleteCustomMetadataProvider("provider-1").isFailure)
+      assertTrue(fixture.requests.isEmpty())
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun createCustomProvider_sendsBookMediaTypeAndOptionalAuthHeader() = runTest {
+    val fixture =
+      fixture(
+        UserType.Root,
+        responses =
+          listOf(
+            Stub(
+              200,
+              """{"provider":{"id":"provider-1","name":"Community","url":"https://provider.example","mediaType":"book","slug":"custom-provider-1"}}""",
+            )
+          ),
+      )
+    try {
+      val provider =
+        fixture.repository
+          .createCustomMetadataProvider(" Community ", " https://provider.example ", "Bearer secret")
+          .getOrThrow()
+
+      assertEquals("provider-1", provider.id)
+      assertEquals(
+        "{\"name\":\"Community\",\"url\":\"https://provider.example\",\"mediaType\":\"book\",\"authHeaderValue\":\"Bearer secret\"}",
+        fixture.bodies.single(),
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun createCustomProvider_rejectsRequiredFieldsBeforeRequest() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(200, "{}")))
+    try {
+      assertTrue(
+        fixture.repository
+          .createCustomMetadataProvider(" ", "https://provider.example", "secret")
+          .exceptionOrNull() is CustomMetadataProviderNameRequiredException
+      )
+      assertTrue(
+        fixture.repository
+          .createCustomMetadataProvider("Provider", " ", null)
+          .exceptionOrNull() is CustomMetadataProviderUrlRequiredException
+      )
+      assertTrue(fixture.requests.isEmpty())
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun createCustomProvider_serverValidationFailureIsPropagated() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(400, "Invalid url")))
+    try {
+      val result =
+        fixture.repository.createCustomMetadataProvider("Provider", "not-a-url", null)
+      assertTrue(result.isFailure)
+      assertEquals("Invalid url", result.exceptionOrNull()?.message)
+      assertEquals(listOf("POST /api/custom-metadata-providers"), fixture.requestSummary())
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun deleteCustomProvider_sendsIdAndReportsSuccessWithoutLibraryCount() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(200, "{}")))
+    try {
+      assertTrue(fixture.repository.deleteCustomMetadataProvider("provider-1").isSuccess)
+      assertEquals(
+        listOf("DELETE /api/custom-metadata-providers/provider-1"),
+        fixture.requestSummary(),
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun customProviderOperations_server403NormalizeToAccessDenied() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
+    try {
+      assertTrue(
+        fixture.repository.loadCustomMetadataProviders().exceptionOrNull() is MetadataAccessDeniedException
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun createCustomProvider_server403NormalizesToAccessDenied() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
+    try {
+      assertTrue(
+        fixture.repository
+          .createCustomMetadataProvider("Provider", "https://provider.example", null)
+          .exceptionOrNull() is MetadataAccessDeniedException
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun deleteCustomProvider_server403NormalizesToAccessDenied() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
+    try {
+      assertTrue(
+        fixture.repository.deleteCustomMetadataProvider("provider-1").exceptionOrNull() is
+          MetadataAccessDeniedException
+      )
+    } finally {
+      fixture.close()
+    }
+  }
+
   private fun fixture(type: UserType, responses: List<Stub>): Fixture {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val file = Files.createTempFile("metadata-utilities", ".preferences_pb").toFile()

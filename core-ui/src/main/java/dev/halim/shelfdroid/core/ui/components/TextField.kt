@@ -127,6 +127,7 @@ fun MyOutlinedTextField(
 fun PasswordTextField(
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
+  readOnly: Boolean = false,
   value: String,
   onValueChange: (String) -> Unit,
   label: String,
@@ -134,12 +135,17 @@ fun PasswordTextField(
   keyboardOptions: KeyboardOptions,
   onNext: (() -> Unit)? = null,
   onDone: (() -> Unit)? = null,
+  visible: Boolean? = null,
+  onVisibilityChange: ((Boolean) -> Unit)? = null,
+  showVisibilityDescription: String = "Show password",
+  hideVisibilityDescription: String = "Hide password",
 ) {
-  var passwordVisible by remember { mutableStateOf(false) }
+  var internalPasswordVisible by remember { mutableStateOf(false) }
+  val passwordVisible = visible ?: internalPasswordVisible
   val semanticsText = if (passwordVisible) value else "••••"
 
   OutlinedTextField(
-    readOnly = enabled.not(),
+    readOnly = readOnly || enabled.not(),
     enabled = enabled,
     value = value,
     onValueChange = onValueChange,
@@ -152,9 +158,17 @@ fun PasswordTextField(
       val image =
         if (passwordVisible) painterResource(R.drawable.visibility)
         else painterResource(R.drawable.visibility_off)
-      val description = if (passwordVisible) "Hide password" else "Show password"
+      val description =
+        if (passwordVisible) hideVisibilityDescription else showVisibilityDescription
 
-      IconButton(onClick = { passwordVisible = !passwordVisible }) {
+      IconButton(
+        enabled = enabled,
+        onClick = {
+          val nextVisible = !passwordVisible
+          if (onVisibilityChange != null) onVisibilityChange(nextVisible)
+          else internalPasswordVisible = nextVisible
+        },
+      ) {
         Icon(painter = image, contentDescription = description)
       }
     },
