@@ -114,6 +114,22 @@ _Avoid_: Listening session, current player
 The server-managed **Users** and tags that ShelfDroid caches for administrative workflows. It excludes the media **Catalog** and listening data.
 _Avoid_: Admin catalog, Catalog, user stats
 
+**Library item metadata utilities**:
+An administrator-only group of server-wide tools for managing **Tags**, **Genres**, and **Custom metadata providers**. It is separate from editing one **Library item**.
+_Avoid_: Item metadata editor, bulk editor
+
+**Tag**:
+A server-managed classification value applied to one or more **Books** or **Podcasts**. Tags may also define a **User**'s access to catalog content.
+_Avoid_: Label, keyword
+
+**Genre**:
+A server-managed classification value applied to one or more **Books** or **Podcasts**.
+_Avoid_: Category
+
+**Custom metadata provider**:
+An administrator-configured external metadata source that the **Audiobookshelf server** can use when finding metadata for a **Book**. Removing a provider returns any **Library** using it to the server's default metadata source.
+_Avoid_: Search provider, metadata API
+
 **Backup**:
 A server backup artifact that can be created, downloaded, uploaded, restored, or deleted from ShelfDroid.
 _Avoid_: Export, snapshot
@@ -244,6 +260,11 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Library** may contain many **Library folders**
 - A **Library** contains many **Library items**
 - A **Library item** is either a **Book** or a **Podcast**
+- A **Tag** may be applied to many **Books** or **Podcasts**
+- A **Genre** may be applied to many **Books** or **Podcasts**
+- **Library item metadata utilities** manage **Tags**, **Genres**, and **Custom metadata providers** for an **Audiobookshelf server**
+- One use of **Library item metadata utilities** may affect many **Books** or **Podcasts**
+- A **Custom metadata provider** belongs to an **Audiobookshelf server**
 - A **Podcast** contains many **Episodes**
 - A **Podcast** may have one **Podcast source feed**
 - A **Podcast** may have one **Podcast auto-download schedule**
