@@ -4,6 +4,7 @@ import dev.halim.core.network.ApiService
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
+import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.extensions.toBoolean
@@ -17,6 +18,7 @@ class HomeRepository
 constructor(
   private val api: ApiService,
   private val libraryItemRepo: LibraryItemRepository,
+  private val podcastEpisodeRepo: PodcastEpisodeRepository,
   private val progressRepo: ProgressRepository,
   private val libraryRepo: LibraryRepository,
   private val mapper: HomeMapper,
@@ -44,10 +46,34 @@ constructor(
 
         val library =
           if (isBook) {
-            val books = libraryItems.map { mapper.toBookUiState(it) }
+            val books =
+              libraryItems.map { item ->
+                val book = libraryItemRepo.bookById(item.id)
+                val isDownloaded =
+                  book?.let {
+                    val localTrackUris =
+                      downloadRepo.localBookTrackUris(item.title, item.author, it.audioTracks)
+                    val downloadedFilenames =
+                      it.audioTracks
+                        .filter { track -> track.index in localTrackUris }
+                        .map { track -> track.metadata.filename }
+                        .toSet()
+                    isBookFullyDownloaded(
+                      trackFilenames = it.audioTracks.map { track -> track.metadata.filename },
+                      downloadedTrackFilenames = downloadedFilenames,
+                    )
+                  } ?: false
+                mapper.toBookUiState(item, isDownloaded)
+              }
             LibraryUiState(id, name, true, books = books)
           } else {
-            val podcasts = libraryItems.map { mapper.toPodcastUiState(it) }
+            val podcasts =
+              libraryItems.map { item ->
+                val episodes = podcastEpisodeRepo.byLibraryItemId(item.id)
+                val downloadedEpisodeIds =
+                  downloadRepo.podcastDownloadedEpisodeIds(item.title, episodes)
+                mapper.toPodcastUiState(item, downloadedEpisodeIds)
+              }
             LibraryUiState(id, name, false, podcasts = podcasts)
           }
         library

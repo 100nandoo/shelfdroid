@@ -436,7 +436,7 @@ internal fun shouldShowDownloadedEmptyState(
     processedPodcasts.isEmpty()
 }
 
-private fun bookFilterAndSort(
+internal fun bookFilterAndSort(
   books: List<BookUiState>,
   displayPrefs: DisplayPrefs,
 ): List<BookUiState> {
