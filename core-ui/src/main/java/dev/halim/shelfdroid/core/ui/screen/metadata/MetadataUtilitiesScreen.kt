@@ -29,6 +29,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.metadata.GenreManagementApiState
+import dev.halim.shelfdroid.core.data.metadata.GenreManagementDialog
+import dev.halim.shelfdroid.core.data.metadata.GenreManagementUiState
+import dev.halim.shelfdroid.core.data.metadata.GenreOperation
+import dev.halim.shelfdroid.core.data.metadata.genreRenameCollision
 import dev.halim.shelfdroid.core.data.metadata.TagManagementApiState
 import dev.halim.shelfdroid.core.data.metadata.TagManagementDialog
 import dev.halim.shelfdroid.core.data.metadata.TagManagementUiState
@@ -41,6 +46,7 @@ import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 @Composable
 fun MetadataUtilitiesHubScreen(
   onTagsClicked: () -> Unit,
+  onGenresClicked: () -> Unit = {},
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
@@ -51,10 +57,13 @@ fun MetadataUtilitiesHubScreen(
     Button(onClick = onTagsClicked, modifier = Modifier.fillMaxWidth()) {
       Text(stringResource(R.string.metadata_tags))
     }
+    TextButton(onClick = onGenresClicked, modifier = Modifier.fillMaxWidth()) {
+      Text(stringResource(R.string.metadata_genres))
+    }
     TextButton(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
       Text(stringResource(R.string.metadata_custom_providers))
     }
-    Text(stringResource(R.string.metadata_not_available_yet))
+    Text(stringResource(R.string.metadata_custom_providers_not_available_yet))
   }
 }
 
@@ -66,6 +75,194 @@ fun TagManagementScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   TagManagementSnackbar(uiState, snackbarHostState) { viewModel.onEvent(TagManagementEvent.ClearApiState) }
   TagManagementContent(uiState) { viewModel.onEvent(it) }
+}
+
+@Composable
+fun GenreManagementScreen(
+  viewModel: GenreManagementViewModel = hiltViewModel(),
+  snackbarHostState: SnackbarHostState,
+) {
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  GenreManagementSnackbar(uiState, snackbarHostState) {
+    viewModel.onEvent(GenreManagementEvent.ClearApiState)
+  }
+  GenreManagementContent(uiState) { viewModel.onEvent(it) }
+}
+
+@Composable
+private fun GenreManagementSnackbar(
+  uiState: GenreManagementUiState,
+  snackbarHostState: SnackbarHostState,
+  clear: () -> Unit,
+) {
+  val renameSuccess = uiState.apiState as? GenreManagementApiState.RenameSuccess
+  val deleteSuccess = uiState.apiState as? GenreManagementApiState.DeleteSuccess
+  val failure = uiState.apiState as? GenreManagementApiState.Failure
+  val renameMessage =
+    renameSuccess?.let {
+      if (it.merged) stringResource(R.string.genre_renamed_merged, it.updatedItemCount)
+      else stringResource(R.string.genre_renamed, it.updatedItemCount)
+    }
+  val deleteMessage = deleteSuccess?.let { stringResource(R.string.genre_deleted, it.updatedItemCount) }
+  val failureMessage =
+    when (failure?.operation) {
+      GenreOperation.Rename -> stringResource(R.string.genre_rename_failed)
+      GenreOperation.Delete -> stringResource(R.string.genre_delete_failed)
+      null -> failure?.message ?: stringResource(R.string.genre_mutation_failed)
+    }
+  LaunchedEffect(uiState.apiState) {
+    when {
+      renameMessage != null -> snackbarHostState.showSuccessSnackbar(renameMessage)
+      deleteMessage != null -> snackbarHostState.showSuccessSnackbar(deleteMessage)
+      failure != null && !failure.accessDenied ->
+        snackbarHostState.showErrorSnackbar(failureMessage)
+    }
+    if (renameSuccess != null || deleteSuccess != null || failure != null) clear()
+  }
+}
+
+@Composable
+private fun GenreManagementContent(
+  uiState: GenreManagementUiState,
+  onEvent: (GenreManagementEvent) -> Unit,
+) {
+  Column(modifier = Modifier.fillMaxSize()) {
+    if (
+      uiState.state is GenericState.Loading ||
+        uiState.apiState is GenreManagementApiState.Mutating
+    ) {
+      LinearProgressIndicator(Modifier.fillMaxWidth())
+    }
+    when {
+      (uiState.apiState as? GenreManagementApiState.Failure)?.accessDenied == true ->
+        GenreErrorState(
+          stringResource(R.string.genre_access_denied),
+          retryable = false,
+          onEvent = onEvent,
+        )
+      uiState.state is GenericState.Failure ->
+        GenreErrorState(
+          stringResource(R.string.genre_load_failed),
+          retryable = true,
+          onEvent = onEvent,
+        )
+      uiState.state is GenericState.Loading ->
+        Text(stringResource(R.string.genre_loading), Modifier.padding(16.dp))
+      uiState.genres.isEmpty() ->
+        Text(stringResource(R.string.genre_empty), Modifier.padding(16.dp))
+      else ->
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+          items(uiState.genres, key = { it }) { genre ->
+            GenreRow(
+              genre = genre,
+              enabled = !uiState.isMutating,
+              onRename = { onEvent(GenreManagementEvent.BeginRename(genre)) },
+              onDelete = { onEvent(GenreManagementEvent.BeginDelete(genre)) },
+            )
+          }
+        }
+    }
+  }
+
+  when (val dialog = uiState.dialog) {
+    is GenreManagementDialog.Rename -> GenreRenameDialog(uiState, dialog.genre, onEvent)
+    is GenreManagementDialog.Delete -> GenreDeleteDialog(dialog.genre, onEvent)
+    null -> Unit
+  }
+}
+
+@Composable
+private fun GenreErrorState(
+  message: String,
+  retryable: Boolean,
+  onEvent: (GenreManagementEvent) -> Unit,
+) {
+  Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Text(message)
+    if (retryable) {
+      TextButton(onClick = { onEvent(GenreManagementEvent.Retry) }) {
+        Text(stringResource(R.string.retry))
+      }
+    }
+  }
+}
+
+@Composable
+private fun GenreRow(genre: String, enabled: Boolean, onRename: () -> Unit, onDelete: () -> Unit) {
+  Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    Text(genre, Modifier.weight(1f).padding(vertical = 12.dp))
+    IconButton(onClick = onRename, enabled = enabled) {
+      Icon(
+        painter = painterResource(R.drawable.edit),
+        contentDescription = stringResource(R.string.rename_genre_action),
+      )
+    }
+    IconButton(onClick = onDelete, enabled = enabled) {
+      Icon(
+        painter = painterResource(R.drawable.delete),
+        contentDescription = stringResource(R.string.delete_genre_action),
+      )
+    }
+  }
+}
+
+@Composable
+private fun GenreRenameDialog(
+  uiState: GenreManagementUiState,
+  currentGenre: String,
+  onEvent: (GenreManagementEvent) -> Unit,
+) {
+  val target = uiState.renameDraft.trim()
+  val collision = genreRenameCollision(currentGenre, target, uiState.genres)
+  val blank = target.isBlank()
+  AlertDialog(
+    onDismissRequest = { onEvent(GenreManagementEvent.DismissDialog) },
+    title = { Text(stringResource(R.string.genre_rename)) },
+    text = {
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+          value = uiState.renameDraft,
+          onValueChange = { onEvent(GenreManagementEvent.UpdateRenameDraft(it)) },
+          label = { Text(stringResource(R.string.genre_new_name)) },
+          isError = blank,
+          supportingText = { if (blank) Text(stringResource(R.string.genre_name_required)) },
+          singleLine = true,
+        )
+        if (collision.exact) Text(stringResource(R.string.genre_exact_collision, target))
+        else if (collision.caseOnly) Text(stringResource(R.string.genre_case_collision))
+        Text(stringResource(R.string.genre_rename_confirm, currentGenre, target))
+      }
+    },
+    confirmButton = {
+      Button(onClick = { onEvent(GenreManagementEvent.ConfirmRename) }, enabled = !blank) {
+        Text(stringResource(R.string.genre_rename))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = { onEvent(GenreManagementEvent.DismissDialog) }) {
+        Text(stringResource(R.string.cancel))
+      }
+    },
+  )
+}
+
+@Composable
+private fun GenreDeleteDialog(genre: String, onEvent: (GenreManagementEvent) -> Unit) {
+  AlertDialog(
+    onDismissRequest = { onEvent(GenreManagementEvent.DismissDialog) },
+    title = { Text(stringResource(R.string.genre_delete)) },
+    text = { Text(stringResource(R.string.genre_delete_confirm, genre)) },
+    confirmButton = {
+      Button(onClick = { onEvent(GenreManagementEvent.ConfirmDelete) }) {
+        Text(stringResource(R.string.delete))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = { onEvent(GenreManagementEvent.DismissDialog) }) {
+        Text(stringResource(R.string.cancel))
+      }
+    },
+  )
 }
 
 @Composable

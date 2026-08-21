@@ -156,6 +156,115 @@ class MetadataUtilitiesRepositoryHttpTest {
     }
   }
 
+  @Test
+  fun loadGenres_adminSortsGenres() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responses = listOf(Stub(200, "{\"genres\":[\"zeta\",\"Alpha\",\"beta\"]}")),
+      )
+    try {
+      assertEquals(listOf("Alpha", "beta", "zeta"), fixture.repository.loadGenres().getOrThrow())
+      assertEquals(listOf("GET /api/genres"), fixture.requestSummary())
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun loadGenres_nonAdminReturnsAccessDeniedWithoutRequest() = runTest {
+    val fixture =
+      fixture(
+        UserType.User,
+        responses = listOf(Stub(200, "{\"genres\":[\"should-not-load\"]}")),
+      )
+    try {
+      assertTrue(fixture.repository.loadGenres().exceptionOrNull() is MetadataAccessDeniedException)
+      assertTrue(fixture.requests.isEmpty())
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun loadGenres_server403NormalizesToAccessDenied() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
+    try {
+      assertTrue(fixture.repository.loadGenres().exceptionOrNull() is MetadataAccessDeniedException)
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun renameGenre_sendsContractAndReportsMergeOutcome() = runTest {
+    val fixture =
+      fixture(
+        UserType.Root,
+        responses = listOf(Stub(200, "{\"numItemsUpdated\":3,\"genreMerged\":true}")),
+      )
+    try {
+      assertEquals(
+        GenreMutation(updatedItemCount = 3, merged = true),
+        fixture.repository.renameGenre("old", "new").getOrThrow(),
+      )
+      assertEquals(listOf("POST /api/genres/rename"), fixture.requestSummary())
+      assertEquals("{\"genre\":\"old\",\"newGenre\":\"new\"}", fixture.bodies[0])
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun deleteGenre_encodesSpacesPunctuationAndUnicode() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(200, "{\"numItemsUpdated\":4}")))
+    try {
+      assertEquals(
+        GenreMutation(updatedItemCount = 4),
+        fixture.repository.deleteGenre("Sci-Fi / 日本").getOrThrow(),
+      )
+      val path = fixture.requests.single().url.encodedPath
+      assertTrue(path.startsWith("/api/genres/"))
+      assertFalse(path.contains("Sci-Fi"))
+      assertFalse(path.contains("日本"))
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun blankGenreRename_isRejectedBeforeRequest() = runTest {
+    val fixture = fixture(UserType.Admin, responses = listOf(Stub(200, "{}")))
+    try {
+      assertTrue(fixture.repository.renameGenre("old", "  ").exceptionOrNull() is GenreNameRequiredException)
+      assertTrue(fixture.requests.isEmpty())
+    } finally {
+      fixture.close()
+    }
+  }
+
+  @Test
+  fun failedGenreMutation_propagatesFailureWithoutReloadingGenres() = runTest {
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responses =
+          listOf(
+            Stub(200, "{\"genres\":[\"canonical\"]}"),
+            Stub(500, "{}"),
+          ),
+      )
+    try {
+      fixture.repository.loadGenres().getOrThrow()
+      val result = fixture.repository.renameGenre("canonical", "changed")
+
+      assertTrue(result.isFailure)
+      assertEquals(listOf("GET /api/genres", "POST /api/genres/rename"), fixture.requestSummary())
+    } finally {
+      fixture.close()
+    }
+  }
+
   private fun fixture(type: UserType, responses: List<Stub>): Fixture {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val file = Files.createTempFile("metadata-utilities", ".preferences_pb").toFile()

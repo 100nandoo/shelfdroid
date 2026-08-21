@@ -15,6 +15,7 @@ import dev.halim.core.network.request.OpenItemRssFeedRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.core.network.request.ProgressRequest
+import dev.halim.core.network.request.RenameGenreRequest
 import dev.halim.core.network.request.RenameTagRequest
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
@@ -60,6 +61,8 @@ import dev.halim.core.network.response.ServerSettingsResponse
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SetItemCoverResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
+import dev.halim.core.network.response.GenreMutationResponse
+import dev.halim.core.network.response.GenresResponse
 import dev.halim.core.network.response.TagMutationResponse
 import dev.halim.core.network.response.TagsResponse
 import dev.halim.core.network.response.UpdateLibraryItemMediaResponse
@@ -419,6 +422,18 @@ interface ApiService {
    */
   @DELETE("api/tags/{tag}")
   suspend fun deleteTag(@Path(value = "tag", encoded = true) tag: String): Result<TagMutationResponse>
+
+  // genres
+  @GET("api/genres") suspend fun genres(): Result<GenresResponse>
+
+  @POST("api/genres/rename")
+  suspend fun renameGenre(@Body request: RenameGenreRequest): Result<GenreMutationResponse>
+
+  /** The server expects the genre path parameter as URI-escaped standard Base64. */
+  @DELETE("api/genres/{genre}")
+  suspend fun deleteGenre(
+    @Path(value = "genre", encoded = true) genre: String
+  ): Result<GenreMutationResponse>
 
   // settings
   @GET("api/auth-settings")

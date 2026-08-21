@@ -5,6 +5,7 @@ import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
 import dev.halim.shelfdroid.core.data.metadata.MetadataUtilitiesRepositoryContract
 import dev.halim.shelfdroid.core.data.metadata.TagManagementApiState
 import dev.halim.shelfdroid.core.data.metadata.TagMutation
+import dev.halim.shelfdroid.core.data.metadata.GenreMutation
 import java.util.ArrayDeque
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -170,5 +171,12 @@ class TagManagementViewModelTest {
     override suspend fun deleteTag(tag: String): Result<TagMutation> =
       Result.success(TagMutation(updatedItemCount = 0))
 
+    override suspend fun loadGenres(): Result<List<String>> = Result.success(emptyList())
+
+    override suspend fun renameGenre(genre: String, newGenre: String): Result<GenreMutation> =
+      Result.success(GenreMutation(updatedItemCount = 0))
+
+    override suspend fun deleteGenre(genre: String): Result<GenreMutation> =
+      Result.success(GenreMutation(updatedItemCount = 0))
   }
 }

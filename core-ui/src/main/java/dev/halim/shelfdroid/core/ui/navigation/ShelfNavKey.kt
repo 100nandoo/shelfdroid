@@ -81,3 +81,5 @@ data class EditAppriseNotificationRule(val payload: NavEditAppriseNotificationRu
 @Serializable data object LibraryItemMetadataUtilities : ShelfNavKey
 
 @Serializable data object TagManagement : ShelfNavKey
+
+@Serializable data object GenreManagement : ShelfNavKey

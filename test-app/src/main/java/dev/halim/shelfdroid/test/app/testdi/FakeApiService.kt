@@ -175,6 +175,7 @@ class FakeApiService @Inject constructor() : ApiService {
   private val apiKeys = mutableListOf<ApiKeysResponse.ApiKey>()
   private val users = mutableListOf(rootUser, appUser)
   private val tags = mutableListOf<String>()
+  private val genres = mutableListOf<String>()
   private var createdPodcastCount = 0
   private var createdApiKeyCount = 0
 
@@ -215,6 +216,8 @@ class FakeApiService @Inject constructor() : ApiService {
       users += appUser
       tags.clear()
       tags += listOf("fiction", "technology")
+      genres.clear()
+      genres += listOf("Fantasy", "Technology")
       createdPodcastCount = 0
       createdApiKeyCount = 0
     }
@@ -698,6 +701,37 @@ class FakeApiService @Inject constructor() : ApiService {
       val updated = tags.count { it == decoded }
       tags.removeAll { it == decoded }
       return Result.success(TagMutationResponse(numItemsUpdated = updated))
+    }
+  }
+
+  override suspend fun genres(): Result<GenresResponse> =
+    Result.success(GenresResponse(genres = synchronized(this) { genres.toList() }))
+
+  override suspend fun renameGenre(request: RenameGenreRequest): Result<GenreMutationResponse> {
+    synchronized(this) {
+      val updated = genres.count { it == request.genre }
+      val merged = genres.any { it == request.newGenre && it != request.genre }
+      if (merged) {
+        genres.removeAll { it == request.genre }
+      } else {
+        genres.replaceAll { if (it == request.genre) request.newGenre else it }
+      }
+      return Result.success(
+        GenreMutationResponse(numItemsUpdated = updated, genreMerged = merged)
+      )
+    }
+  }
+
+  override suspend fun deleteGenre(genre: String): Result<GenreMutationResponse> {
+    val decoded =
+      runCatching {
+        val base64 = URLDecoder.decode(genre, StandardCharsets.UTF_8)
+        String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8)
+      }.getOrElse { return Result.failure(it) }
+    synchronized(this) {
+      val updated = genres.count { it == decoded }
+      genres.removeAll { it == decoded }
+      return Result.success(GenreMutationResponse(numItemsUpdated = updated))
     }
   }
 
