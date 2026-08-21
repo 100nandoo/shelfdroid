@@ -42,6 +42,7 @@ fun ChipDropdownMenu(
   label: String? = null,
   labelPosition: LabelPosition = LabelPosition.Side,
   initialValue: String,
+  optionLabel: (String) -> String = { it },
   isError: Boolean = false,
   enabled: Boolean = true,
   onClick: (String) -> Unit = {},
@@ -87,7 +88,7 @@ fun ChipDropdownMenu(
         enabled = enabled,
         label = {
           Text(
-            text = selected.ifEmpty { label ?: "" },
+            text = optionLabel(selected).ifEmpty { label ?: "" },
             color =
               if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
           )
@@ -123,7 +124,7 @@ fun ChipDropdownMenu(
         val isSelected = option == selected
 
         DropdownMenuItem(
-          text = { Text(option) },
+          text = { Text(optionLabel(option)) },
           onClick = {
             selected = option
             expanded = false

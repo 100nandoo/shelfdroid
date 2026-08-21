@@ -13,18 +13,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,15 +36,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -57,7 +65,6 @@ import dev.halim.shelfdroid.core.data.screen.authenticationsettings.OPENID_MATCH
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.OpenIdSettingsSummary
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.callbackUrls
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.canSave
-import dev.halim.shelfdroid.core.data.screen.authenticationsettings.hasChanges
 import dev.halim.shelfdroid.core.data.screen.authenticationsettings.validation
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.ui.R
@@ -67,19 +74,23 @@ import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.MySwitch
-import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.TextTitleLarge
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
+import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
+import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageActionScreen
+import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.MyChipInput
 
 @Composable
 fun AuthenticationSettingsScreen(
   viewModel: AuthenticationSettingsViewModel = hiltViewModel(),
+  snackbarHostState: SnackbarHostState,
   onBackClicked: () -> Unit = {},
 ) {
   val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+  HandleAuthenticationSettingsSnackbar(uiState = uiState, snackbarHostState = snackbarHostState)
 
   BackHandler { viewModel.onEvent(AuthenticationSettingsEvent.RequestBack) }
 
@@ -125,6 +136,31 @@ fun AuthenticationSettingsScreen(
 }
 
 @Composable
+private fun HandleAuthenticationSettingsSnackbar(
+  uiState: AuthenticationSettingsUiState,
+  snackbarHostState: SnackbarHostState,
+) {
+  val settingsSavedMessage = stringResource(R.string.authentication_settings_saved)
+  val settingsSaveFailedMessage = stringResource(R.string.authentication_settings_save_failed)
+
+  LaunchedEffect(uiState.apiState) {
+    when (val state = uiState.apiState) {
+      is AuthenticationSettingsApiState.Success ->
+        if (state.operation == AuthenticationSettingsOperation.Save) {
+          snackbarHostState.showSuccessSnackbar(settingsSavedMessage)
+        }
+
+      is AuthenticationSettingsApiState.Failure ->
+        if (state.operation == AuthenticationSettingsOperation.Save) {
+          snackbarHostState.showErrorSnackbar(state.message ?: settingsSaveFailedMessage)
+        }
+
+      else -> Unit
+    }
+  }
+}
+
+@Composable
 fun AuthenticationSettingsContent(
   state: AuthenticationSettingsState = AuthenticationSettingsState.Loading,
   uiState: AuthenticationSettingsUiState = AuthenticationSettingsUiState(),
@@ -152,6 +188,21 @@ fun AuthenticationSettingsContent(
   }
 }
 
+private class OpenIdFieldFocusRequesters(
+  val issuerUrl: FocusRequester = FocusRequester(),
+  val authorizationUrl: FocusRequester = FocusRequester(),
+  val tokenUrl: FocusRequester = FocusRequester(),
+  val userInfoUrl: FocusRequester = FocusRequester(),
+  val jwksUrl: FocusRequester = FocusRequester(),
+  val logoutUrl: FocusRequester = FocusRequester(),
+  val clientId: FocusRequester = FocusRequester(),
+  val clientSecret: FocusRequester = FocusRequester(),
+  val tokenSigningAlgorithm: FocusRequester = FocusRequester(),
+  val buttonText: FocusRequester = FocusRequester(),
+  val groupClaim: FocusRequester = FocusRequester(),
+  val advancedPermsClaim: FocusRequester = FocusRequester(),
+)
+
 @Composable
 private fun EditorContent(
   uiState: AuthenticationSettingsUiState,
@@ -159,14 +210,22 @@ private fun EditorContent(
 ) {
   val draft = uiState.draftSettings ?: return
   val enabled = uiState.apiState !is AuthenticationSettingsApiState.Loading
-  val saveOutcomeVisible =
-    (uiState.apiState as? AuthenticationSettingsApiState.Success)?.operation ==
-      AuthenticationSettingsOperation.Save ||
-      uiState.apiState is AuthenticationSettingsApiState.Rejected
-  val failureState = uiState.apiState as? AuthenticationSettingsApiState.Failure
+  val openIdEnabled = LoginMethod.OpenId in draft.activeLoginMethods
+  val customMessageRef = remember { FocusRequester() }
+  val openIdFieldFocusRequesters = remember { OpenIdFieldFocusRequesters() }
+  var previousCustomMessageEnabled by remember { mutableStateOf(draft.customMessageEnabled) }
+
+  LaunchedEffect(draft.customMessageEnabled, enabled) {
+    if (enabled && draft.customMessageEnabled && previousCustomMessageEnabled.not()) {
+      customMessageRef.requestFocus()
+    }
+    previousCustomMessageEnabled = draft.customMessageEnabled
+  }
+
   Column(
     modifier =
-      Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp)
+      Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp),
+    verticalArrangement = Arrangement.Bottom,
   ) {
     TextTitleLarge(text = stringResource(R.string.authentication_settings))
     Spacer(modifier = Modifier.height(20.dp))
@@ -186,7 +245,7 @@ private fun EditorContent(
         OutlinedTextField(
           value = draft.customMessage,
           onValueChange = { onEvent(AuthenticationSettingsEvent.UpdateCustomMessage(it)) },
-          modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+          modifier = Modifier.fillMaxWidth().padding(top = 8.dp).focusRequester(customMessageRef),
           enabled = enabled,
           label = { Text(stringResource(R.string.authentication_custom_message_html)) },
           keyboardOptions = KeyboardOptions.Default,
@@ -232,45 +291,27 @@ private fun EditorContent(
       )
     }
 
-    Spacer(modifier = Modifier.height(24.dp))
-    OpenIdProviderEditor(
-      settings = draft.openId,
-      signingAlgorithmOptions = uiState.signingAlgorithmOptions,
-      callbackSubfolderOptions = uiState.callbackSubfolderOptions,
-      serverBaseUrl = uiState.serverBaseUrl,
-      enabled = enabled,
-      discoveryState = uiState.apiState,
-      validationErrors = uiState.validation.errors,
-      onEvent = onEvent,
-    )
-
-    Spacer(modifier = Modifier.height(24.dp))
-    AnimatedVisibility(visible = saveOutcomeVisible) {
-      Text(
-        text =
-          when (uiState.apiState) {
-            is AuthenticationSettingsApiState.Success ->
-              stringResource(R.string.authentication_settings_saved)
-
-            AuthenticationSettingsApiState.Rejected ->
-              stringResource(R.string.authentication_settings_rejected)
-
-            else -> ""
-          },
-        color =
-          if (
-            (uiState.apiState as? AuthenticationSettingsApiState.Success)?.operation ==
-              AuthenticationSettingsOperation.Save
-          ) {
-            MaterialTheme.colorScheme.primary
-          } else MaterialTheme.colorScheme.error,
-        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-      )
+    AnimatedVisibility(visible = openIdEnabled) {
+      Column {
+        Spacer(modifier = Modifier.height(24.dp))
+        OpenIdProviderEditor(
+          settings = draft.openId,
+          signingAlgorithmOptions = uiState.signingAlgorithmOptions,
+          callbackSubfolderOptions = uiState.callbackSubfolderOptions,
+          serverBaseUrl = uiState.serverBaseUrl,
+          enabled = enabled,
+          discoveryState = uiState.apiState,
+          validationErrors = uiState.validation.errors,
+          focusRequesters = openIdFieldFocusRequesters,
+          onEvent = onEvent,
+        )
+      }
     }
-    AnimatedVisibility(visible = failureState != null) {
+
+    Spacer(modifier = Modifier.height(24.dp))
+    AnimatedVisibility(visible = uiState.apiState is AuthenticationSettingsApiState.Rejected) {
       Text(
-        text =
-          failureState?.message ?: stringResource(R.string.authentication_settings_save_failed),
+        text = stringResource(R.string.authentication_settings_rejected),
         color = MaterialTheme.colorScheme.error,
         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       )
@@ -278,23 +319,18 @@ private fun EditorContent(
     AnimatedVisibility(visible = uiState.restartRequired) {
       Text(
         text = stringResource(R.string.authentication_restart_required),
-        color = MaterialTheme.colorScheme.error,
+        color = MaterialTheme.colorScheme.secondary,
         modifier =
           Modifier.padding(top = 8.dp).semantics {
             liveRegion = LiveRegionMode.Polite
           },
       )
     }
+
     Row(
       modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
+      horizontalArrangement = Arrangement.End,
     ) {
-      TextButton(
-        enabled = enabled && uiState.hasChanges,
-        onClick = { onEvent(AuthenticationSettingsEvent.ResetDraftSettings) },
-      ) {
-        Text(stringResource(R.string.reset))
-      }
       Button(
         enabled = enabled && uiState.canSave,
         onClick = { onEvent(AuthenticationSettingsEvent.SaveSettings) },
@@ -314,13 +350,18 @@ private fun OpenIdProviderEditor(
   enabled: Boolean,
   discoveryState: AuthenticationSettingsApiState,
   validationErrors: Set<AuthenticationSettingsValidationError>,
+  focusRequesters: OpenIdFieldFocusRequesters,
   onEvent: (AuthenticationSettingsEvent) -> Unit,
 ) {
   val hasSigningAlgorithmOptions = signingAlgorithmOptions.isNotEmpty()
+  val focusManager = LocalFocusManager.current
   val discoveryFailureState =
     (discoveryState as? AuthenticationSettingsApiState.Failure)?.takeIf {
       it.operation == AuthenticationSettingsOperation.Discovery
     }
+  val discoveringOpenId =
+    discoveryState is AuthenticationSettingsApiState.Loading &&
+      discoveryState.operation == AuthenticationSettingsOperation.Discovery
   val invalidExistingUserMatching =
     AuthenticationSettingsValidationError.InvalidExistingUserMatching in validationErrors
   TextTitleMedium(text = stringResource(R.string.authentication_openid_provider))
@@ -332,71 +373,92 @@ private fun OpenIdProviderEditor(
     )
   }
   MyOutlinedTextField(
+    modifier = Modifier.focusRequester(focusRequesters.issuerUrl),
     value = settings.issuerUrl,
     onValueChange = { changed -> update { openId -> openId.copy(issuerUrl = changed) } },
     label = stringResource(R.string.authentication_issuer_url),
     enabled = enabled,
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+    trailingIcon = {
+      if (discoveringOpenId) {
+        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+      } else {
+        IconButton(
+          enabled = enabled && settings.issuerUrl.isNotBlank(),
+          onClick = { onEvent(AuthenticationSettingsEvent.DiscoverOpenId) },
+        ) {
+          Icon(
+            painter = painterResource(R.drawable.wand_shine),
+            contentDescription = stringResource(R.string.authentication_openid_discover),
+          )
+        }
+      }
+    },
+    onNext = { focusRequesters.authorizationUrl.requestFocus() },
   )
-  Button(
-    enabled = enabled && settings.issuerUrl.isNotBlank(),
-    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-    onClick = { onEvent(AuthenticationSettingsEvent.DiscoverOpenId) },
-  ) {
-    Text(
-      if (
-        discoveryState is AuthenticationSettingsApiState.Loading &&
-          discoveryState.operation == AuthenticationSettingsOperation.Discovery
-      )
-        stringResource(R.string.authentication_openid_discovering)
-      else stringResource(R.string.authentication_openid_discover)
-    )
-  }
   OpenIdEndpointField(
+    modifier = Modifier.focusRequester(focusRequesters.authorizationUrl),
     label = stringResource(R.string.authentication_authorization_url),
     value = settings.authorizationUrl,
     enabled = enabled,
     onValueChange = { changed -> update { openId -> openId.copy(authorizationUrl = changed) } },
+    onNext = { focusRequesters.tokenUrl.requestFocus() },
   )
   OpenIdEndpointField(
+    modifier = Modifier.focusRequester(focusRequesters.tokenUrl),
     label = stringResource(R.string.authentication_token_url),
     value = settings.tokenUrl,
     enabled = enabled,
     onValueChange = { changed -> update { openId -> openId.copy(tokenUrl = changed) } },
+    onNext = { focusRequesters.userInfoUrl.requestFocus() },
   )
   OpenIdEndpointField(
+    modifier = Modifier.focusRequester(focusRequesters.userInfoUrl),
     label = stringResource(R.string.authentication_userinfo_url),
     value = settings.userInfoUrl,
     enabled = enabled,
     onValueChange = { changed -> update { openId -> openId.copy(userInfoUrl = changed) } },
+    onNext = { focusRequesters.jwksUrl.requestFocus() },
   )
   OpenIdEndpointField(
+    modifier = Modifier.focusRequester(focusRequesters.jwksUrl),
     label = stringResource(R.string.authentication_jwks_url),
     value = settings.jwksUrl,
     enabled = enabled,
     onValueChange = { changed -> update { openId -> openId.copy(jwksUrl = changed) } },
+    onNext = { focusRequesters.logoutUrl.requestFocus() },
   )
   OpenIdEndpointField(
+    modifier = Modifier.focusRequester(focusRequesters.logoutUrl),
     label = stringResource(R.string.authentication_logout_url),
     value = settings.logoutUrl,
     enabled = enabled,
     onValueChange = { changed -> update { openId -> openId.copy(logoutUrl = changed) } },
+    onNext = { focusRequesters.clientId.requestFocus() },
   )
   MyOutlinedTextField(
-    modifier = Modifier.padding(top = 12.dp),
+    modifier = Modifier.padding(top = 12.dp).focusRequester(focusRequesters.clientId),
     value = settings.clientId,
     onValueChange = { changed -> update { openId -> openId.copy(clientId = changed) } },
     label = stringResource(R.string.authentication_client_id),
     enabled = enabled,
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+    onNext = { focusRequesters.clientSecret.requestFocus() },
   )
-  PasswordTextField(
-    modifier = Modifier.padding(top = 12.dp),
+  MyOutlinedTextField(
+    modifier = Modifier.padding(top = 12.dp).focusRequester(focusRequesters.clientSecret),
     value = settings.clientSecret,
     onValueChange = { onEvent(AuthenticationSettingsEvent.UpdateClientSecret(it)) },
     label = stringResource(R.string.authentication_client_secret),
     enabled = enabled,
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+    onNext = {
+      if (hasSigningAlgorithmOptions) {
+        focusRequesters.buttonText.requestFocus()
+      } else {
+        focusRequesters.tokenSigningAlgorithm.requestFocus()
+      }
+    },
   )
   AnimatedVisibility(visible = hasSigningAlgorithmOptions) {
     ChipDropdownMenu(
@@ -411,14 +473,17 @@ private fun OpenIdProviderEditor(
   }
   AnimatedVisibility(visible = !hasSigningAlgorithmOptions) {
     MyOutlinedTextField(
-      modifier = Modifier.padding(top = 12.dp),
+      modifier =
+        Modifier.padding(top = 12.dp).focusRequester(focusRequesters.tokenSigningAlgorithm),
       value = settings.tokenSigningAlgorithm,
       onValueChange = { changed ->
         update { openId -> openId.copy(tokenSigningAlgorithm = changed) }
       },
       label = stringResource(R.string.authentication_signing_algorithm),
       enabled = enabled,
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+      keyboardOptions =
+        KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+      onNext = { focusRequesters.buttonText.requestFocus() },
     )
   }
   AnimatedVisibility(visible = hasSigningAlgorithmOptions) {
@@ -452,65 +517,29 @@ private fun OpenIdProviderEditor(
     modifier = Modifier.padding(top = 8.dp),
     style = MaterialTheme.typography.bodyMedium,
   )
-  var newMobileRedirectUri by remember { mutableStateOf("") }
-  settings.mobileRedirectUris.forEachIndexed { index, uri ->
-    val removeLabel =
-      stringResource(R.string.authentication_remove_mobile_redirect_uri_number, index + 1)
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-      verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-    ) {
-      MyOutlinedTextField(
-        modifier = Modifier.weight(1f),
-        value = uri,
-        onValueChange = { changed ->
-          onEvent(AuthenticationSettingsEvent.UpdateMobileRedirectUri(index, changed))
-        },
-        label = stringResource(R.string.authentication_mobile_redirect_uri_number, index + 1),
-        enabled = enabled,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-      )
-      TextButton(
-        modifier =
-          Modifier.padding(start = 8.dp).semantics {
-            contentDescription = removeLabel
-          },
-        enabled = enabled,
-        onClick = { onEvent(AuthenticationSettingsEvent.RemoveMobileRedirectUri(index)) },
-      ) {
-        Text(stringResource(R.string.authentication_remove_mobile_redirect_uri))
-      }
-    }
-  }
-  Row(
-    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-  ) {
-    MyOutlinedTextField(
-      modifier = Modifier.weight(1f),
-      value = newMobileRedirectUri,
-      onValueChange = { newMobileRedirectUri = it },
-      label = stringResource(R.string.authentication_mobile_redirect_uri_new),
-      enabled = enabled,
-      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-    )
-    Button(
-      modifier = Modifier.padding(start = 8.dp),
-      enabled = enabled && newMobileRedirectUri.isNotBlank(),
-      onClick = {
-        onEvent(AuthenticationSettingsEvent.AddMobileRedirectUri(newMobileRedirectUri))
-        newMobileRedirectUri = ""
-      },
-    ) {
-      Text(stringResource(R.string.authentication_add_mobile_redirect_uri))
-    }
-  }
+  MyChipInput(
+    modifier = Modifier.padding(top = 8.dp),
+    label = stringResource(R.string.authentication_mobile_redirect_uris),
+    values = settings.mobileRedirectUris,
+    enabled = enabled,
+    onAdd = { uri -> onEvent(AuthenticationSettingsEvent.AddMobileRedirectUri(uri)) },
+    onRemove = { uri ->
+      settings.mobileRedirectUris
+        .indexOf(uri)
+        .takeIf { it >= 0 }
+        ?.let { index ->
+          onEvent(AuthenticationSettingsEvent.RemoveMobileRedirectUri(index))
+        }
+    },
+  )
+  val callbackSubfolderNoneLabel = stringResource(R.string.authentication_callback_subfolder_none)
   ChipDropdownMenu(
     modifier = Modifier.padding(top = 12.dp),
     options = callbackSubfolderOptions,
     label = stringResource(R.string.authentication_callback_subfolder),
     labelPosition = LabelPosition.Top,
     initialValue = settings.subfolderForRedirectUrls,
+    optionLabel = { value -> if (value.isEmpty()) callbackSubfolderNoneLabel else value },
     enabled = enabled,
     onClick = { selected -> onEvent(AuthenticationSettingsEvent.SetCallbackSubfolder(selected)) },
   )
@@ -521,12 +550,13 @@ private fun OpenIdProviderEditor(
   Spacer(modifier = Modifier.height(20.dp))
   TextTitleMedium(text = stringResource(R.string.authentication_user_mapping))
   MyOutlinedTextField(
-    modifier = Modifier.padding(top = 12.dp),
+    modifier = Modifier.padding(top = 12.dp).focusRequester(focusRequesters.buttonText),
     value = settings.buttonText,
     onValueChange = { changed -> update { it.copy(buttonText = changed) } },
     label = stringResource(R.string.authentication_button_text),
     enabled = enabled,
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+    onNext = { focusRequesters.groupClaim.requestFocus() },
   )
   val matchExistingNoneLabel = stringResource(R.string.authentication_match_existing_none)
   val matchExistingEmailLabel = stringResource(R.string.authentication_match_existing_email)
@@ -561,11 +591,6 @@ private fun OpenIdProviderEditor(
     enabled = enabled,
     onCheckedChange = { checked -> update { it.copy(autoLaunch = checked) } },
   )
-  Text(
-    text = stringResource(R.string.authentication_auto_launch_hint),
-    modifier = Modifier.padding(top = 4.dp),
-    style = MaterialTheme.typography.bodySmall,
-  )
   MySwitch(
     modifier = Modifier.padding(top = 12.dp),
     title = stringResource(R.string.authentication_auto_register),
@@ -574,23 +599,19 @@ private fun OpenIdProviderEditor(
     enabled = enabled,
     onCheckedChange = { checked -> update { it.copy(autoRegister = checked) } },
   )
-  Text(
-    text = stringResource(R.string.authentication_auto_register_hint),
-    modifier = Modifier.padding(top = 4.dp),
-    style = MaterialTheme.typography.bodySmall,
-  )
   MyOutlinedTextField(
-    modifier = Modifier.padding(top = 12.dp),
+    modifier = Modifier.padding(top = 12.dp).focusRequester(focusRequesters.groupClaim),
     value = settings.groupClaim,
     onValueChange = { changed -> update { it.copy(groupClaim = changed) } },
     label = stringResource(R.string.authentication_group_claim),
     supportingText = stringResource(R.string.authentication_group_claim_hint),
     isError = AuthenticationSettingsValidationError.InvalidGroupClaim in validationErrors,
     enabled = enabled,
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+    onNext = { focusRequesters.advancedPermsClaim.requestFocus() },
   )
   MyOutlinedTextField(
-    modifier = Modifier.padding(top = 12.dp),
+    modifier = Modifier.padding(top = 12.dp).focusRequester(focusRequesters.advancedPermsClaim),
     value = settings.advancedPermsClaim,
     onValueChange = { changed -> update { it.copy(advancedPermsClaim = changed) } },
     label = stringResource(R.string.authentication_advanced_permissions_claim),
@@ -598,7 +619,8 @@ private fun OpenIdProviderEditor(
     isError =
       AuthenticationSettingsValidationError.InvalidAdvancedPermissionsClaim in validationErrors,
     enabled = enabled,
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+    onDone = { focusManager.clearFocus() },
   )
   TextTitleMedium(
     text = stringResource(R.string.authentication_sample_permissions),
@@ -617,18 +639,21 @@ private fun OpenIdProviderEditor(
 
 @Composable
 private fun OpenIdEndpointField(
+  modifier: Modifier = Modifier,
   label: String,
   value: String,
   enabled: Boolean,
   onValueChange: (String) -> Unit,
+  onNext: (() -> Unit)? = null,
 ) {
   MyOutlinedTextField(
-    modifier = Modifier.padding(top = 12.dp),
+    modifier = modifier.padding(top = 12.dp),
     value = value,
     onValueChange = onValueChange,
     label = label,
     enabled = enabled,
-    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+    onNext = onNext,
   )
 }
 

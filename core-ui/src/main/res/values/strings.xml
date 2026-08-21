@@ -447,6 +447,7 @@
     <string name="authentication_signing_algorithm">Signing algorithm</string>
     <string name="authentication_callbacks">Callbacks</string>
     <string name="authentication_callback_subfolder">Callback subfolder</string>
+    <string name="authentication_callback_subfolder_none">None</string>
     <string name="authentication_mobile_redirect_uris">Mobile redirect URIs</string>
     <string name="authentication_mobile_redirect_uris_hint">Add only redirect URIs accepted by the Audiobookshelf server. Removing the ShelfDroid callback disables OpenID login in this app.</string>
     <string name="authentication_mobile_redirect_uri_number">Mobile redirect URI %1$d</string>

@@ -357,7 +357,10 @@ private fun ColumnScope.NavHostContainer(
       }
       entry<AuthenticationSettings> {
         Nav3ScreenWrapper(sharedTransitionScope) {
-          AuthenticationSettingsScreen(onBackClicked = { navigator.pop() })
+          AuthenticationSettingsScreen(
+            snackbarHostState = snackbarHostState,
+            onBackClicked = { navigator.pop() },
+          )
         }
       }
       entry<EmailManagement> {

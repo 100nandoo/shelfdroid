@@ -56,6 +56,7 @@ fun MyOutlinedTextField(
   isError: Boolean = false,
   keyboardOptions: KeyboardOptions,
   visualTransformation: VisualTransformation = VisualTransformation.None,
+  trailingIcon: (@Composable () -> Unit)? = null,
   onNext: (() -> Unit)? = null,
   onDone: (() -> Unit)? = null,
 ) {
@@ -75,6 +76,7 @@ fun MyOutlinedTextField(
     keyboardOptions = keyboardOptions,
     visualTransformation = visualTransformation,
     isError = isError,
+    trailingIcon = trailingIcon,
     keyboardActions =
       KeyboardActions(onNext = onNext?.let { { it() } }, onDone = onDone?.let { { it() } }),
   )
