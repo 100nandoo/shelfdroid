@@ -59,9 +59,9 @@ Android device, and handle common server management tasks from the same app.
 | Listening Sessions            | ☑️          |
 | Email                         | ☑️          |
 | Notifications                 | ☑️          |
+| Authentication                | ☑️          |
 | Edit Libraries                | ❌           |
 | Item Metadata Utils           | ❌           |
-| Authentication                | ❌           |
 
 </details>
 

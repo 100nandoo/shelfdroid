@@ -3,7 +3,6 @@
 ## High Priority
 
 - [ ] Item metadata utils
-- [ ] authentications
 - [ ] Refactor player state
 - [ ] Socket implementation
     - [ ] Handle download event
@@ -33,7 +32,8 @@
 ## Bugs
 
 - [ ] shouldn't call users and tags api on homescreen if user not admin
-- [ ] prevent OOM when `/api/libraries/{libraryId}/items` returns the entire library; see [library items response OOM](docs/scratch/library-items-response-oom/spec.md)
+- [ ] prevent OOM when `/api/libraries/{libraryId}/items` returns the entire library;
+  see [library items response OOM](docs/scratch/library-items-response-oom/spec.md)
 - [ ] /api/items/batch/get limit to 10MB
 
 ## Done
@@ -107,3 +107,4 @@
 - [x] Open rss feeds
 - [x] Email
 - [x] Notifications
+- [x] authentications
