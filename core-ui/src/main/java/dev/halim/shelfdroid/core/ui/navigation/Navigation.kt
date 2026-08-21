@@ -53,6 +53,8 @@ import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.MetadataUtilitiesHubScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.TagManagementScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.rssfeeds.RssFeedsScreen
@@ -161,6 +163,7 @@ private fun ColumnScope.NavHostContainer(
             onRssFeedsClicked = { navigator.navigate(RssFeeds) },
             onLogsClicked = { navigator.navigate(Logs) },
             onBackupsClicked = { navigator.navigate(Backups) },
+            onMetadataUtilitiesClicked = { navigator.navigate(LibraryItemMetadataUtilities) },
             onEditItemClicked = { navigator.navigate(EditItem(it)) },
           )
         }
@@ -407,6 +410,18 @@ private fun ColumnScope.NavHostContainer(
       entry<Backups> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           BackupsScreen(snackbarHostState = snackbarHostState)
+        }
+      }
+      entry<LibraryItemMetadataUtilities> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          MetadataUtilitiesHubScreen(
+            onTagsClicked = { navigator.navigate(TagManagement) },
+          )
+        }
+      }
+      entry<TagManagement> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          TagManagementScreen(snackbarHostState = snackbarHostState)
         }
       }
     }

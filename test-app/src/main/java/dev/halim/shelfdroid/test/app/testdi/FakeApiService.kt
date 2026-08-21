@@ -20,6 +20,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.Result
 import okhttp3.MultipartBody
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 
 @Singleton
 class FakeApiService @Inject constructor() : ApiService {
@@ -171,6 +174,7 @@ class FakeApiService @Inject constructor() : ApiService {
   private val items = linkedMapOf<String, LibraryItem>()
   private val apiKeys = mutableListOf<ApiKeysResponse.ApiKey>()
   private val users = mutableListOf(rootUser, appUser)
+  private val tags = mutableListOf<String>()
   private var createdPodcastCount = 0
   private var createdApiKeyCount = 0
 
@@ -209,6 +213,8 @@ class FakeApiService @Inject constructor() : ApiService {
       users.clear()
       users += rootUser
       users += appUser
+      tags.clear()
+      tags += listOf("fiction", "technology")
       createdPodcastCount = 0
       createdApiKeyCount = 0
     }
@@ -663,7 +669,37 @@ class FakeApiService @Inject constructor() : ApiService {
   ): Result<LibraryItem> = item(itemId)
 
   override suspend fun tags(): Result<TagsResponse> =
-    Result.success(TagsResponse(tags = listOf("fiction", "technology")))
+    Result.success(TagsResponse(tags = synchronized(this) { tags.toList() }))
+
+  override suspend fun renameTag(request: RenameTagRequest): Result<TagMutationResponse> {
+    synchronized(this) {
+      val updated = tags.count { it == request.tag }
+      if (tags.contains(request.newTag).not()) {
+        tags.replaceAll { if (it == request.tag) request.newTag else it }
+      } else {
+        tags.removeAll { it == request.tag }
+      }
+      return Result.success(
+        TagMutationResponse(
+          numItemsUpdated = updated,
+          tagMerged = tags.any { it == request.newTag } && request.tag != request.newTag,
+        )
+      )
+    }
+  }
+
+  override suspend fun deleteTag(tag: String): Result<TagMutationResponse> {
+    val decoded =
+      runCatching {
+        val base64 = URLDecoder.decode(tag, StandardCharsets.UTF_8)
+        String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8)
+      }.getOrElse { return Result.failure(it) }
+    synchronized(this) {
+      val updated = tags.count { it == decoded }
+      tags.removeAll { it == decoded }
+      return Result.success(TagMutationResponse(numItemsUpdated = updated))
+    }
+  }
 
   override suspend fun updateSettings(
     request: UpdateServerSettingsRequest

@@ -34,6 +34,7 @@ fun MiscScreen(
   onRssFeedsClicked: () -> Unit,
   onLogsClicked: () -> Unit,
   onBackupsClicked: () -> Unit,
+  onMetadataUtilitiesClicked: () -> Unit = {},
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
   MiscScreenContent(
@@ -51,10 +52,13 @@ fun MiscScreen(
     onRssFeedsClicked = onRssFeedsClicked,
     onLogsClicked = onLogsClicked,
     onBackupsClicked = onBackupsClicked,
+    onMetadataUtilitiesClicked = onMetadataUtilitiesClicked,
   )
 }
 
 fun shouldShowAuthenticationSettings(isAdmin: Boolean): Boolean = isAdmin
+
+fun shouldShowLibraryItemMetadataUtilities(isAdmin: Boolean): Boolean = isAdmin
 
 @Composable
 private fun MiscScreenContent(
@@ -72,6 +76,7 @@ private fun MiscScreenContent(
   onRssFeedsClicked: () -> Unit = {},
   onLogsClicked: () -> Unit = {},
   onBackupsClicked: () -> Unit = {},
+  onMetadataUtilitiesClicked: () -> Unit = {},
 ) {
   val modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
@@ -143,6 +148,13 @@ private fun MiscScreenContent(
         modifier = modifier,
       ) {
         Text(text = stringResource(R.string.apprise_notification_settings))
+      }
+
+      TextButton(
+        onClick = onMetadataUtilitiesClicked,
+        modifier = modifier,
+      ) {
+        Text(text = stringResource(R.string.library_item_metadata_utilities))
       }
 
       TextButton(

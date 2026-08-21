@@ -77,3 +77,7 @@ data class EditAppriseNotificationRule(val payload: NavEditAppriseNotificationRu
 @Serializable data object Logs : ShelfNavKey
 
 @Serializable data object Backups : ShelfNavKey
+
+@Serializable data object LibraryItemMetadataUtilities : ShelfNavKey
+
+@Serializable data object TagManagement : ShelfNavKey

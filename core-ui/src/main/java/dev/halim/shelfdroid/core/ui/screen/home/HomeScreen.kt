@@ -82,6 +82,7 @@ fun HomeScreen(
   onRssFeedsClicked: () -> Unit,
   onLogsClicked: () -> Unit,
   onBackupsClicked: () -> Unit,
+  onMetadataUtilitiesClicked: () -> Unit = {},
   onEditItemClicked: (String) -> Unit = {},
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
@@ -114,6 +115,7 @@ fun HomeScreen(
     onRssFeedsClicked,
     onLogsClicked,
     onBackupsClicked,
+    onMetadataUtilitiesClicked,
     onEditItemClicked,
     onAuthenticationSettingsClicked,
   )
@@ -141,6 +143,7 @@ fun HomeScreenContent(
   onRssFeedsClicked: () -> Unit = {},
   onLogsClicked: () -> Unit = {},
   onBackupsClicked: () -> Unit = {},
+  onMetadataUtilitiesClicked: () -> Unit = {},
   onEditItemClicked: (String) -> Unit = {},
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
@@ -174,6 +177,7 @@ fun HomeScreenContent(
           onRssFeedsClicked = onRssFeedsClicked,
           onLogsClicked = onLogsClicked,
           onBackupsClicked = onBackupsClicked,
+          onMetadataUtilitiesClicked = onMetadataUtilitiesClicked,
         )
       } else {
         val library = uiState.librariesUiState[page]

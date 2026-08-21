@@ -4,11 +4,11 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
-- [ ] Only admin and root Users see the new hub and Tag destination; locally known non-admin Users make no metadata-utility request, and server access denial is shown clearly.
-- [ ] The Tag screen loads and case-insensitively sorts server Tags, with accessible loading, empty, retryable failure, and ready states.
-- [ ] Tag rename rejects blank input, warns about exact and case-only collisions, confirms the all-matching-Library-item effect, and reports the server's updated-item count.
-- [ ] Tag delete encodes the selected value safely for the Audiobookshelf request, requires an all-matching-Library-item confirmation, and reports the completed count.
-- [ ] Successful Tag mutations refresh both the visible list and ShelfDroid's administrative Tag cache; failed mutations preserve canonical cached values.
-- [ ] Production and fake authenticated server contracts, repository behavior tests, and focused UI or navigation tests cover the delivered behavior.
+- [x] Only admin and root Users see the new hub and Tag destination; locally known non-admin Users make no metadata-utility request, and server access denial is shown clearly.
+- [x] The Tag screen loads and case-insensitively sorts server Tags, with accessible loading, empty, retryable failure, and ready states.
+- [x] Tag rename rejects blank input, warns about exact and case-only collisions, confirms the all-matching-Library-item effect, and reports the server's updated-item count.
+- [x] Tag delete encodes the selected value safely for the Audiobookshelf request, requires an all-matching-Library-item confirmation, and reports the completed count.
+- [x] Successful Tag mutations refresh both the visible list and ShelfDroid's administrative Tag cache; failed mutations preserve canonical cached values.
+- [x] Production and fake authenticated server contracts, repository behavior tests, and focused UI or navigation tests cover the delivered behavior.

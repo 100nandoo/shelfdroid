@@ -15,6 +15,7 @@ import dev.halim.core.network.request.OpenItemRssFeedRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.core.network.request.ProgressRequest
+import dev.halim.core.network.request.RenameTagRequest
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
@@ -59,6 +60,7 @@ import dev.halim.core.network.response.ServerSettingsResponse
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SetItemCoverResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
+import dev.halim.core.network.response.TagMutationResponse
 import dev.halim.core.network.response.TagsResponse
 import dev.halim.core.network.response.UpdateLibraryItemMediaResponse
 import dev.halim.core.network.response.UpdateUserResponse
@@ -406,7 +408,17 @@ interface ApiService {
   ): Result<LibraryItem>
 
   // tags
-  @GET("/api/tags") suspend fun tags(): Result<TagsResponse>
+  @GET("api/tags") suspend fun tags(): Result<TagsResponse>
+
+  @POST("api/tags/rename")
+  suspend fun renameTag(@Body request: RenameTagRequest): Result<TagMutationResponse>
+
+  /**
+   * The server expects the tag path parameter to be standard Base64, URI escaped by the caller.
+   * `encoded = true` prevents Retrofit from escaping the already-safe path a second time.
+   */
+  @DELETE("api/tags/{tag}")
+  suspend fun deleteTag(@Path(value = "tag", encoded = true) tag: String): Result<TagMutationResponse>
 
   // settings
   @GET("api/auth-settings")
