@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.tags
 
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.response.TagsResponse
+import dev.halim.core.network.response.metadata.TagsResponse
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Inject
 import kotlinx.coroutines.flow.firstOrNull

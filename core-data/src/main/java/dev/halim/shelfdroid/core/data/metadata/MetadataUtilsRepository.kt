@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.core.data.metadata
 
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.request.CreateCustomMetadataProviderRequest
-import dev.halim.core.network.request.RenameGenreRequest
-import dev.halim.core.network.request.RenameTagRequest
-import dev.halim.core.network.response.CustomMetadataProvider as NetworkCustomMetadataProvider
+import dev.halim.core.network.request.metadata.CreateCustomMetadataProviderRequest
+import dev.halim.core.network.request.metadata.RenameGenreRequest
+import dev.halim.core.network.request.metadata.RenameTagRequest
 import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_BOOK
+import dev.halim.core.network.response.metadata.CustomMetadataProvider as NetworkCustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationException
@@ -39,9 +39,7 @@ constructor(
 
   override suspend fun renameTag(tag: String, newTag: String): Result<TagMutation> {
     if (newTag.trim().isBlank()) {
-      return Result.failure(
-        MetadataValidationException(MetadataValidationError.TagNameRequired),
-      )
+      return Result.failure(MetadataValidationException(MetadataValidationError.TagNameRequired))
     }
     val response =
       api.renameTag(RenameTagRequest(tag = tag, newTag = newTag)).getOrElse {
@@ -78,9 +76,7 @@ constructor(
 
   override suspend fun renameGenre(genre: String, newGenre: String): Result<GenreMutation> {
     if (newGenre.trim().isBlank()) {
-      return Result.failure(
-        MetadataValidationException(MetadataValidationError.GenreNameRequired),
-      )
+      return Result.failure(MetadataValidationException(MetadataValidationError.GenreNameRequired))
     }
     val response =
       api.renameGenre(RenameGenreRequest(genre = genre, newGenre = newGenre)).getOrElse {
@@ -107,7 +103,7 @@ constructor(
         .asSequence()
         .filter { it.mediaType == MEDIA_TYPE_BOOK }
         .map(::mapProvider)
-        .toList(),
+        .toList()
     )
   }
 
@@ -120,12 +116,12 @@ constructor(
     val normalizedUrl = url.trim()
     if (normalizedName.isBlank()) {
       return Result.failure(
-        MetadataValidationException(MetadataValidationError.CustomMetadataProviderNameRequired),
+        MetadataValidationException(MetadataValidationError.CustomMetadataProviderNameRequired)
       )
     }
     if (normalizedUrl.isBlank()) {
       return Result.failure(
-        MetadataValidationException(MetadataValidationError.CustomMetadataProviderUrlRequired),
+        MetadataValidationException(MetadataValidationError.CustomMetadataProviderUrlRequired)
       )
     }
     val response =
@@ -136,16 +132,18 @@ constructor(
             url = normalizedUrl,
             mediaType = MEDIA_TYPE_BOOK,
             authHeaderValue = authHeaderValue?.takeUnless { it.isBlank() },
-          ),
+          )
         )
-        .getOrElse { return Result.failure(normalizeProviderFailure(it)) }
+        .getOrElse {
+          return Result.failure(normalizeProviderFailure(it))
+        }
     return Result.success(mapProvider(response.provider))
   }
 
   override suspend fun deleteCustomMetadataProvider(providerId: String): Result<Unit> {
     if (providerId.isBlank()) {
       return Result.failure(
-        MetadataValidationException(MetadataValidationError.CustomMetadataProviderIdRequired),
+        MetadataValidationException(MetadataValidationError.CustomMetadataProviderIdRequired)
       )
     }
     return api

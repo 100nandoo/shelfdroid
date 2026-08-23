@@ -11,14 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -31,16 +29,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataApiState
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataDialog
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataUiState
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.DeleteConfirmationDialog
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
 import dev.halim.shelfdroid.core.ui.components.TextHeadlineSmall
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun CustomMetadataScreen(
@@ -113,10 +115,9 @@ internal fun CustomMetadataContent(
         ProviderCreateForm(uiState, onEvent)
         Spacer(Modifier.height(16.dp))
         if (uiState.state is GenericState.Failure) {
-          CustomMetadataErrorState(
+          MyTextButtonRetry(
             message = stringResource(R.string.metadata_provider_load_failed),
-            retryable = true,
-            onEvent = onEvent,
+            onRetry = { onEvent(CustomMetadataEvent.Retry) },
           )
         }
         if (uiState.providers.isEmpty()) {
@@ -141,7 +142,13 @@ internal fun CustomMetadataContent(
   }
 
   when (val dialog = uiState.dialog) {
-    is CustomMetadataDialog.Delete -> CustomMetadataDeleteDialog(dialog.provider, onEvent)
+    is CustomMetadataDialog.Delete ->
+      DeleteConfirmationDialog(
+        title = stringResource(R.string.metadata_provider_delete),
+        message = stringResource(R.string.metadata_provider_delete_confirm, dialog.provider.name),
+        onConfirm = { onEvent(CustomMetadataEvent.ConfirmDelete) },
+        onDismiss = { onEvent(CustomMetadataEvent.DismissDialog) },
+      )
 
     null -> Unit
   }
@@ -181,7 +188,6 @@ private fun ProviderCreateForm(
       showVisibilityDescription = stringResource(R.string.metadata_provider_show_auth_header),
       hideVisibilityDescription = stringResource(R.string.metadata_provider_hide_auth_header),
     )
-    Text(stringResource(R.string.metadata_provider_books_only))
     Button(
       enabled = enabled && uiState.nameDraft.isNotBlank() && uiState.urlDraft.isNotBlank(),
       onClick = { onEvent(CustomMetadataEvent.SubmitCreate) },
@@ -235,40 +241,24 @@ private fun CustomMetadataRow(
   }
 }
 
+@ShelfDroidPreview
 @Composable
-private fun CustomMetadataErrorState(
-  message: String,
-  retryable: Boolean,
-  onEvent: (CustomMetadataEvent) -> Unit,
-) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Text(message)
-    if (retryable) {
-      TextButton(onClick = { onEvent(CustomMetadataEvent.Retry) }) {
-        Text(stringResource(R.string.retry))
-      }
-    }
+private fun CustomMetadataContentPreview() {
+  PreviewWrapper {
+    CustomMetadataContent(
+      uiState =
+        CustomMetadataUiState(
+          state = GenericState.Success,
+          providers =
+            listOf(
+              CustomMetadataProvider(
+                id = "google-books",
+                name = "Google Books",
+                url = "https://books.google.com",
+              )
+            ),
+        ),
+      onEvent = {},
+    )
   }
-}
-
-@Composable
-private fun CustomMetadataDeleteDialog(
-  provider: CustomMetadataProvider,
-  onEvent: (CustomMetadataEvent) -> Unit,
-) {
-  AlertDialog(
-    onDismissRequest = { onEvent(CustomMetadataEvent.DismissDialog) },
-    title = { Text(stringResource(R.string.metadata_provider_delete)) },
-    text = { Text(stringResource(R.string.metadata_provider_delete_confirm, provider.name)) },
-    confirmButton = {
-      Button(onClick = { onEvent(CustomMetadataEvent.ConfirmDelete) }) {
-        Text(stringResource(R.string.delete))
-      }
-    },
-    dismissButton = {
-      TextButton(onClick = { onEvent(CustomMetadataEvent.DismissDialog) }) {
-        Text(stringResource(R.string.cancel))
-      }
-    },
-  )
 }

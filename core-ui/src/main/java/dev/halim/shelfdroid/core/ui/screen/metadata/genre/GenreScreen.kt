@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata.genre
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,8 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
@@ -20,8 +18,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -33,8 +31,15 @@ import dev.halim.shelfdroid.core.data.metadata.genre.GenreOperation
 import dev.halim.shelfdroid.core.data.metadata.genre.GenreUiState
 import dev.halim.shelfdroid.core.data.metadata.genre.genreRenameCollision
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.DeleteConfirmationDialog
+import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.GenreTagItem
 
 @Composable
 fun GenreScreen(
@@ -89,79 +94,50 @@ private fun GenreContent(
     if (uiState.state is GenericState.Loading || uiState.apiState is GenreApiState.Mutating) {
       LinearProgressIndicator(Modifier.fillMaxWidth())
     }
-    when {
-      uiState.state is GenericState.Failure ->
-        GenreErrorState(
-          stringResource(R.string.genre_load_failed),
-          retryable = true,
-          onEvent = onEvent,
-        )
+    Box(
+      modifier = Modifier.fillMaxWidth().weight(1f),
+      contentAlignment = Alignment.BottomStart,
+    ) {
+      when {
+        uiState.state is GenericState.Failure ->
+          MyTextButtonRetry(
+            message = stringResource(R.string.genre_load_failed),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            onRetry = { onEvent(GenreEvent.Retry) },
+          )
+        uiState.genres.isEmpty() && uiState.state is GenericState.Success ->
+          GenericMessageScreen(stringResource(R.string.empty_type, stringResource(R.string.genres)))
 
-      uiState.state is GenericState.Loading ->
-        Text(stringResource(R.string.genre_loading), Modifier.padding(16.dp))
-
-      uiState.genres.isEmpty() ->
-        Text(stringResource(R.string.genre_empty), Modifier.padding(16.dp))
-
-      else ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-          items(uiState.genres, key = { it }) { genre ->
-            GenreRow(
-              genre = genre,
-              enabled = !uiState.isMutating,
-              onRename = { onEvent(GenreEvent.BeginRename(genre)) },
-              onDelete = { onEvent(GenreEvent.BeginDelete(genre)) },
-            )
+        else ->
+          LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.Bottom,
+          ) {
+            items(uiState.genres, key = { it }) { genre ->
+              GenreTagItem(
+                label = genre,
+                enabled = !uiState.isMutating,
+                renameContentDescriptionResId = R.string.rename_genre_action,
+                deleteContentDescriptionResId = R.string.delete_genre_action,
+                onRename = { onEvent(GenreEvent.BeginRename(genre)) },
+                onDelete = { onEvent(GenreEvent.BeginDelete(genre)) },
+              )
+            }
           }
-        }
+      }
     }
   }
 
   when (val dialog = uiState.dialog) {
     is GenreDialog.Rename -> GenreRenameDialog(uiState, dialog.genre, onEvent)
-    is GenreDialog.Delete -> GenreDeleteDialog(dialog.genre, onEvent)
+    is GenreDialog.Delete ->
+      DeleteConfirmationDialog(
+        title = stringResource(R.string.genre_delete),
+        message = stringResource(R.string.genre_delete_confirm, dialog.genre),
+        onConfirm = { onEvent(GenreEvent.ConfirmDelete) },
+        onDismiss = { onEvent(GenreEvent.DismissDialog) },
+      )
     null -> Unit
-  }
-}
-
-@Composable
-private fun GenreErrorState(
-  message: String,
-  retryable: Boolean,
-  onEvent: (GenreEvent) -> Unit,
-) {
-  Column(
-    Modifier.fillMaxWidth().padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    Text(message)
-    if (retryable) {
-      TextButton(onClick = { onEvent(GenreEvent.Retry) }) {
-        Text(stringResource(R.string.retry))
-      }
-    }
-  }
-}
-
-@Composable
-private fun GenreRow(genre: String, enabled: Boolean, onRename: () -> Unit, onDelete: () -> Unit) {
-  Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-    Text(
-      genre,
-      Modifier.weight(1f).padding(vertical = 12.dp),
-    )
-    IconButton(onClick = onRename, enabled = enabled) {
-      Icon(
-        painter = painterResource(R.drawable.edit),
-        contentDescription = stringResource(R.string.rename_genre_action),
-      )
-    }
-    IconButton(onClick = onDelete, enabled = enabled) {
-      Icon(
-        painter = painterResource(R.drawable.delete),
-        contentDescription = stringResource(R.string.delete_genre_action),
-      )
-    }
   }
 }
 
@@ -205,21 +181,53 @@ private fun GenreRenameDialog(
   )
 }
 
+@ShelfDroidPreview
 @Composable
-private fun GenreDeleteDialog(genre: String, onEvent: (GenreEvent) -> Unit) {
-  AlertDialog(
-    onDismissRequest = { onEvent(GenreEvent.DismissDialog) },
-    title = { Text(stringResource(R.string.genre_delete)) },
-    text = { Text(stringResource(R.string.genre_delete_confirm, genre)) },
-    confirmButton = {
-      Button(onClick = { onEvent(GenreEvent.ConfirmDelete) }) {
-        Text(stringResource(R.string.delete))
-      }
-    },
-    dismissButton = {
-      TextButton(onClick = { onEvent(GenreEvent.DismissDialog) }) {
-        Text(stringResource(R.string.cancel))
-      }
-    },
-  )
+private fun GenreContentPreview() {
+  PreviewWrapper {
+    GenreContent(
+      uiState =
+        GenreUiState(state = GenericState.Success, genres = listOf("Drama", "Science Fiction")),
+      onEvent = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun GenreContentEmptyPreview() {
+  PreviewWrapper {
+    GenreContent(
+      uiState = GenreUiState(state = GenericState.Success, genres = emptyList()),
+      onEvent = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun GenreContentFailurePreview() {
+  PreviewWrapper {
+    GenreContent(
+      uiState = GenreUiState(state = GenericState.Failure("Unable to load genres.")),
+      onEvent = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun GenreRenameDialogPreview() {
+  AnimatedPreviewWrapper {
+    GenreRenameDialog(
+      uiState =
+        GenreUiState(
+          state = GenericState.Success,
+          genres = listOf("Drama", "Science Fiction"),
+          renameDraft = "Audio Drama",
+        ),
+      currentGenre = "Drama",
+      onEvent = {},
+    )
+  }
 }

@@ -1,10 +1,5 @@
 package dev.halim.shelfdroid.core.data.metadata
 
-import dev.halim.shelfdroid.core.data.metadata.genre.GenreMutation
-import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
-import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationException
-import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
-
 import android.content.ContextWrapper
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
@@ -14,6 +9,10 @@ import dev.halim.core.network.client.SessionCookieJar
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationException
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreMutation
+import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
 import dev.halim.shelfdroid.core.data.tags.TagRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.helper.Helper
@@ -323,8 +322,8 @@ class MetadataUtilsRepositoryHttpTest {
         MetadataValidationError.CustomMetadataProviderNameRequired,
         (nameError as MetadataValidationException).error,
       )
-      val urlError = fixture.repository.createCustomMetadataProvider("Provider", " ", null)
-        .exceptionOrNull()
+      val urlError =
+        fixture.repository.createCustomMetadataProvider("Provider", " ", null).exceptionOrNull()
       assertTrue(urlError is MetadataValidationException)
       assertEquals(
         MetadataValidationError.CustomMetadataProviderUrlRequired,

@@ -1,4 +1,4 @@
-package dev.halim.core.network.response
+package dev.halim.core.network.response.metadata
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

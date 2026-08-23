@@ -1,10 +1,10 @@
-package dev.halim.core.network.response
+package dev.halim.core.network.response.metadata
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class TagMutationResponse(
+data class GenreMutationResponse(
   @SerialName("numItemsUpdated") val numItemsUpdated: Int = 0,
-  @SerialName("tagMerged") val tagMerged: Boolean = false,
+  @SerialName("genreMerged") val genreMerged: Boolean = false,
 )

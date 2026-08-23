@@ -1,9 +1,8 @@
-package dev.halim.core.network.request
+package dev.halim.core.network.request.metadata
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Request used by Audiobookshelf's server-wide genre rename operation. */
 @Serializable
 data class RenameGenreRequest(
   @SerialName("genre") val genre: String,

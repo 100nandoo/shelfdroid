@@ -165,7 +165,7 @@ private fun ColumnScope.NavHostContainer(
             onRssFeedsClicked = { navigator.navigate(RssFeeds) },
             onLogsClicked = { navigator.navigate(Logs) },
             onBackupsClicked = { navigator.navigate(Backups) },
-            onMetadataUtilitiesClicked = { navigator.navigate(LibraryItemMetadataUtilities) },
+            onMetadataUtilitiesClicked = { navigator.navigate(MetadataUtils) },
             onEditItemClicked = { navigator.navigate(EditItem(it)) },
           )
         }
@@ -414,7 +414,7 @@ private fun ColumnScope.NavHostContainer(
           BackupsScreen(snackbarHostState = snackbarHostState)
         }
       }
-      entry<LibraryItemMetadataUtilities> {
+      entry<MetadataUtils> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           MetadataUtilsScreen(
             onTagsClicked = { navigator.navigate(Tag) },

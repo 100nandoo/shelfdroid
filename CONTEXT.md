@@ -114,7 +114,7 @@ _Avoid_: Listening session, current player
 The server-managed **Users** and tags that ShelfDroid caches for administrative workflows. It excludes the media **Catalog** and listening data.
 _Avoid_: Admin catalog, Catalog, user stats
 
-**Library item metadata utilities**:
+**Item metadata utils**:
 An administrator-only group of server-wide tools for managing **Tags**, **Genres**, and **Custom metadata providers**. It is separate from editing one **Library item**.
 _Avoid_: Item metadata editor, bulk editor
 
@@ -152,11 +152,15 @@ _Avoid_: Preferences, app settings
 
 **Email settings**:
 The Audiobookshelf server's SMTP configuration and shared send-to-device configuration used for test email delivery and ebook delivery to **E-reader devices**.
-_Avoid_: Mail prefs, notification settings
+_Avoid_: Mail prefs
+
+**Notifications**:
+The user-facing name for the administrator-only server-side notification automation area, including the shared service endpoint and server-managed **Notification rules**.
+_Avoid_: App notifications
 
 **Apprise notification settings**:
-The Audiobookshelf server's Apprise integration configuration, including the shared Apprise API endpoint and the set of server-managed **Notification rules**.
-_Avoid_: Notification settings, app notifications
+The developer-facing name for the Audiobookshelf server's Apprise integration configuration, including the shared Apprise API endpoint and the set of server-managed **Notification rules**. Use **Notifications** in user-facing copy.
+_Avoid_: App notifications
 
 **Notification rule**:
 A server-managed rule inside **Apprise notification settings** that listens for one **Notification event** and sends a templated notification to one or more Apprise destinations.
@@ -262,8 +266,8 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Library item** is either a **Book** or a **Podcast**
 - A **Tag** may be applied to many **Books** or **Podcasts**
 - A **Genre** may be applied to many **Books** or **Podcasts**
-- **Library item metadata utilities** manage **Tags**, **Genres**, and **Custom metadata providers** for an **Audiobookshelf server**
-- One use of **Library item metadata utilities** may affect many **Books** or **Podcasts**
+- **Item metadata utils** manage **Tags**, **Genres**, and **Custom metadata providers** for an **Audiobookshelf server**
+- One use of **Item metadata utils** may affect many **Books** or **Podcasts**
 - A **Custom metadata provider** belongs to an **Audiobookshelf server**
 - A **Podcast** contains many **Episodes**
 - A **Podcast** may have one **Podcast source feed**
@@ -284,7 +288,7 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Generated RSS feed** belongs to one **Library item**, **Series**, or **Collection**
 - **Server settings** belong to the **Audiobookshelf server**
 - **Email settings** belong to the **Audiobookshelf server**
-- **Apprise notification settings** belong to the **Audiobookshelf server**
+- **Notifications** (the user-facing name for **Apprise notification settings**) belong to the **Audiobookshelf server**
 - **Authentication settings** belong to the **Audiobookshelf server**
 - **Authentication settings** determine the available **Login methods**
 - A **Notification rule** belongs to **Apprise notification settings**
@@ -317,7 +321,7 @@ _Avoid_: Best-effort release, unverifiable build
 
 ## Flagged ambiguities
 
-- "item" is too vague on its own in this repo; prefer **Library item** when referring to a server catalog entry.
+- "item" is too vague on its own in this repo; prefer **Library item** when referring to a server catalog entry. **Item metadata utils** is the specific name of the administrator-only server-wide metadata-management group.
 - "catalog" is the app-level browsing surface for the current **Audiobookshelf server**; do not use it as a synonym for a single **Library**.
 - "folder" is overloaded; use **Library folder** for a server-reported folder choice inside a **Library**, and do not shorten it to just "folder" when catalog placement matters.
 - "session" is overloaded; use **Listening session** for historical playback records and **Open session** for active server-tracked playback, where the server may hold many concurrent sessions and a user may have more than one.
@@ -326,8 +330,8 @@ _Avoid_: Best-effort release, unverifiable build
 - "current playback" and **Open session** are distinct; **Current playback** is local player state inside ShelfDroid, while an **Open session** is server-tracked.
 - "track", "chapter", and "episode" are distinct; a **Track** is a file unit for books, a **Chapter** is a navigation segment in a book, and an **Episode** belongs to a podcast.
 - "progress" is overloaded; use **Progress** for completion state and **Progress recency** for the last update used to order home-screen items.
-- "settings" is overloaded; use **Email settings** for SMTP and send-to-device configuration, use **Apprise notification settings** for server-side Apprise automation, and use **Server settings** for the broader Audiobookshelf server configuration surface.
-- "notification settings" is overloaded; use **Apprise notification settings** for server-side automation and avoid using it for local Android notification preferences.
+- "settings" is overloaded; use **Email settings** for SMTP and send-to-device configuration, use **Notifications** in user-facing copy (and **Apprise notification settings** in developer-facing terminology) for server-side automation, and use **Server settings** for the broader Audiobookshelf server configuration surface.
+- "notification settings" is overloaded; use **Notifications** for server-side automation in user-facing copy, use **Notification** for local media notification preferences, and avoid the bare phrase when the scope is unclear.
 - "download" and **Library file** are not the same thing; a **Library file** exists on the server, while a **Download** is a local device copy or downloaded server artifact.
 - "F-Droid release" is too vague in this repo; say **F-Droid main repository** when discussing the curated public catalog, and say **Reproducible release** when discussing release provenance.
 - "Local login" and "login methods" are accurate for server capability modeling but should not appear in end-user login copy, accessibility text, or resource strings; show username/password fields directly or say "username and password" when explanation is needed.

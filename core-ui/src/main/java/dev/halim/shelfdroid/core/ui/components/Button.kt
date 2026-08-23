@@ -60,9 +60,10 @@ fun MyIconButton(
 fun MyTonalIconButton(
   @DrawableRes painterResId: Int,
   @StringRes contentDescriptionResId: Int,
+  enabled: Boolean = true,
   onClick: () -> Unit,
 ) {
-  FilledTonalIconButton(onClick = onClick) {
+  FilledTonalIconButton(onClick = onClick, enabled = enabled) {
     Icon(
       painter = painterResource(painterResId),
       contentDescription = stringResource(contentDescriptionResId),

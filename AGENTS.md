@@ -17,6 +17,11 @@
 
 ## Agent skills
 
+### Android coding conventions
+
+When creating or reviewing Kotlin or Jetpack Compose code, follow
+`docs/agents/android-coding-conventions.md`.
+
 ### Issue tracker
 
 Issues for this repo are tracked as local markdown files under `docs/scratch/`. See

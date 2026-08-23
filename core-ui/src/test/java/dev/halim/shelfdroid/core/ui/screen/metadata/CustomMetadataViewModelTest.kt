@@ -1,10 +1,9 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata
 
-import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataApiState
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataDialog
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataEvent
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataViewModel
@@ -232,12 +231,9 @@ class CustomMetadataViewModelTest {
     override suspend fun renameTag(
       tag: String,
       newTag: String,
-    ): Result<TagMutation> =
-      Result.success(TagMutation(0))
+    ): Result<TagMutation> = Result.success(TagMutation(0))
 
-    override suspend fun deleteTag(
-      tag: String
-    ): Result<TagMutation> =
+    override suspend fun deleteTag(tag: String): Result<TagMutation> =
       Result.success(TagMutation(0))
 
     override suspend fun loadCustomMetadataProviders(): Result<List<CustomMetadataProvider>> {
@@ -277,12 +273,9 @@ class CustomMetadataViewModelTest {
     override suspend fun renameTag(
       tag: String,
       newTag: String,
-    ): Result<TagMutation> =
-      Result.success(TagMutation(0))
+    ): Result<TagMutation> = Result.success(TagMutation(0))
 
-    override suspend fun deleteTag(
-      tag: String
-    ): Result<TagMutation> =
+    override suspend fun deleteTag(tag: String): Result<TagMutation> =
       Result.success(TagMutation(0))
 
     override suspend fun loadCustomMetadataProviders(): Result<List<CustomMetadataProvider>> =

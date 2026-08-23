@@ -7,14 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MyTextButton
 import dev.halim.shelfdroid.core.ui.components.TextHeadlineSmall
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -87,109 +86,95 @@ private fun MiscScreenContent(
         textAlign = TextAlign.Center,
       )
 
-      TextButton(
+      MyTextButton(
         onClick = onRssFeedsClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.rss_feeds))
-      }
+        text = stringResource(R.string.rss_feeds),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onBackupsClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.backups))
-      }
+        text = stringResource(R.string.backups),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onLogsClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.logs))
-      }
+        text = stringResource(R.string.logs),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onApiKeysClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.api_keys))
-      }
+        text = stringResource(R.string.api_keys),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onUsersClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.users))
-      }
+        text = stringResource(R.string.users),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onServerSettingsClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.settings))
-      }
+        text = stringResource(R.string.settings),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onAuthenticationSettingsClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.authentication_settings))
-      }
+        text = stringResource(R.string.authentication_settings),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onEmailManagementClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.email_management))
-      }
+        text = stringResource(R.string.email_management),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onAppriseNotificationSettingsClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.apprise_notification_settings))
-      }
+        text = stringResource(R.string.apprise_notification_settings),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onMetadataUtilitiesClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.library_item_metadata_utilities))
-      }
+        text = stringResource(R.string.library_item_metadata_utilities),
+      )
 
-      TextButton(
+      MyTextButton(
         enabled = false,
         onClick = onLibrariesClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.libraries))
-      }
+        text = stringResource(R.string.libraries),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onOpenSessionClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.open_sessions))
-      }
+        text = stringResource(R.string.open_sessions),
+      )
 
-      TextButton(
+      MyTextButton(
         onClick = onListeningSessionClicked,
         modifier = modifier,
-      ) {
-        Text(text = stringResource(R.string.listening_sessions))
-      }
+        text = stringResource(R.string.listening_sessions),
+      )
     }
     TextHeadlineSmall(
       modifier.padding(top = 32.dp),
       text = stringResource(R.string.client),
       textAlign = TextAlign.Center,
     )
-    TextButton(
+    MyTextButton(
       onClick = onSettingsClicked,
       modifier = modifier,
-    ) {
-      Text(text = stringResource(R.string.settings))
-    }
+      text = stringResource(R.string.settings),
+    )
     Spacer(Modifier.height(16.dp))
   }
 }

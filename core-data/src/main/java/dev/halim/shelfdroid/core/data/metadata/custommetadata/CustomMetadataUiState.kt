@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.metadata.custommetadata
 
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_BOOK
+import dev.halim.shelfdroid.core.data.GenericState
 
 data class CustomMetadataUiState(
   val state: GenericState = GenericState.Loading,

@@ -77,10 +77,7 @@ class GenreViewModel @Inject constructor(private val repository: MetadataUtilsCo
             _uiState.update {
               it.copy(
                 state = GenericState.Failure(error.message),
-                apiState =
-                  GenreApiState.Failure(
-                    error.message,
-                  ),
+                apiState = GenreApiState.Failure(error.message),
               )
             }
           },

@@ -1,6 +1,10 @@
 package dev.halim.shelfdroid.core.data.metadata.genre
 
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.metadata.MetadataMutation
+import dev.halim.shelfdroid.core.data.metadata.MetadataRenameCollision
+import dev.halim.shelfdroid.core.data.metadata.metadataRenameCollision
+import dev.halim.shelfdroid.core.data.metadata.sortedMetadataItems
 
 data class GenreUiState(
   val state: GenericState = GenericState.Loading,
@@ -42,21 +46,14 @@ enum class GenreOperation {
   Delete,
 }
 
-data class GenreRenameCollision(val exact: Boolean, val caseOnly: Boolean)
+typealias GenreMutation = MetadataMutation
 
-data class GenreMutation(val updatedItemCount: Int, val merged: Boolean = false)
+typealias GenreRenameCollision = MetadataRenameCollision
 
-fun sortedGenres(genres: Iterable<String>): List<String> =
-  genres.distinct().sortedWith(String.CASE_INSENSITIVE_ORDER)
+fun sortedGenres(genres: Iterable<String>): List<String> = sortedMetadataItems(genres)
 
 fun genreRenameCollision(
   currentGenre: String,
   newGenre: String,
   genres: Iterable<String>,
-): GenreRenameCollision {
-  val current = currentGenre.trim()
-  val target = newGenre.trim()
-  val exact = genres.any { it != current && it == target }
-  val caseOnly = !exact && genres.any { it != current && it.equals(target, ignoreCase = true) }
-  return GenreRenameCollision(exact = exact, caseOnly = caseOnly)
-}
+): GenreRenameCollision = metadataRenameCollision(currentGenre, newGenre, genres)

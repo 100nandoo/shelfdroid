@@ -8,8 +8,8 @@ import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataApiState
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataDialog
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataOperation
-import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataUiState
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataUiState
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationException
 import javax.inject.Inject
@@ -38,12 +38,15 @@ class CustomMetadataViewModel @Inject constructor(private val repository: Metada
     when (event) {
       CustomMetadataEvent.Load,
       CustomMetadataEvent.Retry -> load()
+
       is CustomMetadataEvent.UpdateName -> _uiState.update { it.copy(nameDraft = event.value) }
       is CustomMetadataEvent.UpdateUrl -> _uiState.update { it.copy(urlDraft = event.value) }
       is CustomMetadataEvent.UpdateAuthHeader ->
         _uiState.update { it.copy(authHeaderDraft = event.value) }
+
       is CustomMetadataEvent.SetAuthHeaderVisible ->
         _uiState.update { it.copy(authHeaderVisible = event.visible) }
+
       is CustomMetadataEvent.SetProviderVisible ->
         if (_uiState.value.providers.any { it.id == event.providerId }) {
           _uiState.update {
@@ -54,22 +57,23 @@ class CustomMetadataViewModel @Inject constructor(private val repository: Metada
             )
           }
         }
+
       CustomMetadataEvent.SubmitCreate -> create()
       is CustomMetadataEvent.BeginDelete ->
         if (!_uiState.value.isMutating) {
           _uiState.update {
             it.copy(
-              // The confirmation only needs identity and name; do not carry the provider
-              // authorization header into another transient state object.
               dialog = CustomMetadataDialog.Delete(event.provider.copy(authHeaderValue = null)),
               apiState = CustomMetadataApiState.Idle,
             )
           }
         }
+
       CustomMetadataEvent.DismissDialog -> _uiState.update { it.copy(dialog = null) }
       CustomMetadataEvent.ConfirmDelete -> delete()
       CustomMetadataEvent.ClearApiState ->
         _uiState.update { it.copy(apiState = CustomMetadataApiState.Idle) }
+
       CustomMetadataEvent.ClearSensitiveState -> clearSensitiveState()
     }
   }

@@ -7,6 +7,7 @@ import dev.halim.core.network.request.*
 import dev.halim.core.network.request.apprisenotificationsettings.*
 import dev.halim.core.network.request.authenticationsettings.*
 import dev.halim.core.network.request.emailmanagement.*
+import dev.halim.core.network.request.metadata.*
 import dev.halim.core.network.response.*
 import dev.halim.core.network.response.apprisenotificationsettings.*
 import dev.halim.core.network.response.authenticationsettings.*
@@ -15,6 +16,7 @@ import dev.halim.core.network.response.libraryitem.*
 import dev.halim.core.network.response.libraryitem.Podcast as LibraryPodcast
 import dev.halim.core.network.response.libraryitem.PodcastMetadata as LibraryPodcastMetadata
 import dev.halim.core.network.response.login.*
+import dev.halim.core.network.response.metadata.*
 import dev.halim.core.network.response.play.*
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets

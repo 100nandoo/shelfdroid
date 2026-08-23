@@ -347,11 +347,11 @@
 
     <!--Email Management-->
     <string name="email_management">Email Management</string>
-    <string name="apprise_notification_settings">Apprise Notification Settings</string>
+    <string name="apprise_notification_settings">Notifications</string>
     <!--Email Management-->
 
     <!--Metadata Utils Screen-->
-    <string name="library_item_metadata_utilities">Library item metadata utilities</string>
+    <string name="library_item_metadata_utilities">Item Metadata Utils</string>
     <string name="metadata_utilities_description">Manage server-wide Tags, Genres, and Custom metadata providers.</string>
     <string name="metadata_tags">Tags</string>
     <string name="metadata_genres">Genres</string>
@@ -369,7 +369,6 @@
     <string name="metadata_provider_name_required">Provider name cannot be blank.</string>
     <string name="metadata_provider_url_required">Provider URL cannot be blank.</string>
     <string name="metadata_provider_auth_header">Authorization header</string>
-    <string name="metadata_provider_books_only">This provider will be available for Books.</string>
     <string name="metadata_provider_add">Add provider</string>
     <string name="metadata_provider_no_auth_header">No authorization header configured.</string>
     <string name="metadata_provider_show_auth_header">Show authorization header</string>
@@ -385,7 +384,6 @@
 
     <!--Tag Screen-->
     <string name="tag_management">Tags</string>
-    <string name="tag_loading">Loading Tags…</string>
     <string name="tag_empty">No Tags are configured.</string>
     <string name="tag_load_failed">Failed to load Tags.</string>
     <string name="tag_rename">Rename Tag</string>

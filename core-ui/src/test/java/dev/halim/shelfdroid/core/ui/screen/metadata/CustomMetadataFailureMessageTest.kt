@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata
 
-import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataOperation
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataFailureMessages
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.customMetadataFailureMessage
 import org.junit.Assert.assertEquals

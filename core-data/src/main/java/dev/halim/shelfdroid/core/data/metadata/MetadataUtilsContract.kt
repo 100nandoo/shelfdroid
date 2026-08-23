@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.metadata
 
-import dev.halim.shelfdroid.core.data.metadata.genre.GenreMutation
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreMutation
 import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
 
 interface MetadataUtilsContract {

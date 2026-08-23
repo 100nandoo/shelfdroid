@@ -16,15 +16,16 @@ fun customMetadataFailureMessage(
   detail: String?,
   messages: CustomMetadataFailureMessages,
 ): String {
-  val prefix = when (validationError) {
-    MetadataValidationError.CustomMetadataProviderNameRequired -> messages.providerNameRequired
-    MetadataValidationError.CustomMetadataProviderUrlRequired -> messages.providerUrlRequired
-    else ->
-      when (operation) {
-        CustomMetadataOperation.Create -> messages.createFailed
-        CustomMetadataOperation.Delete -> messages.deleteFailed
-      }
-  }
+  val prefix =
+    when (validationError) {
+      MetadataValidationError.CustomMetadataProviderNameRequired -> messages.providerNameRequired
+      MetadataValidationError.CustomMetadataProviderUrlRequired -> messages.providerUrlRequired
+      else ->
+        when (operation) {
+          CustomMetadataOperation.Create -> messages.createFailed
+          CustomMetadataOperation.Delete -> messages.deleteFailed
+        }
+    }
   val safeDetail = detail?.trim()?.takeIf(::isSafeProviderFailureDetail)
   return if (validationError != null || safeDetail == null) {
     prefix

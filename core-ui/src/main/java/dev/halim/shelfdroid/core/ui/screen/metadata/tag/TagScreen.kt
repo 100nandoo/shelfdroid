@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata.tag
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,8 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
@@ -20,8 +18,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -32,8 +30,15 @@ import dev.halim.shelfdroid.core.data.metadata.tag.TagDialog
 import dev.halim.shelfdroid.core.data.metadata.tag.TagUiState
 import dev.halim.shelfdroid.core.data.metadata.tag.tagRenameCollision
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.DeleteConfirmationDialog
+import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
+import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.GenreTagItem
 
 @Composable
 fun TagScreen(
@@ -81,72 +86,52 @@ private fun TagContent(
     if (uiState.state is GenericState.Loading || uiState.apiState is TagApiState.Mutating) {
       LinearProgressIndicator(Modifier.fillMaxWidth())
     }
-    when {
-      uiState.state is GenericState.Failure ->
-        TagErrorState(stringResource(R.string.tag_load_failed), retryable = true, onEvent = onEvent)
+    Box(
+      modifier = Modifier.fillMaxWidth().weight(1f),
+      contentAlignment = Alignment.BottomStart,
+    ) {
+      when {
+        uiState.state is GenericState.Failure ->
+          MyTextButtonRetry(
+            message = stringResource(R.string.tag_load_failed),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            onRetry = { onEvent(TagEvent.Retry) },
+          )
 
-      uiState.state is GenericState.Loading ->
-        Text(stringResource(R.string.tag_loading), Modifier.padding(16.dp))
-      uiState.tags.isEmpty() -> Text(stringResource(R.string.tag_empty), Modifier.padding(16.dp))
-      else ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-          items(uiState.tags, key = { it }) { tag ->
-            TagRow(
-              tag = tag,
-              enabled = !uiState.isMutating,
-              onRename = { onEvent(TagEvent.BeginRename(tag)) },
-              onDelete = { onEvent(TagEvent.BeginDelete(tag)) },
-            )
+        uiState.tags.isEmpty() && uiState.state is GenericState.Success ->
+          GenericMessageScreen(stringResource(R.string.tag_empty))
+
+        else ->
+          LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.Bottom,
+          ) {
+            items(uiState.tags, key = { it }) { tag ->
+              GenreTagItem(
+                label = tag,
+                enabled = !uiState.isMutating,
+                renameContentDescriptionResId = R.string.rename_tag_action,
+                deleteContentDescriptionResId = R.string.delete_tag_action,
+                onRename = { onEvent(TagEvent.BeginRename(tag)) },
+                onDelete = { onEvent(TagEvent.BeginDelete(tag)) },
+              )
+            }
           }
-        }
+      }
     }
   }
 
   when (val dialog = uiState.dialog) {
     is TagDialog.Rename -> TagRenameDialog(uiState, dialog.tag, onEvent)
-    is TagDialog.Delete -> TagDeleteDialog(dialog.tag, onEvent)
+    is TagDialog.Delete ->
+      DeleteConfirmationDialog(
+        title = stringResource(R.string.tag_delete),
+        message = stringResource(R.string.tag_delete_confirm, dialog.tag),
+        onConfirm = { onEvent(TagEvent.ConfirmDelete) },
+        onDismiss = { onEvent(TagEvent.DismissDialog) },
+      )
+
     null -> Unit
-  }
-}
-
-@Composable
-private fun TagErrorState(
-  message: String,
-  retryable: Boolean,
-  onEvent: (TagEvent) -> Unit,
-) {
-  Column(
-    Modifier.fillMaxWidth().padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    Text(message)
-    if (retryable) {
-      TextButton(onClick = { onEvent(TagEvent.Retry) }) {
-        Text(stringResource(R.string.retry))
-      }
-    }
-  }
-}
-
-@Composable
-private fun TagRow(tag: String, enabled: Boolean, onRename: () -> Unit, onDelete: () -> Unit) {
-  Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-    Text(
-      tag,
-      Modifier.weight(1f).padding(vertical = 12.dp),
-    )
-    IconButton(onClick = onRename, enabled = enabled) {
-      Icon(
-        painter = painterResource(R.drawable.edit),
-        contentDescription = stringResource(R.string.rename_tag_action),
-      )
-    }
-    IconButton(onClick = onDelete, enabled = enabled) {
-      Icon(
-        painter = painterResource(R.drawable.delete),
-        contentDescription = stringResource(R.string.delete_tag_action),
-      )
-    }
   }
 }
 
@@ -190,21 +175,52 @@ private fun TagRenameDialog(
   )
 }
 
+@ShelfDroidPreview
 @Composable
-private fun TagDeleteDialog(tag: String, onEvent: (TagEvent) -> Unit) {
-  AlertDialog(
-    onDismissRequest = { onEvent(TagEvent.DismissDialog) },
-    title = { Text(stringResource(R.string.tag_delete)) },
-    text = { Text(stringResource(R.string.tag_delete_confirm, tag)) },
-    confirmButton = {
-      Button(onClick = { onEvent(TagEvent.ConfirmDelete) }) {
-        Text(stringResource(R.string.delete))
-      }
-    },
-    dismissButton = {
-      TextButton(onClick = { onEvent(TagEvent.DismissDialog) }) {
-        Text(stringResource(R.string.cancel))
-      }
-    },
-  )
+private fun TagContentPreview() {
+  PreviewWrapper {
+    TagContent(
+      uiState = TagUiState(state = GenericState.Success, tags = listOf("Adventure", "History")),
+      onEvent = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun TagContentEmptyPreview() {
+  PreviewWrapper {
+    TagContent(
+      uiState = TagUiState(state = GenericState.Success, tags = emptyList()),
+      onEvent = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun TagContentFailurePreview() {
+  PreviewWrapper {
+    TagContent(
+      uiState = TagUiState(state = GenericState.Failure("Unable to load tags.")),
+      onEvent = {},
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun TagRenameDialogPreview() {
+  AnimatedPreviewWrapper {
+    TagRenameDialog(
+      uiState =
+        TagUiState(
+          state = GenericState.Success,
+          tags = listOf("Adventure", "History"),
+          renameDraft = "Historical Fiction",
+        ),
+      currentTag = "History",
+      onEvent = {},
+    )
+  }
 }

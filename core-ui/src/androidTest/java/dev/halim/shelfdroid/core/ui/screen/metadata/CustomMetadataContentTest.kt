@@ -14,8 +14,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataDialog
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataUiState
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataContent
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataEvent

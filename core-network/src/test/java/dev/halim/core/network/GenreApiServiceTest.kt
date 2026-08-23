@@ -1,7 +1,7 @@
 package dev.halim.core.network
 
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
-import dev.halim.core.network.request.RenameGenreRequest
+import dev.halim.core.network.request.metadata.RenameGenreRequest
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType

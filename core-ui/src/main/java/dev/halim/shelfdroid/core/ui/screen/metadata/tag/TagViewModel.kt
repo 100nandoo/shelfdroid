@@ -75,8 +75,7 @@ class TagViewModel @Inject constructor(private val repository: MetadataUtilsCont
             _uiState.update {
               it.copy(
                 state = GenericState.Failure(error.message),
-                apiState =
-                  TagApiState.Failure(error.message),
+                apiState = TagApiState.Failure(error.message),
               )
             }
           },
@@ -105,10 +104,7 @@ class TagViewModel @Inject constructor(private val repository: MetadataUtilsCont
           },
           onFailure = { error ->
             _uiState.update {
-              it.copy(
-                apiState =
-                  TagApiState.Failure(error.message)
-              )
+              it.copy(apiState = TagApiState.Failure(error.message))
             }
           },
         )
@@ -134,10 +130,7 @@ class TagViewModel @Inject constructor(private val repository: MetadataUtilsCont
           },
           onFailure = { error ->
             _uiState.update {
-              it.copy(
-                apiState =
-                  TagApiState.Failure(error.message)
-              )
+              it.copy(apiState = TagApiState.Failure(error.message))
             }
           },
         )

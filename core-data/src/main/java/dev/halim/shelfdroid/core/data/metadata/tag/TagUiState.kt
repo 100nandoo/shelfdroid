@@ -1,6 +1,10 @@
 package dev.halim.shelfdroid.core.data.metadata.tag
 
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.metadata.MetadataMutation
+import dev.halim.shelfdroid.core.data.metadata.MetadataRenameCollision
+import dev.halim.shelfdroid.core.data.metadata.metadataRenameCollision
+import dev.halim.shelfdroid.core.data.metadata.sortedMetadataItems
 
 data class TagUiState(
   val state: GenericState = GenericState.Loading,
@@ -39,21 +43,14 @@ enum class Operation {
   Delete,
 }
 
-data class TagRenameCollision(val exact: Boolean, val caseOnly: Boolean)
+typealias TagMutation = MetadataMutation
 
-data class TagMutation(val updatedItemCount: Int, val merged: Boolean = false)
+typealias TagRenameCollision = MetadataRenameCollision
 
-fun sortedTags(tags: Iterable<String>): List<String> =
-  tags.distinct().sortedWith(String.CASE_INSENSITIVE_ORDER)
+fun sortedTags(tags: Iterable<String>): List<String> = sortedMetadataItems(tags)
 
 fun tagRenameCollision(
   currentTag: String,
   newTag: String,
   tags: Iterable<String>,
-): TagRenameCollision {
-  val current = currentTag.trim()
-  val target = newTag.trim()
-  val exact = tags.any { it != current && it == target }
-  val caseOnly = !exact && tags.any { it != current && it.equals(target, ignoreCase = true) }
-  return TagRenameCollision(exact = exact, caseOnly = caseOnly)
-}
+): TagRenameCollision = metadataRenameCollision(currentTag, newTag, tags)
