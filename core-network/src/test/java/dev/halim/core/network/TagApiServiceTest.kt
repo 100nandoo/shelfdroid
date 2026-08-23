@@ -17,7 +17,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 class TagApiServiceTest {
-  private val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
+  private val json = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+  }
 
   @Test
   fun renameTag_usesServerRenameContract() = runTest {
@@ -71,7 +74,10 @@ class TagApiServiceTest {
             .protocol(Protocol.HTTP_1_1)
             .code(200)
             .message("OK")
-            .body("{\"numItemsUpdated\":4,\"tagMerged\":true}".toResponseBody("application/json".toMediaType()))
+            .body(
+              "{\"numItemsUpdated\":4,\"tagMerged\":true}"
+                .toResponseBody("application/json".toMediaType())
+            )
             .build()
         }
         .build()

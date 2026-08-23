@@ -17,7 +17,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 class CustomMetadataProviderApiServiceTest {
-  private val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
+  private val json = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+  }
 
   @Test
   fun customProviderRequests_preserveServerUrlSubpath() = runTest {

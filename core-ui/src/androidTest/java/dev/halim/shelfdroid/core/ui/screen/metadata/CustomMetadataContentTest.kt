@@ -14,26 +14,28 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataDialog
 import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProvider
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderManagementDialog
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderManagementUiState
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataUiState
+import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataContent
+import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataEvent
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class CustomMetadataProviderManagementContentTest {
+class CustomMetadataContentTest {
 
   @get:Rule val composeRule = createComposeRule()
 
   @Test
   fun providerHeaders_areMaskedByDefaultAndEachShowHideControlIsIndependent() {
     val storedProvider = provider(authHeaderValue = "Bearer stored-secret")
-    val events = mutableListOf<CustomMetadataProviderManagementEvent>()
+    val events = mutableListOf<CustomMetadataEvent>()
     var uiState by
       mutableStateOf(
-        CustomMetadataProviderManagementUiState(
+        CustomMetadataUiState(
           state = GenericState.Success,
           providers = listOf(storedProvider),
           nameDraft = "Community",
@@ -43,12 +45,12 @@ class CustomMetadataProviderManagementContentTest {
       )
 
     composeRule.setContent {
-      CustomMetadataProviderManagementContent(uiState) { event ->
+      CustomMetadataContent(uiState) { event ->
         events += event
         when (event) {
-          is CustomMetadataProviderManagementEvent.SetAuthHeaderVisible ->
+          is CustomMetadataEvent.SetAuthHeaderVisible ->
             uiState = uiState.copy(authHeaderVisible = event.visible)
-          is CustomMetadataProviderManagementEvent.SetProviderVisible ->
+          is CustomMetadataEvent.SetProviderVisible ->
             uiState =
               uiState.copy(
                 revealedProviderIds =
@@ -69,9 +71,7 @@ class CustomMetadataProviderManagementContentTest {
 
     composeRule.onAllNodesWithContentDescription("Show authorization header")[0].performClick()
     composeRule.onNodeWithText("Bearer draft-secret").assertIsDisplayed()
-    assertTrue(
-      events.contains(CustomMetadataProviderManagementEvent.SetAuthHeaderVisible(visible = true))
-    )
+    assertTrue(events.contains(CustomMetadataEvent.SetAuthHeaderVisible(visible = true)))
 
     composeRule.onNodeWithContentDescription("Hide authorization header").performClick()
     composeRule.onAllNodesWithText("Bearer draft-secret").assertCountEquals(0)
@@ -86,18 +86,20 @@ class CustomMetadataProviderManagementContentTest {
   fun storedProvider_hasDeleteControlAndConfirmationNamesProviderAndGoogleFallback_withoutEdit() {
     val storedProvider = provider()
     composeRule.setContent {
-      CustomMetadataProviderManagementContent(
-        CustomMetadataProviderManagementUiState(
+      CustomMetadataContent(
+        CustomMetadataUiState(
           state = GenericState.Success,
           providers = listOf(storedProvider),
-          dialog = CustomMetadataProviderManagementDialog.Delete(storedProvider),
+          dialog = CustomMetadataDialog.Delete(storedProvider),
         ),
         onEvent = {},
       )
     }
 
     composeRule.onNodeWithContentDescription("Delete Custom metadata provider").assertIsDisplayed()
-    composeRule.onAllNodesWithContentDescription("Edit Custom metadata provider").assertCountEquals(0)
+    composeRule
+      .onAllNodesWithContentDescription("Edit Custom metadata provider")
+      .assertCountEquals(0)
     composeRule.onNodeWithText("Delete Custom metadata provider").assertIsDisplayed()
     composeRule.onNodeWithText("Community", substring = true).assertIsDisplayed()
     composeRule.onNodeWithText("Google metadata source", substring = true).assertIsDisplayed()

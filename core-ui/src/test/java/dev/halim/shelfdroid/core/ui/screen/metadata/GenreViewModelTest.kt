@@ -1,12 +1,14 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata
 
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.GenreManagementApiState
+import dev.halim.shelfdroid.core.data.metadata.GenreApiState
 import dev.halim.shelfdroid.core.data.metadata.GenreMutation
 import dev.halim.shelfdroid.core.data.metadata.GenreOperation
 import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
-import dev.halim.shelfdroid.core.data.metadata.MetadataUtilitiesRepositoryContract
+import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
 import dev.halim.shelfdroid.core.data.metadata.TagMutation
+import dev.halim.shelfdroid.core.ui.screen.metadata.genre.GenreEvent
+import dev.halim.shelfdroid.core.ui.screen.metadata.genre.GenreViewModel
 import java.util.ArrayDeque
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -14,25 +16,23 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.test.TestScope
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GenreManagementViewModelTest {
+class GenreViewModelTest {
 
   @Test
   fun loadSuccess_sortsGenresAndExposesReadyContent() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val viewModel =
-      GenreManagementViewModel(
-        FakeRepository(loadResults = listOf(Result.success(listOf("zeta", "Alpha"))))
-      )
+      GenreViewModel(FakeRepository(loadResults = listOf(Result.success(listOf("zeta", "Alpha")))))
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
@@ -45,15 +45,13 @@ class GenreManagementViewModelTest {
   fun accessDenied_exposesNonRetryableFailure() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val viewModel =
-      GenreManagementViewModel(
-        FakeRepository(
-          loadResults = listOf(Result.failure(MetadataAccessDeniedException()))
-        )
+      GenreViewModel(
+        FakeRepository(loadResults = listOf(Result.failure(MetadataAccessDeniedException())))
       )
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    val state = viewModel.uiState.value.apiState as GenreManagementApiState.Failure
+    val state = viewModel.uiState.value.apiState as GenreApiState.Failure
     assertTrue(state.accessDenied)
     collection.cancel()
   }
@@ -70,17 +68,17 @@ class GenreManagementViewModelTest {
           ),
         renameResult = Result.success(GenreMutation(updatedItemCount = 2, merged = true)),
       )
-    val viewModel = GenreManagementViewModel(repository)
+    val viewModel = GenreViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(GenreManagementEvent.BeginRename("old"))
-    viewModel.onEvent(GenreManagementEvent.UpdateRenameDraft("new"))
-    viewModel.onEvent(GenreManagementEvent.ConfirmRename)
+    viewModel.onEvent(GenreEvent.BeginRename("old"))
+    viewModel.onEvent(GenreEvent.UpdateRenameDraft("new"))
+    viewModel.onEvent(GenreEvent.ConfirmRename)
     advanceUntilIdle()
 
     assertEquals(listOf("new"), viewModel.uiState.value.genres)
-    assertEquals(GenreManagementApiState.RenameSuccess(2, merged = true), viewModel.uiState.value.apiState)
+    assertEquals(GenreApiState.RenameSuccess(2, merged = true), viewModel.uiState.value.apiState)
     assertEquals(2, repository.loadCalls)
     collection.cancel()
   }
@@ -93,17 +91,17 @@ class GenreManagementViewModelTest {
         loadResults = listOf(Result.success(listOf("current"))),
         deleteResult = Result.failure(IllegalStateException("offline")),
       )
-    val viewModel = GenreManagementViewModel(repository)
+    val viewModel = GenreViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(GenreManagementEvent.BeginDelete("current"))
-    viewModel.onEvent(GenreManagementEvent.ConfirmDelete)
+    viewModel.onEvent(GenreEvent.BeginDelete("current"))
+    viewModel.onEvent(GenreEvent.ConfirmDelete)
     advanceUntilIdle()
 
     assertEquals(listOf("current"), viewModel.uiState.value.genres)
     assertEquals(
-      GenreManagementApiState.Failure("offline", operation = GenreOperation.Delete),
+      GenreApiState.Failure("offline", operation = GenreOperation.Delete),
       viewModel.uiState.value.apiState,
     )
     collection.cancel()
@@ -117,31 +115,31 @@ class GenreManagementViewModelTest {
         loadResults = listOf(Result.success(listOf("current"))),
         renameResult = Result.failure(IllegalStateException("offline")),
       )
-    val viewModel = GenreManagementViewModel(repository)
+    val viewModel = GenreViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(GenreManagementEvent.BeginRename("current"))
-    viewModel.onEvent(GenreManagementEvent.UpdateRenameDraft("changed"))
-    viewModel.onEvent(GenreManagementEvent.ConfirmRename)
+    viewModel.onEvent(GenreEvent.BeginRename("current"))
+    viewModel.onEvent(GenreEvent.UpdateRenameDraft("changed"))
+    viewModel.onEvent(GenreEvent.ConfirmRename)
     advanceUntilIdle()
 
     assertEquals(listOf("current"), viewModel.uiState.value.genres)
     assertEquals(
-      GenreManagementApiState.Failure("offline", operation = GenreOperation.Rename),
+      GenreApiState.Failure("offline", operation = GenreOperation.Rename),
       viewModel.uiState.value.apiState,
     )
     collection.cancel()
   }
 
-  private fun TestScope.collectState(viewModel: GenreManagementViewModel): Job =
+  private fun TestScope.collectState(viewModel: GenreViewModel): Job =
     backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
 
   private class FakeRepository(
     loadResults: List<Result<List<String>>>,
     private val renameResult: Result<GenreMutation> = Result.success(GenreMutation(0)),
     private val deleteResult: Result<GenreMutation> = Result.success(GenreMutation(0)),
-  ) : MetadataUtilitiesRepositoryContract {
+  ) : MetadataUtilsContract {
     private val pendingLoads = ArrayDeque(loadResults)
     var loadCalls = 0
       private set
@@ -151,7 +149,8 @@ class GenreManagementViewModelTest {
     override suspend fun renameTag(tag: String, newTag: String): Result<TagMutation> =
       Result.success(TagMutation(0))
 
-    override suspend fun deleteTag(tag: String): Result<TagMutation> = Result.success(TagMutation(0))
+    override suspend fun deleteTag(tag: String): Result<TagMutation> =
+      Result.success(TagMutation(0))
 
     override suspend fun loadGenres(): Result<List<String>> {
       loadCalls += 1

@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.metadata
 
+import android.content.ContextWrapper
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import dev.halim.core.network.ApiService
@@ -10,6 +11,7 @@ import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.tags.TagRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.helper.Helper
 import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.CoroutineScope
@@ -33,11 +35,15 @@ import org.junit.Test
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
-class MetadataUtilitiesRepositoryHttpTest {
+class MetadataUtilsRepositoryHttpTest {
 
   @Test
   fun load_admin_sortsTagsAndUpdatesAdministrativeCache() = runTest {
-    val fixture = fixture(UserType.Admin, responses = listOf(Stub(200, "{\"tags\":[\"zeta\",\"Alpha\",\"beta\"]}")))
+    val fixture =
+      fixture(
+        UserType.Admin,
+        responses = listOf(Stub(200, "{\"tags\":[\"zeta\",\"Alpha\",\"beta\"]}")),
+      )
     try {
       val result = fixture.repository.loadTags()
 
@@ -62,7 +68,8 @@ class MetadataUtilitiesRepositoryHttpTest {
 
   @Test
   fun load_nonAdmin_returnsAccessDeniedWithoutRequest() = runTest {
-    val fixture = fixture(UserType.User, responses = listOf(Stub(200, "{\"tags\":[\"should-not-load\"]}")))
+    val fixture =
+      fixture(UserType.User, responses = listOf(Stub(200, "{\"tags\":[\"should-not-load\"]}")))
     try {
       val result = fixture.repository.loadTags()
 
@@ -236,7 +243,9 @@ class MetadataUtilitiesRepositoryHttpTest {
   fun blankGenreRename_isRejectedBeforeRequest() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(200, "{}")))
     try {
-      assertTrue(fixture.repository.renameGenre("old", "  ").exceptionOrNull() is GenreNameRequiredException)
+      assertTrue(
+        fixture.repository.renameGenre("old", "  ").exceptionOrNull() is GenreNameRequiredException
+      )
       assertTrue(fixture.requests.isEmpty())
     } finally {
       fixture.close()
@@ -331,7 +340,11 @@ class MetadataUtilitiesRepositoryHttpTest {
     try {
       val provider =
         fixture.repository
-          .createCustomMetadataProvider(" Community ", " https://provider.example ", "Bearer secret")
+          .createCustomMetadataProvider(
+            " Community ",
+            " https://provider.example ",
+            "Bearer secret",
+          )
           .getOrThrow()
 
       assertEquals("provider-1", provider.id)
@@ -354,9 +367,8 @@ class MetadataUtilitiesRepositoryHttpTest {
           .exceptionOrNull() is CustomMetadataProviderNameRequiredException
       )
       assertTrue(
-        fixture.repository
-          .createCustomMetadataProvider("Provider", " ", null)
-          .exceptionOrNull() is CustomMetadataProviderUrlRequiredException
+        fixture.repository.createCustomMetadataProvider("Provider", " ", null).exceptionOrNull()
+          is CustomMetadataProviderUrlRequiredException
       )
       assertTrue(fixture.requests.isEmpty())
     } finally {
@@ -368,8 +380,7 @@ class MetadataUtilitiesRepositoryHttpTest {
   fun createCustomProvider_serverValidationFailureIsPropagated() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(400, "Invalid url")))
     try {
-      val result =
-        fixture.repository.createCustomMetadataProvider("Provider", "not-a-url", null)
+      val result = fixture.repository.createCustomMetadataProvider("Provider", "not-a-url", null)
       assertTrue(result.isFailure)
       assertEquals("Invalid url", result.exceptionOrNull()?.message)
       assertEquals(listOf("POST /api/custom-metadata-providers"), fixture.requestSummary())
@@ -397,7 +408,8 @@ class MetadataUtilitiesRepositoryHttpTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
     try {
       assertTrue(
-        fixture.repository.loadCustomMetadataProviders().exceptionOrNull() is MetadataAccessDeniedException
+        fixture.repository.loadCustomMetadataProviders().exceptionOrNull()
+          is MetadataAccessDeniedException
       )
     } finally {
       fixture.close()
@@ -423,8 +435,8 @@ class MetadataUtilitiesRepositoryHttpTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
     try {
       assertTrue(
-        fixture.repository.deleteCustomMetadataProvider("provider-1").exceptionOrNull() is
-          MetadataAccessDeniedException
+        fixture.repository.deleteCustomMetadataProvider("provider-1").exceptionOrNull()
+          is MetadataAccessDeniedException
       )
     } finally {
       fixture.close()
@@ -451,7 +463,8 @@ class MetadataUtilitiesRepositoryHttpTest {
         .addInterceptor(HostSelectionInterceptor(dataStoreManager))
         .addInterceptor { chain ->
           requests += chain.request()
-          bodies += chain.request().body?.let { body -> Buffer().also { body.writeTo(it) }.readUtf8() }
+          bodies +=
+            chain.request().body?.let { body -> Buffer().also { body.writeTo(it) }.readUtf8() }
           val stub = responses.getOrElse(requests.lastIndex) { responses.last() }
           Response.Builder()
             .request(chain.request())
@@ -462,7 +475,10 @@ class MetadataUtilitiesRepositoryHttpTest {
             .build()
         }
         .build()
-    val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
+    val json = Json {
+      ignoreUnknownKeys = true
+      explicitNulls = false
+    }
     val api =
       Retrofit.Builder()
         .baseUrl(AudiobookshelfBaseUrl.DEFAULT_VALUE)
@@ -472,8 +488,9 @@ class MetadataUtilitiesRepositoryHttpTest {
         .build()
         .create(ApiService::class.java)
     val tagRepository = TagRepository(api, dataStoreManager)
+    val helper = Helper(dataStoreManager, ContextWrapper(null))
     return Fixture(
-      repository = MetadataUtilitiesRepository(api, dataStoreManager, tagRepository),
+      repository = MetadataUtilsRepository(api, dataStoreManager, tagRepository, helper),
       tagRepository = tagRepository,
       requests = requests,
       bodies = bodies,
@@ -483,7 +500,7 @@ class MetadataUtilitiesRepositoryHttpTest {
   }
 
   private data class Fixture(
-    val repository: MetadataUtilitiesRepository,
+    val repository: MetadataUtilsRepository,
     val tagRepository: TagRepository,
     val requests: MutableList<Request>,
     val bodies: MutableList<String?>,

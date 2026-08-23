@@ -5,7 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class TagManagementUiStateTest {
+class TagUiStateTest {
   @Test
   fun sortedTags_isCaseInsensitiveAndDeterministic() {
     assertEquals(listOf("alpha", "Beta", "zeta"), sortedTags(listOf("zeta", "Beta", "alpha")))

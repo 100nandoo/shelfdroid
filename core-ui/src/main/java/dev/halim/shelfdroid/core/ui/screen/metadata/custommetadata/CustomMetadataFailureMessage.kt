@@ -1,19 +1,19 @@
-package dev.halim.shelfdroid.core.ui.screen.metadata
+package dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata
 
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderOperation
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataOperation
 
 /**
  * Maps an operation failure to a user-actionable message without displaying untrusted or secret
  * server details verbatim.
  */
-fun customMetadataProviderFailureMessage(
-  operation: CustomMetadataProviderOperation,
+fun customMetadataFailureMessage(
+  operation: CustomMetadataOperation,
   detail: String?,
 ): String {
   val prefix =
     when (operation) {
-      CustomMetadataProviderOperation.Create -> "Custom metadata provider creation failed"
-      CustomMetadataProviderOperation.Delete -> "Custom metadata provider deletion failed"
+      CustomMetadataOperation.Create -> "Custom metadata provider creation failed"
+      CustomMetadataOperation.Delete -> "Custom metadata provider deletion failed"
     }
   val safeDetail = detail?.trim()?.takeIf(::isSafeProviderFailureDetail)
   return if (safeDetail == null) "$prefix." else "$prefix: $safeDetail"

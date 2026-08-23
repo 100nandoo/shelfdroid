@@ -11,6 +11,9 @@ import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.extensions.formatDurationShort
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -361,6 +364,17 @@ constructor(
       intent,
       PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
+  }
+
+  /** Standard UTF-8 Base64 followed by URI escaping, as required by the Audiobookshelf endpoint. */
+  fun encodeTagPath(tag: String): String = encodeMetadataPath(tag)
+
+  /** Standard UTF-8 Base64 followed by URI escaping for Audiobookshelf's Genre endpoint. */
+  fun encodeGenrePath(genre: String): String = encodeMetadataPath(genre)
+
+  private fun encodeMetadataPath(value: String): String {
+    val base64 = Base64.getEncoder().encodeToString(value.toByteArray(StandardCharsets.UTF_8))
+    return URLEncoder.encode(base64, StandardCharsets.UTF_8)
   }
 
   companion object {

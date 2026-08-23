@@ -2,7 +2,6 @@
 
 ## High Priority
 
-- [ ] Item metadata utils
 - [ ] Refactor player state
 - [ ] Socket implementation
     - [ ] Handle download event
@@ -108,3 +107,4 @@
 - [x] Email
 - [x] Notifications
 - [x] authentications
+- [x] Item metadata utils

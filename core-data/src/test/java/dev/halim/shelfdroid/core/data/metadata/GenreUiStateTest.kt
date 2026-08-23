@@ -5,7 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class GenreManagementUiStateTest {
+class GenreUiStateTest {
   @Test
   fun sortedGenres_isCaseInsensitiveAndDeterministic() {
     assertEquals(listOf("alpha", "Beta", "zeta"), sortedGenres(listOf("zeta", "Beta", "alpha")))

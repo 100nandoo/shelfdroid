@@ -12,7 +12,8 @@ class TagRepository
 constructor(private val api: ApiService, private val dataStoreManager: DataStoreManager) {
 
   fun listTags(): List<String> = runBlocking {
-    dataStoreManager.tags.firstOrNull()?.toList()?.sortedWith(String.CASE_INSENSITIVE_ORDER) ?: emptyList()
+    dataStoreManager.tags.firstOrNull()?.toList()?.sortedWith(String.CASE_INSENSITIVE_ORDER)
+      ?: emptyList()
   }
 
   suspend fun refreshTags(): Result<TagsResponse> {
@@ -22,7 +23,6 @@ constructor(private val api: ApiService, private val dataStoreManager: DataStore
     return result
   }
 
-  /** Persist a server response before reporting it to callers. */
   suspend fun save(response: TagsResponse) {
     val tags = response.tags
     dataStoreManager.updateTags(tags.toSet())

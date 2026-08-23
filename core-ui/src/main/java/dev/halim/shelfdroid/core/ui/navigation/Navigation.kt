@@ -53,10 +53,10 @@ import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
-import dev.halim.shelfdroid.core.ui.screen.metadata.GenreManagementScreen
-import dev.halim.shelfdroid.core.ui.screen.metadata.CustomMetadataProviderManagementScreen
-import dev.halim.shelfdroid.core.ui.screen.metadata.MetadataUtilitiesHubScreen
-import dev.halim.shelfdroid.core.ui.screen.metadata.TagManagementScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.MetadataUtilsScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.genre.GenreScreen
+import dev.halim.shelfdroid.core.ui.screen.metadata.tag.TagScreen
 import dev.halim.shelfdroid.core.ui.screen.opensession.OpenSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.podcast.PodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.rssfeeds.RssFeedsScreen
@@ -416,26 +416,26 @@ private fun ColumnScope.NavHostContainer(
       }
       entry<LibraryItemMetadataUtilities> {
         Nav3ScreenWrapper(sharedTransitionScope) {
-          MetadataUtilitiesHubScreen(
-            onTagsClicked = { navigator.navigate(TagManagement) },
-            onGenresClicked = { navigator.navigate(GenreManagement) },
-            onCustomProvidersClicked = { navigator.navigate(CustomMetadataProviderManagement) },
+          MetadataUtilsScreen(
+            onTagsClicked = { navigator.navigate(Tag) },
+            onGenresClicked = { navigator.navigate(Genre) },
+            onCustomProvidersClicked = { navigator.navigate(CustomMetadata) },
           )
         }
       }
-      entry<TagManagement> {
+      entry<Tag> {
         Nav3ScreenWrapper(sharedTransitionScope) {
-          TagManagementScreen(snackbarHostState = snackbarHostState)
+          TagScreen(snackbarHostState = snackbarHostState)
         }
       }
-      entry<GenreManagement> {
+      entry<Genre> {
         Nav3ScreenWrapper(sharedTransitionScope) {
-          GenreManagementScreen(snackbarHostState = snackbarHostState)
+          GenreScreen(snackbarHostState = snackbarHostState)
         }
       }
-      entry<CustomMetadataProviderManagement> {
+      entry<CustomMetadata> {
         Nav3ScreenWrapper(sharedTransitionScope) {
-          CustomMetadataProviderManagementScreen(snackbarHostState = snackbarHostState)
+          CustomMetadataScreen(snackbarHostState = snackbarHostState)
         }
       }
     }

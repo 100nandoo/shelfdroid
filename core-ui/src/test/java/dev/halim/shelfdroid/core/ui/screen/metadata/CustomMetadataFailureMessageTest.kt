@@ -1,17 +1,18 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata
 
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderOperation
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataOperation
+import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.customMetadataFailureMessage
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class CustomMetadataProviderFailureMessageTest {
+class CustomMetadataFailureMessageTest {
 
   @Test
   fun createFailureIncludesSafeServerValidationDetailAndContext() {
     assertEquals(
       "Custom metadata provider creation failed: Invalid URL",
-      customMetadataProviderFailureMessage(
-        CustomMetadataProviderOperation.Create,
+      customMetadataFailureMessage(
+        CustomMetadataOperation.Create,
         "Invalid URL",
       ),
     )
@@ -21,14 +22,14 @@ class CustomMetadataProviderFailureMessageTest {
   fun unsafeOrMissingDetailFallsBackToContextOnlyMessage() {
     assertEquals(
       "Custom metadata provider creation failed.",
-      customMetadataProviderFailureMessage(
-        CustomMetadataProviderOperation.Create,
+      customMetadataFailureMessage(
+        CustomMetadataOperation.Create,
         "authHeaderValue: Bearer super-secret",
       ),
     )
     assertEquals(
       "Custom metadata provider deletion failed.",
-      customMetadataProviderFailureMessage(CustomMetadataProviderOperation.Delete, null),
+      customMetadataFailureMessage(CustomMetadataOperation.Delete, null),
     )
   }
 }

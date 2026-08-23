@@ -16,13 +16,13 @@ import dev.halim.core.network.response.libraryitem.Podcast as LibraryPodcast
 import dev.halim.core.network.response.libraryitem.PodcastMetadata as LibraryPodcastMetadata
 import dev.halim.core.network.response.login.*
 import dev.halim.core.network.response.play.*
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.Result
 import okhttp3.MultipartBody
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
-import java.util.Base64
 
 @Singleton
 class FakeApiService @Inject constructor() : ApiService {
@@ -696,11 +696,13 @@ class FakeApiService @Inject constructor() : ApiService {
   }
 
   override suspend fun deleteTag(tag: String): Result<TagMutationResponse> {
-    val decoded =
-      runCatching {
-        val base64 = URLDecoder.decode(tag, StandardCharsets.UTF_8)
-        String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8)
-      }.getOrElse { return Result.failure(it) }
+    val decoded = runCatching {
+      val base64 = URLDecoder.decode(tag, StandardCharsets.UTF_8)
+      String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8)
+    }
+      .getOrElse {
+        return Result.failure(it)
+      }
     synchronized(this) {
       val updated = tags.count { it == decoded }
       tags.removeAll { it == decoded }
@@ -720,18 +722,18 @@ class FakeApiService @Inject constructor() : ApiService {
       } else {
         genres.replaceAll { if (it == request.genre) request.newGenre else it }
       }
-      return Result.success(
-        GenreMutationResponse(numItemsUpdated = updated, genreMerged = merged)
-      )
+      return Result.success(GenreMutationResponse(numItemsUpdated = updated, genreMerged = merged))
     }
   }
 
   override suspend fun deleteGenre(genre: String): Result<GenreMutationResponse> {
-    val decoded =
-      runCatching {
-        val base64 = URLDecoder.decode(genre, StandardCharsets.UTF_8)
-        String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8)
-      }.getOrElse { return Result.failure(it) }
+    val decoded = runCatching {
+      val base64 = URLDecoder.decode(genre, StandardCharsets.UTF_8)
+      String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8)
+    }
+      .getOrElse {
+        return Result.failure(it)
+      }
     synchronized(this) {
       val updated = genres.count { it == decoded }
       genres.removeAll { it == decoded }

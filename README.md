@@ -60,8 +60,8 @@ Android device, and handle common server management tasks from the same app.
 | Email                         | ☑️          |
 | Notifications                 | ☑️          |
 | Authentication                | ☑️          |
+| Item Metadata Utils           | ☑️          |
 | Edit Libraries                | ❌           |
-| Item Metadata Utils           | ❌           |
 
 </details>
 

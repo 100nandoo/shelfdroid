@@ -17,7 +17,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 class GenreApiServiceTest {
-  private val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
+  private val json = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+  }
 
   @Test
   fun renameGenre_usesServerRenameContract() = runTest {

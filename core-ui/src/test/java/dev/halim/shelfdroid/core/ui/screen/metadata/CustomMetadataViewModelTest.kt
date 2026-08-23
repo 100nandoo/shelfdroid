@@ -1,18 +1,20 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata
 
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataApiState
+import dev.halim.shelfdroid.core.data.metadata.CustomMetadataDialog
 import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProvider
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderManagementApiState
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderManagementDialog
 import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
-import dev.halim.shelfdroid.core.data.metadata.MetadataUtilitiesRepositoryContract
+import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
+import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataEvent
+import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataViewModel
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -23,7 +25,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class CustomMetadataProviderManagementViewModelTest {
+class CustomMetadataViewModelTest {
 
   @Test
   fun create_successReloadsProviderAndClearsDraftSecret() = runTest {
@@ -34,15 +36,15 @@ class CustomMetadataProviderManagementViewModelTest {
         loadResults = listOf(Result.success(emptyList()), Result.success(listOf(provider))),
         createResult = Result.success(provider),
       )
-    val viewModel = CustomMetadataProviderManagementViewModel(repository)
+    val viewModel = CustomMetadataViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateName("Community"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateUrl("https://provider.example"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateAuthHeader("Bearer secret"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.SetAuthHeaderVisible(true))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.SubmitCreate)
+    viewModel.onEvent(CustomMetadataEvent.UpdateName("Community"))
+    viewModel.onEvent(CustomMetadataEvent.UpdateUrl("https://provider.example"))
+    viewModel.onEvent(CustomMetadataEvent.UpdateAuthHeader("Bearer secret"))
+    viewModel.onEvent(CustomMetadataEvent.SetAuthHeaderVisible(true))
+    viewModel.onEvent(CustomMetadataEvent.SubmitCreate)
     advanceUntilIdle()
 
     assertEquals(2, repository.loadCalls)
@@ -61,20 +63,20 @@ class CustomMetadataProviderManagementViewModelTest {
       FakeRepository(
         loadResults = listOf(Result.success(listOf(provider)), Result.success(emptyList()))
       )
-    val viewModel = CustomMetadataProviderManagementViewModel(repository)
+    val viewModel = CustomMetadataViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.BeginDelete(provider))
-    assertTrue(viewModel.uiState.value.dialog is CustomMetadataProviderManagementDialog.Delete)
+    viewModel.onEvent(CustomMetadataEvent.BeginDelete(provider))
+    assertTrue(viewModel.uiState.value.dialog is CustomMetadataDialog.Delete)
     assertEquals(0, repository.deleteCalls)
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.ConfirmDelete)
+    viewModel.onEvent(CustomMetadataEvent.ConfirmDelete)
     advanceUntilIdle()
 
     assertEquals(1, repository.deleteCalls)
     assertTrue(viewModel.uiState.value.providers.isEmpty())
-    assertTrue(viewModel.uiState.value.apiState is CustomMetadataProviderManagementApiState.DeleteSuccess)
+    assertTrue(viewModel.uiState.value.apiState is CustomMetadataApiState.DeleteSuccess)
     collection.cancel()
   }
 
@@ -83,16 +85,16 @@ class CustomMetadataProviderManagementViewModelTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val provider = provider(authHeaderValue = "Bearer secret")
     val viewModel =
-      CustomMetadataProviderManagementViewModel(
+      CustomMetadataViewModel(
         FakeRepository(loadResults = listOf(Result.success(listOf(provider))))
       )
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateAuthHeader("transient"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.SetAuthHeaderVisible(true))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.SetProviderVisible(provider.id, true))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.ClearSensitiveState)
+    viewModel.onEvent(CustomMetadataEvent.UpdateAuthHeader("transient"))
+    viewModel.onEvent(CustomMetadataEvent.SetAuthHeaderVisible(true))
+    viewModel.onEvent(CustomMetadataEvent.SetProviderVisible(provider.id, true))
+    viewModel.onEvent(CustomMetadataEvent.ClearSensitiveState)
 
     assertEquals("", viewModel.uiState.value.authHeaderDraft)
     assertTrue(!viewModel.uiState.value.authHeaderVisible)
@@ -105,14 +107,13 @@ class CustomMetadataProviderManagementViewModelTest {
   fun accessDenied_isNonRetryable() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val viewModel =
-      CustomMetadataProviderManagementViewModel(
+      CustomMetadataViewModel(
         FakeRepository(loadResults = listOf(Result.failure(MetadataAccessDeniedException())))
       )
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    val failure =
-      viewModel.uiState.value.apiState as CustomMetadataProviderManagementApiState.Failure
+    val failure = viewModel.uiState.value.apiState as CustomMetadataApiState.Failure
     assertTrue(failure.accessDenied)
     assertTrue(viewModel.uiState.value.state is GenericState.Failure)
     collection.cancel()
@@ -127,18 +128,17 @@ class CustomMetadataProviderManagementViewModelTest {
         loadResults = listOf(Result.success(listOf(provider))),
         createResult = Result.failure(IllegalStateException("Invalid url")),
       )
-    val viewModel = CustomMetadataProviderManagementViewModel(repository)
+    val viewModel = CustomMetadataViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateName("Community"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateUrl("not-a-url"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.SubmitCreate)
+    viewModel.onEvent(CustomMetadataEvent.UpdateName("Community"))
+    viewModel.onEvent(CustomMetadataEvent.UpdateUrl("not-a-url"))
+    viewModel.onEvent(CustomMetadataEvent.SubmitCreate)
     advanceUntilIdle()
 
     assertEquals(listOf(provider), viewModel.uiState.value.providers)
-    val failure =
-      viewModel.uiState.value.apiState as CustomMetadataProviderManagementApiState.Failure
+    val failure = viewModel.uiState.value.apiState as CustomMetadataApiState.Failure
     assertEquals("Invalid url", failure.message)
     collection.cancel()
   }
@@ -153,19 +153,19 @@ class CustomMetadataProviderManagementViewModelTest {
         loadResults = listOf(Result.success(emptyList()), Result.success(listOf(provider))),
         createResult = createResult,
       )
-    val viewModel = CustomMetadataProviderManagementViewModel(repository)
+    val viewModel = CustomMetadataViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateName("Community"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateUrl("https://provider.example"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.SubmitCreate)
+    viewModel.onEvent(CustomMetadataEvent.UpdateName("Community"))
+    viewModel.onEvent(CustomMetadataEvent.UpdateUrl("https://provider.example"))
+    viewModel.onEvent(CustomMetadataEvent.SubmitCreate)
     advanceUntilIdle()
     assertTrue(viewModel.uiState.value.isMutating)
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.SubmitCreate)
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.BeginDelete(provider))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.ConfirmDelete)
+    viewModel.onEvent(CustomMetadataEvent.SubmitCreate)
+    viewModel.onEvent(CustomMetadataEvent.BeginDelete(provider))
+    viewModel.onEvent(CustomMetadataEvent.ConfirmDelete)
     assertEquals(1, repository.createCalls)
     assertEquals(0, repository.deleteCalls)
 
@@ -185,20 +185,20 @@ class CustomMetadataProviderManagementViewModelTest {
         loadResults = listOf(Result.success(listOf(provider)), Result.success(emptyList())),
         deleteResult = deleteResult,
       )
-    val viewModel = CustomMetadataProviderManagementViewModel(repository)
+    val viewModel = CustomMetadataViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.BeginDelete(provider))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.ConfirmDelete)
+    viewModel.onEvent(CustomMetadataEvent.BeginDelete(provider))
+    viewModel.onEvent(CustomMetadataEvent.ConfirmDelete)
     advanceUntilIdle()
     assertTrue(viewModel.uiState.value.isMutating)
 
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateName("Community"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.UpdateUrl("https://provider.example"))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.SubmitCreate)
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.BeginDelete(provider))
-    viewModel.onEvent(CustomMetadataProviderManagementEvent.ConfirmDelete)
+    viewModel.onEvent(CustomMetadataEvent.UpdateName("Community"))
+    viewModel.onEvent(CustomMetadataEvent.UpdateUrl("https://provider.example"))
+    viewModel.onEvent(CustomMetadataEvent.SubmitCreate)
+    viewModel.onEvent(CustomMetadataEvent.BeginDelete(provider))
+    viewModel.onEvent(CustomMetadataEvent.ConfirmDelete)
     assertEquals(0, repository.createCalls)
     assertEquals(1, repository.deleteCalls)
 
@@ -217,9 +217,8 @@ class CustomMetadataProviderManagementViewModelTest {
       authHeaderValue = authHeaderValue,
     )
 
-  private fun TestScope.collectState(
-    viewModel: CustomMetadataProviderManagementViewModel
-  ): Job = backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
+  private fun TestScope.collectState(viewModel: CustomMetadataViewModel): Job =
+    backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
 
   private class FakeRepository(
     private val loadResults: List<Result<List<CustomMetadataProvider>>>,
@@ -233,12 +232,14 @@ class CustomMetadataProviderManagementViewModelTest {
         )
       ),
     private val deleteResult: Result<Unit> = Result.success(Unit),
-  ) : MetadataUtilitiesRepositoryContract {
+  ) : MetadataUtilsContract {
     private val pendingLoads = ArrayDeque(loadResults)
     var loadCalls = 0
       private set
+
     var deleteCalls = 0
       private set
+
     var createdAuthHeader: String? = null
       private set
 
@@ -279,10 +280,11 @@ class CustomMetadataProviderManagementViewModelTest {
     private val loadResults: List<Result<List<CustomMetadataProvider>>>,
     private val createResult: CompletableDeferred<Result<CustomMetadataProvider>>? = null,
     private val deleteResult: CompletableDeferred<Result<Unit>>? = null,
-  ) : MetadataUtilitiesRepositoryContract {
+  ) : MetadataUtilsContract {
     private val pendingLoads = ArrayDeque(loadResults)
     var createCalls = 0
       private set
+
     var deleteCalls = 0
       private set
 

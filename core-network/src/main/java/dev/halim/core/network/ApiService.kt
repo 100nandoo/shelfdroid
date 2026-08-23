@@ -38,11 +38,13 @@ import dev.halim.core.network.response.BackupsResponse
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.CheckNewEpisodesResponse
 import dev.halim.core.network.response.CreateUpdateApiKeyResponse
+import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.CustomMetadataProviderResponse
 import dev.halim.core.network.response.CustomMetadataProvidersResponse
-import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Episode
+import dev.halim.core.network.response.GenreMutationResponse
+import dev.halim.core.network.response.GenresResponse
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
@@ -64,8 +66,6 @@ import dev.halim.core.network.response.ServerSettingsResponse
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SetItemCoverResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
-import dev.halim.core.network.response.GenreMutationResponse
-import dev.halim.core.network.response.GenresResponse
 import dev.halim.core.network.response.TagMutationResponse
 import dev.halim.core.network.response.TagsResponse
 import dev.halim.core.network.response.UpdateLibraryItemMediaResponse
@@ -419,12 +419,10 @@ interface ApiService {
   @POST("api/tags/rename")
   suspend fun renameTag(@Body request: RenameTagRequest): Result<TagMutationResponse>
 
-  /**
-   * The server expects the tag path parameter to be standard Base64, URI escaped by the caller.
-   * `encoded = true` prevents Retrofit from escaping the already-safe path a second time.
-   */
   @DELETE("api/tags/{tag}")
-  suspend fun deleteTag(@Path(value = "tag", encoded = true) tag: String): Result<TagMutationResponse>
+  suspend fun deleteTag(
+    @Path(value = "tag", encoded = true) tag: String
+  ): Result<TagMutationResponse>
 
   // genres
   @GET("api/genres") suspend fun genres(): Result<GenresResponse>
@@ -432,7 +430,6 @@ interface ApiService {
   @POST("api/genres/rename")
   suspend fun renameGenre(@Body request: RenameGenreRequest): Result<GenreMutationResponse>
 
-  /** The server expects the genre path parameter as URI-escaped standard Base64. */
   @DELETE("api/genres/{genre}")
   suspend fun deleteGenre(
     @Path(value = "genre", encoded = true) genre: String

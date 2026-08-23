@@ -46,34 +46,32 @@ constructor(
 
         val library =
           if (isBook) {
-            val books =
-              libraryItems.map { item ->
-                val book = libraryItemRepo.bookById(item.id)
-                val isDownloaded =
-                  book?.let {
-                    val localTrackUris =
-                      downloadRepo.localBookTrackUris(item.title, item.author, it.audioTracks)
-                    val downloadedFilenames =
-                      it.audioTracks
-                        .filter { track -> track.index in localTrackUris }
-                        .map { track -> track.metadata.filename }
-                        .toSet()
-                    isBookFullyDownloaded(
-                      trackFilenames = it.audioTracks.map { track -> track.metadata.filename },
-                      downloadedTrackFilenames = downloadedFilenames,
-                    )
-                  } ?: false
-                mapper.toBookUiState(item, isDownloaded)
-              }
+            val books = libraryItems.map { item ->
+              val book = libraryItemRepo.bookById(item.id)
+              val isDownloaded =
+                book?.let {
+                  val localTrackUris =
+                    downloadRepo.localBookTrackUris(item.title, item.author, it.audioTracks)
+                  val downloadedFilenames =
+                    it.audioTracks
+                      .filter { track -> track.index in localTrackUris }
+                      .map { track -> track.metadata.filename }
+                      .toSet()
+                  isBookFullyDownloaded(
+                    trackFilenames = it.audioTracks.map { track -> track.metadata.filename },
+                    downloadedTrackFilenames = downloadedFilenames,
+                  )
+                } ?: false
+              mapper.toBookUiState(item, isDownloaded)
+            }
             LibraryUiState(id, name, true, books = books)
           } else {
-            val podcasts =
-              libraryItems.map { item ->
-                val episodes = podcastEpisodeRepo.byLibraryItemId(item.id)
-                val downloadedEpisodeIds =
-                  downloadRepo.podcastDownloadedEpisodeIds(item.title, episodes)
-                mapper.toPodcastUiState(item, downloadedEpisodeIds)
-              }
+            val podcasts = libraryItems.map { item ->
+              val episodes = podcastEpisodeRepo.byLibraryItemId(item.id)
+              val downloadedEpisodeIds =
+                downloadRepo.podcastDownloadedEpisodeIds(item.title, episodes)
+              mapper.toPodcastUiState(item, downloadedEpisodeIds)
+            }
             LibraryUiState(id, name, false, podcasts = podcasts)
           }
         library
