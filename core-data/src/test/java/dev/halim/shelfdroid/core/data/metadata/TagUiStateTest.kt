@@ -1,5 +1,8 @@
 package dev.halim.shelfdroid.core.data.metadata
 
+import dev.halim.shelfdroid.core.data.metadata.tag.sortedTags
+import dev.halim.shelfdroid.core.data.metadata.tag.tagRenameCollision
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

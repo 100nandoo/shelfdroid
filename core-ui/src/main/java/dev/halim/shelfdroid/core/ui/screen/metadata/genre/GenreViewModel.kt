@@ -4,13 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.GenreApiState
-import dev.halim.shelfdroid.core.data.metadata.GenreDialog
-import dev.halim.shelfdroid.core.data.metadata.GenreOperation
-import dev.halim.shelfdroid.core.data.metadata.GenreUiState
-import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
 import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
-import dev.halim.shelfdroid.core.data.metadata.sortedGenres
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreApiState
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreDialog
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreOperation
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreUiState
+import dev.halim.shelfdroid.core.data.metadata.genre.sortedGenres
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -81,7 +80,6 @@ class GenreViewModel @Inject constructor(private val repository: MetadataUtilsCo
                 apiState =
                   GenreApiState.Failure(
                     error.message,
-                    error is MetadataAccessDeniedException,
                   ),
               )
             }
@@ -120,7 +118,6 @@ class GenreViewModel @Inject constructor(private val repository: MetadataUtilsCo
                 apiState =
                   GenreApiState.Failure(
                     error.message,
-                    error is MetadataAccessDeniedException,
                     operation = GenreOperation.Rename,
                   )
               )
@@ -158,7 +155,6 @@ class GenreViewModel @Inject constructor(private val repository: MetadataUtilsCo
                 apiState =
                   GenreApiState.Failure(
                     error.message,
-                    error is MetadataAccessDeniedException,
                     operation = GenreOperation.Delete,
                   )
               )

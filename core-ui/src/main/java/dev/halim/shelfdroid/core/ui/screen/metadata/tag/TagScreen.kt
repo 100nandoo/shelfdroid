@@ -27,10 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.TagApiState
-import dev.halim.shelfdroid.core.data.metadata.TagDialog
-import dev.halim.shelfdroid.core.data.metadata.TagUiState
-import dev.halim.shelfdroid.core.data.metadata.tagRenameCollision
+import dev.halim.shelfdroid.core.data.metadata.tag.TagApiState
+import dev.halim.shelfdroid.core.data.metadata.tag.TagDialog
+import dev.halim.shelfdroid.core.data.metadata.tag.TagUiState
+import dev.halim.shelfdroid.core.data.metadata.tag.tagRenameCollision
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
@@ -66,8 +66,7 @@ private fun TagSnackbar(
     when {
       renameMessage != null -> snackbarHostState.showSuccessSnackbar(renameMessage)
       deleteMessage != null -> snackbarHostState.showSuccessSnackbar(deleteMessage)
-      failure != null && !failure.accessDenied ->
-        snackbarHostState.showErrorSnackbar(failureMessage)
+      failure != null -> snackbarHostState.showErrorSnackbar(failureMessage)
     }
     if (renameSuccess != null || deleteSuccess != null || failure != null) clear()
   }
@@ -83,13 +82,6 @@ private fun TagContent(
       LinearProgressIndicator(Modifier.fillMaxWidth())
     }
     when {
-      (uiState.apiState as? TagApiState.Failure)?.accessDenied == true ->
-        TagErrorState(
-          stringResource(R.string.tag_access_denied),
-          retryable = false,
-          onEvent = onEvent,
-        )
-
       uiState.state is GenericState.Failure ->
         TagErrorState(stringResource(R.string.tag_load_failed), retryable = true, onEvent = onEvent)
 

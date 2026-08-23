@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.metadata
+package dev.halim.shelfdroid.core.data.metadata.tag
 
 import dev.halim.shelfdroid.core.data.GenericState
 
@@ -31,7 +31,7 @@ sealed interface TagApiState {
 
   data class DeleteSuccess(val updatedItemCount: Int) : TagApiState
 
-  data class Failure(val message: String?, val accessDenied: Boolean = false) : TagApiState
+  data class Failure(val message: String?) : TagApiState
 }
 
 enum class Operation {

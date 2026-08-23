@@ -27,11 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.GenreApiState
-import dev.halim.shelfdroid.core.data.metadata.GenreDialog
-import dev.halim.shelfdroid.core.data.metadata.GenreOperation
-import dev.halim.shelfdroid.core.data.metadata.GenreUiState
-import dev.halim.shelfdroid.core.data.metadata.genreRenameCollision
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreApiState
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreDialog
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreOperation
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreUiState
+import dev.halim.shelfdroid.core.data.metadata.genre.genreRenameCollision
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.showErrorSnackbar
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
@@ -74,8 +74,7 @@ private fun GenreSnackbar(
     when {
       renameMessage != null -> snackbarHostState.showSuccessSnackbar(renameMessage)
       deleteMessage != null -> snackbarHostState.showSuccessSnackbar(deleteMessage)
-      failure != null && !failure.accessDenied ->
-        snackbarHostState.showErrorSnackbar(failureMessage)
+      failure != null -> snackbarHostState.showErrorSnackbar(failureMessage)
     }
     if (renameSuccess != null || deleteSuccess != null || failure != null) clear()
   }
@@ -91,13 +90,6 @@ private fun GenreContent(
       LinearProgressIndicator(Modifier.fillMaxWidth())
     }
     when {
-      (uiState.apiState as? GenreApiState.Failure)?.accessDenied == true ->
-        GenreErrorState(
-          stringResource(R.string.genre_access_denied),
-          retryable = false,
-          onEvent = onEvent,
-        )
-
       uiState.state is GenericState.Failure ->
         GenreErrorState(
           stringResource(R.string.genre_load_failed),

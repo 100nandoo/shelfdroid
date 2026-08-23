@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.core.data.metadata
+package dev.halim.shelfdroid.core.data.metadata.genre
 
 import dev.halim.shelfdroid.core.data.GenericState
 
@@ -33,7 +33,6 @@ sealed interface GenreApiState {
 
   data class Failure(
     val message: String?,
-    val accessDenied: Boolean = false,
     val operation: GenreOperation? = null,
   ) : GenreApiState
 }

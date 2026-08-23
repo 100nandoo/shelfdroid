@@ -31,10 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataApiState
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataDialog
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProvider
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataUiState
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataApiState
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataDialog
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.PasswordTextField
@@ -50,6 +50,13 @@ fun CustomMetadataScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val createdMessage = stringResource(R.string.metadata_provider_created)
   val deletedMessage = stringResource(R.string.metadata_provider_deleted)
+  val failureMessages =
+    CustomMetadataFailureMessages(
+      createFailed = stringResource(R.string.metadata_provider_create_failed),
+      deleteFailed = stringResource(R.string.metadata_provider_delete_failed),
+      providerNameRequired = stringResource(R.string.metadata_provider_name_required),
+      providerUrlRequired = stringResource(R.string.metadata_provider_url_required),
+    )
   DisposableEffect(Unit) {
     onDispose {
       viewModel.onEvent(CustomMetadataEvent.ClearSensitiveState)
@@ -69,9 +76,14 @@ fun CustomMetadataScreen(
 
       is CustomMetadataApiState.Failure -> {
         val operation = apiState.operation
-        if (!apiState.accessDenied && operation != null) {
+        if (operation != null) {
           snackbarHostState.showErrorSnackbar(
-            customMetadataFailureMessage(operation, apiState.message)
+            customMetadataFailureMessage(
+              operation = operation,
+              validationError = apiState.validationError,
+              detail = apiState.serverDetail,
+              messages = failureMessages,
+            )
           )
           viewModel.onEvent(CustomMetadataEvent.ClearApiState)
         }
@@ -92,13 +104,6 @@ internal fun CustomMetadataContent(
     TextHeadlineSmall(text = stringResource(R.string.metadata_custom_providers))
     Spacer(Modifier.height(8.dp))
     when {
-      (uiState.apiState as? CustomMetadataApiState.Failure)?.accessDenied == true ->
-        CustomMetadataErrorState(
-          message = stringResource(R.string.metadata_provider_access_denied),
-          retryable = false,
-          onEvent = onEvent,
-        )
-
       uiState.state is GenericState.Loading -> {
         LinearProgressIndicator(Modifier.fillMaxWidth())
         Text(stringResource(R.string.metadata_provider_loading), Modifier.padding(vertical = 16.dp))

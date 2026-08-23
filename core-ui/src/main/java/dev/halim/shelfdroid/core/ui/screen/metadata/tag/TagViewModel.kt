@@ -4,13 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
 import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
-import dev.halim.shelfdroid.core.data.metadata.Operation
-import dev.halim.shelfdroid.core.data.metadata.TagApiState
-import dev.halim.shelfdroid.core.data.metadata.TagDialog
-import dev.halim.shelfdroid.core.data.metadata.TagUiState
-import dev.halim.shelfdroid.core.data.metadata.sortedTags
+import dev.halim.shelfdroid.core.data.metadata.tag.Operation
+import dev.halim.shelfdroid.core.data.metadata.tag.TagApiState
+import dev.halim.shelfdroid.core.data.metadata.tag.TagDialog
+import dev.halim.shelfdroid.core.data.metadata.tag.TagUiState
+import dev.halim.shelfdroid.core.data.metadata.tag.sortedTags
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -77,7 +76,7 @@ class TagViewModel @Inject constructor(private val repository: MetadataUtilsCont
               it.copy(
                 state = GenericState.Failure(error.message),
                 apiState =
-                  TagApiState.Failure(error.message, error is MetadataAccessDeniedException),
+                  TagApiState.Failure(error.message),
               )
             }
           },
@@ -108,7 +107,7 @@ class TagViewModel @Inject constructor(private val repository: MetadataUtilsCont
             _uiState.update {
               it.copy(
                 apiState =
-                  TagApiState.Failure(error.message, error is MetadataAccessDeniedException)
+                  TagApiState.Failure(error.message)
               )
             }
           },
@@ -137,7 +136,7 @@ class TagViewModel @Inject constructor(private val repository: MetadataUtilsCont
             _uiState.update {
               it.copy(
                 apiState =
-                  TagApiState.Failure(error.message, error is MetadataAccessDeniedException)
+                  TagApiState.Failure(error.message)
               )
             }
           },

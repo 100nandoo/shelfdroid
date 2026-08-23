@@ -1,5 +1,10 @@
 package dev.halim.shelfdroid.core.data.metadata
 
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreMutation
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationException
+import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
+
 import android.content.ContextWrapper
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
@@ -67,26 +72,12 @@ class MetadataUtilsRepositoryHttpTest {
   }
 
   @Test
-  fun load_nonAdmin_returnsAccessDeniedWithoutRequest() = runTest {
-    val fixture =
-      fixture(UserType.User, responses = listOf(Stub(200, "{\"tags\":[\"should-not-load\"]}")))
-    try {
-      val result = fixture.repository.loadTags()
-
-      assertTrue(result.exceptionOrNull() is MetadataAccessDeniedException)
-      assertTrue(fixture.requests.isEmpty())
-    } finally {
-      fixture.close()
-    }
-  }
-
-  @Test
-  fun load_server403_normalizesToAccessDenied() = runTest {
+  fun load_server403_isFailure() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
     try {
       val result = fixture.repository.loadTags()
 
-      assertTrue(result.exceptionOrNull() is MetadataAccessDeniedException)
+      assertTrue(result.isFailure)
       assertEquals(1, fixture.requests.size)
     } finally {
       fixture.close()
@@ -179,25 +170,10 @@ class MetadataUtilsRepositoryHttpTest {
   }
 
   @Test
-  fun loadGenres_nonAdminReturnsAccessDeniedWithoutRequest() = runTest {
-    val fixture =
-      fixture(
-        UserType.User,
-        responses = listOf(Stub(200, "{\"genres\":[\"should-not-load\"]}")),
-      )
-    try {
-      assertTrue(fixture.repository.loadGenres().exceptionOrNull() is MetadataAccessDeniedException)
-      assertTrue(fixture.requests.isEmpty())
-    } finally {
-      fixture.close()
-    }
-  }
-
-  @Test
-  fun loadGenres_server403NormalizesToAccessDenied() = runTest {
+  fun loadGenres_server403_isFailure() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
     try {
-      assertTrue(fixture.repository.loadGenres().exceptionOrNull() is MetadataAccessDeniedException)
+      assertTrue(fixture.repository.loadGenres().isFailure)
     } finally {
       fixture.close()
     }
@@ -243,8 +219,11 @@ class MetadataUtilsRepositoryHttpTest {
   fun blankGenreRename_isRejectedBeforeRequest() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(200, "{}")))
     try {
-      assertTrue(
-        fixture.repository.renameGenre("old", "  ").exceptionOrNull() is GenreNameRequiredException
+      val error = fixture.repository.renameGenre("old", "  ").exceptionOrNull()
+      assertTrue(error is MetadataValidationException)
+      assertEquals(
+        MetadataValidationError.GenreNameRequired,
+        (error as MetadataValidationException).error,
       )
       assertTrue(fixture.requests.isEmpty())
     } finally {
@@ -299,32 +278,6 @@ class MetadataUtilsRepositoryHttpTest {
   }
 
   @Test
-  fun customProviderOperations_nonAdminNeverMakeProviderRequests() = runTest {
-    val fixture =
-      fixture(
-        UserType.User,
-        responses =
-          listOf(
-            Stub(200, "{\"providers\":[]}"),
-            Stub(200, "{}"),
-            Stub(200, "{}"),
-          ),
-      )
-    try {
-      assertTrue(fixture.repository.loadCustomMetadataProviders().isFailure)
-      assertTrue(
-        fixture.repository
-          .createCustomMetadataProvider("Provider", "https://provider.example", null)
-          .isFailure
-      )
-      assertTrue(fixture.repository.deleteCustomMetadataProvider("provider-1").isFailure)
-      assertTrue(fixture.requests.isEmpty())
-    } finally {
-      fixture.close()
-    }
-  }
-
-  @Test
   fun createCustomProvider_sendsBookMediaTypeAndOptionalAuthHeader() = runTest {
     val fixture =
       fixture(
@@ -361,14 +314,21 @@ class MetadataUtilsRepositoryHttpTest {
   fun createCustomProvider_rejectsRequiredFieldsBeforeRequest() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(200, "{}")))
     try {
-      assertTrue(
+      val nameError =
         fixture.repository
           .createCustomMetadataProvider(" ", "https://provider.example", "secret")
-          .exceptionOrNull() is CustomMetadataProviderNameRequiredException
+          .exceptionOrNull()
+      assertTrue(nameError is MetadataValidationException)
+      assertEquals(
+        MetadataValidationError.CustomMetadataProviderNameRequired,
+        (nameError as MetadataValidationException).error,
       )
-      assertTrue(
-        fixture.repository.createCustomMetadataProvider("Provider", " ", null).exceptionOrNull()
-          is CustomMetadataProviderUrlRequiredException
+      val urlError = fixture.repository.createCustomMetadataProvider("Provider", " ", null)
+        .exceptionOrNull()
+      assertTrue(urlError is MetadataValidationException)
+      assertEquals(
+        MetadataValidationError.CustomMetadataProviderUrlRequired,
+        (urlError as MetadataValidationException).error,
       )
       assertTrue(fixture.requests.isEmpty())
     } finally {
@@ -404,26 +364,23 @@ class MetadataUtilsRepositoryHttpTest {
   }
 
   @Test
-  fun customProviderOperations_server403NormalizeToAccessDenied() = runTest {
+  fun customProviderOperations_server403_areFailures() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
     try {
-      assertTrue(
-        fixture.repository.loadCustomMetadataProviders().exceptionOrNull()
-          is MetadataAccessDeniedException
-      )
+      assertTrue(fixture.repository.loadCustomMetadataProviders().isFailure)
     } finally {
       fixture.close()
     }
   }
 
   @Test
-  fun createCustomProvider_server403NormalizesToAccessDenied() = runTest {
+  fun createCustomProvider_server403_isFailure() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
     try {
       assertTrue(
         fixture.repository
           .createCustomMetadataProvider("Provider", "https://provider.example", null)
-          .exceptionOrNull() is MetadataAccessDeniedException
+          .isFailure
       )
     } finally {
       fixture.close()
@@ -431,13 +388,10 @@ class MetadataUtilsRepositoryHttpTest {
   }
 
   @Test
-  fun deleteCustomProvider_server403NormalizesToAccessDenied() = runTest {
+  fun deleteCustomProvider_server403_isFailure() = runTest {
     val fixture = fixture(UserType.Admin, responses = listOf(Stub(403, "{}")))
     try {
-      assertTrue(
-        fixture.repository.deleteCustomMetadataProvider("provider-1").exceptionOrNull()
-          is MetadataAccessDeniedException
-      )
+      assertTrue(fixture.repository.deleteCustomMetadataProvider("provider-1").isFailure)
     } finally {
       fixture.close()
     }
@@ -490,7 +444,7 @@ class MetadataUtilsRepositoryHttpTest {
     val tagRepository = TagRepository(api, dataStoreManager)
     val helper = Helper(dataStoreManager, ContextWrapper(null))
     return Fixture(
-      repository = MetadataUtilsRepository(api, dataStoreManager, tagRepository, helper),
+      repository = MetadataUtilsRepository(api, tagRepository, helper),
       tagRepository = tagRepository,
       requests = requests,
       bodies = bodies,

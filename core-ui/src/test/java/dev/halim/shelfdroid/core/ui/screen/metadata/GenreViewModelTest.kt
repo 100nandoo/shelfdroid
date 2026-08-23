@@ -1,12 +1,11 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata
 
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.GenreApiState
-import dev.halim.shelfdroid.core.data.metadata.GenreMutation
-import dev.halim.shelfdroid.core.data.metadata.GenreOperation
-import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
 import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
-import dev.halim.shelfdroid.core.data.metadata.TagMutation
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreApiState
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreMutation
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreOperation
+import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
 import dev.halim.shelfdroid.core.ui.screen.metadata.genre.GenreEvent
 import dev.halim.shelfdroid.core.ui.screen.metadata.genre.GenreViewModel
 import java.util.ArrayDeque
@@ -38,21 +37,6 @@ class GenreViewModelTest {
 
     assertEquals(GenericState.Success, viewModel.uiState.value.state)
     assertEquals(listOf("Alpha", "zeta"), viewModel.uiState.value.genres)
-    collection.cancel()
-  }
-
-  @Test
-  fun accessDenied_exposesNonRetryableFailure() = runTest {
-    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val viewModel =
-      GenreViewModel(
-        FakeRepository(loadResults = listOf(Result.failure(MetadataAccessDeniedException())))
-      )
-    val collection = collectState(viewModel)
-    advanceUntilIdle()
-
-    val state = viewModel.uiState.value.apiState as GenreApiState.Failure
-    assertTrue(state.accessDenied)
     collection.cancel()
   }
 

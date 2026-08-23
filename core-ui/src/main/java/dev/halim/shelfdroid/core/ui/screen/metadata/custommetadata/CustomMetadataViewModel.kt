@@ -4,15 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataApiState
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataDialog
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataOperation
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProvider
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderNameRequiredException
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProviderUrlRequiredException
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataUiState
-import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
 import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataApiState
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataDialog
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataOperation
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataUiState
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationException
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -100,11 +99,7 @@ class CustomMetadataViewModel @Inject constructor(private val repository: Metada
             _uiState.update {
               it.copy(
                 state = GenericState.Failure(error.message),
-                apiState =
-                  CustomMetadataApiState.Failure(
-                    error.message,
-                    error is MetadataAccessDeniedException,
-                  ),
+                apiState = failureState(error),
               )
             }
           },
@@ -117,11 +112,11 @@ class CustomMetadataViewModel @Inject constructor(private val repository: Metada
     val name = state.nameDraft.trim()
     val url = state.urlDraft.trim()
     if (name.isBlank()) {
-      showValidationFailure(CustomMetadataProviderNameRequiredException())
+      showValidationFailure(MetadataValidationError.CustomMetadataProviderNameRequired)
       return
     }
     if (url.isBlank()) {
-      showValidationFailure(CustomMetadataProviderUrlRequiredException())
+      showValidationFailure(MetadataValidationError.CustomMetadataProviderUrlRequired)
       return
     }
     if (state.isMutating) return
@@ -146,14 +141,7 @@ class CustomMetadataViewModel @Inject constructor(private val repository: Metada
           },
           onFailure = { error ->
             _uiState.update {
-              it.copy(
-                apiState =
-                  CustomMetadataApiState.Failure(
-                    error.message,
-                    error is MetadataAccessDeniedException,
-                    CustomMetadataOperation.Create,
-                  )
-              )
+              it.copy(apiState = failureState(error, CustomMetadataOperation.Create))
             }
           },
         )
@@ -184,14 +172,7 @@ class CustomMetadataViewModel @Inject constructor(private val repository: Metada
           },
           onFailure = { error ->
             _uiState.update {
-              it.copy(
-                apiState =
-                  CustomMetadataApiState.Failure(
-                    error.message,
-                    error is MetadataAccessDeniedException,
-                    CustomMetadataOperation.Delete,
-                  )
-              )
+              it.copy(apiState = failureState(error, CustomMetadataOperation.Delete))
             }
           },
         )
@@ -209,30 +190,33 @@ class CustomMetadataViewModel @Inject constructor(private val repository: Metada
         },
         onFailure = { error ->
           _uiState.update {
-            it.copy(
-              apiState =
-                CustomMetadataApiState.Failure(
-                  error.message,
-                  error is MetadataAccessDeniedException,
-                  operation,
-                )
-            )
+            it.copy(apiState = failureState(error, operation))
           }
         },
       )
   }
 
-  private fun showValidationFailure(error: Throwable) {
+  private fun showValidationFailure(error: MetadataValidationError) {
     _uiState.update {
       it.copy(
         apiState =
           CustomMetadataApiState.Failure(
-            error.message,
+            validationError = error,
             operation = CustomMetadataOperation.Create,
           )
       )
     }
   }
+
+  private fun failureState(
+    error: Throwable,
+    operation: CustomMetadataOperation? = null,
+  ): CustomMetadataApiState.Failure =
+    CustomMetadataApiState.Failure(
+      serverDetail = error.message,
+      validationError = (error as? MetadataValidationException)?.error,
+      operation = operation,
+    )
 
   private fun clearSensitiveState() {
     _uiState.update {

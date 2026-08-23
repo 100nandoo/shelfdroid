@@ -1,11 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata
 
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.GenreMutation
-import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
 import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
-import dev.halim.shelfdroid.core.data.metadata.TagApiState
-import dev.halim.shelfdroid.core.data.metadata.TagMutation
+import dev.halim.shelfdroid.core.data.metadata.genre.GenreMutation
+import dev.halim.shelfdroid.core.data.metadata.tag.TagApiState
+import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
 import dev.halim.shelfdroid.core.ui.screen.metadata.tag.TagEvent
 import dev.halim.shelfdroid.core.ui.screen.metadata.tag.TagViewModel
 import java.util.ArrayDeque
@@ -66,27 +65,6 @@ class TagViewModelTest {
 
     assertTrue(viewModel.uiState.value.state is GenericState.Failure)
     assertEquals(TagApiState.Failure("offline"), viewModel.uiState.value.apiState)
-    assertFalse((viewModel.uiState.value.apiState as TagApiState.Failure).accessDenied)
-    collection.cancel()
-  }
-
-  @Test
-  fun accessDenied_exposesNonRetryableFailure() = runTest {
-    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val viewModel =
-      TagViewModel(
-        FakeRepository(loadResults = listOf(Result.failure(MetadataAccessDeniedException())))
-      )
-    val collection = collectState(viewModel)
-    advanceUntilIdle()
-
-    assertEquals(
-      TagApiState.Failure(
-        "The Audiobookshelf server denied access to this administrative operation.",
-        accessDenied = true,
-      ),
-      viewModel.uiState.value.apiState,
-    )
     collection.cancel()
   }
 

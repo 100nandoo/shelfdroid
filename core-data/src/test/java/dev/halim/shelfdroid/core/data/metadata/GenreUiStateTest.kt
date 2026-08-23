@@ -1,5 +1,8 @@
 package dev.halim.shelfdroid.core.data.metadata
 
+import dev.halim.shelfdroid.core.data.metadata.genre.genreRenameCollision
+import dev.halim.shelfdroid.core.data.metadata.genre.sortedGenres
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

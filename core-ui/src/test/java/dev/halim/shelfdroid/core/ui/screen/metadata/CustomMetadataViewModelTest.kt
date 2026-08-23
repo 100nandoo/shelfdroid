@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.core.ui.screen.metadata
 
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataApiState
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataDialog
-import dev.halim.shelfdroid.core.data.metadata.CustomMetadataProvider
-import dev.halim.shelfdroid.core.data.metadata.MetadataAccessDeniedException
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataProvider
 import dev.halim.shelfdroid.core.data.metadata.MetadataUtilsContract
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataApiState
+import dev.halim.shelfdroid.core.data.metadata.custommetadata.CustomMetadataDialog
+import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataEvent
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataViewModel
 import kotlinx.coroutines.CompletableDeferred
@@ -104,22 +104,6 @@ class CustomMetadataViewModelTest {
   }
 
   @Test
-  fun accessDenied_isNonRetryable() = runTest {
-    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val viewModel =
-      CustomMetadataViewModel(
-        FakeRepository(loadResults = listOf(Result.failure(MetadataAccessDeniedException())))
-      )
-    val collection = collectState(viewModel)
-    advanceUntilIdle()
-
-    val failure = viewModel.uiState.value.apiState as CustomMetadataApiState.Failure
-    assertTrue(failure.accessDenied)
-    assertTrue(viewModel.uiState.value.state is GenericState.Failure)
-    collection.cancel()
-  }
-
-  @Test
   fun failedCreatePreservesExistingProviders() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val provider = provider()
@@ -139,7 +123,7 @@ class CustomMetadataViewModelTest {
 
     assertEquals(listOf(provider), viewModel.uiState.value.providers)
     val failure = viewModel.uiState.value.apiState as CustomMetadataApiState.Failure
-    assertEquals("Invalid url", failure.message)
+    assertEquals("Invalid url", failure.serverDetail)
     collection.cancel()
   }
 
@@ -248,13 +232,13 @@ class CustomMetadataViewModelTest {
     override suspend fun renameTag(
       tag: String,
       newTag: String,
-    ): Result<dev.halim.shelfdroid.core.data.metadata.TagMutation> =
-      Result.success(dev.halim.shelfdroid.core.data.metadata.TagMutation(0))
+    ): Result<TagMutation> =
+      Result.success(TagMutation(0))
 
     override suspend fun deleteTag(
       tag: String
-    ): Result<dev.halim.shelfdroid.core.data.metadata.TagMutation> =
-      Result.success(dev.halim.shelfdroid.core.data.metadata.TagMutation(0))
+    ): Result<TagMutation> =
+      Result.success(TagMutation(0))
 
     override suspend fun loadCustomMetadataProviders(): Result<List<CustomMetadataProvider>> {
       loadCalls += 1
@@ -293,13 +277,13 @@ class CustomMetadataViewModelTest {
     override suspend fun renameTag(
       tag: String,
       newTag: String,
-    ): Result<dev.halim.shelfdroid.core.data.metadata.TagMutation> =
-      Result.success(dev.halim.shelfdroid.core.data.metadata.TagMutation(0))
+    ): Result<TagMutation> =
+      Result.success(TagMutation(0))
 
     override suspend fun deleteTag(
       tag: String
-    ): Result<dev.halim.shelfdroid.core.data.metadata.TagMutation> =
-      Result.success(dev.halim.shelfdroid.core.data.metadata.TagMutation(0))
+    ): Result<TagMutation> =
+      Result.success(TagMutation(0))
 
     override suspend fun loadCustomMetadataProviders(): Result<List<CustomMetadataProvider>> =
       pendingLoads.removeFirst()

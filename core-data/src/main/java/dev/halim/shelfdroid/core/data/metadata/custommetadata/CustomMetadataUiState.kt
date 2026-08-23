@@ -1,6 +1,7 @@
-package dev.halim.shelfdroid.core.data.metadata
+package dev.halim.shelfdroid.core.data.metadata.custommetadata
 
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.core.network.response.libraryitem.MEDIA_TYPE_BOOK
 
 data class CustomMetadataUiState(
   val state: GenericState = GenericState.Loading,
@@ -33,8 +34,8 @@ sealed interface CustomMetadataApiState {
   data object DeleteSuccess : CustomMetadataApiState
 
   data class Failure(
-    val message: String?,
-    val accessDenied: Boolean = false,
+    val serverDetail: String? = null,
+    val validationError: MetadataValidationError? = null,
     val operation: CustomMetadataOperation? = null,
   ) : CustomMetadataApiState
 }
@@ -43,3 +44,22 @@ enum class CustomMetadataOperation {
   Create,
   Delete,
 }
+
+data class CustomMetadataProvider(
+  val id: String,
+  val name: String,
+  val url: String,
+  val mediaType: String = MEDIA_TYPE_BOOK,
+  val slug: String = "",
+  val authHeaderValue: String? = null,
+)
+
+enum class MetadataValidationError {
+  TagNameRequired,
+  GenreNameRequired,
+  CustomMetadataProviderNameRequired,
+  CustomMetadataProviderUrlRequired,
+  CustomMetadataProviderIdRequired,
+}
+
+class MetadataValidationException(val error: MetadataValidationError) : IllegalArgumentException()

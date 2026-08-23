@@ -348,19 +348,26 @@
     <!--Email Management-->
     <string name="email_management">Email Management</string>
     <string name="apprise_notification_settings">Apprise Notification Settings</string>
+    <!--Email Management-->
+
+    <!--Metadata Utils Screen-->
     <string name="library_item_metadata_utilities">Library item metadata utilities</string>
     <string name="metadata_utilities_description">Manage server-wide Tags, Genres, and Custom metadata providers.</string>
     <string name="metadata_tags">Tags</string>
     <string name="metadata_genres">Genres</string>
     <string name="metadata_custom_providers">Custom metadata providers</string>
     <string name="metadata_not_available_yet">Available in a later release.</string>
+    <!--Metadata Utils Screen-->
+
+    <!--Custom Metadata Screen-->
     <string name="metadata_custom_providers_not_available_yet">Custom metadata providers are available in a later release.</string>
     <string name="metadata_provider_loading">Loading Custom metadata providers…</string>
     <string name="metadata_provider_empty">No Custom metadata providers are configured.</string>
     <string name="metadata_provider_load_failed">Failed to load Custom metadata providers.</string>
-    <string name="metadata_provider_access_denied">The Audiobookshelf server denied access to Custom metadata provider management.</string>
     <string name="metadata_provider_name">Provider name</string>
     <string name="metadata_provider_url">Provider URL</string>
+    <string name="metadata_provider_name_required">Provider name cannot be blank.</string>
+    <string name="metadata_provider_url_required">Provider URL cannot be blank.</string>
     <string name="metadata_provider_auth_header">Authorization header</string>
     <string name="metadata_provider_books_only">This provider will be available for Books.</string>
     <string name="metadata_provider_add">Add provider</string>
@@ -374,11 +381,13 @@
     <string name="metadata_provider_deleted">Custom metadata provider deleted. Dependent Libraries will use Audiobookshelf’s Google metadata source.</string>
     <string name="metadata_provider_create_failed">Custom metadata provider creation failed.</string>
     <string name="metadata_provider_delete_failed">Custom metadata provider deletion failed.</string>
+    <!--Custom Metadata Screen-->
+
+    <!--Tag Screen-->
     <string name="tag_management">Tags</string>
     <string name="tag_loading">Loading Tags…</string>
     <string name="tag_empty">No Tags are configured.</string>
     <string name="tag_load_failed">Failed to load Tags.</string>
-    <string name="tag_access_denied">The Audiobookshelf server denied access to Tag management.</string>
     <string name="tag_rename">Rename Tag</string>
     <string name="tag_delete">Delete Tag</string>
     <string name="tag_new_name">New Tag name</string>
@@ -393,11 +402,13 @@
     <string name="tag_mutation_failed">Tag operation failed. Your current Tag list was kept.</string>
     <string name="rename_tag_action">Rename Tag</string>
     <string name="delete_tag_action">Delete Tag</string>
+    <!--Tag Screen-->
+
+    <!--Genre Screen-->
     <string name="genre_management">Genres</string>
     <string name="genre_loading">Loading Genres…</string>
     <string name="genre_empty">No Genres are configured.</string>
     <string name="genre_load_failed">Failed to load Genres.</string>
-    <string name="genre_access_denied">The Audiobookshelf server denied access to Genre management.</string>
     <string name="genre_rename">Rename Genre</string>
     <string name="genre_delete">Delete Genre</string>
     <string name="genre_new_name">New Genre name</string>
@@ -452,7 +463,7 @@
     <string name="device_deleted">Device deleted.</string>
     <string name="no_e_reader_devices">No eReader devices configured.</string>
     <string name="accessible_by_value">Accessible by: %1$s</string>
-    <!--Email Management-->
+    <!--Genre Screen-->
 
     <!--Apprise Notification Settings-->
     <string name="apprise_api_url">Apprise API URL</string>
