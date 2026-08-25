@@ -22,6 +22,22 @@ _Avoid_: Home refresh, full refresh, remote sync
 A server-managed collection of media of a single primary kind, exposed in ShelfDroid as either a book library or a podcast library.
 _Avoid_: Shelf, folder
 
+**Library administration**:
+The administrator-only management of a **Library** lifecycle, ordering, configuration, scanning, and metadata matching on an **Audiobookshelf server**. It is distinct from browsing the **Catalog**.
+_Avoid_: Library settings, Catalog management
+
+**Library scan**:
+An administrative operation that asks the **Audiobookshelf server** to reconcile a **Library** with its configured **Library folders**.
+_Avoid_: Library data synchronization, refresh
+
+**Book matching**:
+An administrative bulk operation that asks the **Audiobookshelf server** to fill missing **Book** details and cover art from a Library's configured metadata provider without overwriting existing details.
+_Avoid_: Library scan, metadata editing, match all
+
+**Server task**:
+A long-running operation tracked by the **Audiobookshelf server**, such as a **Library scan** or **Book matching**, whose acceptance, progress, and completion are distinct states.
+_Avoid_: Request, background job, app task
+
 **Library folder**:
 A server-reported folder inside a **Library** that ShelfDroid may present as a placement target when creating or organizing a **Library item**.
 _Avoid_: Podcast folder, path, directory
@@ -263,6 +279,10 @@ _Avoid_: Best-effort release, unverifiable build
 - A **Catalog** contains one or more **Libraries**
 - A **Library** may contain many **Library folders**
 - A **Library** contains many **Library items**
+- **Library administration** belongs to an **Audiobookshelf server** and may affect one or more **Libraries**
+- A **Library scan** reconciles one **Library** with its configured **Library folders**
+- **Book matching** applies only to a book **Library**
+- A **Library scan** or **Book matching** operation may be represented by one **Server task**
 - A **Library item** is either a **Book** or a **Podcast**
 - A **Tag** may be applied to many **Books** or **Podcasts**
 - A **Genre** may be applied to many **Books** or **Podcasts**

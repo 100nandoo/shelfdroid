@@ -2,7 +2,7 @@
 
 ## High Priority
 
-- [ ] Refactor player state
+- [ ] Edit libraries
 - [ ] Socket implementation
     - [ ] Handle download event
 - [ ] Widget
