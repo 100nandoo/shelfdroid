@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -66,6 +67,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationProviderState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -104,12 +106,16 @@ internal fun LibraryAdministrationCreateContent(
   val nameFocusRequester = remember { FocusRequester() }
   val providerFocusRequester = remember { FocusRequester() }
   val folderFocusRequester = remember { FocusRequester() }
+  val settingsFocusRequester = remember { FocusRequester() }
+  val scannerFocusRequester = remember { FocusRequester() }
 
   LaunchedEffect(uiState.focusField) {
     when (uiState.focusField) {
       LibraryAdministrationCreateField.NAME -> nameFocusRequester.requestFocus()
       LibraryAdministrationCreateField.PROVIDER -> providerFocusRequester.requestFocus()
       LibraryAdministrationCreateField.FOLDERS -> folderFocusRequester.requestFocus()
+      LibraryAdministrationCreateField.SETTINGS_FINISH_THRESHOLD -> settingsFocusRequester.requestFocus()
+      LibraryAdministrationCreateField.SCANNER_PRECEDENCE -> scannerFocusRequester.requestFocus()
       else -> Unit
     }
     if (uiState.focusField != null) onEvent(LibraryAdministrationCreateEvent.ConsumeFocus)
@@ -133,14 +139,16 @@ internal fun LibraryAdministrationCreateContent(
             folderFocusRequester = folderFocusRequester,
           )
         LibraryAdministrationCreateTab.SETTINGS ->
-          Text(
-            text = stringResource(R.string.library_create_settings_coming_soon),
-            modifier = Modifier.padding(16.dp),
+          LibraryAdministrationSettingsContent(
+            uiState = uiState,
+            onEvent = onEvent,
+            focusRequester = settingsFocusRequester,
           )
         LibraryAdministrationCreateTab.SCANNER ->
-          Text(
-            text = stringResource(R.string.library_create_scanner_coming_soon),
-            modifier = Modifier.padding(16.dp),
+          LibraryAdministrationScannerContent(
+            uiState = uiState,
+            onEvent = onEvent,
+            focusRequester = scannerFocusRequester,
           )
       }
     }
@@ -366,6 +374,293 @@ internal fun LibraryAdministrationDetailsContent(
 }
 
 @Composable
+internal fun LibraryAdministrationSettingsContent(
+  uiState: LibraryAdministrationCreateUiState,
+  onEvent: (LibraryAdministrationCreateEvent) -> Unit,
+  focusRequester: FocusRequester,
+) {
+  val isBook = uiState.draft.mediaType == LibraryAdministrationMediaType.BOOK
+  val bookSettings = uiState.draft.bookSettings
+  val podcastSettings = uiState.draft.podcastSettings
+  val coverAspectRatio = if (isBook) bookSettings.coverAspectRatio else podcastSettings.coverAspectRatio
+  val disableWatcher = if (isBook) bookSettings.disableWatcher else podcastSettings.disableWatcher
+  val finishPercent =
+    if (isBook) bookSettings.markAsFinishedPercentComplete
+    else podcastSettings.markAsFinishedPercentComplete
+  val finishTimeRemaining =
+    if (isBook) bookSettings.markAsFinishedTimeRemaining
+    else podcastSettings.markAsFinishedTimeRemaining
+  val finishMode =
+    if (finishPercent != null) {
+      LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE
+    } else {
+      LibraryAdministrationFinishThresholdMode.TIME_REMAINING
+    }
+  val finishValue = finishPercent ?: finishTimeRemaining ?: 0
+  val finishError =
+    uiState.validation.errors[LibraryAdministrationCreateField.SETTINGS_FINISH_THRESHOLD]
+
+  Column(
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(horizontal = 16.dp)
+        .focusRequester(focusRequester)
+        .focusable(),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    Text(stringResource(R.string.library_settings_covers_heading))
+    MySwitch(
+      title = stringResource(R.string.library_settings_square_covers),
+      checked = coverAspectRatio == 1,
+      contentDescription = stringResource(R.string.library_settings_square_covers),
+      onCheckedChange = { enabled ->
+        onEvent(
+          LibraryAdministrationCreateEvent.UpdateCoverAspectRatio(if (enabled) 1 else 0)
+        )
+      },
+    )
+    MySwitch(
+      title = stringResource(R.string.library_settings_watcher),
+      checked = !disableWatcher,
+      contentDescription = stringResource(R.string.library_settings_watcher),
+      onCheckedChange = { enabled ->
+        onEvent(LibraryAdministrationCreateEvent.UpdateWatcher(enabled))
+      },
+    )
+
+    if (isBook) {
+      Text(stringResource(R.string.library_settings_book_heading))
+      MySwitch(
+        title = stringResource(R.string.library_settings_audiobooks_only),
+        checked = bookSettings.audiobooksOnly,
+        contentDescription = stringResource(R.string.library_settings_audiobooks_only),
+        onCheckedChange = { onEvent(LibraryAdministrationCreateEvent.UpdateAudiobooksOnly(it)) },
+      )
+      MySwitch(
+        title = stringResource(R.string.library_settings_skip_asin),
+        checked = bookSettings.skipMatchingMediaWithAsin,
+        contentDescription = stringResource(R.string.library_settings_skip_asin),
+        onCheckedChange = { onEvent(LibraryAdministrationCreateEvent.UpdateSkipMatchingAsin(it)) },
+      )
+      MySwitch(
+        title = stringResource(R.string.library_settings_skip_isbn),
+        checked = bookSettings.skipMatchingMediaWithIsbn,
+        contentDescription = stringResource(R.string.library_settings_skip_isbn),
+        onCheckedChange = { onEvent(LibraryAdministrationCreateEvent.UpdateSkipMatchingIsbn(it)) },
+      )
+      MySwitch(
+        title = stringResource(R.string.library_settings_hide_single_series),
+        checked = bookSettings.hideSingleBookSeries,
+        contentDescription = stringResource(R.string.library_settings_hide_single_series),
+        onCheckedChange = { onEvent(LibraryAdministrationCreateEvent.UpdateHideSingleBookSeries(it)) },
+      )
+      MySwitch(
+        title = stringResource(R.string.library_settings_only_later_books),
+        checked = bookSettings.onlyShowLaterBooksInContinueSeries,
+        contentDescription = stringResource(R.string.library_settings_only_later_books),
+        onCheckedChange = { onEvent(LibraryAdministrationCreateEvent.UpdateOnlyShowLaterBooks(it)) },
+      )
+      MySwitch(
+        title = stringResource(R.string.library_settings_scripted_epub),
+        checked = bookSettings.epubsAllowScriptedContent,
+        contentDescription = stringResource(R.string.library_settings_scripted_epub),
+        onCheckedChange = { onEvent(LibraryAdministrationCreateEvent.UpdateScriptedEpubs(it)) },
+      )
+      if (bookSettings.epubsAllowScriptedContent) {
+        val warningDescription = stringResource(R.string.library_settings_scripted_epub_warning)
+        Text(
+          text = warningDescription,
+          modifier = Modifier.semantics { contentDescription = warningDescription },
+        )
+      }
+    } else {
+      LibraryAdministrationPodcastRegionPicker(
+        region = podcastSettings.podcastSearchRegion,
+        onRegionSelected = {
+          onEvent(LibraryAdministrationCreateEvent.UpdatePodcastSearchRegion(it))
+        },
+      )
+    }
+
+    Text(stringResource(R.string.library_settings_finish_heading))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      FilterChip(
+        selected = finishMode == LibraryAdministrationFinishThresholdMode.TIME_REMAINING,
+        onClick = {
+          onEvent(
+            LibraryAdministrationCreateEvent.SelectFinishThresholdMode(
+              LibraryAdministrationFinishThresholdMode.TIME_REMAINING
+            )
+          )
+        },
+        label = { Text(stringResource(R.string.library_settings_finish_time)) },
+      )
+      FilterChip(
+        selected = finishMode == LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE,
+        onClick = {
+          onEvent(
+            LibraryAdministrationCreateEvent.SelectFinishThresholdMode(
+              LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE
+            )
+          )
+        },
+        label = { Text(stringResource(R.string.library_settings_finish_percent)) },
+      )
+    }
+    OutlinedTextField(
+      value = finishValue.toString(),
+      onValueChange = { value ->
+        value.toIntOrNull()?.let {
+          onEvent(LibraryAdministrationCreateEvent.UpdateFinishThresholdValue(it))
+        }
+      },
+      label = {
+        Text(
+          if (finishMode == LibraryAdministrationFinishThresholdMode.TIME_REMAINING) {
+            stringResource(R.string.library_settings_finish_seconds)
+          } else {
+            stringResource(R.string.library_settings_finish_percent)
+          }
+        )
+      },
+      modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+      isError = finishError != null,
+      supportingText = finishError?.let { errors ->
+        { Text(createErrorText(errors)) }
+      },
+      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+    )
+  }
+}
+
+@Composable
+private fun LibraryAdministrationPodcastRegionPicker(
+  region: String,
+  onRegionSelected: (String) -> Unit,
+) {
+  var expanded by remember { mutableStateOf(false) }
+  val regions =
+    listOf(
+      "au" to "Australia",
+      "br" to "Brasil",
+      "be" to "België / Belgique / Belgien",
+      "by" to "Беларусь",
+      "cz" to "Česko",
+      "dk" to "Danmark",
+      "de" to "Deutschland",
+      "ee" to "Eesti",
+      "es" to "España / Espanya / Espainia",
+      "fr" to "France",
+      "hr" to "Hrvatska",
+      "il" to "ישראל / إسرائيل",
+      "it" to "Italia",
+      "jp" to "日本",
+      "lu" to "Luxembourg / Luxemburg / Lëtezebuerg",
+      "hu" to "Magyarország",
+      "nl" to "Nederland",
+      "no" to "Norge",
+      "nz" to "New Zealand",
+      "at" to "Österreich",
+      "pl" to "Polska",
+      "pt" to "Portugal",
+      "ru" to "Россия",
+      "ch" to "Schweiz / Suisse / Svizzera",
+      "sk" to "Slovensko",
+      "se" to "Sverige",
+      "vn" to "Việt Nam",
+      "ua" to "Україна",
+      "gb" to "United Kingdom",
+      "us" to "United States",
+      "cn" to "中国",
+    )
+  val selectedRegion = regions.firstOrNull { it.first == region } ?: (region to region)
+  ExposedDropdownMenuBox(
+    expanded = expanded,
+    onExpandedChange = { expanded = !expanded },
+  ) {
+    OutlinedTextField(
+      value = selectedRegion.second,
+      onValueChange = {},
+      readOnly = true,
+      label = { Text(stringResource(R.string.library_settings_podcast_region)) },
+      modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+      trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+    )
+    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      regions.forEach { (code, name) ->
+        DropdownMenuItem(
+          text = { Text(name) },
+          onClick = {
+            onRegionSelected(code)
+            expanded = false
+          },
+        )
+      }
+    }
+  }
+}
+
+@Composable
+internal fun LibraryAdministrationScannerContent(
+  uiState: LibraryAdministrationCreateUiState,
+  onEvent: (LibraryAdministrationCreateEvent) -> Unit,
+  focusRequester: FocusRequester,
+) {
+  Column(
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(horizontal = 16.dp)
+        .focusRequester(focusRequester)
+        .focusable(),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    Text(stringResource(R.string.library_scanner_heading))
+    Text(stringResource(R.string.library_scanner_description))
+    uiState.draft.metadataSources.forEachIndexed { index, source ->
+      val priority = uiState.draft.metadataPriority(source.id)
+      val sourceDescription =
+        if (priority == null) source.name
+        else stringResource(R.string.library_scanner_source_priority, source.name, priority)
+      Row(
+        modifier =
+          Modifier.fillMaxWidth().semantics { contentDescription = sourceDescription },
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(priority?.toString().orEmpty(), modifier = Modifier.width(28.dp))
+        MySwitch(
+          modifier = Modifier.weight(1f),
+          title = source.name,
+          checked = source.enabled,
+          contentDescription = source.name,
+          onCheckedChange = {
+            onEvent(LibraryAdministrationCreateEvent.ToggleMetadataSource(source.id, it))
+          },
+        )
+        TextButton(
+          enabled = index > 0,
+          onClick = { onEvent(LibraryAdministrationCreateEvent.MoveMetadataSource(source.id, -1)) },
+        ) {
+          Text(stringResource(R.string.move_up))
+        }
+        TextButton(
+          enabled = index < uiState.draft.metadataSources.lastIndex,
+          onClick = { onEvent(LibraryAdministrationCreateEvent.MoveMetadataSource(source.id, 1)) },
+        ) {
+          Text(stringResource(R.string.move_down))
+        }
+      }
+    }
+    if (uiState.validation.errors.containsKey(LibraryAdministrationCreateField.SCANNER_PRECEDENCE)) {
+      val scannerErrorDescription = stringResource(R.string.library_scanner_validation)
+      Text(
+        text = createErrorText(uiState.validation.errors.getValue(LibraryAdministrationCreateField.SCANNER_PRECEDENCE)),
+        modifier = Modifier.semantics { contentDescription = scannerErrorDescription },
+      )
+    }
+  }
+}
+
+@Composable
 private fun LibraryAdministrationProviderPicker(
   uiState: LibraryAdministrationCreateUiState,
   onEvent: (LibraryAdministrationCreateEvent) -> Unit,
@@ -516,6 +811,10 @@ private fun createErrorText(errors: List<LibraryAdministrationCreateError>): Str
           stringResource(R.string.library_create_error_duplicate_folder)
         LibraryAdministrationCreateError.OVERLAPPING_FOLDER ->
           stringResource(R.string.library_create_error_overlapping_folder)
+        LibraryAdministrationCreateError.INVALID_FINISH_THRESHOLD ->
+          stringResource(R.string.library_settings_error_finish_threshold)
+        LibraryAdministrationCreateError.SCANNER_PRECEDENCE_REQUIRED ->
+          stringResource(R.string.library_scanner_error_source_required)
       }
   }
   return messages.joinToString(separator = ", ")

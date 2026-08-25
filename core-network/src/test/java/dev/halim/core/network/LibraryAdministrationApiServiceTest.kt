@@ -46,6 +46,68 @@ class LibraryAdministrationApiServiceTest {
   }
 
   @Test
+  fun createLibrary_serializesBookSettingsWithoutPodcastOnlyFields() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    service.createLibrary(
+      CreateLibraryRequest(
+        name = "Books",
+        folders = listOf(CreateLibraryRequest.Folder("/books")),
+        mediaType = "book",
+        icon = "audiobookshelf",
+        provider = "audible",
+        settings =
+          CreateLibraryRequest.Settings(
+            coverAspectRatio = 1,
+            disableWatcher = false,
+            audiobooksOnly = true,
+            skipMatchingMediaWithAsin = true,
+            skipMatchingMediaWithIsbn = false,
+            epubsAllowScriptedContent = true,
+            hideSingleBookSeries = true,
+            onlyShowLaterBooksInContinueSeries = false,
+            metadataPrecedence = listOf("folderStructure", "audioMetatags"),
+            markAsFinishedTimeRemaining = 10,
+          ),
+      )
+    )
+
+    assertEquals(
+      "{\"name\":\"Books\",\"folders\":[{\"path\":\"/books\"}],\"mediaType\":\"book\",\"icon\":\"audiobookshelf\",\"provider\":\"audible\",\"settings\":{\"coverAspectRatio\":1,\"disableWatcher\":false,\"audiobooksOnly\":true,\"skipMatchingMediaWithAsin\":true,\"skipMatchingMediaWithIsbn\":false,\"epubsAllowScriptedContent\":true,\"hideSingleBookSeries\":true,\"onlyShowLaterBooksInContinueSeries\":false,\"metadataPrecedence\":[\"folderStructure\",\"audioMetatags\"],\"markAsFinishedTimeRemaining\":10}}",
+      requireNotNull(capturedRequest).body!!.bodyToString(),
+    )
+  }
+
+  @Test
+  fun createLibrary_serializesPodcastSettingsWithoutBookOnlyFields() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    service.createLibrary(
+      CreateLibraryRequest(
+        name = "Podcasts",
+        folders = listOf(CreateLibraryRequest.Folder("/podcasts")),
+        mediaType = "podcast",
+        icon = "audiobookshelf",
+        provider = "itunes",
+        settings =
+          CreateLibraryRequest.Settings(
+            coverAspectRatio = 1,
+            disableWatcher = false,
+            podcastSearchRegion = "gb",
+            markAsFinishedTimeRemaining = 10,
+          ),
+      )
+    )
+
+    val body = requireNotNull(capturedRequest).body!!.bodyToString()
+    assertTrue(body.contains("\"podcastSearchRegion\":\"gb\""))
+    assertTrue(!body.contains("audiobooksOnly"))
+    assertTrue(!body.contains("metadataPrecedence"))
+  }
+
+  @Test
   fun filesystem_serializesPathAndLevelAndMapsWindowsDirectories() = runTest {
     var capturedRequest: Request? = null
     val service = apiService { capturedRequest = it }

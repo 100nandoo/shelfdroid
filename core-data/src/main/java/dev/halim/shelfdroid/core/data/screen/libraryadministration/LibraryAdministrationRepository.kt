@@ -71,6 +71,7 @@ constructor(
               mediaType = draft.mediaType.toApiValue(),
               icon = draft.icon,
               provider = draft.provider.orEmpty(),
+              settings = draft.toCreateSettings(),
             )
           )
           .getOrElse { return@withMutation Result.failure(it) }
@@ -114,4 +115,31 @@ private fun LibraryAdministrationMediaType.toApiValue(): String =
     LibraryAdministrationMediaType.BOOK -> "book"
     LibraryAdministrationMediaType.PODCAST -> "podcast"
     LibraryAdministrationMediaType.UNKNOWN -> "book"
+  }
+
+private fun LibraryAdministrationDraft.toCreateSettings(): CreateLibraryRequest.Settings =
+  when (mediaType) {
+    LibraryAdministrationMediaType.BOOK ->
+      CreateLibraryRequest.Settings(
+        coverAspectRatio = bookSettings.coverAspectRatio,
+        disableWatcher = bookSettings.disableWatcher,
+        audiobooksOnly = bookSettings.audiobooksOnly,
+        skipMatchingMediaWithAsin = bookSettings.skipMatchingMediaWithAsin,
+        skipMatchingMediaWithIsbn = bookSettings.skipMatchingMediaWithIsbn,
+        epubsAllowScriptedContent = bookSettings.epubsAllowScriptedContent,
+        hideSingleBookSeries = bookSettings.hideSingleBookSeries,
+        onlyShowLaterBooksInContinueSeries = bookSettings.onlyShowLaterBooksInContinueSeries,
+        markAsFinishedPercentComplete = bookSettings.markAsFinishedPercentComplete,
+        markAsFinishedTimeRemaining = bookSettings.markAsFinishedTimeRemaining,
+        metadataPrecedence = metadataPrecedence,
+      )
+    LibraryAdministrationMediaType.PODCAST ->
+      CreateLibraryRequest.Settings(
+        coverAspectRatio = podcastSettings.coverAspectRatio,
+        disableWatcher = podcastSettings.disableWatcher,
+        podcastSearchRegion = podcastSettings.podcastSearchRegion,
+        markAsFinishedPercentComplete = podcastSettings.markAsFinishedPercentComplete,
+        markAsFinishedTimeRemaining = podcastSettings.markAsFinishedTimeRemaining,
+      )
+    LibraryAdministrationMediaType.UNKNOWN -> CreateLibraryRequest.Settings()
   }

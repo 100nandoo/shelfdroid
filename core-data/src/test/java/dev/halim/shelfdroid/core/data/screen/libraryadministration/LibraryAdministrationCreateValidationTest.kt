@@ -88,4 +88,27 @@ class LibraryAdministrationCreateValidationTest {
     )
     assertEquals("C:/Media/Podcasts", normalizeLibraryFolderPath("C:\\Media\\Podcasts\\"))
   }
+
+  @Test
+  fun validationRejectsInvalidFinishThresholdAndDisabledScanner() {
+    val draft =
+      LibraryAdministrationDraft(
+        name = "Books",
+        folders = listOf("/books"),
+        bookProvider = "audible",
+        bookSettings = LibraryAdministrationBookSettings(markAsFinishedPercentComplete = 101),
+        metadataSources = LibraryAdministrationDraft().metadataSources.map { it.copy(enabled = false) },
+      )
+
+    val validation = validateLibraryAdministrationDraft(draft, bookProviders)
+
+    assertEquals(
+      listOf(LibraryAdministrationCreateError.INVALID_FINISH_THRESHOLD),
+      validation.errors[LibraryAdministrationCreateField.SETTINGS_FINISH_THRESHOLD],
+    )
+    assertEquals(
+      listOf(LibraryAdministrationCreateError.SCANNER_PRECEDENCE_REQUIRED),
+      validation.errors[LibraryAdministrationCreateField.SCANNER_PRECEDENCE],
+    )
+  }
 }

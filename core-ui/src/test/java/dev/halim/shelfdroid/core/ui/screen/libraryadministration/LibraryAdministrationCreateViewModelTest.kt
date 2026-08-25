@@ -274,6 +274,74 @@ class LibraryAdministrationCreateViewModelTest {
     collection.cancel()
   }
 
+  @Test
+  fun settingsAndScannerDraftsRemainHiddenAndIndependentAcrossMediaSwitches() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(
+            listOf(
+              Result.success(listOf(LibraryAdministrationProvider("audible", "Audible"))),
+              Result.success(listOf(LibraryAdministrationProvider("itunes", "iTunes"))),
+              Result.success(listOf(LibraryAdministrationProvider("audible", "Audible"))),
+            )
+          )
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateAudiobooksOnly(true))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateScriptedEpubs(true))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ToggleMetadataSource("nfoFile", false))
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectMediaType(LibraryAdministrationMediaType.PODCAST)
+    )
+    advanceUntilIdle()
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdatePodcastSearchRegion("gb"))
+
+    assertTrue(viewModel.uiState.value.draft.bookSettings.audiobooksOnly)
+    assertEquals("gb", viewModel.uiState.value.draft.podcastSettings.podcastSearchRegion)
+    assertEquals(false, viewModel.uiState.value.draft.metadataSources.first { it.id == "nfoFile" }.enabled)
+
+    viewModel.onEvent(LibraryAdministrationCreateEvent.SelectMediaType(LibraryAdministrationMediaType.BOOK))
+    advanceUntilIdle()
+    assertEquals(true, viewModel.uiState.value.draft.bookSettings.audiobooksOnly)
+    assertEquals(true, viewModel.uiState.value.draft.bookSettings.epubsAllowScriptedContent)
+    assertEquals(listOf("folderStructure", "audioMetatags", "txtFiles", "opfFile", "absMetadata"), viewModel.uiState.value.draft.metadataPrecedence)
+    collection.cancel()
+  }
+
+  @Test
+  fun scannerValidationSelectsScannerTab() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(listOf(Result.success(listOf(LibraryAdministrationProvider("audible", "Audible")))))
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateName("Books"))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.SelectFolder("/books"))
+    LibraryAdministrationDraft().metadataSources.forEach { source ->
+      viewModel.onEvent(LibraryAdministrationCreateEvent.ToggleMetadataSource(source.id, false))
+    }
+    viewModel.onEvent(LibraryAdministrationCreateEvent.Submit)
+
+    assertEquals(
+      dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateTab.SCANNER,
+      viewModel.uiState.value.selectedTab,
+    )
+    assertTrue(
+      viewModel.uiState.value.validation.errors.containsKey(LibraryAdministrationCreateField.SCANNER_PRECEDENCE)
+    )
+    collection.cancel()
+  }
+
   private fun kotlinx.coroutines.test.TestScope.collectState(
     viewModel: LibraryAdministrationCreateViewModel
   ): Job = backgroundScope.launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {

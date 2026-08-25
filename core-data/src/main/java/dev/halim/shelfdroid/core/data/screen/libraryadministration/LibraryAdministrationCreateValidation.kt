@@ -8,6 +8,8 @@ enum class LibraryAdministrationCreateField {
   ICON,
   PROVIDER,
   FOLDERS,
+  SETTINGS_FINISH_THRESHOLD,
+  SCANNER_PRECEDENCE,
 }
 
 enum class LibraryAdministrationCreateError {
@@ -18,6 +20,8 @@ enum class LibraryAdministrationCreateError {
   FOLDERS_REQUIRED,
   DUPLICATE_FOLDER,
   OVERLAPPING_FOLDER,
+  INVALID_FINISH_THRESHOLD,
+  SCANNER_PRECEDENCE_REQUIRED,
 }
 
 data class LibraryAdministrationValidation(
@@ -74,6 +78,30 @@ fun validateLibraryAdministrationDraft(
     }) {
       add(LibraryAdministrationCreateField.FOLDERS, LibraryAdministrationCreateError.OVERLAPPING_FOLDER)
     }
+  }
+
+  val finishPercent: Int?
+  val finishTimeRemaining: Int?
+  if (draft.mediaType == LibraryAdministrationMediaType.PODCAST) {
+    finishPercent = draft.podcastSettings.markAsFinishedPercentComplete
+    finishTimeRemaining = draft.podcastSettings.markAsFinishedTimeRemaining
+  } else {
+    finishPercent = draft.bookSettings.markAsFinishedPercentComplete
+    finishTimeRemaining = draft.bookSettings.markAsFinishedTimeRemaining
+  }
+  if (finishPercent != null && finishPercent !in 0..100 ||
+      finishTimeRemaining != null && finishTimeRemaining < 0) {
+    add(
+      LibraryAdministrationCreateField.SETTINGS_FINISH_THRESHOLD,
+      LibraryAdministrationCreateError.INVALID_FINISH_THRESHOLD,
+    )
+  }
+  if (draft.mediaType == LibraryAdministrationMediaType.BOOK &&
+      draft.metadataSources.none { it.enabled }) {
+    add(
+      LibraryAdministrationCreateField.SCANNER_PRECEDENCE,
+      LibraryAdministrationCreateError.SCANNER_PRECEDENCE_REQUIRED,
+    )
   }
 
   return LibraryAdministrationValidation(errors.mapValues { it.value.toList() })

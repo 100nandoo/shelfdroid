@@ -9,9 +9,11 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateResult
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateTab
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateUiState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationBookSettings
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationDraft
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationFilesystemState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationPodcastSettings
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationProviderState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateSubmissionState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.validateLibraryAdministrationDraft
@@ -48,6 +50,38 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
       is LibraryAdministrationCreateEvent.UpdateName -> updateDraft { copy(name = event.value) }
       is LibraryAdministrationCreateEvent.SelectIcon -> updateDraft { copy(icon = event.icon) }
       is LibraryAdministrationCreateEvent.SelectProvider -> updateDraft { withProvider(event.providerId) }
+      is LibraryAdministrationCreateEvent.UpdateCoverAspectRatio ->
+        updateCommonSettings(
+          updateBook = { settings -> settings.copy(coverAspectRatio = event.value) },
+          updatePodcast = { settings -> settings.copy(coverAspectRatio = event.value) },
+        )
+      is LibraryAdministrationCreateEvent.UpdateWatcher ->
+        updateCommonSettings(
+          updateBook = { settings -> settings.copy(disableWatcher = !event.enabled) },
+          updatePodcast = { settings -> settings.copy(disableWatcher = !event.enabled) },
+        )
+      is LibraryAdministrationCreateEvent.UpdateAudiobooksOnly ->
+        updateBookSettings { it.copy(audiobooksOnly = event.enabled) }
+      is LibraryAdministrationCreateEvent.UpdateSkipMatchingAsin ->
+        updateBookSettings { it.copy(skipMatchingMediaWithAsin = event.enabled) }
+      is LibraryAdministrationCreateEvent.UpdateSkipMatchingIsbn ->
+        updateBookSettings { it.copy(skipMatchingMediaWithIsbn = event.enabled) }
+      is LibraryAdministrationCreateEvent.UpdateHideSingleBookSeries ->
+        updateBookSettings { it.copy(hideSingleBookSeries = event.enabled) }
+      is LibraryAdministrationCreateEvent.UpdateOnlyShowLaterBooks ->
+        updateBookSettings { it.copy(onlyShowLaterBooksInContinueSeries = event.enabled) }
+      is LibraryAdministrationCreateEvent.UpdateScriptedEpubs ->
+        updateBookSettings { it.copy(epubsAllowScriptedContent = event.enabled) }
+      is LibraryAdministrationCreateEvent.UpdatePodcastSearchRegion ->
+        updatePodcastSettings { it.copy(podcastSearchRegion = event.value) }
+      is LibraryAdministrationCreateEvent.SelectFinishThresholdMode ->
+        selectFinishThresholdMode(event.mode)
+      is LibraryAdministrationCreateEvent.UpdateFinishThresholdValue ->
+        updateFinishThresholdValue(event.value)
+      is LibraryAdministrationCreateEvent.ToggleMetadataSource ->
+        updateDraft { withMetadataSource(event.id, event.enabled) }
+      is LibraryAdministrationCreateEvent.MoveMetadataSource ->
+        updateDraft { moveMetadataSource(event.id, event.delta) }
       is LibraryAdministrationCreateEvent.SelectTab ->
         _uiState.update { it.copy(selectedTab = event.tab) }
       is LibraryAdministrationCreateEvent.UpdateManualFolder ->
@@ -167,6 +201,112 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
     }
   }
 
+  private fun updateCommonSettings(
+    updateBook: (LibraryAdministrationBookSettings) -> LibraryAdministrationBookSettings,
+    updatePodcast: (LibraryAdministrationPodcastSettings) -> LibraryAdministrationPodcastSettings,
+  ) {
+    _uiState.update {
+      it.copy(
+        draft =
+          if (it.draft.mediaType == LibraryAdministrationMediaType.BOOK) {
+            it.draft.copy(bookSettings = updateBook(it.draft.bookSettings))
+          } else {
+            it.draft.copy(podcastSettings = updatePodcast(it.draft.podcastSettings))
+          },
+        isDirty = true,
+        validation = it.validation.copy(errors = emptyMap()),
+      )
+    }
+  }
+
+  private fun updateBookSettings(update: (LibraryAdministrationBookSettings) -> LibraryAdministrationBookSettings) {
+    _uiState.update {
+      it.copy(
+        draft = it.draft.copy(bookSettings = update(it.draft.bookSettings)),
+        isDirty = true,
+        validation = it.validation.copy(errors = emptyMap()),
+      )
+    }
+  }
+
+  private fun updatePodcastSettings(
+    update: (LibraryAdministrationPodcastSettings) -> LibraryAdministrationPodcastSettings
+  ) {
+    _uiState.update {
+      it.copy(
+        draft = it.draft.copy(podcastSettings = update(it.draft.podcastSettings)),
+        isDirty = true,
+        validation = it.validation.copy(errors = emptyMap()),
+      )
+    }
+  }
+
+  private fun selectFinishThresholdMode(mode: LibraryAdministrationFinishThresholdMode) {
+    if (_uiState.value.draft.mediaType == LibraryAdministrationMediaType.BOOK) {
+      updateBookSettings {
+        when (mode) {
+          LibraryAdministrationFinishThresholdMode.TIME_REMAINING ->
+            it.copy(
+              markAsFinishedPercentComplete = null,
+              markAsFinishedTimeRemaining =
+                it.markAsFinishedTimeRemaining
+                  ?: it.markAsFinishedPercentComplete
+                  ?: dev.halim.shelfdroid.core.data.screen.libraryadministration.DEFAULT_FINISH_TIME_REMAINING,
+            )
+          LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE ->
+            it.copy(
+              markAsFinishedPercentComplete =
+                it.markAsFinishedPercentComplete
+                  ?: it.markAsFinishedTimeRemaining
+                  ?: dev.halim.shelfdroid.core.data.screen.libraryadministration.DEFAULT_FINISH_TIME_REMAINING,
+              markAsFinishedTimeRemaining = null,
+            )
+        }
+      }
+    } else {
+      updatePodcastSettings {
+        when (mode) {
+          LibraryAdministrationFinishThresholdMode.TIME_REMAINING ->
+            it.copy(
+              markAsFinishedPercentComplete = null,
+              markAsFinishedTimeRemaining =
+                it.markAsFinishedTimeRemaining
+                  ?: it.markAsFinishedPercentComplete
+                  ?: dev.halim.shelfdroid.core.data.screen.libraryadministration.DEFAULT_FINISH_TIME_REMAINING,
+            )
+          LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE ->
+            it.copy(
+              markAsFinishedPercentComplete =
+                it.markAsFinishedPercentComplete
+                  ?: it.markAsFinishedTimeRemaining
+                  ?: dev.halim.shelfdroid.core.data.screen.libraryadministration.DEFAULT_FINISH_TIME_REMAINING,
+              markAsFinishedTimeRemaining = null,
+            )
+        }
+      }
+    }
+  }
+
+  private fun updateFinishThresholdValue(value: Int) {
+    if (_uiState.value.draft.mediaType == LibraryAdministrationMediaType.BOOK) {
+      updateBookSettings {
+        if (it.markAsFinishedPercentComplete != null) {
+          it.copy(markAsFinishedPercentComplete = value.coerceAtLeast(0))
+        } else {
+          it.copy(markAsFinishedTimeRemaining = value.coerceAtLeast(0))
+        }
+      }
+    } else {
+      updatePodcastSettings {
+        if (it.markAsFinishedPercentComplete != null) {
+          it.copy(markAsFinishedPercentComplete = value.coerceAtLeast(0))
+        } else {
+          it.copy(markAsFinishedTimeRemaining = value.coerceAtLeast(0))
+        }
+      }
+    }
+  }
+
   private fun submit() {
     val state = _uiState.value
     if (state.isSubmitting) return
@@ -178,7 +318,14 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
     if (!validation.isValid) {
       _uiState.update {
         it.copy(
-          selectedTab = LibraryAdministrationCreateTab.DETAILS,
+          selectedTab =
+            when (validation.firstInvalidField) {
+              LibraryAdministrationCreateField.SETTINGS_FINISH_THRESHOLD ->
+                LibraryAdministrationCreateTab.SETTINGS
+              LibraryAdministrationCreateField.SCANNER_PRECEDENCE ->
+                LibraryAdministrationCreateTab.SCANNER
+              else -> LibraryAdministrationCreateTab.DETAILS
+            },
           validation = validation,
           focusField = validation.firstInvalidField,
         )
@@ -265,6 +412,19 @@ sealed interface LibraryAdministrationCreateEvent {
   data class UpdateName(val value: String) : LibraryAdministrationCreateEvent
   data class SelectIcon(val icon: String) : LibraryAdministrationCreateEvent
   data class SelectProvider(val providerId: String) : LibraryAdministrationCreateEvent
+  data class UpdateCoverAspectRatio(val value: Int) : LibraryAdministrationCreateEvent
+  data class UpdateWatcher(val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class UpdateAudiobooksOnly(val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class UpdateSkipMatchingAsin(val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class UpdateSkipMatchingIsbn(val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class UpdateHideSingleBookSeries(val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class UpdateOnlyShowLaterBooks(val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class UpdateScriptedEpubs(val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class UpdatePodcastSearchRegion(val value: String) : LibraryAdministrationCreateEvent
+  data class SelectFinishThresholdMode(val mode: LibraryAdministrationFinishThresholdMode) : LibraryAdministrationCreateEvent
+  data class UpdateFinishThresholdValue(val value: Int) : LibraryAdministrationCreateEvent
+  data class ToggleMetadataSource(val id: String, val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class MoveMetadataSource(val id: String, val delta: Int) : LibraryAdministrationCreateEvent
   data class SelectTab(val tab: LibraryAdministrationCreateTab) : LibraryAdministrationCreateEvent
   data class UpdateManualFolder(val value: String) : LibraryAdministrationCreateEvent
   data object AddManualFolder : LibraryAdministrationCreateEvent
@@ -280,4 +440,9 @@ sealed interface LibraryAdministrationCreateEvent {
   data object CancelDiscard : LibraryAdministrationCreateEvent
   data object ConsumeNavigation : LibraryAdministrationCreateEvent
   data object ConsumeFocus : LibraryAdministrationCreateEvent
+}
+
+enum class LibraryAdministrationFinishThresholdMode {
+  TIME_REMAINING,
+  PERCENT_COMPLETE,
 }
