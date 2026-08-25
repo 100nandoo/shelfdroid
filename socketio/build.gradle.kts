@@ -42,6 +42,8 @@ dependencies {
   // socket.io
   implementation(libs.socketio.client) { exclude(group = "org.json", module = "json") }
 
+  testImplementation(libs.junit)
+
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)

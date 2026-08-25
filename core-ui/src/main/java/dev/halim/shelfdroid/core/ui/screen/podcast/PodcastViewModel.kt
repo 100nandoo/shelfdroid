@@ -51,6 +51,8 @@ constructor(
   val id: String = navKey.id
   private val apiState = MutableStateFlow<PodcastApiState>(PodcastApiState.Idle)
   private val interactionState = MutableStateFlow(PodcastInteractionState())
+  private var socketOwner: SocketManager.Owner? = null
+  private val socketSubscriptions = mutableListOf<SocketManager.Subscription>()
 
   init {
     startStopSocket(true)
@@ -227,27 +229,30 @@ constructor(
 
   private fun startStopSocket(isStart: Boolean) {
     if (isStart) {
-      socketManager.connect()
-      socketManager.on(SocketEpisode.DOWNLOAD_QUEUED) {
-        val obj = it[0] as JSONObject
-        val json = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
-        Log.d("SocketManager", "DOWNLOAD_QUEUED: $json")
-      }
-      socketManager.on(SocketEpisode.DOWNLOAD_STARTED) {
-        val obj = it[0] as JSONObject
-        val json = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
-        Log.d("SocketManager", "DOWNLOAD_STARTED: $json")
-      }
-      socketManager.on(SocketEpisode.DOWNLOAD_FINISHED) {
-        val obj = it[0] as JSONObject
-        val json = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
-        Log.d("SocketManager", "DOWNLOAD_FINISHED: $json")
-      }
+      socketOwner = socketManager.acquire()
+      socketSubscriptions +=
+        socketManager.subscribe(SocketEpisode.DOWNLOAD_QUEUED) {
+          val obj = it[0] as JSONObject
+          val parsed = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
+          Log.d("SocketManager", "DOWNLOAD_QUEUED: $parsed")
+        }
+      socketSubscriptions +=
+        socketManager.subscribe(SocketEpisode.DOWNLOAD_STARTED) {
+          val obj = it[0] as JSONObject
+          val parsed = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
+          Log.d("SocketManager", "DOWNLOAD_STARTED: $parsed")
+        }
+      socketSubscriptions +=
+        socketManager.subscribe(SocketEpisode.DOWNLOAD_FINISHED) {
+          val obj = it[0] as JSONObject
+          val parsed = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
+          Log.d("SocketManager", "DOWNLOAD_FINISHED: $parsed")
+        }
     } else {
-      socketManager.off(SocketEpisode.DOWNLOAD_QUEUED)
-      socketManager.off(SocketEpisode.DOWNLOAD_STARTED)
-      socketManager.off(SocketEpisode.DOWNLOAD_FINISHED)
-      socketManager.disconnect()
+      socketSubscriptions.forEach(SocketManager.Subscription::close)
+      socketSubscriptions.clear()
+      socketOwner?.close()
+      socketOwner = null
     }
   }
 
