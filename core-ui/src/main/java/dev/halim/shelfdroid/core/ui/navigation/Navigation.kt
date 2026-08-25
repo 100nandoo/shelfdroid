@@ -28,6 +28,7 @@ import dev.halim.shelfdroid.core.navigation.ApiKeyChangedNavResult
 import dev.halim.shelfdroid.core.navigation.AppriseNotificationRuleChangedNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditUser
+import dev.halim.shelfdroid.core.navigation.LibraryCreatedNavResult
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
@@ -54,6 +55,7 @@ import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScre
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
 import dev.halim.shelfdroid.core.ui.screen.libraryadministration.LibraryAdministrationScreen
+import dev.halim.shelfdroid.core.ui.screen.libraryadministration.LibraryAdministrationCreateScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.MetadataUtilsScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.genre.GenreScreen
@@ -314,7 +316,22 @@ private fun ColumnScope.NavHostContainer(
       }
       entry<Libraries> {
         Nav3ScreenWrapper(sharedTransitionScope) {
-          LibraryAdministrationScreen()
+          LibraryAdministrationScreen(
+            collectNavResultEvent = true,
+            onCreateLibraryClicked = { navigator.navigate(CreateLibrary) },
+          )
+        }
+      }
+      entry<CreateLibrary> {
+        val resultBus = LocalResultEventBus.current
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          LibraryAdministrationCreateScreen(
+            onNavigateBack = { navigator.pop() },
+            onCreated = { id ->
+              resultBus.sendResult(LibraryCreatedNavResult(id))
+              navigator.pop()
+            },
+          )
         }
       }
       entry<EditUser> { key ->

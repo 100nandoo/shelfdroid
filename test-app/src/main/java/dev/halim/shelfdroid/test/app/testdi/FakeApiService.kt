@@ -363,6 +363,35 @@ class FakeApiService @Inject constructor() : ApiService {
   override suspend fun libraries(): Result<LibrariesResponse> =
     Result.success(LibrariesResponse(libraries))
 
+  override suspend fun createLibrary(request: CreateLibraryRequest): Result<Library> =
+    Result.success(
+      Library(
+        id = "created-${request.name.lowercase().replace(' ', '-')}",
+        name = request.name,
+        mediaType = if (request.mediaType == "podcast") MediaType.PODCAST else MediaType.BOOK,
+        icon = request.icon,
+        provider = request.provider,
+        folders = request.folders.mapIndexed { index, folder ->
+          Folder(id = "created-folder-$index", fullPath = folder.path)
+        },
+      )
+    )
+
+  override suspend fun filesystem(
+    path: String?,
+    level: Int,
+  ): Result<FileSystemResponse> =
+    Result.success(
+      FileSystemResponse(
+        posix = true,
+        directories =
+          listOf(
+            FileSystemDirectory(path = "/books", dirname = "books", level = level),
+            FileSystemDirectory(path = "/podcasts", dirname = "podcasts", level = level),
+          ),
+      )
+    )
+
   override suspend fun libraryItems(
     libraryId: String,
     limit: Int?,

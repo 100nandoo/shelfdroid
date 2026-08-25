@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
+import dev.halim.core.network.ApiService
+import dev.halim.core.network.request.CreateLibraryRequest
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
@@ -7,13 +9,91 @@ import javax.inject.Inject
 
 class LibraryAdministrationRepository
 @Inject
-constructor(private val libraryRepository: LibraryRepository) : LibraryAdministrationContract {
+constructor(
+  private val api: ApiService,
+  private val libraryRepository: LibraryRepository,
+  private val mutationCoordinator: LibraryMutationCoordinator,
+) : LibraryAdministrationContract, LibraryAdministrationCreateContract {
 
   override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> {
     return libraryRepository.fetchLibraries().map { libraries ->
       libraries.map { library -> library.toAdministrationLibrary() }
     }
   }
+
+  override suspend fun loadLibraryProviders(
+    mediaType: LibraryAdministrationMediaType
+  ): Result<List<LibraryAdministrationProvider>> {
+    return api.searchProviders().map { response ->
+      val providers =
+        when (mediaType) {
+          LibraryAdministrationMediaType.BOOK -> response.providers.books
+          LibraryAdministrationMediaType.PODCAST -> response.providers.podcasts
+          LibraryAdministrationMediaType.UNKNOWN -> emptyList()
+        }
+      providers
+        .asSequence()
+        .filter { it.value.isNotBlank() }
+        .map { LibraryAdministrationProvider(id = it.value, name = it.text.ifBlank { it.value }) }
+        .toList()
+    }
+  }
+
+  override suspend fun browseLibraryFilesystem(path: String?): Result<LibraryAdministrationFilesystem> {
+    return api.filesystem(path = path).map { response ->
+      LibraryAdministrationFilesystem(
+        isPosix = response.posix,
+        directories =
+          response.directories.map {
+            LibraryAdministrationDirectory(
+              path = it.path,
+              name = it.dirname.ifBlank { it.path.substringAfterLast('/') },
+              level = it.level,
+            )
+          },
+      )
+    }
+  }
+
+  override suspend fun createLibrary(
+    draft: LibraryAdministrationDraft
+  ): Result<LibraryAdministrationCreateResult> {
+    return mutationCoordinator.withMutation {
+      val serverLibrary =
+        api
+          .createLibrary(
+            CreateLibraryRequest(
+              name = draft.name.trim(),
+              folders =
+                draft.folders.map { path ->
+                  CreateLibraryRequest.Folder(normalizeLibraryFolderPath(path))
+                },
+              mediaType = draft.mediaType.toApiValue(),
+              icon = draft.icon,
+              provider = draft.provider.orEmpty(),
+            )
+          )
+          .getOrElse { return@withMutation Result.failure(it) }
+
+      val administrationLibrary = serverLibrary.toAdministrationLibrary()
+      libraryRepository.refreshLibraries().fold(
+        onSuccess = {
+          Result.success(LibraryAdministrationCreateResult.Created(administrationLibrary))
+        },
+        onFailure = { error ->
+          Result.success(
+            LibraryAdministrationCreateResult.CreatedButNotSynchronized(
+              library = administrationLibrary,
+              error = error,
+            )
+          )
+        },
+      )
+    }
+  }
+
+  override suspend fun synchronizeLibraries(): Result<Unit> =
+    mutationCoordinator.withMutation { libraryRepository.refreshLibraries() }
 }
 
 private fun Library.toAdministrationLibrary(): LibraryAdministrationLibrary =
@@ -28,3 +108,10 @@ private fun Library.toAdministrationLibrary(): LibraryAdministrationLibrary =
       },
     displayOrder = displayOrder,
   )
+
+private fun LibraryAdministrationMediaType.toApiValue(): String =
+  when (this) {
+    LibraryAdministrationMediaType.BOOK -> "book"
+    LibraryAdministrationMediaType.PODCAST -> "podcast"
+    LibraryAdministrationMediaType.UNKNOWN -> "book"
+  }

@@ -6,6 +6,7 @@ import dev.halim.core.network.request.BookmarkRequest
 import dev.halim.core.network.request.ChangePasswordRequest
 import dev.halim.core.network.request.CoverFromUrlRequest
 import dev.halim.core.network.request.CreateApiKeyRequest
+import dev.halim.core.network.request.CreateLibraryRequest
 import dev.halim.core.network.request.CreatePodcastRequest
 import dev.halim.core.network.request.CreateUserRequest
 import dev.halim.core.network.request.DeleteSessionsRequest
@@ -41,6 +42,8 @@ import dev.halim.core.network.response.CreateUpdateApiKeyResponse
 import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Episode
+import dev.halim.core.network.response.FileSystemResponse
+import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
@@ -166,6 +169,15 @@ interface ApiService {
 
   //  libraries
   @GET("api/libraries") suspend fun libraries(): Result<LibrariesResponse>
+
+  @POST("api/libraries")
+  suspend fun createLibrary(@Body request: CreateLibraryRequest): Result<Library>
+
+  @GET("api/filesystem")
+  suspend fun filesystem(
+    @Query("path") path: String? = null,
+    @Query("level") level: Int = 0,
+  ): Result<FileSystemResponse>
 
   @GET("/api/libraries/{libraryId}/items")
   suspend fun libraryItems(

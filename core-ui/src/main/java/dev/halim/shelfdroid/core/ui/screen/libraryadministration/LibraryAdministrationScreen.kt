@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,10 +28,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.result.ResultEffect
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
+import dev.halim.shelfdroid.core.navigation.LibraryCreatedNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -39,15 +42,25 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun LibraryAdministrationScreen(
   viewModel: LibraryAdministrationViewModel = hiltViewModel(),
+  onCreateLibraryClicked: () -> Unit = {},
+  collectNavResultEvent: Boolean = false,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  LibraryAdministrationContent(uiState = uiState, onEvent = viewModel::onEvent)
+  if (collectNavResultEvent) {
+    ResultEffect<LibraryCreatedNavResult> { viewModel.onEvent(LibraryAdministrationEvent.Refresh) }
+  }
+  LibraryAdministrationContent(
+    uiState = uiState,
+    onEvent = viewModel::onEvent,
+    onCreateLibraryClicked = onCreateLibraryClicked,
+  )
 }
 
 @Composable
 internal fun LibraryAdministrationContent(
   uiState: LibraryAdministrationUiState = LibraryAdministrationUiState(),
   onEvent: (LibraryAdministrationEvent) -> Unit = {},
+  onCreateLibraryClicked: () -> Unit = {},
 ) {
   Column(modifier = Modifier.fillMaxSize()) {
     Row(
@@ -68,6 +81,13 @@ internal fun LibraryAdministrationContent(
           contentDescription = stringResource(R.string.refresh_libraries),
         )
       }
+    }
+
+    Button(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+      onClick = onCreateLibraryClicked,
+    ) {
+      Text(stringResource(R.string.create_library))
     }
 
     PullToRefreshBox(
