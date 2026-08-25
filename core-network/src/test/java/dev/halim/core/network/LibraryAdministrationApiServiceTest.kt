@@ -2,6 +2,7 @@ package dev.halim.core.network
 
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import dev.halim.core.network.request.CreateLibraryRequest
+import dev.halim.core.network.request.ValidateCronRequest
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -105,6 +106,46 @@ class LibraryAdministrationApiServiceTest {
     assertTrue(body.contains("\"podcastSearchRegion\":\"gb\""))
     assertTrue(!body.contains("audiobooksOnly"))
     assertTrue(!body.contains("metadataPrecedence"))
+  }
+
+  @Test
+  fun createLibrary_serializesEnabledAutomaticScanSchedule() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    service.createLibrary(
+      CreateLibraryRequest(
+        name = "Books",
+        folders = listOf(CreateLibraryRequest.Folder("/books")),
+        mediaType = "book",
+        icon = "audiobookshelf",
+        provider = "audible",
+        settings = CreateLibraryRequest.Settings(autoScanCronExpression = "0 0 * * 1"),
+      )
+    )
+
+    assertTrue(
+      requireNotNull(capturedRequest).body!!.bodyToString().contains(
+        "\"autoScanCronExpression\":\"0 0 * * 1\""
+      )
+    )
+  }
+
+  @Test
+  fun validateCron_postsExpressionToServerEndpoint() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    val result = service.validateCron(ValidateCronRequest("0 0 * * 1"))
+
+    val request = requireNotNull(capturedRequest)
+    assertTrue(result.isSuccess)
+    assertEquals("POST", request.method)
+    assertEquals("/api/validate-cron", request.url.encodedPath)
+    assertEquals(
+      "{\"expression\":\"0 0 * * 1\"}",
+      request.body!!.bodyToString(),
+    )
   }
 
   @Test

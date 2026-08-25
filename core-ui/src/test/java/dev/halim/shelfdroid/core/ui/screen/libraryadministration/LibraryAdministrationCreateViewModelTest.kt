@@ -4,6 +4,11 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateResult
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateField
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateSubmissionState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateError
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleInterval
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleMode
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleValidationException
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleValidationState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationDraft
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationFilesystemState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationFilesystem
@@ -12,6 +17,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationProvider
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationProviderState
 import java.util.ArrayDeque
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -342,6 +348,181 @@ class LibraryAdministrationCreateViewModelTest {
     collection.cancel()
   }
 
+  @Test
+  fun advancedScheduleServerInvalid_showsInlineErrorAndPreventsCreate() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(listOf(Result.success(listOf(LibraryAdministrationProvider("audible", "Audible"))))),
+        validationResult = Result.failure(LibraryAdministrationScheduleValidationException.Invalid()),
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    prepareValidDraft(viewModel)
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ToggleSchedule(true))
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectScheduleMode(LibraryAdministrationScheduleMode.Advanced)
+    )
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateAdvancedScheduleCron("61 0 * * *"))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.Submit)
+    advanceUntilIdle()
+
+    assertEquals(1, repository.validationCalls)
+    assertEquals(0, repository.createCalls)
+    assertTrue(
+      viewModel.uiState.value.scheduleValidation is
+        LibraryAdministrationScheduleValidationState.Invalid
+    )
+    assertTrue(
+      viewModel.uiState.value.validation.errors[LibraryAdministrationCreateField.SCHEDULE]!!
+        .contains(LibraryAdministrationCreateError.SCHEDULE_INVALID)
+    )
+    collection.cancel()
+  }
+
+  @Test
+  fun advancedScheduleValidationUnavailable_isInlineAndRetryable() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(listOf(Result.success(listOf(LibraryAdministrationProvider("audible", "Audible"))))),
+        validationResult = Result.failure(LibraryAdministrationScheduleValidationException.Unavailable()),
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    prepareValidDraft(viewModel)
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ToggleSchedule(true))
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectScheduleMode(LibraryAdministrationScheduleMode.Advanced)
+    )
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateAdvancedScheduleCron("0 0 * * 1"))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.Submit)
+    advanceUntilIdle()
+
+    assertEquals(0, repository.createCalls)
+    assertTrue(
+      viewModel.uiState.value.scheduleValidation is
+        LibraryAdministrationScheduleValidationState.Unavailable
+    )
+    assertTrue(
+      viewModel.uiState.value.validation.errors[LibraryAdministrationCreateField.SCHEDULE]!!
+        .contains(LibraryAdministrationCreateError.SCHEDULE_VALIDATION_UNAVAILABLE)
+    )
+    collection.cancel()
+  }
+
+  @Test
+  fun explicitAdvancedScheduleValidation_leavesValidStateWithoutCreating() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(listOf(Result.success(listOf(LibraryAdministrationProvider("audible", "Audible")))))
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    prepareValidDraft(viewModel)
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ToggleSchedule(true))
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectScheduleMode(LibraryAdministrationScheduleMode.Advanced)
+    )
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateAdvancedScheduleCron("0 0 * * 1"))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ValidateSchedule)
+    advanceUntilIdle()
+
+    assertEquals(1, repository.validationCalls)
+    assertEquals(0, repository.createCalls)
+    assertEquals(
+      LibraryAdministrationScheduleValidationState.Valid,
+      viewModel.uiState.value.scheduleValidation,
+    )
+    collection.cancel()
+  }
+
+  @Test
+  fun submitWhileAdvancedScheduleValidationIsInFlight_runsValidationAndCreateOnce() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val validationGate = CompletableDeferred<Result<Unit>>()
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(listOf(Result.success(listOf(LibraryAdministrationProvider("audible", "Audible"))))),
+        createResult =
+          Result.success(
+            LibraryAdministrationCreateResult.Created(
+              LibraryAdministrationLibrary("books", "Books", LibraryAdministrationMediaType.BOOK, 1)
+            )
+          ),
+        validationGate = validationGate,
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    prepareValidDraft(viewModel)
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ToggleSchedule(true))
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectScheduleMode(LibraryAdministrationScheduleMode.Advanced)
+    )
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateAdvancedScheduleCron("0 0 * * 1"))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.Submit)
+    assertEquals(1, repository.validationCalls)
+    assertEquals(0, repository.createCalls)
+    assertEquals(
+      LibraryAdministrationScheduleValidationState.Validating,
+      viewModel.uiState.value.scheduleValidation,
+    )
+
+    viewModel.onEvent(LibraryAdministrationCreateEvent.Submit)
+    assertEquals(1, repository.validationCalls)
+    assertEquals(0, repository.createCalls)
+
+    validationGate.complete(Result.success(Unit))
+    advanceUntilIdle()
+    assertEquals(1, repository.validationCalls)
+    assertEquals(1, repository.createCalls)
+    collection.cancel()
+  }
+
+  @Test
+  fun simpleSchedulePresetSkipsServerValidationAndCreatesActiveCron() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(listOf(Result.success(listOf(LibraryAdministrationProvider("audible", "Audible"))))),
+        createResult = Result.success(LibraryAdministrationCreateResult.Created(
+          LibraryAdministrationLibrary("books", "Books", LibraryAdministrationMediaType.BOOK, 1)
+        )),
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    prepareValidDraft(viewModel)
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ToggleSchedule(true))
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectScheduleInterval(
+        LibraryAdministrationScheduleInterval.Every15Minutes
+      )
+    )
+    viewModel.onEvent(LibraryAdministrationCreateEvent.Submit)
+    advanceUntilIdle()
+
+    assertEquals(0, repository.validationCalls)
+    assertEquals(1, repository.createCalls)
+    assertEquals("*/15 * * * *", repository.createdDraft?.schedule?.cronExpression)
+    collection.cancel()
+  }
+
+  private fun prepareValidDraft(viewModel: LibraryAdministrationCreateViewModel) {
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateName("Books"))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.SelectFolder("/books"))
+  }
+
   private fun kotlinx.coroutines.test.TestScope.collectState(
     viewModel: LibraryAdministrationCreateViewModel
   ): Job = backgroundScope.launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
@@ -354,12 +535,16 @@ class LibraryAdministrationCreateViewModelTest {
       Result.success(LibraryAdministrationFilesystem(true, emptyList())),
     private val createResult: Result<LibraryAdministrationCreateResult> =
       Result.failure(IllegalStateException("not configured")),
+    private val validationResult: Result<Unit> = Result.success(Unit),
+    private val validationGate: CompletableDeferred<Result<Unit>>? = null,
   ) : LibraryAdministrationCreateContract {
     private val providers = providerResults
     var providerCalls = 0
     var createCalls = 0
     var browseCalls = 0
     var synchronizeCalls = 0
+    var validationCalls = 0
+    var createdDraft: LibraryAdministrationDraft? = null
 
     override suspend fun loadLibraryProviders(
       mediaType: LibraryAdministrationMediaType
@@ -375,7 +560,13 @@ class LibraryAdministrationCreateViewModelTest {
       draft: LibraryAdministrationDraft
     ): Result<LibraryAdministrationCreateResult> {
       createCalls++
+      createdDraft = draft
       return createResult
+    }
+
+    override suspend fun validateLibrarySchedule(expression: String): Result<Unit> {
+      validationCalls++
+      return validationGate?.await() ?: validationResult
     }
 
     override suspend fun synchronizeLibraries(): Result<Unit> {

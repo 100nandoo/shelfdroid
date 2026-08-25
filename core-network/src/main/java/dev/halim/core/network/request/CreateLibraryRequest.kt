@@ -33,5 +33,6 @@ data class CreateLibraryRequest(
     @SerialName("markAsFinishedPercentComplete")
     val markAsFinishedPercentComplete: Int? = null,
     @SerialName("markAsFinishedTimeRemaining") val markAsFinishedTimeRemaining: Int? = null,
+    @SerialName("autoScanCronExpression") val autoScanCronExpression: String? = null,
   )
 }

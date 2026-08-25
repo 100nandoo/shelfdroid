@@ -4,11 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateContract
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateField
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateNavigation
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateResult
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateTab
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateUiState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleMode
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleInterval
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleDraft
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleValidationException
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleValidationState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationBookSettings
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationDraft
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationFilesystemState
@@ -82,6 +88,30 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
         updateDraft { withMetadataSource(event.id, event.enabled) }
       is LibraryAdministrationCreateEvent.MoveMetadataSource ->
         updateDraft { moveMetadataSource(event.id, event.delta) }
+      is LibraryAdministrationCreateEvent.ToggleSchedule ->
+        updateDraft { copy(schedule = schedule.copy(enabled = event.enabled)) }
+      is LibraryAdministrationCreateEvent.SelectScheduleMode ->
+        updateSchedule { copy(mode = event.mode) }
+      is LibraryAdministrationCreateEvent.SelectScheduleInterval ->
+        updateSchedule { copy(simple = simple.copy(interval = event.interval)) }
+      is LibraryAdministrationCreateEvent.UpdateScheduleHour ->
+        updateSchedule { copy(simple = simple.copy(hour = event.value)) }
+      is LibraryAdministrationCreateEvent.UpdateScheduleMinute ->
+        updateSchedule { copy(simple = simple.copy(minute = event.value)) }
+      is LibraryAdministrationCreateEvent.ToggleScheduleWeekday ->
+        updateSchedule {
+          copy(
+            simple =
+              simple.copy(
+                weekdays =
+                  if (event.selected) simple.weekdays + event.weekday
+                  else simple.weekdays - event.weekday
+              )
+          )
+        }
+      is LibraryAdministrationCreateEvent.UpdateAdvancedScheduleCron ->
+        updateSchedule { copy(advancedCronExpression = event.value) }
+      LibraryAdministrationCreateEvent.ValidateSchedule -> validateSchedule()
       is LibraryAdministrationCreateEvent.SelectTab ->
         _uiState.update { it.copy(selectedTab = event.tab) }
       is LibraryAdministrationCreateEvent.UpdateManualFolder ->
@@ -124,6 +154,7 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
             it.selectedTab
           },
         validation = it.validation.copy(errors = it.validation.errors - LibraryAdministrationCreateField.PROVIDER),
+        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
         isDirty = true,
       )
     }
@@ -141,9 +172,13 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
             else {
               val selected = state.draft.provider
               val provider = selected?.takeIf { value -> providers.any { it.id == value } } ?: providers.firstOrNull()?.id
+              val draft = state.draft.withProvider(provider)
               state.copy(
-                draft = state.draft.withProvider(provider),
+                draft = draft,
                 providerState = LibraryAdministrationProviderState.Success(providers),
+                scheduleValidation =
+                  if (draft == state.draft) state.scheduleValidation
+                  else LibraryAdministrationScheduleValidationState.Idle,
               )
             }
           }
@@ -197,8 +232,15 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
         draft = update(it.draft),
         isDirty = true,
         validation = it.validation.copy(errors = emptyMap()),
+        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
       )
     }
+  }
+
+  private fun updateSchedule(
+    update: LibraryAdministrationScheduleDraft.() -> LibraryAdministrationScheduleDraft
+  ) {
+    updateDraft { copy(schedule = update(schedule)) }
   }
 
   private fun updateCommonSettings(
@@ -215,6 +257,7 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
           },
         isDirty = true,
         validation = it.validation.copy(errors = emptyMap()),
+        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
       )
     }
   }
@@ -225,6 +268,7 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
         draft = it.draft.copy(bookSettings = update(it.draft.bookSettings)),
         isDirty = true,
         validation = it.validation.copy(errors = emptyMap()),
+        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
       )
     }
   }
@@ -237,6 +281,7 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
         draft = it.draft.copy(podcastSettings = update(it.draft.podcastSettings)),
         isDirty = true,
         validation = it.validation.copy(errors = emptyMap()),
+        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
       )
     }
   }
@@ -309,7 +354,7 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
 
   private fun submit() {
     val state = _uiState.value
-    if (state.isSubmitting) return
+    if (state.isBusy) return
     val validation =
       validateLibraryAdministrationDraft(
         draft = state.draft,
@@ -324,6 +369,8 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
                 LibraryAdministrationCreateTab.SETTINGS
               LibraryAdministrationCreateField.SCANNER_PRECEDENCE ->
                 LibraryAdministrationCreateTab.SCANNER
+              LibraryAdministrationCreateField.SCHEDULE ->
+                LibraryAdministrationCreateTab.SCHEDULE
               else -> LibraryAdministrationCreateTab.DETAILS
             },
           validation = validation,
@@ -332,9 +379,132 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
       }
       return
     }
+    val schedule = state.draft.schedule
+    val scheduleExpression = schedule.cronExpression
+    if (schedule.enabled && scheduleExpression == null) {
+      _uiState.update {
+        it.copy(
+          selectedTab = LibraryAdministrationCreateTab.SCHEDULE,
+          validation =
+            it.validation.copy(
+              errors =
+                it.validation.errors +
+                  (LibraryAdministrationCreateField.SCHEDULE to
+                    listOf(LibraryAdministrationCreateError.SCHEDULE_INVALID))
+            ),
+          focusField = LibraryAdministrationCreateField.SCHEDULE,
+        )
+      }
+      return
+    }
+    if (schedule.enabled && schedule.mode == LibraryAdministrationScheduleMode.Advanced) {
+      if (state.scheduleValidation is LibraryAdministrationScheduleValidationState.Valid) {
+        createLibrary(state.draft)
+      } else {
+        validateAdvancedSchedule(state, createOnSuccess = true)
+      }
+      return
+    }
+    _uiState.update {
+      it.copy(scheduleValidation = LibraryAdministrationScheduleValidationState.Valid)
+    }
+    createLibrary(state.draft)
+  }
+
+  private fun validateSchedule() {
+    val state = _uiState.value
+    if (state.isBusy) return
+    val schedule = state.draft.schedule
+    if (!schedule.enabled || schedule.mode != LibraryAdministrationScheduleMode.Advanced) return
+    val localValidation = schedule.localValidationMessage()
+    if (localValidation != null) {
+      val error =
+        if (localValidation == "Enter a five-field cron expression.") {
+          LibraryAdministrationCreateError.SCHEDULE_REQUIRED
+        } else {
+          LibraryAdministrationCreateError.SCHEDULE_INVALID
+        }
+      _uiState.update {
+        it.copy(
+          selectedTab = LibraryAdministrationCreateTab.SCHEDULE,
+          scheduleValidation =
+            LibraryAdministrationScheduleValidationState.Invalid(localValidation),
+          validation =
+            it.validation.copy(
+              errors = it.validation.errors +
+                (LibraryAdministrationCreateField.SCHEDULE to listOf(error))
+            ),
+          focusField = LibraryAdministrationCreateField.SCHEDULE,
+        )
+      }
+      return
+    }
+    validateAdvancedSchedule(state, createOnSuccess = false)
+  }
+
+  private fun validateAdvancedSchedule(
+    state: LibraryAdministrationCreateUiState,
+    createOnSuccess: Boolean,
+  ) {
+    val expression = state.draft.schedule.cronExpression ?: return
+    _uiState.update {
+      it.copy(
+        scheduleValidation = LibraryAdministrationScheduleValidationState.Validating,
+        validation = it.validation.copy(errors = it.validation.errors - LibraryAdministrationCreateField.SCHEDULE),
+      )
+    }
     viewModelScope.launch {
-      _uiState.update { it.copy(submissionState = LibraryAdministrationCreateSubmissionState.Submitting) }
-      repository.createLibrary(state.draft).fold(
+      repository.validateLibrarySchedule(expression).fold(
+        onSuccess = {
+          if (_uiState.value.draft != state.draft) return@fold
+          _uiState.update {
+            it.copy(scheduleValidation = LibraryAdministrationScheduleValidationState.Valid)
+          }
+          if (createOnSuccess) createLibrary(state.draft)
+        },
+        onFailure = { error ->
+          if (_uiState.value.draft != state.draft) return@fold
+          val unavailable =
+            error is LibraryAdministrationScheduleValidationException.Unavailable ||
+              error !is LibraryAdministrationScheduleValidationException.Invalid
+          val validationState =
+            if (unavailable) {
+              LibraryAdministrationScheduleValidationState.Unavailable(error.message)
+            } else {
+              LibraryAdministrationScheduleValidationState.Invalid(error.message)
+            }
+          _uiState.update {
+            it.copy(
+              selectedTab = LibraryAdministrationCreateTab.SCHEDULE,
+              scheduleValidation = validationState,
+              validation =
+                it.validation.copy(
+                  errors =
+                    it.validation.errors +
+                      (LibraryAdministrationCreateField.SCHEDULE to
+                        listOf(
+                          if (unavailable) {
+                            LibraryAdministrationCreateError.SCHEDULE_VALIDATION_UNAVAILABLE
+                          } else {
+                            LibraryAdministrationCreateError.SCHEDULE_INVALID
+                          }
+                        ))
+                ),
+              focusField = LibraryAdministrationCreateField.SCHEDULE,
+            )
+          }
+        },
+      )
+    }
+  }
+
+  private fun createLibrary(draft: LibraryAdministrationDraft) {
+    if (_uiState.value.isSubmitting) return
+    _uiState.update {
+      it.copy(submissionState = LibraryAdministrationCreateSubmissionState.Submitting)
+    }
+    viewModelScope.launch {
+      repository.createLibrary(draft).fold(
         onSuccess = { result ->
           _uiState.update {
             when (result) {
@@ -425,6 +595,14 @@ sealed interface LibraryAdministrationCreateEvent {
   data class UpdateFinishThresholdValue(val value: Int) : LibraryAdministrationCreateEvent
   data class ToggleMetadataSource(val id: String, val enabled: Boolean) : LibraryAdministrationCreateEvent
   data class MoveMetadataSource(val id: String, val delta: Int) : LibraryAdministrationCreateEvent
+  data class ToggleSchedule(val enabled: Boolean) : LibraryAdministrationCreateEvent
+  data class SelectScheduleMode(val mode: LibraryAdministrationScheduleMode) : LibraryAdministrationCreateEvent
+  data class SelectScheduleInterval(val interval: LibraryAdministrationScheduleInterval) : LibraryAdministrationCreateEvent
+  data class UpdateScheduleHour(val value: String) : LibraryAdministrationCreateEvent
+  data class UpdateScheduleMinute(val value: String) : LibraryAdministrationCreateEvent
+  data class ToggleScheduleWeekday(val weekday: Int, val selected: Boolean) : LibraryAdministrationCreateEvent
+  data class UpdateAdvancedScheduleCron(val value: String) : LibraryAdministrationCreateEvent
+  data object ValidateSchedule : LibraryAdministrationCreateEvent
   data class SelectTab(val tab: LibraryAdministrationCreateTab) : LibraryAdministrationCreateEvent
   data class UpdateManualFolder(val value: String) : LibraryAdministrationCreateEvent
   data object AddManualFolder : LibraryAdministrationCreateEvent

@@ -86,6 +86,7 @@ data class LibraryAdministrationDraft(
   val podcastProvider: String? = null,
   val bookSettings: LibraryAdministrationBookSettings = LibraryAdministrationBookSettings(),
   val podcastSettings: LibraryAdministrationPodcastSettings = LibraryAdministrationPodcastSettings(),
+  val schedule: LibraryAdministrationScheduleDraft = LibraryAdministrationScheduleDraft(),
   /** Rows are kept in the website's displayed (highest-priority first) order. */
   val metadataSources: List<LibraryAdministrationMetadataSource> =
     DEFAULT_LIBRARY_METADATA_SOURCES,

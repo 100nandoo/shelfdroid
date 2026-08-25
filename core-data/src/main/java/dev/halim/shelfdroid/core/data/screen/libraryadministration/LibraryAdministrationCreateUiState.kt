@@ -33,10 +33,23 @@ sealed interface LibraryAdministrationCreateSubmissionState {
   ) : LibraryAdministrationCreateSubmissionState
 }
 
+sealed interface LibraryAdministrationScheduleValidationState {
+  data object Idle : LibraryAdministrationScheduleValidationState
+
+  data object Validating : LibraryAdministrationScheduleValidationState
+
+  data object Valid : LibraryAdministrationScheduleValidationState
+
+  data class Invalid(val message: String? = null) : LibraryAdministrationScheduleValidationState
+
+  data class Unavailable(val message: String? = null) : LibraryAdministrationScheduleValidationState
+}
+
 enum class LibraryAdministrationCreateTab {
   DETAILS,
   SETTINGS,
   SCANNER,
+  SCHEDULE,
 }
 
 sealed interface LibraryAdministrationCreateNavigation {
@@ -58,9 +71,14 @@ data class LibraryAdministrationCreateUiState(
   val isDirty: Boolean = false,
   val submissionState: LibraryAdministrationCreateSubmissionState =
     LibraryAdministrationCreateSubmissionState.Idle,
+  val scheduleValidation: LibraryAdministrationScheduleValidationState =
+    LibraryAdministrationScheduleValidationState.Idle,
   val discardDialog: Boolean = false,
   val navigation: LibraryAdministrationCreateNavigation? = null,
 ) {
   val isSubmitting: Boolean
     get() = submissionState is LibraryAdministrationCreateSubmissionState.Submitting
+
+  val isBusy: Boolean
+    get() = isSubmitting || scheduleValidation is LibraryAdministrationScheduleValidationState.Validating
 }

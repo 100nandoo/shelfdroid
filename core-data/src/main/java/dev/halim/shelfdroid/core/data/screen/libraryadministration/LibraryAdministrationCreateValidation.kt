@@ -10,6 +10,7 @@ enum class LibraryAdministrationCreateField {
   FOLDERS,
   SETTINGS_FINISH_THRESHOLD,
   SCANNER_PRECEDENCE,
+  SCHEDULE,
 }
 
 enum class LibraryAdministrationCreateError {
@@ -22,6 +23,9 @@ enum class LibraryAdministrationCreateError {
   OVERLAPPING_FOLDER,
   INVALID_FINISH_THRESHOLD,
   SCANNER_PRECEDENCE_REQUIRED,
+  SCHEDULE_REQUIRED,
+  SCHEDULE_INVALID,
+  SCHEDULE_VALIDATION_UNAVAILABLE,
 }
 
 data class LibraryAdministrationValidation(
@@ -102,6 +106,16 @@ fun validateLibraryAdministrationDraft(
       LibraryAdministrationCreateField.SCANNER_PRECEDENCE,
       LibraryAdministrationCreateError.SCANNER_PRECEDENCE_REQUIRED,
     )
+  }
+
+  if (draft.schedule.enabled) {
+    when (draft.schedule.localValidationMessage()) {
+      null -> Unit
+      "Enter a five-field cron expression." ->
+        add(LibraryAdministrationCreateField.SCHEDULE, LibraryAdministrationCreateError.SCHEDULE_REQUIRED)
+      else ->
+        add(LibraryAdministrationCreateField.SCHEDULE, LibraryAdministrationCreateError.SCHEDULE_INVALID)
+    }
   }
 
   return LibraryAdministrationValidation(errors.mapValues { it.value.toList() })

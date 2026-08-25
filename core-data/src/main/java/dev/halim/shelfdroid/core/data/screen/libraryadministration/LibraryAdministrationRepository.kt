@@ -2,10 +2,12 @@ package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CreateLibraryRequest
+import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import javax.inject.Inject
+import retrofit2.HttpException
 
 class LibraryAdministrationRepository
 @Inject
@@ -53,6 +55,21 @@ constructor(
           },
       )
     }
+  }
+
+  override suspend fun validateLibrarySchedule(expression: String): Result<Unit> {
+    return api.validateCron(ValidateCronRequest(expression)).fold(
+      onSuccess = { Result.success(Unit) },
+      onFailure = { error ->
+        Result.failure(
+          if (error is HttpException && error.code() == 400) {
+            LibraryAdministrationScheduleValidationException.Invalid(error.message())
+          } else {
+            LibraryAdministrationScheduleValidationException.Unavailable(error.message)
+          }
+        )
+      },
+    )
   }
 
   override suspend fun createLibrary(
@@ -132,6 +149,7 @@ private fun LibraryAdministrationDraft.toCreateSettings(): CreateLibraryRequest.
         markAsFinishedPercentComplete = bookSettings.markAsFinishedPercentComplete,
         markAsFinishedTimeRemaining = bookSettings.markAsFinishedTimeRemaining,
         metadataPrecedence = metadataPrecedence,
+        autoScanCronExpression = scheduleExpressionOrNull(),
       )
     LibraryAdministrationMediaType.PODCAST ->
       CreateLibraryRequest.Settings(
@@ -140,6 +158,7 @@ private fun LibraryAdministrationDraft.toCreateSettings(): CreateLibraryRequest.
         podcastSearchRegion = podcastSettings.podcastSearchRegion,
         markAsFinishedPercentComplete = podcastSettings.markAsFinishedPercentComplete,
         markAsFinishedTimeRemaining = podcastSettings.markAsFinishedTimeRemaining,
+        autoScanCronExpression = scheduleExpressionOrNull(),
       )
     LibraryAdministrationMediaType.UNKNOWN -> CreateLibraryRequest.Settings()
   }

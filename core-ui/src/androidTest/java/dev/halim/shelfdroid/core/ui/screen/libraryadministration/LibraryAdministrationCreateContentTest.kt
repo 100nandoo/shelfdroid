@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -173,6 +174,23 @@ class LibraryAdministrationCreateContentTest {
     }
 
     composeRule.onNodeWithText("Podcast search region").assertIsDisplayed()
+    composeRule.onAllNodesWithText("Scanner").assertCountEquals(0)
+  }
+
+  @Test
+  fun podcastScheduleTab_usesVisibleTabIndexAndRendersSchedule() {
+    composeRule.setContent {
+      LibraryAdministrationCreateContent(
+        uiState =
+          LibraryAdministrationCreateUiState(
+            selectedTab = LibraryAdministrationCreateTab.SCHEDULE,
+            draft = LibraryAdministrationDraft(mediaType = LibraryAdministrationMediaType.PODCAST),
+          )
+      )
+    }
+
+    composeRule.onNodeWithText("Schedule").assertIsDisplayed().assertIsSelected()
+    composeRule.onNodeWithText("Automatic library scans").assertIsDisplayed()
     composeRule.onAllNodesWithText("Scanner").assertCountEquals(0)
   }
 

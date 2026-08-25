@@ -65,6 +65,11 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationFilesystemState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationProviderState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleInterval
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleMode
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleDraft
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleValidationState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.nextLibraryScheduleRun
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySwitch
@@ -108,6 +113,7 @@ internal fun LibraryAdministrationCreateContent(
   val folderFocusRequester = remember { FocusRequester() }
   val settingsFocusRequester = remember { FocusRequester() }
   val scannerFocusRequester = remember { FocusRequester() }
+  val scheduleFocusRequester = remember { FocusRequester() }
 
   LaunchedEffect(uiState.focusField) {
     when (uiState.focusField) {
@@ -116,6 +122,7 @@ internal fun LibraryAdministrationCreateContent(
       LibraryAdministrationCreateField.FOLDERS -> folderFocusRequester.requestFocus()
       LibraryAdministrationCreateField.SETTINGS_FINISH_THRESHOLD -> settingsFocusRequester.requestFocus()
       LibraryAdministrationCreateField.SCANNER_PRECEDENCE -> scannerFocusRequester.requestFocus()
+      LibraryAdministrationCreateField.SCHEDULE -> scheduleFocusRequester.requestFocus()
       else -> Unit
     }
     if (uiState.focusField != null) onEvent(LibraryAdministrationCreateEvent.ConsumeFocus)
@@ -150,29 +157,36 @@ internal fun LibraryAdministrationCreateContent(
             onEvent = onEvent,
             focusRequester = scannerFocusRequester,
           )
+        LibraryAdministrationCreateTab.SCHEDULE ->
+          LibraryAdministrationScheduleContent(
+            uiState = uiState,
+            onEvent = onEvent,
+            focusRequester = scheduleFocusRequester,
+          )
       }
     }
 
+    val visibleTabs =
+      LibraryAdministrationCreateTab.entries.filter {
+        it != LibraryAdministrationCreateTab.SCANNER ||
+          uiState.draft.mediaType != LibraryAdministrationMediaType.PODCAST
+      }
     ScrollableTabRow(
-      selectedTabIndex = uiState.selectedTab.ordinal,
+      selectedTabIndex = visibleTabs.indexOf(uiState.selectedTab).coerceAtLeast(0),
       modifier = Modifier.fillMaxWidth(),
     ) {
-      LibraryAdministrationCreateTab.values().forEach { tab ->
-        if (tab != LibraryAdministrationCreateTab.SCANNER ||
-          uiState.draft.mediaType != LibraryAdministrationMediaType.PODCAST
-        ) {
-          Tab(
-            selected = uiState.selectedTab == tab,
-            onClick = { onEvent(LibraryAdministrationCreateEvent.SelectTab(tab)) },
-            text = { Text(createTabLabel(tab)) },
-          )
-        }
+      visibleTabs.forEach { tab ->
+        Tab(
+          selected = uiState.selectedTab == tab,
+          onClick = { onEvent(LibraryAdministrationCreateEvent.SelectTab(tab)) },
+          text = { Text(createTabLabel(tab)) },
+        )
       }
     }
 
     Button(
       modifier = Modifier.fillMaxWidth().padding(16.dp),
-      enabled = !uiState.isSubmitting,
+      enabled = !uiState.isBusy,
       onClick = { onEvent(LibraryAdministrationCreateEvent.Submit) },
     ) {
       if (uiState.isSubmitting) {
@@ -601,6 +615,255 @@ private fun LibraryAdministrationPodcastRegionPicker(
 }
 
 @Composable
+internal fun LibraryAdministrationScheduleContent(
+  uiState: LibraryAdministrationCreateUiState,
+  onEvent: (LibraryAdministrationCreateEvent) -> Unit,
+  focusRequester: FocusRequester,
+) {
+  val schedule = uiState.draft.schedule
+  val scheduleError = uiState.validation.errors[LibraryAdministrationCreateField.SCHEDULE]
+  val errorDescription = scheduleError?.let { createErrorText(it) }
+  Column(
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(horizontal = 16.dp)
+        .focusRequester(focusRequester)
+        .focusable(),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    Text(stringResource(R.string.library_schedule_heading))
+    MySwitch(
+      title = stringResource(R.string.library_schedule_enable),
+      checked = schedule.enabled,
+      contentDescription = stringResource(R.string.library_schedule_enable),
+      onCheckedChange = { onEvent(LibraryAdministrationCreateEvent.ToggleSchedule(it)) },
+    )
+    if (!schedule.enabled) {
+      val disabledDescription = stringResource(R.string.library_schedule_disabled_note)
+      Text(
+        text = disabledDescription,
+        modifier = Modifier.semantics { contentDescription = disabledDescription },
+      )
+    } else {
+      FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+          selected = schedule.mode == LibraryAdministrationScheduleMode.Simple,
+          onClick = {
+            onEvent(LibraryAdministrationCreateEvent.SelectScheduleMode(LibraryAdministrationScheduleMode.Simple))
+          },
+          label = { Text(stringResource(R.string.library_schedule_mode_simple)) },
+        )
+        FilterChip(
+          selected = schedule.mode == LibraryAdministrationScheduleMode.Advanced,
+          onClick = {
+            onEvent(LibraryAdministrationCreateEvent.SelectScheduleMode(LibraryAdministrationScheduleMode.Advanced))
+          },
+          label = { Text(stringResource(R.string.library_schedule_mode_advanced)) },
+        )
+      }
+
+      when (schedule.mode) {
+        LibraryAdministrationScheduleMode.Simple ->
+          LibraryAdministrationSimpleScheduleContent(schedule, onEvent)
+        LibraryAdministrationScheduleMode.Advanced ->
+          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+              value = schedule.advancedCronExpression,
+              onValueChange = {
+                onEvent(LibraryAdministrationCreateEvent.UpdateAdvancedScheduleCron(it))
+              },
+              label = { Text(stringResource(R.string.library_schedule_cron_expression)) },
+              placeholder = { Text(stringResource(R.string.library_schedule_cron_hint)) },
+              modifier = Modifier.fillMaxWidth(),
+              isError = scheduleError != null,
+              supportingText = {
+                when (val validation = uiState.scheduleValidation) {
+                  LibraryAdministrationScheduleValidationState.Validating ->
+                    Text(stringResource(R.string.library_schedule_checking))
+                  is LibraryAdministrationScheduleValidationState.Invalid,
+                  is LibraryAdministrationScheduleValidationState.Unavailable ->
+                    Text(
+                      text = errorDescription.orEmpty(),
+                      modifier = Modifier.semantics {
+                        contentDescription = errorDescription.orEmpty()
+                      },
+                    )
+                  else ->
+                    if (scheduleError != null) {
+                      Text(
+                        text = errorDescription.orEmpty(),
+                        modifier = Modifier.semantics {
+                          contentDescription = errorDescription.orEmpty()
+                        },
+                      )
+                    }
+                }
+              },
+              keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            )
+            Button(
+              enabled = !uiState.isBusy,
+              onClick = { onEvent(LibraryAdministrationCreateEvent.ValidateSchedule) },
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Text(
+                if (uiState.scheduleValidation is
+                    LibraryAdministrationScheduleValidationState.Validating
+                ) {
+                  stringResource(R.string.library_schedule_checking)
+                } else {
+                  stringResource(R.string.library_schedule_validate)
+                }
+              )
+            }
+          }
+      }
+
+      if (schedule.mode == LibraryAdministrationScheduleMode.Simple && scheduleError != null) {
+        Text(
+          text = errorDescription.orEmpty(),
+          modifier = Modifier.semantics { contentDescription = errorDescription.orEmpty() },
+        )
+      }
+
+      if (scheduleError == null &&
+          (schedule.mode == LibraryAdministrationScheduleMode.Simple ||
+            uiState.scheduleValidation is LibraryAdministrationScheduleValidationState.Valid)) {
+        ScheduleSummary(schedule.cronExpression, schedule.summary)
+      }
+    }
+  }
+}
+
+@Composable
+private fun LibraryAdministrationSimpleScheduleContent(
+  schedule: LibraryAdministrationScheduleDraft,
+  onEvent: (LibraryAdministrationCreateEvent) -> Unit,
+) {
+  var expanded by remember { mutableStateOf(false) }
+  ExposedDropdownMenuBox(
+    expanded = expanded,
+    onExpandedChange = { expanded = !expanded },
+  ) {
+    OutlinedTextField(
+      value = schedule.simple.interval.scheduleLabel(),
+      onValueChange = {},
+      readOnly = true,
+      label = { Text(stringResource(R.string.library_schedule_interval)) },
+      modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+      trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+    )
+    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      LibraryAdministrationScheduleInterval.entries.forEach { interval ->
+        DropdownMenuItem(
+          text = { Text(interval.scheduleLabel()) },
+          onClick = {
+            onEvent(LibraryAdministrationCreateEvent.SelectScheduleInterval(interval))
+            expanded = false
+          },
+        )
+      }
+    }
+  }
+
+  if (schedule.simple.interval == LibraryAdministrationScheduleInterval.Custom) {
+    Text(stringResource(R.string.library_schedule_weekdays))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      LIBRARY_SCHEDULE_WEEKDAY_OPTIONS.forEach { (day, label) ->
+        FilterChip(
+          selected = day in schedule.simple.weekdays,
+          onClick = {
+            onEvent(
+              LibraryAdministrationCreateEvent.ToggleScheduleWeekday(
+                weekday = day,
+                selected = day !in schedule.simple.weekdays,
+              )
+            )
+          },
+          label = { Text(stringResource(label)) },
+        )
+      }
+    }
+  }
+
+  if (schedule.simple.interval == LibraryAdministrationScheduleInterval.Custom ||
+      schedule.simple.interval == LibraryAdministrationScheduleInterval.Daily) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      OutlinedTextField(
+        value = schedule.simple.hour,
+        onValueChange = { onEvent(LibraryAdministrationCreateEvent.UpdateScheduleHour(it)) },
+        label = { Text(stringResource(R.string.library_schedule_hour)) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.weight(1f),
+        isError = schedule.simple.hour.toIntOrNull() !in 0..23,
+      )
+      OutlinedTextField(
+        value = schedule.simple.minute,
+        onValueChange = { onEvent(LibraryAdministrationCreateEvent.UpdateScheduleMinute(it)) },
+        label = { Text(stringResource(R.string.library_schedule_minute)) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.weight(1f),
+        isError = schedule.simple.minute.toIntOrNull() !in 0..59,
+      )
+    }
+  }
+}
+
+@Composable
+private fun ScheduleSummary(expression: String?, summary: String?) {
+  if (expression.isNullOrBlank()) return
+  val nextRun = remember(expression) { nextLibraryScheduleRun(expression) }
+  Column(
+    modifier = Modifier.fillMaxWidth().semantics { contentDescription = expression },
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+  ) {
+    Text(
+      text = summary ?: stringResource(R.string.library_schedule_valid),
+      modifier = Modifier.fillMaxWidth(),
+    )
+    Text(text = expression, modifier = Modifier.fillMaxWidth())
+    if (nextRun.isNotBlank()) {
+      Text(
+        text = stringResource(R.string.library_schedule_next_run, nextRun),
+        modifier = Modifier.fillMaxWidth(),
+      )
+    }
+  }
+}
+
+@Composable
+private fun LibraryAdministrationScheduleInterval.scheduleLabel(): String =
+  when (this) {
+    LibraryAdministrationScheduleInterval.Custom ->
+      stringResource(R.string.library_schedule_interval_custom)
+    LibraryAdministrationScheduleInterval.Daily ->
+      stringResource(R.string.library_schedule_interval_daily)
+    LibraryAdministrationScheduleInterval.Every12Hours ->
+      stringResource(R.string.library_schedule_interval_every_12_hours)
+    LibraryAdministrationScheduleInterval.Every6Hours ->
+      stringResource(R.string.library_schedule_interval_every_6_hours)
+    LibraryAdministrationScheduleInterval.Every2Hours ->
+      stringResource(R.string.library_schedule_interval_every_2_hours)
+    LibraryAdministrationScheduleInterval.EveryHour ->
+      stringResource(R.string.library_schedule_interval_every_hour)
+    LibraryAdministrationScheduleInterval.Every30Minutes ->
+      stringResource(R.string.library_schedule_interval_every_30_minutes)
+    LibraryAdministrationScheduleInterval.Every15Minutes ->
+      stringResource(R.string.library_schedule_interval_every_15_minutes)
+  }
+
+private val LIBRARY_SCHEDULE_WEEKDAY_OPTIONS =
+  listOf(
+    0 to R.string.library_schedule_sunday,
+    1 to R.string.library_schedule_monday,
+    2 to R.string.library_schedule_tuesday,
+    3 to R.string.library_schedule_wednesday,
+    4 to R.string.library_schedule_thursday,
+    5 to R.string.library_schedule_friday,
+    6 to R.string.library_schedule_saturday,
+  )
+
+@Composable
 internal fun LibraryAdministrationScannerContent(
   uiState: LibraryAdministrationCreateUiState,
   onEvent: (LibraryAdministrationCreateEvent) -> Unit,
@@ -789,6 +1052,7 @@ private fun createTabLabel(tab: LibraryAdministrationCreateTab): String =
     LibraryAdministrationCreateTab.DETAILS -> stringResource(R.string.details)
     LibraryAdministrationCreateTab.SETTINGS -> stringResource(R.string.settings)
     LibraryAdministrationCreateTab.SCANNER -> stringResource(R.string.scanner)
+    LibraryAdministrationCreateTab.SCHEDULE -> stringResource(R.string.schedule)
   }
 
 @Composable
@@ -815,6 +1079,12 @@ private fun createErrorText(errors: List<LibraryAdministrationCreateError>): Str
           stringResource(R.string.library_settings_error_finish_threshold)
         LibraryAdministrationCreateError.SCANNER_PRECEDENCE_REQUIRED ->
           stringResource(R.string.library_scanner_error_source_required)
+        LibraryAdministrationCreateError.SCHEDULE_REQUIRED ->
+          stringResource(R.string.library_schedule_error_required)
+        LibraryAdministrationCreateError.SCHEDULE_INVALID ->
+          stringResource(R.string.library_schedule_error_invalid)
+        LibraryAdministrationCreateError.SCHEDULE_VALIDATION_UNAVAILABLE ->
+          stringResource(R.string.library_schedule_error_unavailable)
       }
   }
   return messages.joinToString(separator = ", ")

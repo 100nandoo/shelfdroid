@@ -35,6 +35,7 @@
     <string name="go_to_page">Go to page</string>
     <string name="edit">Edit</string>
     <string name="details">Details</string>
+    <string name="schedule">Schedule</string>
     <string name="match">Match</string>
     <string name="info">info</string>
     <!--Content Description-->
@@ -891,5 +892,39 @@
     <string name="delete">Delete</string>
     <string name="enable">Enable</string>
     <string name="selected">selected</string>
+
+    <string name="library_schedule_heading">Automatic library scans</string>
+    <string name="library_schedule_enable">Enable automatic scans</string>
+    <string name="library_schedule_disabled_note">Automatic scans are disabled. The server will not run a recurring Library scan.</string>
+    <string name="library_schedule_mode_simple">Schedule</string>
+    <string name="library_schedule_mode_advanced">Advanced</string>
+    <string name="library_schedule_interval">Interval</string>
+    <string name="library_schedule_interval_custom">Custom days and time</string>
+    <string name="library_schedule_interval_daily">Every day</string>
+    <string name="library_schedule_interval_every_12_hours">Every 12 hours</string>
+    <string name="library_schedule_interval_every_6_hours">Every 6 hours</string>
+    <string name="library_schedule_interval_every_2_hours">Every 2 hours</string>
+    <string name="library_schedule_interval_every_hour">Every hour</string>
+    <string name="library_schedule_interval_every_30_minutes">Every 30 minutes</string>
+    <string name="library_schedule_interval_every_15_minutes">Every 15 minutes</string>
+    <string name="library_schedule_weekdays">Weekdays to run</string>
+    <string name="library_schedule_sunday">Sunday</string>
+    <string name="library_schedule_monday">Monday</string>
+    <string name="library_schedule_tuesday">Tuesday</string>
+    <string name="library_schedule_wednesday">Wednesday</string>
+    <string name="library_schedule_thursday">Thursday</string>
+    <string name="library_schedule_friday">Friday</string>
+    <string name="library_schedule_saturday">Saturday</string>
+    <string name="library_schedule_hour">Hour</string>
+    <string name="library_schedule_minute">Minute</string>
+    <string name="library_schedule_cron_expression">Cron expression</string>
+    <string name="library_schedule_cron_hint">Cron expression (e.g. 0 0 * * 1)</string>
+    <string name="library_schedule_checking">Checking cron expression…</string>
+    <string name="library_schedule_validate">Validate schedule</string>
+    <string name="library_schedule_valid">Valid schedule</string>
+    <string name="library_schedule_next_run">Next scheduled run: %1$s</string>
+    <string name="library_schedule_error_required">Enter a five-field cron expression.</string>
+    <string name="library_schedule_error_invalid">The server rejected this cron expression.</string>
+    <string name="library_schedule_error_unavailable">The server could not validate this schedule. Check your connection and try again.</string>
     <!--Others-->
 </resources>
