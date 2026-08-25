@@ -185,6 +185,19 @@ class LibraryAdministrationApiServiceTest {
   }
 
   @Test
+  fun matchLibrary_usesAudiobookshelfMatchAllEndpoint() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    val result = service.matchLibrary("books")
+
+    assertTrue(result.isSuccess)
+    val request = requireNotNull(capturedRequest)
+    assertEquals("GET", request.method)
+    assertEquals("/api/libraries/books/matchall", request.url.encodedPath)
+  }
+
+  @Test
   fun tasks_loadsOperationAgnosticServerTaskSnapshot() = runTest {
     var capturedRequest: Request? = null
     val service = apiService { capturedRequest = it }

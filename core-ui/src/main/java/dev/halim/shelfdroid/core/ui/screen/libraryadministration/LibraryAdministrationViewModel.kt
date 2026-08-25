@@ -11,6 +11,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartMatch
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartScan
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.toAdministrationTaskState
 import dev.halim.shelfdroid.core.data.task.ServerTaskConnectionState
@@ -71,6 +72,7 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
     when (event) {
       LibraryAdministrationEvent.Refresh -> load()
       is LibraryAdministrationEvent.StartScan -> startScan(event.libraryId)
+      is LibraryAdministrationEvent.StartMatch -> startMatch(event.libraryId)
       is LibraryAdministrationEvent.RetryTaskSynchronization ->
         retryTaskSynchronization(event.taskId)
       is LibraryAdministrationEvent.MoveLibrary -> moveLibrary(event.libraryId, event.delta)
@@ -223,6 +225,16 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
     }
   }
 
+  private fun startMatch(libraryId: String) {
+    if (!_uiState.value.canStartMatch(libraryId)) return
+    _uiState.update { it.copy(matchError = null) }
+    viewModelScope.launch {
+      repository.startMatch(libraryId).onFailure { error ->
+        _uiState.update { it.copy(matchError = error.safeMessage(LibraryAdministrationError.GenericMatchStart)) }
+      }
+    }
+  }
+
   private fun retryTaskSynchronization(taskId: String) {
     _uiState.update { it.copy(taskSyncError = null) }
     viewModelScope.launch {
@@ -251,6 +263,8 @@ sealed interface LibraryAdministrationEvent {
   data object Refresh : LibraryAdministrationEvent
 
   data class StartScan(val libraryId: String) : LibraryAdministrationEvent
+
+  data class StartMatch(val libraryId: String) : LibraryAdministrationEvent
 
   data class RetryTaskSynchronization(val taskId: String) : LibraryAdministrationEvent
 

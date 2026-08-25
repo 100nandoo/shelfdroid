@@ -38,6 +38,9 @@ constructor(
   override suspend fun startScan(libraryId: String): Result<Unit> =
     serverTaskRepository.startLibraryScan(libraryId)
 
+  override suspend fun startMatch(libraryId: String): Result<Unit> =
+    serverTaskRepository.startLibraryMatch(libraryId)
+
   override suspend fun retryTaskSynchronization(taskId: String): Result<Unit> =
     serverTaskRepository.retrySynchronization(taskId)
 

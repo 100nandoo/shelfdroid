@@ -57,6 +57,39 @@ class ServerTaskRepositoryBehaviorTest {
   }
 
   @Test
+  fun matchTaskStarted_replacesAcceptedPlaceholderAndUsesMatchAction() = runTest {
+    val api = FakeServerTaskApi(TasksResponse(emptyList()))
+    val socket = FakeServerTaskSocket()
+    val repository = repository(api, socket, retentionMillis = 1_000_000L)
+
+    repository.startLibraryMatch("books")
+    val placeholder = repository.state.value.tasks.single()
+    assertTrue(placeholder.id.startsWith("accepted-match-"))
+    assertEquals("library-match-all", placeholder.action)
+
+    socket.emit(
+      "task_started",
+      networkTask("match", finished = false, action = "library-match-all").json(),
+    )
+
+    assertEquals(listOf("match"), repository.state.value.tasks.map { it.id })
+    assertEquals("library-match-all", repository.state.value.tasks.single().action)
+  }
+
+  @Test
+  fun scanAndMatchAreMutuallyExclusivePerLibraryButIndependentAcrossLibraries() = runTest {
+    val api = FakeServerTaskApi(TasksResponse(emptyList()))
+    val socket = FakeServerTaskSocket()
+    val repository = repository(api, socket, retentionMillis = 1_000_000L)
+
+    assertTrue(repository.startLibraryScan("books").isSuccess)
+    assertTrue(repository.startLibraryMatch("books").isFailure)
+    assertTrue(repository.startLibraryMatch("podcasts").isSuccess)
+    assertEquals(1, api.scanCalls)
+    assertEquals(1, api.matchCalls)
+  }
+
+  @Test
   fun taskFinishedBeforeHttpResponse_doesNotLeavePlaceholder() = runTest {
     val scanResponse = CompletableDeferred<Result<Unit>>()
     val api = FakeServerTaskApi(TasksResponse(emptyList()), scanResponse)
@@ -203,6 +236,28 @@ class ServerTaskRepositoryBehaviorTest {
   }
 
   @Test
+  fun completedMatchSyncFailureIsDistinctAndRetryDoesNotStartAnotherMatch() = runTest {
+    val api = FakeServerTaskApi(TasksResponse(emptyList()))
+    val catalog =
+      FakeCatalogSynchronizer(
+        ArrayDeque(listOf(Result.failure(IllegalStateException("internal")), Result.success(Unit)))
+      )
+    val socket = FakeServerTaskSocket()
+    val repository = repository(api, socket, catalog = catalog, retentionMillis = 1_000_000L)
+
+    socket.emit(
+      "task_finished",
+      networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all").json(),
+    )
+    runCurrent()
+    assertEquals(ServerTaskSyncState.FAILED, repository.state.value.tasks.single().syncState)
+    assertTrue(repository.retrySynchronization("match").isSuccess)
+    runCurrent()
+    assertEquals(ServerTaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
+    assertEquals(0, api.matchCalls)
+  }
+
+  @Test
   fun refreshPreservesTerminalSynchronizationFailureForRetry() = runTest {
     val terminal = networkTask("finished", finished = true, finishedAt = 1_000L)
     val api = FakeServerTaskApi(TasksResponse(listOf(terminal)))
@@ -237,6 +292,42 @@ class ServerTaskRepositoryBehaviorTest {
     assertNull(repository.notifications.value)
   }
 
+  @Test
+  fun matchNotificationRetainsOperationForDelayedSnackbarPresentation() = runTest {
+    val repository = repository(FakeServerTaskApi(TasksResponse(emptyList())))
+
+    repository.socketForTest.emit(
+      "task_finished",
+      networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all").json(),
+    )
+
+    assertEquals(
+      ServerTaskNotification("match", ServerTaskStatus.COMPLETED, "library-match-all"),
+      repository.notifications.value,
+    )
+  }
+
+  @Test
+  fun refreshRecoversCompletedMatchAndSynchronizesCatalogWhenSocketEventWasMissed() = runTest {
+    val api =
+      FakeServerTaskApi(
+        TasksResponse(
+          listOf(networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all"))
+        )
+      )
+    val catalog = FakeCatalogSynchronizer(ArrayDeque(listOf(Result.success(Unit))))
+    val repository = repository(api, catalog = catalog, retentionMillis = 1_000_000L)
+
+    assertTrue(repository.refresh().isSuccess)
+    runCurrent()
+
+    assertEquals(ServerTaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
+    assertEquals(
+      ServerTaskNotification("match", ServerTaskStatus.COMPLETED, "library-match-all"),
+      repository.notifications.value,
+    )
+  }
+
   private fun TestScope.repository(
     api: FakeServerTaskApi,
     socket: FakeServerTaskSocket = FakeServerTaskSocket(),
@@ -266,11 +357,13 @@ class ServerTaskRepositoryBehaviorTest {
     id: String,
     finished: Boolean,
     finishedAt: Long? = null,
+    action: String = "library-scan",
+    libraryId: String = "books",
   ): NetworkServerTask =
     NetworkServerTask(
       id = id,
-      action = "library-scan",
-      data = buildJsonObject { put("libraryId", "books") },
+      action = action,
+      data = buildJsonObject { put("libraryId", libraryId) },
       isFinished = finished,
       startedAt = 0L,
       finishedAt = finishedAt,
@@ -284,6 +377,7 @@ class ServerTaskRepositoryBehaviorTest {
     private val scanResponse: CompletableDeferred<Result<Unit>>?
     var taskRequests = 0
     var scanCalls = 0
+    var matchCalls = 0
     val scanStarted = CompletableDeferred<Unit>()
 
     constructor(vararg snapshots: TasksResponse) {
@@ -305,6 +399,11 @@ class ServerTaskRepositoryBehaviorTest {
       scanCalls++
       scanStarted.complete(Unit)
       return scanResponse?.await() ?: Result.success(Unit)
+    }
+
+    override suspend fun matchLibrary(libraryId: String): Result<Unit> {
+      matchCalls++
+      return Result.success(Unit)
     }
   }
 

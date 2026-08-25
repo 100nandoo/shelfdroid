@@ -10,12 +10,16 @@ interface ServerTaskApi {
   suspend fun tasks(): Result<TasksResponse>
 
   suspend fun scanLibrary(libraryId: String): Result<Unit>
+
+  suspend fun matchLibrary(libraryId: String): Result<Unit>
 }
 
 class ApiServerTaskApi @Inject constructor(private val api: ApiService) : ServerTaskApi {
   override suspend fun tasks(): Result<TasksResponse> = api.tasks()
 
   override suspend fun scanLibrary(libraryId: String): Result<Unit> = api.scanLibrary(libraryId)
+
+  override suspend fun matchLibrary(libraryId: String): Result<Unit> = api.matchLibrary(libraryId)
 }
 
 /** Catalog synchronization is intentionally separate from task state and can be retried. */

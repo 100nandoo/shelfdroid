@@ -73,7 +73,11 @@ data class ServerTaskRepositoryState(
   val tasks: List<ServerTask> = emptyList(),
 )
 
-data class ServerTaskNotification(val taskId: String, val status: ServerTaskStatus)
+data class ServerTaskNotification(
+  val taskId: String,
+  val status: ServerTaskStatus,
+  val action: String? = null,
+)
 
 interface ServerTaskRepositoryContract {
   val state: StateFlow<ServerTaskRepositoryState>
@@ -84,6 +88,9 @@ interface ServerTaskRepositoryContract {
 
   /** The HTTP response means accepted/started; task completion is never inferred here. */
   suspend fun startLibraryScan(libraryId: String): Result<Unit>
+
+  /** The match-all HTTP response means accepted/started; completion is socket/task state. */
+  suspend fun startLibraryMatch(libraryId: String): Result<Unit>
 
   suspend fun retrySynchronization(taskId: String): Result<Unit>
 
@@ -151,8 +158,8 @@ class ServerTaskRepository private constructor(
 
   private val lock = Any()
   private val tasks = LinkedHashMap<String, ServerTask>()
-  private val acceptedScans = LinkedHashMap<String, ServerTask>()
-  private val pendingScanLibraries = mutableSetOf<String>()
+  private val acceptedTasks = LinkedHashMap<String, ServerTask>()
+  private val pendingTaskLibraries = mutableSetOf<String>()
   private val expiryJobs = mutableMapOf<String, Job>()
   private val notifiedTaskIds = mutableSetOf<String>()
   private val _state = MutableStateFlow(ServerTaskRepositoryState())
@@ -188,16 +195,18 @@ class ServerTaskRepository private constructor(
   override suspend fun refresh(): Result<Unit> = refreshInternal()
 
   /**
-   * The scan endpoint can return before the task manager creates its task. Preserve an accepted
-   * placeholder only for the one recovery snapshot immediately following that HTTP response.
+   * A library operation endpoint can return before the task manager creates its task. Preserve an
+   * accepted placeholder only for the one recovery snapshot immediately following that response.
    */
   private suspend fun refreshInternal(
-    preserveAcceptedScanLibraries: Set<String> = emptySet(),
+    preserveAcceptedTaskLibraries: Set<String> = emptySet(),
   ): Result<Unit> {
     _state.value = _state.value.copy(snapshotKnown = false)
     return api.tasks().fold(
       onSuccess = { response ->
         val terminalTaskIds = mutableListOf<String>()
+        val synchronizationTaskIds = mutableListOf<String>()
+        val notificationTasks = mutableListOf<ServerTask>()
         synchronized(lock) {
           val snapshotActiveIds =
             response.tasks
@@ -212,8 +221,8 @@ class ServerTaskRepository private constructor(
             val stale =
               task.status == ServerTaskStatus.ACTIVE &&
                 id !in snapshotActiveIds &&
-                acceptedScans.values.none { accepted ->
-                  accepted.id == id && accepted.libraryId in preserveAcceptedScanLibraries
+                acceptedTasks.values.none { accepted ->
+                  accepted.id == id && accepted.libraryId in preserveAcceptedTaskLibraries
                 }
             if (stale) expiryJobs.remove(id)?.cancel()
             stale
@@ -231,16 +240,28 @@ class ServerTaskRepository private constructor(
                   next
                 }
               }
+            val previous = tasks[task.id]
             tasks[task.id] = mapped
             if (mapped.status == ServerTaskStatus.ACTIVE) {
               expiryJobs.remove(mapped.id)?.cancel()
             } else {
               terminalTaskIds += mapped.id
+              if (previous?.status != mapped.status) {
+                notificationTasks += mapped
+              }
+              if (
+                mapped.status == ServerTaskStatus.COMPLETED &&
+                  (previous == null ||
+                    previous.status != ServerTaskStatus.COMPLETED ||
+                    previous.syncState == ServerTaskSyncState.NOT_STARTED)
+              ) {
+                synchronizationTaskIds += mapped.id
+              }
             }
           }
-          mergeAcceptedScansLocked(
+          mergeAcceptedTasksLocked(
             response.tasks.map { it.id }.toSet(),
-            preserveAcceptedScanLibraries,
+            preserveAcceptedTaskLibraries,
           )
           _state.value =
             _state.value.copy(
@@ -252,6 +273,13 @@ class ServerTaskRepository private constructor(
             )
         }
         terminalTaskIds.forEach(::scheduleExpiry)
+        notificationTasks.forEach(::enqueueNotification)
+        synchronizationTaskIds.distinct().forEach { taskId ->
+          updateTaskById(taskId) {
+            it.copy(syncState = ServerTaskSyncState.SYNCHRONIZING, syncError = null)
+          }
+          scope.launch { synchronizeTask(taskId) }
+        }
         Result.success(Unit)
       },
       onFailure = { error ->
@@ -262,34 +290,62 @@ class ServerTaskRepository private constructor(
   }
 
   override suspend fun startLibraryScan(libraryId: String): Result<Unit> {
+    return startLibraryOperation(
+      libraryId = libraryId,
+      action = "library-scan",
+      placeholderPrefix = "accepted-scan",
+      request = { api.scanLibrary(libraryId) },
+    )
+  }
+
+  override suspend fun startLibraryMatch(libraryId: String): Result<Unit> {
+    return startLibraryOperation(
+      libraryId = libraryId,
+      action = "library-match-all",
+      placeholderPrefix = "accepted-match",
+      request = { api.matchLibrary(libraryId) },
+    )
+  }
+
+  private suspend fun startLibraryOperation(
+    libraryId: String,
+    action: String,
+    placeholderPrefix: String,
+    request: suspend () -> Result<Unit>,
+  ): Result<Unit> {
     val requestStartedAt = clock.now()
-    synchronized(lock) { pendingScanLibraries += libraryId }
-    return api.scanLibrary(libraryId).fold(
+    synchronized(lock) {
+      val hasActiveTask =
+        tasks.values.any { it.libraryId == libraryId && it.status == ServerTaskStatus.ACTIVE }
+      if (libraryId in pendingTaskLibraries || hasActiveTask) {
+        return Result.failure(IllegalStateException("Library already has an active task"))
+      }
+      pendingTaskLibraries += libraryId
+    }
+    return request().fold(
       onSuccess = {
-        // The scan endpoint deliberately sends 200 before creating the Server task. Keep an
-        // accepted active placeholder so controls stay gated until task_started or task_finished.
+        // Audiobookshelf deliberately sends 200 before creating the Server task. Keep an accepted
+        // active placeholder so controls stay gated until task_started or task_finished.
         synchronized(lock) {
-          pendingScanLibraries.remove(libraryId)
+          pendingTaskLibraries.remove(libraryId)
           val hasKnownActiveTask =
             tasks.values.any {
               it.libraryId == libraryId &&
-                it.action == "library-scan" &&
                 it.status == ServerTaskStatus.ACTIVE
             }
           val hasTaskCompletedDuringRequest =
             tasks.values.any {
               it.libraryId == libraryId &&
-                it.action == "library-scan" &&
                 it.status != ServerTaskStatus.ACTIVE &&
                 maxOf(it.startedAt ?: Long.MIN_VALUE, it.finishedAt ?: Long.MIN_VALUE) >=
                   requestStartedAt
             }
           if (!hasKnownActiveTask && !hasTaskCompletedDuringRequest) {
-            val placeholderId = "accepted-scan-$libraryId-${System.nanoTime()}"
-            acceptedScans[libraryId] =
+            val placeholderId = "$placeholderPrefix-$libraryId-${System.nanoTime()}"
+            acceptedTasks[libraryId] =
               ServerTask(
                 id = placeholderId,
-                action = "library-scan",
+                action = action,
                 libraryId = libraryId,
                 status = ServerTaskStatus.ACTIVE,
                 startedAt = clock.now(),
@@ -298,12 +354,13 @@ class ServerTaskRepository private constructor(
           publishLocked()
         }
         // Recover a task that may have been created before the HTTP response reached us. A
-        // missing or failed snapshot must not turn an accepted scan into a reported start error.
-        refreshInternal(preserveAcceptedScanLibraries = setOf(libraryId))
+        // missing or failed snapshot must not turn an accepted operation into a reported start
+        // error.
+        refreshInternal(preserveAcceptedTaskLibraries = setOf(libraryId))
         Result.success(Unit)
       },
       onFailure = {
-        synchronized(lock) { pendingScanLibraries.remove(libraryId) }
+        synchronized(lock) { pendingTaskLibraries.remove(libraryId) }
         Result.failure(it)
       },
     )
@@ -367,12 +424,12 @@ class ServerTaskRepository private constructor(
         domainTask =
           domainTask.copy(syncState = previous.syncState, syncError = previous.syncError)
       }
-      val pendingScan =
-        domainTask.libraryId != null && domainTask.libraryId in pendingScanLibraries
+      val pendingTask =
+        domainTask.libraryId != null && domainTask.libraryId in pendingTaskLibraries
       if (domainTask.libraryId != null) {
-        acceptedScans.remove(domainTask.libraryId)?.let { accepted -> tasks.remove(accepted.id) }
-        if (pendingScan && domainTask.status == ServerTaskStatus.ACTIVE) {
-          acceptedScans[domainTask.libraryId] = domainTask
+        acceptedTasks.remove(domainTask.libraryId)?.let { accepted -> tasks.remove(accepted.id) }
+        if (pendingTask && domainTask.status == ServerTaskStatus.ACTIVE) {
+          acceptedTasks[domainTask.libraryId] = domainTask
         }
       }
       if (domainTask.status == ServerTaskStatus.ACTIVE) {
@@ -387,16 +444,7 @@ class ServerTaskRepository private constructor(
       tasks[domainTask.id] = domainTask
       publishLocked()
     }
-    if (finished && domainTask.status != ServerTaskStatus.ACTIVE) {
-      val shouldNotify = synchronized(lock) { notifiedTaskIds.add(domainTask.id) }
-      if (shouldNotify) {
-        synchronized(lock) {
-          pendingNotifications[domainTask.id] =
-            ServerTaskNotification(domainTask.id, domainTask.status)
-          _notifications.value = pendingNotifications.values.firstOrNull()
-        }
-      }
-    }
+    if (finished && domainTask.status != ServerTaskStatus.ACTIVE) enqueueNotification(domainTask)
     if (shouldSynchronize) {
       updateTaskById(domainTask.id) {
         it.copy(syncState = ServerTaskSyncState.SYNCHRONIZING)
@@ -422,6 +470,21 @@ class ServerTaskRepository private constructor(
       }
   }
 
+  private fun enqueueNotification(task: ServerTask) {
+    if (task.status == ServerTaskStatus.ACTIVE) return
+    val shouldNotify = synchronized(lock) { notifiedTaskIds.add(task.id) }
+    if (!shouldNotify) return
+    synchronized(lock) {
+      pendingNotifications[task.id] =
+        ServerTaskNotification(
+          taskId = task.id,
+          status = task.status,
+          action = task.action.takeIf { it == "library-match-all" },
+        )
+      _notifications.value = pendingNotifications.values.firstOrNull()
+    }
+  }
+
   private fun terminalRetentionMillis(taskId: String): Long {
     val finishedAt = synchronized(lock) { tasks[taskId]?.finishedAt }
     return if (finishedAt == null) {
@@ -432,11 +495,11 @@ class ServerTaskRepository private constructor(
     }
   }
 
-  private fun mergeAcceptedScansLocked(
+  private fun mergeAcceptedTasksLocked(
     snapshotTaskIds: Set<String>,
-    preserveAcceptedScanLibraries: Set<String>,
+    preserveAcceptedTaskLibraries: Set<String>,
   ) {
-    acceptedScans.values.toList().forEach { accepted ->
+    acceptedTasks.values.toList().forEach { accepted ->
       val serverTask = tasks.values.firstOrNull {
         it.id != accepted.id &&
           it.libraryId == accepted.libraryId &&
@@ -446,17 +509,17 @@ class ServerTaskRepository private constructor(
               (accepted.startedAt ?: Long.MIN_VALUE))
       }
       if (serverTask == null) {
-        if (accepted.libraryId in preserveAcceptedScanLibraries) {
+        if (accepted.libraryId in preserveAcceptedTaskLibraries) {
           tasks[accepted.id] = accepted
         } else {
-          acceptedScans.remove(accepted.libraryId)
+          acceptedTasks.remove(accepted.libraryId)
           tasks.remove(accepted.id)
         }
       } else if (serverTask.id != accepted.id || serverTask.id in snapshotTaskIds) {
-        acceptedScans.remove(accepted.libraryId)
+        acceptedTasks.remove(accepted.libraryId)
         if (serverTask.id != accepted.id) tasks.remove(accepted.id)
-      } else if (accepted.libraryId !in preserveAcceptedScanLibraries) {
-        acceptedScans.remove(accepted.libraryId)
+      } else if (accepted.libraryId !in preserveAcceptedTaskLibraries) {
+        acceptedTasks.remove(accepted.libraryId)
         tasks.remove(accepted.id)
       }
     }

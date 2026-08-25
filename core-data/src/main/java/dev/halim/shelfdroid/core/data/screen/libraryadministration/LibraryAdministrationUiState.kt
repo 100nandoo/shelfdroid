@@ -10,6 +10,8 @@ sealed interface LibraryAdministrationError {
 
   data object GenericScanStart : LibraryAdministrationError
 
+  data object GenericMatchStart : LibraryAdministrationError
+
   data object GenericSynchronization : LibraryAdministrationError
 }
 
@@ -22,6 +24,7 @@ data class LibraryAdministrationUiState(
   val taskStates: Map<String, LibraryAdministrationTaskState> = emptyMap(),
   val tasks: List<ServerTask> = emptyList(),
   val scanError: LibraryAdministrationError? = null,
+  val matchError: LibraryAdministrationError? = null,
   val taskSyncError: LibraryAdministrationError? = null,
   val taskNotification: ServerTaskNotification? = null,
   val reorderError: String? = null,
@@ -40,6 +43,14 @@ fun LibraryAdministrationUiState.canStartScan(libraryId: String): Boolean =
     libraries.any {
       it.id == libraryId &&
         it.mediaType != LibraryAdministrationMediaType.UNKNOWN
+    } &&
+    taskStates[libraryId] == LibraryAdministrationTaskState.IDLE
+
+fun LibraryAdministrationUiState.canStartMatch(libraryId: String): Boolean =
+  connectionState == LibraryAdministrationConnectionState.CONNECTED &&
+    libraries.any {
+      it.id == libraryId &&
+        it.mediaType == LibraryAdministrationMediaType.BOOK
     } &&
     taskStates[libraryId] == LibraryAdministrationTaskState.IDLE
 

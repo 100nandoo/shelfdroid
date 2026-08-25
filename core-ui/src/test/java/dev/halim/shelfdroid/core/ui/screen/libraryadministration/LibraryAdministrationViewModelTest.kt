@@ -284,6 +284,57 @@ class LibraryAdministrationViewModelTest {
   }
 
   @Test
+  fun matchStartsOnlyForBookLibrariesAndSharesPerLibraryTaskGateWithScan() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      TaskRepository(
+        libraries =
+          listOf(
+            libraries("books").single(),
+            LibraryAdministrationLibrary(
+              "podcasts",
+              "Podcasts",
+              LibraryAdministrationMediaType.PODCAST,
+              2,
+            ),
+          ),
+        initialTaskState =
+          ServerTaskRepositoryState(
+            connectionState = ServerTaskConnectionState.CONNECTED,
+            snapshotKnown = true,
+          ),
+      )
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    viewModel.onEvent(LibraryAdministrationEvent.StartMatch("books"))
+    viewModel.onEvent(LibraryAdministrationEvent.StartMatch("podcasts"))
+    advanceUntilIdle()
+    assertEquals(listOf("books"), repository.matchRequests)
+
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        tasks =
+          listOf(
+            ServerTask(
+              id = "match",
+              action = "library-match-all",
+              libraryId = "books",
+              status = ServerTaskStatus.ACTIVE,
+            )
+          )
+      )
+    advanceUntilIdle()
+    viewModel.onEvent(LibraryAdministrationEvent.StartScan("books"))
+    viewModel.onEvent(LibraryAdministrationEvent.StartMatch("books"))
+    advanceUntilIdle()
+    assertEquals(emptyList<String>(), repository.scanRequests)
+    assertEquals(listOf("books"), repository.matchRequests)
+    collection.cancel()
+  }
+
+  @Test
   fun scanAndSynchronizationFailuresUseGenericLocalizedErrorKeys() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val repository =
@@ -296,6 +347,7 @@ class LibraryAdministrationViewModelTest {
           ),
       )
     repository.scanResult = Result.failure(IllegalStateException("database stack trace"))
+    repository.matchResult = Result.failure(IllegalStateException("database stack trace"))
     repository.retryResult = Result.failure(IllegalStateException("database stack trace"))
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
@@ -304,6 +356,10 @@ class LibraryAdministrationViewModelTest {
     viewModel.onEvent(LibraryAdministrationEvent.StartScan("books"))
     advanceUntilIdle()
     assertEquals(LibraryAdministrationError.GenericScanStart, viewModel.uiState.value.scanError)
+
+    viewModel.onEvent(LibraryAdministrationEvent.StartMatch("books"))
+    advanceUntilIdle()
+    assertEquals(LibraryAdministrationError.GenericMatchStart, viewModel.uiState.value.matchError)
 
     viewModel.onEvent(LibraryAdministrationEvent.RetryTaskSynchronization("scan"))
     advanceUntilIdle()
@@ -416,8 +472,10 @@ class LibraryAdministrationViewModelTest {
     val mutableTaskState = MutableStateFlow(initialTaskState)
     val taskNotification = MutableStateFlow<ServerTaskNotification?>(null)
     var scanResult: Result<Unit> = Result.success(Unit)
+    var matchResult: Result<Unit> = Result.success(Unit)
     var retryResult: Result<Unit> = Result.success(Unit)
     val scanRequests = mutableListOf<String>()
+    val matchRequests = mutableListOf<String>()
     var acknowledgements = 0
 
     override val taskState: StateFlow<ServerTaskRepositoryState>
@@ -434,6 +492,11 @@ class LibraryAdministrationViewModelTest {
     override suspend fun startScan(libraryId: String): Result<Unit> {
       scanRequests += libraryId
       return scanResult
+    }
+
+    override suspend fun startMatch(libraryId: String): Result<Unit> {
+      matchRequests += libraryId
+      return matchResult
     }
 
     override suspend fun retryTaskSynchronization(taskId: String): Result<Unit> = retryResult

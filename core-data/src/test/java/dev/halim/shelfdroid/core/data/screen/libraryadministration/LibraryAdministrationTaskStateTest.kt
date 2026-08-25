@@ -56,4 +56,24 @@ class LibraryAdministrationTaskStateTest {
 
     assertFalse(state.canStartScan("books"))
   }
+
+  @Test
+  fun matchIsBookOnlyAndUsesTheSameConnectionAndTaskGates() {
+    val podcasts = libraries.map { it.copy(mediaType = LibraryAdministrationMediaType.PODCAST) }
+    val idle =
+      LibraryAdministrationUiState(
+        state = GenericState.Success,
+        libraries = libraries,
+        connectionState = LibraryAdministrationConnectionState.CONNECTED,
+        taskStates = mapOf("books" to LibraryAdministrationTaskState.IDLE),
+      )
+    val disconnected = idle.copy(connectionState = LibraryAdministrationConnectionState.DISCONNECTED)
+    val active = idle.copy(taskStates = mapOf("books" to LibraryAdministrationTaskState.ACTIVE))
+    val podcastState = idle.copy(libraries = podcasts)
+
+    assertTrue(idle.canStartMatch("books"))
+    assertFalse(disconnected.canStartMatch("books"))
+    assertFalse(active.canStartMatch("books"))
+    assertFalse(podcastState.canStartMatch("books"))
+  }
 }

@@ -243,6 +243,46 @@ class LibraryAdministrationContentTest {
   }
 
   @Test
+  fun matchAction_isShownOnlyForBookLibrariesAndUsesDirectEvent() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            connectionState = LibraryAdministrationConnectionState.CONNECTED,
+            taskStates =
+              mapOf(
+                "books" to LibraryAdministrationTaskState.IDLE,
+                "podcasts" to LibraryAdministrationTaskState.IDLE,
+              ),
+            libraries =
+              listOf(
+                LibraryAdministrationLibrary(
+                  id = "books",
+                  name = "Books",
+                  mediaType = LibraryAdministrationMediaType.BOOK,
+                  displayOrder = 1,
+                ),
+                LibraryAdministrationLibrary(
+                  id = "podcasts",
+                  name = "Podcasts",
+                  mediaType = LibraryAdministrationMediaType.PODCAST,
+                  displayOrder = 2,
+                ),
+              ),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule.onAllNodesWithContentDescription("Match Book metadata").assertCountEquals(1)
+    composeRule.onNodeWithContentDescription("Match Book metadata").assertIsEnabled().performClick()
+    assertEquals(listOf(LibraryAdministrationEvent.StartMatch("books")), events)
+  }
+
+  @Test
   fun completedTask_displaysProgressAndOffersSynchronizationRetry() {
     val events = mutableListOf<LibraryAdministrationEvent>()
     composeRule.setContent {
@@ -290,6 +330,50 @@ class LibraryAdministrationContentTest {
   }
 
   @Test
+  fun completedMatch_displaysMatchResultsAndSynchronizationRetry() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            connectionState = LibraryAdministrationConnectionState.CONNECTED,
+            taskStates = mapOf("books" to LibraryAdministrationTaskState.IDLE),
+            libraries =
+              listOf(
+                LibraryAdministrationLibrary(
+                  id = "books",
+                  name = "Books",
+                  mediaType = LibraryAdministrationMediaType.BOOK,
+                  displayOrder = 1,
+                )
+              ),
+            tasks =
+              listOf(
+                ServerTask(
+                  id = "match",
+                  action = "library-match-all",
+                  libraryId = "books",
+                  status = ServerTaskStatus.COMPLETED,
+                  result = ServerTaskResult(updated = 4, elapsedMillis = 4_500),
+                  syncState = ServerTaskSyncState.FAILED,
+                )
+              ),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule.onNodeWithText("Book metadata matching completed").assertIsDisplayed()
+    composeRule.onNodeWithText("Matched or updated 4 books").assertIsDisplayed()
+    composeRule.onNodeWithText("Elapsed: 4 seconds").assertIsDisplayed()
+    composeRule.onNodeWithText("Library data synchronization failed.").assertIsDisplayed()
+    composeRule.onNodeWithText("Retry synchronization").performClick()
+    assertEquals(listOf(LibraryAdministrationEvent.RetryTaskSynchronization("match")), events)
+  }
+
+  @Test
   fun genericFailures_resolveThroughLocalizedResources() {
     composeRule.setContent {
       LibraryAdministrationContent(
@@ -298,12 +382,14 @@ class LibraryAdministrationContentTest {
             state = GenericState.Success,
             isRefreshing = false,
             scanError = LibraryAdministrationError.GenericScanStart,
+            matchError = LibraryAdministrationError.GenericMatchStart,
             taskSyncError = LibraryAdministrationError.GenericSynchronization,
           )
       )
     }
 
     composeRule.onNodeWithText("The library scan could not be started.").assertIsDisplayed()
+    composeRule.onNodeWithText("Book metadata matching could not be started.").assertIsDisplayed()
     composeRule.onNodeWithText("Library data synchronization failed.").assertIsDisplayed()
   }
 }

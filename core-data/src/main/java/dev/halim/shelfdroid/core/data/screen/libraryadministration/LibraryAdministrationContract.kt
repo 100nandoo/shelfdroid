@@ -25,6 +25,9 @@ interface LibraryAdministrationContract {
   suspend fun startScan(libraryId: String): Result<Unit> =
     Result.failure(UnsupportedOperationException("Library scanning is unavailable"))
 
+  suspend fun startMatch(libraryId: String): Result<Unit> =
+    Result.failure(UnsupportedOperationException("Book matching is unavailable"))
+
   suspend fun retryTaskSynchronization(taskId: String): Result<Unit> =
     Result.failure(UnsupportedOperationException("Task synchronization is unavailable"))
 

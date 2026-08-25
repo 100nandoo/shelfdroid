@@ -46,6 +46,8 @@ fun LibraryAdministrationItem(
   reorderEnabled: Boolean = false,
   scanEnabled: Boolean = false,
   onScan: () -> Unit = {},
+  matchEnabled: Boolean = false,
+  onMatch: () -> Unit = {},
   task: ServerTask? = null,
   onRetrySynchronization: (taskId: String) -> Unit = {},
 ) {
@@ -53,6 +55,7 @@ fun LibraryAdministrationItem(
   val moveUpDescription = stringResource(R.string.move_library_up)
   val moveDownDescription = stringResource(R.string.move_library_down)
   val scanDescription = stringResource(R.string.scan_library)
+  val matchDescription = stringResource(R.string.match_book_metadata)
   val dragModifier =
     if (reorderEnabled) {
       Modifier.pointerInput(library.id) {
@@ -87,20 +90,32 @@ fun LibraryAdministrationItem(
           Text(taskStatusText(task))
           task.result?.let { result ->
             Text(
-              stringResource(
-                R.string.library_scan_counts,
-                result.added ?: 0,
-                result.updated ?: 0,
-                result.missing ?: 0,
-              )
+              if (task.action == "library-match-all")
+                stringResource(
+                  R.string.library_match_counts,
+                  result.updated ?: 0,
+                )
+              else
+                stringResource(
+                  R.string.library_scan_counts,
+                  result.added ?: 0,
+                  result.updated ?: 0,
+                  result.missing ?: 0,
+                )
             )
           }
           task.result?.elapsedMillis?.let { elapsed ->
-            Text(stringResource(R.string.library_scan_elapsed, elapsed / 1000))
+            Text(
+              stringResource(
+                if (task.action == "library-match-all") R.string.library_match_elapsed
+                else R.string.library_scan_elapsed,
+                elapsed / 1000,
+              )
+            )
           }
           if (task.syncState == ServerTaskSyncState.FAILED) {
             Text(
-              text = stringResource(R.string.library_scan_sync_failed),
+              text = stringResource(R.string.library_task_sync_failed),
               color = androidx.compose.material3.MaterialTheme.colorScheme.error,
             )
             TextButton(onClick = { onRetrySynchronization(task.id) }) {
@@ -123,6 +138,20 @@ fun LibraryAdministrationItem(
               painter = painterResource(R.drawable.refresh),
               contentDescription = scanDescription,
             )
+          }
+        }
+        if (library.mediaType == LibraryAdministrationMediaType.BOOK) {
+          TooltipBox(
+            positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+            state = rememberTooltipState(),
+            tooltip = { PlainTooltip { Text(matchDescription) } },
+          ) {
+            FilledTonalIconButton(enabled = matchEnabled, onClick = onMatch) {
+              Icon(
+                painter = painterResource(R.drawable.wand_shine),
+                contentDescription = matchDescription,
+              )
+            }
           }
         }
         TextButton(
@@ -154,16 +183,25 @@ fun LibraryAdministrationItem(
 private fun serverTaskErrorText(error: ServerTaskError): String =
   when (error) {
     is ServerTaskError.SafeMessage -> error.message
-    ServerTaskError.Generic -> stringResource(R.string.library_scan_task_failed_generic)
+    ServerTaskError.Generic -> stringResource(R.string.library_task_failed_generic)
   }
 
 @Composable
 private fun taskStatusText(task: ServerTask): String =
-  when (task.status) {
-    ServerTaskStatus.ACTIVE -> stringResource(R.string.library_scan_active)
-    ServerTaskStatus.COMPLETED -> stringResource(R.string.library_scan_completed)
-    ServerTaskStatus.FAILED -> stringResource(R.string.library_scan_failed)
-    ServerTaskStatus.CANCELLED -> stringResource(R.string.library_scan_cancelled)
+  if (task.action == "library-match-all") {
+    when (task.status) {
+      ServerTaskStatus.ACTIVE -> stringResource(R.string.library_match_active)
+      ServerTaskStatus.COMPLETED -> stringResource(R.string.library_match_completed)
+      ServerTaskStatus.FAILED -> stringResource(R.string.library_match_failed)
+      ServerTaskStatus.CANCELLED -> stringResource(R.string.library_match_cancelled)
+    }
+  } else {
+    when (task.status) {
+      ServerTaskStatus.ACTIVE -> stringResource(R.string.library_scan_active)
+      ServerTaskStatus.COMPLETED -> stringResource(R.string.library_scan_completed)
+      ServerTaskStatus.FAILED -> stringResource(R.string.library_scan_failed)
+      ServerTaskStatus.CANCELLED -> stringResource(R.string.library_scan_cancelled)
+    }
   }
 
 @Composable

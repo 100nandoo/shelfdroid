@@ -184,6 +184,10 @@ interface ApiService {
   @POST("api/libraries/{libraryId}/scan")
   suspend fun scanLibrary(@Path("libraryId") libraryId: String): Result<Unit>
 
+  /** Starts the server's bulk Book metadata matching task. */
+  @GET("api/libraries/{libraryId}/matchall")
+  suspend fun matchLibrary(@Path("libraryId") libraryId: String): Result<Unit>
+
   @GET("api/tasks") suspend fun tasks(): Result<TasksResponse>
 
   @GET("api/filesystem")

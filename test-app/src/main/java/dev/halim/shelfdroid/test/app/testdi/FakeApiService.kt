@@ -393,6 +393,8 @@ class FakeApiService @Inject constructor() : ApiService {
 
   override suspend fun scanLibrary(libraryId: String): Result<Unit> = Result.success(Unit)
 
+  override suspend fun matchLibrary(libraryId: String): Result<Unit> = Result.success(Unit)
+
   override suspend fun tasks(): Result<TasksResponse> = Result.success(TasksResponse())
 
   override suspend fun filesystem(

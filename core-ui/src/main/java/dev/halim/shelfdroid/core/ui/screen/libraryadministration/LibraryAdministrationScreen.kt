@@ -40,6 +40,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartMatch
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartScan
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.taskForLibrary
 import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
@@ -58,11 +59,20 @@ fun LibraryAdministrationScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val snackbarHostState = remember { SnackbarHostState() }
   val notification = uiState.taskNotification
+  val isMatchNotification =
+    notification?.action == "library-match-all" ||
+      uiState.tasks.firstOrNull { it.id == notification?.taskId }?.action == "library-match-all"
   val notificationMessage =
     when (notification?.status) {
-      ServerTaskStatus.COMPLETED -> stringResource(R.string.library_scan_completed)
-      ServerTaskStatus.FAILED -> stringResource(R.string.library_scan_failed)
-      ServerTaskStatus.CANCELLED -> stringResource(R.string.library_scan_cancelled)
+      ServerTaskStatus.COMPLETED ->
+        if (isMatchNotification) stringResource(R.string.library_match_completed)
+        else stringResource(R.string.library_scan_completed)
+      ServerTaskStatus.FAILED ->
+        if (isMatchNotification) stringResource(R.string.library_match_failed)
+        else stringResource(R.string.library_scan_failed)
+      ServerTaskStatus.CANCELLED ->
+        if (isMatchNotification) stringResource(R.string.library_match_cancelled)
+        else stringResource(R.string.library_scan_cancelled)
       ServerTaskStatus.ACTIVE,
       null -> null
     }
@@ -121,6 +131,13 @@ internal fun LibraryAdministrationContent(
     }
 
     uiState.scanError?.let { error ->
+      Text(
+        text = libraryAdministrationErrorText(error),
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      )
+    }
+    uiState.matchError?.let { error ->
       Text(
         text = libraryAdministrationErrorText(error),
         color = MaterialTheme.colorScheme.error,
@@ -186,7 +203,9 @@ internal fun LibraryAdministrationContent(
                   canMoveDown = index < uiState.libraries.lastIndex,
                   reorderEnabled = reorderEnabled,
                   scanEnabled = uiState.canStartScan(library.id),
+                  matchEnabled = uiState.canStartMatch(library.id),
                   onScan = { onEvent(LibraryAdministrationEvent.StartScan(library.id)) },
+                  onMatch = { onEvent(LibraryAdministrationEvent.StartMatch(library.id)) },
                   task = uiState.taskForLibrary(library.id),
                   onRetrySynchronization = { taskId ->
                     onEvent(LibraryAdministrationEvent.RetryTaskSynchronization(taskId))
@@ -223,6 +242,8 @@ private fun libraryAdministrationErrorText(error: LibraryAdministrationError): S
     is LibraryAdministrationError.SafeMessage -> error.message
     LibraryAdministrationError.GenericScanStart ->
       stringResource(R.string.library_scan_start_failed)
+    LibraryAdministrationError.GenericMatchStart ->
+      stringResource(R.string.library_match_start_failed)
     LibraryAdministrationError.GenericSynchronization ->
       stringResource(R.string.library_scan_sync_failed)
   }
