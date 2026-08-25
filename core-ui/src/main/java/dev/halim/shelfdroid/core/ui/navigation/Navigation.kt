@@ -53,6 +53,7 @@ import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
+import dev.halim.shelfdroid.core.ui.screen.libraryadministration.LibraryAdministrationScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.MetadataUtilsScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.genre.GenreScreen
@@ -154,7 +155,7 @@ private fun ColumnScope.NavHostContainer(
             onSessionClicked = { navigator.navigate(ListeningSession) },
             onOpenSessionClicked = { navigator.navigate(OpenSession) },
             onUsersClicked = { navigator.navigate(UsersSettings) },
-            onLibrariesClicked = {},
+            onLibrariesClicked = { navigator.navigate(Libraries) },
             onApiKeysClicked = { navigator.navigate(NavApiKeys) },
             onServerSettingsClicked = { navigator.navigate(ServerSettings) },
             onAuthenticationSettingsClicked = { navigator.navigate(AuthenticationSettings) },
@@ -309,6 +310,11 @@ private fun ColumnScope.NavHostContainer(
             onInfoClicked = { navigator.navigate(UserInfo(it)) },
             createUserClicked = { navigator.navigate(EditUser(NavEditUser.defaultUser())) },
           )
+        }
+      }
+      entry<Libraries> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          LibraryAdministrationScreen()
         }
       }
       entry<EditUser> { key ->

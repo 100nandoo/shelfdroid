@@ -131,6 +131,11 @@
     <string name="open_sessions">Open Sessions</string>
     <string name="users">Users</string>
     <string name="libraries">Libraries</string>
+    <string name="library_administration">Library administration</string>
+    <string name="library_administration_empty">No Libraries are available.</string>
+    <string name="library_identity">Library ID: %1$s</string>
+    <string name="library_type_unknown">Unknown Library type</string>
+    <string name="refresh_libraries">Refresh Libraries</string>
     <string name="api_keys">API Keys</string>
     <string name="server_settings">Server Settings</string>
     <string name="logs">Logs</string>

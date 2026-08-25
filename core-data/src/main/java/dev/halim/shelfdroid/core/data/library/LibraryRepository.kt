@@ -4,7 +4,6 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.Folder
-import dev.halim.core.network.response.LibrariesResponse
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.database.LibraryEntity
@@ -23,23 +22,26 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
 
   fun listLibraries(): List<LibraryEntity> = queries.all().executeAsList()
 
-  suspend fun refreshLibraries(): Result<Unit> {
+  suspend fun fetchLibraries(): Result<List<Library>> {
     val response = api.libraries()
     val failure = response.exceptionOrNull()
     if (failure != null) return Result.failure(failure)
 
     return try {
-      val entities = convert(response.getOrThrow())
+      val libraries = response.getOrThrow().libraries
+      val entities = libraries.map { toEntity(it) }
       queries.transaction {
         cleanup(entities)
         entities.forEach { entity -> queries.insert(entity) }
       }
-      Result.success(Unit)
+      Result.success(libraries)
     } catch (error: Throwable) {
       if (error is CancellationException) throw error
       Result.failure(error)
     }
   }
+
+  suspend fun refreshLibraries(): Result<Unit> = fetchLibraries().map { }
 
   fun byId(id: String): LibraryEntity? {
     return queries.byId(id).executeAsOneOrNull()
@@ -54,11 +56,6 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
 
   fun observeLibraries(): Flow<List<LibraryEntity>> =
     queries.all().asFlow().mapToList(Dispatchers.IO)
-
-  private fun convert(response: LibrariesResponse): List<LibraryEntity> {
-    val entities = response.libraries.map { toEntity(it) }
-    return entities
-  }
 
   private fun cleanup(entities: List<LibraryEntity>) {
     val ids = queries.allIds().executeAsList()

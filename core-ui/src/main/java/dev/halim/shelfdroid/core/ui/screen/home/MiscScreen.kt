@@ -59,6 +59,8 @@ fun shouldShowAuthenticationSettings(isAdmin: Boolean): Boolean = isAdmin
 
 fun shouldShowLibraryItemMetadataUtilities(isAdmin: Boolean): Boolean = isAdmin
 
+fun shouldShowLibraryAdministration(isAdmin: Boolean): Boolean = isAdmin
+
 @Composable
 private fun MiscScreenContent(
   isAdmin: Boolean = false,
@@ -147,7 +149,7 @@ private fun MiscScreenContent(
       )
 
       MyTextButton(
-        enabled = false,
+        enabled = shouldShowLibraryAdministration(isAdmin),
         onClick = onLibrariesClicked,
         modifier = modifier,
         text = stringResource(R.string.libraries),

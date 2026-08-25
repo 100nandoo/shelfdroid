@@ -17,4 +17,10 @@ class MiscScreenTest {
     assertTrue(shouldShowLibraryItemMetadataUtilities(isAdmin = true))
     assertFalse(shouldShowLibraryItemMetadataUtilities(isAdmin = false))
   }
+
+  @Test
+  fun librariesEntry_isVisibleOnlyForAdmins() {
+    assertTrue(shouldShowLibraryAdministration(isAdmin = true))
+    assertFalse(shouldShowLibraryAdministration(isAdmin = false))
+  }
 }
