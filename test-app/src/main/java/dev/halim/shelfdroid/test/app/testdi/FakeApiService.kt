@@ -377,6 +377,20 @@ class FakeApiService @Inject constructor() : ApiService {
       )
     )
 
+  override suspend fun reorderLibraries(
+    request: List<ReorderLibraryRequest>
+  ): Result<LibrariesResponse> {
+    val byId = request.associateBy { it.id }
+    val reordered =
+      libraries
+        .map { library ->
+          val newOrder = byId[library.id]?.newOrder ?: library.displayOrder
+          library.copy(displayOrder = newOrder)
+        }
+        .sortedBy { it.displayOrder }
+    return Result.success(LibrariesResponse(reordered))
+  }
+
   override suspend fun filesystem(
     path: String?,
     level: Int,

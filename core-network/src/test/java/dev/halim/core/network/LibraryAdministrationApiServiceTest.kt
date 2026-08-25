@@ -2,6 +2,7 @@ package dev.halim.core.network
 
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import dev.halim.core.network.request.CreateLibraryRequest
+import dev.halim.core.network.request.ReorderLibraryRequest
 import dev.halim.core.network.request.ValidateCronRequest
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -149,6 +150,29 @@ class LibraryAdministrationApiServiceTest {
   }
 
   @Test
+  fun reorderLibraries_postsCompleteOrderArray() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    val result =
+      service.reorderLibraries(
+        listOf(
+          ReorderLibraryRequest(id = "podcasts", newOrder = 1),
+          ReorderLibraryRequest(id = "books", newOrder = 2),
+        )
+      )
+
+    val request = requireNotNull(capturedRequest)
+    assertTrue(result.isSuccess)
+    assertEquals("POST", request.method)
+    assertEquals("/api/libraries/order", request.url.encodedPath)
+    assertEquals(
+      "[{\"id\":\"podcasts\",\"newOrder\":1},{\"id\":\"books\",\"newOrder\":2}]",
+      request.body!!.bodyToString(),
+    )
+  }
+
+  @Test
   fun filesystem_serializesPathAndLevelAndMapsWindowsDirectories() = runTest {
     var capturedRequest: Request? = null
     val service = apiService { capturedRequest = it }
@@ -174,6 +198,8 @@ class LibraryAdministrationApiServiceTest {
           val body =
             if (request.url.encodedPath == "/api/filesystem") {
               "{\"posix\":false,\"directories\":[{\"path\":\"C:/Media\",\"dirname\":\"Media\",\"level\":0}]}"
+            } else if (request.url.encodedPath == "/api/libraries/order") {
+              "{\"libraries\":[{\"id\":\"podcasts\",\"name\":\"Podcasts\",\"mediaType\":\"podcast\",\"displayOrder\":1},{\"id\":\"books\",\"name\":\"Books\",\"mediaType\":\"book\",\"displayOrder\":2}]}"
             } else {
               "{\"id\":\"library-1\",\"name\":\"Books\",\"mediaType\":\"book\"}"
             }

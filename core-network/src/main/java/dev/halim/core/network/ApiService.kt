@@ -16,6 +16,7 @@ import dev.halim.core.network.request.OpenItemRssFeedRequest
 import dev.halim.core.network.request.PlayRequest
 import dev.halim.core.network.request.PodcastFeedRequest
 import dev.halim.core.network.request.ProgressRequest
+import dev.halim.core.network.request.ReorderLibraryRequest
 import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
@@ -172,6 +173,11 @@ interface ApiService {
 
   @POST("api/libraries")
   suspend fun createLibrary(@Body request: CreateLibraryRequest): Result<Library>
+
+  @POST("api/libraries/order")
+  suspend fun reorderLibraries(
+    @Body request: List<ReorderLibraryRequest>
+  ): Result<LibrariesResponse>
 
   @GET("api/filesystem")
   suspend fun filesystem(

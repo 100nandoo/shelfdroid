@@ -9,11 +9,15 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.geometry.Offset
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationConnectionState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -101,5 +105,90 @@ class LibraryAdministrationContentTest {
     composeRule.onNodeWithText("Books").assertIsDisplayed().assertHasNoClickAction()
     composeRule.onNodeWithText("Book Library").assertIsDisplayed()
     composeRule.onNodeWithText("Library ID: books").assertIsDisplayed()
+  }
+
+  @Test
+  fun reorderActions_areAccessibleAndRespectBoundaries() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            connectionState = LibraryAdministrationConnectionState.CONNECTED,
+            taskStates =
+              mapOf(
+                "books" to LibraryAdministrationTaskState.IDLE,
+                "podcasts" to LibraryAdministrationTaskState.IDLE,
+              ),
+            libraries =
+              listOf(
+                LibraryAdministrationLibrary(
+                  id = "books",
+                  name = "Books",
+                  mediaType = LibraryAdministrationMediaType.BOOK,
+                  displayOrder = 1,
+                ),
+                LibraryAdministrationLibrary(
+                  id = "podcasts",
+                  name = "Podcasts",
+                  mediaType = LibraryAdministrationMediaType.PODCAST,
+                  displayOrder = 2,
+                ),
+              ),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule.onAllNodesWithText("Move down").get(0).performClick()
+    assertEquals(LibraryAdministrationEvent.MoveLibrary("books", 1), events.single())
+    composeRule.onAllNodesWithText("Move up").assertCountEquals(2)
+  }
+
+  @Test
+  fun draggingLibraryRow_emitsMoveLibraryEvent() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            connectionState = LibraryAdministrationConnectionState.CONNECTED,
+            taskStates =
+              mapOf(
+                "books" to LibraryAdministrationTaskState.IDLE,
+                "podcasts" to LibraryAdministrationTaskState.IDLE,
+              ),
+            libraries =
+              listOf(
+                LibraryAdministrationLibrary(
+                  id = "books",
+                  name = "Books",
+                  mediaType = LibraryAdministrationMediaType.BOOK,
+                  displayOrder = 1,
+                ),
+                LibraryAdministrationLibrary(
+                  id = "podcasts",
+                  name = "Podcasts",
+                  mediaType = LibraryAdministrationMediaType.PODCAST,
+                  displayOrder = 2,
+                ),
+              ),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule.onNodeWithText("Books").performTouchInput {
+      down(center)
+      advanceEventTime(700)
+      moveBy(Offset(0f, 64f))
+      up()
+    }
+
+    assertEquals(listOf(LibraryAdministrationEvent.MoveLibrary("books", 1)), events)
   }
 }

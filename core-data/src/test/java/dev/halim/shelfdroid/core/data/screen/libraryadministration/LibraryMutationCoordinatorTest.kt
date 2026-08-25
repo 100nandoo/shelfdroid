@@ -42,4 +42,38 @@ class LibraryMutationCoordinatorTest {
 
     assertEquals(listOf("create", "delete"), completedMutations)
   }
+
+  @Test
+  fun reorderWaitsForCreateAndRunsAsOneGlobalMutation() = runTest {
+    val coordinator = LibraryMutationCoordinator()
+    val createEntered = CompletableDeferred<Unit>()
+    val releaseCreate = CompletableDeferred<Unit>()
+    val reorderEntered = CompletableDeferred<Unit>()
+    val completedMutations = mutableListOf<String>()
+
+    val create =
+      async {
+        coordinator.withMutation {
+          createEntered.complete(Unit)
+          releaseCreate.await()
+          completedMutations += "create-library"
+        }
+      }
+    createEntered.await()
+
+    val reorder =
+      async {
+        coordinator.withMutation {
+          reorderEntered.complete(Unit)
+          completedMutations += "reorder-libraries"
+        }
+      }
+
+    assertFalse(reorderEntered.isCompleted)
+    releaseCreate.complete(Unit)
+    create.await()
+    reorder.await()
+
+    assertEquals(listOf("create-library", "reorder-libraries"), completedMutations)
+  }
 }

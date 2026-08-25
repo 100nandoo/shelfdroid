@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +33,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
 import dev.halim.shelfdroid.core.navigation.LibraryCreatedNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
@@ -133,12 +134,34 @@ internal fun LibraryAdministrationContent(
                 )
               }
             } else {
-              items(uiState.libraries, key = { it.id }) { library ->
-                LibraryAdministrationItem(library)
+              itemsIndexed(uiState.libraries, key = { _, library -> library.id }) { index, library ->
+                val reorderEnabled = uiState.canReorder(library.id)
+                LibraryAdministrationItem(
+                  library = library,
+                  canMoveUp = index > 0,
+                  canMoveDown = index < uiState.libraries.lastIndex,
+                  reorderEnabled = reorderEnabled,
+                  onMoveUp = {
+                    onEvent(LibraryAdministrationEvent.MoveLibrary(library.id, delta = -1))
+                  },
+                  onMoveDown = {
+                    onEvent(LibraryAdministrationEvent.MoveLibrary(library.id, delta = 1))
+                  },
+                  onDragMove = { delta ->
+                    onEvent(LibraryAdministrationEvent.MoveLibrary(library.id, delta))
+                  },
+                )
               }
             }
           }
         }
+      }
+      if (uiState.reorderError != null) {
+        Text(
+          text = stringResource(R.string.library_reorder_failed),
+          color = MaterialTheme.colorScheme.error,
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        )
       }
     }
   }

@@ -2,14 +2,17 @@ CREATE TABLE LibraryEntity(
   id TEXT PRIMARY KEY NOT NULL,
   name TEXT NOT NULL DEFAULT '',
   folders TEXT NOT NULL,
-  isBookLibrary INTEGER NOT NULL DEFAULT 1
+  isBookLibrary INTEGER NOT NULL DEFAULT 1,
+  displayOrder INTEGER NOT NULL DEFAULT 0
 );
 
 all:
-SELECT * FROM LibraryEntity;
+SELECT * FROM LibraryEntity
+ORDER BY displayOrder ASC, id ASC;
 
 allIds:
-SELECT id FROM LibraryEntity;
+SELECT id FROM LibraryEntity
+ORDER BY displayOrder ASC, id ASC;
 
 byId:
 SELECT *
@@ -17,7 +20,7 @@ FROM LibraryEntity
 WHERE id = :id;
 
 insert:
-INSERT OR REPLACE INTO LibraryEntity(id, name, folders, isBookLibrary)
+INSERT OR REPLACE INTO LibraryEntity(id, name, folders, isBookLibrary, displayOrder)
 VALUES ?;
 
 deleteById:

@@ -180,6 +180,9 @@
     <string name="library_scanner_error_source_required">Enable at least one metadata source.</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
+    <string name="move_library_up">Move Library up</string>
+    <string name="move_library_down">Move Library down</string>
+    <string name="library_reorder_failed">Library order could not be saved. The previous order was restored.</string>
     <string name="library_create_server_failed">The server could not create this Library.</string>
     <string name="library_create_local_sync_failed">Library created on the server, but local Library data could not be synchronized.</string>
     <string name="library_create_discard_title">Discard Library draft?</string>

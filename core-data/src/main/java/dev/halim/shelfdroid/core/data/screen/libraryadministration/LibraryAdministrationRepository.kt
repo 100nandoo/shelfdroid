@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CreateLibraryRequest
+import dev.halim.core.network.request.ReorderLibraryRequest
 import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
@@ -18,10 +19,32 @@ constructor(
 ) : LibraryAdministrationContract, LibraryAdministrationCreateContract {
 
   override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> {
-    return libraryRepository.fetchLibraries().map { libraries ->
-      libraries.map { library -> library.toAdministrationLibrary() }
+    // Read and order mutations share the same application-scoped gate. This prevents an older
+    // refresh response from replacing a completed reorder in the catalog database.
+    return mutationCoordinator.withMutation {
+      libraryRepository.fetchLibraries().map { libraries ->
+        libraries.map { library -> library.toAdministrationLibrary() }
+      }
     }
   }
+
+  override suspend fun reorderLibraries(
+    libraries: List<LibraryAdministrationLibrary>
+  ): Result<List<LibraryAdministrationLibrary>> =
+    mutationCoordinator.withMutation {
+      api
+        .reorderLibraries(
+          libraries.mapIndexed { index, library ->
+            ReorderLibraryRequest(id = library.id, newOrder = index + 1)
+          }
+        )
+        .map { response ->
+          // Keep the catalog projection in sync with the accepted response. Rich administration
+          // settings remain server-backed and are deliberately not copied into local storage.
+          libraryRepository.persistLibraries(response.libraries)
+          response.libraries.map { it.toAdministrationLibrary() }
+        }
+    }
 
   override suspend fun loadLibraryProviders(
     mediaType: LibraryAdministrationMediaType

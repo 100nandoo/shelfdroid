@@ -29,15 +29,20 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
 
     return try {
       val libraries = response.getOrThrow().libraries
-      val entities = libraries.map { toEntity(it) }
-      queries.transaction {
-        cleanup(entities)
-        entities.forEach { entity -> queries.insert(entity) }
-      }
+      persistLibraries(libraries)
       Result.success(libraries)
     } catch (error: Throwable) {
       if (error is CancellationException) throw error
       Result.failure(error)
+    }
+  }
+
+  /** Stores only the catalog projection needed by browsing and administration. */
+  fun persistLibraries(libraries: List<Library>) {
+    val entities = libraries.map { toEntity(it) }
+    queries.transaction {
+      cleanup(entities)
+      entities.forEach { entity -> queries.insert(entity) }
     }
   }
 
@@ -70,6 +75,7 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
       name = library.name,
       folders = json.encodeToString(library.folders),
       isBookLibrary = if (library.mediaType == MediaType.BOOK) 1 else 0,
+      displayOrder = library.displayOrder.toLong(),
     )
 }
 
