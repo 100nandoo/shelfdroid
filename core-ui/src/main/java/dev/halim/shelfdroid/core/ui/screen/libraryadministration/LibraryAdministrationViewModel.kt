@@ -11,6 +11,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.canDelete
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartMatch
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartScan
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.toAdministrationTaskState
@@ -73,6 +74,12 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
       LibraryAdministrationEvent.Refresh -> load()
       is LibraryAdministrationEvent.StartScan -> startScan(event.libraryId)
       is LibraryAdministrationEvent.StartMatch -> startMatch(event.libraryId)
+      is LibraryAdministrationEvent.RequestDeleteLibrary -> requestDeleteLibrary(event.libraryId)
+      LibraryAdministrationEvent.CancelDeleteLibrary ->
+        _uiState.update { it.copy(deleteConfirmationLibraryId = null) }
+      LibraryAdministrationEvent.ConfirmDeleteLibrary -> confirmDeleteLibrary()
+      LibraryAdministrationEvent.RetryDeleteLibrary ->
+        retryDeleteLibrary()
       is LibraryAdministrationEvent.RetryTaskSynchronization ->
         retryTaskSynchronization(event.taskId)
       is LibraryAdministrationEvent.MoveLibrary -> moveLibrary(event.libraryId, event.delta)
@@ -245,6 +252,65 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
       }
     }
   }
+
+  private fun requestDeleteLibrary(libraryId: String) {
+    if (!_uiState.value.canDelete(libraryId)) return
+    _uiState.update {
+      it.copy(deleteConfirmationLibraryId = libraryId, deleteError = null)
+    }
+  }
+
+  private fun confirmDeleteLibrary() {
+    val current = _uiState.value
+    val libraryId = current.deleteConfirmationLibraryId ?: return
+    if (!current.canDelete(libraryId)) {
+      _uiState.update { it.copy(deleteConfirmationLibraryId = null) }
+      return
+    }
+    _uiState.update {
+      it.copy(
+        deleteConfirmationLibraryId = null,
+        deletingLibraryId = libraryId,
+        deleteError = null,
+        deleteRetryLibraryId = null,
+      )
+    }
+    viewModelScope.launch {
+      repository.deleteLibrary(libraryId).fold(
+        onSuccess = {
+          val state = _uiState.value
+          val remaining = state.libraries.filterNot { it.id == libraryId }
+          lastServerLibraries = remaining
+          lastAcceptedIntentGeneration = intentGeneration
+          _uiState.update {
+            it.copy(
+              libraries = remaining,
+              deletingLibraryId = null,
+              deleteError = null,
+              deleteRetryLibraryId = null,
+              taskStates = it.taskStates - libraryId,
+              tasks = it.tasks.filterNot { task -> task.libraryId == libraryId },
+            )
+          }
+        },
+        onFailure = {
+          _uiState.update {
+            it.copy(
+              deletingLibraryId = null,
+              deleteError = LibraryAdministrationError.GenericDelete,
+              deleteRetryLibraryId = libraryId,
+            )
+          }
+        },
+      )
+    }
+  }
+
+  private fun retryDeleteLibrary() {
+    val libraryId = _uiState.value.deleteRetryLibraryId ?: return
+    if (!_uiState.value.canDelete(libraryId)) return
+    _uiState.update { it.copy(deleteConfirmationLibraryId = libraryId, deleteError = null) }
+  }
 }
 
 private fun ServerTaskConnectionState.toAdministrationConnectionState():
@@ -265,6 +331,14 @@ sealed interface LibraryAdministrationEvent {
   data class StartScan(val libraryId: String) : LibraryAdministrationEvent
 
   data class StartMatch(val libraryId: String) : LibraryAdministrationEvent
+
+  data class RequestDeleteLibrary(val libraryId: String) : LibraryAdministrationEvent
+
+  data object CancelDeleteLibrary : LibraryAdministrationEvent
+
+  data object ConfirmDeleteLibrary : LibraryAdministrationEvent
+
+  data object RetryDeleteLibrary : LibraryAdministrationEvent
 
   data class RetryTaskSynchronization(val taskId: String) : LibraryAdministrationEvent
 

@@ -48,6 +48,8 @@ fun LibraryAdministrationItem(
   onScan: () -> Unit = {},
   matchEnabled: Boolean = false,
   onMatch: () -> Unit = {},
+  deleteEnabled: Boolean = false,
+  onDelete: () -> Unit = {},
   task: ServerTask? = null,
   onRetrySynchronization: (taskId: String) -> Unit = {},
 ) {
@@ -56,6 +58,7 @@ fun LibraryAdministrationItem(
   val moveDownDescription = stringResource(R.string.move_library_down)
   val scanDescription = stringResource(R.string.scan_library)
   val matchDescription = stringResource(R.string.match_book_metadata)
+  val deleteDescription = stringResource(R.string.delete_library)
   val dragModifier =
     if (reorderEnabled) {
       Modifier.pointerInput(library.id) {
@@ -152,6 +155,18 @@ fun LibraryAdministrationItem(
                 contentDescription = matchDescription,
               )
             }
+          }
+        }
+        TooltipBox(
+          positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+          state = rememberTooltipState(),
+          tooltip = { PlainTooltip { Text(deleteDescription) } },
+        ) {
+          FilledTonalIconButton(enabled = deleteEnabled, onClick = onDelete) {
+            Icon(
+              painter = painterResource(R.drawable.delete),
+              contentDescription = deleteDescription,
+            )
           }
         }
         TextButton(

@@ -87,11 +87,24 @@ fun HomeScreen(
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  if (uiState.librariesUiState.isEmpty() && uiState.state is GenericState.Success) {
+    GenericMessageScreen(stringResource(R.string.no_libraries_available))
+    return
+  }
+
   val libraryCount = uiState.librariesUiState.size + 1
 
   val pagerState = rememberPagerState(pageCount = { libraryCount }, initialPage = 1)
   LaunchedEffect(pagerState.currentPage) {
     viewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
+  }
+  LaunchedEffect(uiState.activeLibraryId, uiState.librariesUiState.map { it.id }) {
+    val activeLibraryPage =
+      uiState.librariesUiState.indexOfFirst { it.id == uiState.activeLibraryId }
+    if (activeLibraryPage >= 0 && pagerState.currentPage != activeLibraryPage) {
+      // Home selection changes do not dispatch PlayerEvents, preserving any buffered playback.
+      pagerState.scrollToPage(activeLibraryPage)
+    }
   }
 
   HomeScreenContent(
@@ -147,13 +160,13 @@ fun HomeScreenContent(
   onEditItemClicked: (String) -> Unit = {},
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
-  if (libraryCount == 0 && uiState.state is GenericState.Success) {
+  if (uiState.librariesUiState.isEmpty() && uiState.state is GenericState.Success) {
     GenericMessageScreen(stringResource(R.string.no_libraries_available))
-  } else {
-    val homeState = uiState.state
-    if (homeState is GenericState.Failure) {
-      GenericMessageScreen(homeState.errorMessage ?: "")
-    }
+    return
+  }
+  val homeState = uiState.state
+  if (homeState is GenericState.Failure) {
+    GenericMessageScreen(homeState.errorMessage ?: "")
   }
 
   HorizontalPager(state = pagerState) { page ->

@@ -173,6 +173,19 @@ class LibraryAdministrationApiServiceTest {
   }
 
   @Test
+  fun deleteLibrary_usesLibraryDeleteEndpoint() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    val result = service.deleteLibrary("books")
+
+    val request = requireNotNull(capturedRequest)
+    assertTrue(result.isSuccess)
+    assertEquals("DELETE", request.method)
+    assertEquals("/api/libraries/books", request.url.encodedPath)
+  }
+
+  @Test
   fun scanLibrary_onlyAcceptsTheRequest() = runTest {
     var capturedRequest: Request? = null
     val service = apiService { capturedRequest = it }

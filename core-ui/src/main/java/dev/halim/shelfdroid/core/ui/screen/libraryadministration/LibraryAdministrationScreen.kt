@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +41,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.canDelete
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartMatch
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartScan
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.taskForLibrary
@@ -47,6 +49,7 @@ import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import dev.halim.shelfdroid.core.navigation.LibraryCreatedNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
+import dev.halim.shelfdroid.core.ui.components.DeleteConfirmationDialog
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -151,6 +154,21 @@ internal fun LibraryAdministrationContent(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       )
     }
+    uiState.deleteError?.let { error ->
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          text = libraryAdministrationErrorText(error),
+          color = MaterialTheme.colorScheme.error,
+          modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = { onEvent(LibraryAdministrationEvent.RetryDeleteLibrary) }) {
+          Text(stringResource(R.string.retry))
+        }
+      }
+    }
 
     PullToRefreshBox(
       modifier = Modifier.fillMaxWidth().weight(1f),
@@ -204,8 +222,10 @@ internal fun LibraryAdministrationContent(
                   reorderEnabled = reorderEnabled,
                   scanEnabled = uiState.canStartScan(library.id),
                   matchEnabled = uiState.canStartMatch(library.id),
+                  deleteEnabled = uiState.canDelete(library.id),
                   onScan = { onEvent(LibraryAdministrationEvent.StartScan(library.id)) },
                   onMatch = { onEvent(LibraryAdministrationEvent.StartMatch(library.id)) },
+                  onDelete = { onEvent(LibraryAdministrationEvent.RequestDeleteLibrary(library.id)) },
                   task = uiState.taskForLibrary(library.id),
                   onRetrySynchronization = { taskId ->
                     onEvent(LibraryAdministrationEvent.RetryTaskSynchronization(taskId))
@@ -233,6 +253,17 @@ internal fun LibraryAdministrationContent(
         )
       }
     }
+
+    val confirmationLibrary =
+      uiState.libraries.firstOrNull { it.id == uiState.deleteConfirmationLibraryId }
+    if (confirmationLibrary != null) {
+      DeleteConfirmationDialog(
+        title = stringResource(R.string.delete_library_title, confirmationLibrary.name),
+        message = stringResource(R.string.delete_library_confirmation),
+        onConfirm = { onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary) },
+        onDismiss = { onEvent(LibraryAdministrationEvent.CancelDeleteLibrary) },
+      )
+    }
   }
 }
 
@@ -246,6 +277,7 @@ private fun libraryAdministrationErrorText(error: LibraryAdministrationError): S
       stringResource(R.string.library_match_start_failed)
     LibraryAdministrationError.GenericSynchronization ->
       stringResource(R.string.library_scan_sync_failed)
+    LibraryAdministrationError.GenericDelete -> stringResource(R.string.delete_library_failed)
   }
 
 @ShelfDroidPreview

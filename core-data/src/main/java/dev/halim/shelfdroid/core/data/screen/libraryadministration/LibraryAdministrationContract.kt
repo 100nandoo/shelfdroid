@@ -36,6 +36,9 @@ interface LibraryAdministrationContract {
     libraries: List<LibraryAdministrationLibrary>
   ): Result<List<LibraryAdministrationLibrary>> =
     Result.failure(UnsupportedOperationException("Library reorder is unavailable"))
+
+  suspend fun deleteLibrary(libraryId: String): Result<Unit> =
+    Result.failure(UnsupportedOperationException("Library deletion is unavailable"))
 }
 
 enum class LibraryAdministrationConnectionState {

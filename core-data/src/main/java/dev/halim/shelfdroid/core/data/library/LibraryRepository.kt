@@ -52,6 +52,11 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
     return queries.byId(id).executeAsOneOrNull()
   }
 
+  /** Removes a server-deleted Library from the local catalog projection. */
+  fun removeFromCatalog(id: String) {
+    queries.deleteById(id)
+  }
+
   fun listLibraryFolders(id: String): List<LibraryFolder> {
     val entity = byId(id)
     if (entity == null) return emptyList()

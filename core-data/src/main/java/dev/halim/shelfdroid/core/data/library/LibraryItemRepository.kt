@@ -228,6 +228,17 @@ constructor(
     progressRepository.deleteItem(id)
   }
 
+  /** Removes only the local catalog projection for a deleted server Library. */
+  suspend fun removeLibraryFromCatalog(libraryId: String) {
+    val itemIds = queries.byLibraryId(libraryId).executeAsList().map { it.id }
+    if (itemIds.isEmpty()) return
+
+    queries.transaction {
+      itemIds.forEach(::deleteInTransaction)
+    }
+    itemIds.forEach(progressRepository::deleteItem)
+  }
+
   fun deleteEpisodes(id: String, episodeIds: Set<String>) {
     if (episodeIds.isEmpty()) return
     podcastEpisodeRepository.deleteByIds(episodeIds)

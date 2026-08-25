@@ -171,7 +171,7 @@ class FakeApiService @Inject constructor() : ApiService {
         )
     )
 
-  private val libraries = listOf(bookLibrary, podcastLibrary)
+  private val libraries = mutableListOf(bookLibrary, podcastLibrary)
 
   private val items = linkedMapOf<String, LibraryItem>()
   private val apiKeys = mutableListOf<ApiKeysResponse.ApiKey>()
@@ -189,6 +189,8 @@ class FakeApiService @Inject constructor() : ApiService {
 
   fun reset() {
     synchronized(this) {
+      libraries.clear()
+      libraries += listOf(bookLibrary, podcastLibrary)
       items.clear()
       items[BOOK_ITEM_ID] = createBookItem()
       items[PODCAST_ITEM_ID] =
@@ -376,6 +378,17 @@ class FakeApiService @Inject constructor() : ApiService {
         },
       )
     )
+
+  override suspend fun deleteLibrary(libraryId: String): Result<Library> =
+    synchronized(this) {
+      val library = libraries.firstOrNull { it.id == libraryId }
+      if (library == null) {
+        Result.failure(IllegalArgumentException("Unknown library"))
+      } else {
+        libraries.removeIf { it.id == libraryId }
+        Result.success(library)
+      }
+    }
 
   override suspend fun reorderLibraries(
     request: List<ReorderLibraryRequest>

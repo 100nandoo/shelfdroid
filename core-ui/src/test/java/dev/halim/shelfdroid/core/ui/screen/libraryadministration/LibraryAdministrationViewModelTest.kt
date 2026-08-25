@@ -7,6 +7,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.canDelete
 import dev.halim.shelfdroid.core.data.task.ServerTask
 import dev.halim.shelfdroid.core.data.task.ServerTaskConnectionState
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
@@ -401,6 +402,124 @@ class LibraryAdministrationViewModelTest {
     secondCollection.cancel()
   }
 
+  @Test
+  fun deleteRequiresConfirmationAndCancellationDoesNotCallServer() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository = FakeRepository(listOf(Result.success(libraries("books"))))
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    enableReorder(viewModel, "books")
+
+    viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
+    assertEquals("books", viewModel.uiState.value.deleteConfirmationLibraryId)
+    assertTrue(repository.deleteRequests.isEmpty())
+
+    viewModel.onEvent(LibraryAdministrationEvent.CancelDeleteLibrary)
+    assertNull(viewModel.uiState.value.deleteConfirmationLibraryId)
+    assertTrue(repository.deleteRequests.isEmpty())
+    collection.cancel()
+  }
+
+  @Test
+  fun deleteIsDisabledForUnknownActiveOrDisconnectedTaskState() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository = FakeRepository(listOf(Result.success(libraries("books"))))
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    assertTrue(!viewModel.uiState.value.canDelete("books"))
+    enableReorder(viewModel, "books")
+    viewModel.onEvent(
+      LibraryAdministrationEvent.SetTaskState("books", LibraryAdministrationTaskState.ACTIVE)
+    )
+    viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
+    assertNull(viewModel.uiState.value.deleteConfirmationLibraryId)
+
+    viewModel.onEvent(
+      LibraryAdministrationEvent.SetTaskState("books", LibraryAdministrationTaskState.IDLE)
+    )
+    viewModel.onEvent(
+      LibraryAdministrationEvent.SetConnectionState(
+        LibraryAdministrationConnectionState.DISCONNECTED
+      )
+    )
+    viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
+    assertNull(viewModel.uiState.value.deleteConfirmationLibraryId)
+    collection.cancel()
+  }
+
+  @Test
+  fun successfulDeleteRemovesLibraryAndSelectsNextLibrary() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val initial = libraries("first", "books", "third")
+    val repository =
+      FakeRepository(
+        results = listOf(Result.success(initial)),
+        deleteResults = listOf(Result.success(Unit)),
+      )
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    enableReorder(viewModel, "first", "books", "third")
+
+    viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
+    viewModel.onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary)
+    advanceUntilIdle()
+
+    assertEquals(listOf("first", "third"), viewModel.uiState.value.libraries.map { it.id })
+    assertNull(viewModel.uiState.value.deleteError)
+    assertEquals(listOf("books"), repository.deleteRequests)
+    collection.cancel()
+  }
+
+  @Test
+  fun deletingFinalLibraryLeavesEmptyCatalogAndNoActiveLibrary() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        results = listOf(Result.success(libraries("books"))),
+        deleteResults = listOf(Result.success(Unit)),
+      )
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    enableReorder(viewModel, "books")
+
+    viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
+    viewModel.onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary)
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.libraries.isEmpty())
+    collection.cancel()
+  }
+
+  @Test
+  fun failedDeletePreservesLibraryAndOffersRetryWithSafeError() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        results = listOf(Result.success(libraries("books"))),
+        deleteResults = listOf(Result.failure(IllegalStateException("database details"))),
+      )
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    enableReorder(viewModel, "books")
+
+    viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
+    viewModel.onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary)
+    advanceUntilIdle()
+
+    assertEquals(listOf("books"), viewModel.uiState.value.libraries.map { it.id })
+    assertEquals(LibraryAdministrationError.GenericDelete, viewModel.uiState.value.deleteError)
+    assertEquals("books", viewModel.uiState.value.deleteRetryLibraryId)
+    viewModel.onEvent(LibraryAdministrationEvent.RetryDeleteLibrary)
+    assertEquals("books", viewModel.uiState.value.deleteConfirmationLibraryId)
+    collection.cancel()
+  }
+
   private fun TestScope.collectState(viewModel: LibraryAdministrationViewModel): Job =
     backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
 
@@ -428,16 +547,19 @@ class LibraryAdministrationViewModelTest {
   private class FakeRepository(
     results: List<Result<List<LibraryAdministrationLibrary>>>,
     reorderResults: List<Result<List<LibraryAdministrationLibrary>>> = emptyList(),
+    deleteResults: List<Result<Unit>> = emptyList(),
   ) :
     LibraryAdministrationContract {
     private val pendingResults = ArrayDeque(results)
     private val pendingReorderResults = ArrayDeque(reorderResults)
+    private val pendingDeleteResults = ArrayDeque(deleteResults)
     var loadCalls = 0
       private set
     val reorderRequests =
       mutableListOf<
         Pair<List<LibraryAdministrationLibrary>, List<LibraryAdministrationLibrary>>
       >()
+    val deleteRequests = mutableListOf<String>()
 
     override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> {
       loadCalls += 1
@@ -450,6 +572,11 @@ class LibraryAdministrationViewModelTest {
       val result = pendingReorderResults.removeFirst()
       reorderRequests += libraries to result.getOrNull().orEmpty()
       return result
+    }
+
+    override suspend fun deleteLibrary(libraryId: String): Result<Unit> {
+      deleteRequests += libraryId
+      return pendingDeleteResults.removeFirst()
     }
   }
 

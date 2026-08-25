@@ -175,6 +175,10 @@ interface ApiService {
   @POST("api/libraries")
   suspend fun createLibrary(@Body request: CreateLibraryRequest): Result<Library>
 
+  /** Deletes a Library's catalog records while retaining its media files on the server. */
+  @DELETE("api/libraries/{libraryId}")
+  suspend fun deleteLibrary(@Path("libraryId") libraryId: String): Result<Library>
+
   @POST("api/libraries/order")
   suspend fun reorderLibraries(
     @Body request: List<ReorderLibraryRequest>

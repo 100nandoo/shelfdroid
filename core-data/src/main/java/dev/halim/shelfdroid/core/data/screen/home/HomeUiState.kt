@@ -8,6 +8,8 @@ data class HomeUiState(
   val state: GenericState = GenericState.Loading,
   val prefs: Prefs = Prefs(),
   val currentPage: Int = 0,
+  /** The last Library selected by the user, retained while the pager is on Misc/admin pages. */
+  val activeLibraryId: String? = null,
   val librariesUiState: List<LibraryUiState> = emptyList(),
 )
 
@@ -44,6 +46,31 @@ data class PodcastUiState(
   val downloadedCount: Int = 0,
   val unfinishedAndDownloadCount: Int = 0,
 )
+
+/**
+ * Reconciles Home's selected Library after the catalog changes.
+ *
+ * Selection is ID-based so navigating through Misc (including Library administration) does not
+ * accidentally change the selected Library when an unrelated Library is removed. If the selected
+ * Library is removed, the item that takes its old ordered position is selected; when it was the
+ * final item, the preceding Library is selected instead.
+ */
+fun reconcileActiveLibraryId(
+  previousLibraries: List<LibraryUiState>,
+  activeLibraryId: String?,
+  updatedLibraries: List<LibraryUiState>,
+): String? {
+  if (updatedLibraries.isEmpty()) return null
+
+  if (activeLibraryId != null && updatedLibraries.any { it.id == activeLibraryId }) {
+    return activeLibraryId
+  }
+
+  val previousIndex = previousLibraries.indexOfFirst { it.id == activeLibraryId }
+  if (previousIndex < 0) return updatedLibraries.first().id
+
+  return updatedLibraries.getOrNull(previousIndex)?.id ?: updatedLibraries.last().id
+}
 
 sealed interface HomeState {
   data object Loading : HomeState

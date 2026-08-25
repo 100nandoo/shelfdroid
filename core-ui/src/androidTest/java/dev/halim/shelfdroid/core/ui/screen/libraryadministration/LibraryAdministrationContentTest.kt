@@ -392,4 +392,77 @@ class LibraryAdministrationContentTest {
     composeRule.onNodeWithText("Book metadata matching could not be started.").assertIsDisplayed()
     composeRule.onNodeWithText("Library data synchronization failed.").assertIsDisplayed()
   }
+
+  @Test
+  fun deleteAction_isDirectAccessibleAndGatedByIdleTaskState() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            connectionState = LibraryAdministrationConnectionState.CONNECTED,
+            taskStates =
+              mapOf(
+                "books" to LibraryAdministrationTaskState.IDLE,
+                "podcasts" to LibraryAdministrationTaskState.ACTIVE,
+              ),
+            libraries =
+              listOf(
+                LibraryAdministrationLibrary(
+                  id = "books",
+                  name = "Books",
+                  mediaType = LibraryAdministrationMediaType.BOOK,
+                  displayOrder = 1,
+                ),
+                LibraryAdministrationLibrary(
+                  id = "podcasts",
+                  name = "Podcasts",
+                  mediaType = LibraryAdministrationMediaType.PODCAST,
+                  displayOrder = 2,
+                ),
+              ),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule.onAllNodesWithContentDescription("Delete library").get(0)
+      .assertIsEnabled()
+      .performClick()
+    composeRule.onAllNodesWithContentDescription("Delete library").get(1).assertIsNotEnabled()
+    assertEquals(listOf(LibraryAdministrationEvent.RequestDeleteLibrary("books")), events)
+  }
+
+  @Test
+  fun deleteConfirmationExplainsCatalogRemovalAndMediaRetention() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            connectionState = LibraryAdministrationConnectionState.CONNECTED,
+            taskStates = mapOf("books" to LibraryAdministrationTaskState.IDLE),
+            deleteConfirmationLibraryId = "books",
+            libraries =
+              listOf(
+                LibraryAdministrationLibrary(
+                  id = "books",
+                  name = "Books",
+                  mediaType = LibraryAdministrationMediaType.BOOK,
+                  displayOrder = 1,
+                )
+              ),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule.onNodeWithText("This removes the Library and its catalog data from the server. Media files remain intact. Continue?").assertIsDisplayed()
+    composeRule.onNodeWithText("Delete").performClick()
+    assertEquals(listOf(LibraryAdministrationEvent.ConfirmDeleteLibrary), events)
+  }
 }

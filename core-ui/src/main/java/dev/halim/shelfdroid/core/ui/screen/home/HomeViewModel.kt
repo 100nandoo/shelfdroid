@@ -15,16 +15,16 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
+import dev.halim.shelfdroid.core.data.screen.home.reconcileActiveLibraryId
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.sync.SyncCoordinator
 import dev.halim.shelfdroid.core.data.sync.SyncEvent
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.navigation.Home
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -40,13 +40,25 @@ constructor(
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(HomeUiState())
-  val uiState: StateFlow<HomeUiState> =
-    combine(_uiState, repository.item()) { state, (prefs, libraries) ->
-        state.copy(prefs = prefs, librariesUiState = libraries)
-      }
-      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
+  val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
   init {
+    viewModelScope.launch {
+      repository.item().collect { (prefs, libraries) ->
+        _uiState.update { state ->
+          state.copy(
+            prefs = prefs,
+            activeLibraryId =
+              reconcileActiveLibraryId(
+                previousLibraries = state.librariesUiState,
+                activeLibraryId = state.activeLibraryId,
+                updatedLibraries = libraries,
+              ),
+            librariesUiState = libraries,
+          )
+        }
+      }
+    }
     refresh(if (navKey.fromLogin) SyncEvent.AfterLogin else SyncEvent.UserRequested)
   }
 
@@ -57,7 +69,13 @@ constructor(
         refresh(SyncEvent.UserRequested)
       }
       is HomeEvent.ChangeLibrary -> {
-        _uiState.update { it.copy(currentPage = event.page) }
+        _uiState.update { state ->
+          state.copy(
+            currentPage = event.page,
+            activeLibraryId =
+              state.librariesUiState.getOrNull(event.page)?.id ?: state.activeLibraryId,
+          )
+        }
       }
       is HomeEvent.HomeDisplayPrefsEvent -> {
         when (event.displayPrefsEvent) {

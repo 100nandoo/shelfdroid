@@ -7,6 +7,7 @@ import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
+import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryContract
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
@@ -19,6 +20,7 @@ class LibraryAdministrationRepository
 constructor(
   private val api: ApiService,
   private val libraryRepository: LibraryRepository,
+  private val libraryItemRepository: LibraryItemRepository,
   private val mutationCoordinator: LibraryMutationCoordinator,
   private val serverTaskRepository: ServerTaskRepositoryContract,
 ) : LibraryAdministrationContract, LibraryAdministrationCreateContract {
@@ -70,6 +72,16 @@ constructor(
           libraryRepository.persistLibraries(response.libraries)
           response.libraries.map { it.toAdministrationLibrary() }
         }
+    }
+
+  override suspend fun deleteLibrary(libraryId: String): Result<Unit> =
+    mutationCoordinator.withMutation {
+      api.deleteLibrary(libraryId).map {
+        // The server owns rich Library configuration and media files. ShelfDroid only removes
+        // the catalog projection, preserving buffered playback and downloaded media.
+        libraryItemRepository.removeLibraryFromCatalog(libraryId)
+        libraryRepository.removeFromCatalog(libraryId)
+      }
     }
 
   override suspend fun loadLibraryProviders(

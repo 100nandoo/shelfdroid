@@ -13,6 +13,8 @@ sealed interface LibraryAdministrationError {
   data object GenericMatchStart : LibraryAdministrationError
 
   data object GenericSynchronization : LibraryAdministrationError
+
+  data object GenericDelete : LibraryAdministrationError
 }
 
 data class LibraryAdministrationUiState(
@@ -26,6 +28,10 @@ data class LibraryAdministrationUiState(
   val scanError: LibraryAdministrationError? = null,
   val matchError: LibraryAdministrationError? = null,
   val taskSyncError: LibraryAdministrationError? = null,
+  val deleteError: LibraryAdministrationError? = null,
+  val deleteRetryLibraryId: String? = null,
+  val deletingLibraryId: String? = null,
+  val deleteConfirmationLibraryId: String? = null,
   val taskNotification: ServerTaskNotification? = null,
   val reorderError: String? = null,
   val isReordering: Boolean = false,
@@ -34,6 +40,8 @@ data class LibraryAdministrationUiState(
 fun LibraryAdministrationUiState.canReorder(libraryId: String): Boolean =
   connectionState == LibraryAdministrationConnectionState.CONNECTED &&
     libraries.any { it.id == libraryId } &&
+    deletingLibraryId == null &&
+    deleteConfirmationLibraryId == null &&
     // Moving one row also changes every row it crosses. Require a known idle snapshot for the
     // whole ordered set so an active/unknown library cannot be shifted indirectly.
     libraries.all { taskStates[it.id] == LibraryAdministrationTaskState.IDLE }
@@ -53,6 +61,13 @@ fun LibraryAdministrationUiState.canStartMatch(libraryId: String): Boolean =
         it.mediaType == LibraryAdministrationMediaType.BOOK
     } &&
     taskStates[libraryId] == LibraryAdministrationTaskState.IDLE
+
+fun LibraryAdministrationUiState.canDelete(libraryId: String): Boolean =
+  connectionState == LibraryAdministrationConnectionState.CONNECTED &&
+    libraries.any { it.id == libraryId } &&
+    taskStates[libraryId] == LibraryAdministrationTaskState.IDLE &&
+    deletingLibraryId == null &&
+    !isReordering
 
 fun LibraryAdministrationUiState.taskForLibrary(libraryId: String): ServerTask? =
   tasks.firstOrNull { it.libraryId == libraryId && it.status == ServerTaskStatus.ACTIVE }
