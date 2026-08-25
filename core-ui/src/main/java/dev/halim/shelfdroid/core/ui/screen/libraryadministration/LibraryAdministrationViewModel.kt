@@ -8,6 +8,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationConnectionState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibraryEvent
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
@@ -59,6 +60,11 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
     viewModelScope.launch {
       repository.taskNotifications.collect { notification ->
         _uiState.update { it.copy(taskNotification = notification) }
+      }
+    }
+    viewModelScope.launch {
+      repository.libraryEvents.collect { event ->
+        handleLibraryEvent(event)
       }
     }
   }
@@ -139,6 +145,33 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
         },
       )
     }
+  }
+
+  private fun handleLibraryEvent(event: LibraryAdministrationLibraryEvent) {
+    if (!event.synchronized) {
+      // The event payload is only a hint. Keep the server-authoritative list untouched and expose
+      // the existing localized unavailable state; the screen's retry action performs a refresh.
+      _uiState.update {
+        it.copy(state = GenericState.Failure(null), isRefreshing = false)
+      }
+      return
+    }
+
+    // An event reconciliation is a complete server snapshot. Invalidate older HTTP responses and
+    // optimistic intents so an out-of-order response cannot undo the externally accepted order.
+    loadGeneration++
+    intentGeneration++
+    lastServerLibraries = event.libraries
+    lastAcceptedIntentGeneration = intentGeneration
+    _uiState.update {
+      it.copy(
+        state = GenericState.Success,
+        libraries = event.libraries,
+        isRefreshing = false,
+        reorderError = null,
+      )
+    }
+    applyTaskState(latestTaskState, event.libraries)
   }
 
   private fun applyTaskState(

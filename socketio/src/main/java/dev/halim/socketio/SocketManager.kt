@@ -32,6 +32,12 @@ constructor(
     )
 
   companion object Event {
+    object Library {
+      const val ADDED = "library_added"
+      const val UPDATED = "library_updated"
+      const val REMOVED = "library_removed"
+    }
+
     object Episode {
       const val DOWNLOAD_QUEUED = "episode_download_queued"
       const val DOWNLOAD_STARTED = "episode_download_started"

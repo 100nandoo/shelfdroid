@@ -23,7 +23,10 @@ constructor(
   private val libraryItemRepository: LibraryItemRepository,
   private val mutationCoordinator: LibraryMutationCoordinator,
   private val serverTaskRepository: ServerTaskRepositoryContract,
+  private val libraryEventRepository: LibraryAdministrationEventRepository,
 ) : LibraryAdministrationContract, LibraryAdministrationCreateContract {
+
+  override val libraryEvents = libraryEventRepository.events
 
   override val taskState: StateFlow<ServerTaskRepositoryState>
     get() = serverTaskRepository.state
@@ -77,6 +80,10 @@ constructor(
   override suspend fun deleteLibrary(libraryId: String): Result<Unit> =
     mutationCoordinator.withMutation {
       api.deleteLibrary(libraryId).map {
+        libraryEventRepository.registerLocalMutation(
+          LibraryAdministrationLibraryEventType.REMOVED,
+          it,
+        )
         // The server owns rich Library configuration and media files. ShelfDroid only removes
         // the catalog projection, preserving buffered playback and downloaded media.
         libraryItemRepository.removeLibraryFromCatalog(libraryId)
@@ -154,6 +161,10 @@ constructor(
           )
           .getOrElse { return@withMutation Result.failure(it) }
 
+      libraryEventRepository.registerLocalMutation(
+        LibraryAdministrationLibraryEventType.ADDED,
+        serverLibrary,
+      )
       val administrationLibrary = serverLibrary.toAdministrationLibrary()
       libraryRepository.refreshLibraries().fold(
         onSuccess = {

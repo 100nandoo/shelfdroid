@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationEventRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.reconcileActiveLibraryId
@@ -36,6 +37,8 @@ constructor(
   @Assisted private val navKey: Home,
   private val repository: HomeRepository,
   private val libraryDataRepository: LibraryDataRepository,
+  @Suppress("UNUSED_PARAMETER")
+  private val libraryAdministrationEventRepository: LibraryAdministrationEventRepository,
   private val syncCoordinator: SyncCoordinator,
   private val settingsRepository: SettingsRepository,
 ) : ViewModel() {

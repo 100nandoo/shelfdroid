@@ -3,13 +3,21 @@ package dev.halim.shelfdroid.core.data.screen.libraryadministration
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 private val EMPTY_TASK_STATE = MutableStateFlow(ServerTaskRepositoryState())
 private val EMPTY_TASK_NOTIFICATIONS = MutableStateFlow<ServerTaskNotification?>(null)
+private val EMPTY_LIBRARY_EVENTS = MutableSharedFlow<LibraryAdministrationLibraryEvent>().asSharedFlow()
 
 interface LibraryAdministrationContract {
   suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>>
+
+  /** Reconciled changes received from other clients or from this client's mutation echo. */
+  val libraryEvents: SharedFlow<LibraryAdministrationLibraryEvent>
+    get() = EMPTY_LIBRARY_EVENTS
 
   /** Task state is application-scoped and remains available after this screen is recreated. */
   val taskState: StateFlow<ServerTaskRepositoryState>
