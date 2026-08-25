@@ -63,6 +63,7 @@ import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SearchPodcastEpisodeResponse
 import dev.halim.core.network.response.SearchProvidersResponse
 import dev.halim.core.network.response.ServerSettingsResponse
+import dev.halim.core.network.response.TasksResponse
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SetItemCoverResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
@@ -178,6 +179,12 @@ interface ApiService {
   suspend fun reorderLibraries(
     @Body request: List<ReorderLibraryRequest>
   ): Result<LibrariesResponse>
+
+  /** Accepts a normal library scan. Completion is reported by the Server task socket events. */
+  @POST("api/libraries/{libraryId}/scan")
+  suspend fun scanLibrary(@Path("libraryId") libraryId: String): Result<Unit>
+
+  @GET("api/tasks") suspend fun tasks(): Result<TasksResponse>
 
   @GET("api/filesystem")
   suspend fun filesystem(

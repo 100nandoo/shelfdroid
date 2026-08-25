@@ -7,7 +7,11 @@ import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
+import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryContract
+import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
+import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
 import javax.inject.Inject
+import kotlinx.coroutines.flow.StateFlow
 import retrofit2.HttpException
 
 class LibraryAdministrationRepository
@@ -16,7 +20,26 @@ constructor(
   private val api: ApiService,
   private val libraryRepository: LibraryRepository,
   private val mutationCoordinator: LibraryMutationCoordinator,
+  private val serverTaskRepository: ServerTaskRepositoryContract,
 ) : LibraryAdministrationContract, LibraryAdministrationCreateContract {
+
+  override val taskState: StateFlow<ServerTaskRepositoryState>
+    get() = serverTaskRepository.state
+
+  override val taskNotifications: StateFlow<ServerTaskNotification?>
+    get() = serverTaskRepository.notifications
+
+  override fun acknowledgeTaskNotification(taskId: String) {
+    serverTaskRepository.acknowledgeNotification(taskId)
+  }
+
+  override suspend fun refreshTasks(): Result<Unit> = serverTaskRepository.refresh()
+
+  override suspend fun startScan(libraryId: String): Result<Unit> =
+    serverTaskRepository.startLibraryScan(libraryId)
+
+  override suspend fun retryTaskSynchronization(taskId: String): Result<Unit> =
+    serverTaskRepository.retrySynchronization(taskId)
 
   override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> {
     // Read and order mutations share the same application-scoped gate. This prevents an older

@@ -6,12 +6,20 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
+import dev.halim.shelfdroid.core.data.task.ServerTask
+import dev.halim.shelfdroid.core.data.task.ServerTaskConnectionState
+import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
+import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
+import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import java.util.ArrayDeque
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -20,6 +28,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -171,7 +181,11 @@ class LibraryAdministrationViewModelTest {
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(LibraryAdministrationEvent.SetConnectionState(LibraryAdministrationConnectionState.CONNECTED))
+    viewModel.onEvent(
+      LibraryAdministrationEvent.SetConnectionState(
+        LibraryAdministrationConnectionState.CONNECTED
+      )
+    )
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     assertEquals(0, repository.reorderRequests.size)
 
@@ -230,6 +244,107 @@ class LibraryAdministrationViewModelTest {
     collection.cancel()
   }
 
+  @Test
+  fun scanStartsOnlyWhenConnectionSnapshotAndLibraryTaskAreKnownIdle() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      TaskRepository(
+        libraries = libraries("books"),
+        initialTaskState =
+          ServerTaskRepositoryState(
+            connectionState = ServerTaskConnectionState.CONNECTED,
+            snapshotKnown = true,
+          ),
+      )
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    viewModel.onEvent(LibraryAdministrationEvent.StartScan("books"))
+    advanceUntilIdle()
+    assertEquals(listOf("books"), repository.scanRequests)
+
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        tasks =
+          listOf(
+            ServerTask(
+              id = "scan",
+              action = "library-scan",
+              libraryId = "books",
+              status = ServerTaskStatus.ACTIVE,
+            )
+          )
+      )
+    advanceUntilIdle()
+    viewModel.onEvent(LibraryAdministrationEvent.StartScan("books"))
+    advanceUntilIdle()
+    assertEquals(listOf("books"), repository.scanRequests)
+    collection.cancel()
+  }
+
+  @Test
+  fun scanAndSynchronizationFailuresUseGenericLocalizedErrorKeys() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      TaskRepository(
+        libraries = libraries("books"),
+        initialTaskState =
+          ServerTaskRepositoryState(
+            connectionState = ServerTaskConnectionState.CONNECTED,
+            snapshotKnown = true,
+          ),
+      )
+    repository.scanResult = Result.failure(IllegalStateException("database stack trace"))
+    repository.retryResult = Result.failure(IllegalStateException("database stack trace"))
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    viewModel.onEvent(LibraryAdministrationEvent.StartScan("books"))
+    advanceUntilIdle()
+    assertEquals(LibraryAdministrationError.GenericScanStart, viewModel.uiState.value.scanError)
+
+    viewModel.onEvent(LibraryAdministrationEvent.RetryTaskSynchronization("scan"))
+    advanceUntilIdle()
+    assertEquals(
+      LibraryAdministrationError.GenericSynchronization,
+      viewModel.uiState.value.taskSyncError,
+    )
+    collection.cancel()
+  }
+
+  @Test
+  fun terminalNotificationSurvivesUiCollectorRecreationUntilAcknowledged() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      TaskRepository(
+        libraries = libraries("books"),
+        initialTaskState = ServerTaskRepositoryState(),
+      )
+    repository.taskNotification.value =
+      ServerTaskNotification("scan", ServerTaskStatus.COMPLETED)
+
+    val first = LibraryAdministrationViewModel(repository)
+    val firstCollection = collectState(first)
+    advanceUntilIdle()
+    assertNotNull(first.uiState.value.taskNotification)
+    firstCollection.cancel()
+
+    val second = LibraryAdministrationViewModel(repository)
+    val secondCollection = collectState(second)
+    advanceUntilIdle()
+    assertEquals(
+      ServerTaskNotification("scan", ServerTaskStatus.COMPLETED),
+      second.uiState.value.taskNotification,
+    )
+
+    second.consumeTaskNotification()
+    assertEquals(1, repository.acknowledgements)
+    assertNull(repository.taskNotification.value)
+    secondCollection.cancel()
+  }
+
   private fun TestScope.collectState(viewModel: LibraryAdministrationViewModel): Job =
     backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
 
@@ -263,7 +378,10 @@ class LibraryAdministrationViewModelTest {
     private val pendingReorderResults = ArrayDeque(reorderResults)
     var loadCalls = 0
       private set
-    val reorderRequests = mutableListOf<Pair<List<LibraryAdministrationLibrary>, List<LibraryAdministrationLibrary>>>()
+    val reorderRequests =
+      mutableListOf<
+        Pair<List<LibraryAdministrationLibrary>, List<LibraryAdministrationLibrary>>
+      >()
 
     override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> {
       loadCalls += 1
@@ -289,5 +407,44 @@ class LibraryAdministrationViewModelTest {
     override suspend fun reorderLibraries(
       libraries: List<LibraryAdministrationLibrary>
     ): Result<List<LibraryAdministrationLibrary>> = responses.removeFirst().await()
+  }
+
+  private class TaskRepository(
+    private val libraries: List<LibraryAdministrationLibrary>,
+    initialTaskState: ServerTaskRepositoryState,
+  ) : LibraryAdministrationContract {
+    val mutableTaskState = MutableStateFlow(initialTaskState)
+    val taskNotification = MutableStateFlow<ServerTaskNotification?>(null)
+    var scanResult: Result<Unit> = Result.success(Unit)
+    var retryResult: Result<Unit> = Result.success(Unit)
+    val scanRequests = mutableListOf<String>()
+    var acknowledgements = 0
+
+    override val taskState: StateFlow<ServerTaskRepositoryState>
+      get() = mutableTaskState
+
+    override val taskNotifications: StateFlow<ServerTaskNotification?>
+      get() = taskNotification
+
+    override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> =
+      Result.success(libraries)
+
+    override suspend fun refreshTasks(): Result<Unit> = Result.success(Unit)
+
+    override suspend fun startScan(libraryId: String): Result<Unit> {
+      scanRequests += libraryId
+      return scanResult
+    }
+
+    override suspend fun retryTaskSynchronization(taskId: String): Result<Unit> = retryResult
+
+    override fun acknowledgeTaskNotification(taskId: String) {
+      acknowledgements += 1
+      taskNotification.value = null
+    }
+
+    override suspend fun reorderLibraries(
+      libraries: List<LibraryAdministrationLibrary>
+    ): Result<List<LibraryAdministrationLibrary>> = Result.success(libraries)
   }
 }

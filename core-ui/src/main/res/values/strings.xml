@@ -137,6 +137,17 @@
     <string name="library_identity">Library ID: %1$s</string>
     <string name="library_type_unknown">Unknown Library type</string>
     <string name="refresh_libraries">Refresh Libraries</string>
+    <string name="scan_library">Scan Library</string>
+    <string name="library_scan_active">Scan in progress</string>
+    <string name="library_scan_completed">Library scan completed</string>
+    <string name="library_scan_failed">Library scan failed</string>
+    <string name="library_scan_cancelled">Library scan cancelled</string>
+    <string name="library_scan_counts">Added %1$d, updated %2$d, missing %3$d</string>
+    <string name="library_scan_elapsed">Elapsed: %1$d seconds</string>
+    <string name="library_scan_start_failed">The library scan could not be started.</string>
+    <string name="library_scan_task_failed_generic">The library scan failed.</string>
+    <string name="library_scan_sync_failed">Library data synchronization failed.</string>
+    <string name="library_scan_retry_sync">Retry synchronization</string>
     <string name="create_library">Create Library</string>
     <string name="library_create_media_type">Media type</string>
     <string name="library_create_name">Library name</string>

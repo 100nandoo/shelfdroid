@@ -17,10 +17,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -33,7 +38,11 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartScan
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.taskForLibrary
+import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import dev.halim.shelfdroid.core.navigation.LibraryCreatedNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
@@ -47,23 +56,43 @@ fun LibraryAdministrationScreen(
   collectNavResultEvent: Boolean = false,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  val snackbarHostState = remember { SnackbarHostState() }
+  val notification = uiState.taskNotification
+  val notificationMessage =
+    when (notification?.status) {
+      ServerTaskStatus.COMPLETED -> stringResource(R.string.library_scan_completed)
+      ServerTaskStatus.FAILED -> stringResource(R.string.library_scan_failed)
+      ServerTaskStatus.CANCELLED -> stringResource(R.string.library_scan_cancelled)
+      ServerTaskStatus.ACTIVE,
+      null -> null
+    }
+  LaunchedEffect(notification?.taskId) {
+    if (notificationMessage != null) {
+      snackbarHostState.showSnackbar(notificationMessage)
+      viewModel.consumeTaskNotification()
+    }
+  }
   if (collectNavResultEvent) {
     ResultEffect<LibraryCreatedNavResult> { viewModel.onEvent(LibraryAdministrationEvent.Refresh) }
   }
-  LibraryAdministrationContent(
-    uiState = uiState,
-    onEvent = viewModel::onEvent,
-    onCreateLibraryClicked = onCreateLibraryClicked,
-  )
+  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
+    LibraryAdministrationContent(
+      modifier = Modifier.padding(paddingValues),
+      uiState = uiState,
+      onEvent = viewModel::onEvent,
+      onCreateLibraryClicked = onCreateLibraryClicked,
+    )
+  }
 }
 
 @Composable
 internal fun LibraryAdministrationContent(
+  modifier: Modifier = Modifier,
   uiState: LibraryAdministrationUiState = LibraryAdministrationUiState(),
   onEvent: (LibraryAdministrationEvent) -> Unit = {},
   onCreateLibraryClicked: () -> Unit = {},
 ) {
-  Column(modifier = Modifier.fillMaxSize()) {
+  Column(modifier = modifier.fillMaxSize()) {
     Row(
       modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
       verticalAlignment = Alignment.CenterVertically,
@@ -89,6 +118,21 @@ internal fun LibraryAdministrationContent(
       onClick = onCreateLibraryClicked,
     ) {
       Text(stringResource(R.string.create_library))
+    }
+
+    uiState.scanError?.let { error ->
+      Text(
+        text = libraryAdministrationErrorText(error),
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      )
+    }
+    uiState.taskSyncError?.let { error ->
+      Text(
+        text = libraryAdministrationErrorText(error),
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      )
     }
 
     PullToRefreshBox(
@@ -141,6 +185,12 @@ internal fun LibraryAdministrationContent(
                   canMoveUp = index > 0,
                   canMoveDown = index < uiState.libraries.lastIndex,
                   reorderEnabled = reorderEnabled,
+                  scanEnabled = uiState.canStartScan(library.id),
+                  onScan = { onEvent(LibraryAdministrationEvent.StartScan(library.id)) },
+                  task = uiState.taskForLibrary(library.id),
+                  onRetrySynchronization = { taskId ->
+                    onEvent(LibraryAdministrationEvent.RetryTaskSynchronization(taskId))
+                  },
                   onMoveUp = {
                     onEvent(LibraryAdministrationEvent.MoveLibrary(library.id, delta = -1))
                   },
@@ -166,6 +216,16 @@ internal fun LibraryAdministrationContent(
     }
   }
 }
+
+@Composable
+private fun libraryAdministrationErrorText(error: LibraryAdministrationError): String =
+  when (error) {
+    is LibraryAdministrationError.SafeMessage -> error.message
+    LibraryAdministrationError.GenericScanStart ->
+      stringResource(R.string.library_scan_start_failed)
+    LibraryAdministrationError.GenericSynchronization ->
+      stringResource(R.string.library_scan_sync_failed)
+  }
 
 @ShelfDroidPreview
 @Composable

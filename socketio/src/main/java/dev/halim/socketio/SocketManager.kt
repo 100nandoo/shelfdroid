@@ -118,6 +118,9 @@ constructor(
     currentSocket()?.emit(event, *args)
   }
 
+  /** Returns the current shared connection state without taking ownership. */
+  fun isConnected(): Boolean = currentSocket()?.connected() == true
+
   /** Compatibility listener registration. Re-registering this legacy event replaces only itself. */
   fun on(event: String, listener: SocketEventListener): SocketManager {
     synchronized(lock) {

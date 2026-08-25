@@ -2,10 +2,13 @@ package dev.halim.shelfdroid.core.ui.screen.libraryadministration
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -19,6 +22,11 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationConnectionState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
+import dev.halim.shelfdroid.core.data.task.ServerTask
+import dev.halim.shelfdroid.core.data.task.ServerTaskResult
+import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
+import dev.halim.shelfdroid.core.data.task.ServerTaskSyncState
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -190,5 +198,112 @@ class LibraryAdministrationContentTest {
     }
 
     assertEquals(listOf(LibraryAdministrationEvent.MoveLibrary("books", 1)), events)
+  }
+
+  @Test
+  fun scanActions_areEnabledOnlyForKnownIdleTasks() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            connectionState = LibraryAdministrationConnectionState.CONNECTED,
+            taskStates =
+              mapOf(
+                "books" to LibraryAdministrationTaskState.IDLE,
+                "podcasts" to LibraryAdministrationTaskState.ACTIVE,
+              ),
+            libraries =
+              listOf(
+                LibraryAdministrationLibrary(
+                  id = "books",
+                  name = "Books",
+                  mediaType = LibraryAdministrationMediaType.BOOK,
+                  displayOrder = 1,
+                ),
+                LibraryAdministrationLibrary(
+                  id = "podcasts",
+                  name = "Podcasts",
+                  mediaType = LibraryAdministrationMediaType.PODCAST,
+                  displayOrder = 2,
+                ),
+              ),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule.onAllNodesWithContentDescription("Scan Library").get(0)
+      .assertIsEnabled()
+      .performClick()
+    composeRule.onAllNodesWithContentDescription("Scan Library").get(1).assertIsNotEnabled()
+    assertEquals(listOf(LibraryAdministrationEvent.StartScan("books")), events)
+  }
+
+  @Test
+  fun completedTask_displaysProgressAndOffersSynchronizationRetry() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            connectionState = LibraryAdministrationConnectionState.CONNECTED,
+            taskStates = mapOf("books" to LibraryAdministrationTaskState.IDLE),
+            libraries =
+              listOf(
+                LibraryAdministrationLibrary(
+                  id = "books",
+                  name = "Books",
+                  mediaType = LibraryAdministrationMediaType.BOOK,
+                  displayOrder = 1,
+                )
+              ),
+            tasks =
+              listOf(
+                ServerTask(
+                  id = "scan",
+                  action = "library-scan",
+                  libraryId = "books",
+                  status = ServerTaskStatus.COMPLETED,
+                  result = ServerTaskResult(2, 3, 1, 4_500),
+                  syncState = ServerTaskSyncState.FAILED,
+                )
+              ),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule.onNodeWithText("Library scan completed").assertIsDisplayed()
+    composeRule.onNodeWithText("Added 2, updated 3, missing 1").assertIsDisplayed()
+    composeRule.onNodeWithText("Elapsed: 4 seconds").assertIsDisplayed()
+    composeRule.onNodeWithText("Library data synchronization failed.").assertIsDisplayed()
+    composeRule.onNodeWithText("Retry synchronization").performClick()
+    assertEquals(
+      listOf(LibraryAdministrationEvent.RetryTaskSynchronization("scan")),
+      events,
+    )
+  }
+
+  @Test
+  fun genericFailures_resolveThroughLocalizedResources() {
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            scanError = LibraryAdministrationError.GenericScanStart,
+            taskSyncError = LibraryAdministrationError.GenericSynchronization,
+          )
+      )
+    }
+
+    composeRule.onNodeWithText("The library scan could not be started.").assertIsDisplayed()
+    composeRule.onNodeWithText("Library data synchronization failed.").assertIsDisplayed()
   }
 }

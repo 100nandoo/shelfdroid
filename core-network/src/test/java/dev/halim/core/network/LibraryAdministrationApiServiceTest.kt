@@ -173,6 +173,31 @@ class LibraryAdministrationApiServiceTest {
   }
 
   @Test
+  fun scanLibrary_onlyAcceptsTheRequest() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    val result = service.scanLibrary("books")
+
+    assertTrue(result.isSuccess)
+    assertEquals("POST", requireNotNull(capturedRequest).method)
+    assertEquals("/api/libraries/books/scan", requireNotNull(capturedRequest).url.encodedPath)
+  }
+
+  @Test
+  fun tasks_loadsOperationAgnosticServerTaskSnapshot() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    val result = service.tasks()
+
+    assertTrue(result.isSuccess)
+    val request = requireNotNull(capturedRequest)
+    assertEquals("GET", request.method)
+    assertEquals("/api/tasks", request.url.encodedPath)
+  }
+
+  @Test
   fun filesystem_serializesPathAndLevelAndMapsWindowsDirectories() = runTest {
     var capturedRequest: Request? = null
     val service = apiService { capturedRequest = it }
@@ -198,6 +223,8 @@ class LibraryAdministrationApiServiceTest {
           val body =
             if (request.url.encodedPath == "/api/filesystem") {
               "{\"posix\":false,\"directories\":[{\"path\":\"C:/Media\",\"dirname\":\"Media\",\"level\":0}]}"
+            } else if (request.url.encodedPath == "/api/tasks") {
+              "{\"tasks\":[]}"
             } else if (request.url.encodedPath == "/api/libraries/order") {
               "{\"libraries\":[{\"id\":\"podcasts\",\"name\":\"Podcasts\",\"mediaType\":\"podcast\",\"displayOrder\":1},{\"id\":\"books\",\"name\":\"Books\",\"mediaType\":\"book\",\"displayOrder\":2}]}"
             } else {

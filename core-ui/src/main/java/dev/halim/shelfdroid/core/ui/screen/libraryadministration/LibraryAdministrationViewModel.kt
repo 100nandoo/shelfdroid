@@ -6,14 +6,21 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationContract
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationConnectionState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartScan
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.toAdministrationTaskState
+import dev.halim.shelfdroid.core.data.task.ServerTaskConnectionState
+import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
+import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -28,6 +35,7 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
   private var intentGeneration = 0L
   private var lastAcceptedIntentGeneration = 0L
   private var lastServerLibraries: List<LibraryAdministrationLibrary> = emptyList()
+  private var latestTaskState = ServerTaskRepositoryState()
 
   private val _uiState = MutableStateFlow(LibraryAdministrationUiState())
   val uiState: StateFlow<LibraryAdministrationUiState> =
@@ -39,9 +47,32 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
         LibraryAdministrationUiState(),
       )
 
+  init {
+    viewModelScope.launch {
+      repository.taskState.collect { taskState ->
+        latestTaskState = taskState
+        applyTaskState(taskState, _uiState.value.libraries)
+      }
+    }
+    viewModelScope.launch {
+      repository.taskNotifications.collect { notification ->
+        _uiState.update { it.copy(taskNotification = notification) }
+      }
+    }
+  }
+
+  fun consumeTaskNotification() {
+    val notification = _uiState.value.taskNotification
+    if (notification != null) repository.acknowledgeTaskNotification(notification.taskId)
+    _uiState.update { it.copy(taskNotification = null) }
+  }
+
   fun onEvent(event: LibraryAdministrationEvent) {
     when (event) {
       LibraryAdministrationEvent.Refresh -> load()
+      is LibraryAdministrationEvent.StartScan -> startScan(event.libraryId)
+      is LibraryAdministrationEvent.RetryTaskSynchronization ->
+        retryTaskSynchronization(event.taskId)
       is LibraryAdministrationEvent.MoveLibrary -> moveLibrary(event.libraryId, event.delta)
       is LibraryAdministrationEvent.MoveLibraryTo ->
         moveLibraryTo(event.libraryId, event.destinationIndex)
@@ -64,6 +95,7 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
           isRefreshing = true,
         )
       }
+      repository.refreshTasks()
       repository.loadLibraries().fold(
         onSuccess = { libraries ->
           if (requestGeneration != loadGeneration) return@fold
@@ -81,6 +113,7 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
               reorderError = null,
             )
           }
+          applyTaskState(latestTaskState, libraries)
         },
         onFailure = { error ->
           if (requestGeneration != loadGeneration) return@fold
@@ -95,6 +128,35 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
             )
           }
         },
+      )
+    }
+  }
+
+  private fun applyTaskState(
+    taskState: ServerTaskRepositoryState,
+    libraries: List<LibraryAdministrationLibrary>,
+  ) {
+    val taskStates =
+      libraries.associate { library ->
+        val libraryTasks = taskState.tasks.filter { it.libraryId == library.id }
+        val active = libraryTasks.firstOrNull { it.status == ServerTaskStatus.ACTIVE }
+        val latest = libraryTasks.firstOrNull()
+        val state =
+          if (!taskState.snapshotKnown ||
+            taskState.connectionState != ServerTaskConnectionState.CONNECTED
+          ) {
+            LibraryAdministrationTaskState.UNKNOWN
+          } else {
+            (active ?: latest)?.status?.toAdministrationTaskState()
+              ?: LibraryAdministrationTaskState.IDLE
+          }
+        library.id to state
+      }
+    _uiState.update {
+      it.copy(
+        connectionState = taskState.connectionState.toAdministrationConnectionState(),
+        taskStates = taskStates,
+        tasks = taskState.tasks,
       )
     }
   }
@@ -150,10 +212,47 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
       )
     }
   }
+
+  private fun startScan(libraryId: String) {
+    if (!_uiState.value.canStartScan(libraryId)) return
+    _uiState.update { it.copy(scanError = null) }
+    viewModelScope.launch {
+      repository.startScan(libraryId).onFailure { error ->
+        _uiState.update { it.copy(scanError = error.safeMessage()) }
+      }
+    }
+  }
+
+  private fun retryTaskSynchronization(taskId: String) {
+    _uiState.update { it.copy(taskSyncError = null) }
+    viewModelScope.launch {
+      repository.retryTaskSynchronization(taskId).onFailure { error ->
+        _uiState.update {
+          it.copy(taskSyncError = error.safeMessage(LibraryAdministrationError.GenericSynchronization))
+        }
+      }
+    }
+  }
 }
+
+private fun ServerTaskConnectionState.toAdministrationConnectionState():
+  LibraryAdministrationConnectionState =
+  when (this) {
+    ServerTaskConnectionState.UNKNOWN -> LibraryAdministrationConnectionState.UNKNOWN
+    ServerTaskConnectionState.CONNECTED -> LibraryAdministrationConnectionState.CONNECTED
+    ServerTaskConnectionState.DISCONNECTED -> LibraryAdministrationConnectionState.DISCONNECTED
+  }
+
+private fun Throwable.safeMessage(
+  generic: LibraryAdministrationError = LibraryAdministrationError.GenericScanStart
+): LibraryAdministrationError = generic
 
 sealed interface LibraryAdministrationEvent {
   data object Refresh : LibraryAdministrationEvent
+
+  data class StartScan(val libraryId: String) : LibraryAdministrationEvent
+
+  data class RetryTaskSynchronization(val taskId: String) : LibraryAdministrationEvent
 
   data class MoveLibrary(val libraryId: String, val delta: Int) : LibraryAdministrationEvent
 

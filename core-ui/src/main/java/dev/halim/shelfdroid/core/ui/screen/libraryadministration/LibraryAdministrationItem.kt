@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package dev.halim.shelfdroid.core.ui.screen.libraryadministration
 
 import androidx.compose.foundation.layout.Column
@@ -6,17 +8,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
+import dev.halim.shelfdroid.core.data.task.ServerTaskError
+import dev.halim.shelfdroid.core.data.task.ServerTask
+import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
+import dev.halim.shelfdroid.core.data.task.ServerTaskSyncState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -30,10 +44,15 @@ fun LibraryAdministrationItem(
   onMoveDown: () -> Unit = {},
   onDragMove: (delta: Int) -> Unit = {},
   reorderEnabled: Boolean = false,
+  scanEnabled: Boolean = false,
+  onScan: () -> Unit = {},
+  task: ServerTask? = null,
+  onRetrySynchronization: (taskId: String) -> Unit = {},
 ) {
   var dragDistance = 0f
   val moveUpDescription = stringResource(R.string.move_library_up)
   val moveDownDescription = stringResource(R.string.move_library_down)
+  val scanDescription = stringResource(R.string.scan_library)
   val dragModifier =
     if (reorderEnabled) {
       Modifier.pointerInput(library.id) {
@@ -64,10 +83,48 @@ fun LibraryAdministrationItem(
       Column {
         Text(libraryTypeText(library.mediaType))
         Text(stringResource(R.string.library_identity, library.id))
+        if (task != null) {
+          Text(taskStatusText(task))
+          task.result?.let { result ->
+            Text(
+              stringResource(
+                R.string.library_scan_counts,
+                result.added ?: 0,
+                result.updated ?: 0,
+                result.missing ?: 0,
+              )
+            )
+          }
+          task.result?.elapsedMillis?.let { elapsed ->
+            Text(stringResource(R.string.library_scan_elapsed, elapsed / 1000))
+          }
+          if (task.syncState == ServerTaskSyncState.FAILED) {
+            Text(
+              text = stringResource(R.string.library_scan_sync_failed),
+              color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+            )
+            TextButton(onClick = { onRetrySynchronization(task.id) }) {
+              Text(stringResource(R.string.library_scan_retry_sync))
+            }
+          }
+          task.error?.let { error -> Text(serverTaskErrorText(error)) }
+        }
       }
     },
     trailingContent = {
       Row(modifier = Modifier.padding(start = 8.dp)) {
+        TooltipBox(
+          positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+          state = rememberTooltipState(),
+          tooltip = { PlainTooltip { Text(scanDescription) } },
+        ) {
+          FilledTonalIconButton(enabled = scanEnabled, onClick = onScan) {
+            Icon(
+              painter = painterResource(R.drawable.refresh),
+              contentDescription = scanDescription,
+            )
+          }
+        }
         TextButton(
           enabled = reorderEnabled && canMoveUp,
           onClick = onMoveUp,
@@ -92,6 +149,22 @@ fun LibraryAdministrationItem(
     },
   )
 }
+
+@Composable
+private fun serverTaskErrorText(error: ServerTaskError): String =
+  when (error) {
+    is ServerTaskError.SafeMessage -> error.message
+    ServerTaskError.Generic -> stringResource(R.string.library_scan_task_failed_generic)
+  }
+
+@Composable
+private fun taskStatusText(task: ServerTask): String =
+  when (task.status) {
+    ServerTaskStatus.ACTIVE -> stringResource(R.string.library_scan_active)
+    ServerTaskStatus.COMPLETED -> stringResource(R.string.library_scan_completed)
+    ServerTaskStatus.FAILED -> stringResource(R.string.library_scan_failed)
+    ServerTaskStatus.CANCELLED -> stringResource(R.string.library_scan_cancelled)
+  }
 
 @Composable
 private fun libraryTypeText(mediaType: LibraryAdministrationMediaType): String =
