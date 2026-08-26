@@ -5,15 +5,15 @@ finish-threshold state transition while still preserving each media type's hidde
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Draft mutations consistently mark the form dirty, clear stale validation, and invalidate
+- [x] Draft mutations consistently mark the form dirty, clear stale validation, and invalidate
       schedule validation through one update boundary.
-- [ ] Time-remaining and percent-complete thresholds are mutually exclusive and use one shared
+- [x] Time-remaining and percent-complete thresholds are mutually exclusive and use one shared
       transition model for Book and Podcast settings.
-- [ ] Switching media type preserves the independent hidden values for both media types and submits
+- [x] Switching media type preserves the independent hidden values for both media types and submits
       only values applicable to the final type.
-- [ ] Existing create-flow behaviour remains unchanged for common, Book-only, Podcast-only, and
+- [x] Existing create-flow behaviour remains unchanged for common, Book-only, Podcast-only, and
       schedule settings.
-- [ ] Unit tests cover threshold mode/value changes, media switching, serialization, and validation
+- [x] Unit tests cover threshold mode/value changes, media switching, serialization, and validation
       reset behaviour.

@@ -41,6 +41,84 @@ data class LibraryAdministrationPodcastSettings(
   val markAsFinishedTimeRemaining: Int? = DEFAULT_FINISH_TIME_REMAINING,
 )
 
+/**
+ * The mutually exclusive finish threshold used by both media types.
+ *
+ * Draft settings retain the two server fields because that is the shape accepted by the
+ * Audiobookshelf API. Transitions through this model always write only the selected field, while
+ * using the other field as the initial value when changing modes.
+ */
+data class LibraryAdministrationFinishThreshold(
+  val percentComplete: Int? = null,
+  val timeRemaining: Int? = DEFAULT_FINISH_TIME_REMAINING,
+) {
+  /** The value shown by the form for the currently selected mode. */
+  val value: Int
+    get() = percentComplete ?: timeRemaining ?: DEFAULT_FINISH_TIME_REMAINING
+
+  /** Returns a threshold with only the requested mode populated. */
+  fun selectMode(percentCompleteMode: Boolean): LibraryAdministrationFinishThreshold {
+    val selectedValue =
+      if (percentCompleteMode) {
+        percentComplete ?: timeRemaining ?: DEFAULT_FINISH_TIME_REMAINING
+      } else {
+        timeRemaining ?: percentComplete ?: DEFAULT_FINISH_TIME_REMAINING
+      }
+    return if (percentCompleteMode) {
+      copy(percentComplete = selectedValue, timeRemaining = null)
+    } else {
+      copy(percentComplete = null, timeRemaining = selectedValue)
+    }
+  }
+
+  /** Returns a threshold value for whichever mode is currently selected. */
+  fun updateValue(value: Int): LibraryAdministrationFinishThreshold {
+    val normalized = value.coerceAtLeast(0)
+    return if (percentComplete != null) {
+      copy(percentComplete = normalized, timeRemaining = null)
+    } else {
+      copy(percentComplete = null, timeRemaining = normalized)
+    }
+  }
+
+  /** Values sent to the API, normalized if a draft was constructed with both fields populated. */
+  val serializedPercentComplete: Int?
+    get() = percentComplete
+
+  val serializedTimeRemaining: Int?
+    get() = timeRemaining.takeIf { percentComplete == null }
+}
+
+val LibraryAdministrationBookSettings.finishThreshold: LibraryAdministrationFinishThreshold
+  get() =
+    LibraryAdministrationFinishThreshold(
+      percentComplete = markAsFinishedPercentComplete,
+      timeRemaining = markAsFinishedTimeRemaining,
+    )
+
+fun LibraryAdministrationBookSettings.withFinishThreshold(
+  threshold: LibraryAdministrationFinishThreshold
+): LibraryAdministrationBookSettings =
+  copy(
+    markAsFinishedPercentComplete = threshold.serializedPercentComplete,
+    markAsFinishedTimeRemaining = threshold.serializedTimeRemaining,
+  )
+
+val LibraryAdministrationPodcastSettings.finishThreshold: LibraryAdministrationFinishThreshold
+  get() =
+    LibraryAdministrationFinishThreshold(
+      percentComplete = markAsFinishedPercentComplete,
+      timeRemaining = markAsFinishedTimeRemaining,
+    )
+
+fun LibraryAdministrationPodcastSettings.withFinishThreshold(
+  threshold: LibraryAdministrationFinishThreshold
+): LibraryAdministrationPodcastSettings =
+  copy(
+    markAsFinishedPercentComplete = threshold.serializedPercentComplete,
+    markAsFinishedTimeRemaining = threshold.serializedTimeRemaining,
+  )
+
 /** One of the six metadata sources supported by Audiobookshelf's book scanner. */
 data class LibraryAdministrationMetadataSource(
   val id: String,
@@ -104,6 +182,21 @@ data class LibraryAdministrationDraft(
 
   fun withMediaType(value: LibraryAdministrationMediaType): LibraryAdministrationDraft =
     copy(mediaType = value)
+
+  /** Applies the same finish-threshold transition to whichever media type is active. */
+  fun withFinishThreshold(
+    update: (LibraryAdministrationFinishThreshold) -> LibraryAdministrationFinishThreshold
+  ): LibraryAdministrationDraft =
+    when (mediaType) {
+      LibraryAdministrationMediaType.BOOK ->
+        copy(bookSettings = bookSettings.withFinishThreshold(update(bookSettings.finishThreshold)))
+      LibraryAdministrationMediaType.PODCAST ->
+        copy(
+          podcastSettings =
+            podcastSettings.withFinishThreshold(update(podcastSettings.finishThreshold))
+        )
+      LibraryAdministrationMediaType.UNKNOWN -> this
+    }
 
   fun withProvider(value: String?): LibraryAdministrationDraft =
     if (mediaType == LibraryAdministrationMediaType.PODCAST) copy(podcastProvider = value)

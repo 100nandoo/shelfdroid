@@ -29,6 +29,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -324,6 +325,91 @@ class LibraryAdministrationCreateViewModelTest {
     assertEquals(true, viewModel.uiState.value.draft.bookSettings.audiobooksOnly)
     assertEquals(true, viewModel.uiState.value.draft.bookSettings.epubsAllowScriptedContent)
     assertEquals(listOf("folderStructure", "audioMetatags", "txtFiles", "opfFile", "absMetadata"), viewModel.uiState.value.draft.metadataPrecedence)
+    collection.cancel()
+  }
+
+  @Test
+  fun finishThresholdModeAndValueChangesUseIndependentBookAndPodcastDrafts() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(
+            listOf(
+              Result.success(listOf(LibraryAdministrationProvider("audible", "Audible"))),
+              Result.success(listOf(LibraryAdministrationProvider("itunes", "iTunes"))),
+              Result.success(listOf(LibraryAdministrationProvider("audible", "Audible"))),
+            )
+          )
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectFinishThresholdMode(
+        LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE
+      )
+    )
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateFinishThresholdValue(75))
+    assertEquals(75, viewModel.uiState.value.draft.bookSettings.markAsFinishedPercentComplete)
+    assertNull(viewModel.uiState.value.draft.bookSettings.markAsFinishedTimeRemaining)
+
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectMediaType(LibraryAdministrationMediaType.PODCAST)
+    )
+    advanceUntilIdle()
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectFinishThresholdMode(
+        LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE
+      )
+    )
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateFinishThresholdValue(55))
+    assertEquals(55, viewModel.uiState.value.draft.podcastSettings.markAsFinishedPercentComplete)
+    assertNull(viewModel.uiState.value.draft.podcastSettings.markAsFinishedTimeRemaining)
+
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectMediaType(LibraryAdministrationMediaType.BOOK)
+    )
+    advanceUntilIdle()
+    assertEquals(75, viewModel.uiState.value.draft.bookSettings.markAsFinishedPercentComplete)
+    assertNull(viewModel.uiState.value.draft.bookSettings.markAsFinishedTimeRemaining)
+    assertEquals(55, viewModel.uiState.value.draft.podcastSettings.markAsFinishedPercentComplete)
+    collection.cancel()
+  }
+
+  @Test
+  fun draftMutationClearsValidationAndInvalidatesScheduleValidation() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(listOf(Result.success(listOf(LibraryAdministrationProvider("audible", "Audible")))))
+      )
+    val viewModel = LibraryAdministrationCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    prepareValidDraft(viewModel)
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ToggleSchedule(true))
+    viewModel.onEvent(
+      LibraryAdministrationCreateEvent.SelectScheduleMode(LibraryAdministrationScheduleMode.Advanced)
+    )
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateAdvancedScheduleCron("0 0 * * 1"))
+    viewModel.onEvent(LibraryAdministrationCreateEvent.ValidateSchedule)
+    advanceUntilIdle()
+    assertEquals(
+      LibraryAdministrationScheduleValidationState.Valid,
+      viewModel.uiState.value.scheduleValidation,
+    )
+
+    viewModel.onEvent(LibraryAdministrationCreateEvent.UpdateCoverAspectRatio(0))
+
+    assertTrue(viewModel.uiState.value.isDirty)
+    assertTrue(viewModel.uiState.value.validation.errors.isEmpty())
+    assertEquals(
+      LibraryAdministrationScheduleValidationState.Idle,
+      viewModel.uiState.value.scheduleValidation,
+    )
     collection.cancel()
   }
 

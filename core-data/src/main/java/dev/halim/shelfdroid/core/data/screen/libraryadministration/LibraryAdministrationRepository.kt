@@ -280,7 +280,7 @@ private fun LibraryAdministrationMediaType.toApiValue(): String =
     LibraryAdministrationMediaType.UNKNOWN -> "book"
   }
 
-private fun LibraryAdministrationDraft.toCreateSettings(): CreateLibraryRequest.Settings =
+internal fun LibraryAdministrationDraft.toCreateSettings(): CreateLibraryRequest.Settings =
   when (mediaType) {
     LibraryAdministrationMediaType.BOOK ->
       CreateLibraryRequest.Settings(
@@ -292,8 +292,8 @@ private fun LibraryAdministrationDraft.toCreateSettings(): CreateLibraryRequest.
         epubsAllowScriptedContent = bookSettings.epubsAllowScriptedContent,
         hideSingleBookSeries = bookSettings.hideSingleBookSeries,
         onlyShowLaterBooksInContinueSeries = bookSettings.onlyShowLaterBooksInContinueSeries,
-        markAsFinishedPercentComplete = bookSettings.markAsFinishedPercentComplete,
-        markAsFinishedTimeRemaining = bookSettings.markAsFinishedTimeRemaining,
+        markAsFinishedPercentComplete = bookSettings.finishThreshold.serializedPercentComplete,
+        markAsFinishedTimeRemaining = bookSettings.finishThreshold.serializedTimeRemaining,
         metadataPrecedence = metadataPrecedence,
         autoScanCronExpression = scheduleExpressionOrNull(),
       )
@@ -302,8 +302,8 @@ private fun LibraryAdministrationDraft.toCreateSettings(): CreateLibraryRequest.
         coverAspectRatio = podcastSettings.coverAspectRatio,
         disableWatcher = podcastSettings.disableWatcher,
         podcastSearchRegion = podcastSettings.podcastSearchRegion,
-        markAsFinishedPercentComplete = podcastSettings.markAsFinishedPercentComplete,
-        markAsFinishedTimeRemaining = podcastSettings.markAsFinishedTimeRemaining,
+        markAsFinishedPercentComplete = podcastSettings.finishThreshold.serializedPercentComplete,
+        markAsFinishedTimeRemaining = podcastSettings.finishThreshold.serializedTimeRemaining,
         autoScanCronExpression = scheduleExpressionOrNull(),
       )
     LibraryAdministrationMediaType.UNKNOWN -> CreateLibraryRequest.Settings()

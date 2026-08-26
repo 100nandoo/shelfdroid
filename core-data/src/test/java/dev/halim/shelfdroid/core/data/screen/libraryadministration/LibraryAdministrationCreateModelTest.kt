@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -70,5 +71,75 @@ class LibraryAdministrationCreateModelTest {
       "gb",
       draft.withMediaType(LibraryAdministrationMediaType.PODCAST).podcastSettings.podcastSearchRegion,
     )
+  }
+
+  @Test
+  fun finishThresholdTransitionsKeepOneModeAndCarryTheSelectedValue() {
+    val timeRemaining = LibraryAdministrationFinishThreshold(timeRemaining = 42)
+
+    val percentComplete = timeRemaining.selectMode(percentCompleteMode = true)
+    assertEquals(42, percentComplete.percentComplete)
+    assertNull(percentComplete.timeRemaining)
+
+    val updatedPercent = percentComplete.updateValue(75)
+    assertEquals(75, updatedPercent.percentComplete)
+    assertNull(updatedPercent.timeRemaining)
+
+    val updatedTime = updatedPercent.selectMode(percentCompleteMode = false)
+    assertNull(updatedTime.percentComplete)
+    assertEquals(75, updatedTime.timeRemaining)
+  }
+
+  @Test
+  fun finishThresholdTransitionTargetsOnlyTheActiveMediaSettings() {
+    val draft =
+      LibraryAdministrationDraft(
+        bookSettings = LibraryAdministrationBookSettings(markAsFinishedTimeRemaining = 18),
+        podcastSettings = LibraryAdministrationPodcastSettings(markAsFinishedTimeRemaining = 31),
+      )
+
+    val updatedBook =
+      draft
+        .withFinishThreshold { it.selectMode(percentCompleteMode = true) }
+        .withMediaType(LibraryAdministrationMediaType.PODCAST)
+
+    assertEquals(18, updatedBook.bookSettings.markAsFinishedPercentComplete)
+    assertNull(updatedBook.bookSettings.markAsFinishedTimeRemaining)
+    assertEquals(31, updatedBook.podcastSettings.markAsFinishedTimeRemaining)
+  }
+
+  @Test
+  fun createSettingsSerializeOnlyFinalMediaTypeAndOneThresholdMode() {
+    val bookSettings =
+      LibraryAdministrationDraft(
+        mediaType = LibraryAdministrationMediaType.BOOK,
+        bookSettings =
+          LibraryAdministrationBookSettings(
+            markAsFinishedPercentComplete = 80,
+            markAsFinishedTimeRemaining = 20,
+          ),
+        podcastSettings = LibraryAdministrationPodcastSettings(podcastSearchRegion = "gb"),
+      ).toCreateSettings()
+
+    assertEquals(80, bookSettings.markAsFinishedPercentComplete)
+    assertNull(bookSettings.markAsFinishedTimeRemaining)
+    assertNull(bookSettings.podcastSearchRegion)
+
+    val podcastSettings =
+      LibraryAdministrationDraft(
+        mediaType = LibraryAdministrationMediaType.PODCAST,
+        bookSettings = LibraryAdministrationBookSettings(audiobooksOnly = true),
+        podcastSettings =
+          LibraryAdministrationPodcastSettings(
+            podcastSearchRegion = "gb",
+            markAsFinishedTimeRemaining = 25,
+          ),
+      ).toCreateSettings()
+
+    assertEquals("gb", podcastSettings.podcastSearchRegion)
+    assertEquals(25, podcastSettings.markAsFinishedTimeRemaining)
+    assertNull(podcastSettings.markAsFinishedPercentComplete)
+    assertNull(podcastSettings.audiobooksOnly)
+    assertNull(podcastSettings.metadataPrecedence)
   }
 }

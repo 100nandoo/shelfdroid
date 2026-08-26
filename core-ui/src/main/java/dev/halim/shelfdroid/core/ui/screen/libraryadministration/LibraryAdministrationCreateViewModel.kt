@@ -115,7 +115,7 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
       is LibraryAdministrationCreateEvent.SelectTab ->
         _uiState.update { it.copy(selectedTab = event.tab) }
       is LibraryAdministrationCreateEvent.UpdateManualFolder ->
-        _uiState.update { it.copy(manualFolderDraft = event.value, isDirty = true) }
+        updateForm { copy(manualFolderDraft = event.value) }
       LibraryAdministrationCreateEvent.AddManualFolder -> addManualFolder()
       is LibraryAdministrationCreateEvent.SelectFolder -> addFolder(event.path)
       is LibraryAdministrationCreateEvent.RemoveFolder ->
@@ -142,22 +142,19 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
 
   private fun selectMediaType(mediaType: LibraryAdministrationMediaType) {
     if (mediaType == _uiState.value.draft.mediaType) return
-    _uiState.update {
-      it.copy(
-        draft = it.draft.withMediaType(mediaType),
-        providerState = LibraryAdministrationProviderState.Loading,
-        selectedTab =
-          if (mediaType == LibraryAdministrationMediaType.PODCAST &&
-              it.selectedTab == LibraryAdministrationCreateTab.SCANNER) {
-            LibraryAdministrationCreateTab.DETAILS
-          } else {
-            it.selectedTab
-          },
-        validation = it.validation.copy(errors = it.validation.errors - LibraryAdministrationCreateField.PROVIDER),
-        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
-        isDirty = true,
-      )
-    }
+    val selectedTab =
+      if (mediaType == LibraryAdministrationMediaType.PODCAST &&
+          _uiState.value.selectedTab == LibraryAdministrationCreateTab.SCANNER) {
+        LibraryAdministrationCreateTab.DETAILS
+      } else {
+        _uiState.value.selectedTab
+      }
+    updateDraft(
+      updateState = {
+        copy(providerState = LibraryAdministrationProviderState.Loading, selectedTab = selectedTab)
+      },
+      update = { withMediaType(mediaType) },
+    )
     loadProviders(mediaType)
   }
 
@@ -230,15 +227,30 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
     updateDraft { copy(folders = folders + normalized) }
   }
 
-  private fun updateDraft(update: LibraryAdministrationDraft.() -> LibraryAdministrationDraft) {
+  /**
+   * Single boundary for edits made by the create form. Every edit marks the form dirty, clears
+   * errors that describe an older draft, and invalidates any server schedule validation tied to
+   * that older draft.
+   */
+  private fun updateForm(update: LibraryAdministrationCreateUiState.() -> LibraryAdministrationCreateUiState) {
     _uiState.update {
-      it.copy(
-        draft = update(it.draft),
-        isDirty = true,
-        validation = it.validation.copy(errors = emptyMap()),
-        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
+      update(
+        it.copy(
+          isDirty = true,
+          validation = it.validation.copy(errors = emptyMap()),
+          scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
+        )
       )
     }
+  }
+
+  private fun updateDraft(
+    updateState: LibraryAdministrationCreateUiState.() -> LibraryAdministrationCreateUiState = {
+      this
+    },
+    update: LibraryAdministrationDraft.() -> LibraryAdministrationDraft,
+  ) {
+    updateForm { updateState(copy(draft = update(draft))) }
   }
 
   private fun updateSchedule(
@@ -251,109 +263,35 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
     updateBook: (LibraryAdministrationBookSettings) -> LibraryAdministrationBookSettings,
     updatePodcast: (LibraryAdministrationPodcastSettings) -> LibraryAdministrationPodcastSettings,
   ) {
-    _uiState.update {
-      it.copy(
-        draft =
-          if (it.draft.mediaType == LibraryAdministrationMediaType.BOOK) {
-            it.draft.copy(bookSettings = updateBook(it.draft.bookSettings))
-          } else {
-            it.draft.copy(podcastSettings = updatePodcast(it.draft.podcastSettings))
-          },
-        isDirty = true,
-        validation = it.validation.copy(errors = emptyMap()),
-        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
-      )
+    updateDraft {
+      if (mediaType == LibraryAdministrationMediaType.BOOK) {
+        copy(bookSettings = updateBook(bookSettings))
+      } else {
+        copy(podcastSettings = updatePodcast(podcastSettings))
+      }
     }
   }
 
   private fun updateBookSettings(update: (LibraryAdministrationBookSettings) -> LibraryAdministrationBookSettings) {
-    _uiState.update {
-      it.copy(
-        draft = it.draft.copy(bookSettings = update(it.draft.bookSettings)),
-        isDirty = true,
-        validation = it.validation.copy(errors = emptyMap()),
-        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
-      )
-    }
+    updateDraft { copy(bookSettings = update(bookSettings)) }
   }
 
   private fun updatePodcastSettings(
     update: (LibraryAdministrationPodcastSettings) -> LibraryAdministrationPodcastSettings
   ) {
-    _uiState.update {
-      it.copy(
-        draft = it.draft.copy(podcastSettings = update(it.draft.podcastSettings)),
-        isDirty = true,
-        validation = it.validation.copy(errors = emptyMap()),
-        scheduleValidation = LibraryAdministrationScheduleValidationState.Idle,
-      )
-    }
+    updateDraft { copy(podcastSettings = update(podcastSettings)) }
   }
 
   private fun selectFinishThresholdMode(mode: LibraryAdministrationFinishThresholdMode) {
-    if (_uiState.value.draft.mediaType == LibraryAdministrationMediaType.BOOK) {
-      updateBookSettings {
-        when (mode) {
-          LibraryAdministrationFinishThresholdMode.TIME_REMAINING ->
-            it.copy(
-              markAsFinishedPercentComplete = null,
-              markAsFinishedTimeRemaining =
-                it.markAsFinishedTimeRemaining
-                  ?: it.markAsFinishedPercentComplete
-                  ?: dev.halim.shelfdroid.core.data.screen.libraryadministration.DEFAULT_FINISH_TIME_REMAINING,
-            )
-          LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE ->
-            it.copy(
-              markAsFinishedPercentComplete =
-                it.markAsFinishedPercentComplete
-                  ?: it.markAsFinishedTimeRemaining
-                  ?: dev.halim.shelfdroid.core.data.screen.libraryadministration.DEFAULT_FINISH_TIME_REMAINING,
-              markAsFinishedTimeRemaining = null,
-            )
-        }
-      }
-    } else {
-      updatePodcastSettings {
-        when (mode) {
-          LibraryAdministrationFinishThresholdMode.TIME_REMAINING ->
-            it.copy(
-              markAsFinishedPercentComplete = null,
-              markAsFinishedTimeRemaining =
-                it.markAsFinishedTimeRemaining
-                  ?: it.markAsFinishedPercentComplete
-                  ?: dev.halim.shelfdroid.core.data.screen.libraryadministration.DEFAULT_FINISH_TIME_REMAINING,
-            )
-          LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE ->
-            it.copy(
-              markAsFinishedPercentComplete =
-                it.markAsFinishedPercentComplete
-                  ?: it.markAsFinishedTimeRemaining
-                  ?: dev.halim.shelfdroid.core.data.screen.libraryadministration.DEFAULT_FINISH_TIME_REMAINING,
-              markAsFinishedTimeRemaining = null,
-            )
-        }
+    updateDraft {
+      withFinishThreshold {
+        it.selectMode(mode == LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE)
       }
     }
   }
 
   private fun updateFinishThresholdValue(value: Int) {
-    if (_uiState.value.draft.mediaType == LibraryAdministrationMediaType.BOOK) {
-      updateBookSettings {
-        if (it.markAsFinishedPercentComplete != null) {
-          it.copy(markAsFinishedPercentComplete = value.coerceAtLeast(0))
-        } else {
-          it.copy(markAsFinishedTimeRemaining = value.coerceAtLeast(0))
-        }
-      }
-    } else {
-      updatePodcastSettings {
-        if (it.markAsFinishedPercentComplete != null) {
-          it.copy(markAsFinishedPercentComplete = value.coerceAtLeast(0))
-        } else {
-          it.copy(markAsFinishedTimeRemaining = value.coerceAtLeast(0))
-        }
-      }
-    }
+    updateDraft { withFinishThreshold { it.updateValue(value) } }
   }
 
   private fun submit() {

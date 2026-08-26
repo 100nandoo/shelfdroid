@@ -63,6 +63,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationDirectory
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationDraft
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationFilesystemState
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.finishThreshold
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationProviderState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleInterval
@@ -398,19 +399,15 @@ internal fun LibraryAdministrationSettingsContent(
   val podcastSettings = uiState.draft.podcastSettings
   val coverAspectRatio = if (isBook) bookSettings.coverAspectRatio else podcastSettings.coverAspectRatio
   val disableWatcher = if (isBook) bookSettings.disableWatcher else podcastSettings.disableWatcher
-  val finishPercent =
-    if (isBook) bookSettings.markAsFinishedPercentComplete
-    else podcastSettings.markAsFinishedPercentComplete
-  val finishTimeRemaining =
-    if (isBook) bookSettings.markAsFinishedTimeRemaining
-    else podcastSettings.markAsFinishedTimeRemaining
+  val finishThreshold = if (isBook) bookSettings.finishThreshold else podcastSettings.finishThreshold
+  val finishPercent = finishThreshold.percentComplete
   val finishMode =
     if (finishPercent != null) {
       LibraryAdministrationFinishThresholdMode.PERCENT_COMPLETE
     } else {
       LibraryAdministrationFinishThresholdMode.TIME_REMAINING
     }
-  val finishValue = finishPercent ?: finishTimeRemaining ?: 0
+  val finishValue = finishThreshold.value
   val finishError =
     uiState.validation.errors[LibraryAdministrationCreateField.SETTINGS_FINISH_THRESHOLD]
 
