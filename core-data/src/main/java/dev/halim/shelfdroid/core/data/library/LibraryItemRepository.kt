@@ -51,6 +51,7 @@ constructor(
 
   suspend fun refreshLibraryItems(): LibraryItemRefreshResult {
     val libraryIds = libraryQueries.allIds().executeAsList()
+    cleanupOrphanedLibraries(libraryIds.toSet())
     val results = coroutineScope {
       libraryIds.map { libraryId -> async { refreshLibrary(libraryId) } }.awaitAll()
     }
@@ -67,6 +68,22 @@ constructor(
           result.exceptionOrNull()?.let { LibraryItemRefreshFailure(libraryIds[index], it) }
         },
     )
+  }
+
+  /** Removes catalog items whose Library was removed while its socket event was unavailable. */
+  private suspend fun cleanupOrphanedLibraries(currentLibraryIds: Set<String>) {
+    val orphanedLibraryIds =
+      queries
+        .all()
+        .executeAsList()
+        .asSequence()
+        .map { it.libraryId }
+        .filter { it !in currentLibraryIds }
+        .distinct()
+        .toList()
+    for (libraryId in orphanedLibraryIds) {
+      removeLibraryFromCatalog(libraryId)
+    }
   }
 
   private suspend fun refreshLibrary(libraryId: String): Result<Unit> {

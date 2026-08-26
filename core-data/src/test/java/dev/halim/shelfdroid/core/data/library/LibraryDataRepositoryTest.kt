@@ -19,6 +19,41 @@ import org.junit.Test
 class LibraryDataRepositoryTest {
 
   @Test
+  fun synchronize_reconcilesLibrariesBeforeTheirItems() = runTest {
+    val refreshOrder = mutableListOf<String>()
+    var localLibraries = listOf("books", "podcasts")
+    val remoteLibraries = listOf("new-books", "books-renamed", "podcasts")
+    val remoteItems = setOf("new-book-item", "renamed-book-item", "podcast-item")
+    var localItems = emptySet<String>()
+    val synchronizer =
+      LibraryDataRepository(
+        refreshLibraries = {
+          refreshOrder += "libraries"
+          localLibraries = remoteLibraries
+          Result.success(Unit)
+        },
+        refreshLibraryItems = {
+          refreshOrder += "items"
+          assertEquals(remoteLibraries, localLibraries)
+          localItems = remoteItems
+          LibraryItemRefreshResult(
+            refreshedLibraryIds = localLibraries.toSet(),
+            failures = emptyList(),
+          )
+        },
+        scope = CoroutineScope(StandardTestDispatcher(testScheduler)),
+      )
+
+    val result = synchronizer.synchronize()
+
+    assertTrue(result.isSuccess)
+    assertEquals(listOf("libraries", "items"), refreshOrder)
+    assertEquals(remoteLibraries.toSet(), localLibraries.toSet())
+    assertEquals(remoteItems, localItems)
+    assertEquals(remoteLibraries.toSet(), result.items?.refreshedLibraryIds)
+  }
+
+  @Test
   fun synchronize_whenLibrariesFail_doesNotRefreshItems() = runTest {
     val failure = IllegalStateException("libraries unavailable")
     var itemRefreshes = 0

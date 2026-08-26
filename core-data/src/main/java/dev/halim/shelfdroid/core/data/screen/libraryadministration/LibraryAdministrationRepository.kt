@@ -6,11 +6,14 @@ import dev.halim.core.network.request.ReorderLibraryRequest
 import dev.halim.core.network.request.ValidateCronRequest
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
-import dev.halim.shelfdroid.core.data.library.LibraryRepository
+import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
+import dev.halim.shelfdroid.core.data.library.LibraryDataSyncResult
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryContract
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
+import dev.halim.shelfdroid.core.database.LibraryEntity
 import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
 import retrofit2.HttpException
@@ -21,6 +24,7 @@ constructor(
   private val api: ApiService,
   private val libraryRepository: LibraryRepository,
   private val libraryItemRepository: LibraryItemRepository,
+  private val libraryDataRepository: LibraryDataRepository,
   private val mutationCoordinator: LibraryMutationCoordinator,
   private val serverTaskRepository: ServerTaskRepositoryContract,
   private val libraryEventRepository: LibraryAdministrationEventRepository,
@@ -50,11 +54,14 @@ constructor(
     serverTaskRepository.retrySynchronization(taskId)
 
   override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> {
-    // Read and order mutations share the same application-scoped gate. This prevents an older
-    // refresh response from replacing a completed reorder in the catalog database.
+    // Explicit refresh is the same authoritative Library data boundary used by socket events. It
+    // refreshes Libraries before their Library items and only exposes the local projection after
+    // the complete synchronization succeeds.
     return mutationCoordinator.withMutation {
-      libraryRepository.fetchLibraries().map { libraries ->
-        libraries.map { library -> library.toAdministrationLibrary() }
+      libraryDataRepository.synchronize().toResult().map {
+        libraryRepository.listLibraries().map { library ->
+          library.toAdministrationLibrary()
+        }
       }
     }
   }
@@ -183,8 +190,26 @@ constructor(
   }
 
   override suspend fun synchronizeLibraries(): Result<Unit> =
-    mutationCoordinator.withMutation { libraryRepository.refreshLibraries() }
+    mutationCoordinator.withMutation { libraryDataRepository.synchronize().toResult() }
 }
+
+private fun LibraryDataSyncResult.toResult(): Result<Unit> {
+  if (isSuccess) return Result.success(Unit)
+  return Result.failure(error ?: IllegalStateException("Library data synchronization failed"))
+}
+
+private fun LibraryEntity.toAdministrationLibrary(): LibraryAdministrationLibrary =
+  LibraryAdministrationLibrary(
+    id = id,
+    name = name,
+    mediaType =
+      if (isBookLibrary == 1L) {
+        LibraryAdministrationMediaType.BOOK
+      } else {
+        LibraryAdministrationMediaType.PODCAST
+      },
+    displayOrder = displayOrder.toInt(),
+  )
 
 private fun Library.toAdministrationLibrary(): LibraryAdministrationLibrary =
   LibraryAdministrationLibrary(

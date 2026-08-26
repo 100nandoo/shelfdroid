@@ -138,7 +138,9 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
           }
           _uiState.update {
             it.copy(
-              state = GenericState.Failure(error.message),
+              // Synchronization failures may contain server or database details. The screen
+              // supplies the localized generic message and keeps the refresh retry target.
+              state = GenericState.Failure(null),
               isRefreshing = false,
             )
           }

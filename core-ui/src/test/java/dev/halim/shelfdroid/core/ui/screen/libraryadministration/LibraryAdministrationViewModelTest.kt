@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -89,6 +90,7 @@ class LibraryAdministrationViewModelTest {
     advanceUntilIdle()
 
     assertTrue(viewModel.uiState.value.state is GenericState.Failure)
+    assertNull((viewModel.uiState.value.state as GenericState.Failure).errorMessage)
     assertTrue(viewModel.uiState.value.libraries.isEmpty())
 
     viewModel.onEvent(LibraryAdministrationEvent.Refresh)
@@ -96,6 +98,48 @@ class LibraryAdministrationViewModelTest {
 
     assertEquals(GenericState.Success, viewModel.uiState.value.state)
     assertEquals(listOf("Books"), viewModel.uiState.value.libraries.map { it.name })
+    assertEquals(2, repository.loadCalls)
+    collection.cancel()
+  }
+
+  @Test
+  fun explicitRefresh_reconcilesLibrariesAfterMissedEventsWithoutPolling() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val initial = libraries("books", "podcasts")
+    val refreshed =
+      listOf(
+        LibraryAdministrationLibrary(
+          id = "new-books",
+          name = "New Books",
+          mediaType = LibraryAdministrationMediaType.BOOK,
+          displayOrder = 1,
+        ),
+        LibraryAdministrationLibrary(
+          id = "books",
+          name = "Renamed Books",
+          mediaType = LibraryAdministrationMediaType.BOOK,
+          displayOrder = 2,
+        ),
+      )
+    val repository =
+      FakeRepository(
+        listOf(Result.success(initial), Result.success(refreshed)),
+      )
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    // The server snapshot includes an added, updated, removed, and reordered result even though
+    // no corresponding socket event was delivered to this screen.
+    viewModel.onEvent(LibraryAdministrationEvent.Refresh)
+    advanceUntilIdle()
+
+    assertEquals(refreshed, viewModel.uiState.value.libraries)
+    assertEquals(GenericState.Success, viewModel.uiState.value.state)
+    assertEquals(2, repository.loadCalls)
+
+    advanceTimeBy(60_000)
+    advanceUntilIdle()
     assertEquals(2, repository.loadCalls)
     collection.cancel()
   }
