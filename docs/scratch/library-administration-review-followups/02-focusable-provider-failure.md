@@ -6,11 +6,14 @@ that is not present.
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Provider loading, failure, retry, and success states each expose a valid focus target when
+- [x] Provider loading, failure, retry, and success states each expose a valid focus target when
       they can be selected as the first invalid field.
-- [ ] Submitting after provider loading fails does not throw and selects the Details tab.
-- [ ] The focused failure state clearly announces the error and retry action to accessibility
+- [x] Submitting after provider loading fails does not throw and selects the Details tab.
+- [x] The focused failure state clearly announces the error and retry action to accessibility
       services.
-- [ ] Instrumentation tests cover invalid submission during provider failure and successful retry.
+- [x] Instrumentation tests cover invalid submission during provider failure and successful retry.
+
+**Verification:** Unit tests and Android test compilation pass. Connected instrumentation was not
+run because no Android device or emulator was available (`adb devices` returned no devices).

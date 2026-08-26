@@ -5,6 +5,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateField
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateSubmissionState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateError
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateTab
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleInterval
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleMode
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationScheduleValidationException
@@ -56,14 +57,21 @@ class LibraryAdministrationCreateViewModelTest {
       null,
       (viewModel.uiState.value.providerState as LibraryAdministrationProviderState.Failure).message,
     )
+    prepareValidDraft(viewModel)
     viewModel.onEvent(LibraryAdministrationCreateEvent.Submit)
     advanceUntilIdle()
     assertTrue(viewModel.uiState.value.validation.errors.containsKey(LibraryAdministrationCreateField.PROVIDER))
+    assertEquals(LibraryAdministrationCreateTab.DETAILS, viewModel.uiState.value.selectedTab)
+    assertEquals(LibraryAdministrationCreateField.PROVIDER, viewModel.uiState.value.focusField)
     assertEquals(0, repository.createCalls)
 
     viewModel.onEvent(LibraryAdministrationCreateEvent.RetryProviders)
     advanceUntilIdle()
     assertEquals(2, repository.providerCalls)
+    assertTrue(viewModel.uiState.value.providerState is LibraryAdministrationProviderState.Success)
+    assertTrue(
+      viewModel.uiState.value.validation.errors.none { it.key == LibraryAdministrationCreateField.PROVIDER }
+    )
     collection.cancel()
   }
 

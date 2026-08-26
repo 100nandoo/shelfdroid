@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.ui.screen.libraryadministration
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.hasScrollAction
@@ -9,7 +10,11 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationCreateField
@@ -79,6 +84,102 @@ class LibraryAdministrationCreateContentTest {
     composeRule.onAllNodesWithText("internal provider exception").assertCountEquals(0)
     composeRule.onNodeWithText("Retry").assertIsDisplayed()
     composeRule.onAllNodesWithText("Create Library").assertCountEquals(2)
+  }
+
+  @Test
+  fun invalidSubmissionDuringProviderFailure_focusesAccessibleRetryTargetAndRetrySucceeds() {
+    var uiState by
+      mutableStateOf(
+        LibraryAdministrationCreateUiState(
+          draft =
+            LibraryAdministrationDraft(
+              name = "Books",
+              folders = listOf("/books"),
+            ),
+          providerState = LibraryAdministrationProviderState.Failure("internal provider error"),
+        )
+      )
+    val events = mutableListOf<LibraryAdministrationCreateEvent>()
+
+    composeRule.setContent {
+      LibraryAdministrationCreateContent(
+        uiState = uiState,
+        onEvent = { event ->
+          events += event
+          when (event) {
+            LibraryAdministrationCreateEvent.Submit ->
+              uiState =
+                uiState.copy(
+                  selectedTab = LibraryAdministrationCreateTab.DETAILS,
+                  validation =
+                    LibraryAdministrationValidation(
+                      errors =
+                        mapOf(
+                          LibraryAdministrationCreateField.PROVIDER to
+                            listOf(LibraryAdministrationCreateError.PROVIDER_UNAVAILABLE)
+                        )
+                    ),
+                  focusField = LibraryAdministrationCreateField.PROVIDER,
+                )
+            LibraryAdministrationCreateEvent.ConsumeFocus ->
+              uiState = uiState.copy(focusField = null)
+            LibraryAdministrationCreateEvent.RetryProviders ->
+              uiState =
+                uiState.copy(
+                  draft = uiState.draft.copy(bookProvider = "audible"),
+                  providerState =
+                    LibraryAdministrationProviderState.Success(
+                      listOf(LibraryAdministrationProvider("audible", "Audible"))
+                    ),
+                )
+            else -> Unit
+          }
+        },
+      )
+    }
+
+    composeRule.onAllNodesWithText("Create Library")[1].performClick()
+    composeRule.waitForIdle()
+    composeRule
+      .onNodeWithContentDescription("Could not load providers. Retry")
+      .assertIsFocused()
+
+    composeRule.onNodeWithText("Retry").performClick()
+    composeRule.waitForIdle()
+    composeRule.onNodeWithText("Audible").assertIsDisplayed()
+    assert(events.contains(LibraryAdministrationCreateEvent.Submit))
+    assert(events.contains(LibraryAdministrationCreateEvent.RetryProviders))
+  }
+
+  @Test
+  fun providerLoadingAndSuccessStates_exposeFocusableProviderTargets() {
+    composeRule.setContent {
+      LibraryAdministrationCreateContent(
+        uiState =
+          LibraryAdministrationCreateUiState(
+            providerState = LibraryAdministrationProviderState.Loading,
+            focusField = LibraryAdministrationCreateField.PROVIDER,
+          )
+      )
+    }
+
+    composeRule.onNodeWithContentDescription("Loading providers…").assertIsFocused()
+
+    composeRule.setContent {
+      LibraryAdministrationCreateContent(
+        uiState =
+          LibraryAdministrationCreateUiState(
+            draft = LibraryAdministrationDraft(bookProvider = "audible"),
+            providerState =
+              LibraryAdministrationProviderState.Success(
+                listOf(LibraryAdministrationProvider("audible", "Audible"))
+              ),
+            focusField = LibraryAdministrationCreateField.PROVIDER,
+          )
+      )
+    }
+
+    composeRule.onNodeWithText("Audible").assertIsFocused()
   }
 
   @Test

@@ -176,6 +176,10 @@ constructor(private val repository: LibraryAdministrationCreateContract) : ViewM
               state.copy(
                 draft = draft,
                 providerState = LibraryAdministrationProviderState.Success(providers),
+                validation =
+                  state.validation.copy(
+                    errors = state.validation.errors - LibraryAdministrationCreateField.PROVIDER
+                  ),
                 scheduleValidation =
                   if (draft == state.draft) state.scheduleValidation
                   else LibraryAdministrationScheduleValidationState.Idle,

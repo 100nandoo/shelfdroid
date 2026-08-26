@@ -932,19 +932,36 @@ private fun LibraryAdministrationProviderPicker(
   var expanded by remember { mutableStateOf(false) }
   when (val providerState = uiState.providerState) {
     LibraryAdministrationProviderState.Loading -> {
-      LinearProgressIndicator(Modifier.fillMaxWidth())
-      Text(stringResource(R.string.library_provider_loading))
+      val loadingDescription = stringResource(R.string.library_provider_loading)
+      Column(
+        modifier =
+          Modifier.fillMaxWidth()
+            .focusRequester(focusRequester)
+            .focusable()
+            .semantics { contentDescription = loadingDescription },
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+      ) {
+        LinearProgressIndicator(Modifier.fillMaxWidth())
+        Text(loadingDescription)
+      }
     }
     is LibraryAdministrationProviderState.Failure -> {
-      Text(
-        stringResource(R.string.library_provider_load_failed),
+      val errorDescription = stringResource(R.string.library_provider_load_failed)
+      val retryDescription = stringResource(R.string.retry)
+      Column(
         modifier = Modifier.fillMaxWidth(),
-      )
-      TextButton(
-        onClick = { onEvent(LibraryAdministrationCreateEvent.RetryProviders) },
-        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
-        Text(stringResource(R.string.retry))
+        Text(errorDescription)
+        TextButton(
+          onClick = { onEvent(LibraryAdministrationCreateEvent.RetryProviders) },
+          modifier =
+            Modifier.fillMaxWidth()
+              .focusRequester(focusRequester)
+              .semantics { contentDescription = "$errorDescription $retryDescription" },
+        ) {
+          Text(retryDescription)
+        }
       }
     }
     is LibraryAdministrationProviderState.Success -> {
