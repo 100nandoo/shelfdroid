@@ -203,6 +203,7 @@
     <string name="move_down">Move down</string>
     <string name="move_library_up">Move Library up</string>
     <string name="move_library_down">Move Library down</string>
+    <string name="reorder_library">Reorder library</string>
     <string name="library_reorder_failed">Library order could not be saved. The previous order was restored.</string>
     <string name="delete_library">Delete library</string>
     <string name="delete_library_title">Delete Library %1$s?</string>

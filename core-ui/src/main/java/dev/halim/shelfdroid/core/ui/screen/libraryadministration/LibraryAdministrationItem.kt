@@ -23,7 +23,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
@@ -38,10 +37,6 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun LibraryAdministrationItem(
   library: LibraryAdministrationLibrary,
-  canMoveUp: Boolean = false,
-  canMoveDown: Boolean = false,
-  onMoveUp: () -> Unit = {},
-  onMoveDown: () -> Unit = {},
   onDragMove: (delta: Int) -> Unit = {},
   reorderEnabled: Boolean = false,
   scanEnabled: Boolean = false,
@@ -54,8 +49,7 @@ fun LibraryAdministrationItem(
   onRetrySynchronization: (taskId: String) -> Unit = {},
 ) {
   var dragDistance = 0f
-  val moveUpDescription = stringResource(R.string.move_library_up)
-  val moveDownDescription = stringResource(R.string.move_library_down)
+  val dragHandleDescription = stringResource(R.string.reorder_library)
   val scanDescription = stringResource(R.string.scan_library)
   val matchDescription = stringResource(R.string.match_book_metadata)
   val deleteDescription = stringResource(R.string.delete_library)
@@ -169,25 +163,11 @@ fun LibraryAdministrationItem(
             )
           }
         }
-        TextButton(
-          enabled = reorderEnabled && canMoveUp,
-          onClick = onMoveUp,
-          modifier =
-            Modifier.semantics {
-              contentDescription = moveUpDescription
-            },
-        ) {
-          Text(stringResource(R.string.move_up))
-        }
-        TextButton(
-          enabled = reorderEnabled && canMoveDown,
-          onClick = onMoveDown,
-          modifier =
-            Modifier.semantics {
-              contentDescription = moveDownDescription
-            },
-        ) {
-          Text(stringResource(R.string.move_down))
+        if (reorderEnabled) {
+          Icon(
+            painter = painterResource(R.drawable.drag_handle),
+            contentDescription = dragHandleDescription,
+          )
         }
       }
     },

@@ -217,8 +217,6 @@ internal fun LibraryAdministrationContent(
                 val reorderEnabled = uiState.canReorder(library.id)
                 LibraryAdministrationItem(
                   library = library,
-                  canMoveUp = index > 0,
-                  canMoveDown = index < uiState.libraries.lastIndex,
                   reorderEnabled = reorderEnabled,
                   scanEnabled = uiState.canStartScan(library.id),
                   matchEnabled = uiState.canStartMatch(library.id),
@@ -229,12 +227,6 @@ internal fun LibraryAdministrationContent(
                   task = uiState.taskForLibrary(library.id),
                   onRetrySynchronization = { taskId ->
                     onEvent(LibraryAdministrationEvent.RetryTaskSynchronization(taskId))
-                  },
-                  onMoveUp = {
-                    onEvent(LibraryAdministrationEvent.MoveLibrary(library.id, delta = -1))
-                  },
-                  onMoveDown = {
-                    onEvent(LibraryAdministrationEvent.MoveLibrary(library.id, delta = 1))
                   },
                   onDragMove = { delta ->
                     onEvent(LibraryAdministrationEvent.MoveLibrary(library.id, delta))
