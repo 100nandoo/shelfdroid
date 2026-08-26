@@ -183,7 +183,9 @@ class FakeApiService @Inject constructor() : ApiService {
   private var createdApiKeyCount = 0
   private var createdCustomMetadataProviderCount = 0
   private var reorderFailure: Throwable? = null
+  private var deleteFailure: Throwable? = null
   private var libraryDataSynchronizationFailure: Throwable? = null
+  private var failLibraryDataSynchronizationOnce = false
 
   init {
     reset()
@@ -231,7 +233,9 @@ class FakeApiService @Inject constructor() : ApiService {
       createdApiKeyCount = 0
       createdCustomMetadataProviderCount = 0
       reorderFailure = null
+      deleteFailure = null
       libraryDataSynchronizationFailure = null
+      failLibraryDataSynchronizationOnce = false
     }
   }
 
@@ -239,8 +243,22 @@ class FakeApiService @Inject constructor() : ApiService {
     synchronized(this) { reorderFailure = error }
   }
 
+  fun failNextLibraryDelete(error: Throwable) {
+    synchronized(this) { deleteFailure = error }
+  }
+
   fun failLibraryDataSynchronization(error: Throwable) {
-    synchronized(this) { libraryDataSynchronizationFailure = error }
+    synchronized(this) {
+      libraryDataSynchronizationFailure = error
+      failLibraryDataSynchronizationOnce = false
+    }
+  }
+
+  fun failNextLibraryDataSynchronization(error: Throwable) {
+    synchronized(this) {
+      libraryDataSynchronizationFailure = error
+      failLibraryDataSynchronizationOnce = true
+    }
   }
 
   override suspend fun apiKeys(): Result<ApiKeysResponse> =
@@ -377,6 +395,10 @@ class FakeApiService @Inject constructor() : ApiService {
   override suspend fun libraries(): Result<LibrariesResponse> {
     synchronized(this) {
       libraryDataSynchronizationFailure?.let { error ->
+        if (failLibraryDataSynchronizationOnce) {
+          libraryDataSynchronizationFailure = null
+          failLibraryDataSynchronizationOnce = false
+        }
         return Result.failure(error)
       }
       return Result.success(LibrariesResponse(libraries.toList()))
@@ -399,6 +421,10 @@ class FakeApiService @Inject constructor() : ApiService {
 
   override suspend fun deleteLibrary(libraryId: String): Result<Library> =
     synchronized(this) {
+      deleteFailure?.let { error ->
+        deleteFailure = null
+        return Result.failure(error)
+      }
       val library = libraries.firstOrNull { it.id == libraryId }
       if (library == null) {
         Result.failure(IllegalArgumentException("Unknown library"))

@@ -15,6 +15,7 @@ import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
 import retrofit2.HttpException
 
@@ -116,18 +117,35 @@ constructor(
       }
     }
 
-  override suspend fun deleteLibrary(libraryId: String): Result<Unit> =
+  override suspend fun deleteLibrary(
+    libraryId: String
+  ): Result<LibraryAdministrationMutationResult<Unit>> =
     mutationCoordinator.withMutation {
-      api.deleteLibrary(libraryId).map {
-        libraryEventRepository.registerLocalMutation(
-          LibraryAdministrationLibraryEventType.REMOVED,
-          it,
-        )
-        // The server owns rich Library configuration and media files. ShelfDroid only removes
-        // the catalog projection, preserving buffered playback and downloaded media.
-        libraryItemRepository.removeLibraryFromCatalog(libraryId)
-        libraryRepository.removeFromCatalog(libraryId)
-      }
+      val deletedLibrary =
+        api.deleteLibrary(libraryId).getOrElse { return@withMutation Result.failure(it) }
+      Result.success(
+        runAcceptedLibraryDeleteMutation {
+          libraryEventRepository.registerLocalMutation(
+            LibraryAdministrationLibraryEventType.REMOVED,
+            deletedLibrary,
+          )
+          // The server owns rich Library configuration and media files. ShelfDroid only removes the
+          // catalog projection, preserving buffered playback and downloaded media.
+          libraryItemRepository.removeLibraryFromCatalog(libraryId)
+          libraryRepository.removeFromCatalog(libraryId)
+
+          val synchronization = libraryDataRepository.synchronize()
+          if (synchronization.isSuccess) {
+            LibraryAdministrationMutationResult.Accepted(Unit)
+          } else {
+            LibraryAdministrationMutationResult.AcceptedButNotSynchronized(
+              value = Unit,
+              error = synchronization.error
+                ?: IllegalStateException("Library data synchronization failed"),
+            )
+          }
+        }
+      )
     }
 
   override suspend fun loadLibraryProviders(
@@ -224,6 +242,20 @@ constructor(
   override suspend fun synchronizeLibraries(): Result<Unit> =
     mutationCoordinator.withMutation { libraryDataRepository.synchronize().toResult() }
 }
+
+/** Keeps an accepted delete successful when any local follow-up step needs synchronization retry. */
+internal suspend fun runAcceptedLibraryDeleteMutation(
+  operation: suspend () -> LibraryAdministrationMutationResult<Unit>,
+): LibraryAdministrationMutationResult<Unit> =
+  try {
+    operation()
+  } catch (error: Throwable) {
+    if (error is CancellationException) throw error
+    LibraryAdministrationMutationResult.AcceptedButNotSynchronized(
+      value = Unit,
+      error = error,
+    )
+  }
 
 private fun LibraryDataSyncResult.toResult(): Result<Unit> {
   if (isSuccess) return Result.success(Unit)

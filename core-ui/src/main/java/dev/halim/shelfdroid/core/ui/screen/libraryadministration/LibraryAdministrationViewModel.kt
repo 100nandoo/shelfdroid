@@ -87,6 +87,8 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
       LibraryAdministrationEvent.ConfirmDeleteLibrary -> confirmDeleteLibrary()
       LibraryAdministrationEvent.RetryDeleteLibrary ->
         retryDeleteLibrary()
+      LibraryAdministrationEvent.RetryDeleteSynchronization ->
+        retryDeleteSynchronization()
       is LibraryAdministrationEvent.RetryTaskSynchronization ->
         retryTaskSynchronization(event.taskId)
       is LibraryAdministrationEvent.MoveLibrary -> moveLibrary(event.libraryId, event.delta)
@@ -133,6 +135,8 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
               reorderError = null,
               reorderSyncError = null,
               reorderRetryOrder = null,
+              deleteSyncError = null,
+              deleteRetryLibraryId = null,
             )
           }
           applyTaskState(latestTaskState, libraries)
@@ -180,6 +184,8 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
         reorderError = null,
         reorderSyncError = null,
         reorderRetryOrder = null,
+        deleteSyncError = null,
+        deleteRetryLibraryId = null,
       )
     }
     applyTaskState(latestTaskState, event.libraries)
@@ -385,22 +391,31 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
         deleteConfirmationLibraryId = null,
         deletingLibraryId = libraryId,
         deleteError = null,
+        deleteSyncError = null,
         deleteRetryLibraryId = null,
       )
     }
     viewModelScope.launch {
       repository.deleteLibrary(libraryId).fold(
-        onSuccess = {
+        onSuccess = { outcome ->
           val state = _uiState.value
           val remaining = state.libraries.filterNot { it.id == libraryId }
           lastServerLibraries = remaining
           lastAcceptedIntentGeneration = intentGeneration
+          val synchronizationFailed =
+            outcome is LibraryAdministrationMutationResult.AcceptedButNotSynchronized
           _uiState.update {
             it.copy(
               libraries = remaining,
               deletingLibraryId = null,
               deleteError = null,
-              deleteRetryLibraryId = null,
+              deleteSyncError =
+                if (synchronizationFailed) {
+                  LibraryAdministrationError.GenericDeleteSynchronization
+                } else {
+                  null
+                },
+              deleteRetryLibraryId = if (synchronizationFailed) libraryId else null,
               taskStates = it.taskStates - libraryId,
               tasks = it.tasks.filterNot { task -> task.libraryId == libraryId },
             )
@@ -411,6 +426,7 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
             it.copy(
               deletingLibraryId = null,
               deleteError = LibraryAdministrationError.GenericDelete,
+              deleteSyncError = null,
               deleteRetryLibraryId = libraryId,
             )
           }
@@ -423,6 +439,46 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
     val libraryId = _uiState.value.deleteRetryLibraryId ?: return
     if (!_uiState.value.canDelete(libraryId)) return
     _uiState.update { it.copy(deleteConfirmationLibraryId = libraryId, deleteError = null) }
+  }
+
+  private fun retryDeleteSynchronization() {
+    val libraryId = _uiState.value.deleteRetryLibraryId ?: return
+    if (_uiState.value.deleteSyncError == null || _uiState.value.deletingLibraryId != null) return
+    val requestGeneration = intentGeneration
+    _uiState.update {
+      it.copy(
+        deletingLibraryId = libraryId,
+        deleteSyncError = null,
+      )
+    }
+    viewModelScope.launch {
+      repository.synchronizeLibraries().fold(
+        onSuccess = {
+          if (requestGeneration != intentGeneration) return@fold
+          _uiState.update { current ->
+            if (current.deleteRetryLibraryId != libraryId) {
+              current
+            } else {
+              current.copy(
+                deletingLibraryId = null,
+                deleteSyncError = null,
+                deleteRetryLibraryId = null,
+              )
+            }
+          }
+        },
+        onFailure = {
+          if (requestGeneration != intentGeneration) return@fold
+          _uiState.update { current ->
+            current.copy(
+              deletingLibraryId = null,
+              deleteSyncError = LibraryAdministrationError.GenericDeleteSynchronization,
+              deleteRetryLibraryId = libraryId,
+            )
+          }
+        },
+      )
+    }
   }
 }
 
@@ -452,6 +508,8 @@ sealed interface LibraryAdministrationEvent {
   data object ConfirmDeleteLibrary : LibraryAdministrationEvent
 
   data object RetryDeleteLibrary : LibraryAdministrationEvent
+
+  data object RetryDeleteSynchronization : LibraryAdministrationEvent
 
   data class RetryTaskSynchronization(val taskId: String) : LibraryAdministrationEvent
 

@@ -578,7 +578,8 @@ class LibraryAdministrationViewModelTest {
     val repository =
       FakeRepository(
         results = listOf(Result.success(initial)),
-        deleteResults = listOf(Result.success(Unit)),
+        deleteResults =
+          listOf(Result.success(LibraryAdministrationMutationResult.Accepted(Unit))),
       )
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
@@ -601,7 +602,8 @@ class LibraryAdministrationViewModelTest {
     val repository =
       FakeRepository(
         results = listOf(Result.success(libraries("books"))),
-        deleteResults = listOf(Result.success(Unit)),
+        deleteResults =
+          listOf(Result.success(LibraryAdministrationMutationResult.Accepted(Unit))),
       )
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
@@ -641,6 +643,66 @@ class LibraryAdministrationViewModelTest {
     collection.cancel()
   }
 
+  @Test
+  fun partialDeleteRemovesLibraryAndRetriesSynchronizationWithoutRepeatingDelete() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository =
+      FakeRepository(
+        results = listOf(Result.success(libraries("first", "books", "third"))),
+        deleteResults =
+          listOf(
+            Result.success(
+              LibraryAdministrationMutationResult.AcceptedButNotSynchronized(
+                value = Unit,
+                error = IllegalStateException("catalog refresh failed"),
+              )
+            )
+          ),
+        synchronizationResults =
+          listOf(
+            Result.failure(IllegalStateException("offline")),
+            Result.success(Unit),
+          ),
+      )
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    enableReorder(viewModel, "first", "books", "third")
+
+    viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
+    viewModel.onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary)
+    advanceUntilIdle()
+
+    assertEquals(
+      listOf("first", "third"),
+      viewModel.uiState.value.libraries.map { it.id },
+    )
+    assertEquals(
+      LibraryAdministrationError.GenericDeleteSynchronization,
+      viewModel.uiState.value.deleteSyncError,
+    )
+    assertEquals(listOf("books"), repository.deleteRequests)
+
+    viewModel.onEvent(LibraryAdministrationEvent.RetryDeleteSynchronization)
+    advanceUntilIdle()
+
+    assertEquals(
+      LibraryAdministrationError.GenericDeleteSynchronization,
+      viewModel.uiState.value.deleteSyncError,
+    )
+    assertEquals(1, repository.synchronizeCalls)
+    assertEquals(listOf("books"), repository.deleteRequests)
+
+    viewModel.onEvent(LibraryAdministrationEvent.RetryDeleteSynchronization)
+    advanceUntilIdle()
+
+    assertNull(viewModel.uiState.value.deleteSyncError)
+    assertNull(viewModel.uiState.value.deleteRetryLibraryId)
+    assertEquals(2, repository.synchronizeCalls)
+    assertEquals(listOf("books"), repository.deleteRequests)
+    collection.cancel()
+  }
+
   private fun TestScope.collectState(viewModel: LibraryAdministrationViewModel): Job =
     backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
 
@@ -669,7 +731,7 @@ class LibraryAdministrationViewModelTest {
     results: List<Result<List<LibraryAdministrationLibrary>>>,
     reorderResults: List<Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>>> =
       emptyList(),
-    deleteResults: List<Result<Unit>> = emptyList(),
+    deleteResults: List<Result<LibraryAdministrationMutationResult<Unit>>> = emptyList(),
     synchronizationResults: List<Result<Unit>> = emptyList(),
   ) :
     LibraryAdministrationContract {
@@ -714,7 +776,9 @@ class LibraryAdministrationViewModelTest {
       }
     }
 
-    override suspend fun deleteLibrary(libraryId: String): Result<Unit> {
+    override suspend fun deleteLibrary(
+      libraryId: String
+    ): Result<LibraryAdministrationMutationResult<Unit>> {
       deleteRequests += libraryId
       return pendingDeleteResults.removeFirst()
     }

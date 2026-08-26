@@ -6,10 +6,12 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMutationResult
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationRepository
+import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.test.app.testdi.FakeApiService
 import javax.inject.Inject
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,6 +67,60 @@ class LibraryAdministrationRepositoryTest {
     assertTrue(result.getOrThrow() is LibraryAdministrationMutationResult.Accepted)
   }
 
+  @Test
+  fun delete_serverRejectionRemainsFailureInsteadOfPartialSuccess() {
+    fakeApiService.failNextLibraryDelete(IllegalStateException("server rejected"))
+
+    val result = runBlocking { repository.deleteLibrary(FakeApiService.BOOK_LIBRARY_ID) }
+
+    assertTrue(result.isFailure)
+  }
+
+  @Test
+  fun delete_acceptedButSynchronizationFailureReturnsPartialSuccessAndRemovesCatalogLibrary() {
+    seedLibraries()
+    fakeApiService.failLibraryDataSynchronization(IllegalStateException("catalog unavailable"))
+
+    val result = runBlocking { repository.deleteLibrary(FakeApiService.BOOK_LIBRARY_ID) }
+
+    assertTrue(result.isSuccess)
+    val outcome = result.getOrThrow()
+    assertTrue(outcome is LibraryAdministrationMutationResult.AcceptedButNotSynchronized)
+    assertEquals(
+      listOf(FakeApiService.PODCAST_LIBRARY_ID),
+      database.libraryEntityQueries.all().executeAsList().map { it.id },
+    )
+  }
+
+  @Test
+  fun delete_acceptedAndSynchronizedReturnsAccepted() {
+    seedLibraries()
+
+    val result = runBlocking { repository.deleteLibrary(FakeApiService.BOOK_LIBRARY_ID) }
+
+    assertTrue(result.isSuccess)
+    assertTrue(result.getOrThrow() is LibraryAdministrationMutationResult.Accepted)
+  }
+
+  @Test
+  fun delete_partialSuccessCanRetrySynchronizationWithoutRepeatingDelete() {
+    seedLibraries()
+    fakeApiService.failNextLibraryDataSynchronization(IllegalStateException("catalog unavailable"))
+
+    val result = runBlocking { repository.deleteLibrary(FakeApiService.BOOK_LIBRARY_ID) }
+
+    assertTrue(result.isSuccess)
+    assertTrue(
+      result.getOrThrow() is LibraryAdministrationMutationResult.AcceptedButNotSynchronized
+    )
+    val retry = runBlocking { repository.synchronizeLibraries() }
+    assertTrue(retry.isSuccess)
+    assertEquals(
+      listOf(FakeApiService.PODCAST_LIBRARY_ID),
+      database.libraryEntityQueries.all().executeAsList().map { it.id },
+    )
+  }
+
   private fun order() =
     listOf(
       LibraryAdministrationLibrary(
@@ -89,6 +145,27 @@ class LibraryAdministrationRepositoryTest {
       is LibraryAdministrationMutationResult.AcceptedButNotSynchronized ->
         result.value.map { it.id }
     }
+
+  private fun seedLibraries() {
+    database.libraryEntityQueries.insert(
+      LibraryEntity(
+        id = FakeApiService.BOOK_LIBRARY_ID,
+        name = "Books",
+        folders = Json.encodeToString(emptyList<String>()),
+        isBookLibrary = 1L,
+        displayOrder = 1L,
+      )
+    )
+    database.libraryEntityQueries.insert(
+      LibraryEntity(
+        id = FakeApiService.PODCAST_LIBRARY_ID,
+        name = "Podcasts",
+        folders = Json.encodeToString(emptyList<String>()),
+        isBookLibrary = 0L,
+        displayOrder = 2L,
+      )
+    )
+  }
 
   private fun clearDatabase() {
     database.libraryItemEntityQueries.deleteAll()

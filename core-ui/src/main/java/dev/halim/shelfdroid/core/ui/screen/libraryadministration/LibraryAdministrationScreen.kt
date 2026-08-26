@@ -169,6 +169,21 @@ internal fun LibraryAdministrationContent(
         }
       }
     }
+    uiState.deleteSyncError?.let { error ->
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          text = libraryAdministrationErrorText(error),
+          color = MaterialTheme.colorScheme.error,
+          modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = { onEvent(LibraryAdministrationEvent.RetryDeleteSynchronization) }) {
+          Text(stringResource(R.string.library_delete_retry_sync))
+        }
+      }
+    }
 
     PullToRefreshBox(
       modifier = Modifier.fillMaxWidth().weight(1f),
@@ -285,6 +300,8 @@ private fun libraryAdministrationErrorText(error: LibraryAdministrationError): S
     LibraryAdministrationError.GenericSynchronization ->
       stringResource(R.string.library_scan_sync_failed)
     LibraryAdministrationError.GenericDelete -> stringResource(R.string.delete_library_failed)
+    LibraryAdministrationError.GenericDeleteSynchronization ->
+      stringResource(R.string.library_delete_sync_failed)
     LibraryAdministrationError.GenericReorderSynchronization ->
       stringResource(R.string.library_reorder_sync_failed)
   }

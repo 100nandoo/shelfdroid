@@ -48,7 +48,10 @@ interface LibraryAdministrationContract {
   /** Retries only Library data synchronization after an accepted mutation. */
   suspend fun synchronizeLibraries(): Result<Unit> = Result.success(Unit)
 
-  suspend fun deleteLibrary(libraryId: String): Result<Unit> =
+  /** Deletes a Library and reports whether follow-up Library data synchronization ran. */
+  suspend fun deleteLibrary(
+    libraryId: String
+  ): Result<LibraryAdministrationMutationResult<Unit>> =
     Result.failure(UnsupportedOperationException("Library deletion is unavailable"))
 }
 

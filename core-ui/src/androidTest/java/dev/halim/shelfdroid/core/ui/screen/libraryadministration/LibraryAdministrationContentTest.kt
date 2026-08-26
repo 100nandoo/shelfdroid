@@ -465,4 +465,28 @@ class LibraryAdministrationContentTest {
     composeRule.onNodeWithText("Delete").performClick()
     assertEquals(listOf(LibraryAdministrationEvent.ConfirmDeleteLibrary), events)
   }
+
+  @Test
+  fun deleteSynchronizationFailureExplainsPartialSuccessAndOffersSynchronizationRetry() {
+    val events = mutableListOf<LibraryAdministrationEvent>()
+    composeRule.setContent {
+      LibraryAdministrationContent(
+        uiState =
+          LibraryAdministrationUiState(
+            state = GenericState.Success,
+            isRefreshing = false,
+            deleteSyncError = LibraryAdministrationError.GenericDeleteSynchronization,
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule
+      .onNodeWithText(
+        "Library deletion was accepted, but local Library data could not be synchronized."
+      )
+      .assertIsDisplayed()
+    composeRule.onNodeWithText("Retry synchronization").performClick()
+    assertEquals(listOf(LibraryAdministrationEvent.RetryDeleteSynchronization), events)
+  }
 }
