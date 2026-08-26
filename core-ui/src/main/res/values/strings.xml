@@ -158,6 +158,10 @@
     <string name="library_match_start_failed">Book metadata matching could not be started.</string>
     <string name="library_task_failed_generic">The library task failed.</string>
     <string name="library_task_sync_failed">Library data synchronization failed.</string>
+    <string name="library_task_active">Server task in progress</string>
+    <string name="library_task_completed">Server task completed</string>
+    <string name="library_task_failed">Server task failed</string>
+    <string name="library_task_cancelled">Server task cancelled</string>
     <string name="create_library">Create Library</string>
     <string name="library_create_media_type">Media type</string>
     <string name="library_create_name">Library name</string>

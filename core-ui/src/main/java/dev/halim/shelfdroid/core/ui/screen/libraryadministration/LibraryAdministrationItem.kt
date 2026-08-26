@@ -28,7 +28,6 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.task.ServerTaskError
 import dev.halim.shelfdroid.core.data.task.ServerTask
-import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import dev.halim.shelfdroid.core.data.task.ServerTaskSyncState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -84,31 +83,33 @@ fun LibraryAdministrationItem(
         Text(libraryTypeText(library.mediaType))
         Text(stringResource(R.string.library_identity, library.id))
         if (task != null) {
-          Text(taskStatusText(task))
+          val presentation = serverTaskPresentation(task.action, task.status)
+          Text(stringResource(presentation.statusLabel))
           task.result?.let { result ->
-            Text(
-              if (task.action == "library-match-all")
-                stringResource(
-                  R.string.library_match_counts,
-                  result.updated ?: 0,
+            when (presentation.kind) {
+              ServerTaskPresentationKind.LIBRARY_SCAN ->
+                Text(
+                  stringResource(
+                    presentation.countsLabel ?: R.string.library_scan_counts,
+                    result.added ?: 0,
+                    result.updated ?: 0,
+                    result.missing ?: 0,
+                  )
                 )
-              else
-                stringResource(
-                  R.string.library_scan_counts,
-                  result.added ?: 0,
-                  result.updated ?: 0,
-                  result.missing ?: 0,
+              ServerTaskPresentationKind.BOOK_MATCHING ->
+                Text(
+                  stringResource(
+                    presentation.countsLabel ?: R.string.library_match_counts,
+                    result.updated ?: 0,
+                  )
                 )
-            )
+              ServerTaskPresentationKind.UNKNOWN -> Unit
+            }
           }
           task.result?.elapsedMillis?.let { elapsed ->
-            Text(
-              stringResource(
-                if (task.action == "library-match-all") R.string.library_match_elapsed
-                else R.string.library_scan_elapsed,
-                elapsed / 1000,
-              )
-            )
+            presentation.elapsedLabel?.let { elapsedLabel ->
+              Text(stringResource(elapsedLabel, elapsed / 1000))
+            }
           }
           if (task.syncState == ServerTaskSyncState.FAILED) {
             Text(
@@ -179,24 +180,6 @@ private fun serverTaskErrorText(error: ServerTaskError): String =
   when (error) {
     is ServerTaskError.SafeMessage -> error.message
     ServerTaskError.Generic -> stringResource(R.string.library_task_failed_generic)
-  }
-
-@Composable
-private fun taskStatusText(task: ServerTask): String =
-  if (task.action == "library-match-all") {
-    when (task.status) {
-      ServerTaskStatus.ACTIVE -> stringResource(R.string.library_match_active)
-      ServerTaskStatus.COMPLETED -> stringResource(R.string.library_match_completed)
-      ServerTaskStatus.FAILED -> stringResource(R.string.library_match_failed)
-      ServerTaskStatus.CANCELLED -> stringResource(R.string.library_match_cancelled)
-    }
-  } else {
-    when (task.status) {
-      ServerTaskStatus.ACTIVE -> stringResource(R.string.library_scan_active)
-      ServerTaskStatus.COMPLETED -> stringResource(R.string.library_scan_completed)
-      ServerTaskStatus.FAILED -> stringResource(R.string.library_scan_failed)
-      ServerTaskStatus.CANCELLED -> stringResource(R.string.library_scan_cancelled)
-    }
   }
 
 @Composable

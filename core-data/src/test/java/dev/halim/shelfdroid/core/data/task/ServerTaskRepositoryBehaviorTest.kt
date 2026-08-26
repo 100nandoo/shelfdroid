@@ -65,7 +65,7 @@ class ServerTaskRepositoryBehaviorTest {
     repository.startLibraryMatch("books")
     val placeholder = repository.state.value.tasks.single()
     assertTrue(placeholder.id.startsWith("accepted-match-"))
-    assertEquals("library-match-all", placeholder.action)
+    assertEquals(ServerTaskAction.BookMatching, placeholder.action)
 
     socket.emit(
       "task_started",
@@ -73,7 +73,7 @@ class ServerTaskRepositoryBehaviorTest {
     )
 
     assertEquals(listOf("match"), repository.state.value.tasks.map { it.id })
-    assertEquals("library-match-all", repository.state.value.tasks.single().action)
+    assertEquals(ServerTaskAction.BookMatching, repository.state.value.tasks.single().action)
   }
 
   @Test
@@ -284,9 +284,15 @@ class ServerTaskRepositoryBehaviorTest {
 
     // No collector is attached: StateFlow retains the pending notification for a later screen.
     repository.socketForTest.emit("task_finished", finished)
-    assertEquals(ServerTaskNotification("finished", ServerTaskStatus.COMPLETED), repository.notifications.value)
+    assertEquals(
+      ServerTaskNotification("finished", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan),
+      repository.notifications.value,
+    )
     repository.socketForTest.emit("task_finished", finished)
-    assertEquals(ServerTaskNotification("finished", ServerTaskStatus.COMPLETED), repository.notifications.value)
+    assertEquals(
+      ServerTaskNotification("finished", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan),
+      repository.notifications.value,
+    )
 
     repository.acknowledgeNotification("finished")
     assertNull(repository.notifications.value)
@@ -302,7 +308,32 @@ class ServerTaskRepositoryBehaviorTest {
     )
 
     assertEquals(
-      ServerTaskNotification("match", ServerTaskStatus.COMPLETED, "library-match-all"),
+      ServerTaskNotification("match", ServerTaskStatus.COMPLETED, ServerTaskAction.BookMatching),
+      repository.notifications.value,
+    )
+  }
+
+  @Test
+  fun unknownTaskNotificationRetainsRawOperationForGenericPresentation() = runTest {
+    val repository = repository(FakeServerTaskApi(TasksResponse(emptyList())))
+
+    repository.socketForTest.emit(
+      "task_finished",
+      networkTask(
+          "future",
+          finished = true,
+          finishedAt = 1_000L,
+          action = "future-server-task",
+        )
+        .json(),
+    )
+
+    assertEquals(
+      ServerTaskNotification(
+        "future",
+        ServerTaskStatus.COMPLETED,
+        ServerTaskAction.Unknown("future-server-task"),
+      ),
       repository.notifications.value,
     )
   }
@@ -323,7 +354,7 @@ class ServerTaskRepositoryBehaviorTest {
 
     assertEquals(ServerTaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
     assertEquals(
-      ServerTaskNotification("match", ServerTaskStatus.COMPLETED, "library-match-all"),
+      ServerTaskNotification("match", ServerTaskStatus.COMPLETED, ServerTaskAction.BookMatching),
       repository.notifications.value,
     )
   }

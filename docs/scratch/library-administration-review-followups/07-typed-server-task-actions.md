@@ -6,13 +6,17 @@ Audiobookshelf server task actions.
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Server task action parsing recognizes Library scan and Book matching without scattering raw
+- [x] Server task action parsing recognizes Library scan and Book matching without scattering raw
       string comparisons through repositories and UI.
-- [ ] Unknown actions remain representable so the application-scoped repository stays
+- [x] Unknown actions remain representable so the application-scoped repository stays
       operation-agnostic as required by the shared Server task ADR.
-- [ ] Task rows and completion notifications use one action/status presentation mapping.
-- [ ] Server task models and contracts are separated from the repository so its file contains only
+- [x] Task rows and completion notifications use one action/status presentation mapping.
+- [x] Server task models and contracts are separated from the repository so its file contains only
       the repository class.
-- [ ] Mapping, presentation, and notification tests cover known and unknown actions.
+- [x] Mapping, presentation, and notification tests cover known and unknown actions.
+
+**Verification:** `:core-data:testDebugUnitTest`, `:core-ui:testDebugUnitTest`,
+`:test-app:compileDebugKotlin`, and `:core-ui:compileDebugAndroidTestKotlin` pass. Connected
+instrumentation was not run because no Android device or emulator was available.

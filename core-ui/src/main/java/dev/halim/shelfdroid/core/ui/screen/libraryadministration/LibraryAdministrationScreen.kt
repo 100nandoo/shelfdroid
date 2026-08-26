@@ -45,7 +45,6 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.canDelete
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartMatch
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canStartScan
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.taskForLibrary
-import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import dev.halim.shelfdroid.core.navigation.LibraryCreatedNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
@@ -62,23 +61,10 @@ fun LibraryAdministrationScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val snackbarHostState = remember { SnackbarHostState() }
   val notification = uiState.taskNotification
-  val isMatchNotification =
-    notification?.action == "library-match-all" ||
-      uiState.tasks.firstOrNull { it.id == notification?.taskId }?.action == "library-match-all"
+  val notificationPresentation =
+    notification?.let { serverTaskPresentation(it.action, it.status) }
   val notificationMessage =
-    when (notification?.status) {
-      ServerTaskStatus.COMPLETED ->
-        if (isMatchNotification) stringResource(R.string.library_match_completed)
-        else stringResource(R.string.library_scan_completed)
-      ServerTaskStatus.FAILED ->
-        if (isMatchNotification) stringResource(R.string.library_match_failed)
-        else stringResource(R.string.library_scan_failed)
-      ServerTaskStatus.CANCELLED ->
-        if (isMatchNotification) stringResource(R.string.library_match_cancelled)
-        else stringResource(R.string.library_scan_cancelled)
-      ServerTaskStatus.ACTIVE,
-      null -> null
-    }
+    notificationPresentation?.let { stringResource(it.statusLabel) }
   LaunchedEffect(notification?.taskId) {
     if (notificationMessage != null) {
       snackbarHostState.showSnackbar(notificationMessage)

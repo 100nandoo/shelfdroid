@@ -13,89 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.longOrNull
-
-/** Connection state used by the application-scoped Server task repository. */
-enum class ServerTaskConnectionState {
-  UNKNOWN,
-  CONNECTED,
-  DISCONNECTED,
-}
-
-enum class ServerTaskStatus {
-  ACTIVE,
-  COMPLETED,
-  FAILED,
-  CANCELLED,
-}
-
-enum class ServerTaskSyncState {
-  NOT_STARTED,
-  SYNCHRONIZING,
-  SUCCEEDED,
-  FAILED,
-}
-
-sealed interface ServerTaskError {
-  data class SafeMessage(val message: String) : ServerTaskError
-
-  data object Generic : ServerTaskError
-}
-
-data class ServerTaskResult(
-  val added: Int? = null,
-  val updated: Int? = null,
-  val missing: Int? = null,
-  val elapsedMillis: Long? = null,
-)
-
-/** A stable app model for every server task, independent of the operation that created it. */
-data class ServerTask(
-  val id: String,
-  val action: String,
-  val libraryId: String?,
-  val title: String? = null,
-  val status: ServerTaskStatus,
-  val startedAt: Long? = null,
-  val finishedAt: Long? = null,
-  val result: ServerTaskResult? = null,
-  val error: ServerTaskError? = null,
-  val syncState: ServerTaskSyncState = ServerTaskSyncState.NOT_STARTED,
-  val syncError: ServerTaskError? = null,
-)
-
-data class ServerTaskRepositoryState(
-  val connectionState: ServerTaskConnectionState = ServerTaskConnectionState.UNKNOWN,
-  val snapshotKnown: Boolean = false,
-  val tasks: List<ServerTask> = emptyList(),
-)
-
-data class ServerTaskNotification(
-  val taskId: String,
-  val status: ServerTaskStatus,
-  val action: String? = null,
-)
-
-interface ServerTaskRepositoryContract {
-  val state: StateFlow<ServerTaskRepositoryState>
-  /** The oldest unacknowledged terminal notification, retained across screen recreation. */
-  val notifications: StateFlow<ServerTaskNotification?>
-
-  suspend fun refresh(): Result<Unit>
-
-  /** The HTTP response means accepted/started; task completion is never inferred here. */
-  suspend fun startLibraryScan(libraryId: String): Result<Unit>
-
-  /** The match-all HTTP response means accepted/started; completion is socket/task state. */
-  suspend fun startLibraryMatch(libraryId: String): Result<Unit>
-
-  suspend fun retrySynchronization(taskId: String): Result<Unit>
-
-  fun acknowledgeNotification(taskId: String)
-}
 
 /**
  * Application-scoped owner of Server task state. The repository has no polling loop: the only
@@ -292,7 +209,7 @@ class ServerTaskRepository private constructor(
   override suspend fun startLibraryScan(libraryId: String): Result<Unit> {
     return startLibraryOperation(
       libraryId = libraryId,
-      action = "library-scan",
+      action = ServerTaskAction.LibraryScan,
       placeholderPrefix = "accepted-scan",
       request = { api.scanLibrary(libraryId) },
     )
@@ -301,7 +218,7 @@ class ServerTaskRepository private constructor(
   override suspend fun startLibraryMatch(libraryId: String): Result<Unit> {
     return startLibraryOperation(
       libraryId = libraryId,
-      action = "library-match-all",
+      action = ServerTaskAction.BookMatching,
       placeholderPrefix = "accepted-match",
       request = { api.matchLibrary(libraryId) },
     )
@@ -309,7 +226,7 @@ class ServerTaskRepository private constructor(
 
   private suspend fun startLibraryOperation(
     libraryId: String,
-    action: String,
+    action: ServerTaskAction,
     placeholderPrefix: String,
     request: suspend () -> Result<Unit>,
   ): Result<Unit> {
@@ -479,7 +396,7 @@ class ServerTaskRepository private constructor(
         ServerTaskNotification(
           taskId = task.id,
           status = task.status,
-          action = task.action.takeIf { it == "library-match-all" },
+          action = task.action,
         )
       _notifications.value = pendingNotifications.values.firstOrNull()
     }
@@ -562,52 +479,4 @@ class ServerTaskRepository private constructor(
   /** Exception messages are implementation details; only server-provided task text is displayable. */
   private fun Throwable.toServerTaskError(): ServerTaskError = ServerTaskError.Generic
 
-}
-
-/** Pure mapping kept visible to module tests so socket and HTTP payloads share one reducer. */
-internal fun NetworkServerTask.toDomainTask(): ServerTask {
-  val taskData = data ?: emptyMap()
-  val libraryId = taskData["libraryId"]?.jsonPrimitive?.content
-  val scanResults = taskData["scanResults"]?.jsonObject
-  val result =
-    scanResults?.let {
-      ServerTaskResult(
-        added = it["added"]?.jsonPrimitive?.intOrNull,
-        updated = it["updated"]?.jsonPrimitive?.intOrNull,
-        missing = it["missing"]?.jsonPrimitive?.intOrNull,
-        elapsedMillis = it["elapsed"]?.jsonPrimitive?.longOrNull,
-      )
-    }
-  val status =
-    when {
-      !isFinished -> ServerTaskStatus.ACTIVE
-      isFailed -> ServerTaskStatus.FAILED
-      descriptionKey == "MessageTaskCanceledByUser" ||
-        description?.contains("canceled", ignoreCase = true) == true -> ServerTaskStatus.CANCELLED
-      else -> ServerTaskStatus.COMPLETED
-    }
-  return ServerTask(
-    id = id,
-    action = action,
-    libraryId = libraryId,
-    title = title,
-    status = status,
-    startedAt = startedAt,
-    finishedAt = finishedAt,
-    result = result,
-    error = error.toServerTaskError(),
-  )
-}
-
-private fun String?.toServerTaskError(): ServerTaskError? {
-  if (isNullOrBlank()) return null
-  return if (
-    length <= 240 &&
-      !contains("Exception", ignoreCase = true) &&
-      !contains(" at ")
-  ) {
-    ServerTaskError.SafeMessage(this)
-  } else {
-    ServerTaskError.Generic
-  }
 }

@@ -12,6 +12,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.canDelete
 import dev.halim.shelfdroid.core.data.task.ServerTask
 import dev.halim.shelfdroid.core.data.task.ServerTaskConnectionState
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
+import dev.halim.shelfdroid.core.data.task.ServerTaskAction
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
 import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import java.util.ArrayDeque
@@ -392,7 +393,7 @@ class LibraryAdministrationViewModelTest {
           listOf(
             ServerTask(
               id = "scan",
-              action = "library-scan",
+              action = ServerTaskAction.LibraryScan,
               libraryId = "books",
               status = ServerTaskStatus.ACTIVE,
             )
@@ -441,7 +442,7 @@ class LibraryAdministrationViewModelTest {
           listOf(
             ServerTask(
               id = "match",
-              action = "library-match-all",
+              action = ServerTaskAction.BookMatching,
               libraryId = "books",
               status = ServerTaskStatus.ACTIVE,
             )
@@ -501,7 +502,7 @@ class LibraryAdministrationViewModelTest {
         initialTaskState = ServerTaskRepositoryState(),
       )
     repository.taskNotification.value =
-      ServerTaskNotification("scan", ServerTaskStatus.COMPLETED)
+      ServerTaskNotification("scan", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan)
 
     val first = LibraryAdministrationViewModel(repository)
     val firstCollection = collectState(first)
@@ -513,7 +514,7 @@ class LibraryAdministrationViewModelTest {
     val secondCollection = collectState(second)
     advanceUntilIdle()
     assertEquals(
-      ServerTaskNotification("scan", ServerTaskStatus.COMPLETED),
+      ServerTaskNotification("scan", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan),
       second.uiState.value.taskNotification,
     )
 

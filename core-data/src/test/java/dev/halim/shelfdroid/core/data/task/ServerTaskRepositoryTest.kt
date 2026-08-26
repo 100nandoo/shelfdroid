@@ -12,6 +12,17 @@ import org.junit.Test
 class ServerTaskRepositoryTest {
 
   @Test
+  fun actionMapping_recognizesSupportedActionsAndRetainsUnknownWireValue() {
+    assertEquals(ServerTaskAction.LibraryScan, ServerTaskAction.fromRaw("library-scan"))
+    assertEquals(ServerTaskAction.BookMatching, ServerTaskAction.fromRaw("library-match-all"))
+    assertEquals(
+      ServerTaskAction.Unknown("future-server-task"),
+      ServerTaskAction.fromRaw("future-server-task"),
+    )
+    assertEquals("future-server-task", (ServerTaskAction.fromRaw("future-server-task") as ServerTaskAction.Unknown).rawValue)
+  }
+
+  @Test
   fun scanTask_mapsLibraryAndResultCountsFromFinishedPayload() {
     val task =
       NetworkServerTask(
@@ -35,6 +46,7 @@ class ServerTaskRepositoryTest {
     val mapped = task.toDomainTask()
 
     assertEquals("books", mapped.libraryId)
+    assertEquals(ServerTaskAction.LibraryScan, mapped.action)
     assertEquals(ServerTaskStatus.COMPLETED, mapped.status)
     assertEquals(ServerTaskResult(2, 3, 1, 4_500), mapped.result)
   }
@@ -91,5 +103,18 @@ class ServerTaskRepositoryTest {
 
     assertEquals(ServerTaskStatus.ACTIVE, mapped.status)
     assertTrue(mapped.syncState == ServerTaskSyncState.NOT_STARTED)
+  }
+
+  @Test
+  fun unknownAction_isRetainedWhenMappingNetworkTask() {
+    val mapped =
+      NetworkServerTask(
+        id = "future",
+        action = "future-server-task",
+        isFinished = true,
+      ).toDomainTask()
+
+    assertEquals(ServerTaskAction.Unknown("future-server-task"), mapped.action)
+    assertEquals("future-server-task", mapped.action.rawValue)
   }
 }

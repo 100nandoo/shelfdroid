@@ -24,6 +24,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.task.ServerTask
+import dev.halim.shelfdroid.core.data.task.ServerTaskAction
 import dev.halim.shelfdroid.core.data.task.ServerTaskResult
 import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import dev.halim.shelfdroid.core.data.task.ServerTaskSyncState
@@ -306,7 +307,7 @@ class LibraryAdministrationContentTest {
               listOf(
                 ServerTask(
                   id = "scan",
-                  action = "library-scan",
+                  action = ServerTaskAction.LibraryScan,
                   libraryId = "books",
                   status = ServerTaskStatus.COMPLETED,
                   result = ServerTaskResult(2, 3, 1, 4_500),
@@ -353,7 +354,7 @@ class LibraryAdministrationContentTest {
               listOf(
                 ServerTask(
                   id = "match",
-                  action = "library-match-all",
+                  action = ServerTaskAction.BookMatching,
                   libraryId = "books",
                   status = ServerTaskStatus.COMPLETED,
                   result = ServerTaskResult(updated = 4, elapsedMillis = 4_500),
