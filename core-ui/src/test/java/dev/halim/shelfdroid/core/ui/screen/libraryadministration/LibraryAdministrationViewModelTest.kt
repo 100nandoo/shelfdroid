@@ -2,11 +2,9 @@ package dev.halim.shelfdroid.core.ui.screen.libraryadministration
 
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationContract
-import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationConnectionState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMutationResult
-import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canDelete
 import dev.halim.shelfdroid.core.data.task.ServerTask
@@ -192,7 +190,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "books", "podcasts")
+    enableReorder(repository, "books", "podcasts")
 
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     advanceUntilIdle()
@@ -215,7 +213,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "books", "podcasts")
+    enableReorder(repository, "books", "podcasts")
 
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     advanceUntilIdle()
@@ -251,7 +249,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "books", "podcasts")
+    enableReorder(repository, "books", "podcasts")
 
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     advanceUntilIdle()
@@ -294,35 +292,49 @@ class LibraryAdministrationViewModelTest {
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetConnectionState(
-        LibraryAdministrationConnectionState.CONNECTED
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        connectionState = ServerTaskConnectionState.CONNECTED,
+        snapshotKnown = false,
       )
-    )
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     assertEquals(0, repository.reorderRequests.size)
 
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetTaskState("books", LibraryAdministrationTaskState.ACTIVE)
-    )
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        tasks =
+          listOf(
+            ServerTask(
+              id = "scan",
+              action = ServerTaskAction.LibraryScan,
+              libraryId = "books",
+              status = ServerTaskStatus.ACTIVE,
+            )
+          )
+      )
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     assertEquals(0, repository.reorderRequests.size)
 
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetTaskState("books", LibraryAdministrationTaskState.IDLE)
-    )
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetTaskState("podcasts", LibraryAdministrationTaskState.ACTIVE)
-    )
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        tasks =
+          listOf(
+            ServerTask(
+              id = "scan",
+              action = ServerTaskAction.LibraryScan,
+              libraryId = "podcasts",
+              status = ServerTaskStatus.ACTIVE,
+            )
+          )
+      )
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     assertEquals(0, repository.reorderRequests.size)
 
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetTaskState("podcasts", LibraryAdministrationTaskState.IDLE)
-    )
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetConnectionState(LibraryAdministrationConnectionState.DISCONNECTED)
-    )
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        connectionState = ServerTaskConnectionState.DISCONNECTED,
+        tasks = emptyList(),
+      )
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     assertEquals(0, repository.reorderRequests.size)
     collection.cancel()
@@ -350,7 +362,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "books", "podcasts", "third")
+    enableReorder(repository, "books", "podcasts", "third")
 
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
@@ -531,7 +543,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "books")
+    enableReorder(repository, "books")
 
     viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
     assertEquals("books", viewModel.uiState.value.deleteConfirmationLibraryId)
@@ -552,21 +564,27 @@ class LibraryAdministrationViewModelTest {
     advanceUntilIdle()
 
     assertTrue(!viewModel.uiState.value.canDelete("books"))
-    enableReorder(viewModel, "books")
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetTaskState("books", LibraryAdministrationTaskState.ACTIVE)
-    )
+    enableReorder(repository, "books")
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        tasks =
+          listOf(
+            ServerTask(
+              id = "scan",
+              action = ServerTaskAction.LibraryScan,
+              libraryId = "books",
+              status = ServerTaskStatus.ACTIVE,
+            )
+          )
+      )
     viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
     assertNull(viewModel.uiState.value.deleteConfirmationLibraryId)
 
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetTaskState("books", LibraryAdministrationTaskState.IDLE)
-    )
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetConnectionState(
-        LibraryAdministrationConnectionState.DISCONNECTED
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        connectionState = ServerTaskConnectionState.DISCONNECTED,
+        tasks = emptyList(),
       )
-    )
     viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
     assertNull(viewModel.uiState.value.deleteConfirmationLibraryId)
     collection.cancel()
@@ -585,7 +603,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "first", "books", "third")
+    enableReorder(repository, "first", "books", "third")
 
     viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
     viewModel.onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary)
@@ -609,7 +627,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "books")
+    enableReorder(repository, "books")
 
     viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
     viewModel.onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary)
@@ -630,7 +648,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "books")
+    enableReorder(repository, "books")
 
     viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
     viewModel.onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary)
@@ -668,7 +686,7 @@ class LibraryAdministrationViewModelTest {
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
-    enableReorder(viewModel, "first", "books", "third")
+    enableReorder(repository, "first", "books", "third")
 
     viewModel.onEvent(LibraryAdministrationEvent.RequestDeleteLibrary("books"))
     viewModel.onEvent(LibraryAdministrationEvent.ConfirmDeleteLibrary)
@@ -707,15 +725,12 @@ class LibraryAdministrationViewModelTest {
   private fun TestScope.collectState(viewModel: LibraryAdministrationViewModel): Job =
     backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { viewModel.uiState.collect {} }
 
-  private fun enableReorder(viewModel: LibraryAdministrationViewModel, vararg ids: String) {
-    viewModel.onEvent(
-      LibraryAdministrationEvent.SetConnectionState(LibraryAdministrationConnectionState.CONNECTED)
-    )
-    ids.forEach { id ->
-      viewModel.onEvent(
-        LibraryAdministrationEvent.SetTaskState(id, LibraryAdministrationTaskState.IDLE)
+  private fun enableReorder(repository: TaskStateDriver, vararg ids: String) {
+    repository.mutableTaskState.value =
+      repository.mutableTaskState.value.copy(
+        connectionState = ServerTaskConnectionState.CONNECTED,
+        snapshotKnown = true,
       )
-    }
   }
 
   private fun libraries(vararg ids: String): List<LibraryAdministrationLibrary> =
@@ -728,6 +743,10 @@ class LibraryAdministrationViewModelTest {
       )
     }
 
+  private interface TaskStateDriver {
+    val mutableTaskState: MutableStateFlow<ServerTaskRepositoryState>
+  }
+
   private class FakeRepository(
     results: List<Result<List<LibraryAdministrationLibrary>>>,
     reorderResults: List<Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>>> =
@@ -735,7 +754,8 @@ class LibraryAdministrationViewModelTest {
     deleteResults: List<Result<LibraryAdministrationMutationResult<Unit>>> = emptyList(),
     synchronizationResults: List<Result<Unit>> = emptyList(),
   ) :
-    LibraryAdministrationContract {
+    LibraryAdministrationContract, TaskStateDriver {
+    override val mutableTaskState = MutableStateFlow(ServerTaskRepositoryState())
     private val pendingResults = ArrayDeque(results)
     private val pendingReorderResults = ArrayDeque(reorderResults)
     private val pendingDeleteResults = ArrayDeque(deleteResults)
@@ -749,6 +769,9 @@ class LibraryAdministrationViewModelTest {
         Pair<List<LibraryAdministrationLibrary>, List<LibraryAdministrationLibrary>>
       >()
     val deleteRequests = mutableListOf<String>()
+
+    override val taskState: StateFlow<ServerTaskRepositoryState>
+      get() = mutableTaskState
 
     override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> {
       loadCalls += 1
@@ -793,7 +816,12 @@ class LibraryAdministrationViewModelTest {
           Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>>
         >
       >,
-  ) : LibraryAdministrationContract {
+  ) : LibraryAdministrationContract, TaskStateDriver {
+    override val mutableTaskState = MutableStateFlow(ServerTaskRepositoryState())
+
+    override val taskState: StateFlow<ServerTaskRepositoryState>
+      get() = mutableTaskState
+
     override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> =
       Result.success(initial)
 
@@ -806,8 +834,8 @@ class LibraryAdministrationViewModelTest {
   private class TaskRepository(
     private val libraries: List<LibraryAdministrationLibrary>,
     initialTaskState: ServerTaskRepositoryState,
-  ) : LibraryAdministrationContract {
-    val mutableTaskState = MutableStateFlow(initialTaskState)
+  ) : LibraryAdministrationContract, TaskStateDriver {
+    override val mutableTaskState = MutableStateFlow(initialTaskState)
     val taskNotification = MutableStateFlow<ServerTaskNotification?>(null)
     var scanResult: Result<Unit> = Result.success(Unit)
     var matchResult: Result<Unit> = Result.success(Unit)

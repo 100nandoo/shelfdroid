@@ -94,10 +94,6 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
       is LibraryAdministrationEvent.MoveLibrary -> moveLibrary(event.libraryId, event.delta)
       is LibraryAdministrationEvent.MoveLibraryTo ->
         moveLibraryTo(event.libraryId, event.destinationIndex)
-      is LibraryAdministrationEvent.SetConnectionState ->
-        _uiState.update { it.copy(connectionState = event.state) }
-      is LibraryAdministrationEvent.SetTaskState ->
-        _uiState.update { it.copy(taskStates = it.taskStates + (event.libraryId to event.state)) }
       LibraryAdministrationEvent.RetryReorderSynchronization ->
         retryReorderSynchronization()
       LibraryAdministrationEvent.ClearReorderError ->
@@ -519,12 +515,6 @@ sealed interface LibraryAdministrationEvent {
     LibraryAdministrationEvent
 
   data object RetryReorderSynchronization : LibraryAdministrationEvent
-
-  data class SetConnectionState(val state: LibraryAdministrationConnectionState) :
-    LibraryAdministrationEvent
-
-  data class SetTaskState(val libraryId: String, val state: LibraryAdministrationTaskState) :
-    LibraryAdministrationEvent
 
   data object ClearReorderError : LibraryAdministrationEvent
 }

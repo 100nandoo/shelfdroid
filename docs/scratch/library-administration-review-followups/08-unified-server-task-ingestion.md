@@ -6,14 +6,18 @@ recovery paths.
 
 **Blocked by:** 07 — Introduce typed operation-agnostic Server task actions.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] One reducer preserves completed-task synchronization state for both HTTP and socket input.
-- [ ] Reducer effects consistently schedule catalog synchronization, one-time notification, and
+- [x] One reducer preserves completed-task synchronization state for both HTTP and socket input.
+- [x] Reducer effects consistently schedule catalog synchronization, one-time notification, and
       terminal-state expiry.
-- [ ] Reconnection and explicit task refresh retain accepted operation placeholders without
+- [x] Reconnection and explicit task refresh retain accepted operation placeholders without
       polling or duplicate delivery.
-- [ ] Library administration ViewModel tests drive repository state instead of production events
+- [x] Library administration ViewModel tests drive repository state instead of production events
       that exist only to inject connection or task state.
-- [ ] Behaviour tests cover HTTP/socket ordering, duplicate terminal events, reconnection, and
+- [x] Behaviour tests cover HTTP/socket ordering, duplicate terminal events, reconnection, and
       synchronization retry.
+
+**Verification:** `:core-data:testDebugUnitTest`, `:core-ui:testDebugUnitTest`,
+`:test-app:compileDebugKotlin`, and `:core-ui:compileDebugAndroidTestKotlin` pass. Connected
+instrumentation was not run because no Android device or emulator was available.
