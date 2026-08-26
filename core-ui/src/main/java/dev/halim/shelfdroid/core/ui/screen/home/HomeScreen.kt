@@ -87,14 +87,13 @@ fun HomeScreen(
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  if (uiState.librariesUiState.isEmpty() && uiState.state is GenericState.Success) {
-    GenericMessageScreen(stringResource(R.string.no_libraries_available))
-    return
-  }
-
   val libraryCount = uiState.librariesUiState.size + 1
 
-  val pagerState = rememberPagerState(pageCount = { libraryCount }, initialPage = 1)
+  val pagerState =
+    rememberPagerState(
+      pageCount = { libraryCount },
+      initialPage = if (libraryCount > 1) 1 else 0,
+    )
   LaunchedEffect(pagerState.currentPage) {
     viewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
   }
@@ -160,10 +159,6 @@ fun HomeScreenContent(
   onEditItemClicked: (String) -> Unit = {},
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
-  if (uiState.librariesUiState.isEmpty() && uiState.state is GenericState.Success) {
-    GenericMessageScreen(stringResource(R.string.no_libraries_available))
-    return
-  }
   val homeState = uiState.state
   if (homeState is GenericState.Failure) {
     GenericMessageScreen(homeState.errorMessage ?: "")

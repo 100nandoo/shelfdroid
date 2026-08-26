@@ -6,11 +6,11 @@ final Library.
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] The empty-Catalog Home experience retains an accessible path to Library administration for
+- [x] The empty-Catalog Home experience retains an accessible path to Library administration for
       admin/root users.
-- [ ] Non-admin users do not gain access to Library administration.
-- [ ] Deleting the final Library leaves the administration and create flows reachable without an
+- [x] Non-admin users do not gain access to Library administration.
+- [x] Deleting the final Library leaves the administration and create flows reachable without an
       invalid pager state or navigation loop.
-- [ ] Functional tests cover an initially empty Catalog and deletion of the final Library.
+- [x] Functional tests cover an initially empty Catalog and deletion of the final Library.
