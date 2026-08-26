@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
 import dev.halim.core.network.response.Library
-import dev.halim.core.network.response.MediaType
 import dev.halim.socketio.SocketManager.Event.Library as LibrarySocketEvent
 import kotlinx.serialization.json.Json
 
@@ -43,25 +42,12 @@ internal fun parseLibraryAdministrationLibraryEvent(
 
   return LibraryAdministrationLibraryEvent(
     type = type,
-    library = library.toAdministrationProjection(),
+    library = library.toAdministrationLibrary(),
     // Hash the normalized server model rather than the raw JSON so duplicate deliveries with
     // different whitespace/property ordering still collapse to one reconciliation.
     fingerprint = json.encodeToString(library).hashCode(),
   )
 }
-
-internal fun Library.toAdministrationProjection(): LibraryAdministrationLibrary =
-  LibraryAdministrationLibrary(
-    id = id,
-    name = name,
-    mediaType =
-      when (mediaType) {
-        MediaType.BOOK -> LibraryAdministrationMediaType.BOOK
-        MediaType.PODCAST -> LibraryAdministrationMediaType.PODCAST
-        MediaType.UNKNOWN -> LibraryAdministrationMediaType.UNKNOWN
-      },
-    displayOrder = displayOrder,
-  )
 
 internal fun LibraryAdministrationLibraryEvent.deduplicationKey(): String =
   if (type == LibraryAdministrationLibraryEventType.REFRESHED) {

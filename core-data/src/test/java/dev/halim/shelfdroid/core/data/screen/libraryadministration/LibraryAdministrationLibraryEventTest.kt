@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
+import dev.halim.core.network.response.Library
+import dev.halim.core.network.response.MediaType
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -9,6 +11,27 @@ import org.junit.Test
 
 class LibraryAdministrationLibraryEventTest {
   private val json = Json { ignoreUnknownKeys = true }
+
+  @Test
+  fun serverLibraryProjectionPreservesAdministrationFields() {
+    val library =
+      Library(
+        id = "books",
+        name = "Books",
+        mediaType = MediaType.BOOK,
+        displayOrder = 4,
+      )
+
+    assertEquals(
+      LibraryAdministrationLibrary(
+        id = "books",
+        name = "Books",
+        mediaType = LibraryAdministrationMediaType.BOOK,
+        displayOrder = 4,
+      ),
+      library.toAdministrationLibrary(),
+    )
+  }
 
   @Test
   fun parserMapsServerLibraryEventsToCatalogProjection() {

@@ -4,8 +4,6 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CreateLibraryRequest
 import dev.halim.core.network.request.ReorderLibraryRequest
 import dev.halim.core.network.request.ValidateCronRequest
-import dev.halim.core.network.response.Library
-import dev.halim.core.network.response.MediaType
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.library.LibraryDataSyncResult
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
@@ -273,19 +271,6 @@ private fun LibraryEntity.toAdministrationLibrary(): LibraryAdministrationLibrar
         LibraryAdministrationMediaType.PODCAST
       },
     displayOrder = displayOrder.toInt(),
-  )
-
-private fun Library.toAdministrationLibrary(): LibraryAdministrationLibrary =
-  LibraryAdministrationLibrary(
-    id = id,
-    name = name,
-    mediaType =
-      when (mediaType) {
-        MediaType.BOOK -> LibraryAdministrationMediaType.BOOK
-        MediaType.PODCAST -> LibraryAdministrationMediaType.PODCAST
-        MediaType.UNKNOWN -> LibraryAdministrationMediaType.UNKNOWN
-      },
-    displayOrder = displayOrder,
   )
 
 private fun LibraryAdministrationMediaType.toApiValue(): String =

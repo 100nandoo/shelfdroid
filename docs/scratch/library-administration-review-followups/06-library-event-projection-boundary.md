@@ -6,11 +6,15 @@ repository's file boundary.
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] All server Library payloads use one shared conversion to the Library administration model.
-- [ ] Request and socket-event paths preserve identical media type, identity, name, and display
+- [x] All server Library payloads use one shared conversion to the Library administration model.
+- [x] Request and socket-event paths preserve identical media type, identity, name, and display
       order semantics.
-- [ ] The Library event repository is the only class declared in its repository file, with socket
+- [x] The Library event repository is the only class declared in its repository file, with socket
       ownership extracted without changing its application-scoped lifecycle.
-- [ ] Existing event parsing, deduplication, shared socket ownership, and reconciliation tests pass.
+- [x] Existing event parsing, deduplication, shared socket ownership, and reconciliation tests pass.
+
+**Verification:** `:core-data:testDebugUnitTest`, `:core-ui:testDebugUnitTest`, and
+`:test-app:compileDebugKotlin` pass. Connected instrumentation was not run because no Android
+device or emulator was available.

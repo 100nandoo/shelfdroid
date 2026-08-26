@@ -5,7 +5,6 @@ import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
 import dev.halim.core.network.response.Library
-import dev.halim.socketio.SocketManager.Event.Library as LibrarySocketEvent
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -43,7 +42,7 @@ constructor(
     val event =
       LibraryAdministrationLibraryEvent(
         type = type,
-        library = library.toAdministrationProjection(),
+        library = library.toAdministrationLibrary(),
         fingerprint = json.encodeToString(library).hashCode(),
       )
     reconciler.registerLocalMutation(event)
@@ -97,61 +96,4 @@ constructor(
     )
   }
 
-}
-
-/**
- * Narrow socket owner used by the application-scoped repository and deterministic integration
- * tests. It owns independent Library subscriptions but never replaces or closes other consumers'
- * subscriptions.
- */
-internal class LibraryAdministrationEventOwner(
-  private val socket: ServerTaskSocket,
-  private val json: Json,
-  private val scope: CoroutineScope,
-  private val reconciler: LibraryAdministrationEventReconciler,
-  private val publish: suspend (LibraryAdministrationLibraryEvent) -> Unit,
-) : AutoCloseable {
-  private val socketOwner = socket.acquire()
-  private val subscriptions = mutableListOf<AutoCloseable>()
-
-  init {
-    listOf(
-        LibrarySocketEvent.ADDED,
-        LibrarySocketEvent.UPDATED,
-        LibrarySocketEvent.REMOVED,
-      )
-      .forEach { eventName ->
-        subscriptions +=
-          socket.subscribe(eventName) { args ->
-            val event =
-              parseLibraryAdministrationLibraryEvent(eventName, args, json) ?: return@subscribe
-            if (reconciler.accept(event)) {
-              scope.launch { reconcileAndPublish(event) }
-            }
-          }
-      }
-
-    // Socket.IO does not replay events missed during a disconnect. A connection callback triggers
-    // one authoritative synchronization; there is intentionally no polling loop.
-    subscriptions +=
-      socket.subscribe("connect") {
-        scope.launch {
-          val refresh =
-            LibraryAdministrationLibraryEvent(
-              type = LibraryAdministrationLibraryEventType.REFRESHED,
-            )
-          if (reconciler.accept(refresh)) reconcileAndPublish(refresh)
-        }
-      }
-  }
-
-  private suspend fun reconcileAndPublish(event: LibraryAdministrationLibraryEvent) {
-    publish(event)
-  }
-
-  override fun close() {
-    subscriptions.forEach(AutoCloseable::close)
-    subscriptions.clear()
-    socketOwner.close()
-  }
 }
