@@ -39,11 +39,14 @@ interface LibraryAdministrationContract {
   suspend fun retryTaskSynchronization(taskId: String): Result<Unit> =
     Result.failure(UnsupportedOperationException("Task synchronization is unavailable"))
 
-  /** Persists the requested order and returns the complete server-authoritative order. */
+  /** Persists the requested order and reports whether follow-up Library data synchronization ran. */
   suspend fun reorderLibraries(
     libraries: List<LibraryAdministrationLibrary>
-  ): Result<List<LibraryAdministrationLibrary>> =
+  ): Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>> =
     Result.failure(UnsupportedOperationException("Library reorder is unavailable"))
+
+  /** Retries only Library data synchronization after an accepted mutation. */
+  suspend fun synchronizeLibraries(): Result<Unit> = Result.success(Unit)
 
   suspend fun deleteLibrary(libraryId: String): Result<Unit> =
     Result.failure(UnsupportedOperationException("Library deletion is unavailable"))

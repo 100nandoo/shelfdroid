@@ -6,13 +6,19 @@ instead of rolling back the accepted mutation.
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Reorder results distinguish server rejection from server acceptance followed by failed
+- [x] Reorder results distinguish server rejection from server acceptance followed by failed
       Library data synchronization.
-- [ ] Server rejection restores the last server-authoritative order, while local synchronization
+- [x] Server rejection restores the last server-authoritative order, while local synchronization
       failure retains the newly accepted order.
-- [ ] Retrying a partial success performs only Library data synchronization and never repeats the
+- [x] Retrying a partial success performs only Library data synchronization and never repeats the
       reorder request.
-- [ ] State and failure tests cover acceptance, rollback, partial success, and synchronization
+- [x] State and failure tests cover acceptance, rollback, partial success, and synchronization
       retry.
+
+**Verification:** `:core-data:testDebugUnitTest`, `:core-ui:testDebugUnitTest`, and
+`:test-app:compileDebugKotlin` pass. Focused ViewModel tests cover server rejection rollback,
+accepted-order projection, partial-success state, failed synchronization retry, and no repeated
+reorder request. Connected instrumentation was not run because no Android device or emulator was
+available.

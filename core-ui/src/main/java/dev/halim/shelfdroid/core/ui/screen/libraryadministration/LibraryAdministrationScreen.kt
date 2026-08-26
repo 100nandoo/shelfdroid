@@ -244,6 +244,21 @@ internal fun LibraryAdministrationContent(
           modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         )
       }
+      uiState.reorderSyncError?.let { error ->
+        Row(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+            text = libraryAdministrationErrorText(error),
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.weight(1f),
+          )
+          TextButton(onClick = { onEvent(LibraryAdministrationEvent.RetryReorderSynchronization) }) {
+            Text(stringResource(R.string.library_reorder_retry_sync))
+          }
+        }
+      }
     }
 
     val confirmationLibrary =
@@ -270,6 +285,8 @@ private fun libraryAdministrationErrorText(error: LibraryAdministrationError): S
     LibraryAdministrationError.GenericSynchronization ->
       stringResource(R.string.library_scan_sync_failed)
     LibraryAdministrationError.GenericDelete -> stringResource(R.string.delete_library_failed)
+    LibraryAdministrationError.GenericReorderSynchronization ->
+      stringResource(R.string.library_reorder_sync_failed)
   }
 
 @ShelfDroidPreview

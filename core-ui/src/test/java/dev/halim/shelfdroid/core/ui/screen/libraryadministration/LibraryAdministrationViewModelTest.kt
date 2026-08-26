@@ -5,6 +5,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationConnectionState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMediaType
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMutationResult
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canDelete
@@ -180,7 +181,13 @@ class LibraryAdministrationViewModelTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val initial = libraries("books", "podcasts")
     val accepted = libraries("podcasts", "books")
-    val repository = FakeRepository(listOf(Result.success(initial)), listOf(Result.success(accepted)))
+    val repository =
+      FakeRepository(
+        listOf(Result.success(initial)),
+        listOf(
+          Result.success(LibraryAdministrationMutationResult.Accepted(accepted))
+        ),
+      )
     val viewModel = LibraryAdministrationViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
@@ -214,6 +221,66 @@ class LibraryAdministrationViewModelTest {
 
     assertEquals(initial, viewModel.uiState.value.libraries)
     assertEquals("offline", viewModel.uiState.value.reorderError)
+    collection.cancel()
+  }
+
+  @Test
+  fun partialMove_keepsAcceptedOrderAndRetriesSynchronizationWithoutRepeatingReorder() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val initial = libraries("books", "podcasts")
+    val accepted = libraries("podcasts", "books")
+    val repository =
+      FakeRepository(
+        results = listOf(Result.success(initial)),
+        reorderResults =
+          listOf(
+            Result.success(
+              LibraryAdministrationMutationResult.AcceptedButNotSynchronized(
+                value = accepted,
+                error = IllegalStateException("catalog refresh failed"),
+              )
+            )
+          ),
+        synchronizationResults =
+          listOf(
+            Result.failure(IllegalStateException("offline")),
+            Result.success(Unit),
+          ),
+      )
+    val viewModel = LibraryAdministrationViewModel(repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+    enableReorder(viewModel, "books", "podcasts")
+
+    viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
+    advanceUntilIdle()
+
+    assertEquals(accepted, viewModel.uiState.value.libraries)
+    assertEquals(
+      LibraryAdministrationError.GenericReorderSynchronization,
+      viewModel.uiState.value.reorderSyncError,
+    )
+    assertEquals(accepted, viewModel.uiState.value.reorderRetryOrder)
+    assertEquals(1, repository.reorderRequests.size)
+
+    viewModel.onEvent(LibraryAdministrationEvent.RetryReorderSynchronization)
+    advanceUntilIdle()
+
+    assertEquals(accepted, viewModel.uiState.value.libraries)
+    assertEquals(
+      LibraryAdministrationError.GenericReorderSynchronization,
+      viewModel.uiState.value.reorderSyncError,
+    )
+    assertEquals(1, repository.synchronizeCalls)
+    assertEquals(1, repository.reorderRequests.size)
+
+    viewModel.onEvent(LibraryAdministrationEvent.RetryReorderSynchronization)
+    advanceUntilIdle()
+
+    assertEquals(null, viewModel.uiState.value.reorderSyncError)
+    assertEquals(null, viewModel.uiState.value.reorderRetryOrder)
+    assertEquals(2, repository.synchronizeCalls)
+    assertEquals(1, repository.reorderRequests.size)
     collection.cancel()
   }
 
@@ -266,8 +333,14 @@ class LibraryAdministrationViewModelTest {
     val initial = libraries("books", "podcasts", "third")
     val firstAccepted = libraries("podcasts", "books", "third")
     val secondAccepted = libraries("podcasts", "third", "books")
-    val first = CompletableDeferred<Result<List<LibraryAdministrationLibrary>>>()
-    val second = CompletableDeferred<Result<List<LibraryAdministrationLibrary>>>()
+    val first =
+      CompletableDeferred<
+        Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>>
+      >()
+    val second =
+      CompletableDeferred<
+        Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>>
+      >()
     val repository =
       ControlledRepository(
         initial = initial,
@@ -280,9 +353,13 @@ class LibraryAdministrationViewModelTest {
 
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
     viewModel.onEvent(LibraryAdministrationEvent.MoveLibrary("books", 1))
-    second.complete(Result.success(secondAccepted))
+    second.complete(
+      Result.success(LibraryAdministrationMutationResult.Accepted(secondAccepted))
+    )
     advanceUntilIdle()
-    first.complete(Result.success(firstAccepted))
+    first.complete(
+      Result.success(LibraryAdministrationMutationResult.Accepted(firstAccepted))
+    )
     advanceUntilIdle()
 
     assertEquals(secondAccepted, viewModel.uiState.value.libraries)
@@ -590,14 +667,19 @@ class LibraryAdministrationViewModelTest {
 
   private class FakeRepository(
     results: List<Result<List<LibraryAdministrationLibrary>>>,
-    reorderResults: List<Result<List<LibraryAdministrationLibrary>>> = emptyList(),
+    reorderResults: List<Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>>> =
+      emptyList(),
     deleteResults: List<Result<Unit>> = emptyList(),
+    synchronizationResults: List<Result<Unit>> = emptyList(),
   ) :
     LibraryAdministrationContract {
     private val pendingResults = ArrayDeque(results)
     private val pendingReorderResults = ArrayDeque(reorderResults)
     private val pendingDeleteResults = ArrayDeque(deleteResults)
+    private val pendingSynchronizationResults = ArrayDeque(synchronizationResults)
     var loadCalls = 0
+      private set
+    var synchronizeCalls = 0
       private set
     val reorderRequests =
       mutableListOf<
@@ -612,10 +694,24 @@ class LibraryAdministrationViewModelTest {
 
     override suspend fun reorderLibraries(
       libraries: List<LibraryAdministrationLibrary>
-    ): Result<List<LibraryAdministrationLibrary>> {
+    ): Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>> {
       val result = pendingReorderResults.removeFirst()
-      reorderRequests += libraries to result.getOrNull().orEmpty()
+      reorderRequests += libraries to result.getOrNull()?.let { outcome ->
+        when (outcome) {
+          is LibraryAdministrationMutationResult.Accepted -> outcome.value
+          is LibraryAdministrationMutationResult.AcceptedButNotSynchronized -> outcome.value
+        }
+      }.orEmpty()
       return result
+    }
+
+    override suspend fun synchronizeLibraries(): Result<Unit> {
+      synchronizeCalls += 1
+      return if (pendingSynchronizationResults.isEmpty()) {
+        Result.success(Unit)
+      } else {
+        pendingSynchronizationResults.removeFirst()
+      }
     }
 
     override suspend fun deleteLibrary(libraryId: String): Result<Unit> {
@@ -626,14 +722,20 @@ class LibraryAdministrationViewModelTest {
 
   private class ControlledRepository(
     private val initial: List<LibraryAdministrationLibrary>,
-    private val responses: ArrayDeque<CompletableDeferred<Result<List<LibraryAdministrationLibrary>>>>,
+    private val responses:
+      ArrayDeque<
+        CompletableDeferred<
+          Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>>
+        >
+      >,
   ) : LibraryAdministrationContract {
     override suspend fun loadLibraries(): Result<List<LibraryAdministrationLibrary>> =
       Result.success(initial)
 
     override suspend fun reorderLibraries(
       libraries: List<LibraryAdministrationLibrary>
-    ): Result<List<LibraryAdministrationLibrary>> = responses.removeFirst().await()
+    ): Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>> =
+      responses.removeFirst().await()
   }
 
   private class TaskRepository(
@@ -679,6 +781,7 @@ class LibraryAdministrationViewModelTest {
 
     override suspend fun reorderLibraries(
       libraries: List<LibraryAdministrationLibrary>
-    ): Result<List<LibraryAdministrationLibrary>> = Result.success(libraries)
+    ): Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>> =
+      Result.success(LibraryAdministrationMutationResult.Accepted(libraries))
   }
 }

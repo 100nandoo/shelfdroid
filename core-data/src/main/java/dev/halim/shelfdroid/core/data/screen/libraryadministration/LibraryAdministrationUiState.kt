@@ -15,6 +15,8 @@ sealed interface LibraryAdministrationError {
   data object GenericSynchronization : LibraryAdministrationError
 
   data object GenericDelete : LibraryAdministrationError
+
+  data object GenericReorderSynchronization : LibraryAdministrationError
 }
 
 data class LibraryAdministrationUiState(
@@ -34,6 +36,8 @@ data class LibraryAdministrationUiState(
   val deleteConfirmationLibraryId: String? = null,
   val taskNotification: ServerTaskNotification? = null,
   val reorderError: String? = null,
+  val reorderSyncError: LibraryAdministrationError? = null,
+  val reorderRetryOrder: List<LibraryAdministrationLibrary>? = null,
   val isReordering: Boolean = false,
 )
 

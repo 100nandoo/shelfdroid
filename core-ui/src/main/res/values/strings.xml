@@ -205,6 +205,8 @@
     <string name="move_library_down">Move Library down</string>
     <string name="reorder_library">Reorder library</string>
     <string name="library_reorder_failed">Library order could not be saved. The previous order was restored.</string>
+    <string name="library_reorder_sync_failed">Library order was accepted, but local Library data could not be synchronized.</string>
+    <string name="library_reorder_retry_sync">Retry synchronization</string>
     <string name="delete_library">Delete library</string>
     <string name="delete_library_title">Delete Library %1$s?</string>
     <string name="delete_library_confirmation">This removes the Library and its catalog data from the server. Media files remain intact. Continue?</string>

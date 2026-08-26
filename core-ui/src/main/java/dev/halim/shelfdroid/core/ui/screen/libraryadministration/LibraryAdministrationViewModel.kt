@@ -9,6 +9,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdmini
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationError
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationLibraryEvent
+import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationMutationResult
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.LibraryAdministrationUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadministration.canReorder
@@ -95,8 +96,12 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
         _uiState.update { it.copy(connectionState = event.state) }
       is LibraryAdministrationEvent.SetTaskState ->
         _uiState.update { it.copy(taskStates = it.taskStates + (event.libraryId to event.state)) }
+      LibraryAdministrationEvent.RetryReorderSynchronization ->
+        retryReorderSynchronization()
       LibraryAdministrationEvent.ClearReorderError ->
-        _uiState.update { it.copy(reorderError = null) }
+        _uiState.update {
+          it.copy(reorderError = null, reorderSyncError = null, reorderRetryOrder = null)
+        }
     }
   }
 
@@ -126,6 +131,8 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
               libraries = libraries,
               isRefreshing = false,
               reorderError = null,
+              reorderSyncError = null,
+              reorderRetryOrder = null,
             )
           }
           applyTaskState(latestTaskState, libraries)
@@ -171,6 +178,8 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
         libraries = event.libraries,
         isRefreshing = false,
         reorderError = null,
+        reorderSyncError = null,
+        reorderRetryOrder = null,
       )
     }
     applyTaskState(latestTaskState, event.libraries)
@@ -225,22 +234,54 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
     }
     val requestGeneration = ++intentGeneration
     _uiState.update {
-      it.copy(libraries = reordered, isReordering = true, reorderError = null)
+      it.copy(
+        libraries = reordered,
+        isReordering = true,
+        reorderError = null,
+        reorderSyncError = null,
+        reorderRetryOrder = null,
+      )
     }
 
     viewModelScope.launch {
       repository.reorderLibraries(reordered).fold(
-        onSuccess = { acceptedOrder ->
+        onSuccess = { outcome ->
           // Older acknowledgements must not overwrite a newer optimistic intent. The shared
           // mutation coordinator still serializes the requests on the server.
-          if (requestGeneration < lastAcceptedIntentGeneration) return@fold
-          lastServerLibraries = acceptedOrder
-          lastAcceptedIntentGeneration = requestGeneration
-          _uiState.update {
-            it.copy(
-              libraries = if (requestGeneration == intentGeneration) acceptedOrder else it.libraries,
-              isReordering = requestGeneration != intentGeneration,
-            )
+          if (requestGeneration != intentGeneration ||
+            requestGeneration < lastAcceptedIntentGeneration
+          ) {
+            return@fold
+          }
+          when (outcome) {
+            is LibraryAdministrationMutationResult.Accepted -> {
+              lastServerLibraries = outcome.value
+              lastAcceptedIntentGeneration = requestGeneration
+              _uiState.update {
+                it.copy(
+                  libraries = outcome.value,
+                  isReordering = false,
+                  reorderError = null,
+                  reorderSyncError = null,
+                  reorderRetryOrder = null,
+                )
+              }
+            }
+            is LibraryAdministrationMutationResult.AcceptedButNotSynchronized -> {
+              lastServerLibraries = outcome.value
+              lastAcceptedIntentGeneration = requestGeneration
+              _uiState.update {
+                it.copy(
+                  // The server accepted this order. Keep it visible even though catalog data
+                  // synchronization must be retried separately.
+                  libraries = outcome.value,
+                  isReordering = false,
+                  reorderError = null,
+                  reorderSyncError = LibraryAdministrationError.GenericReorderSynchronization,
+                  reorderRetryOrder = outcome.value,
+                )
+              }
+            }
           }
         },
         onFailure = { error ->
@@ -250,6 +291,43 @@ constructor(private val repository: LibraryAdministrationContract) : ViewModel()
               libraries = lastServerLibraries,
               isReordering = false,
               reorderError = error.message ?: "Library order could not be saved.",
+              reorderSyncError = null,
+              reorderRetryOrder = null,
+            )
+          }
+        },
+      )
+    }
+  }
+
+  private fun retryReorderSynchronization() {
+    val retryOrder = _uiState.value.reorderRetryOrder ?: return
+    if (_uiState.value.isReordering) return
+    val requestGeneration = intentGeneration
+    _uiState.update { it.copy(isReordering = true, reorderSyncError = null) }
+    viewModelScope.launch {
+      repository.synchronizeLibraries().fold(
+        onSuccess = {
+          if (requestGeneration != intentGeneration) return@fold
+          _uiState.update { current ->
+            if (current.reorderRetryOrder != retryOrder) {
+              current
+            } else {
+              current.copy(
+                isReordering = false,
+                reorderSyncError = null,
+                reorderRetryOrder = null,
+              )
+            }
+          }
+        },
+        onFailure = {
+          if (requestGeneration != intentGeneration) return@fold
+          _uiState.update { current ->
+            current.copy(
+              isReordering = false,
+              reorderSyncError = LibraryAdministrationError.GenericReorderSynchronization,
+              reorderRetryOrder = retryOrder,
             )
           }
         },
@@ -381,6 +459,8 @@ sealed interface LibraryAdministrationEvent {
 
   data class MoveLibraryTo(val libraryId: String, val destinationIndex: Int) :
     LibraryAdministrationEvent
+
+  data object RetryReorderSynchronization : LibraryAdministrationEvent
 
   data class SetConnectionState(val state: LibraryAdministrationConnectionState) :
     LibraryAdministrationEvent

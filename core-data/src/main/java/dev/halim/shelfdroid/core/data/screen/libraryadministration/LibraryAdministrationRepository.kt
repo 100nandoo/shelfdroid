@@ -68,20 +68,52 @@ constructor(
 
   override suspend fun reorderLibraries(
     libraries: List<LibraryAdministrationLibrary>
-  ): Result<List<LibraryAdministrationLibrary>> =
+  ): Result<LibraryAdministrationMutationResult<List<LibraryAdministrationLibrary>>> =
     mutationCoordinator.withMutation {
-      api
-        .reorderLibraries(
-          libraries.mapIndexed { index, library ->
-            ReorderLibraryRequest(id = library.id, newOrder = index + 1)
-          }
-        )
-        .map { response ->
-          // Keep the catalog projection in sync with the accepted response. Rich administration
-          // settings remain server-backed and are deliberately not copied into local storage.
+      val response =
+        api
+          .reorderLibraries(
+            libraries.mapIndexed { index, library ->
+              ReorderLibraryRequest(id = library.id, newOrder = index + 1)
+            }
+          )
+          .getOrElse { return@withMutation Result.failure(it) }
+      val acceptedOrder = response.libraries.map { it.toAdministrationLibrary() }
+
+      // Persist the accepted order before synchronizing items. If the follow-up synchronization
+      // cannot reach the server, the accepted server order is still the local administration
+      // projection and can be retried without repeating the reorder request.
+      val persistenceFailure =
+        try {
+          // Rich administration settings remain server-backed and are deliberately not copied
+          // into local storage.
           libraryRepository.persistLibraries(response.libraries)
-          response.libraries.map { it.toAdministrationLibrary() }
+          null
+        } catch (error: Throwable) {
+          if (error is kotlinx.coroutines.CancellationException) throw error
+          error
         }
+      if (persistenceFailure != null) {
+        return@withMutation Result.success(
+          LibraryAdministrationMutationResult.AcceptedButNotSynchronized(
+            value = acceptedOrder,
+            error = persistenceFailure,
+          )
+        )
+      }
+
+      val synchronization = libraryDataRepository.synchronize()
+      if (synchronization.isSuccess) {
+        Result.success(LibraryAdministrationMutationResult.Accepted(acceptedOrder))
+      } else {
+        Result.success(
+          LibraryAdministrationMutationResult.AcceptedButNotSynchronized(
+            value = acceptedOrder,
+            error = synchronization.error
+              ?: IllegalStateException("Library data synchronization failed"),
+          )
+        )
+      }
     }
 
   override suspend fun deleteLibrary(libraryId: String): Result<Unit> =

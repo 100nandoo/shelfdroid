@@ -182,6 +182,8 @@ class FakeApiService @Inject constructor() : ApiService {
   private var createdPodcastCount = 0
   private var createdApiKeyCount = 0
   private var createdCustomMetadataProviderCount = 0
+  private var reorderFailure: Throwable? = null
+  private var libraryDataSynchronizationFailure: Throwable? = null
 
   init {
     reset()
@@ -228,7 +230,17 @@ class FakeApiService @Inject constructor() : ApiService {
       createdPodcastCount = 0
       createdApiKeyCount = 0
       createdCustomMetadataProviderCount = 0
+      reorderFailure = null
+      libraryDataSynchronizationFailure = null
     }
+  }
+
+  fun failNextLibraryReorder(error: Throwable) {
+    synchronized(this) { reorderFailure = error }
+  }
+
+  fun failLibraryDataSynchronization(error: Throwable) {
+    synchronized(this) { libraryDataSynchronizationFailure = error }
   }
 
   override suspend fun apiKeys(): Result<ApiKeysResponse> =
@@ -362,8 +374,14 @@ class FakeApiService @Inject constructor() : ApiService {
 
   override suspend fun uploadBackup(file: MultipartBody.Part): Result<Unit> = Result.success(Unit)
 
-  override suspend fun libraries(): Result<LibrariesResponse> =
-    Result.success(LibrariesResponse(libraries))
+  override suspend fun libraries(): Result<LibrariesResponse> {
+    synchronized(this) {
+      libraryDataSynchronizationFailure?.let { error ->
+        return Result.failure(error)
+      }
+      return Result.success(LibrariesResponse(libraries.toList()))
+    }
+  }
 
   override suspend fun createLibrary(request: CreateLibraryRequest): Result<Library> =
     Result.success(
@@ -393,6 +411,12 @@ class FakeApiService @Inject constructor() : ApiService {
   override suspend fun reorderLibraries(
     request: List<ReorderLibraryRequest>
   ): Result<LibrariesResponse> {
+    synchronized(this) {
+      reorderFailure?.let { error ->
+        reorderFailure = null
+        return Result.failure(error)
+      }
+    }
     val byId = request.associateBy { it.id }
     val reordered =
       libraries
