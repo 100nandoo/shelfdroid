@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
 import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
-import dev.halim.socketio.SocketManager.Event.Library as LibrarySocketEvent
+import dev.halim.socketio.SocketEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -23,9 +23,9 @@ internal class LibraryAdministrationEventOwner(
 
   init {
     listOf(
-        LibrarySocketEvent.ADDED,
-        LibrarySocketEvent.UPDATED,
-        LibrarySocketEvent.REMOVED,
+        SocketEvent.Library.Added,
+        SocketEvent.Library.Updated,
+        SocketEvent.Library.Removed,
       )
       .forEach { eventName ->
         subscriptions +=
@@ -41,7 +41,7 @@ internal class LibraryAdministrationEventOwner(
     // Socket.IO does not replay events missed during a disconnect. A connection callback triggers
     // one authoritative synchronization; there is intentionally no polling loop.
     subscriptions +=
-      socket.subscribe("connect") {
+      socket.subscribe(SocketEvent.Connect) {
         scope.launch {
           val refresh =
             LibraryAdministrationLibraryEvent(

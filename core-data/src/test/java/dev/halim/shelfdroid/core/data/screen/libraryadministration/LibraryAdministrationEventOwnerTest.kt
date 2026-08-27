@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
 import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
-import dev.halim.socketio.SocketManager.Event.Library as LibrarySocketEvent
+import dev.halim.socketio.SocketEvent
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -19,8 +19,8 @@ class LibraryAdministrationEventOwnerTest {
     val podcastOwner = socket.acquire()
     var taskCalls = 0
     var podcastCalls = 0
-    val taskSubscription = socket.subscribe("task_started") { taskCalls++ }
-    val podcastSubscription = socket.subscribe("episode_download_started") { podcastCalls++ }
+    val taskSubscription = socket.subscribe(SocketEvent.Task.Started) { taskCalls++ }
+    val podcastSubscription = socket.subscribe(SocketEvent.Episode.DownloadStarted) { podcastCalls++ }
     var synchronizations = 0
     val currentLibraries =
       listOf(
@@ -74,19 +74,19 @@ class LibraryAdministrationEventOwnerTest {
 
     val payload =
       """{"id":"books","name":"Books","mediaType":"book","displayOrder":0}"""
-    socket.emit(LibrarySocketEvent.ADDED, payload)
+    socket.emit(SocketEvent.Library.Added.name, payload)
     advanceUntilIdle()
     assertEquals(2, synchronizations)
-    socket.emit(LibrarySocketEvent.ADDED, payload)
+    socket.emit(SocketEvent.Library.Added.name, payload)
     advanceUntilIdle()
     assertEquals(2, synchronizations)
 
     socket.emit(
-      LibrarySocketEvent.UPDATED,
+      SocketEvent.Library.Updated.name,
       """{"id":"books","name":"Renamed","mediaType":"book","displayOrder":0}""",
     )
     socket.emit(
-      LibrarySocketEvent.REMOVED,
+      SocketEvent.Library.Removed.name,
       """{"id":"books","name":"Renamed","mediaType":"book","displayOrder":0}""",
     )
     advanceUntilIdle()
@@ -133,13 +133,13 @@ class LibraryAdministrationEventOwnerTest {
       }
     }
 
-    override fun subscribe(event: String, listener: (Array<Any>) -> Unit): AutoCloseable {
-      listeners.getOrPut(event) { mutableListOf() }.add(listener)
+    override fun subscribe(event: SocketEvent, listener: (Array<Any>) -> Unit): AutoCloseable {
+      listeners.getOrPut(event.name) { mutableListOf() }.add(listener)
       var closed = false
       return AutoCloseable {
         if (!closed) {
           closed = true
-          listeners[event]?.remove(listener)
+          listeners[event.name]?.remove(listener)
         }
       }
     }

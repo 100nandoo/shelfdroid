@@ -21,8 +21,8 @@ import dev.halim.shelfdroid.core.ui.navigation.Podcast
 import dev.halim.shelfdroid.core.ui.player.forItemAction
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.socketio.SocketEvent
 import dev.halim.socketio.SocketManager
-import dev.halim.socketio.SocketManager.Event.Episode as SocketEpisode
 import dev.halim.socketio.model.PodcastEpisodeDownload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -231,19 +231,19 @@ constructor(
     if (isStart) {
       socketOwner = socketManager.acquire()
       socketSubscriptions +=
-        socketManager.subscribe(SocketEpisode.DOWNLOAD_QUEUED) {
+        socketManager.subscribe(SocketEvent.Episode.DownloadQueued) {
           val obj = it[0] as JSONObject
           val parsed = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
           Log.d("SocketManager", "DOWNLOAD_QUEUED: $parsed")
         }
       socketSubscriptions +=
-        socketManager.subscribe(SocketEpisode.DOWNLOAD_STARTED) {
+        socketManager.subscribe(SocketEvent.Episode.DownloadStarted) {
           val obj = it[0] as JSONObject
           val parsed = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
           Log.d("SocketManager", "DOWNLOAD_STARTED: $parsed")
         }
       socketSubscriptions +=
-        socketManager.subscribe(SocketEpisode.DOWNLOAD_FINISHED) {
+        socketManager.subscribe(SocketEvent.Episode.DownloadFinished) {
           val obj = it[0] as JSONObject
           val parsed = json.decodeFromString<PodcastEpisodeDownload>(obj.toString())
           Log.d("SocketManager", "DOWNLOAD_FINISHED: $parsed")

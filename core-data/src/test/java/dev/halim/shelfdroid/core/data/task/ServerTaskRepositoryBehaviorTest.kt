@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.data.task
 
 import dev.halim.core.network.response.ServerTask as NetworkServerTask
 import dev.halim.core.network.response.TasksResponse
+import dev.halim.socketio.SocketEvent
 import java.util.ArrayDeque
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -562,8 +563,8 @@ class ServerTaskRepositoryBehaviorTest {
 
     override fun acquire(): AutoCloseable = AutoCloseable {}
 
-    override fun subscribe(event: String, listener: (Array<Any>) -> Unit): AutoCloseable {
-      val eventListeners = listeners.getOrPut(event) { mutableListOf() }
+    override fun subscribe(event: SocketEvent, listener: (Array<Any>) -> Unit): AutoCloseable {
+      val eventListeners = listeners.getOrPut(event.name) { mutableListOf() }
       eventListeners += listener
       return AutoCloseable { eventListeners.remove(listener) }
     }

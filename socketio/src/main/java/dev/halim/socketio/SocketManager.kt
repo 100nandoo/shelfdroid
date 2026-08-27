@@ -23,28 +23,6 @@ constructor(
   private val socketClientFactory: SocketClientFactory,
 ) {
 
-  /** Keeps the pre-lease constructor available to non-Hilt callers. */
-  constructor(dataStoreManager: DataStoreManager, appScope: CoroutineScope) :
-    this(
-      dataStoreManager,
-      appScope,
-      SocketClientFactory { url, options -> IoSocketClient(IO.socket(url, options)) },
-    )
-
-  companion object Event {
-    object Library {
-      const val ADDED = "library_added"
-      const val UPDATED = "library_updated"
-      const val REMOVED = "library_removed"
-    }
-
-    object Episode {
-      const val DOWNLOAD_QUEUED = "episode_download_queued"
-      const val DOWNLOAD_STARTED = "episode_download_started"
-      const val DOWNLOAD_FINISHED = "episode_download_finished"
-    }
-  }
-
   /** An owner keeps the shared socket alive until its handle is closed. */
   fun interface Owner : AutoCloseable {
     override fun close()
@@ -56,12 +34,10 @@ constructor(
   }
 
   private val lock = Any()
-  private val subscriptions = SocketSubscriptionRegistry()
+  private val subscriptions = SocketSubscriptions()
   private val ownership = SocketOwnership(::connectSocket, ::disconnectSocket)
-  private val legacySubscriptions = mutableMapOf<String, Subscription>()
   private var socket: SocketClient? = null
   private var observedToken: String? = null
-  private var legacyOwner: Owner? = null
 
   init {
     appScope.launch {
@@ -94,53 +70,13 @@ constructor(
   }
 
   /** Registers an independent event subscription. It remains active across reconnects. */
-  fun subscribe(event: String, listener: SocketEventListener): Subscription {
-    val handle = subscriptions.subscribe(event, listener)
+  fun subscribe(event: SocketEvent, listener: SocketEventListener): Subscription {
+    val handle = subscriptions.subscribe(event.name, listener)
     return Subscription { handle.close() }
-  }
-
-  /**
-   * Compatibility entry point for consumers that still use the old connect/on/off API.
-   * New consumers should use [acquire] and [subscribe].
-   */
-  fun connect() {
-    synchronized(lock) {
-      if (legacyOwner != null) return
-      legacyOwner = acquire()
-    }
-  }
-
-  /** Releases only this manager's compatibility owner; other owners remain connected. */
-  fun disconnect() {
-    val owner = synchronized(lock) {
-      val current = legacyOwner
-      legacyOwner = null
-      current
-    }
-    owner?.close()
-  }
-
-  fun send(event: String, vararg args: Any) {
-    currentSocket()?.emit(event, *args)
   }
 
   /** Returns the current shared connection state without taking ownership. */
   fun isConnected(): Boolean = currentSocket()?.connected() == true
-
-  /** Compatibility listener registration. Re-registering this legacy event replaces only itself. */
-  fun on(event: String, listener: SocketEventListener): SocketManager {
-    synchronized(lock) {
-      legacySubscriptions.remove(event)?.close()
-      legacySubscriptions[event] = subscribe(event, listener)
-    }
-    Log.d("SocketManager", "on: $event")
-    return this
-  }
-
-  /** Removes only a listener registered through the compatibility [on] method. */
-  fun off(event: String) {
-    synchronized(lock) { legacySubscriptions.remove(event)?.close() }
-  }
 
   private fun currentSocket(): SocketClient? = synchronized(lock) { socket }
 

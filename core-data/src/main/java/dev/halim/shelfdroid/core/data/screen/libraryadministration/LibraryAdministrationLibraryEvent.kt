@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
 import dev.halim.core.network.response.Library
-import dev.halim.socketio.SocketManager.Event.Library as LibrarySocketEvent
+import dev.halim.socketio.SocketEvent
 import kotlinx.serialization.json.Json
 
 /** The server-side Library events that affect the catalog or administration order. */
@@ -25,15 +25,15 @@ data class LibraryAdministrationLibraryEvent(
 )
 
 internal fun parseLibraryAdministrationLibraryEvent(
-  eventName: String,
+  eventName: SocketEvent,
   args: Array<Any>,
   json: Json,
 ): LibraryAdministrationLibraryEvent? {
   val type =
     when (eventName) {
-      LibrarySocketEvent.ADDED -> LibraryAdministrationLibraryEventType.ADDED
-      LibrarySocketEvent.UPDATED -> LibraryAdministrationLibraryEventType.UPDATED
-      LibrarySocketEvent.REMOVED -> LibraryAdministrationLibraryEventType.REMOVED
+      SocketEvent.Library.Added -> LibraryAdministrationLibraryEventType.ADDED
+      SocketEvent.Library.Updated -> LibraryAdministrationLibraryEventType.UPDATED
+      SocketEvent.Library.Removed -> LibraryAdministrationLibraryEventType.REMOVED
       else -> return null
     }
   val payload = args.firstOrNull()?.toString()?.takeIf { it.isNotBlank() } ?: return null

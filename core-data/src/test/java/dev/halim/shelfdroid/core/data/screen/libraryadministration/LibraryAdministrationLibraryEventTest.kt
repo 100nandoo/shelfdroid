@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.data.screen.libraryadministration
 
 import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.MediaType
+import dev.halim.socketio.SocketEvent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -37,7 +38,7 @@ class LibraryAdministrationLibraryEventTest {
   fun parserMapsServerLibraryEventsToCatalogProjection() {
     val event =
       parseLibraryAdministrationLibraryEvent(
-        eventName = "library_added",
+        eventName = SocketEvent.Library.Added,
         args =
           arrayOf(
             """
@@ -65,13 +66,13 @@ class LibraryAdministrationLibraryEventTest {
   fun parserMapsUpdatedAndRemovedEvents() {
     val updated =
       parseLibraryAdministrationLibraryEvent(
-        "library_updated",
+        SocketEvent.Library.Updated,
         arrayOf("""{"id":"books","name":"Renamed","mediaType":"book","displayOrder":2}"""),
         json,
       )
     val removed =
       parseLibraryAdministrationLibraryEvent(
-        "library_removed",
+        SocketEvent.Library.Removed,
         arrayOf("""{"id":"books","name":"Renamed","mediaType":"book","displayOrder":2}"""),
         json,
       )
@@ -85,16 +86,20 @@ class LibraryAdministrationLibraryEventTest {
   fun parserRejectsUnknownEventsAndInvalidPayloads() {
     assertEquals(
       null,
-      parseLibraryAdministrationLibraryEvent("library_changed", arrayOf("{}"), json),
-    )
-    assertEquals(
-      null,
-      parseLibraryAdministrationLibraryEvent("library_added", arrayOf("not-json"), json),
+      parseLibraryAdministrationLibraryEvent(SocketEvent.Connect, arrayOf("{}"), json),
     )
     assertEquals(
       null,
       parseLibraryAdministrationLibraryEvent(
-        "library_removed",
+        SocketEvent.Library.Added,
+        arrayOf("not-json"),
+        json,
+      ),
+    )
+    assertEquals(
+      null,
+      parseLibraryAdministrationLibraryEvent(
+        SocketEvent.Library.Removed,
         arrayOf("""{"name":"Missing id"}"""),
         json,
       ),
@@ -105,7 +110,7 @@ class LibraryAdministrationLibraryEventTest {
   fun richAdministrationChangesProduceDifferentDeduplicationKeys() {
     val first =
       parseLibraryAdministrationLibraryEvent(
-        "library_updated",
+        SocketEvent.Library.Updated,
         arrayOf(
           """{"id":"books","name":"Books","mediaType":"book","settings":{"disableWatcher":false}}"""
         ),
@@ -113,7 +118,7 @@ class LibraryAdministrationLibraryEventTest {
       )!!
     val second =
       parseLibraryAdministrationLibraryEvent(
-        "library_updated",
+        SocketEvent.Library.Updated,
         arrayOf(
           """{"id":"books","name":"Books","mediaType":"book","settings":{"disableWatcher":true}}"""
         ),

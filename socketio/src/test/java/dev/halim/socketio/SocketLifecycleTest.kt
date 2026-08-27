@@ -13,7 +13,7 @@ class SocketLifecycleTest {
   @Test
   fun subscriptions_toTheSameEvent_areIndependent() {
     val client = FakeSocketClient()
-    val registry = SocketSubscriptionRegistry()
+    val registry = SocketSubscriptions()
     var firstCalls = 0
     var secondCalls = 0
 
@@ -57,7 +57,7 @@ class SocketLifecycleTest {
 
   @Test
   fun replacingTheSocket_rebindsActiveSubscriptionsOnce() {
-    val registry = SocketSubscriptionRegistry()
+    val registry = SocketSubscriptions()
     val firstClient = FakeSocketClient()
     val secondClient = FakeSocketClient()
     var calls = 0
@@ -75,7 +75,7 @@ class SocketLifecycleTest {
 
   @Test
   fun addingAndRemovingSubscriptions_whileAttached_updatesTheClientExactlyOnce() {
-    val registry = SocketSubscriptionRegistry()
+    val registry = SocketSubscriptions()
     val client = FakeSocketClient()
     registry.attach(client)
 
@@ -91,7 +91,7 @@ class SocketLifecycleTest {
 
   @Test
   fun rebinding_serializesSubscriptionChanges() {
-    val registry = SocketSubscriptionRegistry()
+    val registry = SocketSubscriptions()
     val client = BlockingSocketClient()
     registry.subscribe("task", {})
 

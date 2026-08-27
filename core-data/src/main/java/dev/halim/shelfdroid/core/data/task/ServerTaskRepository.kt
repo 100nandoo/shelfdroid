@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.data.task
 
 import dev.halim.core.network.response.ServerTask as NetworkServerTask
+import dev.halim.socketio.SocketEvent
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -100,16 +101,16 @@ class ServerTaskRepository private constructor(
   init {
     subscriptions =
       listOf(
-        socket.subscribe("task_started", ::handleTaskEvent),
-        socket.subscribe("task_finished", ::handleTaskEvent),
-        socket.subscribe("connect") {
+        socket.subscribe(SocketEvent.Task.Started, ::handleTaskEvent),
+        socket.subscribe(SocketEvent.Task.Finished, ::handleTaskEvent),
+        socket.subscribe(SocketEvent.Connect) {
           setConnection(ServerTaskConnectionState.CONNECTED)
           scope.launch { refresh() }
         },
-        socket.subscribe("disconnect") {
+        socket.subscribe(SocketEvent.Disconnect) {
           setConnection(ServerTaskConnectionState.DISCONNECTED)
         },
-        socket.subscribe("connect_error") {
+        socket.subscribe(SocketEvent.ConnectError) {
           setConnection(ServerTaskConnectionState.DISCONNECTED)
         },
       )
