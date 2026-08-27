@@ -55,11 +55,7 @@ fun MiscScreen(
   )
 }
 
-fun shouldShowAuthenticationSettings(isAdmin: Boolean): Boolean = isAdmin
-
-fun shouldShowLibraryItemMetadataUtilities(isAdmin: Boolean): Boolean = isAdmin
-
-fun shouldShowLibraryAdministration(isAdmin: Boolean): Boolean = isAdmin
+fun shouldShowServerSection(isAdmin: Boolean): Boolean = isAdmin
 
 @Composable
 private fun MiscScreenContent(
@@ -81,7 +77,7 @@ private fun MiscScreenContent(
 ) {
   val modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
   Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-    if (shouldShowAuthenticationSettings(isAdmin)) {
+    if (shouldShowServerSection(isAdmin)) {
       TextHeadlineSmall(
         modifier.padding(top = 16.dp),
         text = stringResource(R.string.server),
@@ -149,7 +145,6 @@ private fun MiscScreenContent(
       )
 
       MyTextButton(
-        enabled = shouldShowLibraryAdministration(isAdmin),
         onClick = onLibrariesClicked,
         modifier = modifier,
         text = stringResource(R.string.libraries),

@@ -25,7 +25,7 @@ class HomeScreenContentTest {
   @get:Rule val composeRule = createComposeRule()
 
   @Test
-  fun emptyCatalog_keepsLibraryAdministrationReachableForAdmins() {
+  fun emptyCatalog_keepsLibraryAdminReachableForAdmins() {
     composeRule.setContent {
       HomeScreenContent(
         libraryCount = 1,
@@ -67,7 +67,7 @@ class HomeScreenContentTest {
   }
 
   @Test
-  fun emptyCatalog_doesNotExposeLibraryAdministrationToNonAdmins() {
+  fun emptyCatalog_doesNotExposeLibraryAdminToNonAdmins() {
     composeRule.setContent {
       HomeScreenContent(
         libraryCount = 1,

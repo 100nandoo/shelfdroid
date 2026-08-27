@@ -54,8 +54,8 @@ import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
-import dev.halim.shelfdroid.core.ui.screen.libraryadministration.LibraryAdministrationScreen
-import dev.halim.shelfdroid.core.ui.screen.libraryadministration.LibraryAdministrationCreateScreen
+import dev.halim.shelfdroid.core.ui.screen.libraryadmin.LibraryAdminScreen
+import dev.halim.shelfdroid.core.ui.screen.libraryadmin.LibraryAdminCreateScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.MetadataUtilsScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.custommetadata.CustomMetadataScreen
 import dev.halim.shelfdroid.core.ui.screen.metadata.genre.GenreScreen
@@ -316,7 +316,7 @@ private fun ColumnScope.NavHostContainer(
       }
       entry<Libraries> {
         Nav3ScreenWrapper(sharedTransitionScope) {
-          LibraryAdministrationScreen(
+          LibraryAdminScreen(
             collectNavResultEvent = true,
             onCreateLibraryClicked = { navigator.navigate(CreateLibrary) },
           )
@@ -325,7 +325,7 @@ private fun ColumnScope.NavHostContainer(
       entry<CreateLibrary> {
         val resultBus = LocalResultEventBus.current
         Nav3ScreenWrapper(sharedTransitionScope) {
-          LibraryAdministrationCreateScreen(
+          LibraryAdminCreateScreen(
             onNavigateBack = { navigator.pop() },
             onCreated = { id ->
               resultBus.sendResult(LibraryCreatedNavResult(id))
