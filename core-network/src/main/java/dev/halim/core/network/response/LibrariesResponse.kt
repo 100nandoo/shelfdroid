@@ -7,14 +7,10 @@ import kotlinx.serialization.Serializable
 data class LibrariesResponse(@SerialName("libraries") val libraries: List<Library> = listOf())
 
 @Serializable
-enum class MediaType {
+enum class NetworkMediaType {
   @SerialName("book") BOOK,
   @SerialName("podcast") PODCAST,
-  @SerialName("") UNKNOWN;
-
-  companion object {
-    fun isBook(value: String): Boolean = value.equals("book", ignoreCase = true)
-  }
+  @SerialName("") UNKNOWN,
 }
 
 @Serializable
@@ -24,7 +20,7 @@ data class Library(
   @SerialName("folders") val folders: List<Folder> = listOf(),
   @SerialName("displayOrder") val displayOrder: Int = 0,
   @SerialName("icon") val icon: String = "",
-  @SerialName("mediaType") val mediaType: MediaType = MediaType.UNKNOWN,
+  @SerialName("mediaType") val mediaType: NetworkMediaType = NetworkMediaType.UNKNOWN,
   @SerialName("provider") val provider: String = "",
   @SerialName("settings") val settings: LibrarySettings = LibrarySettings(),
   @SerialName("createdAt") val createdAt: Long = 0,

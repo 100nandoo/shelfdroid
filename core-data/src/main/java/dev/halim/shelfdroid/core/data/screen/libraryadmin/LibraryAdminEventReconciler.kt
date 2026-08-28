@@ -45,9 +45,7 @@ internal class LibraryAdminEventReconciler(
     }
   }
 
-  suspend fun reconcile(
-    event: LibraryAdminLibraryEvent,
-  ): Result<List<LibraryAdminLibrary>> =
+  suspend fun reconcile(event: LibraryAdminLibraryEvent): Result<List<LibraryAdminLibrary>> =
     mutationCoordinator.withMutation {
       val eventKey = event.deduplicationKey()
       synchronized(lock) {
@@ -64,10 +62,11 @@ internal class LibraryAdminEventReconciler(
         removeLibrary(libraryId)
       }
 
-      synchronize().fold(
-        onSuccess = { Result.success(currentLibraries()) },
-        onFailure = { Result.failure(it) },
-      )
+      synchronize()
+        .fold(
+          onSuccess = { Result.success(currentLibraries()) },
+          onFailure = { Result.failure(it) },
+        )
     }
 
   private companion object {

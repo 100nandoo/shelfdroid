@@ -12,6 +12,7 @@ import javax.inject.Singleton
 object SocketModule {
   @Provides
   @Singleton
-  fun provideSocketClientFactory(): SocketClientFactory =
-    SocketClientFactory { url, options -> IoSocketClient(IO.socket(url, options)) }
+  fun provideSocketClientFactory(): SocketClientFactory = SocketClientFactory { url, options ->
+    IoSocketClient(IO.socket(url, options))
+  }
 }

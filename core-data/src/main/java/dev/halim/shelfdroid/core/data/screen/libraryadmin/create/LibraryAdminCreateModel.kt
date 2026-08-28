@@ -1,4 +1,8 @@
-package dev.halim.shelfdroid.core.data.screen.libraryadmin
+package dev.halim.shelfdroid.core.data.screen.libraryadmin.create
+
+import dev.halim.shelfdroid.core.MediaType
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleDraft
 
 /** A provider exposed by the Audiobookshelf server for a library media type. */
 data class LibraryAdminProvider(
@@ -131,9 +135,9 @@ const val DEFAULT_FINISH_TIME_REMAINING = 10
 const val DEFAULT_PODCAST_SEARCH_REGION = "us"
 
 /**
- * The website renders these rows highest-first, while the server payload stores scanner
- * application order lowest-first. The draft keeps the website display order and reverses enabled
- * rows only when serializing.
+ * The website renders these rows highest-first, while the server payload stores scanner application
+ * order lowest-first. The draft keeps the website display order and reverses enabled rows only when
+ * serializing.
  */
 val DEFAULT_LIBRARY_METADATA_SOURCES: List<LibraryAdminMetadataSource> =
   listOf(
@@ -156,7 +160,7 @@ val DEFAULT_LIBRARY_METADATA_SOURCES: List<LibraryAdminMetadataSource> =
  * the hidden media-specific value.
  */
 data class LibraryAdminDraft(
-  val mediaType: LibraryAdminMediaType = LibraryAdminMediaType.BOOK,
+  val mediaType: MediaType = MediaType.BOOK,
   val name: String = "",
   val icon: String = DEFAULT_LIBRARY_ICON,
   val folders: List<String> = emptyList(),
@@ -166,11 +170,10 @@ data class LibraryAdminDraft(
   val podcastSettings: LibraryAdminPodcastSettings = LibraryAdminPodcastSettings(),
   val schedule: LibraryAdminScheduleDraft = LibraryAdminScheduleDraft(),
   /** Rows are kept in the website's displayed (highest-priority first) order. */
-  val metadataSources: List<LibraryAdminMetadataSource> =
-    DEFAULT_LIBRARY_METADATA_SOURCES,
+  val metadataSources: List<LibraryAdminMetadataSource> = DEFAULT_LIBRARY_METADATA_SOURCES,
 ) {
   val provider: String?
-    get() = if (mediaType == LibraryAdminMediaType.PODCAST) podcastProvider else bookProvider
+    get() = if (mediaType == MediaType.PODCAST) podcastProvider else bookProvider
 
   /** Returns the server payload order (lowest application priority first). */
   val metadataPrecedence: List<String>
@@ -180,26 +183,27 @@ data class LibraryAdminDraft(
   fun metadataPriority(id: String): Int? =
     metadataSources.filter { it.enabled }.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.plus(1)
 
-  fun withMediaType(value: LibraryAdminMediaType): LibraryAdminDraft =
-    copy(mediaType = value)
+  fun withMediaType(value: MediaType): LibraryAdminDraft = copy(mediaType = value)
 
   /** Applies the same finish-threshold transition to whichever media type is active. */
   fun withFinishThreshold(
     update: (LibraryAdminFinishThreshold) -> LibraryAdminFinishThreshold
   ): LibraryAdminDraft =
     when (mediaType) {
-      LibraryAdminMediaType.BOOK ->
+      MediaType.BOOK ->
         copy(bookSettings = bookSettings.withFinishThreshold(update(bookSettings.finishThreshold)))
-      LibraryAdminMediaType.PODCAST ->
+
+      MediaType.PODCAST ->
         copy(
           podcastSettings =
             podcastSettings.withFinishThreshold(update(podcastSettings.finishThreshold))
         )
-      LibraryAdminMediaType.UNKNOWN -> this
+
+      MediaType.UNKNOWN -> this
     }
 
   fun withProvider(value: String?): LibraryAdminDraft =
-    if (mediaType == LibraryAdminMediaType.PODCAST) copy(podcastProvider = value)
+    if (mediaType == MediaType.PODCAST) copy(podcastProvider = value)
     else copy(bookProvider = value)
 
   fun withMetadataSource(id: String, enabled: Boolean): LibraryAdminDraft =

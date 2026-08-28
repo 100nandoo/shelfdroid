@@ -44,8 +44,8 @@ import dev.halim.core.network.response.CreateUserResponse
 import dev.halim.core.network.response.DeleteUserResponse
 import dev.halim.core.network.response.Episode
 import dev.halim.core.network.response.FileSystemResponse
-import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.LibrariesResponse
+import dev.halim.core.network.response.Library
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.LibraryItemsResponse
 import dev.halim.core.network.response.LibrarySeriesResponse
@@ -63,10 +63,10 @@ import dev.halim.core.network.response.SearchPodcast
 import dev.halim.core.network.response.SearchPodcastEpisodeResponse
 import dev.halim.core.network.response.SearchProvidersResponse
 import dev.halim.core.network.response.ServerSettingsResponse
-import dev.halim.core.network.response.TasksResponse
 import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SetItemCoverResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
+import dev.halim.core.network.response.TasksResponse
 import dev.halim.core.network.response.UpdateLibraryItemMediaResponse
 import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.UserWithMediaProgressDetail
@@ -175,7 +175,6 @@ interface ApiService {
   @POST("api/libraries")
   suspend fun createLibrary(@Body request: CreateLibraryRequest): Result<Library>
 
-  /** Deletes a Library's catalog records while retaining its media files on the server. */
   @DELETE("api/libraries/{libraryId}")
   suspend fun deleteLibrary(@Path("libraryId") libraryId: String): Result<Library>
 
@@ -184,11 +183,9 @@ interface ApiService {
     @Body request: List<ReorderLibraryRequest>
   ): Result<LibrariesResponse>
 
-  /** Accepts a normal library scan. Completion is reported by the Server task socket events. */
   @POST("api/libraries/{libraryId}/scan")
   suspend fun scanLibrary(@Path("libraryId") libraryId: String): Result<Unit>
 
-  /** Starts the server's bulk Book metadata matching task. */
   @GET("api/libraries/{libraryId}/matchall")
   suspend fun matchLibrary(@Path("libraryId") libraryId: String): Result<Unit>
 

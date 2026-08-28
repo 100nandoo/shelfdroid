@@ -1,12 +1,14 @@
-<!-- Material Icons Rounded, fetched from Google Fonts (Apache License 2.0). -->
-<!-- https://fonts.google.com/icons?icon.style=Rounded -->
-<!-- https://fonts.gstatic.com/s/i/materialiconsround/book/v1/24px.svg -->
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M18,2H6C4.9,2 4,2.9 4,4v16c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V4C20,2.9 19.1,2 18,2zM6,4h5v8l-2.5,-1.5L6,12V4z" />
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <group
+        android:scaleY="-1"
+        android:translateY="960">
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M384 832v-640h128v640h-128zM512 746.667l170.667-554.667 128 42.667-170.667 554.667-128-42.667zM213.333 746.667v-554.667h128v554.667h-128zM128 149.333v-85.333h768v85.333h-768z" />
+    </group>
 </vector>

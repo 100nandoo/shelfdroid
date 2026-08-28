@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
 import dev.halim.socketio.SocketEvent
 import kotlinx.coroutines.test.advanceTimeBy
@@ -20,14 +21,15 @@ class LibraryAdminEventOwnerTest {
     var taskCalls = 0
     var podcastCalls = 0
     val taskSubscription = socket.subscribe(SocketEvent.Task.Started) { taskCalls++ }
-    val podcastSubscription = socket.subscribe(SocketEvent.Episode.DownloadStarted) { podcastCalls++ }
+    val podcastSubscription =
+      socket.subscribe(SocketEvent.Episode.DownloadStarted) { podcastCalls++ }
     var synchronizations = 0
     val currentLibraries =
       listOf(
         LibraryAdminLibrary(
           id = "books",
           name = "Books",
-          mediaType = LibraryAdminMediaType.BOOK,
+          mediaType = MediaType.BOOK,
           displayOrder = 0,
         )
       )
@@ -72,8 +74,7 @@ class LibraryAdminEventOwnerTest {
     advanceUntilIdle()
     assertEquals(1, synchronizations)
 
-    val payload =
-      """{"id":"books","name":"Books","mediaType":"book","displayOrder":0}"""
+    val payload = """{"id":"books","name":"Books","mediaType":"book","displayOrder":0}"""
     socket.emit(SocketEvent.Library.Added.name, payload)
     advanceUntilIdle()
     assertEquals(2, synchronizations)

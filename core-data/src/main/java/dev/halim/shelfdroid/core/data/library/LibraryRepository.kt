@@ -5,7 +5,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.Folder
 import dev.halim.core.network.response.Library
-import dev.halim.core.network.response.MediaType
+import dev.halim.core.network.response.NetworkMediaType
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import javax.inject.Inject
@@ -46,7 +46,7 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
     }
   }
 
-  suspend fun refreshLibraries(): Result<Unit> = fetchLibraries().map { }
+  suspend fun refreshLibraries(): Result<Unit> = fetchLibraries().map {}
 
   fun byId(id: String): LibraryEntity? {
     return queries.byId(id).executeAsOneOrNull()
@@ -79,7 +79,7 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
       id = library.id,
       name = library.name,
       folders = json.encodeToString(library.folders),
-      isBookLibrary = if (library.mediaType == MediaType.BOOK) 1 else 0,
+      isBookLibrary = if (library.mediaType == NetworkMediaType.BOOK) 1 else 0,
       displayOrder = library.displayOrder.toLong(),
     )
 }

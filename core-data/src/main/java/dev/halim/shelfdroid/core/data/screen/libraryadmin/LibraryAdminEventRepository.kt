@@ -1,10 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
+import dev.halim.core.network.response.Library
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
-import dev.halim.core.network.response.Library
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -12,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 /**
@@ -68,9 +68,9 @@ constructor(
             name = entity.name,
             mediaType =
               if (entity.isBookLibrary == 1L) {
-                LibraryAdminMediaType.BOOK
+                MediaType.BOOK
               } else {
-                LibraryAdminMediaType.PODCAST
+                MediaType.PODCAST
               },
             displayOrder = entity.displayOrder.toInt(),
           )
@@ -84,16 +84,18 @@ constructor(
     LibraryAdminEventOwner(socket, json, scope, reconciler, ::reconcileAndPublish)
 
   private suspend fun reconcileAndPublish(event: LibraryAdminLibraryEvent) {
-    reconciler.reconcile(event).fold(
-      onSuccess = { libraries ->
-        _events.emit(event.copy(libraries = libraries, synchronized = true))
-      },
-      onFailure = {
-        // Keep the event visible to the screen so it can show/retry the normal safe refresh error;
-        // internal server or transport details never cross this boundary.
-        _events.emit(event.copy(libraries = emptyList(), synchronized = false))
-      },
-    )
+    reconciler
+      .reconcile(event)
+      .fold(
+        onSuccess = { libraries ->
+          _events.emit(event.copy(libraries = libraries, synchronized = true))
+        },
+        onFailure = {
+          // Keep the event visible to the screen so it can show/retry the normal safe refresh
+          // error;
+          // internal server or transport details never cross this boundary.
+          _events.emit(event.copy(libraries = emptyList(), synchronized = false))
+        },
+      )
   }
-
 }

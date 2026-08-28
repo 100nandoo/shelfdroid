@@ -45,11 +45,12 @@ constructor(
         .map { it.accessToken }
         .distinctUntilChanged()
         .collect { token ->
-          val previousToken = synchronized(lock) {
-            val previous = observedToken
-            observedToken = token
-            previous
-          }
+          val previousToken =
+            synchronized(lock) {
+              val previous = observedToken
+              observedToken = token
+              previous
+            }
 
           if (previousToken == null) return@collect
 
@@ -103,12 +104,13 @@ constructor(
           .setPath(parsedBaseUrl.socketPath())
           .build()
 
-      client = try {
-        socketClientFactory.create(parsedBaseUrl.origin, options)
-      } catch (e: URISyntaxException) {
-        Log.d("SocketManager", "Connection creation error ${e.message}")
-        return
-      }
+      client =
+        try {
+          socketClientFactory.create(parsedBaseUrl.origin, options)
+        } catch (e: URISyntaxException) {
+          Log.d("SocketManager", "Connection creation error ${e.message}")
+          return
+        }
       socket = client
       subscriptions.attach(client)
 
@@ -123,11 +125,12 @@ constructor(
   }
 
   private fun disconnectSocket() {
-    val client = synchronized(lock) {
-      val current = socket ?: return
-      socket = null
-      current
-    }
+    val client =
+      synchronized(lock) {
+        val current = socket ?: return
+        socket = null
+        current
+      }
     subscriptions.detach(client)
     client.disconnect()
   }

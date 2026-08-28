@@ -72,8 +72,9 @@ class HomeLibrarySelectionTest {
     assertEquals(0, playback.cleanupCalls)
   }
 
-  private fun libraries(vararg ids: String): List<LibraryUiState> =
-    ids.map { id -> LibraryUiState(id = id, name = id) }
+  private fun libraries(vararg ids: String): List<LibraryUiState> = ids.map { id ->
+    LibraryUiState(id = id, name = id)
+  }
 
   private class PlaybackProbe {
     var stopCalls: Int = 0

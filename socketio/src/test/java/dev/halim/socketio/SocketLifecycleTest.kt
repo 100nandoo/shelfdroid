@@ -37,8 +37,7 @@ class SocketLifecycleTest {
   fun ownership_disconnectsOnlyAfterTheLastOwnerReleases() {
     var connects = 0
     var disconnects = 0
-    val ownership =
-      SocketOwnership(onFirstOwner = { connects++ }, onLastOwner = { disconnects++ })
+    val ownership = SocketOwnership(onFirstOwner = { connects++ }, onLastOwner = { disconnects++ })
 
     val first = ownership.acquire()
     val second = ownership.acquire()

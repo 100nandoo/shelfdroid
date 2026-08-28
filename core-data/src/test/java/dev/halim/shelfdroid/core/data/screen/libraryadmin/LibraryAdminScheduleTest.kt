@@ -87,17 +87,19 @@ class LibraryAdminScheduleTest {
     assertEquals(
       "Enter a five-field cron expression.",
       LibraryAdminScheduleDraft(
-        enabled = true,
-        mode = LibraryAdminScheduleMode.Advanced,
-        advancedCronExpression = "0 0 * *",
-      ).localValidationMessage(),
+          enabled = true,
+          mode = LibraryAdminScheduleMode.Advanced,
+          advancedCronExpression = "0 0 * *",
+        )
+        .localValidationMessage(),
     )
     assertNull(
       LibraryAdminScheduleDraft(
-        enabled = true,
-        mode = LibraryAdminScheduleMode.Advanced,
-        advancedCronExpression = "0 0 * * 1",
-      ).localValidationMessage()
+          enabled = true,
+          mode = LibraryAdminScheduleMode.Advanced,
+          advancedCronExpression = "0 0 * * 1",
+        )
+        .localValidationMessage()
     )
   }
 

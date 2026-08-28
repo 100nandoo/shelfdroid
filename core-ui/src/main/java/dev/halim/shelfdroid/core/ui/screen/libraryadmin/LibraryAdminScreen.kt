@@ -32,10 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.result.ResultEffect
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminError
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.canDelete
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.canReorder
@@ -58,10 +58,8 @@ fun LibraryAdminScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val snackbarHostState = remember { SnackbarHostState() }
   val notification = uiState.taskNotification
-  val notificationPresentation =
-    notification?.let { serverTaskPresentation(it.action, it.status) }
-  val notificationMessage =
-    notificationPresentation?.let { stringResource(it.statusLabel) }
+  val notificationPresentation = notification?.let { serverTaskPresentation(it.action, it.status) }
+  val notificationMessage = notificationPresentation?.let { stringResource(it.statusLabel) }
   LaunchedEffect(notification?.taskId) {
     if (notificationMessage != null) {
       snackbarHostState.showSnackbar(notificationMessage)
@@ -97,34 +95,26 @@ internal fun LibraryAdminContent(
       Text(
         text = libraryAdminErrorText(error),
         color = MaterialTheme.colorScheme.error,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       )
     }
     uiState.matchError?.let { error ->
       Text(
         text = libraryAdminErrorText(error),
         color = MaterialTheme.colorScheme.error,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       )
     }
     uiState.taskSyncError?.let { error ->
       Text(
         text = libraryAdminErrorText(error),
         color = MaterialTheme.colorScheme.error,
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       )
     }
     uiState.deleteError?.let { error ->
       Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
@@ -139,9 +129,7 @@ internal fun LibraryAdminContent(
     }
     uiState.deleteSyncError?.let { error ->
       Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
@@ -156,9 +144,7 @@ internal fun LibraryAdminContent(
     }
 
     PullToRefreshBox(
-      modifier = Modifier
-        .fillMaxWidth()
-        .weight(1f),
+      modifier = Modifier.fillMaxWidth().weight(1f),
       isRefreshing = false,
       onRefresh = { onEvent(LibraryAdminEvent.Refresh) },
     ) {
@@ -174,10 +160,9 @@ internal fun LibraryAdminContent(
           is GenericState.Failure -> {
             item(key = "failure") {
               MyTextButtonRetry(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(16.dp),
-                message = state.errorMessage ?: stringResource(R.string.server_could_not_be_reached),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                message =
+                  state.errorMessage ?: stringResource(R.string.server_could_not_be_reached),
                 onRetry = { onEvent(LibraryAdminEvent.Refresh) },
               )
             }
@@ -188,14 +173,13 @@ internal fun LibraryAdminContent(
               item(key = "empty") {
                 Text(
                   text = stringResource(R.string.library_admin_empty),
-                  modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
+                  modifier = Modifier.fillMaxWidth().padding(32.dp),
                   style = MaterialTheme.typography.titleLarge,
                 )
               }
             } else {
-              itemsIndexed(uiState.libraries, key = { _, library -> library.id }) { index, library ->
+              itemsIndexed(uiState.libraries, key = { _, library -> library.id }) { index, library
+                ->
                 val reorderEnabled = uiState.canReorder(library.id)
                 LibraryAdminItem(
                   library = library,
@@ -223,16 +207,12 @@ internal fun LibraryAdminContent(
         Text(
           text = stringResource(R.string.library_reorder_failed),
           color = MaterialTheme.colorScheme.error,
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         )
       }
       uiState.reorderSyncError?.let { error ->
         Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
           verticalAlignment = Alignment.CenterVertically,
         ) {
           Text(
@@ -272,14 +252,11 @@ internal fun LibraryAdminContent(
 private fun libraryAdminErrorText(error: LibraryAdminError): String =
   when (error) {
     is LibraryAdminError.SafeMessage -> error.message
-    LibraryAdminError.GenericScanStart ->
-      stringResource(R.string.library_scan_start_failed)
+    LibraryAdminError.GenericScanStart -> stringResource(R.string.library_scan_start_failed)
 
-    LibraryAdminError.GenericMatchStart ->
-      stringResource(R.string.library_match_start_failed)
+    LibraryAdminError.GenericMatchStart -> stringResource(R.string.library_match_start_failed)
 
-    LibraryAdminError.GenericSynchronization ->
-      stringResource(R.string.library_scan_sync_failed)
+    LibraryAdminError.GenericSynchronization -> stringResource(R.string.library_scan_sync_failed)
 
     LibraryAdminError.GenericDelete -> stringResource(R.string.delete_library_failed)
     LibraryAdminError.GenericDeleteSynchronization ->
@@ -303,17 +280,17 @@ private fun LibraryAdminContentPreview() {
               LibraryAdminLibrary(
                 id = "book-library",
                 name = "Books",
-                mediaType = LibraryAdminMediaType.BOOK,
+                mediaType = MediaType.BOOK,
                 displayOrder = 0,
               ),
               LibraryAdminLibrary(
                 id = "podcast-library",
                 name = "Podcasts",
-                mediaType = LibraryAdminMediaType.PODCAST,
+                mediaType = MediaType.PODCAST,
                 displayOrder = 1,
               ),
             ),
-        ),
+        )
     )
   }
 }
@@ -327,7 +304,7 @@ private fun LibraryAdminFailurePreview() {
         LibraryAdminUiState(
           state = GenericState.Failure("The server could not be reached."),
           isRefreshing = false,
-        ),
+        )
     )
   }
 }

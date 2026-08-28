@@ -1,8 +1,9 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package dev.halim.shelfdroid.core.ui.screen.libraryadmin
+package dev.halim.shelfdroid.core.ui.screen.libraryadmin.create
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -10,21 +11,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +35,6 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,26 +50,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateError
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateField
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateNavigation
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateSubmissionState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateTab
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateUiState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminDirectory
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminDraft
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminFilesystemState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.finishThreshold
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminProviderState
+import dev.halim.shelfdroid.core.MediaType
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleDraft
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleInterval
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleMode
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleDraft
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleValidationState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateError
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateField
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateNavigation
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateSubmissionState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateTab
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDirectory
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystemState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.finishThreshold
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.nextLibraryScheduleRun
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -130,9 +129,7 @@ internal fun LibraryAdminCreateContent(
   }
 
   Column(modifier = Modifier.fillMaxSize()) {
-    Column(
-      modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())
-    ) {
+    Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
       Text(
         text = stringResource(R.string.create_library),
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -169,8 +166,7 @@ internal fun LibraryAdminCreateContent(
 
     val visibleTabs =
       LibraryAdminCreateTab.entries.filter {
-        it != LibraryAdminCreateTab.SCANNER ||
-          uiState.draft.mediaType != LibraryAdminMediaType.PODCAST
+        it != LibraryAdminCreateTab.SCANNER || uiState.draft.mediaType != MediaType.PODCAST
       }
     ScrollableTabRow(
       selectedTabIndex = visibleTabs.indexOf(uiState.selectedTab).coerceAtLeast(0),
@@ -238,8 +234,7 @@ internal fun LibraryAdminCreateContent(
   }
 
   when (val filesystem = uiState.filesystemState) {
-    is LibraryAdminFilesystemState.Success ->
-      LibraryAdminFilesystemDialog(filesystem, onEvent)
+    is LibraryAdminFilesystemState.Success -> LibraryAdminFilesystemDialog(filesystem, onEvent)
     is LibraryAdminFilesystemState.Failure ->
       AlertDialog(
         onDismissRequest = { onEvent(LibraryAdminCreateEvent.CloseFilesystem) },
@@ -250,9 +245,7 @@ internal fun LibraryAdminCreateContent(
         confirmButton = {
           TextButton(
             onClick = {
-              onEvent(
-                LibraryAdminCreateEvent.OpenFilesystemPath(filesystem.path.orEmpty())
-              )
+              onEvent(LibraryAdminCreateEvent.OpenFilesystemPath(filesystem.path.orEmpty()))
             }
           ) {
             Text(stringResource(R.string.retry))
@@ -291,20 +284,16 @@ internal fun LibraryAdminDetailsContent(
     Text(stringResource(R.string.library_create_media_type))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
       FilterChip(
-        selected = uiState.draft.mediaType == LibraryAdminMediaType.BOOK,
+        selected = uiState.draft.mediaType == MediaType.BOOK,
         onClick = {
-          onEvent(
-            LibraryAdminCreateEvent.SelectMediaType(LibraryAdminMediaType.BOOK)
-          )
+          onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.BOOK))
         },
         label = { Text(stringResource(R.string.book_library)) },
       )
       FilterChip(
-        selected = uiState.draft.mediaType == LibraryAdminMediaType.PODCAST,
+        selected = uiState.draft.mediaType == MediaType.PODCAST,
         onClick = {
-          onEvent(
-            LibraryAdminCreateEvent.SelectMediaType(LibraryAdminMediaType.PODCAST)
-          )
+          onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.PODCAST))
         },
         label = { Text(stringResource(R.string.podcast_library)) },
       )
@@ -394,12 +383,14 @@ internal fun LibraryAdminSettingsContent(
   onEvent: (LibraryAdminCreateEvent) -> Unit,
   focusRequester: FocusRequester,
 ) {
-  val isBook = uiState.draft.mediaType == LibraryAdminMediaType.BOOK
+  val isBook = uiState.draft.mediaType == MediaType.BOOK
   val bookSettings = uiState.draft.bookSettings
   val podcastSettings = uiState.draft.podcastSettings
-  val coverAspectRatio = if (isBook) bookSettings.coverAspectRatio else podcastSettings.coverAspectRatio
+  val coverAspectRatio =
+    if (isBook) bookSettings.coverAspectRatio else podcastSettings.coverAspectRatio
   val disableWatcher = if (isBook) bookSettings.disableWatcher else podcastSettings.disableWatcher
-  val finishThreshold = if (isBook) bookSettings.finishThreshold else podcastSettings.finishThreshold
+  val finishThreshold =
+    if (isBook) bookSettings.finishThreshold else podcastSettings.finishThreshold
   val finishPercent = finishThreshold.percentComplete
   val finishMode =
     if (finishPercent != null) {
@@ -408,8 +399,7 @@ internal fun LibraryAdminSettingsContent(
       LibraryAdminFinishThresholdMode.TIME_REMAINING
     }
   val finishValue = finishThreshold.value
-  val finishError =
-    uiState.validation.errors[LibraryAdminCreateField.SETTINGS_FINISH_THRESHOLD]
+  val finishError = uiState.validation.errors[LibraryAdminCreateField.SETTINGS_FINISH_THRESHOLD]
 
   Column(
     modifier =
@@ -425,9 +415,7 @@ internal fun LibraryAdminSettingsContent(
       checked = coverAspectRatio == 1,
       contentDescription = stringResource(R.string.library_settings_square_covers),
       onCheckedChange = { enabled ->
-        onEvent(
-          LibraryAdminCreateEvent.UpdateCoverAspectRatio(if (enabled) 1 else 0)
-        )
+        onEvent(LibraryAdminCreateEvent.UpdateCoverAspectRatio(if (enabled) 1 else 0))
       },
     )
     MySwitch(
@@ -536,9 +524,10 @@ internal fun LibraryAdminSettingsContent(
       },
       modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
       isError = finishError != null,
-      supportingText = finishError?.let { errors ->
-        { Text(createErrorText(errors)) }
-      },
+      supportingText =
+        finishError?.let { errors ->
+          { Text(createErrorText(errors)) }
+        },
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     )
   }
@@ -594,7 +583,8 @@ private fun LibraryAdminPodcastRegionPicker(
       onValueChange = {},
       readOnly = true,
       label = { Text(stringResource(R.string.library_settings_podcast_region)) },
-      modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+      modifier =
+        Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
       trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
     )
     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -660,8 +650,7 @@ internal fun LibraryAdminScheduleContent(
       }
 
       when (schedule.mode) {
-        LibraryAdminScheduleMode.Simple ->
-          LibraryAdminSimpleScheduleContent(schedule, onEvent)
+        LibraryAdminScheduleMode.Simple -> LibraryAdminSimpleScheduleContent(schedule, onEvent)
         LibraryAdminScheduleMode.Advanced ->
           Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
@@ -681,17 +670,19 @@ internal fun LibraryAdminScheduleContent(
                   is LibraryAdminScheduleValidationState.Unavailable ->
                     Text(
                       text = errorDescription.orEmpty(),
-                      modifier = Modifier.semantics {
-                        contentDescription = errorDescription.orEmpty()
-                      },
+                      modifier =
+                        Modifier.semantics {
+                          contentDescription = errorDescription.orEmpty()
+                        },
                     )
                   else ->
                     if (scheduleError != null) {
                       Text(
                         text = errorDescription.orEmpty(),
-                        modifier = Modifier.semantics {
-                          contentDescription = errorDescription.orEmpty()
-                        },
+                        modifier =
+                          Modifier.semantics {
+                            contentDescription = errorDescription.orEmpty()
+                          },
                       )
                     }
                 }
@@ -704,9 +695,7 @@ internal fun LibraryAdminScheduleContent(
               modifier = Modifier.fillMaxWidth(),
             ) {
               Text(
-                if (uiState.scheduleValidation is
-                    LibraryAdminScheduleValidationState.Validating
-                ) {
+                if (uiState.scheduleValidation is LibraryAdminScheduleValidationState.Validating) {
                   stringResource(R.string.library_schedule_checking)
                 } else {
                   stringResource(R.string.library_schedule_validate)
@@ -723,9 +712,11 @@ internal fun LibraryAdminScheduleContent(
         )
       }
 
-      if (scheduleError == null &&
+      if (
+        scheduleError == null &&
           (schedule.mode == LibraryAdminScheduleMode.Simple ||
-            uiState.scheduleValidation is LibraryAdminScheduleValidationState.Valid)) {
+            uiState.scheduleValidation is LibraryAdminScheduleValidationState.Valid)
+      ) {
         ScheduleSummary(schedule.cronExpression, schedule.summary)
       }
     }
@@ -747,7 +738,8 @@ private fun LibraryAdminSimpleScheduleContent(
       onValueChange = {},
       readOnly = true,
       label = { Text(stringResource(R.string.library_schedule_interval)) },
-      modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+      modifier =
+        Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
       trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
     )
     ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -783,8 +775,10 @@ private fun LibraryAdminSimpleScheduleContent(
     }
   }
 
-  if (schedule.simple.interval == LibraryAdminScheduleInterval.Custom ||
-      schedule.simple.interval == LibraryAdminScheduleInterval.Daily) {
+  if (
+    schedule.simple.interval == LibraryAdminScheduleInterval.Custom ||
+      schedule.simple.interval == LibraryAdminScheduleInterval.Daily
+  ) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
       OutlinedTextField(
         value = schedule.simple.hour,
@@ -831,10 +825,8 @@ private fun ScheduleSummary(expression: String?, summary: String?) {
 @Composable
 private fun LibraryAdminScheduleInterval.scheduleLabel(): String =
   when (this) {
-    LibraryAdminScheduleInterval.Custom ->
-      stringResource(R.string.library_schedule_interval_custom)
-    LibraryAdminScheduleInterval.Daily ->
-      stringResource(R.string.library_schedule_interval_daily)
+    LibraryAdminScheduleInterval.Custom -> stringResource(R.string.library_schedule_interval_custom)
+    LibraryAdminScheduleInterval.Daily -> stringResource(R.string.library_schedule_interval_daily)
     LibraryAdminScheduleInterval.Every12Hours ->
       stringResource(R.string.library_schedule_interval_every_12_hours)
     LibraryAdminScheduleInterval.Every6Hours ->
@@ -882,8 +874,7 @@ internal fun LibraryAdminScannerContent(
         if (priority == null) source.name
         else stringResource(R.string.library_scanner_source_priority, source.name, priority)
       Row(
-        modifier =
-          Modifier.fillMaxWidth().semantics { contentDescription = sourceDescription },
+        modifier = Modifier.fillMaxWidth().semantics { contentDescription = sourceDescription },
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(priority?.toString().orEmpty(), modifier = Modifier.width(28.dp))
@@ -913,7 +904,10 @@ internal fun LibraryAdminScannerContent(
     if (uiState.validation.errors.containsKey(LibraryAdminCreateField.SCANNER_PRECEDENCE)) {
       val scannerErrorDescription = stringResource(R.string.library_scanner_validation)
       Text(
-        text = createErrorText(uiState.validation.errors.getValue(LibraryAdminCreateField.SCANNER_PRECEDENCE)),
+        text =
+          createErrorText(
+            uiState.validation.errors.getValue(LibraryAdminCreateField.SCANNER_PRECEDENCE)
+          ),
         modifier = Modifier.semantics { contentDescription = scannerErrorDescription },
       )
     }
@@ -932,10 +926,9 @@ private fun LibraryAdminProviderPicker(
       val loadingDescription = stringResource(R.string.library_provider_loading)
       Column(
         modifier =
-          Modifier.fillMaxWidth()
-            .focusRequester(focusRequester)
-            .focusable()
-            .semantics { contentDescription = loadingDescription },
+          Modifier.fillMaxWidth().focusRequester(focusRequester).focusable().semantics {
+            contentDescription = loadingDescription
+          },
         verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
         LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -953,9 +946,9 @@ private fun LibraryAdminProviderPicker(
         TextButton(
           onClick = { onEvent(LibraryAdminCreateEvent.RetryProviders) },
           modifier =
-            Modifier.fillMaxWidth()
-              .focusRequester(focusRequester)
-              .semantics { contentDescription = "$errorDescription $retryDescription" },
+            Modifier.fillMaxWidth().focusRequester(focusRequester).semantics {
+              contentDescription = "$errorDescription $retryDescription"
+            },
         ) {
           Text(retryDescription)
         }
@@ -968,17 +961,18 @@ private fun LibraryAdminProviderPicker(
       ) {
         val selected = providerState.providers.firstOrNull { it.id == uiState.draft.provider }
         OutlinedTextField(
-          modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).menuAnchor(
-            ExposedDropdownMenuAnchorType.PrimaryNotEditable
-          ),
+          modifier =
+            Modifier.fillMaxWidth()
+              .focusRequester(focusRequester)
+              .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
           readOnly = true,
           value = selected?.name.orEmpty(),
           onValueChange = {},
           label = { Text(stringResource(R.string.library_create_provider)) },
           isError = uiState.validation.errors.containsKey(LibraryAdminCreateField.PROVIDER),
           supportingText =
-            uiState.validation.errors[LibraryAdminCreateField.PROVIDER]?.let {
-              providerErrors -> { Text(createErrorText(providerErrors)) }
+            uiState.validation.errors[LibraryAdminCreateField.PROVIDER]?.let { providerErrors ->
+              { Text(createErrorText(providerErrors)) }
             },
           trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
         )
@@ -1019,8 +1013,7 @@ private fun LibraryAdminFilesystemDialog(
         if (filesystemState.filesystem.directories.isEmpty()) {
           Text(stringResource(R.string.library_filesystem_empty))
         } else {
-          val directoryListDescription =
-            stringResource(R.string.library_filesystem_directory_list)
+          val directoryListDescription = stringResource(R.string.library_filesystem_directory_list)
           Column(
             modifier =
               Modifier.fillMaxWidth()
@@ -1108,10 +1101,14 @@ private fun libraryIconResource(icon: String): Int =
   when (icon) {
     "database" -> R.drawable.library_icon_storage
     "audiobookshelf" -> R.drawable.library_icon_library_music
-    "books-1", "books-2", "book-1" -> R.drawable.library_icon_book
-    "microphone-1", "microphone-3" -> R.drawable.library_icon_mic
+    "books-1",
+    "books-2",
+    "book-1" -> R.drawable.library_icon_book
+    "microphone-1",
+    "microphone-3" -> R.drawable.library_icon_mic
     "radio" -> R.drawable.library_icon_radio
-    "podcast", "rss" -> R.drawable.library_icon_rss_feed
+    "podcast",
+    "rss" -> R.drawable.library_icon_rss_feed
     "headphones" -> R.drawable.library_icon_headphones
     "music" -> R.drawable.library_icon_music_note
     "file-picture" -> R.drawable.library_icon_image
@@ -1132,7 +1129,7 @@ private fun LibraryAdminCreateContentPreview() {
           providerState =
             LibraryAdminProviderState.Success(
               listOf(
-                dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminProvider(
+                dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProvider(
                   "audible",
                   "Audible",
                 )

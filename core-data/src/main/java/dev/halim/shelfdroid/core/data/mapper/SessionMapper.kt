@@ -1,9 +1,9 @@
 package dev.halim.shelfdroid.core.data.mapper
 
 import dev.halim.core.network.response.DeviceInfo
-import dev.halim.core.network.response.MediaType
 import dev.halim.core.network.response.Session as NetworkSession
 import dev.halim.core.network.response.libraryitem.BookMetadata
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Device
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState.Item
@@ -29,7 +29,7 @@ class SessionMapper @Inject constructor(private val helper: Helper) {
 
   private fun item(session: NetworkSession): Item {
     val narrator =
-      if (MediaType.isBook(session.mediaType))
+      if (MediaType.fromApiValue(session.mediaType) == MediaType.BOOK)
         runCatching { (session.mediaMetadata as BookMetadata).narrators.joinToString() }
           .getOrElse { "" }
       else ""

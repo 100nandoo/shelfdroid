@@ -11,15 +11,14 @@ internal fun NetworkServerTask.toDomainTask(): ServerTask {
   val taskData = data ?: emptyMap()
   val libraryId = taskData["libraryId"]?.jsonPrimitive?.content
   val scanResults = taskData["scanResults"]?.jsonObject
-  val result =
-    scanResults?.let {
-      ServerTaskResult(
-        added = it["added"]?.jsonPrimitive?.intOrNull,
-        updated = it["updated"]?.jsonPrimitive?.intOrNull,
-        missing = it["missing"]?.jsonPrimitive?.intOrNull,
-        elapsedMillis = it["elapsed"]?.jsonPrimitive?.longOrNull,
-      )
-    }
+  val result = scanResults?.let {
+    ServerTaskResult(
+      added = it["added"]?.jsonPrimitive?.intOrNull,
+      updated = it["updated"]?.jsonPrimitive?.intOrNull,
+      missing = it["missing"]?.jsonPrimitive?.intOrNull,
+      elapsedMillis = it["elapsed"]?.jsonPrimitive?.longOrNull,
+    )
+  }
   val status =
     when {
       !isFinished -> ServerTaskStatus.ACTIVE
@@ -43,11 +42,7 @@ internal fun NetworkServerTask.toDomainTask(): ServerTask {
 
 private fun String?.toServerTaskError(): ServerTaskError? {
   if (isNullOrBlank()) return null
-  return if (
-    length <= 240 &&
-      !contains("Exception", ignoreCase = true) &&
-      !contains(" at ")
-  ) {
+  return if (length <= 240 && !contains("Exception", ignoreCase = true) && !contains(" at ")) {
     ServerTaskError.SafeMessage(this)
   } else {
     ServerTaskError.Generic

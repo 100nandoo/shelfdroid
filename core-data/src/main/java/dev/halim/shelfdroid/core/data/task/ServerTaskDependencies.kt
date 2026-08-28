@@ -29,7 +29,8 @@ interface ServerTaskCatalogSynchronizer {
 
 class LibraryDataServerTaskCatalogSynchronizer
 @Inject
-constructor(private val libraryDataRepository: LibraryDataRepository) : ServerTaskCatalogSynchronizer {
+constructor(private val libraryDataRepository: LibraryDataRepository) :
+  ServerTaskCatalogSynchronizer {
   override suspend fun synchronize(): Result<Unit> {
     val result = libraryDataRepository.synchronize()
     return if (result.isSuccess) {

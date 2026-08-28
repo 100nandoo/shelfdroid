@@ -1,12 +1,13 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
 import dev.halim.core.network.response.Library
-import dev.halim.core.network.response.MediaType
+import dev.halim.core.network.response.toDomain
+import dev.halim.shelfdroid.core.MediaType
 
 data class LibraryAdminLibrary(
   val id: String,
   val name: String,
-  val mediaType: LibraryAdminMediaType,
+  val mediaType: MediaType,
   val displayOrder: Int,
 )
 
@@ -15,11 +16,6 @@ internal fun Library.toAdministrationLibrary(): LibraryAdminLibrary =
   LibraryAdminLibrary(
     id = id,
     name = name,
-    mediaType =
-      when (mediaType) {
-        MediaType.BOOK -> LibraryAdminMediaType.BOOK
-        MediaType.PODCAST -> LibraryAdminMediaType.PODCAST
-        MediaType.UNKNOWN -> LibraryAdminMediaType.UNKNOWN
-      },
+    mediaType = mediaType.toDomain(),
     displayOrder = displayOrder,
   )

@@ -6,9 +6,7 @@ import kotlinx.serialization.json.JsonObject
 
 /** The operation-agnostic task payload returned by Audiobookshelf's task manager. */
 @Serializable
-data class TasksResponse(
-  @SerialName("tasks") val tasks: List<ServerTask> = emptyList(),
-)
+data class TasksResponse(@SerialName("tasks") val tasks: List<ServerTask> = emptyList())
 
 @Serializable
 data class ServerTask(

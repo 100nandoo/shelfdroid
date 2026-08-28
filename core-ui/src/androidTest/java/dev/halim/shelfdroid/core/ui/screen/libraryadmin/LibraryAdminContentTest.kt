@@ -1,28 +1,28 @@
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasNoClickAction
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.semantics.ProgressBarRangeInfo
-import androidx.compose.ui.geometry.Offset
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminConnectionState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminError
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminUiState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminError
 import dev.halim.shelfdroid.core.data.task.ServerTask
 import dev.halim.shelfdroid.core.data.task.ServerTaskAction
 import dev.halim.shelfdroid.core.data.task.ServerTaskResult
@@ -41,12 +41,12 @@ class LibraryAdminContentTest {
   @Test
   fun loadingState_isVisibleAndRefreshIsAccessible() {
     composeRule.setContent {
-      LibraryAdminContent(
-        uiState = LibraryAdminUiState(),
-      )
+      LibraryAdminContent(uiState = LibraryAdminUiState())
     }
 
-    composeRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertIsDisplayed()
+    composeRule
+      .onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate))
+      .assertIsDisplayed()
     composeRule.onNodeWithContentDescription("Refresh Libraries").assertIsDisplayed()
   }
 
@@ -94,13 +94,13 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "podcasts",
                   name = "Podcasts",
-                  mediaType = LibraryAdminMediaType.PODCAST,
+                  mediaType = MediaType.PODCAST,
                   displayOrder = 0,
                 ),
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 ),
               ),
@@ -136,13 +136,13 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 ),
                 LibraryAdminLibrary(
                   id = "podcasts",
                   name = "Podcasts",
-                  mediaType = LibraryAdminMediaType.PODCAST,
+                  mediaType = MediaType.PODCAST,
                   displayOrder = 2,
                 ),
               ),
@@ -176,13 +176,13 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 ),
                 LibraryAdminLibrary(
                   id = "podcasts",
                   name = "Podcasts",
-                  mediaType = LibraryAdminMediaType.PODCAST,
+                  mediaType = MediaType.PODCAST,
                   displayOrder = 2,
                 ),
               ),
@@ -221,13 +221,13 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 ),
                 LibraryAdminLibrary(
                   id = "podcasts",
                   name = "Podcasts",
-                  mediaType = LibraryAdminMediaType.PODCAST,
+                  mediaType = MediaType.PODCAST,
                   displayOrder = 2,
                 ),
               ),
@@ -236,7 +236,9 @@ class LibraryAdminContentTest {
       )
     }
 
-    composeRule.onAllNodesWithContentDescription("Scan Library").get(0)
+    composeRule
+      .onAllNodesWithContentDescription("Scan Library")
+      .get(0)
       .assertIsEnabled()
       .performClick()
     composeRule.onAllNodesWithContentDescription("Scan Library").get(1).assertIsNotEnabled()
@@ -263,13 +265,13 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 ),
                 LibraryAdminLibrary(
                   id = "podcasts",
                   name = "Podcasts",
-                  mediaType = LibraryAdminMediaType.PODCAST,
+                  mediaType = MediaType.PODCAST,
                   displayOrder = 2,
                 ),
               ),
@@ -299,7 +301,7 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 )
               ),
@@ -346,7 +348,7 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 )
               ),
@@ -414,13 +416,13 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 ),
                 LibraryAdminLibrary(
                   id = "podcasts",
                   name = "Podcasts",
-                  mediaType = LibraryAdminMediaType.PODCAST,
+                  mediaType = MediaType.PODCAST,
                   displayOrder = 2,
                 ),
               ),
@@ -429,7 +431,9 @@ class LibraryAdminContentTest {
       )
     }
 
-    composeRule.onAllNodesWithContentDescription("Delete library").get(0)
+    composeRule
+      .onAllNodesWithContentDescription("Delete library")
+      .get(0)
       .assertIsEnabled()
       .performClick()
     composeRule.onAllNodesWithContentDescription("Delete library").get(1).assertIsNotEnabled()
@@ -453,7 +457,7 @@ class LibraryAdminContentTest {
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
-                  mediaType = LibraryAdminMediaType.BOOK,
+                  mediaType = MediaType.BOOK,
                   displayOrder = 1,
                 )
               ),
@@ -462,7 +466,11 @@ class LibraryAdminContentTest {
       )
     }
 
-    composeRule.onNodeWithText("This removes the Library and its catalog data from the server. Media files remain intact. Continue?").assertIsDisplayed()
+    composeRule
+      .onNodeWithText(
+        "This removes the Library and its catalog data from the server. Media files remain intact. Continue?"
+      )
+      .assertIsDisplayed()
     composeRule.onNodeWithText("Delete").performClick()
     assertEquals(listOf(LibraryAdminEvent.ConfirmDeleteLibrary), events)
   }

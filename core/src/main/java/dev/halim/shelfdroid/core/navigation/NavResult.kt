@@ -8,8 +8,7 @@ data class CreatePodcastNavResult(val id: String = "", val feedUrl: String = "")
 
 data object ApiKeyChangedNavResult
 
-@Parcelize
-data class LibraryCreatedNavResult(val id: String = "") : Parcelable
+@Parcelize data class LibraryCreatedNavResult(val id: String = "") : Parcelable
 
 @Parcelize
 data class AppriseNotificationRuleChangedNavResult(

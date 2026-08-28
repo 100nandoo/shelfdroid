@@ -126,9 +126,10 @@ class LibraryAdminApiServiceTest {
     )
 
     assertTrue(
-      requireNotNull(capturedRequest).body!!.bodyToString().contains(
-        "\"autoScanCronExpression\":\"0 0 * * 1\""
-      )
+      requireNotNull(capturedRequest)
+        .body!!
+        .bodyToString()
+        .contains("\"autoScanCronExpression\":\"0 0 * * 1\"")
     )
   }
 

@@ -1,16 +1,16 @@
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin
 
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminContract
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMutationResult
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminError
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMutationResult
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.canDelete
 import dev.halim.shelfdroid.core.data.task.ServerTask
+import dev.halim.shelfdroid.core.data.task.ServerTaskAction
 import dev.halim.shelfdroid.core.data.task.ServerTaskConnectionState
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
-import dev.halim.shelfdroid.core.data.task.ServerTaskAction
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
 import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import java.util.ArrayDeque
@@ -30,8 +30,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -46,13 +46,13 @@ class LibraryAdminViewModelTest {
         LibraryAdminLibrary(
           "podcasts",
           "Podcasts",
-          LibraryAdminMediaType.PODCAST,
+          MediaType.PODCAST,
           4,
         ),
         LibraryAdminLibrary(
           "books",
           "Books",
-          LibraryAdminMediaType.BOOK,
+          MediaType.BOOK,
           9,
         ),
       )
@@ -78,12 +78,12 @@ class LibraryAdminViewModelTest {
               LibraryAdminLibrary(
                 "books",
                 "Books",
-                LibraryAdminMediaType.BOOK,
+                MediaType.BOOK,
                 0,
               )
             )
           ),
-        ),
+        )
       )
     val viewModel = LibraryAdminViewModel(repository)
     val collection = collectState(viewModel)
@@ -111,20 +111,17 @@ class LibraryAdminViewModelTest {
         LibraryAdminLibrary(
           id = "new-books",
           name = "New Books",
-          mediaType = LibraryAdminMediaType.BOOK,
+          mediaType = MediaType.BOOK,
           displayOrder = 1,
         ),
         LibraryAdminLibrary(
           id = "books",
           name = "Renamed Books",
-          mediaType = LibraryAdminMediaType.BOOK,
+          mediaType = MediaType.BOOK,
           displayOrder = 2,
         ),
       )
-    val repository =
-      FakeRepository(
-        listOf(Result.success(initial), Result.success(refreshed)),
-      )
+    val repository = FakeRepository(listOf(Result.success(initial), Result.success(refreshed)))
     val viewModel = LibraryAdminViewModel(repository)
     val collection = collectState(viewModel)
     advanceUntilIdle()
@@ -155,13 +152,13 @@ class LibraryAdminViewModelTest {
               LibraryAdminLibrary(
                 "books",
                 "Books",
-                LibraryAdminMediaType.BOOK,
+                MediaType.BOOK,
                 0,
               )
             )
           ),
           Result.failure(IllegalStateException("offline")),
-        ),
+        )
       )
     val viewModel = LibraryAdminViewModel(repository)
     val collection = collectState(viewModel)
@@ -183,9 +180,7 @@ class LibraryAdminViewModelTest {
     val repository =
       FakeRepository(
         listOf(Result.success(initial)),
-        listOf(
-          Result.success(LibraryAdminMutationResult.Accepted(accepted))
-        ),
+        listOf(Result.success(LibraryAdminMutationResult.Accepted(accepted))),
       )
     val viewModel = LibraryAdminViewModel(repository)
     val collection = collectState(viewModel)
@@ -346,14 +341,9 @@ class LibraryAdminViewModelTest {
     val initial = libraries("books", "podcasts", "third")
     val firstAccepted = libraries("podcasts", "books", "third")
     val secondAccepted = libraries("podcasts", "third", "books")
-    val first =
-      CompletableDeferred<
-        Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>>
-      >()
+    val first = CompletableDeferred<Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>>>()
     val second =
-      CompletableDeferred<
-        Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>>
-      >()
+      CompletableDeferred<Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>>>()
     val repository =
       ControlledRepository(
         initial = initial,
@@ -366,13 +356,9 @@ class LibraryAdminViewModelTest {
 
     viewModel.onEvent(LibraryAdminEvent.MoveLibrary("books", 1))
     viewModel.onEvent(LibraryAdminEvent.MoveLibrary("books", 1))
-    second.complete(
-      Result.success(LibraryAdminMutationResult.Accepted(secondAccepted))
-    )
+    second.complete(Result.success(LibraryAdminMutationResult.Accepted(secondAccepted)))
     advanceUntilIdle()
-    first.complete(
-      Result.success(LibraryAdminMutationResult.Accepted(firstAccepted))
-    )
+    first.complete(Result.success(LibraryAdminMutationResult.Accepted(firstAccepted)))
     advanceUntilIdle()
 
     assertEquals(secondAccepted, viewModel.uiState.value.libraries)
@@ -429,7 +415,7 @@ class LibraryAdminViewModelTest {
             LibraryAdminLibrary(
               "podcasts",
               "Podcasts",
-              LibraryAdminMediaType.PODCAST,
+              MediaType.PODCAST,
               2,
             ),
           ),
@@ -597,8 +583,7 @@ class LibraryAdminViewModelTest {
     val repository =
       FakeRepository(
         results = listOf(Result.success(initial)),
-        deleteResults =
-          listOf(Result.success(LibraryAdminMutationResult.Accepted(Unit))),
+        deleteResults = listOf(Result.success(LibraryAdminMutationResult.Accepted(Unit))),
       )
     val viewModel = LibraryAdminViewModel(repository)
     val collection = collectState(viewModel)
@@ -621,8 +606,7 @@ class LibraryAdminViewModelTest {
     val repository =
       FakeRepository(
         results = listOf(Result.success(libraries("books"))),
-        deleteResults =
-          listOf(Result.success(LibraryAdminMutationResult.Accepted(Unit))),
+        deleteResults = listOf(Result.success(LibraryAdminMutationResult.Accepted(Unit))),
       )
     val viewModel = LibraryAdminViewModel(repository)
     val collection = collectState(viewModel)
@@ -738,7 +722,7 @@ class LibraryAdminViewModelTest {
       LibraryAdminLibrary(
         id = id,
         name = id.replaceFirstChar(Char::uppercaseChar),
-        mediaType = LibraryAdminMediaType.BOOK,
+        mediaType = MediaType.BOOK,
         displayOrder = index + 1,
       )
     }
@@ -753,8 +737,7 @@ class LibraryAdminViewModelTest {
       emptyList(),
     deleteResults: List<Result<LibraryAdminMutationResult<Unit>>> = emptyList(),
     synchronizationResults: List<Result<Unit>> = emptyList(),
-  ) :
-    LibraryAdminContract, TaskStateDriver {
+  ) : LibraryAdminContract, TaskStateDriver {
     override val mutableTaskState = MutableStateFlow(ServerTaskRepositoryState())
     private val pendingResults = ArrayDeque(results)
     private val pendingReorderResults = ArrayDeque(reorderResults)
@@ -762,12 +745,12 @@ class LibraryAdminViewModelTest {
     private val pendingSynchronizationResults = ArrayDeque(synchronizationResults)
     var loadCalls = 0
       private set
+
     var synchronizeCalls = 0
       private set
+
     val reorderRequests =
-      mutableListOf<
-        Pair<List<LibraryAdminLibrary>, List<LibraryAdminLibrary>>
-      >()
+      mutableListOf<Pair<List<LibraryAdminLibrary>, List<LibraryAdminLibrary>>>()
     val deleteRequests = mutableListOf<String>()
 
     override val taskState: StateFlow<ServerTaskRepositoryState>
@@ -782,12 +765,17 @@ class LibraryAdminViewModelTest {
       libraries: List<LibraryAdminLibrary>
     ): Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>> {
       val result = pendingReorderResults.removeFirst()
-      reorderRequests += libraries to result.getOrNull()?.let { outcome ->
-        when (outcome) {
-          is LibraryAdminMutationResult.Accepted -> outcome.value
-          is LibraryAdminMutationResult.AcceptedButNotSynchronized -> outcome.value
-        }
-      }.orEmpty()
+      reorderRequests +=
+        libraries to
+          result
+            .getOrNull()
+            ?.let { outcome ->
+              when (outcome) {
+                is LibraryAdminMutationResult.Accepted -> outcome.value
+                is LibraryAdminMutationResult.AcceptedButNotSynchronized -> outcome.value
+              }
+            }
+            .orEmpty()
       return result
     }
 
@@ -812,9 +800,7 @@ class LibraryAdminViewModelTest {
     private val initial: List<LibraryAdminLibrary>,
     private val responses:
       ArrayDeque<
-        CompletableDeferred<
-          Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>>
-        >
+        CompletableDeferred<Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>>>
       >,
   ) : LibraryAdminContract, TaskStateDriver {
     override val mutableTaskState = MutableStateFlow(ServerTaskRepositoryState())

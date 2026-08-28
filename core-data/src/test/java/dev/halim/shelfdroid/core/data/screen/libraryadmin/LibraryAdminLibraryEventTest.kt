@@ -1,7 +1,8 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
 import dev.halim.core.network.response.Library
-import dev.halim.core.network.response.MediaType
+import dev.halim.core.network.response.NetworkMediaType
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.socketio.SocketEvent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -19,7 +20,7 @@ class LibraryAdminLibraryEventTest {
       Library(
         id = "books",
         name = "Books",
-        mediaType = MediaType.BOOK,
+        mediaType = NetworkMediaType.BOOK,
         displayOrder = 4,
       )
 
@@ -27,7 +28,7 @@ class LibraryAdminLibraryEventTest {
       LibraryAdminLibrary(
         id = "books",
         name = "Books",
-        mediaType = LibraryAdminMediaType.BOOK,
+        mediaType = MediaType.BOOK,
         displayOrder = 4,
       ),
       library.toAdministrationLibrary(),
@@ -44,7 +45,8 @@ class LibraryAdminLibraryEventTest {
             """
             {"id":"books","name":"Books","mediaType":"book","displayOrder":3,
              "settings":{"autoScanCronExpression":"0 * * * *"},"serverOnly":"ignored"}
-            """.trimIndent()
+            """
+              .trimIndent()
           ),
         json = json,
       )
@@ -54,7 +56,7 @@ class LibraryAdminLibraryEventTest {
       LibraryAdminLibrary(
         id = "books",
         name = "Books",
-        mediaType = LibraryAdminMediaType.BOOK,
+        mediaType = MediaType.BOOK,
         displayOrder = 3,
       ),
       event?.library,
@@ -136,7 +138,7 @@ class LibraryAdminLibraryEventTest {
         LibraryAdminLibrary(
           id = "books",
           name = "Books",
-          mediaType = LibraryAdminMediaType.BOOK,
+          mediaType = MediaType.BOOK,
           displayOrder = 0,
         )
       )
@@ -150,7 +152,7 @@ class LibraryAdminLibraryEventTest {
               LibraryAdminLibrary(
                 id = "podcasts",
                 name = "Podcasts",
-                mediaType = LibraryAdminMediaType.PODCAST,
+                mediaType = MediaType.PODCAST,
                 displayOrder = 0,
               ),
               libraries.first(),
@@ -181,7 +183,7 @@ class LibraryAdminLibraryEventTest {
       LibraryAdminLibrary(
         id = "books",
         name = "Books",
-        mediaType = LibraryAdminMediaType.BOOK,
+        mediaType = MediaType.BOOK,
         displayOrder = 0,
       )
     val reconciler =
@@ -224,10 +226,7 @@ class LibraryAdminLibraryEventTest {
         removeLibrary = {},
         currentLibraries = { emptyList() },
       )
-    val refresh =
-      LibraryAdminLibraryEvent(
-        type = LibraryAdminLibraryEventType.REFRESHED,
-      )
+    val refresh = LibraryAdminLibraryEvent(type = LibraryAdminLibraryEventType.REFRESHED)
 
     assertTrue(reconciler.accept(refresh))
     assertTrue(reconciler.accept(refresh))
@@ -240,7 +239,7 @@ class LibraryAdminLibraryEventTest {
       LibraryAdminLibrary(
         id = "books",
         name = "Books",
-        mediaType = LibraryAdminMediaType.BOOK,
+        mediaType = MediaType.BOOK,
         displayOrder = 0,
       )
     val reconciler =

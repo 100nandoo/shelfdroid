@@ -19,7 +19,10 @@ class ServerTaskRepositoryTest {
       ServerTaskAction.Unknown("future-server-task"),
       ServerTaskAction.fromRaw("future-server-task"),
     )
-    assertEquals("future-server-task", (ServerTaskAction.fromRaw("future-server-task") as ServerTaskAction.Unknown).rawValue)
+    assertEquals(
+      "future-server-task",
+      (ServerTaskAction.fromRaw("future-server-task") as ServerTaskAction.Unknown).rawValue,
+    )
   }
 
   @Test
@@ -109,10 +112,11 @@ class ServerTaskRepositoryTest {
   fun unknownAction_isRetainedWhenMappingNetworkTask() {
     val mapped =
       NetworkServerTask(
-        id = "future",
-        action = "future-server-task",
-        isFinished = true,
-      ).toDomainTask()
+          id = "future",
+          action = "future-server-task",
+          isFinished = true,
+        )
+        .toDomainTask()
 
     assertEquals(ServerTaskAction.Unknown("future-server-task"), mapped.action)
     assertEquals("future-server-task", mapped.action.rawValue)

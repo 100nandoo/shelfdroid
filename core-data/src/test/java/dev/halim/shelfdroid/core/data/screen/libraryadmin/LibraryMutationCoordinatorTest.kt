@@ -17,23 +17,21 @@ class LibraryMutationCoordinatorTest {
     val secondEntered = CompletableDeferred<Unit>()
     val completedMutations = mutableListOf<String>()
 
-    val create =
-      async {
-        coordinator.withMutation {
-          firstEntered.complete(Unit)
-          releaseFirst.await()
-          completedMutations += "create"
-        }
+    val create = async {
+      coordinator.withMutation {
+        firstEntered.complete(Unit)
+        releaseFirst.await()
+        completedMutations += "create"
       }
+    }
     firstEntered.await()
 
-    val delete =
-      async {
-        coordinator.withMutation {
-          secondEntered.complete(Unit)
-          completedMutations += "delete"
-        }
+    val delete = async {
+      coordinator.withMutation {
+        secondEntered.complete(Unit)
+        completedMutations += "delete"
       }
+    }
 
     assertFalse(secondEntered.isCompleted)
     releaseFirst.complete(Unit)
@@ -51,23 +49,21 @@ class LibraryMutationCoordinatorTest {
     val reorderEntered = CompletableDeferred<Unit>()
     val completedMutations = mutableListOf<String>()
 
-    val create =
-      async {
-        coordinator.withMutation {
-          createEntered.complete(Unit)
-          releaseCreate.await()
-          completedMutations += "create-library"
-        }
+    val create = async {
+      coordinator.withMutation {
+        createEntered.complete(Unit)
+        releaseCreate.await()
+        completedMutations += "create-library"
       }
+    }
     createEntered.await()
 
-    val reorder =
-      async {
-        coordinator.withMutation {
-          reorderEntered.complete(Unit)
-          completedMutations += "reorder-libraries"
-        }
+    val reorder = async {
+      coordinator.withMutation {
+        reorderEntered.complete(Unit)
+        completedMutations += "reorder-libraries"
       }
+    }
 
     assertFalse(reorderEntered.isCompleted)
     releaseCreate.complete(Unit)

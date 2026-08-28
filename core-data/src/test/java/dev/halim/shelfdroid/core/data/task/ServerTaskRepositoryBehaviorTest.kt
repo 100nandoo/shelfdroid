@@ -323,11 +323,17 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun completedTaskSyncFailureIsDistinctAndRetryable() = runTest {
     val api = FakeServerTaskApi(TasksResponse(emptyList()))
-    val catalog = FakeCatalogSynchronizer(ArrayDeque(listOf(Result.failure(IllegalStateException("internal")), Result.success(Unit))))
+    val catalog =
+      FakeCatalogSynchronizer(
+        ArrayDeque(listOf(Result.failure(IllegalStateException("internal")), Result.success(Unit)))
+      )
     val socket = FakeServerTaskSocket()
     val repository = repository(api, socket, catalog = catalog, retentionMillis = 1_000_000L)
 
-    socket.emit("task_finished", networkTask("finished", finished = true, finishedAt = 1_000L).json())
+    socket.emit(
+      "task_finished",
+      networkTask("finished", finished = true, finishedAt = 1_000L).json(),
+    )
     runCurrent()
     val failed = repository.state.value.tasks.single()
     assertEquals(ServerTaskSyncState.FAILED, failed.syncState)
@@ -351,7 +357,8 @@ class ServerTaskRepositoryBehaviorTest {
 
     socket.emit(
       "task_finished",
-      networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all").json(),
+      networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all")
+        .json(),
     )
     runCurrent()
     assertEquals(ServerTaskSyncState.FAILED, repository.state.value.tasks.single().syncState)
@@ -366,9 +373,7 @@ class ServerTaskRepositoryBehaviorTest {
     val terminal = networkTask("finished", finished = true, finishedAt = 1_000L)
     val api = FakeServerTaskApi(TasksResponse(listOf(terminal)))
     val catalog =
-      FakeCatalogSynchronizer(
-        ArrayDeque(listOf(Result.failure(IllegalStateException("internal"))))
-      )
+      FakeCatalogSynchronizer(ArrayDeque(listOf(Result.failure(IllegalStateException("internal")))))
     val socket = FakeServerTaskSocket()
     val repository = repository(api, socket, catalog = catalog, retentionMillis = 1_000_000L)
 
@@ -408,7 +413,8 @@ class ServerTaskRepositoryBehaviorTest {
 
     repository.socketForTest.emit(
       "task_finished",
-      networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all").json(),
+      networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all")
+        .json(),
     )
 
     assertEquals(
@@ -447,7 +453,9 @@ class ServerTaskRepositoryBehaviorTest {
     val api =
       FakeServerTaskApi(
         TasksResponse(
-          listOf(networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all"))
+          listOf(
+            networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all")
+          )
         )
       )
     val catalog = FakeCatalogSynchronizer(ArrayDeque(listOf(Result.success(Unit))))
@@ -476,7 +484,11 @@ class ServerTaskRepositoryBehaviorTest {
         socket = socket,
         catalogSynchronizer = catalog,
         scope = scope,
-        json = Json { ignoreUnknownKeys = true; explicitNulls = false },
+        json =
+          Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+          },
         clock = ServerTaskClock { 1_000L },
         terminalRetentionMillis = retentionMillis,
       )
@@ -505,8 +517,9 @@ class ServerTaskRepositoryBehaviorTest {
       finishedAt = finishedAt,
     )
 
-  private fun NetworkServerTask.json(): String =
-    Json { explicitNulls = false }.encodeToString(NetworkServerTask.serializer(), this)
+  private fun NetworkServerTask.json(): String = Json {
+    explicitNulls = false
+  }.encodeToString(NetworkServerTask.serializer(), this)
 
   private class FakeServerTaskApi : ServerTaskApi {
     private val snapshots: ArrayDeque<TasksResponse>
@@ -528,7 +541,9 @@ class ServerTaskRepositoryBehaviorTest {
 
     override suspend fun tasks(): Result<TasksResponse> {
       taskRequests++
-      return Result.success(if (snapshots.isEmpty()) TasksResponse(emptyList()) else snapshots.removeFirst())
+      return Result.success(
+        if (snapshots.isEmpty()) TasksResponse(emptyList()) else snapshots.removeFirst()
+      )
     }
 
     override suspend fun scanLibrary(libraryId: String): Result<Unit> {
@@ -544,7 +559,7 @@ class ServerTaskRepositoryBehaviorTest {
   }
 
   private class FakeCatalogSynchronizer(
-    private val responses: ArrayDeque<Result<Unit>> = ArrayDeque(),
+    private val responses: ArrayDeque<Result<Unit>> = ArrayDeque()
   ) : ServerTaskCatalogSynchronizer {
     var synchronizationCalls = 0
 

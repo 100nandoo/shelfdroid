@@ -1,9 +1,9 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
-import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
-import kotlinx.coroutines.flow.MutableStateFlow
+import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -39,7 +39,9 @@ interface LibraryAdminContract {
   suspend fun retryTaskSynchronization(taskId: String): Result<Unit> =
     Result.failure(UnsupportedOperationException("Task synchronization is unavailable"))
 
-  /** Persists the requested order and reports whether follow-up Library data synchronization ran. */
+  /**
+   * Persists the requested order and reports whether follow-up Library data synchronization ran.
+   */
   suspend fun reorderLibraries(
     libraries: List<LibraryAdminLibrary>
   ): Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>> =
@@ -49,9 +51,7 @@ interface LibraryAdminContract {
   suspend fun synchronizeLibraries(): Result<Unit> = Result.success(Unit)
 
   /** Deletes a Library and reports whether follow-up Library data synchronization ran. */
-  suspend fun deleteLibrary(
-    libraryId: String
-  ): Result<LibraryAdminMutationResult<Unit>> =
+  suspend fun deleteLibrary(libraryId: String): Result<LibraryAdminMutationResult<Unit>> =
     Result.failure(UnsupportedOperationException("Library deletion is unavailable"))
 }
 

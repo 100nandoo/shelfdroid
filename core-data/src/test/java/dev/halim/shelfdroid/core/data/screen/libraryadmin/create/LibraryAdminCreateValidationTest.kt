@@ -1,5 +1,6 @@
-package dev.halim.shelfdroid.core.data.screen.libraryadmin
+package dev.halim.shelfdroid.core.data.screen.libraryadmin.create
 
+import dev.halim.shelfdroid.core.MediaType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -77,7 +78,7 @@ class LibraryAdminCreateValidationTest {
           name = "Podcasts",
           folders = listOf("C:\\Media\\Podcasts", "c:/media/podcasts/Shows"),
           podcastProvider = "itunes",
-          mediaType = LibraryAdminMediaType.PODCAST,
+          mediaType = MediaType.PODCAST,
         ),
         listOf(LibraryAdminProvider("itunes", "iTunes")),
       )

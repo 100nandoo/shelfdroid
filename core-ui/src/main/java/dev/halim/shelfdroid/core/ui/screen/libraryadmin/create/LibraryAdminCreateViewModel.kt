@@ -1,29 +1,29 @@
-package dev.halim.shelfdroid.core.ui.screen.libraryadmin
+package dev.halim.shelfdroid.core.ui.screen.libraryadmin.create
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateContract
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateError
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateField
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateNavigation
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateResult
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateTab
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateUiState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleMode
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleInterval
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleDraft
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleValidationException
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleValidationState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminBookSettings
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminDraft
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminFilesystemState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminPodcastSettings
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminProviderState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateSubmissionState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.validateLibraryAdminDraft
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.normalizeLibraryFolderPath
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleInterval
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleMode
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminBookSettings
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateContract
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateError
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateField
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateNavigation
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateResult
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateSubmissionState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateTab
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystemState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminPodcastSettings
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationException
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.normalizeLibraryFolderPath
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.validateLibraryAdminDraft
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,7 +41,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
   private val _uiState = MutableStateFlow(LibraryAdminCreateUiState())
   val uiState: StateFlow<LibraryAdminCreateUiState> =
     _uiState
-      .onStart { loadProviders(LibraryAdminMediaType.BOOK) }
+      .onStart { loadProviders(MediaType.BOOK) }
       .stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
@@ -80,8 +80,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
         updateBookSettings { it.copy(epubsAllowScriptedContent = event.enabled) }
       is LibraryAdminCreateEvent.UpdatePodcastSearchRegion ->
         updatePodcastSettings { it.copy(podcastSearchRegion = event.value) }
-      is LibraryAdminCreateEvent.SelectFinishThresholdMode ->
-        selectFinishThresholdMode(event.mode)
+      is LibraryAdminCreateEvent.SelectFinishThresholdMode -> selectFinishThresholdMode(event.mode)
       is LibraryAdminCreateEvent.UpdateFinishThresholdValue ->
         updateFinishThresholdValue(event.value)
       is LibraryAdminCreateEvent.ToggleMetadataSource ->
@@ -90,8 +89,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
         updateDraft { moveMetadataSource(event.id, event.delta) }
       is LibraryAdminCreateEvent.ToggleSchedule ->
         updateDraft { copy(schedule = schedule.copy(enabled = event.enabled)) }
-      is LibraryAdminCreateEvent.SelectScheduleMode ->
-        updateSchedule { copy(mode = event.mode) }
+      is LibraryAdminCreateEvent.SelectScheduleMode -> updateSchedule { copy(mode = event.mode) }
       is LibraryAdminCreateEvent.SelectScheduleInterval ->
         updateSchedule { copy(simple = simple.copy(interval = event.interval)) }
       is LibraryAdminCreateEvent.UpdateScheduleHour ->
@@ -112,8 +110,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
       is LibraryAdminCreateEvent.UpdateAdvancedScheduleCron ->
         updateSchedule { copy(advancedCronExpression = event.value) }
       LibraryAdminCreateEvent.ValidateSchedule -> validateSchedule()
-      is LibraryAdminCreateEvent.SelectTab ->
-        _uiState.update { it.copy(selectedTab = event.tab) }
+      is LibraryAdminCreateEvent.SelectTab -> _uiState.update { it.copy(selectedTab = event.tab) }
       is LibraryAdminCreateEvent.UpdateManualFolder ->
         updateForm { copy(manualFolderDraft = event.value) }
       LibraryAdminCreateEvent.AddManualFolder -> addManualFolder()
@@ -131,20 +128,19 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
         _uiState.update {
           it.copy(navigation = LibraryAdminCreateNavigation.Back, discardDialog = false)
         }
-      LibraryAdminCreateEvent.CancelDiscard ->
-        _uiState.update { it.copy(discardDialog = false) }
-      LibraryAdminCreateEvent.ConsumeNavigation ->
-        _uiState.update { it.copy(navigation = null) }
-      LibraryAdminCreateEvent.ConsumeFocus ->
-        _uiState.update { it.copy(focusField = null) }
+      LibraryAdminCreateEvent.CancelDiscard -> _uiState.update { it.copy(discardDialog = false) }
+      LibraryAdminCreateEvent.ConsumeNavigation -> _uiState.update { it.copy(navigation = null) }
+      LibraryAdminCreateEvent.ConsumeFocus -> _uiState.update { it.copy(focusField = null) }
     }
   }
 
-  private fun selectMediaType(mediaType: LibraryAdminMediaType) {
+  private fun selectMediaType(mediaType: MediaType) {
     if (mediaType == _uiState.value.draft.mediaType) return
     val selectedTab =
-      if (mediaType == LibraryAdminMediaType.PODCAST &&
-          _uiState.value.selectedTab == LibraryAdminCreateTab.SCANNER) {
+      if (
+        mediaType == MediaType.PODCAST &&
+          _uiState.value.selectedTab == LibraryAdminCreateTab.SCANNER
+      ) {
         LibraryAdminCreateTab.DETAILS
       } else {
         _uiState.value.selectedTab
@@ -158,40 +154,44 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     loadProviders(mediaType)
   }
 
-  private fun loadProviders(mediaType: LibraryAdminMediaType) {
+  private fun loadProviders(mediaType: MediaType) {
     if (_uiState.value.isSubmitting) return
     _uiState.update { it.copy(providerState = LibraryAdminProviderState.Loading) }
     viewModelScope.launch {
-      repository.loadLibraryProviders(mediaType).fold(
-        onSuccess = { providers ->
-          _uiState.update { state ->
-            if (state.draft.mediaType != mediaType) state
-            else {
-              val selected = state.draft.provider
-              val provider = selected?.takeIf { value -> providers.any { it.id == value } } ?: providers.firstOrNull()?.id
-              val draft = state.draft.withProvider(provider)
-              state.copy(
-                draft = draft,
-                providerState = LibraryAdminProviderState.Success(providers),
-                validation =
-                  state.validation.copy(
-                    errors = state.validation.errors - LibraryAdminCreateField.PROVIDER
-                  ),
-                scheduleValidation =
-                  if (draft == state.draft) state.scheduleValidation
-                  else LibraryAdminScheduleValidationState.Idle,
-              )
+      repository
+        .loadLibraryProviders(mediaType)
+        .fold(
+          onSuccess = { providers ->
+            _uiState.update { state ->
+              if (state.draft.mediaType != mediaType) state
+              else {
+                val selected = state.draft.provider
+                val provider =
+                  selected?.takeIf { value -> providers.any { it.id == value } }
+                    ?: providers.firstOrNull()?.id
+                val draft = state.draft.withProvider(provider)
+                state.copy(
+                  draft = draft,
+                  providerState = LibraryAdminProviderState.Success(providers),
+                  validation =
+                    state.validation.copy(
+                      errors = state.validation.errors - LibraryAdminCreateField.PROVIDER
+                    ),
+                  scheduleValidation =
+                    if (draft == state.draft) state.scheduleValidation
+                    else LibraryAdminScheduleValidationState.Idle,
+                )
+              }
             }
-          }
-        },
-        onFailure = { _ ->
-          _uiState.update { state ->
-            if (state.draft.mediaType == mediaType) {
-              state.copy(providerState = LibraryAdminProviderState.Failure(null))
-            } else state
-          }
-        },
-      )
+          },
+          onFailure = { _ ->
+            _uiState.update { state ->
+              if (state.draft.mediaType == mediaType) {
+                state.copy(providerState = LibraryAdminProviderState.Failure(null))
+              } else state
+            }
+          },
+        )
     }
   }
 
@@ -199,18 +199,20 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     if (_uiState.value.isSubmitting) return
     _uiState.update { it.copy(filesystemState = LibraryAdminFilesystemState.Loading(path)) }
     viewModelScope.launch {
-      repository.browseLibraryFilesystem(path).fold(
-        onSuccess = { filesystem ->
-          _uiState.update {
-            it.copy(filesystemState = LibraryAdminFilesystemState.Success(path, filesystem))
-          }
-        },
-        onFailure = { _ ->
-          _uiState.update {
-            it.copy(filesystemState = LibraryAdminFilesystemState.Failure(path, null))
-          }
-        },
-      )
+      repository
+        .browseLibraryFilesystem(path)
+        .fold(
+          onSuccess = { filesystem ->
+            _uiState.update {
+              it.copy(filesystemState = LibraryAdminFilesystemState.Success(path, filesystem))
+            }
+          },
+          onFailure = { _ ->
+            _uiState.update {
+              it.copy(filesystemState = LibraryAdminFilesystemState.Failure(path, null))
+            }
+          },
+        )
     }
   }
 
@@ -253,9 +255,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     updateForm { updateState(copy(draft = update(draft))) }
   }
 
-  private fun updateSchedule(
-    update: LibraryAdminScheduleDraft.() -> LibraryAdminScheduleDraft
-  ) {
+  private fun updateSchedule(update: LibraryAdminScheduleDraft.() -> LibraryAdminScheduleDraft) {
     updateDraft { copy(schedule = update(schedule)) }
   }
 
@@ -264,7 +264,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     updatePodcast: (LibraryAdminPodcastSettings) -> LibraryAdminPodcastSettings,
   ) {
     updateDraft {
-      if (mediaType == LibraryAdminMediaType.BOOK) {
+      if (mediaType == MediaType.BOOK) {
         copy(bookSettings = updateBook(bookSettings))
       } else {
         copy(podcastSettings = updatePodcast(podcastSettings))
@@ -307,12 +307,9 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
         it.copy(
           selectedTab =
             when (validation.firstInvalidField) {
-              LibraryAdminCreateField.SETTINGS_FINISH_THRESHOLD ->
-                LibraryAdminCreateTab.SETTINGS
-              LibraryAdminCreateField.SCANNER_PRECEDENCE ->
-                LibraryAdminCreateTab.SCANNER
-              LibraryAdminCreateField.SCHEDULE ->
-                LibraryAdminCreateTab.SCHEDULE
+              LibraryAdminCreateField.SETTINGS_FINISH_THRESHOLD -> LibraryAdminCreateTab.SETTINGS
+              LibraryAdminCreateField.SCANNER_PRECEDENCE -> LibraryAdminCreateTab.SCANNER
+              LibraryAdminCreateField.SCHEDULE -> LibraryAdminCreateTab.SCHEDULE
               else -> LibraryAdminCreateTab.DETAILS
             },
           validation = validation,
@@ -369,12 +366,10 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
       _uiState.update {
         it.copy(
           selectedTab = LibraryAdminCreateTab.SCHEDULE,
-          scheduleValidation =
-            LibraryAdminScheduleValidationState.Invalid(localValidation),
+          scheduleValidation = LibraryAdminScheduleValidationState.Invalid(localValidation),
           validation =
             it.validation.copy(
-              errors = it.validation.errors +
-                (LibraryAdminCreateField.SCHEDULE to listOf(error))
+              errors = it.validation.errors + (LibraryAdminCreateField.SCHEDULE to listOf(error))
             ),
           focusField = LibraryAdminCreateField.SCHEDULE,
         )
@@ -392,51 +387,54 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     _uiState.update {
       it.copy(
         scheduleValidation = LibraryAdminScheduleValidationState.Validating,
-        validation = it.validation.copy(errors = it.validation.errors - LibraryAdminCreateField.SCHEDULE),
+        validation =
+          it.validation.copy(errors = it.validation.errors - LibraryAdminCreateField.SCHEDULE),
       )
     }
     viewModelScope.launch {
-      repository.validateLibrarySchedule(expression).fold(
-        onSuccess = {
-          if (_uiState.value.draft != state.draft) return@fold
-          _uiState.update {
-            it.copy(scheduleValidation = LibraryAdminScheduleValidationState.Valid)
-          }
-          if (createOnSuccess) createLibrary(state.draft)
-        },
-        onFailure = { error ->
-          if (_uiState.value.draft != state.draft) return@fold
-          val unavailable =
-            error is LibraryAdminScheduleValidationException.Unavailable ||
-              error !is LibraryAdminScheduleValidationException.Invalid
-          val validationState =
-            if (unavailable) {
-              LibraryAdminScheduleValidationState.Unavailable(error.message)
-            } else {
-              LibraryAdminScheduleValidationState.Invalid(error.message)
+      repository
+        .validateLibrarySchedule(expression)
+        .fold(
+          onSuccess = {
+            if (_uiState.value.draft != state.draft) return@fold
+            _uiState.update {
+              it.copy(scheduleValidation = LibraryAdminScheduleValidationState.Valid)
             }
-          _uiState.update {
-            it.copy(
-              selectedTab = LibraryAdminCreateTab.SCHEDULE,
-              scheduleValidation = validationState,
-              validation =
-                it.validation.copy(
-                  errors =
-                    it.validation.errors +
-                      (LibraryAdminCreateField.SCHEDULE to
-                        listOf(
-                          if (unavailable) {
-                            LibraryAdminCreateError.SCHEDULE_VALIDATION_UNAVAILABLE
-                          } else {
-                            LibraryAdminCreateError.SCHEDULE_INVALID
-                          }
-                        ))
-                ),
-              focusField = LibraryAdminCreateField.SCHEDULE,
-            )
-          }
-        },
-      )
+            if (createOnSuccess) createLibrary(state.draft)
+          },
+          onFailure = { error ->
+            if (_uiState.value.draft != state.draft) return@fold
+            val unavailable =
+              error is LibraryAdminScheduleValidationException.Unavailable ||
+                error !is LibraryAdminScheduleValidationException.Invalid
+            val validationState =
+              if (unavailable) {
+                LibraryAdminScheduleValidationState.Unavailable(error.message)
+              } else {
+                LibraryAdminScheduleValidationState.Invalid(error.message)
+              }
+            _uiState.update {
+              it.copy(
+                selectedTab = LibraryAdminCreateTab.SCHEDULE,
+                scheduleValidation = validationState,
+                validation =
+                  it.validation.copy(
+                    errors =
+                      it.validation.errors +
+                        (LibraryAdminCreateField.SCHEDULE to
+                          listOf(
+                            if (unavailable) {
+                              LibraryAdminCreateError.SCHEDULE_VALIDATION_UNAVAILABLE
+                            } else {
+                              LibraryAdminCreateError.SCHEDULE_INVALID
+                            }
+                          ))
+                  ),
+                focusField = LibraryAdminCreateField.SCHEDULE,
+              )
+            }
+          },
+        )
     }
   }
 
@@ -446,34 +444,34 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
       it.copy(submissionState = LibraryAdminCreateSubmissionState.Submitting)
     }
     viewModelScope.launch {
-      repository.createLibrary(draft).fold(
-        onSuccess = { result ->
-          _uiState.update {
-            when (result) {
-              is LibraryAdminCreateResult.Created ->
-                it.copy(
-                  submissionState = LibraryAdminCreateSubmissionState.Idle,
-                  navigation = LibraryAdminCreateNavigation.Created(result.library),
-                )
-              is LibraryAdminCreateResult.CreatedButNotSynchronized ->
-                it.copy(
-                  submissionState =
-                    LibraryAdminCreateSubmissionState.LocalSyncFailure(
-                      result.library,
-                      null,
-                    )
-                )
+      repository
+        .createLibrary(draft)
+        .fold(
+          onSuccess = { result ->
+            _uiState.update {
+              when (result) {
+                is LibraryAdminCreateResult.Created ->
+                  it.copy(
+                    submissionState = LibraryAdminCreateSubmissionState.Idle,
+                    navigation = LibraryAdminCreateNavigation.Created(result.library),
+                  )
+                is LibraryAdminCreateResult.CreatedButNotSynchronized ->
+                  it.copy(
+                    submissionState =
+                      LibraryAdminCreateSubmissionState.LocalSyncFailure(
+                        result.library,
+                        null,
+                      )
+                  )
+              }
             }
-          }
-        },
-        onFailure = { _ ->
-          _uiState.update {
-            it.copy(
-              submissionState = LibraryAdminCreateSubmissionState.ServerFailure(null)
-            )
-          }
-        },
-      )
+          },
+          onFailure = { _ ->
+            _uiState.update {
+              it.copy(submissionState = LibraryAdminCreateSubmissionState.ServerFailure(null))
+            }
+          },
+        )
     }
   }
 
@@ -484,27 +482,29 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
         ?: return
     viewModelScope.launch {
       _uiState.update { it.copy(submissionState = LibraryAdminCreateSubmissionState.Submitting) }
-      repository.synchronizeLibraries().fold(
-        onSuccess = {
-          _uiState.update {
-            it.copy(
-              submissionState = LibraryAdminCreateSubmissionState.Idle,
-              navigation = LibraryAdminCreateNavigation.Created(localFailure.library),
-            )
-          }
-        },
-        onFailure = { _ ->
-          _uiState.update {
-            it.copy(
-              submissionState =
-                LibraryAdminCreateSubmissionState.LocalSyncFailure(
-                  localFailure.library,
-                  null,
-                )
-            )
-          }
-        },
-      )
+      repository
+        .synchronizeLibraries()
+        .fold(
+          onSuccess = {
+            _uiState.update {
+              it.copy(
+                submissionState = LibraryAdminCreateSubmissionState.Idle,
+                navigation = LibraryAdminCreateNavigation.Created(localFailure.library),
+              )
+            }
+          },
+          onFailure = { _ ->
+            _uiState.update {
+              it.copy(
+                submissionState =
+                  LibraryAdminCreateSubmissionState.LocalSyncFailure(
+                    localFailure.library,
+                    null,
+                  )
+              )
+            }
+          },
+        )
     }
   }
 
@@ -519,46 +519,90 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
 
 sealed interface LibraryAdminCreateEvent {
   data object Load : LibraryAdminCreateEvent
+
   data object RetryProviders : LibraryAdminCreateEvent
-  data class SelectMediaType(val mediaType: LibraryAdminMediaType) : LibraryAdminCreateEvent
+
+  data class SelectMediaType(val mediaType: MediaType) : LibraryAdminCreateEvent
+
   data class UpdateName(val value: String) : LibraryAdminCreateEvent
+
   data class SelectIcon(val icon: String) : LibraryAdminCreateEvent
+
   data class SelectProvider(val providerId: String) : LibraryAdminCreateEvent
+
   data class UpdateCoverAspectRatio(val value: Int) : LibraryAdminCreateEvent
+
   data class UpdateWatcher(val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class UpdateAudiobooksOnly(val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class UpdateSkipMatchingAsin(val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class UpdateSkipMatchingIsbn(val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class UpdateHideSingleBookSeries(val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class UpdateOnlyShowLaterBooks(val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class UpdateScriptedEpubs(val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class UpdatePodcastSearchRegion(val value: String) : LibraryAdminCreateEvent
-  data class SelectFinishThresholdMode(val mode: LibraryAdminFinishThresholdMode) : LibraryAdminCreateEvent
+
+  data class SelectFinishThresholdMode(val mode: LibraryAdminFinishThresholdMode) :
+    LibraryAdminCreateEvent
+
   data class UpdateFinishThresholdValue(val value: Int) : LibraryAdminCreateEvent
+
   data class ToggleMetadataSource(val id: String, val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class MoveMetadataSource(val id: String, val delta: Int) : LibraryAdminCreateEvent
+
   data class ToggleSchedule(val enabled: Boolean) : LibraryAdminCreateEvent
+
   data class SelectScheduleMode(val mode: LibraryAdminScheduleMode) : LibraryAdminCreateEvent
-  data class SelectScheduleInterval(val interval: LibraryAdminScheduleInterval) : LibraryAdminCreateEvent
+
+  data class SelectScheduleInterval(val interval: LibraryAdminScheduleInterval) :
+    LibraryAdminCreateEvent
+
   data class UpdateScheduleHour(val value: String) : LibraryAdminCreateEvent
+
   data class UpdateScheduleMinute(val value: String) : LibraryAdminCreateEvent
-  data class ToggleScheduleWeekday(val weekday: Int, val selected: Boolean) : LibraryAdminCreateEvent
+
+  data class ToggleScheduleWeekday(val weekday: Int, val selected: Boolean) :
+    LibraryAdminCreateEvent
+
   data class UpdateAdvancedScheduleCron(val value: String) : LibraryAdminCreateEvent
+
   data object ValidateSchedule : LibraryAdminCreateEvent
+
   data class SelectTab(val tab: LibraryAdminCreateTab) : LibraryAdminCreateEvent
+
   data class UpdateManualFolder(val value: String) : LibraryAdminCreateEvent
+
   data object AddManualFolder : LibraryAdminCreateEvent
+
   data class SelectFolder(val path: String) : LibraryAdminCreateEvent
+
   data class RemoveFolder(val path: String) : LibraryAdminCreateEvent
+
   data object OpenFilesystem : LibraryAdminCreateEvent
+
   data class OpenFilesystemPath(val path: String) : LibraryAdminCreateEvent
+
   data object CloseFilesystem : LibraryAdminCreateEvent
+
   data object Submit : LibraryAdminCreateEvent
+
   data object RetryLocalSynchronization : LibraryAdminCreateEvent
+
   data object Back : LibraryAdminCreateEvent
+
   data object ConfirmDiscard : LibraryAdminCreateEvent
+
   data object CancelDiscard : LibraryAdminCreateEvent
+
   data object ConsumeNavigation : LibraryAdminCreateEvent
+
   data object ConsumeFocus : LibraryAdminCreateEvent
 }
 

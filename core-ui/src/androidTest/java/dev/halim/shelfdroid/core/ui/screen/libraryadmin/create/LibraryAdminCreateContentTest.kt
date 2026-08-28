@@ -1,33 +1,33 @@
-package dev.halim.shelfdroid.core.ui.screen.libraryadmin
+package dev.halim.shelfdroid.core.ui.screen.libraryadmin.create
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assert
-import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateError
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateField
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateTab
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateUiState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminDraft
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminFilesystem
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminFilesystemState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminBookSettings
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminProvider
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminProviderState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminValidation
+import dev.halim.shelfdroid.core.MediaType
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminBookSettings
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateError
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateField
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateTab
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystem
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystemState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProvider
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminValidation
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,15 +45,13 @@ class LibraryAdminCreateContentTest {
           LibraryAdminCreateUiState(
             draft =
               LibraryAdminDraft(
-                mediaType = LibraryAdminMediaType.BOOK,
+                mediaType = MediaType.BOOK,
                 name = "Books",
                 folders = listOf("/media/books"),
                 bookProvider = "audible",
               ),
             providerState =
-              LibraryAdminProviderState.Success(
-                listOf(LibraryAdminProvider("audible", "Audible"))
-              ),
+              LibraryAdminProviderState.Success(listOf(LibraryAdminProvider("audible", "Audible"))),
           )
       )
     }
@@ -74,8 +72,7 @@ class LibraryAdminCreateContentTest {
       LibraryAdminCreateContent(
         uiState =
           LibraryAdminCreateUiState(
-            providerState =
-              LibraryAdminProviderState.Failure("internal provider exception")
+            providerState = LibraryAdminProviderState.Failure("internal provider exception")
           )
       )
     }
@@ -121,8 +118,7 @@ class LibraryAdminCreateContentTest {
                     ),
                   focusField = LibraryAdminCreateField.PROVIDER,
                 )
-            LibraryAdminCreateEvent.ConsumeFocus ->
-              uiState = uiState.copy(focusField = null)
+            LibraryAdminCreateEvent.ConsumeFocus -> uiState = uiState.copy(focusField = null)
             LibraryAdminCreateEvent.RetryProviders ->
               uiState =
                 uiState.copy(
@@ -140,9 +136,7 @@ class LibraryAdminCreateContentTest {
 
     composeRule.onAllNodesWithText("Create Library")[1].performClick()
     composeRule.waitForIdle()
-    composeRule
-      .onNodeWithContentDescription("Could not load providers. Retry")
-      .assertIsFocused()
+    composeRule.onNodeWithContentDescription("Could not load providers. Retry").assertIsFocused()
 
     composeRule.onNodeWithText("Retry").performClick()
     composeRule.waitForIdle()
@@ -171,9 +165,7 @@ class LibraryAdminCreateContentTest {
           LibraryAdminCreateUiState(
             draft = LibraryAdminDraft(bookProvider = "audible"),
             providerState =
-              LibraryAdminProviderState.Success(
-                listOf(LibraryAdminProvider("audible", "Audible"))
-              ),
+              LibraryAdminProviderState.Success(listOf(LibraryAdminProvider("audible", "Audible"))),
             focusField = LibraryAdminCreateField.PROVIDER,
           )
       )
@@ -192,8 +184,7 @@ class LibraryAdminCreateContentTest {
               LibraryAdminValidation(
                 errors =
                   mapOf(
-                    LibraryAdminCreateField.NAME to
-                      listOf(LibraryAdminCreateError.NAME_REQUIRED),
+                    LibraryAdminCreateField.NAME to listOf(LibraryAdminCreateError.NAME_REQUIRED),
                     LibraryAdminCreateField.FOLDERS to
                       listOf(LibraryAdminCreateError.FOLDERS_REQUIRED),
                   )
@@ -220,11 +211,12 @@ class LibraryAdminCreateContentTest {
                     isPosix = true,
                     directories =
                       List(40) { index ->
-                        dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminDirectory(
-                          path = "/media/$index",
-                          name = "media-$index",
-                          level = 0,
-                        )
+                        dev.halim.shelfdroid.core.data.screen.libraryadmin.create
+                          .LibraryAdminDirectory(
+                            path = "/media/$index",
+                            name = "media-$index",
+                            level = 0,
+                          )
                       },
                   ),
               )
@@ -232,9 +224,7 @@ class LibraryAdminCreateContentTest {
       )
     }
 
-    composeRule
-      .onNodeWithContentDescription("Filesystem directories")
-      .assert(hasScrollAction())
+    composeRule.onNodeWithContentDescription("Filesystem directories").assert(hasScrollAction())
   }
 
   @Test
@@ -254,10 +244,15 @@ class LibraryAdminCreateContentTest {
 
     composeRule.onNodeWithText("Use square covers").assertIsDisplayed()
     composeRule.onNodeWithText("Audiobooks only").performScrollTo().assertIsDisplayed()
-    composeRule.onNodeWithText("Skip matching books with ASIN").performScrollTo().assertIsDisplayed()
+    composeRule
+      .onNodeWithText("Skip matching books with ASIN")
+      .performScrollTo()
+      .assertIsDisplayed()
     composeRule.onNodeWithText("Allow scripted EPUB content").performScrollTo().assertIsDisplayed()
     composeRule
-      .onNodeWithText("Scripted EPUB content can execute active code from an ebook. Only enable this for trusted files.")
+      .onNodeWithText(
+        "Scripted EPUB content can execute active code from an ebook. Only enable this for trusted files."
+      )
       .performScrollTo()
       .assertIsDisplayed()
   }
@@ -269,7 +264,7 @@ class LibraryAdminCreateContentTest {
         uiState =
           LibraryAdminCreateUiState(
             selectedTab = LibraryAdminCreateTab.SETTINGS,
-            draft = LibraryAdminDraft(mediaType = LibraryAdminMediaType.PODCAST),
+            draft = LibraryAdminDraft(mediaType = MediaType.PODCAST),
           )
       )
     }
@@ -285,7 +280,7 @@ class LibraryAdminCreateContentTest {
         uiState =
           LibraryAdminCreateUiState(
             selectedTab = LibraryAdminCreateTab.SCHEDULE,
-            draft = LibraryAdminDraft(mediaType = LibraryAdminMediaType.PODCAST),
+            draft = LibraryAdminDraft(mediaType = MediaType.PODCAST),
           )
       )
     }
@@ -308,7 +303,10 @@ class LibraryAdminCreateContentTest {
     }
 
     composeRule.onNodeWithText("Folder structure").performScrollTo().assertIsDisplayed()
-    composeRule.onNodeWithText("Audio file meta tags OR ebook metadata").performScrollTo().assertIsDisplayed()
+    composeRule
+      .onNodeWithText("Audio file meta tags OR ebook metadata")
+      .performScrollTo()
+      .assertIsDisplayed()
     composeRule.onNodeWithText("NFO file").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithText("desc.txt & reader.txt files").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithText("OPF file").performScrollTo().assertIsDisplayed()
@@ -316,9 +314,7 @@ class LibraryAdminCreateContentTest {
     composeRule
       .onNodeWithContentDescription("Audiobookshelf metadata file, priority 1")
       .assertIsDisplayed()
-    composeRule
-      .onNodeWithContentDescription("Folder structure, priority 6")
-      .assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Folder structure, priority 6").assertIsDisplayed()
     composeRule.onAllNodesWithText("Move up").assertCountEquals(6)
   }
 }

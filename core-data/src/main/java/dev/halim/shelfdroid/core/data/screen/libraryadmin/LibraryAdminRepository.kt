@@ -4,13 +4,15 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.CreateLibraryRequest
 import dev.halim.core.network.request.ReorderLibraryRequest
 import dev.halim.core.network.request.ValidateCronRequest
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.library.LibraryDataSyncResult
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.*
+import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryContract
 import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
-import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -76,7 +78,9 @@ constructor(
               ReorderLibraryRequest(id = library.id, newOrder = index + 1)
             }
           )
-          .getOrElse { return@withMutation Result.failure(it) }
+          .getOrElse {
+            return@withMutation Result.failure(it)
+          }
       val acceptedOrder = response.libraries.map { it.toAdministrationLibrary() }
 
       // Persist the accepted order before synchronizing items. If the follow-up synchronization
@@ -108,19 +112,19 @@ constructor(
         Result.success(
           LibraryAdminMutationResult.AcceptedButNotSynchronized(
             value = acceptedOrder,
-            error = synchronization.error
-              ?: IllegalStateException("Library data synchronization failed"),
+            error =
+              synchronization.error ?: IllegalStateException("Library data synchronization failed"),
           )
         )
       }
     }
 
-  override suspend fun deleteLibrary(
-    libraryId: String
-  ): Result<LibraryAdminMutationResult<Unit>> =
+  override suspend fun deleteLibrary(libraryId: String): Result<LibraryAdminMutationResult<Unit>> =
     mutationCoordinator.withMutation {
       val deletedLibrary =
-        api.deleteLibrary(libraryId).getOrElse { return@withMutation Result.failure(it) }
+        api.deleteLibrary(libraryId).getOrElse {
+          return@withMutation Result.failure(it)
+        }
       Result.success(
         runAcceptedLibraryDeleteMutation {
           libraryEventRepository.registerLocalMutation(
@@ -138,8 +142,9 @@ constructor(
           } else {
             LibraryAdminMutationResult.AcceptedButNotSynchronized(
               value = Unit,
-              error = synchronization.error
-                ?: IllegalStateException("Library data synchronization failed"),
+              error =
+                synchronization.error
+                  ?: IllegalStateException("Library data synchronization failed"),
             )
           }
         }
@@ -147,14 +152,14 @@ constructor(
     }
 
   override suspend fun loadLibraryProviders(
-    mediaType: LibraryAdminMediaType
+    mediaType: MediaType
   ): Result<List<LibraryAdminProvider>> {
     return api.searchProviders().map { response ->
       val providers =
         when (mediaType) {
-          LibraryAdminMediaType.BOOK -> response.providers.books
-          LibraryAdminMediaType.PODCAST -> response.providers.podcasts
-          LibraryAdminMediaType.UNKNOWN -> emptyList()
+          MediaType.BOOK -> response.providers.books
+          MediaType.PODCAST -> response.providers.podcasts
+          MediaType.UNKNOWN -> emptyList()
         }
       providers
         .asSequence()
@@ -181,23 +186,23 @@ constructor(
   }
 
   override suspend fun validateLibrarySchedule(expression: String): Result<Unit> {
-    return api.validateCron(ValidateCronRequest(expression)).fold(
-      onSuccess = { Result.success(Unit) },
-      onFailure = { error ->
-        Result.failure(
-          if (error is HttpException && error.code() == 400) {
-            LibraryAdminScheduleValidationException.Invalid(error.message())
-          } else {
-            LibraryAdminScheduleValidationException.Unavailable(error.message)
-          }
-        )
-      },
-    )
+    return api
+      .validateCron(ValidateCronRequest(expression))
+      .fold(
+        onSuccess = { Result.success(Unit) },
+        onFailure = { error ->
+          Result.failure(
+            if (error is HttpException && error.code() == 400) {
+              LibraryAdminScheduleValidationException.Invalid(error.message())
+            } else {
+              LibraryAdminScheduleValidationException.Unavailable(error.message)
+            }
+          )
+        },
+      )
   }
 
-  override suspend fun createLibrary(
-    draft: LibraryAdminDraft
-  ): Result<LibraryAdminCreateResult> {
+  override suspend fun createLibrary(draft: LibraryAdminDraft): Result<LibraryAdminCreateResult> {
     return mutationCoordinator.withMutation {
       val serverLibrary =
         api
@@ -214,36 +219,43 @@ constructor(
               settings = draft.toCreateSettings(),
             )
           )
-          .getOrElse { return@withMutation Result.failure(it) }
+          .getOrElse {
+            return@withMutation Result.failure(it)
+          }
 
       libraryEventRepository.registerLocalMutation(
         LibraryAdminLibraryEventType.ADDED,
         serverLibrary,
       )
       val administrationLibrary = serverLibrary.toAdministrationLibrary()
-      libraryRepository.refreshLibraries().fold(
-        onSuccess = {
-          Result.success(LibraryAdminCreateResult.Created(administrationLibrary))
-        },
-        onFailure = { error ->
-          Result.success(
-            LibraryAdminCreateResult.CreatedButNotSynchronized(
-              library = administrationLibrary,
-              error = error,
+      libraryRepository
+        .refreshLibraries()
+        .fold(
+          onSuccess = {
+            Result.success(LibraryAdminCreateResult.Created(administrationLibrary))
+          },
+          onFailure = { error ->
+            Result.success(
+              LibraryAdminCreateResult.CreatedButNotSynchronized(
+                library = administrationLibrary,
+                error = error,
+              )
             )
-          )
-        },
-      )
+          },
+        )
     }
   }
 
-  override suspend fun synchronizeLibraries(): Result<Unit> =
-    mutationCoordinator.withMutation { libraryDataRepository.synchronize().toResult() }
+  override suspend fun synchronizeLibraries(): Result<Unit> = mutationCoordinator.withMutation {
+    libraryDataRepository.synchronize().toResult()
+  }
 }
 
-/** Keeps an accepted delete successful when any local follow-up step needs synchronization retry. */
+/**
+ * Keeps an accepted delete successful when any local follow-up step needs synchronization retry.
+ */
 internal suspend fun runAcceptedLibraryDeleteMutation(
-  operation: suspend () -> LibraryAdminMutationResult<Unit>,
+  operation: suspend () -> LibraryAdminMutationResult<Unit>
 ): LibraryAdminMutationResult<Unit> =
   try {
     operation()
@@ -266,23 +278,18 @@ private fun LibraryEntity.toAdministrationLibrary(): LibraryAdminLibrary =
     name = name,
     mediaType =
       if (isBookLibrary == 1L) {
-        LibraryAdminMediaType.BOOK
+        MediaType.BOOK
       } else {
-        LibraryAdminMediaType.PODCAST
+        MediaType.PODCAST
       },
     displayOrder = displayOrder.toInt(),
   )
 
-private fun LibraryAdminMediaType.toApiValue(): String =
-  when (this) {
-    LibraryAdminMediaType.BOOK -> "book"
-    LibraryAdminMediaType.PODCAST -> "podcast"
-    LibraryAdminMediaType.UNKNOWN -> "book"
-  }
+private fun MediaType.toApiValue(): String = apiValue ?: "book"
 
 internal fun LibraryAdminDraft.toCreateSettings(): CreateLibraryRequest.Settings =
   when (mediaType) {
-    LibraryAdminMediaType.BOOK ->
+    MediaType.BOOK ->
       CreateLibraryRequest.Settings(
         coverAspectRatio = bookSettings.coverAspectRatio,
         disableWatcher = bookSettings.disableWatcher,
@@ -297,7 +304,7 @@ internal fun LibraryAdminDraft.toCreateSettings(): CreateLibraryRequest.Settings
         metadataPrecedence = metadataPrecedence,
         autoScanCronExpression = scheduleExpressionOrNull(),
       )
-    LibraryAdminMediaType.PODCAST ->
+    MediaType.PODCAST ->
       CreateLibraryRequest.Settings(
         coverAspectRatio = podcastSettings.coverAspectRatio,
         disableWatcher = podcastSettings.disableWatcher,
@@ -306,5 +313,5 @@ internal fun LibraryAdminDraft.toCreateSettings(): CreateLibraryRequest.Settings
         markAsFinishedTimeRemaining = podcastSettings.finishThreshold.serializedTimeRemaining,
         autoScanCronExpression = scheduleExpressionOrNull(),
       )
-    LibraryAdminMediaType.UNKNOWN -> CreateLibraryRequest.Settings()
+    MediaType.UNKNOWN -> CreateLibraryRequest.Settings()
   }

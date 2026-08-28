@@ -3,9 +3,9 @@ package dev.halim.shelfdroid.core.data.task
 /**
  * The operation represented by an Audiobookshelf Server task.
  *
- * The server can add actions without a corresponding ShelfDroid release. Keeping the wire value
- * on [Unknown] lets the operation-agnostic task repository retain those tasks instead of dropping
- * or misclassifying them.
+ * The server can add actions without a corresponding ShelfDroid release. Keeping the wire value on
+ * [Unknown] lets the operation-agnostic task repository retain those tasks instead of dropping or
+ * misclassifying them.
  */
 sealed interface ServerTaskAction {
   val rawValue: String

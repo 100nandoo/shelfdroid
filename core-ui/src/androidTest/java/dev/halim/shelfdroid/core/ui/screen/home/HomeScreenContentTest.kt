@@ -86,8 +86,9 @@ class HomeScreenContentTest {
     )
 
   private fun libraryCatalogUiState(): HomeUiState =
-    emptyCatalogUiState(isAdmin = true).copy(
-      activeLibraryId = "books",
-      librariesUiState = listOf(LibraryUiState(id = "books", name = "Books")),
-    )
+    emptyCatalogUiState(isAdmin = true)
+      .copy(
+        activeLibraryId = "books",
+        librariesUiState = listOf(LibraryUiState(id = "books", name = "Books")),
+      )
 }

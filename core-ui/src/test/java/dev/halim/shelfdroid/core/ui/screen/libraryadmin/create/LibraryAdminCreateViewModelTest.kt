@@ -1,22 +1,22 @@
-package dev.halim.shelfdroid.core.ui.screen.libraryadmin
+package dev.halim.shelfdroid.core.ui.screen.libraryadmin.create
 
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateContract
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateResult
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateField
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateSubmissionState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateError
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateTab
+import dev.halim.shelfdroid.core.MediaType
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleInterval
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleMode
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleValidationException
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleValidationState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminDraft
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminFilesystemState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminFilesystem
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminProvider
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminProviderState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateContract
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateError
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateField
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateResult
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateSubmissionState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateTab
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystem
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystemState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProvider
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationException
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationState
 import java.util.ArrayDeque
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +61,9 @@ class LibraryAdminCreateViewModelTest {
     prepareValidDraft(viewModel)
     viewModel.onEvent(LibraryAdminCreateEvent.Submit)
     advanceUntilIdle()
-    assertTrue(viewModel.uiState.value.validation.errors.containsKey(LibraryAdminCreateField.PROVIDER))
+    assertTrue(
+      viewModel.uiState.value.validation.errors.containsKey(LibraryAdminCreateField.PROVIDER)
+    )
     assertEquals(LibraryAdminCreateTab.DETAILS, viewModel.uiState.value.selectedTab)
     assertEquals(LibraryAdminCreateField.PROVIDER, viewModel.uiState.value.focusField)
     assertEquals(0, repository.createCalls)
@@ -94,10 +96,10 @@ class LibraryAdminCreateViewModelTest {
     val collection = collectState(viewModel)
     advanceUntilIdle()
 
-    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(LibraryAdminMediaType.PODCAST))
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.PODCAST))
     advanceUntilIdle()
     viewModel.onEvent(LibraryAdminCreateEvent.SelectProvider("itunes"))
-    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(LibraryAdminMediaType.BOOK))
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.BOOK))
     advanceUntilIdle()
 
     assertEquals("audible", viewModel.uiState.value.draft.bookProvider)
@@ -171,7 +173,7 @@ class LibraryAdminCreateViewModelTest {
   @Test
   fun successfulCreateEmitsNavigationAfterRepositoryReconciles() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val library = LibraryAdminLibrary("books", "Books", LibraryAdminMediaType.BOOK, 1)
+    val library = LibraryAdminLibrary("books", "Books", MediaType.BOOK, 1)
     val repository =
       FakeRepository(
         providerResults =
@@ -186,7 +188,11 @@ class LibraryAdminCreateViewModelTest {
     viewModel.onEvent(LibraryAdminCreateEvent.Submit)
     advanceUntilIdle()
 
-    assertTrue(viewModel.uiState.value.navigation is dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateNavigation.Created)
+    assertTrue(
+      viewModel.uiState.value.navigation
+        is
+        dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateNavigation.Created
+    )
     assertEquals(1, repository.createCalls)
     collection.cancel()
   }
@@ -204,7 +210,7 @@ class LibraryAdminCreateViewModelTest {
               isPosix = false,
               directories =
                 listOf(
-                  dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminDirectory(
+                  dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDirectory(
                     path = "C:/Media",
                     name = "Media",
                     level = 0,
@@ -246,7 +252,8 @@ class LibraryAdminCreateViewModelTest {
 
     assertEquals(
       null,
-      (viewModel.uiState.value.submissionState as LibraryAdminCreateSubmissionState.ServerFailure).message,
+      (viewModel.uiState.value.submissionState as LibraryAdminCreateSubmissionState.ServerFailure)
+        .message,
     )
     assertEquals(null, viewModel.uiState.value.navigation)
     collection.cancel()
@@ -255,7 +262,7 @@ class LibraryAdminCreateViewModelTest {
   @Test
   fun localSynchronizationFailure_isRetryableAfterServerCreate() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-    val library = LibraryAdminLibrary("books", "Books", LibraryAdminMediaType.BOOK, 1)
+    val library = LibraryAdminLibrary("books", "Books", MediaType.BOOK, 1)
     val repository =
       FakeRepository(
         providerResults =
@@ -276,15 +283,18 @@ class LibraryAdminCreateViewModelTest {
     viewModel.onEvent(LibraryAdminCreateEvent.Submit)
     advanceUntilIdle()
 
-    assertTrue(viewModel.uiState.value.submissionState is LibraryAdminCreateSubmissionState.LocalSyncFailure)
+    assertTrue(
+      viewModel.uiState.value.submissionState is LibraryAdminCreateSubmissionState.LocalSyncFailure
+    )
     assertEquals(null, viewModel.uiState.value.navigation)
     viewModel.onEvent(LibraryAdminCreateEvent.RetryLocalSynchronization)
     advanceUntilIdle()
 
     assertEquals(1, repository.synchronizeCalls)
     assertTrue(
-      viewModel.uiState.value.navigation is
-        dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateNavigation.Created
+      viewModel.uiState.value.navigation
+        is
+        dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateNavigation.Created
     )
     collection.cancel()
   }
@@ -310,21 +320,25 @@ class LibraryAdminCreateViewModelTest {
     viewModel.onEvent(LibraryAdminCreateEvent.UpdateAudiobooksOnly(true))
     viewModel.onEvent(LibraryAdminCreateEvent.UpdateScriptedEpubs(true))
     viewModel.onEvent(LibraryAdminCreateEvent.ToggleMetadataSource("nfoFile", false))
-    viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectMediaType(LibraryAdminMediaType.PODCAST)
-    )
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.PODCAST))
     advanceUntilIdle()
     viewModel.onEvent(LibraryAdminCreateEvent.UpdatePodcastSearchRegion("gb"))
 
     assertTrue(viewModel.uiState.value.draft.bookSettings.audiobooksOnly)
     assertEquals("gb", viewModel.uiState.value.draft.podcastSettings.podcastSearchRegion)
-    assertEquals(false, viewModel.uiState.value.draft.metadataSources.first { it.id == "nfoFile" }.enabled)
+    assertEquals(
+      false,
+      viewModel.uiState.value.draft.metadataSources.first { it.id == "nfoFile" }.enabled,
+    )
 
-    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(LibraryAdminMediaType.BOOK))
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.BOOK))
     advanceUntilIdle()
     assertEquals(true, viewModel.uiState.value.draft.bookSettings.audiobooksOnly)
     assertEquals(true, viewModel.uiState.value.draft.bookSettings.epubsAllowScriptedContent)
-    assertEquals(listOf("folderStructure", "audioMetatags", "txtFiles", "opfFile", "absMetadata"), viewModel.uiState.value.draft.metadataPrecedence)
+    assertEquals(
+      listOf("folderStructure", "audioMetatags", "txtFiles", "opfFile", "absMetadata"),
+      viewModel.uiState.value.draft.metadataPrecedence,
+    )
     collection.cancel()
   }
 
@@ -355,9 +369,7 @@ class LibraryAdminCreateViewModelTest {
     assertEquals(75, viewModel.uiState.value.draft.bookSettings.markAsFinishedPercentComplete)
     assertNull(viewModel.uiState.value.draft.bookSettings.markAsFinishedTimeRemaining)
 
-    viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectMediaType(LibraryAdminMediaType.PODCAST)
-    )
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.PODCAST))
     advanceUntilIdle()
     viewModel.onEvent(
       LibraryAdminCreateEvent.SelectFinishThresholdMode(
@@ -368,9 +380,7 @@ class LibraryAdminCreateViewModelTest {
     assertEquals(55, viewModel.uiState.value.draft.podcastSettings.markAsFinishedPercentComplete)
     assertNull(viewModel.uiState.value.draft.podcastSettings.markAsFinishedTimeRemaining)
 
-    viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectMediaType(LibraryAdminMediaType.BOOK)
-    )
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.BOOK))
     advanceUntilIdle()
     assertEquals(75, viewModel.uiState.value.draft.bookSettings.markAsFinishedPercentComplete)
     assertNull(viewModel.uiState.value.draft.bookSettings.markAsFinishedTimeRemaining)
@@ -391,9 +401,7 @@ class LibraryAdminCreateViewModelTest {
     advanceUntilIdle()
     prepareValidDraft(viewModel)
     viewModel.onEvent(LibraryAdminCreateEvent.ToggleSchedule(true))
-    viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced)
-    )
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced))
     viewModel.onEvent(LibraryAdminCreateEvent.UpdateAdvancedScheduleCron("0 0 * * 1"))
     viewModel.onEvent(LibraryAdminCreateEvent.ValidateSchedule)
     advanceUntilIdle()
@@ -433,11 +441,13 @@ class LibraryAdminCreateViewModelTest {
     viewModel.onEvent(LibraryAdminCreateEvent.Submit)
 
     assertEquals(
-      dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminCreateTab.SCANNER,
+      dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateTab.SCANNER,
       viewModel.uiState.value.selectedTab,
     )
     assertTrue(
-      viewModel.uiState.value.validation.errors.containsKey(LibraryAdminCreateField.SCANNER_PRECEDENCE)
+      viewModel.uiState.value.validation.errors.containsKey(
+        LibraryAdminCreateField.SCANNER_PRECEDENCE
+      )
     )
     collection.cancel()
   }
@@ -456,9 +466,7 @@ class LibraryAdminCreateViewModelTest {
     advanceUntilIdle()
     prepareValidDraft(viewModel)
     viewModel.onEvent(LibraryAdminCreateEvent.ToggleSchedule(true))
-    viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced)
-    )
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced))
     viewModel.onEvent(LibraryAdminCreateEvent.UpdateAdvancedScheduleCron("61 0 * * *"))
     viewModel.onEvent(LibraryAdminCreateEvent.Submit)
     advanceUntilIdle()
@@ -466,12 +474,12 @@ class LibraryAdminCreateViewModelTest {
     assertEquals(1, repository.validationCalls)
     assertEquals(0, repository.createCalls)
     assertTrue(
-      viewModel.uiState.value.scheduleValidation is
-        LibraryAdminScheduleValidationState.Invalid
+      viewModel.uiState.value.scheduleValidation is LibraryAdminScheduleValidationState.Invalid
     )
     assertTrue(
-      viewModel.uiState.value.validation.errors[LibraryAdminCreateField.SCHEDULE]!!
-        .contains(LibraryAdminCreateError.SCHEDULE_INVALID)
+      viewModel.uiState.value.validation.errors[LibraryAdminCreateField.SCHEDULE]!!.contains(
+        LibraryAdminCreateError.SCHEDULE_INVALID
+      )
     )
     collection.cancel()
   }
@@ -490,21 +498,19 @@ class LibraryAdminCreateViewModelTest {
     advanceUntilIdle()
     prepareValidDraft(viewModel)
     viewModel.onEvent(LibraryAdminCreateEvent.ToggleSchedule(true))
-    viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced)
-    )
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced))
     viewModel.onEvent(LibraryAdminCreateEvent.UpdateAdvancedScheduleCron("0 0 * * 1"))
     viewModel.onEvent(LibraryAdminCreateEvent.Submit)
     advanceUntilIdle()
 
     assertEquals(0, repository.createCalls)
     assertTrue(
-      viewModel.uiState.value.scheduleValidation is
-        LibraryAdminScheduleValidationState.Unavailable
+      viewModel.uiState.value.scheduleValidation is LibraryAdminScheduleValidationState.Unavailable
     )
     assertTrue(
-      viewModel.uiState.value.validation.errors[LibraryAdminCreateField.SCHEDULE]!!
-        .contains(LibraryAdminCreateError.SCHEDULE_VALIDATION_UNAVAILABLE)
+      viewModel.uiState.value.validation.errors[LibraryAdminCreateField.SCHEDULE]!!.contains(
+        LibraryAdminCreateError.SCHEDULE_VALIDATION_UNAVAILABLE
+      )
     )
     collection.cancel()
   }
@@ -522,9 +528,7 @@ class LibraryAdminCreateViewModelTest {
     advanceUntilIdle()
     prepareValidDraft(viewModel)
     viewModel.onEvent(LibraryAdminCreateEvent.ToggleSchedule(true))
-    viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced)
-    )
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced))
     viewModel.onEvent(LibraryAdminCreateEvent.UpdateAdvancedScheduleCron("0 0 * * 1"))
     viewModel.onEvent(LibraryAdminCreateEvent.ValidateSchedule)
     advanceUntilIdle()
@@ -549,7 +553,7 @@ class LibraryAdminCreateViewModelTest {
         createResult =
           Result.success(
             LibraryAdminCreateResult.Created(
-              LibraryAdminLibrary("books", "Books", LibraryAdminMediaType.BOOK, 1)
+              LibraryAdminLibrary("books", "Books", MediaType.BOOK, 1)
             )
           ),
         validationGate = validationGate,
@@ -559,9 +563,7 @@ class LibraryAdminCreateViewModelTest {
     advanceUntilIdle()
     prepareValidDraft(viewModel)
     viewModel.onEvent(LibraryAdminCreateEvent.ToggleSchedule(true))
-    viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced)
-    )
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced))
     viewModel.onEvent(LibraryAdminCreateEvent.UpdateAdvancedScheduleCron("0 0 * * 1"))
     viewModel.onEvent(LibraryAdminCreateEvent.Submit)
     assertEquals(1, repository.validationCalls)
@@ -589,9 +591,12 @@ class LibraryAdminCreateViewModelTest {
       FakeRepository(
         providerResults =
           ArrayDeque(listOf(Result.success(listOf(LibraryAdminProvider("audible", "Audible"))))),
-        createResult = Result.success(LibraryAdminCreateResult.Created(
-          LibraryAdminLibrary("books", "Books", LibraryAdminMediaType.BOOK, 1)
-        )),
+        createResult =
+          Result.success(
+            LibraryAdminCreateResult.Created(
+              LibraryAdminLibrary("books", "Books", MediaType.BOOK, 1)
+            )
+          ),
       )
     val viewModel = LibraryAdminCreateViewModel(repository)
     val collection = collectState(viewModel)
@@ -599,9 +604,7 @@ class LibraryAdminCreateViewModelTest {
     prepareValidDraft(viewModel)
     viewModel.onEvent(LibraryAdminCreateEvent.ToggleSchedule(true))
     viewModel.onEvent(
-      LibraryAdminCreateEvent.SelectScheduleInterval(
-        LibraryAdminScheduleInterval.Every15Minutes
-      )
+      LibraryAdminCreateEvent.SelectScheduleInterval(LibraryAdminScheduleInterval.Every15Minutes)
     )
     viewModel.onEvent(LibraryAdminCreateEvent.Submit)
     advanceUntilIdle()
@@ -619,9 +622,10 @@ class LibraryAdminCreateViewModelTest {
 
   private fun kotlinx.coroutines.test.TestScope.collectState(
     viewModel: LibraryAdminCreateViewModel
-  ): Job = backgroundScope.launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
-    viewModel.uiState.collect {}
-  }
+  ): Job =
+    backgroundScope.launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
+      viewModel.uiState.collect {}
+    }
 
   private class FakeRepository(
     providerResults: ArrayDeque<Result<List<LibraryAdminProvider>>>,
@@ -641,18 +645,18 @@ class LibraryAdminCreateViewModelTest {
     var createdDraft: LibraryAdminDraft? = null
 
     override suspend fun loadLibraryProviders(
-      mediaType: LibraryAdminMediaType
+      mediaType: MediaType
     ): Result<List<LibraryAdminProvider>> {
       providerCalls++
       return providers.removeFirst()
     }
 
     override suspend fun browseLibraryFilesystem(path: String?): Result<LibraryAdminFilesystem> =
-      filesystemResult.also { browseCalls++ }
+      filesystemResult.also {
+        browseCalls++
+      }
 
-    override suspend fun createLibrary(
-      draft: LibraryAdminDraft
-    ): Result<LibraryAdminCreateResult> {
+    override suspend fun createLibrary(draft: LibraryAdminDraft): Result<LibraryAdminCreateResult> {
       createCalls++
       createdDraft = draft
       return createResult

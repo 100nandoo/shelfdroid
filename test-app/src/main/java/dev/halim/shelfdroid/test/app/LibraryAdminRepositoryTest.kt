@@ -2,8 +2,8 @@ package dev.halim.shelfdroid.test.app
 
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMutationResult
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminRepository
 import dev.halim.shelfdroid.core.database.LibraryEntity
@@ -12,11 +12,11 @@ import dev.halim.shelfdroid.test.app.testdi.FakeApiService
 import javax.inject.Inject
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 
 @HiltAndroidTest
 class LibraryAdminRepositoryTest {
@@ -110,9 +110,7 @@ class LibraryAdminRepositoryTest {
     val result = runBlocking { repository.deleteLibrary(FakeApiService.BOOK_LIBRARY_ID) }
 
     assertTrue(result.isSuccess)
-    assertTrue(
-      result.getOrThrow() is LibraryAdminMutationResult.AcceptedButNotSynchronized
-    )
+    assertTrue(result.getOrThrow() is LibraryAdminMutationResult.AcceptedButNotSynchronized)
     val retry = runBlocking { repository.synchronizeLibraries() }
     assertTrue(retry.isSuccess)
     assertEquals(
@@ -126,13 +124,13 @@ class LibraryAdminRepositoryTest {
       LibraryAdminLibrary(
         id = "podcasts",
         name = "Podcasts",
-        mediaType = LibraryAdminMediaType.PODCAST,
+        mediaType = MediaType.PODCAST,
         displayOrder = 1,
       ),
       LibraryAdminLibrary(
         id = "books",
         name = "Books",
-        mediaType = LibraryAdminMediaType.BOOK,
+        mediaType = MediaType.BOOK,
         displayOrder = 2,
       ),
     )
@@ -142,8 +140,7 @@ class LibraryAdminRepositoryTest {
   ): List<String> =
     when (result) {
       is LibraryAdminMutationResult.Accepted -> result.value.map { it.id }
-      is LibraryAdminMutationResult.AcceptedButNotSynchronized ->
-        result.value.map { it.id }
+      is LibraryAdminMutationResult.AcceptedButNotSynchronized -> result.value.map { it.id }
     }
 
   private fun seedLibraries() {

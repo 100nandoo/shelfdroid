@@ -2,19 +2,19 @@
 
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin
 
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -24,10 +24,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMediaType
-import dev.halim.shelfdroid.core.data.task.ServerTaskError
 import dev.halim.shelfdroid.core.data.task.ServerTask
+import dev.halim.shelfdroid.core.data.task.ServerTaskError
 import dev.halim.shelfdroid.core.data.task.ServerTaskSyncState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -138,7 +138,7 @@ fun LibraryAdminItem(
             )
           }
         }
-        if (library.mediaType == LibraryAdminMediaType.BOOK) {
+        if (library.mediaType == MediaType.BOOK) {
           TooltipBox(
             positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
             state = rememberTooltipState(),
@@ -183,11 +183,11 @@ private fun serverTaskErrorText(error: ServerTaskError): String =
   }
 
 @Composable
-private fun libraryTypeText(mediaType: LibraryAdminMediaType): String =
+private fun libraryTypeText(mediaType: MediaType): String =
   when (mediaType) {
-    LibraryAdminMediaType.BOOK -> stringResource(R.string.book_library)
-    LibraryAdminMediaType.PODCAST -> stringResource(R.string.podcast_library)
-    LibraryAdminMediaType.UNKNOWN -> stringResource(R.string.library_type_unknown)
+    MediaType.BOOK -> stringResource(R.string.book_library)
+    MediaType.PODCAST -> stringResource(R.string.podcast_library)
+    MediaType.UNKNOWN -> stringResource(R.string.library_type_unknown)
   }
 
 @ShelfDroidPreview
@@ -199,7 +199,7 @@ private fun LibraryAdminItemPreview() {
         LibraryAdminLibrary(
           id = "books",
           name = "Books",
-          mediaType = LibraryAdminMediaType.BOOK,
+          mediaType = MediaType.BOOK,
           displayOrder = 0,
         )
     )

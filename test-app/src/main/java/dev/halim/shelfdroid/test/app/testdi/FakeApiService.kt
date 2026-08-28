@@ -90,7 +90,7 @@ class FakeApiService @Inject constructor() : ApiService {
     Library(
       id = BOOK_LIBRARY_ID,
       name = "Books",
-      mediaType = MediaType.BOOK,
+      mediaType = NetworkMediaType.BOOK,
       folders =
         listOf(dev.halim.core.network.response.Folder(id = "folder-books", fullPath = "/books")),
     )
@@ -99,7 +99,7 @@ class FakeApiService @Inject constructor() : ApiService {
     Library(
       id = PODCAST_LIBRARY_ID,
       name = "Podcasts",
-      mediaType = MediaType.PODCAST,
+      mediaType = NetworkMediaType.PODCAST,
       folders =
         listOf(
           dev.halim.core.network.response.Folder(
@@ -410,12 +410,14 @@ class FakeApiService @Inject constructor() : ApiService {
       Library(
         id = "created-${request.name.lowercase().replace(' ', '-')}",
         name = request.name,
-        mediaType = if (request.mediaType == "podcast") MediaType.PODCAST else MediaType.BOOK,
+        mediaType =
+          if (request.mediaType == "podcast") NetworkMediaType.PODCAST else NetworkMediaType.BOOK,
         icon = request.icon,
         provider = request.provider,
-        folders = request.folders.mapIndexed { index, folder ->
-          Folder(id = "created-folder-$index", fullPath = folder.path)
-        },
+        folders =
+          request.folders.mapIndexed { index, folder ->
+            Folder(id = "created-folder-$index", fullPath = folder.path)
+          },
       )
     )
 

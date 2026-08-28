@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.GenericState
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,7 +13,7 @@ class LibraryAdminTaskStateTest {
       LibraryAdminLibrary(
         id = "books",
         name = "Books",
-        mediaType = LibraryAdminMediaType.BOOK,
+        mediaType = MediaType.BOOK,
         displayOrder = 0,
       )
     )
@@ -44,8 +45,7 @@ class LibraryAdminTaskStateTest {
 
   @Test
   fun unknownMediaType_doesNotExposeScanAction() {
-    val unknownMediaType =
-      libraries.map { it.copy(mediaType = LibraryAdminMediaType.UNKNOWN) }
+    val unknownMediaType = libraries.map { it.copy(mediaType = MediaType.UNKNOWN) }
     val state =
       LibraryAdminUiState(
         state = GenericState.Success,
@@ -59,7 +59,7 @@ class LibraryAdminTaskStateTest {
 
   @Test
   fun matchIsBookOnlyAndUsesTheSameConnectionAndTaskGates() {
-    val podcasts = libraries.map { it.copy(mediaType = LibraryAdminMediaType.PODCAST) }
+    val podcasts = libraries.map { it.copy(mediaType = MediaType.PODCAST) }
     val idle =
       LibraryAdminUiState(
         state = GenericState.Success,

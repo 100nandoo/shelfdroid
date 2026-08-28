@@ -11,5 +11,4 @@ class MiscScreenTest {
     assertTrue(shouldShowServerSection(isAdmin = true))
     assertFalse(shouldShowServerSection(isAdmin = false))
   }
-
 }

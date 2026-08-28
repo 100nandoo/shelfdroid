@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -37,8 +38,8 @@ data class LibraryAdminSimpleSchedule(
       LibraryAdminScheduleInterval.Custom -> {
         val minuteValue = minute.toIntOrNull()?.takeIf { it in 0..59 } ?: return null
         val hourValue = hour.toIntOrNull()?.takeIf { it in 0..23 } ?: return null
-        val selectedWeekdays = weekdays.takeIf { it.isNotEmpty() }?.filter { it in 0..6 }?.sorted()
-          ?: return null
+        val selectedWeekdays =
+          weekdays.takeIf { it.isNotEmpty() }?.filter { it in 0..6 }?.sorted() ?: return null
         if (selectedWeekdays.size != weekdays.size) return null
         val dayPiece =
           if (selectedWeekdays.size == ALL_LIBRARY_SCHEDULE_WEEKDAYS.size) {
@@ -87,8 +88,7 @@ data class LibraryAdminSimpleSchedule(
           }
         "Run every $days at ${formatScheduleTime(expression)}"
       }
-      LibraryAdminScheduleInterval.Daily ->
-        "Run every day at ${formatScheduleTime(expression)}"
+      LibraryAdminScheduleInterval.Daily -> "Run every day at ${formatScheduleTime(expression)}"
       LibraryAdminScheduleInterval.Every12Hours -> "Run every 12 hours"
       LibraryAdminScheduleInterval.Every6Hours -> "Run every 6 hours"
       LibraryAdminScheduleInterval.Every2Hours -> "Run every 2 hours"
@@ -130,8 +130,7 @@ data class LibraryAdminScheduleDraft(
       !enabled -> null
       mode == LibraryAdminScheduleMode.Simple ->
         simple.validationMessage()
-          ?: if (simple.toCronExpressionOrNull() == null) "Choose a valid scan schedule."
-          else null
+          ?: if (simple.toCronExpressionOrNull() == null) "Choose a valid scan schedule." else null
       advancedCronExpression.trim().split(WHITESPACE_REGEX).size != 5 ->
         "Enter a five-field cron expression."
       else -> null

@@ -30,8 +30,7 @@ internal class LibraryAdminEventOwner(
       .forEach { eventName ->
         subscriptions +=
           socket.subscribe(eventName) { args ->
-            val event =
-              parseLibraryAdminLibraryEvent(eventName, args, json) ?: return@subscribe
+            val event = parseLibraryAdminLibraryEvent(eventName, args, json) ?: return@subscribe
             if (reconciler.accept(event)) {
               scope.launch { reconcileAndPublish(event) }
             }
@@ -43,10 +42,7 @@ internal class LibraryAdminEventOwner(
     subscriptions +=
       socket.subscribe(SocketEvent.Connect) {
         scope.launch {
-          val refresh =
-            LibraryAdminLibraryEvent(
-              type = LibraryAdminLibraryEventType.REFRESHED,
-            )
+          val refresh = LibraryAdminLibraryEvent(type = LibraryAdminLibraryEventType.REFRESHED)
           if (reconciler.accept(refresh)) reconcileAndPublish(refresh)
         }
       }

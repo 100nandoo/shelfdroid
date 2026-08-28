@@ -3,7 +3,6 @@ package dev.halim.core.network.request
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Payload accepted by Audiobookshelf's POST /api/libraries endpoint. */
 @Serializable
 data class CreateLibraryRequest(
   @SerialName("name") val name: String,
@@ -13,10 +12,8 @@ data class CreateLibraryRequest(
   @SerialName("provider") val provider: String,
   @SerialName("settings") val settings: Settings? = null,
 ) {
-  @Serializable
-  data class Folder(@SerialName("path") val path: String)
+  @Serializable data class Folder(@SerialName("path") val path: String)
 
-  /** Fields accepted by Audiobookshelf's media-type-specific library settings object. */
   @Serializable
   data class Settings(
     @SerialName("coverAspectRatio") val coverAspectRatio: Int? = null,
@@ -30,8 +27,7 @@ data class CreateLibraryRequest(
     val onlyShowLaterBooksInContinueSeries: Boolean? = null,
     @SerialName("podcastSearchRegion") val podcastSearchRegion: String? = null,
     @SerialName("metadataPrecedence") val metadataPrecedence: List<String>? = null,
-    @SerialName("markAsFinishedPercentComplete")
-    val markAsFinishedPercentComplete: Int? = null,
+    @SerialName("markAsFinishedPercentComplete") val markAsFinishedPercentComplete: Int? = null,
     @SerialName("markAsFinishedTimeRemaining") val markAsFinishedTimeRemaining: Int? = null,
     @SerialName("autoScanCronExpression") val autoScanCronExpression: String? = null,
   )

@@ -1,9 +1,10 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
+import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.task.ServerTask
-import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
+import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
 
 sealed interface LibraryAdminError {
   data class SafeMessage(val message: String) : LibraryAdminError
@@ -25,8 +26,7 @@ data class LibraryAdminUiState(
   val state: GenericState = GenericState.Loading,
   val libraries: List<LibraryAdminLibrary> = emptyList(),
   val isRefreshing: Boolean = true,
-  val connectionState: LibraryAdminConnectionState =
-    LibraryAdminConnectionState.UNKNOWN,
+  val connectionState: LibraryAdminConnectionState = LibraryAdminConnectionState.UNKNOWN,
   val taskStates: Map<String, LibraryAdminTaskState> = emptyMap(),
   val tasks: List<ServerTask> = emptyList(),
   val scanError: LibraryAdminError? = null,
@@ -56,16 +56,14 @@ fun LibraryAdminUiState.canReorder(libraryId: String): Boolean =
 fun LibraryAdminUiState.canStartScan(libraryId: String): Boolean =
   connectionState == LibraryAdminConnectionState.CONNECTED &&
     libraries.any {
-      it.id == libraryId &&
-        it.mediaType != LibraryAdminMediaType.UNKNOWN
+      it.id == libraryId && it.mediaType != MediaType.UNKNOWN
     } &&
     taskStates[libraryId] == LibraryAdminTaskState.IDLE
 
 fun LibraryAdminUiState.canStartMatch(libraryId: String): Boolean =
   connectionState == LibraryAdminConnectionState.CONNECTED &&
     libraries.any {
-      it.id == libraryId &&
-        it.mediaType == LibraryAdminMediaType.BOOK
+      it.id == libraryId && it.mediaType == MediaType.BOOK
     } &&
     taskStates[libraryId] == LibraryAdminTaskState.IDLE
 

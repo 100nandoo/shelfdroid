@@ -1,10 +1,11 @@
-package dev.halim.shelfdroid.core.data.screen.libraryadmin
+package dev.halim.shelfdroid.core.data.screen.libraryadmin.create
+
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
 
 sealed interface LibraryAdminProviderState {
   data object Loading : LibraryAdminProviderState
 
-  data class Success(val providers: List<LibraryAdminProvider>) :
-    LibraryAdminProviderState
+  data class Success(val providers: List<LibraryAdminProvider>) : LibraryAdminProviderState
 
   data class Failure(val message: String?) : LibraryAdminProviderState
 }
@@ -60,17 +61,14 @@ sealed interface LibraryAdminCreateNavigation {
 
 data class LibraryAdminCreateUiState(
   val draft: LibraryAdminDraft = LibraryAdminDraft(),
-  val providerState: LibraryAdminProviderState =
-    LibraryAdminProviderState.Loading,
-  val filesystemState: LibraryAdminFilesystemState =
-    LibraryAdminFilesystemState.Closed,
+  val providerState: LibraryAdminProviderState = LibraryAdminProviderState.Loading,
+  val filesystemState: LibraryAdminFilesystemState = LibraryAdminFilesystemState.Closed,
   val manualFolderDraft: String = "",
   val selectedTab: LibraryAdminCreateTab = LibraryAdminCreateTab.DETAILS,
   val validation: LibraryAdminValidation = LibraryAdminValidation(),
   val focusField: LibraryAdminCreateField? = null,
   val isDirty: Boolean = false,
-  val submissionState: LibraryAdminCreateSubmissionState =
-    LibraryAdminCreateSubmissionState.Idle,
+  val submissionState: LibraryAdminCreateSubmissionState = LibraryAdminCreateSubmissionState.Idle,
   val scheduleValidation: LibraryAdminScheduleValidationState =
     LibraryAdminScheduleValidationState.Idle,
   val discardDialog: Boolean = false,
