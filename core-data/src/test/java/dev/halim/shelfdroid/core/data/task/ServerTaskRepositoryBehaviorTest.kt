@@ -519,7 +519,8 @@ class ServerTaskRepositoryBehaviorTest {
 
   private fun NetworkServerTask.json(): String = Json {
     explicitNulls = false
-  }.encodeToString(NetworkServerTask.serializer(), this)
+  }
+    .encodeToString(NetworkServerTask.serializer(), this)
 
   private class FakeServerTaskApi : ServerTaskApi {
     private val snapshots: ArrayDeque<TasksResponse>

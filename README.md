@@ -87,10 +87,7 @@ Android device, and handle common server management tasks from the same app.
 
 ## Roadmap
 
-- [ ] Authentication management
 - [ ] Edit Libraries
-- [ ] Item Metadata Utils
-- [ ] Listening Sessions
 - [ ] Introduce custom themes for personalization
 - [ ] Add in-app settings for customization
 - [ ] Integrate Google Assistant for voice control
@@ -102,6 +99,9 @@ Android device, and handle common server management tasks from the same app.
 - [x] Improve search and filtering features
 - [x] Email management
 - [x] Notifications management
+- [x] Item Metadata Utils
+- [x] Listening Sessions
+- [x] Authentication management
 
 See the [issue tracker](https://github.com/100nandoo/shelfdroid/issues) for current work and feature
 requests.
@@ -120,7 +120,4 @@ contributing guidance, code style, and architecture notes. Recent release notes 
 ## License
 
 ShelfDroid is open source under the GNU Affero General Public License v3.0.
-
----
-
 Copyright (c) 2026 100nandoo
