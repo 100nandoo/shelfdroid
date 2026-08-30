@@ -1,0 +1,3 @@
+# Dedicated Module for Playback Widget
+
+ShelfDroid's Glance playback widget will live in a dedicated `:widget` Gradle module, packaged by `:app`, rather than inside `:app`, `:core-ui`, or `:media`. The module owns the widget UI, receiver, actions, resources, previews, and structural tests; it may consume `:core-ui`, `:media`, and `:core-data`, while playback commands remain owned by `:media`. To preserve an acyclic dependency graph, `:media` exposes a playback-presentation observer port that `:widget` implements to request event-driven widget updates, so neither `:media` nor `:core-ui` depends on `:widget`.
