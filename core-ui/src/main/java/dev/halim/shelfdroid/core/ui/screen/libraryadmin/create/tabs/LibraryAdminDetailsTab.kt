@@ -52,6 +52,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFil
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
+import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.LibraryAdminCreateEvent
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.createErrorText
 
@@ -68,23 +69,17 @@ internal fun LibraryAdminDetailsTab(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
-    Text(stringResource(R.string.library_create_media_type))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      FilterChip(
-        selected = uiState.draft.mediaType == MediaType.BOOK,
-        onClick = {
-          onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.BOOK))
-        },
-        label = { Text(stringResource(R.string.book_library)) },
-      )
-      FilterChip(
-        selected = uiState.draft.mediaType == MediaType.PODCAST,
-        onClick = {
-          onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.PODCAST))
-        },
-        label = { Text(stringResource(R.string.podcast_library)) },
-      )
-    }
+    val bookLabel = stringResource(R.string.book_library)
+    val podcastLabel = stringResource(R.string.podcast_library)
+    MySegmentedButton(
+      options = listOf(MediaType.BOOK, MediaType.PODCAST),
+      label = stringResource(R.string.library_create_media_type),
+      selectedValue = uiState.draft.mediaType,
+      optionLabel = { mediaType ->
+        if (mediaType == MediaType.BOOK) bookLabel else podcastLabel
+      },
+      onClick = { onEvent(LibraryAdminCreateEvent.SelectMediaType(it)) },
+    )
 
     MyOutlinedTextField(
       modifier = Modifier.focusRequester(nameFocusRequester),
@@ -301,7 +296,7 @@ private fun LibraryAdminDirectoryItem(
   }
 }
 
-private fun libraryIconResource(icon: String): Int =
+internal fun libraryIconResource(icon: String): Int =
   when (icon) {
     "database" -> R.drawable.library_icon_storage
     "audiobookshelf" -> R.drawable.library_icon_library_music

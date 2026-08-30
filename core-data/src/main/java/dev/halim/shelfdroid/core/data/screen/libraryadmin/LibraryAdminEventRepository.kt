@@ -73,6 +73,7 @@ constructor(
                 MediaType.PODCAST
               },
             displayOrder = entity.displayOrder.toInt(),
+            icon = entity.icon,
           )
         }
       },

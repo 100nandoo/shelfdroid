@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -17,6 +18,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +32,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleDraft
@@ -40,6 +43,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCre
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.nextLibraryScheduleRun
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.LibraryAdminCreateEvent
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.createErrorText
@@ -75,22 +79,16 @@ internal fun LibraryAdminScheduleTab(
         modifier = Modifier.semantics { contentDescription = disabledDescription },
       )
     } else {
-      FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(
-          selected = schedule.mode == LibraryAdminScheduleMode.Simple,
-          onClick = {
-            onEvent(LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Simple))
-          },
-          label = { Text(stringResource(R.string.library_schedule_mode_simple)) },
-        )
-        FilterChip(
-          selected = schedule.mode == LibraryAdminScheduleMode.Advanced,
-          onClick = {
-            onEvent(LibraryAdminCreateEvent.SelectScheduleMode(LibraryAdminScheduleMode.Advanced))
-          },
-          label = { Text(stringResource(R.string.library_schedule_mode_advanced)) },
-        )
-      }
+      val simpleLabel = stringResource(R.string.library_schedule_mode_simple)
+      val advancedLabel = stringResource(R.string.library_schedule_mode_advanced)
+      MySegmentedButton(
+        options = listOf(LibraryAdminScheduleMode.Simple, LibraryAdminScheduleMode.Advanced),
+        selectedValue = schedule.mode,
+        optionLabel = { mode ->
+          if (mode == LibraryAdminScheduleMode.Simple) simpleLabel else advancedLabel
+        },
+        onClick = { onEvent(LibraryAdminCreateEvent.SelectScheduleMode(it)) },
+      )
 
       when (schedule.mode) {
         LibraryAdminScheduleMode.Simple -> LibraryAdminSimpleScheduleContent(schedule, onEvent)
@@ -173,6 +171,8 @@ private fun LibraryAdminSimpleScheduleContent(
   schedule: LibraryAdminScheduleDraft,
   onEvent: (LibraryAdminCreateEvent) -> Unit,
 ) {
+  val hourFocusRequester = remember { FocusRequester() }
+  val minuteFocusRequester = remember { FocusRequester() }
   var expanded by remember { mutableStateOf(false) }
   ExposedDropdownMenuBox(
     expanded = expanded,
@@ -229,8 +229,10 @@ private fun LibraryAdminSimpleScheduleContent(
         value = schedule.simple.hour,
         onValueChange = { onEvent(LibraryAdminCreateEvent.UpdateScheduleHour(it)) },
         label = { Text(stringResource(R.string.library_schedule_hour)) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.weight(1f),
+        keyboardOptions =
+          KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { minuteFocusRequester.requestFocus() }),
+        modifier = Modifier.weight(1f).focusRequester(hourFocusRequester),
         isError = schedule.simple.hour.toIntOrNull() !in 0..23,
       )
       OutlinedTextField(
@@ -238,7 +240,7 @@ private fun LibraryAdminSimpleScheduleContent(
         onValueChange = { onEvent(LibraryAdminCreateEvent.UpdateScheduleMinute(it)) },
         label = { Text(stringResource(R.string.library_schedule_minute)) },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.weight(1f),
+        modifier = Modifier.weight(1f).focusRequester(minuteFocusRequester),
         isError = schedule.simple.minute.toIntOrNull() !in 0..59,
       )
     }
@@ -250,18 +252,18 @@ private fun ScheduleSummary(expression: String?, summary: String?) {
   if (expression.isNullOrBlank()) return
   val nextRun = remember(expression) { nextLibraryScheduleRun(expression) }
   Column(
-    modifier = Modifier.fillMaxWidth().semantics { contentDescription = expression },
+    modifier = Modifier.fillMaxWidth(),
     verticalArrangement = Arrangement.spacedBy(4.dp),
   ) {
     Text(
       text = summary ?: stringResource(R.string.library_schedule_valid),
       modifier = Modifier.fillMaxWidth(),
     )
-    Text(text = expression, modifier = Modifier.fillMaxWidth())
     if (nextRun.isNotBlank()) {
       Text(
         text = stringResource(R.string.library_schedule_next_run, nextRun),
         modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.secondary,
       )
     }
   }

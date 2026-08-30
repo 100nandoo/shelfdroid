@@ -48,6 +48,7 @@ class LibraryItemRefreshTest {
         folders = Json.encodeToString(emptyList<String>()),
         isBookLibrary = 1L,
         displayOrder = 0L,
+        icon = "books-2",
       )
     )
     database.libraryItemEntityQueries.insert(item("orphaned-item", "removed-library"))

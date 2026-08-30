@@ -5,7 +5,6 @@ package dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,7 +13,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +33,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCre
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.finishThreshold
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.LibraryAdminCreateEvent
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.LibraryAdminFinishThresholdMode
@@ -145,30 +144,21 @@ internal fun LibraryAdminSettingsTab(
     }
 
     Text(stringResource(R.string.library_settings_finish_heading))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      FilterChip(
-        selected = finishMode == LibraryAdminFinishThresholdMode.TIME_REMAINING,
-        onClick = {
-          onEvent(
-            LibraryAdminCreateEvent.SelectFinishThresholdMode(
-              LibraryAdminFinishThresholdMode.TIME_REMAINING
-            )
-          )
-        },
-        label = { Text(stringResource(R.string.library_settings_finish_time)) },
-      )
-      FilterChip(
-        selected = finishMode == LibraryAdminFinishThresholdMode.PERCENT_COMPLETE,
-        onClick = {
-          onEvent(
-            LibraryAdminCreateEvent.SelectFinishThresholdMode(
-              LibraryAdminFinishThresholdMode.PERCENT_COMPLETE
-            )
-          )
-        },
-        label = { Text(stringResource(R.string.library_settings_finish_percent)) },
-      )
-    }
+    val timeRemainingLabel = stringResource(R.string.library_settings_finish_time)
+    val percentCompleteLabel = stringResource(R.string.library_settings_finish_percent)
+    MySegmentedButton(
+      options =
+        listOf(
+          LibraryAdminFinishThresholdMode.TIME_REMAINING,
+          LibraryAdminFinishThresholdMode.PERCENT_COMPLETE,
+        ),
+      selectedValue = finishMode,
+      optionLabel = { mode ->
+        if (mode == LibraryAdminFinishThresholdMode.TIME_REMAINING) timeRemainingLabel
+        else percentCompleteLabel
+      },
+      onClick = { onEvent(LibraryAdminCreateEvent.SelectFinishThresholdMode(it)) },
+    )
     OutlinedTextField(
       value = finishValue.toString(),
       onValueChange = { value ->

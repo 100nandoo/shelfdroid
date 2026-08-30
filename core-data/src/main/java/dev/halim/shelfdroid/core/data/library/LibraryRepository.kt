@@ -81,6 +81,7 @@ constructor(private val api: ApiService, db: MyDatabase, private val json: Json)
       folders = json.encodeToString(library.folders),
       isBookLibrary = if (library.mediaType == NetworkMediaType.BOOK) 1 else 0,
       displayOrder = library.displayOrder.toLong(),
+      icon = library.icon.ifBlank { "audiobookshelf" },
     )
 }
 

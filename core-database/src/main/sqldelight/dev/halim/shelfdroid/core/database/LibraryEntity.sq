@@ -3,7 +3,8 @@ CREATE TABLE LibraryEntity(
   name TEXT NOT NULL DEFAULT '',
   folders TEXT NOT NULL,
   isBookLibrary INTEGER NOT NULL DEFAULT 1,
-  displayOrder INTEGER NOT NULL DEFAULT 0
+  displayOrder INTEGER NOT NULL DEFAULT 0,
+  icon TEXT NOT NULL DEFAULT 'audiobookshelf'
 );
 
 all:
@@ -20,7 +21,7 @@ FROM LibraryEntity
 WHERE id = :id;
 
 insert:
-INSERT OR REPLACE INTO LibraryEntity(id, name, folders, isBookLibrary, displayOrder)
+INSERT OR REPLACE INTO LibraryEntity(id, name, folders, isBookLibrary, displayOrder, icon)
 VALUES ?;
 
 deleteById:

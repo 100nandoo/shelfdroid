@@ -151,6 +151,7 @@ class LibraryAdminRepositoryTest {
         folders = Json.encodeToString(emptyList<String>()),
         isBookLibrary = 1L,
         displayOrder = 1L,
+        icon = "books-2",
       )
     )
     database.libraryEntityQueries.insert(
@@ -160,6 +161,7 @@ class LibraryAdminRepositoryTest {
         folders = Json.encodeToString(emptyList<String>()),
         isBookLibrary = 0L,
         displayOrder = 2L,
+        icon = "podcast",
       )
     )
   }

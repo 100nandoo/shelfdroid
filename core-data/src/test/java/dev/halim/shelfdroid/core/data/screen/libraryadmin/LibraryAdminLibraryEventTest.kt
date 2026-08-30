@@ -20,6 +20,7 @@ class LibraryAdminLibraryEventTest {
       Library(
         id = "books",
         name = "Books",
+        icon = "books-2",
         mediaType = NetworkMediaType.BOOK,
         displayOrder = 4,
       )
@@ -30,6 +31,7 @@ class LibraryAdminLibraryEventTest {
         name = "Books",
         mediaType = MediaType.BOOK,
         displayOrder = 4,
+        icon = "books-2",
       ),
       library.toAdministrationLibrary(),
     )

@@ -15,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.GenericState
@@ -82,7 +83,7 @@ class LibraryAdminContentTest {
   }
 
   @Test
-  fun orderedLibraries_showTypeAndIdentityAndRowsAreInert() {
+  fun orderedLibraries_showNamesWithoutTypeOrIdentityAndRowsAreInert() {
     composeRule.setContent {
       LibraryAdminContent(
         uiState =
@@ -96,12 +97,14 @@ class LibraryAdminContentTest {
                   name = "Podcasts",
                   mediaType = MediaType.PODCAST,
                   displayOrder = 0,
+                  icon = "podcast",
                 ),
                 LibraryAdminLibrary(
                   id = "books",
                   name = "Books",
                   mediaType = MediaType.BOOK,
                   displayOrder = 1,
+                  icon = "books-2",
                 ),
               ),
           )
@@ -109,11 +112,11 @@ class LibraryAdminContentTest {
     }
 
     composeRule.onNodeWithText("Podcasts").assertIsDisplayed().assertHasNoClickAction()
-    composeRule.onNodeWithText("Podcast Library").assertIsDisplayed()
-    composeRule.onNodeWithText("Library ID: podcasts").assertIsDisplayed()
+    composeRule.onNodeWithText("Podcast Library").assertDoesNotExist()
+    composeRule.onNodeWithText("Library ID: podcasts").assertDoesNotExist()
     composeRule.onNodeWithText("Books").assertIsDisplayed().assertHasNoClickAction()
-    composeRule.onNodeWithText("Book Library").assertIsDisplayed()
-    composeRule.onNodeWithText("Library ID: books").assertIsDisplayed()
+    composeRule.onNodeWithText("Book Library").assertDoesNotExist()
+    composeRule.onNodeWithText("Library ID: books").assertDoesNotExist()
   }
 
   @Test
@@ -157,7 +160,7 @@ class LibraryAdminContentTest {
   }
 
   @Test
-  fun draggingLibraryRow_emitsMoveLibraryEvent() {
+  fun draggingLibraryHandle_emitsMoveLibraryEvent() {
     val events = mutableListOf<LibraryAdminEvent>()
     composeRule.setContent {
       LibraryAdminContent(
@@ -191,12 +194,14 @@ class LibraryAdminContentTest {
       )
     }
 
-    composeRule.onNodeWithText("Books").performTouchInput {
-      down(center)
-      advanceEventTime(700)
-      moveBy(Offset(0f, 64f))
-      up()
-    }
+    composeRule
+      .onAllNodesWithContentDescription("Reorder library", useUnmergedTree = true)
+      .get(0)
+      .assertIsDisplayed()
+      .performTouchInput {
+        swipe(start = center, end = center + Offset(0f, 96f), durationMillis = 200)
+      }
+    composeRule.waitForIdle()
 
     assertEquals(listOf(LibraryAdminEvent.MoveLibrary("books", 1)), events)
   }

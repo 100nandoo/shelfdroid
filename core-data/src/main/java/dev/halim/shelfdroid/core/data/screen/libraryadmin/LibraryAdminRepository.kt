@@ -283,6 +283,7 @@ private fun LibraryEntity.toAdministrationLibrary(): LibraryAdminLibrary =
         MediaType.PODCAST
       },
     displayOrder = displayOrder.toInt(),
+    icon = icon,
   )
 
 private fun MediaType.toApiValue(): String = apiValue ?: "book"

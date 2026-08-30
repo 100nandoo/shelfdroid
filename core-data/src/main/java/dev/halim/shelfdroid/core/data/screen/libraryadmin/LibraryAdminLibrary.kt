@@ -9,6 +9,7 @@ data class LibraryAdminLibrary(
   val name: String,
   val mediaType: MediaType,
   val displayOrder: Int,
+  val icon: String = "audiobookshelf",
 )
 
 /** Converts the server Library payload used by both administration requests and socket events. */
@@ -18,4 +19,5 @@ internal fun Library.toAdministrationLibrary(): LibraryAdminLibrary =
     name = name,
     mediaType = mediaType.toDomain(),
     displayOrder = displayOrder,
+    icon = icon.ifBlank { "audiobookshelf" },
   )
