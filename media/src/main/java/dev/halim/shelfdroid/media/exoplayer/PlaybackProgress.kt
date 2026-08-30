@@ -18,13 +18,12 @@ fun ExoPlayer.playbackProgressFlow(): Flow<RawPlaybackProgress> = callbackFlow {
     job?.cancel()
     job = launch {
       while (true) {
-        var position = currentPosition
-        val isNotFirstMediaItem = mediaItemCount > 1 && currentMediaItemIndex != 0
-        if (isNotFirstMediaItem) {
-          val totalPreviousDurations = sumPreviousDurations(currentTimeline, currentMediaItemIndex)
-          position = totalPreviousDurations + currentPosition
-        }
-        trySend(RawPlaybackProgress(positionMs = position, bufferedPosition = bufferedPosition))
+        trySend(
+          RawPlaybackProgress(
+            positionMs = currentPlayableUnitPositionMs(),
+            bufferedPosition = bufferedPosition,
+          )
+        )
         delay(500)
       }
     }
@@ -50,6 +49,15 @@ fun ExoPlayer.playbackProgressFlow(): Flow<RawPlaybackProgress> = callbackFlow {
   awaitClose {
     removeListener(listener)
     job?.cancel()
+  }
+}
+
+fun ExoPlayer.currentPlayableUnitPositionMs(): Long {
+  val isNotFirstMediaItem = mediaItemCount > 1 && currentMediaItemIndex != 0
+  return if (isNotFirstMediaItem) {
+    sumPreviousDurations(currentTimeline, currentMediaItemIndex) + currentPosition
+  } else {
+    currentPosition
   }
 }
 

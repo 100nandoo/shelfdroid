@@ -38,7 +38,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.halim.shelfdroid.media.service.CUSTOM_BACK
 import dev.halim.shelfdroid.media.service.CUSTOM_FORWARD
+import dev.halim.shelfdroid.media.service.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.service.CUSTOM_PREVIOUS_CHAPTER
 import dev.halim.shelfdroid.media.service.CUSTOM_SLEEP_TIMER
+import dev.halim.shelfdroid.media.service.ChapterCommand
+import dev.halim.shelfdroid.media.service.ChapterSessionCommandAccess
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
@@ -131,25 +135,37 @@ object PlayerModule {
   @Singleton
   @Provides
   fun provideMediaLibrarySessionCallback(
-    playerStore: Lazy<PlayerStore>
+    @ApplicationContext context: Context,
+    playerStore: Lazy<PlayerStore>,
   ): MediaLibrarySession.Callback {
 
     val commandButtons = listOf(BACK_COMMAND_BUTTON, FORWARD_COMMAND_BUTTON, SLEEP_TIMER_OFF_BUTTON)
-    val sessionCommands =
+    val defaultSessionCommands =
       MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
         .apply {
           commandButtons.forEach { commandButton -> commandButton.sessionCommand?.let { add(it) } }
         }
         .build()
+    val chapterCommandAccess = ChapterSessionCommandAccess(context.packageName)
     return object : MediaLibrarySession.Callback {
 
       override fun onConnectAsync(
         session: MediaSession,
         controller: MediaSession.ControllerInfo,
       ): ListenableFuture<MediaSession.ConnectionResult> {
+        val availableSessionCommands = defaultSessionCommands.buildUpon()
+        if (chapterCommandAccess.isAllowed(controller.packageName, controller.isTrusted)) {
+          val chapterAvailability = playerStore.get().chapterCommandAvailability()
+          if (chapterAvailability.previousEnabled) {
+            availableSessionCommands.add(SessionCommand(CUSTOM_PREVIOUS_CHAPTER, Bundle.EMPTY))
+          }
+          if (chapterAvailability.nextEnabled) {
+            availableSessionCommands.add(SessionCommand(CUSTOM_NEXT_CHAPTER, Bundle.EMPTY))
+          }
+        }
         return Futures.immediateFuture(
           MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
-            .setAvailableSessionCommands(sessionCommands)
+            .setAvailableSessionCommands(availableSessionCommands.build())
             .setCustomLayout(commandButtons)
             .setMediaButtonPreferences(commandButtons)
             .build()
@@ -162,6 +178,8 @@ object PlayerModule {
         customCommand: SessionCommand,
         args: Bundle,
       ): ListenableFuture<SessionResult> {
+        val canUseChapterCommands =
+          chapterCommandAccess.isAllowed(controller.packageName, controller.isTrusted)
         when (customCommand.customAction) {
           CUSTOM_BACK -> session.player.seekTo(session.player.currentPosition - 10000)
           CUSTOM_FORWARD -> session.player.seekTo(session.player.currentPosition + 10000)
@@ -171,6 +189,16 @@ object PlayerModule {
               store.clearTimer()
             } else {
               store.startDefaultSleepTimer()
+            }
+          }
+          CUSTOM_PREVIOUS_CHAPTER -> {
+            if (canUseChapterCommands) {
+              playerStore.get().handleChapterCommand(ChapterCommand.Previous)
+            }
+          }
+          CUSTOM_NEXT_CHAPTER -> {
+            if (canUseChapterCommands) {
+              playerStore.get().handleChapterCommand(ChapterCommand.Next)
             }
           }
         }

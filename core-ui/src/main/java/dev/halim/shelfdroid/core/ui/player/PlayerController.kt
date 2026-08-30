@@ -7,6 +7,7 @@ import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.di.MediaControllerManager
+import dev.halim.shelfdroid.media.service.ChapterCommand
 import dev.halim.shelfdroid.media.service.PlayerStore
 import javax.inject.Inject
 import javax.inject.Named
@@ -123,22 +124,8 @@ constructor(
           }
         }
       }
-      PlayerEvent.SkipPreviousButton -> {
-        if (
-          uiState.value.playbackProgress.position > 3 ||
-            uiState.value.currentChapter?.isFirst() == true ||
-            uiState.value.currentChapter == null
-        ) {
-          mediaControl.get().seekTo(0)
-        } else {
-          uiState.update { playerRepository.previousNextChapter(uiState.value, true) }
-          playerStore.playContent()
-        }
-      }
-      PlayerEvent.SkipNextButton -> {
-        uiState.update { playerRepository.previousNextChapter(uiState.value, false) }
-        playerStore.playContent()
-      }
+      PlayerEvent.SkipPreviousButton -> playerStore.handleChapterCommand(ChapterCommand.Previous)
+      PlayerEvent.SkipNextButton -> playerStore.handleChapterCommand(ChapterCommand.Next)
       PlayerEvent.Big -> uiState.update { it.copy(state = PlayerState.Big) }
       PlayerEvent.Small -> uiState.update { it.copy(state = PlayerState.Small) }
       PlayerEvent.TempHidden -> uiState.update { it.copy(state = PlayerState.TempHidden) }

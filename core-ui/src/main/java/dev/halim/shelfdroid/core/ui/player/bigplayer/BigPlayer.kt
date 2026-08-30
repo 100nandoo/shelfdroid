@@ -34,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.AdvancedControl
-import dev.halim.shelfdroid.core.ChapterPosition
 import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlaybackProgress
@@ -56,6 +55,7 @@ import dev.halim.shelfdroid.core.ui.player.SeekForwardButton
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.media.service.ChapterCommandAvailability
 import kotlinx.coroutines.launch
 
 @Composable
@@ -71,6 +71,8 @@ fun BigPlayerContent(
   chapterTitleLine: Int = 2,
   chapterTimeDisplay: ChapterTimeDisplay = ChapterTimeDisplay.TimeRange,
   currentChapter: PlayerChapter? = PlayerChapter(),
+  chapterCommands: ChapterCommandAvailability =
+    ChapterCommandAvailability(previousEnabled = true, nextEnabled = true),
   bookmarks: List<PlayerBookmark> = emptyList(),
   newBookmarkTime: PlayerBookmark = PlayerBookmark(),
   playPause: PlayPauseControlState = PlayPauseControlState(),
@@ -110,7 +112,7 @@ fun BigPlayerContent(
     )
 
     PlayerProgress(id, progress, seekControls, onEvent)
-    BasicPlayerControl(playPause, seekControls, id, currentChapter, onEvent)
+    BasicPlayerControl(playPause, seekControls, id, chapterCommands, onEvent)
     AdvancedPlayerControl(advancedControl, onEvent)
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -198,7 +200,7 @@ fun BasicPlayerControl(
   playPause: PlayPauseControlState,
   seekControls: SeekControlsState,
   id: String = "",
-  currentChapter: PlayerChapter? = PlayerChapter(),
+  chapterCommands: ChapterCommandAvailability,
   onEvent: (PlayerEvent) -> Unit,
 ) {
   Row(
@@ -210,6 +212,7 @@ fun BasicPlayerControl(
       painter = painterResource(R.drawable.skip_previous),
       contentDescription = stringResource(R.string.previous_chapter),
       onClick = { onEvent(PlayerEvent.SkipPreviousButton) },
+      enabled = chapterCommands.previousEnabled,
     )
     SeekBackButton({ onEvent(PlayerEvent.SeekBackButton) }, seekControls, id)
     PlayPauseButton({ onEvent(PlayerEvent.PlayPauseButton) }, playPause, id, 72)
@@ -219,7 +222,7 @@ fun BasicPlayerControl(
       painter = painterResource(R.drawable.skip_next),
       contentDescription = stringResource(R.string.next_chapter),
       onClick = { onEvent(PlayerEvent.SkipNextButton) },
-      enabled = currentChapter?.chapterPosition != ChapterPosition.Last && currentChapter != null,
+      enabled = chapterCommands.nextEnabled,
     )
   }
 }

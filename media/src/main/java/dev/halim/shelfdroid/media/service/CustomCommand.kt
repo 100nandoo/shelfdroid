@@ -19,6 +19,8 @@ import javax.inject.Singleton
 const val CUSTOM_BACK = "CUSTOM_BACK"
 const val CUSTOM_FORWARD = "CUSTOM_FORWARD"
 const val CUSTOM_SLEEP_TIMER = "CUSTOM_SLEEP_TIMER"
+const val CUSTOM_PREVIOUS_CHAPTER = "CUSTOM_PREVIOUS_CHAPTER"
+const val CUSTOM_NEXT_CHAPTER = "CUSTOM_NEXT_CHAPTER"
 
 @UnstableApi
 @Singleton

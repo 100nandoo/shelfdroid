@@ -14,6 +14,7 @@ import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
+import dev.halim.shelfdroid.media.exoplayer.currentPlayableUnitPositionMs
 import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
 import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper
 import dev.halim.shelfdroid.media.misc.SessionManager
@@ -38,6 +39,7 @@ class PlayerStore
 constructor(
   private val playerEventListener: Lazy<PlayerEventListener>,
   private val playerManager: ExoPlayerManager,
+  private val chapterCommandHandler: ChapterCommandHandler,
   private val playPauseControlStateHolder: PlayPauseControlStateHolder,
   private val playPauseControlStateMapper: PlayPauseControlStateMapper,
   private val playerRepository: PlayerRepository,
@@ -111,6 +113,28 @@ constructor(
   fun startDefaultSleepTimer() {
     val minutes = runBlocking { prefsRepository.notificationPrefs.first().sleepTimerMinutes }
     sleepTimer(minutes.minutes)
+  }
+
+  fun chapterCommandAvailability(): ChapterCommandAvailability =
+    chapterCommandHandler.availability(uiState.value)
+
+  fun handleChapterCommand(command: ChapterCommand): Boolean {
+    val player = playerManager.player.get()
+    return when (
+      val decision =
+        chapterCommandHandler.resolve(command, uiState.value, player.currentPlayableUnitPositionMs())
+    ) {
+      ChapterCommandDecision.Restart -> {
+        player.seekTo(0, 0)
+        true
+      }
+      is ChapterCommandDecision.ChangeChapter -> {
+        uiState.update { playerRepository.changeChapter(it, decision.targetIndex) }
+        playContent()
+        true
+      }
+      ChapterCommandDecision.Unavailable -> false
+    }
   }
 
   fun emptyState(): PlayerUiState {
@@ -244,8 +268,8 @@ constructor(
     )
 
   private fun changeChapterCallback() = {
-    uiState.update { playerRepository.previousNextChapter(uiState.value, false) }
-    playContent()
+    handleChapterCommand(ChapterCommand.Next)
+    Unit
   }
 
   private fun collectPlaybackProgress() {

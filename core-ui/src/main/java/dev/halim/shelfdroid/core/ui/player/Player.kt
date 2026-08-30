@@ -78,6 +78,7 @@ fun Player(
               bookmarks = uiState.value.playerBookmarks,
               newBookmarkTime = uiState.value.newBookmarkTime,
               currentChapter = uiState.value.currentChapter,
+              chapterCommands = playerStore.chapterCommandAvailability(),
               playPause = uiState.value.playPause,
               seekControls = uiState.value.seekControls,
               onSwipeUp = onSwipeUp,
