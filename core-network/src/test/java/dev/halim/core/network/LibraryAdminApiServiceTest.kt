@@ -3,9 +3,13 @@ package dev.halim.core.network
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import dev.halim.core.network.request.CreateLibraryRequest
 import dev.halim.core.network.request.ReorderLibraryRequest
+import dev.halim.core.network.request.UpdateLibraryRequest
 import dev.halim.core.network.request.ValidateCronRequest
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -43,6 +47,35 @@ class LibraryAdminApiServiceTest {
     assertEquals("/api/libraries", request.url.encodedPath)
     assertEquals(
       "{\"name\":\"Books\",\"folders\":[{\"path\":\"C:/Books\"}],\"mediaType\":\"book\",\"icon\":\"audiobookshelf\",\"provider\":\"audible\"}",
+      request.body!!.bodyToString(),
+    )
+  }
+
+  @Test
+  fun updateLibrary_patchesChangedFieldsAndPreservesExistingFolderIds() = runTest {
+    var capturedRequest: Request? = null
+    val service = apiService { capturedRequest = it }
+
+    val result =
+      service.updateLibrary(
+        "books",
+        UpdateLibraryRequest(
+          name = "My Books",
+          folders =
+            listOf(
+              UpdateLibraryRequest.Folder(id = "folder-1", path = "/books"),
+              UpdateLibraryRequest.Folder(path = "/new-books"),
+            ),
+          settings = buildJsonObject { put("autoScanCronExpression", JsonNull) },
+        ),
+      )
+
+    val request = requireNotNull(capturedRequest)
+    assertTrue(result.isSuccess)
+    assertEquals("PATCH", request.method)
+    assertEquals("/api/libraries/books", request.url.encodedPath)
+    assertEquals(
+      "{\"name\":\"My Books\",\"folders\":[{\"id\":\"folder-1\",\"path\":\"/books\"},{\"path\":\"/new-books\"}],\"settings\":{\"autoScanCronExpression\":null}}",
       request.body!!.bodyToString(),
     )
   }

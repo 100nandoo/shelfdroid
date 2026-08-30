@@ -2,6 +2,7 @@
 
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -52,6 +53,7 @@ fun LibraryAdminItem(
   onMatch: () -> Unit = {},
   deleteEnabled: Boolean = false,
   onDelete: () -> Unit = {},
+  onEdit: () -> Unit = {},
   task: ServerTask? = null,
   onRetrySynchronization: (taskId: String) -> Unit = {},
 ) {
@@ -86,7 +88,7 @@ fun LibraryAdminItem(
     } else Modifier
 
   ListItem(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.fillMaxWidth().clickable(onClick = onEdit),
     headlineContent = { Text(library.name) },
     leadingContent = {
       Icon(

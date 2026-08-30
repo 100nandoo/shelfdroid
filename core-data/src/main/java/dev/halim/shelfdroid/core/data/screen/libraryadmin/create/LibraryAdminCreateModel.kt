@@ -262,4 +262,19 @@ sealed interface LibraryAdminCreateResult {
   ) : LibraryAdminCreateResult
 }
 
+data class LibraryAdminEditSnapshot(
+  val draft: LibraryAdminDraft,
+  val folderIdsByPath: Map<String, String>,
+)
+
+sealed interface LibraryAdminUpdateResult {
+  data class Updated(val library: LibraryAdminLibrary) : LibraryAdminUpdateResult
+
+  /** The server accepted the mutation, but local Library data synchronization failed. */
+  data class UpdatedButNotSynchronized(
+    val library: LibraryAdminLibrary,
+    val error: Throwable,
+  ) : LibraryAdminUpdateResult
+}
+
 const val DEFAULT_LIBRARY_ICON = LibraryAdminDraft.DEFAULT_LIBRARY_ICON

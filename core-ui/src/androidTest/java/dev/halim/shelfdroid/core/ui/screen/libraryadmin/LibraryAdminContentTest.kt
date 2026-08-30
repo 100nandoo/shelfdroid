@@ -3,7 +3,7 @@ package dev.halim.shelfdroid.core.ui.screen.libraryadmin
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -83,7 +83,8 @@ class LibraryAdminContentTest {
   }
 
   @Test
-  fun orderedLibraries_showNamesWithoutTypeOrIdentityAndRowsAreInert() {
+  fun orderedLibraries_showNamesAndOpenTheSelectedLibraryEditor() {
+    val editedLibraries = mutableListOf<String>()
     composeRule.setContent {
       LibraryAdminContent(
         uiState =
@@ -107,16 +108,18 @@ class LibraryAdminContentTest {
                   icon = "books-2",
                 ),
               ),
-          )
+          ),
+        onEditLibraryClicked = editedLibraries::add,
       )
     }
 
-    composeRule.onNodeWithText("Podcasts").assertIsDisplayed().assertHasNoClickAction()
+    composeRule.onNodeWithText("Podcasts").assertIsDisplayed().assertHasClickAction().performClick()
     composeRule.onNodeWithText("Podcast Library").assertDoesNotExist()
     composeRule.onNodeWithText("Library ID: podcasts").assertDoesNotExist()
-    composeRule.onNodeWithText("Books").assertIsDisplayed().assertHasNoClickAction()
+    composeRule.onNodeWithText("Books").assertIsDisplayed().assertHasClickAction()
     composeRule.onNodeWithText("Book Library").assertDoesNotExist()
     composeRule.onNodeWithText("Library ID: books").assertDoesNotExist()
+    assertEquals(listOf("podcasts"), editedLibraries)
   }
 
   @Test

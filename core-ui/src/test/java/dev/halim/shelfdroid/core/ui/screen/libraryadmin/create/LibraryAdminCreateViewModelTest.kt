@@ -11,12 +11,14 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCre
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateSubmissionState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateTab
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminEditSnapshot
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystem
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystemState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProvider
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationException
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminUpdateResult
 import java.util.ArrayDeque
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -194,6 +196,50 @@ class LibraryAdminCreateViewModelTest {
         dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateNavigation.Created
     )
     assertEquals(1, repository.createCalls)
+    collection.cancel()
+  }
+
+  @Test
+  fun editMode_loadsServerDraftLocksMediaTypeAndUpdatesLibrary() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val library = LibraryAdminLibrary("books", "My Books", MediaType.BOOK, 1)
+    val snapshot =
+      LibraryAdminEditSnapshot(
+        draft =
+          LibraryAdminDraft(
+            mediaType = MediaType.BOOK,
+            name = "Books",
+            folders = listOf("/books"),
+            bookProvider = "audible",
+          ),
+        folderIdsByPath = mapOf("/books" to "folder-1"),
+      )
+    val repository =
+      FakeRepository(
+        providerResults =
+          ArrayDeque(listOf(Result.success(listOf(LibraryAdminProvider("audible", "Audible"))))),
+        loadResult = Result.success(snapshot),
+        updateResult = Result.success(LibraryAdminUpdateResult.Updated(library)),
+      )
+    val viewModel = LibraryAdminCreateViewModel("books", repository)
+    val collection = collectState(viewModel)
+    advanceUntilIdle()
+
+    assertEquals("Books", viewModel.uiState.value.draft.name)
+    assertEquals(false, viewModel.uiState.value.isDirty)
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectMediaType(MediaType.PODCAST))
+    assertEquals(MediaType.BOOK, viewModel.uiState.value.draft.mediaType)
+    viewModel.onEvent(LibraryAdminCreateEvent.UpdateName("My Books"))
+    viewModel.onEvent(LibraryAdminCreateEvent.Submit)
+    advanceUntilIdle()
+
+    assertEquals(1, repository.updateCalls)
+    assertEquals("My Books", repository.updatedDraft?.name)
+    assertTrue(
+      viewModel.uiState.value.navigation
+        is
+        dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateNavigation.Updated
+    )
     collection.cancel()
   }
 
@@ -635,6 +681,10 @@ class LibraryAdminCreateViewModelTest {
       Result.failure(IllegalStateException("not configured")),
     private val validationResult: Result<Unit> = Result.success(Unit),
     private val validationGate: CompletableDeferred<Result<Unit>>? = null,
+    private val loadResult: Result<LibraryAdminEditSnapshot> =
+      Result.failure(IllegalStateException("not configured")),
+    private val updateResult: Result<LibraryAdminUpdateResult> =
+      Result.failure(IllegalStateException("not configured")),
   ) : LibraryAdminCreateContract {
     private val providers = providerResults
     var providerCalls = 0
@@ -642,7 +692,9 @@ class LibraryAdminCreateViewModelTest {
     var browseCalls = 0
     var synchronizeCalls = 0
     var validationCalls = 0
+    var updateCalls = 0
     var createdDraft: LibraryAdminDraft? = null
+    var updatedDraft: LibraryAdminDraft? = null
 
     override suspend fun loadLibraryProviders(
       mediaType: MediaType
@@ -660,6 +712,19 @@ class LibraryAdminCreateViewModelTest {
       createCalls++
       createdDraft = draft
       return createResult
+    }
+
+    override suspend fun loadLibrary(libraryId: String): Result<LibraryAdminEditSnapshot> =
+      loadResult
+
+    override suspend fun updateLibrary(
+      libraryId: String,
+      original: LibraryAdminEditSnapshot,
+      draft: LibraryAdminDraft,
+    ): Result<LibraryAdminUpdateResult> {
+      updateCalls++
+      updatedDraft = draft
+      return updateResult
     }
 
     override suspend fun validateLibrarySchedule(expression: String): Result<Unit> {

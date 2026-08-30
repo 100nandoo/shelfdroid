@@ -9,6 +9,16 @@ interface LibraryAdminCreateContract {
 
   suspend fun createLibrary(draft: LibraryAdminDraft): Result<LibraryAdminCreateResult>
 
+  suspend fun loadLibrary(libraryId: String): Result<LibraryAdminEditSnapshot> =
+    Result.failure(UnsupportedOperationException("Library editing is unavailable"))
+
+  suspend fun updateLibrary(
+    libraryId: String,
+    original: LibraryAdminEditSnapshot,
+    draft: LibraryAdminDraft,
+  ): Result<LibraryAdminUpdateResult> =
+    Result.failure(UnsupportedOperationException("Library editing is unavailable"))
+
   /** Validates a five-field cron expression through Audiobookshelf before creation. */
   suspend fun validateLibrarySchedule(expression: String): Result<Unit> = Result.success(Unit)
 

@@ -57,9 +57,14 @@ sealed interface LibraryAdminCreateNavigation {
   data object Back : LibraryAdminCreateNavigation
 
   data class Created(val library: LibraryAdminLibrary) : LibraryAdminCreateNavigation
+
+  data class Updated(val library: LibraryAdminLibrary) : LibraryAdminCreateNavigation
 }
 
 data class LibraryAdminCreateUiState(
+  val libraryId: String? = null,
+  val isLoadingLibrary: Boolean = false,
+  val libraryLoadFailed: Boolean = false,
   val draft: LibraryAdminDraft = LibraryAdminDraft(),
   val providerState: LibraryAdminProviderState = LibraryAdminProviderState.Loading,
   val filesystemState: LibraryAdminFilesystemState = LibraryAdminFilesystemState.Closed,
@@ -74,9 +79,15 @@ data class LibraryAdminCreateUiState(
   val discardDialog: Boolean = false,
   val navigation: LibraryAdminCreateNavigation? = null,
 ) {
+  val isEdit: Boolean
+    get() = libraryId != null
+
   val isSubmitting: Boolean
     get() = submissionState is LibraryAdminCreateSubmissionState.Submitting
 
   val isBusy: Boolean
-    get() = isSubmitting || scheduleValidation is LibraryAdminScheduleValidationState.Validating
+    get() =
+      isLoadingLibrary ||
+        isSubmitting ||
+        scheduleValidation is LibraryAdminScheduleValidationState.Validating
 }

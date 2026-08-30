@@ -39,7 +39,16 @@ data class Folder(
 data class LibrarySettings(
   @SerialName("coverAspectRatio") val coverAspectRatio: Int = 0,
   @SerialName("disableWatcher") val disableWatcher: Boolean = false,
+  @SerialName("audiobooksOnly") val audiobooksOnly: Boolean = false,
   @SerialName("skipMatchingMediaWithAsin") val skipMatchingMediaWithAsin: Boolean = false,
   @SerialName("skipMatchingMediaWithIsbn") val skipMatchingMediaWithIsbn: Boolean = false,
+  @SerialName("epubsAllowScriptedContent") val epubsAllowScriptedContent: Boolean = false,
+  @SerialName("hideSingleBookSeries") val hideSingleBookSeries: Boolean = false,
+  @SerialName("onlyShowLaterBooksInContinueSeries")
+  val onlyShowLaterBooksInContinueSeries: Boolean = false,
+  @SerialName("podcastSearchRegion") val podcastSearchRegion: String = "us",
+  @SerialName("metadataPrecedence") val metadataPrecedence: List<String> = emptyList(),
+  @SerialName("markAsFinishedPercentComplete") val markAsFinishedPercentComplete: Int? = null,
+  @SerialName("markAsFinishedTimeRemaining") val markAsFinishedTimeRemaining: Int? = null,
   @SerialName("autoScanCronExpression") val autoScanCronExpression: String? = "",
 )

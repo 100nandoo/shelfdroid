@@ -111,4 +111,19 @@ class LibraryAdminScheduleTest {
     assertEquals("2026-08-31 00:00", nextLibraryScheduleRun("0 0 * * 1", now))
     assertEquals("2026-08-25 00:00", nextLibraryScheduleRun("*/30 * * * *", now))
   }
+
+  @Test
+  fun serverCronMapsBackToEditableSimpleAndAdvancedSchedules() {
+    val weekdays = libraryAdminScheduleDraft("15 23 * * 1,3,5")
+    assertEquals(LibraryAdminScheduleMode.Simple, weekdays.mode)
+    assertEquals(setOf(1, 3, 5), weekdays.simple.weekdays)
+    assertEquals("15 23 * * 1,3,5", weekdays.cronExpression)
+
+    val preset = libraryAdminScheduleDraft("*/30 * * * *")
+    assertEquals(LibraryAdminScheduleInterval.Every30Minutes, preset.simple.interval)
+
+    val advanced = libraryAdminScheduleDraft("0 0 1 * *")
+    assertEquals(LibraryAdminScheduleMode.Advanced, advanced.mode)
+    assertEquals("0 0 1 * *", advanced.advancedCronExpression)
+  }
 }

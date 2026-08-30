@@ -140,6 +140,62 @@ data class LibraryAdminScheduleDraft(
 /** Full draft schedule used by create serialization. Disabled schedules submit no cron field. */
 fun LibraryAdminDraft.scheduleExpressionOrNull(): String? = schedule.cronExpression
 
+/** Maps a server cron expression into the least-surprising editable schedule representation. */
+fun libraryAdminScheduleDraft(expression: String?): LibraryAdminScheduleDraft {
+  val cron = expression?.trim().orEmpty()
+  if (cron.isEmpty()) return LibraryAdminScheduleDraft()
+
+  val preset =
+    LibraryAdminScheduleInterval.entries.firstOrNull {
+      it.presetCron != null && it.presetCron == cron
+    }
+  if (preset != null) {
+    return LibraryAdminScheduleDraft(
+      enabled = true,
+      simple = LibraryAdminSimpleSchedule(interval = preset),
+    )
+  }
+
+  val fields = cron.split(WHITESPACE_REGEX)
+  if (fields.size == 5 && fields[2] == "*" && fields[3] == "*") {
+    val minute = fields[0].toIntOrNull()
+    val hour = fields[1].toIntOrNull()
+    if (minute in 0..59 && hour in 0..23) {
+      if (fields[4] == "*") {
+        return LibraryAdminScheduleDraft(
+          enabled = true,
+          simple =
+            LibraryAdminSimpleSchedule(
+              interval = LibraryAdminScheduleInterval.Daily,
+              hour = hour.toString(),
+              minute = minute.toString(),
+              weekdays = ALL_LIBRARY_SCHEDULE_WEEKDAYS,
+            ),
+        )
+      }
+      val weekdays = fields[4].split(',').mapNotNull(String::toIntOrNull).toSet()
+      if (weekdays.isNotEmpty() && weekdays.all { it in 0..6 }) {
+        return LibraryAdminScheduleDraft(
+          enabled = true,
+          simple =
+            LibraryAdminSimpleSchedule(
+              interval = LibraryAdminScheduleInterval.Custom,
+              hour = hour.toString(),
+              minute = minute.toString(),
+              weekdays = weekdays,
+            ),
+        )
+      }
+    }
+  }
+
+  return LibraryAdminScheduleDraft(
+    enabled = true,
+    mode = LibraryAdminScheduleMode.Advanced,
+    advancedCronExpression = cron,
+  )
+}
+
 /** Returns a readable next occurrence for the standard five-field cron syntax. */
 fun nextLibraryScheduleRun(expression: String, now: ZonedDateTime = ZonedDateTime.now()): String {
   val fields = expression.trim().split(WHITESPACE_REGEX)

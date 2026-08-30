@@ -52,9 +52,13 @@ import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdmin
 
 @Composable
 fun LibraryAdminCreateScreen(
-  viewModel: LibraryAdminCreateViewModel = hiltViewModel(),
+  libraryId: String? = null,
+  viewModel: LibraryAdminCreateViewModel =
+    hiltViewModel<LibraryAdminCreateViewModel, LibraryAdminCreateViewModel.Factory> { factory ->
+      factory.create(libraryId)
+    },
   onNavigateBack: () -> Unit = {},
-  onCreated: (String) -> Unit = {},
+  onSaved: (String) -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -69,7 +73,12 @@ fun LibraryAdminCreateScreen(
 
       is LibraryAdminCreateNavigation.Created -> {
         viewModel.onEvent(LibraryAdminCreateEvent.ConsumeNavigation)
-        onCreated(navigation.library.id)
+        onSaved(navigation.library.id)
+      }
+
+      is LibraryAdminCreateNavigation.Updated -> {
+        viewModel.onEvent(LibraryAdminCreateEvent.ConsumeNavigation)
+        onSaved(navigation.library.id)
       }
 
       null -> Unit
@@ -105,9 +114,25 @@ internal fun LibraryAdminCreateContent(
   }
 
   Column(modifier = Modifier.fillMaxSize()) {
+    if (uiState.isLoadingLibrary) {
+      LinearProgressIndicator(Modifier.fillMaxWidth())
+    }
+    if (uiState.libraryLoadFailed) {
+      Text(
+        text = stringResource(R.string.library_edit_load_failed),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+      )
+      TextButton(
+        onClick = { onEvent(LibraryAdminCreateEvent.Load) },
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text(stringResource(R.string.retry))
+      }
+    }
     Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
       Text(
-        text = stringResource(R.string.create_library),
+        text =
+          stringResource(if (uiState.isEdit) R.string.edit_library else R.string.create_library),
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
       )
       when (uiState.selectedTab) {
@@ -162,26 +187,41 @@ internal fun LibraryAdminCreateContent(
 
     Button(
       modifier = Modifier.fillMaxWidth().padding(16.dp),
-      enabled = !uiState.isBusy,
+      enabled =
+        !uiState.isBusy && !uiState.libraryLoadFailed && (!uiState.isEdit || uiState.isDirty),
       onClick = { onEvent(LibraryAdminCreateEvent.Submit) },
     ) {
       if (uiState.isSubmitting) {
         CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
         Spacer(Modifier.width(8.dp))
       }
-      Text(stringResource(R.string.create_library))
+      Text(stringResource(if (uiState.isEdit) R.string.save else R.string.create_library))
     }
 
     when (val submission = uiState.submissionState) {
       is LibraryAdminCreateSubmissionState.ServerFailure ->
         Text(
-          text = stringResource(R.string.library_create_server_failed),
+          text =
+            stringResource(
+              if (uiState.isEdit) {
+                R.string.library_edit_server_failed
+              } else {
+                R.string.library_create_server_failed
+              }
+            ),
           modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         )
 
       is LibraryAdminCreateSubmissionState.LocalSyncFailure -> {
         Text(
-          text = stringResource(R.string.library_create_local_sync_failed),
+          text =
+            stringResource(
+              if (uiState.isEdit) {
+                R.string.library_edit_local_sync_failed
+              } else {
+                R.string.library_create_local_sync_failed
+              }
+            ),
           modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         )
         TextButton(

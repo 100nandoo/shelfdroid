@@ -26,7 +26,7 @@ import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.navigation3.ui.NavDisplay
 import dev.halim.shelfdroid.core.navigation.ApiKeyChangedNavResult
 import dev.halim.shelfdroid.core.navigation.AppriseNotificationRuleChangedNavResult
-import dev.halim.shelfdroid.core.navigation.LibraryCreatedNavResult
+import dev.halim.shelfdroid.core.navigation.LibraryChangedNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditUser
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
@@ -319,6 +319,7 @@ private fun ColumnScope.NavHostContainer(
           LibraryAdminScreen(
             collectNavResultEvent = true,
             onCreateLibraryClicked = { navigator.navigate(CreateLibrary) },
+            onEditLibraryClicked = { navigator.navigate(EditLibrary(it)) },
           )
         }
       }
@@ -327,8 +328,21 @@ private fun ColumnScope.NavHostContainer(
         Nav3ScreenWrapper(sharedTransitionScope) {
           LibraryAdminCreateScreen(
             onNavigateBack = { navigator.pop() },
-            onCreated = { id ->
-              resultBus.sendResult(LibraryCreatedNavResult(id))
+            onSaved = { id ->
+              resultBus.sendResult(LibraryChangedNavResult(id))
+              navigator.pop()
+            },
+          )
+        }
+      }
+      entry<EditLibrary> { key ->
+        val resultBus = LocalResultEventBus.current
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          LibraryAdminCreateScreen(
+            libraryId = key.libraryId,
+            onNavigateBack = { navigator.pop() },
+            onSaved = { id ->
+              resultBus.sendResult(LibraryChangedNavResult(id))
               navigator.pop()
             },
           )

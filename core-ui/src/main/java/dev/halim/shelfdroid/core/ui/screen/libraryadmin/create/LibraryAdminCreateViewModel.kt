@@ -2,6 +2,9 @@ package dev.halim.shelfdroid.core.ui.screen.libraryadmin.create
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminScheduleDraft
@@ -17,14 +20,15 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCre
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateTab
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminEditSnapshot
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystemState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminPodcastSettings
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationException
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationState
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminUpdateResult
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.normalizeLibraryFolderPath
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.validateLibraryAdminDraft
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,24 +37,37 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@HiltViewModel
+@HiltViewModel(assistedFactory = LibraryAdminCreateViewModel.Factory::class)
 class LibraryAdminCreateViewModel
-@Inject
-constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
+@AssistedInject
+constructor(
+  @Assisted private val libraryId: String?,
+  private val repository: LibraryAdminCreateContract,
+) : ViewModel() {
 
-  private val _uiState = MutableStateFlow(LibraryAdminCreateUiState())
+  internal constructor(repository: LibraryAdminCreateContract) : this(null, repository)
+
+  private var originalEditSnapshot: LibraryAdminEditSnapshot? = null
+
+  private val _uiState =
+    MutableStateFlow(
+      LibraryAdminCreateUiState(
+        libraryId = libraryId,
+        isLoadingLibrary = libraryId != null,
+      )
+    )
   val uiState: StateFlow<LibraryAdminCreateUiState> =
     _uiState
-      .onStart { loadProviders(MediaType.BOOK) }
+      .onStart { loadInitialState() }
       .stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
-        LibraryAdminCreateUiState(),
+        _uiState.value,
       )
 
   fun onEvent(event: LibraryAdminCreateEvent) {
     when (event) {
-      LibraryAdminCreateEvent.Load -> loadProviders(_uiState.value.draft.mediaType)
+      LibraryAdminCreateEvent.Load -> loadInitialState()
       LibraryAdminCreateEvent.RetryProviders -> loadProviders(_uiState.value.draft.mediaType)
       is LibraryAdminCreateEvent.SelectMediaType -> selectMediaType(event.mediaType)
       is LibraryAdminCreateEvent.UpdateName -> updateDraft { copy(name = event.value) }
@@ -135,6 +152,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
   }
 
   private fun selectMediaType(mediaType: MediaType) {
+    if (_uiState.value.isEdit) return
     if (mediaType == _uiState.value.draft.mediaType) return
     val selectedTab =
       if (
@@ -152,6 +170,39 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
       update = { withMediaType(mediaType) },
     )
     loadProviders(mediaType)
+  }
+
+  private fun loadInitialState() {
+    val id = libraryId
+    if (id == null) {
+      loadProviders(MediaType.BOOK)
+      return
+    }
+    if (_uiState.value.isLoadingLibrary.not() && originalEditSnapshot != null) return
+    _uiState.update { it.copy(isLoadingLibrary = true, libraryLoadFailed = false) }
+    viewModelScope.launch {
+      repository
+        .loadLibrary(id)
+        .fold(
+          onSuccess = { snapshot ->
+            originalEditSnapshot = snapshot
+            _uiState.update {
+              it.copy(
+                draft = snapshot.draft,
+                isLoadingLibrary = false,
+                libraryLoadFailed = false,
+                isDirty = false,
+              )
+            }
+            loadProviders(snapshot.draft.mediaType)
+          },
+          onFailure = {
+            _uiState.update { state ->
+              state.copy(isLoadingLibrary = false, libraryLoadFailed = true)
+            }
+          },
+        )
+    }
   }
 
   private fun loadProviders(mediaType: MediaType) {
@@ -235,14 +286,22 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
    * that older draft.
    */
   private fun updateForm(update: LibraryAdminCreateUiState.() -> LibraryAdminCreateUiState) {
-    _uiState.update {
-      update(
-        it.copy(
-          isDirty = true,
-          validation = it.validation.copy(errors = emptyMap()),
-          scheduleValidation = LibraryAdminScheduleValidationState.Idle,
+    _uiState.update { state ->
+      val updated =
+        update(
+          state.copy(
+            isDirty = true,
+            validation = state.validation.copy(errors = emptyMap()),
+            scheduleValidation = LibraryAdminScheduleValidationState.Idle,
+          )
         )
-      )
+      val original = originalEditSnapshot
+      if (original == null) updated
+      else {
+        updated.copy(
+          isDirty = updated.draft != original.draft || updated.manualFolderDraft.isNotBlank()
+        )
+      }
     }
   }
 
@@ -297,6 +356,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
   private fun submit() {
     val state = _uiState.value
     if (state.isBusy) return
+    if (state.isEdit && (!state.isDirty || originalEditSnapshot == null)) return
     val validation =
       validateLibraryAdminDraft(
         draft = state.draft,
@@ -338,7 +398,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     }
     if (schedule.enabled && schedule.mode == LibraryAdminScheduleMode.Advanced) {
       if (state.scheduleValidation is LibraryAdminScheduleValidationState.Valid) {
-        createLibrary(state.draft)
+        saveLibrary(state.draft)
       } else {
         validateAdvancedSchedule(state, createOnSuccess = true)
       }
@@ -347,7 +407,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     _uiState.update {
       it.copy(scheduleValidation = LibraryAdminScheduleValidationState.Valid)
     }
-    createLibrary(state.draft)
+    saveLibrary(state.draft)
   }
 
   private fun validateSchedule() {
@@ -400,7 +460,7 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
             _uiState.update {
               it.copy(scheduleValidation = LibraryAdminScheduleValidationState.Valid)
             }
-            if (createOnSuccess) createLibrary(state.draft)
+            if (createOnSuccess) saveLibrary(state.draft)
           },
           onFailure = { error ->
             if (_uiState.value.draft != state.draft) return@fold
@@ -475,6 +535,46 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     }
   }
 
+  private fun saveLibrary(draft: LibraryAdminDraft) {
+    val id = libraryId
+    if (id == null) createLibrary(draft) else updateLibrary(id, draft)
+  }
+
+  private fun updateLibrary(libraryId: String, draft: LibraryAdminDraft) {
+    if (_uiState.value.isSubmitting) return
+    val original = originalEditSnapshot ?: return
+    _uiState.update {
+      it.copy(submissionState = LibraryAdminCreateSubmissionState.Submitting)
+    }
+    viewModelScope.launch {
+      repository
+        .updateLibrary(libraryId, original, draft)
+        .fold(
+          onSuccess = { result ->
+            _uiState.update {
+              when (result) {
+                is LibraryAdminUpdateResult.Updated ->
+                  it.copy(
+                    submissionState = LibraryAdminCreateSubmissionState.Idle,
+                    navigation = LibraryAdminCreateNavigation.Updated(result.library),
+                  )
+                is LibraryAdminUpdateResult.UpdatedButNotSynchronized ->
+                  it.copy(
+                    submissionState =
+                      LibraryAdminCreateSubmissionState.LocalSyncFailure(result.library, null)
+                  )
+              }
+            }
+          },
+          onFailure = {
+            _uiState.update {
+              it.copy(submissionState = LibraryAdminCreateSubmissionState.ServerFailure(null))
+            }
+          },
+        )
+    }
+  }
+
   private fun retryLocalSynchronization() {
     if (_uiState.value.isSubmitting) return
     val localFailure =
@@ -489,7 +589,12 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
             _uiState.update {
               it.copy(
                 submissionState = LibraryAdminCreateSubmissionState.Idle,
-                navigation = LibraryAdminCreateNavigation.Created(localFailure.library),
+                navigation =
+                  if (libraryId == null) {
+                    LibraryAdminCreateNavigation.Created(localFailure.library)
+                  } else {
+                    LibraryAdminCreateNavigation.Updated(localFailure.library)
+                  },
               )
             }
           },
@@ -514,6 +619,11 @@ constructor(private val repository: LibraryAdminCreateContract) : ViewModel() {
     } else {
       _uiState.update { it.copy(navigation = LibraryAdminCreateNavigation.Back) }
     }
+  }
+
+  @AssistedFactory
+  interface Factory {
+    fun create(libraryId: String?): LibraryAdminCreateViewModel
   }
 }
 

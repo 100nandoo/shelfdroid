@@ -59,6 +59,8 @@ data class Login(val reLogin: Boolean = false, val reason: AuthPromptReason? = n
 
 @Serializable data object CreateLibrary : ShelfNavKey
 
+@Serializable data class EditLibrary(val libraryId: String) : ShelfNavKey
+
 @Serializable data object NavApiKeys : ShelfNavKey
 
 @Serializable data class EditApiKeys(val payload: NavEditApiKeys) : ShelfNavKey

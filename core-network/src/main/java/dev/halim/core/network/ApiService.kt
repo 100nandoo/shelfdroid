@@ -22,6 +22,7 @@ import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateApiKeyRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
+import dev.halim.core.network.request.UpdateLibraryRequest
 import dev.halim.core.network.request.UpdatePodcastEpisodeRequest
 import dev.halim.core.network.request.UpdateServerSettingsRequest
 import dev.halim.core.network.request.UpdateUserRequest
@@ -174,6 +175,12 @@ interface ApiService {
 
   @POST("api/libraries")
   suspend fun createLibrary(@Body request: CreateLibraryRequest): Result<Library>
+
+  @PATCH("api/libraries/{libraryId}")
+  suspend fun updateLibrary(
+    @Path("libraryId") libraryId: String,
+    @Body request: UpdateLibraryRequest,
+  ): Result<Library>
 
   @DELETE("api/libraries/{libraryId}")
   suspend fun deleteLibrary(@Path("libraryId") libraryId: String): Result<Library>

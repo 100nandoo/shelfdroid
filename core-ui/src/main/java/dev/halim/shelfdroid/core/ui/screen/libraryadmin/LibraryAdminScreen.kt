@@ -42,7 +42,7 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.canReorder
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.canStartMatch
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.canStartScan
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.taskForLibrary
-import dev.halim.shelfdroid.core.navigation.LibraryCreatedNavResult
+import dev.halim.shelfdroid.core.navigation.LibraryChangedNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DeleteConfirmationDialog
 import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
@@ -53,6 +53,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 fun LibraryAdminScreen(
   viewModel: LibraryAdminViewModel = hiltViewModel(),
   onCreateLibraryClicked: () -> Unit = {},
+  onEditLibraryClicked: (String) -> Unit = {},
   collectNavResultEvent: Boolean = false,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -67,7 +68,7 @@ fun LibraryAdminScreen(
     }
   }
   if (collectNavResultEvent) {
-    ResultEffect<LibraryCreatedNavResult> { viewModel.onEvent(LibraryAdminEvent.Refresh) }
+    ResultEffect<LibraryChangedNavResult> { viewModel.onEvent(LibraryAdminEvent.Refresh) }
   }
   Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
     LibraryAdminContent(
@@ -75,6 +76,7 @@ fun LibraryAdminScreen(
       uiState = uiState,
       onEvent = viewModel::onEvent,
       onCreateLibraryClicked = onCreateLibraryClicked,
+      onEditLibraryClicked = onEditLibraryClicked,
     )
   }
 }
@@ -85,6 +87,7 @@ internal fun LibraryAdminContent(
   uiState: LibraryAdminUiState = LibraryAdminUiState(),
   onEvent: (LibraryAdminEvent) -> Unit = {},
   onCreateLibraryClicked: () -> Unit = {},
+  onEditLibraryClicked: (String) -> Unit = {},
 ) {
   Column(modifier = modifier.fillMaxSize()) {
     if (uiState.state is GenericState.Loading || uiState.isRefreshing) {
@@ -190,6 +193,7 @@ internal fun LibraryAdminContent(
                   onScan = { onEvent(LibraryAdminEvent.StartScan(library.id)) },
                   onMatch = { onEvent(LibraryAdminEvent.StartMatch(library.id)) },
                   onDelete = { onEvent(LibraryAdminEvent.RequestDeleteLibrary(library.id)) },
+                  onEdit = { onEditLibraryClicked(library.id) },
                   task = uiState.taskForLibrary(library.id),
                   onRetrySynchronization = { taskId ->
                     onEvent(LibraryAdminEvent.RetryTaskSynchronization(taskId))

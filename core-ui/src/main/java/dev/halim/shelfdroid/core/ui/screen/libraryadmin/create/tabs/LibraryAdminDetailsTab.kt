@@ -75,6 +75,7 @@ internal fun LibraryAdminDetailsTab(
       options = listOf(MediaType.BOOK, MediaType.PODCAST),
       label = stringResource(R.string.library_create_media_type),
       selectedValue = uiState.draft.mediaType,
+      enabled = !uiState.isEdit,
       optionLabel = { mediaType ->
         if (mediaType == MediaType.BOOK) bookLabel else podcastLabel
       },
