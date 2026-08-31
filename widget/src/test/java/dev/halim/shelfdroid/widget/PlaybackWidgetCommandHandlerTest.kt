@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.widget
 
+import dev.halim.shelfdroid.media.service.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.service.CUSTOM_PREVIOUS_CHAPTER
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,6 +18,28 @@ class PlaybackWidgetCommandHandlerTest {
 
       runTest { handlePlaybackWidgetCommand(command, gateway, refreshRequester, navigator) }
 
+      assertEquals(listOf(command), gateway.commands)
+      assertTrue(refreshRequester.wasRequested)
+      assertFalse(navigator.wasOpened)
+    }
+  }
+
+  @Test
+  fun eachChapterAction_dispatchesItsSharedCustomSessionCommandAndRefreshes() {
+    val expectedActions =
+      mapOf(
+        ChapterPlaybackCommand.Previous to CUSTOM_PREVIOUS_CHAPTER,
+        ChapterPlaybackCommand.Next to CUSTOM_NEXT_CHAPTER,
+      )
+
+    expectedActions.forEach { (command, expectedAction) ->
+      val gateway = FakePlaybackControllerGateway(PlaybackCommandResult.Success)
+      val refreshRequester = FakeRefreshRequester()
+      val navigator = FakeNormalAppNavigator()
+
+      runTest { handlePlaybackWidgetCommand(command, gateway, refreshRequester, navigator) }
+
+      assertEquals(expectedAction, command.customAction)
       assertEquals(listOf(command), gateway.commands)
       assertTrue(refreshRequester.wasRequested)
       assertFalse(navigator.wasOpened)
@@ -59,9 +83,9 @@ class PlaybackWidgetCommandHandlerTest {
   private class FakePlaybackControllerGateway(
     private val result: PlaybackCommandResult,
   ) : PlaybackControllerGateway {
-    val commands = mutableListOf<PrimaryPlaybackCommand>()
+    val commands = mutableListOf<PlaybackWidgetCommand>()
 
-    override suspend fun dispatch(command: PrimaryPlaybackCommand): PlaybackCommandResult {
+    override suspend fun dispatch(command: PlaybackWidgetCommand): PlaybackCommandResult {
       commands += command
       return result
     }

@@ -7,6 +7,7 @@ import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
 import androidx.glance.appwidget.testing.unit.assertHasRunCallbackClickAction
 import androidx.glance.material3.ColorProviders
 import androidx.glance.testing.unit.assertHasContentDescriptionEqualTo
+import androidx.glance.testing.unit.assertHasNoClickAction
 import androidx.glance.testing.unit.assertHasStartActivityClickAction
 import androidx.glance.testing.unit.assertHasTextEqualTo
 import androidx.glance.testing.unit.hasContentDescriptionEqualTo
@@ -40,6 +41,7 @@ class CurrentPlaybackWidgetTest {
       onNode(hasTestTag(METADATA_TEST_TAG)).assertDoesNotExist()
       onNode(hasTestTag(RECOVERY_TEST_TAG)).assertDoesNotExist()
       assertPrimaryControls(PAUSE_DESCRIPTION)
+      assertChapterControlsDoNotExist()
     }
 
   @Test
@@ -56,6 +58,7 @@ class CurrentPlaybackWidgetTest {
       onNode(hasTestTag(ACTIVE_WIDGET_TEST_TAG)).assertHasStartActivityClickAction<MainActivity>()
       onNode(hasTestTag(RECOVERY_TEST_TAG)).assertDoesNotExist()
       assertPrimaryControls(PAUSE_DESCRIPTION)
+      assertEnabledChapterControls()
     }
 
   @Test
@@ -86,6 +89,7 @@ class CurrentPlaybackWidgetTest {
     onNode(hasTestTag(SEEK_BACK_TEST_TAG)).assertDoesNotExist()
     onNode(hasTestTag(PLAY_PAUSE_TEST_TAG)).assertDoesNotExist()
     onNode(hasTestTag(SEEK_FORWARD_TEST_TAG)).assertDoesNotExist()
+    assertChapterControlsDoNotExist()
   }
 
   @Test
@@ -124,11 +128,31 @@ class CurrentPlaybackWidgetTest {
       .assertHasContentDescriptionEqualTo("$SEEK_FORWARD_DESCRIPTION. $UNAVAILABLE_DESCRIPTION")
   }
 
+  @Test
+  fun unavailableNextChapter_remainsVisibleWithoutAnAction() = runGlanceAppWidgetUnitTest {
+    setAppWidgetSize(LargePlaybackWidgetSize)
+    provideCurrentPlaybackWidget(
+      media = mediaWithArtwork(),
+      isError = false,
+      chapterControls = ChapterPlaybackControls(previousEnabled = true, nextEnabled = false),
+    )
+
+    onNode(hasTestTag(PREVIOUS_CHAPTER_TEST_TAG))
+      .assertHasContentDescriptionEqualTo(PREVIOUS_CHAPTER_DESCRIPTION)
+      .assertHasRunCallbackClickAction<PreviousChapterPlaybackAction>()
+    onNode(hasTestTag(NEXT_CHAPTER_TEST_TAG))
+      .assertHasContentDescriptionEqualTo(
+        "$NEXT_CHAPTER_DESCRIPTION. $UNAVAILABLE_DESCRIPTION"
+      )
+      .assertHasNoClickAction()
+  }
+
   private fun androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest
     .provideCurrentPlaybackWidget(
       media: CurrentPlaybackMedia,
       isError: Boolean,
       controls: PrimaryPlaybackControls? = primaryControls(showPause = true),
+      chapterControls: ChapterPlaybackControls? = enabledChapterControls(),
     ) {
     provideComposable {
       GlanceTheme(colors = ColorProviders(light = lightScheme, dark = darkScheme)) {
@@ -136,6 +160,7 @@ class CurrentPlaybackWidgetTest {
           media = media,
           isError = isError,
           controls = controls,
+          chapterControls = chapterControls,
           artworkDescription = ARTWORK_DESCRIPTION,
           fallbackArtworkDescription = FALLBACK_DESCRIPTION,
           metadataDescription = METADATA_DESCRIPTION,
@@ -146,11 +171,29 @@ class CurrentPlaybackWidgetTest {
           pauseDescription = PAUSE_DESCRIPTION,
           seekBackDescription = SEEK_BACK_DESCRIPTION,
           seekForwardDescription = SEEK_FORWARD_DESCRIPTION,
+          previousChapterDescription = PREVIOUS_CHAPTER_DESCRIPTION,
+          nextChapterDescription = NEXT_CHAPTER_DESCRIPTION,
           unavailableDescription = UNAVAILABLE_DESCRIPTION,
           openAction = actionStartActivity<MainActivity>(),
         )
       }
     }
+  }
+
+  private fun androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest
+    .assertEnabledChapterControls() {
+    onNode(hasTestTag(PREVIOUS_CHAPTER_TEST_TAG))
+      .assertHasContentDescriptionEqualTo(PREVIOUS_CHAPTER_DESCRIPTION)
+      .assertHasRunCallbackClickAction<PreviousChapterPlaybackAction>()
+    onNode(hasTestTag(NEXT_CHAPTER_TEST_TAG))
+      .assertHasContentDescriptionEqualTo(NEXT_CHAPTER_DESCRIPTION)
+      .assertHasRunCallbackClickAction<NextChapterPlaybackAction>()
+  }
+
+  private fun androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest
+    .assertChapterControlsDoNotExist() {
+    onNode(hasTestTag(PREVIOUS_CHAPTER_TEST_TAG)).assertDoesNotExist()
+    onNode(hasTestTag(NEXT_CHAPTER_TEST_TAG)).assertDoesNotExist()
   }
 
   private fun androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest.assertPrimaryControls(
@@ -181,6 +224,9 @@ class CurrentPlaybackWidgetTest {
       seekForwardEnabled = true,
     )
 
+  private fun enabledChapterControls() =
+    ChapterPlaybackControls(previousEnabled = true, nextEnabled = true)
+
   private fun mediaWithArtwork() =
     CurrentPlaybackMedia(
       mediaId = "book-id",
@@ -202,6 +248,8 @@ class CurrentPlaybackWidgetTest {
     const val PAUSE_DESCRIPTION = "Pause"
     const val SEEK_BACK_DESCRIPTION = "Seek back 10 seconds"
     const val SEEK_FORWARD_DESCRIPTION = "Seek forward 10 seconds"
+    const val PREVIOUS_CHAPTER_DESCRIPTION = "Previous Chapter"
+    const val NEXT_CHAPTER_DESCRIPTION = "Next Chapter"
     const val UNAVAILABLE_DESCRIPTION = "Unavailable"
   }
 }

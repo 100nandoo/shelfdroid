@@ -4,10 +4,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import coil3.ImageLoader
 import coil3.request.ImageRequest
@@ -15,6 +17,8 @@ import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.toBitmap
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.halim.shelfdroid.media.service.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.service.CUSTOM_PREVIOUS_CHAPTER
 import dev.halim.shelfdroid.media.service.PlaybackService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,6 +32,7 @@ internal sealed interface PlaybackWidgetPresentation {
   data class Active(
     val media: CurrentPlaybackMedia,
     val controls: PrimaryPlaybackControls,
+    val chapterControls: ChapterPlaybackControls,
   ) : PlaybackWidgetPresentation
 
   data class Error(val media: CurrentPlaybackMedia) : PlaybackWidgetPresentation
@@ -48,6 +53,8 @@ internal data class PlaybackSessionSnapshot(
   val playPauseEnabled: Boolean = true,
   val seekBackEnabled: Boolean = true,
   val seekForwardEnabled: Boolean = true,
+  val previousChapterEnabled: Boolean,
+  val nextChapterEnabled: Boolean,
 )
 
 internal data class PrimaryPlaybackControls(
@@ -55,6 +62,11 @@ internal data class PrimaryPlaybackControls(
   val playPauseEnabled: Boolean,
   val seekBackEnabled: Boolean,
   val seekForwardEnabled: Boolean,
+)
+
+internal data class ChapterPlaybackControls(
+  val previousEnabled: Boolean,
+  val nextEnabled: Boolean,
 )
 
 internal data class PlaybackSessionItem(
@@ -105,6 +117,11 @@ internal fun mapPlaybackWidgetPresentation(
           seekBackEnabled = snapshot.seekBackEnabled,
           seekForwardEnabled = snapshot.seekForwardEnabled,
         ),
+      chapterControls =
+        ChapterPlaybackControls(
+          previousEnabled = snapshot.previousChapterEnabled,
+          nextEnabled = snapshot.nextChapterEnabled,
+        ),
     )
   }
 }
@@ -129,6 +146,14 @@ constructor(@param:ApplicationContext private val context: Context) {
           seekBackEnabled = controller.isCommandAvailable(Player.COMMAND_SEEK_BACK),
           seekForwardEnabled =
             controller.isCommandAvailable(Player.COMMAND_SEEK_FORWARD),
+          previousChapterEnabled =
+            controller.isSessionCommandAvailable(
+              SessionCommand(CUSTOM_PREVIOUS_CHAPTER, Bundle.EMPTY)
+            ),
+          nextChapterEnabled =
+            controller.isSessionCommandAvailable(
+              SessionCommand(CUSTOM_NEXT_CHAPTER, Bundle.EMPTY)
+            ),
         )
       } finally {
         MediaController.releaseFuture(controllerFuture)

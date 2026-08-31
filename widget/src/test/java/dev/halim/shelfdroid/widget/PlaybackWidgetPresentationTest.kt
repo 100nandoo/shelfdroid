@@ -23,6 +23,8 @@ class PlaybackWidgetPresentationTest {
             playbackState = Player.STATE_IDLE,
             playWhenReady = false,
             hasError = false,
+            previousChapterEnabled = false,
+            nextChapterEnabled = false,
           ),
         artwork = null,
       ),
@@ -68,6 +70,8 @@ class PlaybackWidgetPresentationTest {
             playPauseEnabled = false,
             seekBackEnabled = false,
             seekForwardEnabled = true,
+            previousChapterEnabled = true,
+            nextChapterEnabled = false,
           ),
         artwork = null,
       ) as PlaybackWidgetPresentation.Active
@@ -80,6 +84,10 @@ class PlaybackWidgetPresentationTest {
         seekForwardEnabled = true,
       ),
       presentation.controls,
+    )
+    assertEquals(
+      ChapterPlaybackControls(previousEnabled = true, nextEnabled = false),
+      presentation.chapterControls,
     )
   }
 
@@ -121,6 +129,8 @@ class PlaybackWidgetPresentationTest {
       playbackState = playbackState,
       playWhenReady = playWhenReady,
       hasError = hasError,
+      previousChapterEnabled = true,
+      nextChapterEnabled = true,
     )
 
   private fun activeControls(playbackState: Int, playWhenReady: Boolean) =

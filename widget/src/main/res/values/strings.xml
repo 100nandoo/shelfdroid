@@ -17,5 +17,7 @@
     <string name="playback_widget_pause_description">Pause</string>
     <string name="playback_widget_seek_back_description">Seek back 10 seconds</string>
     <string name="playback_widget_seek_forward_description">Seek forward 10 seconds</string>
+    <string name="playback_widget_previous_chapter_description">Previous Chapter</string>
+    <string name="playback_widget_next_chapter_description">Next Chapter</string>
     <string name="playback_widget_control_unavailable">Unavailable</string>
 </resources>

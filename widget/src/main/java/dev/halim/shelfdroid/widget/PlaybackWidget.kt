@@ -105,6 +105,8 @@ private fun PlaybackWidgetContent(
     media = media,
     isError = presentation is PlaybackWidgetPresentation.Error,
     controls = (presentation as? PlaybackWidgetPresentation.Active)?.controls,
+    chapterControls =
+      (presentation as? PlaybackWidgetPresentation.Active)?.chapterControls,
     artworkDescription =
       context.getString(R.string.playback_widget_artwork_description, media.mediaTitle),
     fallbackArtworkDescription =
@@ -126,6 +128,10 @@ private fun PlaybackWidgetContent(
     pauseDescription = context.getString(R.string.playback_widget_pause_description),
     seekBackDescription = context.getString(R.string.playback_widget_seek_back_description),
     seekForwardDescription = context.getString(R.string.playback_widget_seek_forward_description),
+    previousChapterDescription =
+      context.getString(R.string.playback_widget_previous_chapter_description),
+    nextChapterDescription =
+      context.getString(R.string.playback_widget_next_chapter_description),
     unavailableDescription = context.getString(R.string.playback_widget_control_unavailable),
     openAction = openNowPlayingAction(context, media.mediaId),
   )
@@ -136,6 +142,7 @@ internal fun CurrentPlaybackWidget(
   media: CurrentPlaybackMedia,
   isError: Boolean,
   controls: PrimaryPlaybackControls?,
+  chapterControls: ChapterPlaybackControls?,
   artworkDescription: String,
   fallbackArtworkDescription: String,
   metadataDescription: String,
@@ -146,6 +153,8 @@ internal fun CurrentPlaybackWidget(
   pauseDescription: String,
   seekBackDescription: String,
   seekForwardDescription: String,
+  previousChapterDescription: String,
+  nextChapterDescription: String,
   unavailableDescription: String,
   openAction: Action,
 ) {
@@ -221,12 +230,15 @@ internal fun CurrentPlaybackWidget(
           )
         } else if (controls != null) {
           Spacer(modifier = GlanceModifier.height(4.dp))
-          PrimaryPlaybackControlRow(
+          PlaybackControlRow(
             controls = controls,
+            chapterControls = chapterControls,
             playDescription = playDescription,
             pauseDescription = pauseDescription,
             seekBackDescription = seekBackDescription,
             seekForwardDescription = seekForwardDescription,
+            previousChapterDescription = previousChapterDescription,
+            nextChapterDescription = nextChapterDescription,
             unavailableDescription = unavailableDescription,
           )
         }
@@ -240,12 +252,15 @@ internal fun CurrentPlaybackWidget(
       )
     } else if (controls != null) {
       Spacer(modifier = GlanceModifier.width(8.dp))
-      PrimaryPlaybackControlRow(
+      PlaybackControlRow(
         controls = controls,
+        chapterControls = null,
         playDescription = playDescription,
         pauseDescription = pauseDescription,
         seekBackDescription = seekBackDescription,
         seekForwardDescription = seekForwardDescription,
+        previousChapterDescription = previousChapterDescription,
+        nextChapterDescription = nextChapterDescription,
         unavailableDescription = unavailableDescription,
       )
     }
@@ -253,15 +268,28 @@ internal fun CurrentPlaybackWidget(
 }
 
 @Composable
-private fun PrimaryPlaybackControlRow(
+private fun PlaybackControlRow(
   controls: PrimaryPlaybackControls,
+  chapterControls: ChapterPlaybackControls?,
   playDescription: String,
   pauseDescription: String,
   seekBackDescription: String,
   seekForwardDescription: String,
+  previousChapterDescription: String,
+  nextChapterDescription: String,
   unavailableDescription: String,
 ) {
   Row(verticalAlignment = Alignment.CenterVertically) {
+    if (chapterControls != null) {
+      PlaybackControl(
+        icon = CoreUiR.drawable.skip_previous,
+        description = previousChapterDescription,
+        unavailableDescription = unavailableDescription,
+        enabled = chapterControls.previousEnabled,
+        action = actionRunCallback<PreviousChapterPlaybackAction>(),
+        testTag = PREVIOUS_CHAPTER_TEST_TAG,
+      )
+    }
     PlaybackControl(
       icon = CoreUiR.drawable.fast_rewind,
       description = seekBackDescription,
@@ -291,6 +319,16 @@ private fun PrimaryPlaybackControlRow(
       action = actionRunCallback<SeekForwardPlaybackAction>(),
       testTag = SEEK_FORWARD_TEST_TAG,
     )
+    if (chapterControls != null) {
+      PlaybackControl(
+        icon = CoreUiR.drawable.skip_next,
+        description = nextChapterDescription,
+        unavailableDescription = unavailableDescription,
+        enabled = chapterControls.nextEnabled,
+        action = actionRunCallback<NextChapterPlaybackAction>(),
+        testTag = NEXT_CHAPTER_TEST_TAG,
+      )
+    }
   }
 }
 
@@ -505,3 +543,5 @@ internal const val RECOVERY_TEST_TAG = "current_playback_recovery"
 internal const val SEEK_BACK_TEST_TAG = "current_playback_seek_back"
 internal const val PLAY_PAUSE_TEST_TAG = "current_playback_play_pause"
 internal const val SEEK_FORWARD_TEST_TAG = "current_playback_seek_forward"
+internal const val PREVIOUS_CHAPTER_TEST_TAG = "current_playback_previous_chapter"
+internal const val NEXT_CHAPTER_TEST_TAG = "current_playback_next_chapter"

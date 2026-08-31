@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.widget
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
@@ -11,9 +12,13 @@ import androidx.glance.appwidget.updateAll
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
 import androidx.media3.session.SessionToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.ui.screen.MainActivity
+import dev.halim.shelfdroid.media.service.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.service.CUSTOM_PREVIOUS_CHAPTER
 import dev.halim.shelfdroid.media.service.PlaybackService
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,11 +27,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 
-internal enum class PrimaryPlaybackCommand {
+internal sealed interface PlaybackWidgetCommand
+
+internal enum class PrimaryPlaybackCommand : PlaybackWidgetCommand {
   Play,
   Pause,
   SeekBack,
   SeekForward,
+}
+
+internal enum class ChapterPlaybackCommand(val customAction: String) : PlaybackWidgetCommand {
+  Previous(CUSTOM_PREVIOUS_CHAPTER),
+  Next(CUSTOM_NEXT_CHAPTER),
 }
 
 internal enum class PlaybackCommandResult {
@@ -36,7 +48,7 @@ internal enum class PlaybackCommandResult {
 }
 
 internal fun interface PlaybackControllerGateway {
-  suspend fun dispatch(command: PrimaryPlaybackCommand): PlaybackCommandResult
+  suspend fun dispatch(command: PlaybackWidgetCommand): PlaybackCommandResult
 }
 
 internal fun interface PlaybackWidgetRefreshRequester {
@@ -48,7 +60,7 @@ internal fun interface NormalAppNavigator {
 }
 
 internal suspend fun handlePlaybackWidgetCommand(
-  command: PrimaryPlaybackCommand,
+  command: PlaybackWidgetCommand,
   gateway: PlaybackControllerGateway,
   refreshRequester: PlaybackWidgetRefreshRequester,
   normalAppNavigator: NormalAppNavigator,
@@ -77,7 +89,7 @@ constructor(
   private val refreshRequester: GlancePlaybackWidgetRefreshRequester,
   private val normalAppNavigator: ShelfDroidNormalAppNavigator,
 ) {
-  suspend fun handle(command: PrimaryPlaybackCommand) {
+  suspend fun handle(command: PlaybackWidgetCommand) {
     handlePlaybackWidgetCommand(command, gateway, refreshRequester, normalAppNavigator)
   }
 }
@@ -87,7 +99,7 @@ internal class Media3PlaybackControllerGateway
 @Inject
 constructor(@param:ApplicationContext private val context: Context) : PlaybackControllerGateway {
   @OptIn(UnstableApi::class)
-  override suspend fun dispatch(command: PrimaryPlaybackCommand): PlaybackCommandResult =
+  override suspend fun dispatch(command: PlaybackWidgetCommand): PlaybackCommandResult =
     withContext(Dispatchers.Main.immediate) {
       val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
       val controllerFuture = MediaController.Builder(context, token).buildAsync()
@@ -96,15 +108,32 @@ constructor(@param:ApplicationContext private val context: Context) : PlaybackCo
         if (controller.currentMediaItem == null) {
           return@withContext PlaybackCommandResult.MissingCurrentPlayback
         }
-        if (controller.playerError != null || !controller.isCommandAvailable(command.playerCommand)) {
+        if (controller.playerError != null) {
           return@withContext PlaybackCommandResult.Failed
         }
 
         when (command) {
-          PrimaryPlaybackCommand.Play -> controller.play()
-          PrimaryPlaybackCommand.Pause -> controller.pause()
-          PrimaryPlaybackCommand.SeekBack -> controller.seekBack()
-          PrimaryPlaybackCommand.SeekForward -> controller.seekForward()
+          is PrimaryPlaybackCommand -> {
+            if (!controller.isCommandAvailable(command.playerCommand)) {
+              return@withContext PlaybackCommandResult.Failed
+            }
+            when (command) {
+              PrimaryPlaybackCommand.Play -> controller.play()
+              PrimaryPlaybackCommand.Pause -> controller.pause()
+              PrimaryPlaybackCommand.SeekBack -> controller.seekBack()
+              PrimaryPlaybackCommand.SeekForward -> controller.seekForward()
+            }
+          }
+          is ChapterPlaybackCommand -> {
+            val sessionCommand = SessionCommand(command.customAction, Bundle.EMPTY)
+            if (!controller.isSessionCommandAvailable(sessionCommand)) {
+              return@withContext PlaybackCommandResult.Failed
+            }
+            val result = controller.sendCustomCommand(sessionCommand, Bundle.EMPTY).await()
+            if (result.resultCode != SessionResult.RESULT_SUCCESS) {
+              return@withContext PlaybackCommandResult.Failed
+            }
+          }
         }
         PlaybackCommandResult.Success
       } finally {
@@ -151,8 +180,13 @@ public class SeekBackPlaybackAction : PlaybackWidgetAction(PrimaryPlaybackComman
 
 public class SeekForwardPlaybackAction : PlaybackWidgetAction(PrimaryPlaybackCommand.SeekForward)
 
+public class PreviousChapterPlaybackAction :
+  PlaybackWidgetAction(ChapterPlaybackCommand.Previous)
+
+public class NextChapterPlaybackAction : PlaybackWidgetAction(ChapterPlaybackCommand.Next)
+
 public abstract class PlaybackWidgetAction internal constructor(
-  private val command: PrimaryPlaybackCommand,
+  private val command: PlaybackWidgetCommand,
 ) : ActionCallback {
   override suspend fun onAction(
     context: Context,
