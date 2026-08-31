@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.widget
 import android.net.Uri
 import androidx.media3.common.Player
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -50,6 +51,39 @@ class PlaybackWidgetPresentationTest {
   }
 
   @Test
+  fun playbackIntent_mapsPauseForPlayingAndBufferingAndPlayForPausedAndEnded() {
+    assertTrue(activeControls(Player.STATE_READY, playWhenReady = true).showPause)
+    assertTrue(activeControls(Player.STATE_BUFFERING, playWhenReady = true).showPause)
+    assertFalse(activeControls(Player.STATE_BUFFERING, playWhenReady = false).showPause)
+    assertFalse(activeControls(Player.STATE_READY, playWhenReady = false).showPause)
+    assertFalse(activeControls(Player.STATE_ENDED, playWhenReady = true).showPause)
+  }
+
+  @Test
+  fun commandAvailability_mapsToStableControlState() {
+    val presentation =
+      mapPlaybackWidgetPresentation(
+        snapshot =
+          snapshot(Player.STATE_READY, playWhenReady = true).copy(
+            playPauseEnabled = false,
+            seekBackEnabled = false,
+            seekForwardEnabled = true,
+          ),
+        artwork = null,
+      ) as PlaybackWidgetPresentation.Active
+
+    assertEquals(
+      PrimaryPlaybackControls(
+        showPause = true,
+        playPauseEnabled = false,
+        seekBackEnabled = false,
+        seekForwardEnabled = true,
+      ),
+      presentation.controls,
+    )
+  }
+
+  @Test
   fun playbackError_retainsCurrentPlaybackIdentity() {
     val presentation =
       mapPlaybackWidgetPresentation(
@@ -88,6 +122,15 @@ class PlaybackWidgetPresentationTest {
       playWhenReady = playWhenReady,
       hasError = hasError,
     )
+
+  private fun activeControls(playbackState: Int, playWhenReady: Boolean) =
+    (
+        mapPlaybackWidgetPresentation(
+          snapshot = snapshot(playbackState, playWhenReady),
+          artwork = null,
+        ) as PlaybackWidgetPresentation.Active
+      )
+      .controls
 
   private companion object {
     const val MEDIA_ID = "book-id"

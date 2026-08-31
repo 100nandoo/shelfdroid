@@ -55,5 +55,6 @@ dependencies {
   testImplementation(libs.androidx.glance.appwidget.testing)
   testImplementation(libs.androidx.glance.testing)
   testImplementation(libs.junit)
+  testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.robolectric)
 }

@@ -13,4 +13,9 @@
     <string name="playback_widget_now_playing_description">Open Now Playing for %1$s</string>
     <string name="playback_widget_recovery_action">Open ShelfDroid</string>
     <string name="playback_widget_recovery_description">Open ShelfDroid for Current playback</string>
+    <string name="playback_widget_play_description">Play</string>
+    <string name="playback_widget_pause_description">Pause</string>
+    <string name="playback_widget_seek_back_description">Seek back 10 seconds</string>
+    <string name="playback_widget_seek_forward_description">Seek forward 10 seconds</string>
+    <string name="playback_widget_control_unavailable">Unavailable</string>
 </resources>

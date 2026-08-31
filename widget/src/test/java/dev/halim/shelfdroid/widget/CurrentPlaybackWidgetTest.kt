@@ -4,10 +4,12 @@ import android.graphics.Bitmap
 import androidx.glance.GlanceTheme
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
+import androidx.glance.appwidget.testing.unit.assertHasRunCallbackClickAction
 import androidx.glance.material3.ColorProviders
 import androidx.glance.testing.unit.assertHasContentDescriptionEqualTo
 import androidx.glance.testing.unit.assertHasStartActivityClickAction
 import androidx.glance.testing.unit.assertHasTextEqualTo
+import androidx.glance.testing.unit.hasContentDescriptionEqualTo
 import androidx.glance.testing.unit.hasTestTag
 import androidx.glance.testing.unit.hasTextEqualTo
 import dev.halim.shelfdroid.core.ui.screen.MainActivity
@@ -37,6 +39,7 @@ class CurrentPlaybackWidgetTest {
       onNode(hasTextEqualTo(PLAYABLE_TITLE)).assertDoesNotExist()
       onNode(hasTestTag(METADATA_TEST_TAG)).assertDoesNotExist()
       onNode(hasTestTag(RECOVERY_TEST_TAG)).assertDoesNotExist()
+      assertPrimaryControls(PAUSE_DESCRIPTION)
     }
 
   @Test
@@ -52,6 +55,7 @@ class CurrentPlaybackWidgetTest {
         .assertHasStartActivityClickAction<MainActivity>()
       onNode(hasTestTag(ACTIVE_WIDGET_TEST_TAG)).assertHasStartActivityClickAction<MainActivity>()
       onNode(hasTestTag(RECOVERY_TEST_TAG)).assertDoesNotExist()
+      assertPrimaryControls(PAUSE_DESCRIPTION)
     }
 
   @Test
@@ -79,26 +83,103 @@ class CurrentPlaybackWidgetTest {
       .assertHasContentDescriptionEqualTo(RECOVERY_DESCRIPTION)
       .assertHasStartActivityClickAction<MainActivity>()
     onNode(hasTextEqualTo(RECOVERY_LABEL)).assertHasTextEqualTo(RECOVERY_LABEL)
+    onNode(hasTestTag(SEEK_BACK_TEST_TAG)).assertDoesNotExist()
+    onNode(hasTestTag(PLAY_PAUSE_TEST_TAG)).assertDoesNotExist()
+    onNode(hasTestTag(SEEK_FORWARD_TEST_TAG)).assertDoesNotExist()
+  }
+
+  @Test
+  fun pausedAndEndedPlayback_showPlay() = runGlanceAppWidgetUnitTest {
+    setAppWidgetSize(SmallPlaybackWidgetSize)
+    provideCurrentPlaybackWidget(
+      media = mediaWithArtwork(),
+      isError = false,
+      controls = primaryControls(showPause = false),
+    )
+
+    assertPrimaryControls(PLAY_DESCRIPTION)
+    onNode(hasContentDescriptionEqualTo(PAUSE_DESCRIPTION)).assertDoesNotExist()
+  }
+
+  @Test
+  fun unavailableControls_remainVisibleAndCommunicateDisabledState() = runGlanceAppWidgetUnitTest {
+    setAppWidgetSize(SmallPlaybackWidgetSize)
+    provideCurrentPlaybackWidget(
+      media = mediaWithArtwork(),
+      isError = false,
+      controls =
+        PrimaryPlaybackControls(
+          showPause = true,
+          playPauseEnabled = false,
+          seekBackEnabled = false,
+          seekForwardEnabled = false,
+        ),
+    )
+
+    onNode(hasTestTag(SEEK_BACK_TEST_TAG))
+      .assertHasContentDescriptionEqualTo("$SEEK_BACK_DESCRIPTION. $UNAVAILABLE_DESCRIPTION")
+    onNode(hasTestTag(PLAY_PAUSE_TEST_TAG))
+      .assertHasContentDescriptionEqualTo("$PAUSE_DESCRIPTION. $UNAVAILABLE_DESCRIPTION")
+    onNode(hasTestTag(SEEK_FORWARD_TEST_TAG))
+      .assertHasContentDescriptionEqualTo("$SEEK_FORWARD_DESCRIPTION. $UNAVAILABLE_DESCRIPTION")
   }
 
   private fun androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest
-    .provideCurrentPlaybackWidget(media: CurrentPlaybackMedia, isError: Boolean) {
+    .provideCurrentPlaybackWidget(
+      media: CurrentPlaybackMedia,
+      isError: Boolean,
+      controls: PrimaryPlaybackControls? = primaryControls(showPause = true),
+    ) {
     provideComposable {
       GlanceTheme(colors = ColorProviders(light = lightScheme, dark = darkScheme)) {
         CurrentPlaybackWidget(
           media = media,
           isError = isError,
+          controls = controls,
           artworkDescription = ARTWORK_DESCRIPTION,
           fallbackArtworkDescription = FALLBACK_DESCRIPTION,
           metadataDescription = METADATA_DESCRIPTION,
           openDescription = OPEN_DESCRIPTION,
           recoveryLabel = RECOVERY_LABEL,
           recoveryDescription = RECOVERY_DESCRIPTION,
+          playDescription = PLAY_DESCRIPTION,
+          pauseDescription = PAUSE_DESCRIPTION,
+          seekBackDescription = SEEK_BACK_DESCRIPTION,
+          seekForwardDescription = SEEK_FORWARD_DESCRIPTION,
+          unavailableDescription = UNAVAILABLE_DESCRIPTION,
           openAction = actionStartActivity<MainActivity>(),
         )
       }
     }
   }
+
+  private fun androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest.assertPrimaryControls(
+    playPauseDescription: String,
+  ) {
+    onNode(hasTestTag(SEEK_BACK_TEST_TAG))
+      .assertHasContentDescriptionEqualTo(SEEK_BACK_DESCRIPTION)
+      .assertHasRunCallbackClickAction<SeekBackPlaybackAction>()
+    onNode(hasTestTag(PLAY_PAUSE_TEST_TAG))
+      .assertHasContentDescriptionEqualTo(playPauseDescription)
+    onNode(hasTestTag(SEEK_FORWARD_TEST_TAG))
+      .assertHasContentDescriptionEqualTo(SEEK_FORWARD_DESCRIPTION)
+      .assertHasRunCallbackClickAction<SeekForwardPlaybackAction>()
+    if (playPauseDescription == PAUSE_DESCRIPTION) {
+      onNode(hasTestTag(PLAY_PAUSE_TEST_TAG))
+        .assertHasRunCallbackClickAction<PausePlaybackAction>()
+    } else {
+      onNode(hasTestTag(PLAY_PAUSE_TEST_TAG))
+        .assertHasRunCallbackClickAction<PlayPlaybackAction>()
+    }
+  }
+
+  private fun primaryControls(showPause: Boolean) =
+    PrimaryPlaybackControls(
+      showPause = showPause,
+      playPauseEnabled = true,
+      seekBackEnabled = true,
+      seekForwardEnabled = true,
+    )
 
   private fun mediaWithArtwork() =
     CurrentPlaybackMedia(
@@ -117,5 +198,10 @@ class CurrentPlaybackWidgetTest {
     const val OPEN_DESCRIPTION = "Open Now Playing for $MEDIA_TITLE"
     const val RECOVERY_LABEL = "Open ShelfDroid"
     const val RECOVERY_DESCRIPTION = "Open ShelfDroid for Current playback"
+    const val PLAY_DESCRIPTION = "Play"
+    const val PAUSE_DESCRIPTION = "Pause"
+    const val SEEK_BACK_DESCRIPTION = "Seek back 10 seconds"
+    const val SEEK_FORWARD_DESCRIPTION = "Seek forward 10 seconds"
+    const val UNAVAILABLE_DESCRIPTION = "Unavailable"
   }
 }

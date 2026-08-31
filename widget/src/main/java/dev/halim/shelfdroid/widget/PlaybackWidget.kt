@@ -21,6 +21,7 @@ import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity as actionStartActivityIntent
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -50,6 +51,7 @@ import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.screen.MainActivity
 import dev.halim.shelfdroid.core.ui.theme.darkScheme
 import dev.halim.shelfdroid.core.ui.theme.lightScheme
+import dev.halim.shelfdroid.core.ui.R as CoreUiR
 import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.helper.Helper.Companion.EXTRA_MEDIA_ID
 import kotlinx.coroutines.Dispatchers
@@ -102,6 +104,7 @@ private fun PlaybackWidgetContent(
   CurrentPlaybackWidget(
     media = media,
     isError = presentation is PlaybackWidgetPresentation.Error,
+    controls = (presentation as? PlaybackWidgetPresentation.Active)?.controls,
     artworkDescription =
       context.getString(R.string.playback_widget_artwork_description, media.mediaTitle),
     fallbackArtworkDescription =
@@ -119,6 +122,11 @@ private fun PlaybackWidgetContent(
       context.getString(R.string.playback_widget_now_playing_description, media.mediaTitle),
     recoveryLabel = context.getString(R.string.playback_widget_recovery_action),
     recoveryDescription = context.getString(R.string.playback_widget_recovery_description),
+    playDescription = context.getString(R.string.playback_widget_play_description),
+    pauseDescription = context.getString(R.string.playback_widget_pause_description),
+    seekBackDescription = context.getString(R.string.playback_widget_seek_back_description),
+    seekForwardDescription = context.getString(R.string.playback_widget_seek_forward_description),
+    unavailableDescription = context.getString(R.string.playback_widget_control_unavailable),
     openAction = openNowPlayingAction(context, media.mediaId),
   )
 }
@@ -127,15 +135,22 @@ private fun PlaybackWidgetContent(
 internal fun CurrentPlaybackWidget(
   media: CurrentPlaybackMedia,
   isError: Boolean,
+  controls: PrimaryPlaybackControls?,
   artworkDescription: String,
   fallbackArtworkDescription: String,
   metadataDescription: String,
   openDescription: String,
   recoveryLabel: String,
   recoveryDescription: String,
+  playDescription: String,
+  pauseDescription: String,
+  seekBackDescription: String,
+  seekForwardDescription: String,
+  unavailableDescription: String,
   openAction: Action,
 ) {
   val isLarge = LocalSize.current.width >= LargePlaybackWidgetSize.width
+  val artworkSize = if (isLarge) 72.dp else 60.dp
   Row(
     modifier =
       GlanceModifier.fillMaxSize()
@@ -146,7 +161,7 @@ internal fun CurrentPlaybackWidget(
           contentDescription = openDescription
           testTag = if (isError) ERROR_WIDGET_TEST_TAG else ACTIVE_WIDGET_TEST_TAG
         }
-        .padding(horizontal = 12.dp, vertical = 12.dp),
+        .padding(horizontal = if (isLarge) 12.dp else 8.dp, vertical = 12.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalAlignment = Alignment.Start,
   ) {
@@ -156,8 +171,8 @@ internal fun CurrentPlaybackWidget(
       contentDescription =
         if (media.artwork == null) fallbackArtworkDescription else artworkDescription,
       modifier =
-        GlanceModifier.width(86.dp)
-          .height(86.dp)
+        GlanceModifier.width(artworkSize)
+          .height(artworkSize)
           .cornerRadius(8.dp)
           .clickable(openAction)
           .semantics {
@@ -166,7 +181,7 @@ internal fun CurrentPlaybackWidget(
       contentScale = ContentScale.Crop,
     )
     if (isLarge) {
-      Spacer(modifier = GlanceModifier.width(12.dp))
+      Spacer(modifier = GlanceModifier.width(10.dp))
       Column(
         modifier =
           GlanceModifier.defaultWeight().clickable(openAction).semantics {
@@ -204,17 +219,104 @@ internal fun CurrentPlaybackWidget(
             description = recoveryDescription,
             openAction = openAction,
           )
+        } else if (controls != null) {
+          Spacer(modifier = GlanceModifier.height(4.dp))
+          PrimaryPlaybackControlRow(
+            controls = controls,
+            playDescription = playDescription,
+            pauseDescription = pauseDescription,
+            seekBackDescription = seekBackDescription,
+            seekForwardDescription = seekForwardDescription,
+            unavailableDescription = unavailableDescription,
+          )
         }
       }
     } else if (isError) {
-      Spacer(modifier = GlanceModifier.width(12.dp))
+      Spacer(modifier = GlanceModifier.width(8.dp))
       PlaybackRecoveryAffordance(
         label = recoveryLabel,
         description = recoveryDescription,
         openAction = openAction,
       )
+    } else if (controls != null) {
+      Spacer(modifier = GlanceModifier.width(8.dp))
+      PrimaryPlaybackControlRow(
+        controls = controls,
+        playDescription = playDescription,
+        pauseDescription = pauseDescription,
+        seekBackDescription = seekBackDescription,
+        seekForwardDescription = seekForwardDescription,
+        unavailableDescription = unavailableDescription,
+      )
     }
   }
+}
+
+@Composable
+private fun PrimaryPlaybackControlRow(
+  controls: PrimaryPlaybackControls,
+  playDescription: String,
+  pauseDescription: String,
+  seekBackDescription: String,
+  seekForwardDescription: String,
+  unavailableDescription: String,
+) {
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    PlaybackControl(
+      icon = CoreUiR.drawable.fast_rewind,
+      description = seekBackDescription,
+      unavailableDescription = unavailableDescription,
+      enabled = controls.seekBackEnabled,
+      action = actionRunCallback<SeekBackPlaybackAction>(),
+      testTag = SEEK_BACK_TEST_TAG,
+    )
+    PlaybackControl(
+      icon = if (controls.showPause) CoreUiR.drawable.pause else CoreUiR.drawable.play_arrow,
+      description = if (controls.showPause) pauseDescription else playDescription,
+      unavailableDescription = unavailableDescription,
+      enabled = controls.playPauseEnabled,
+      action =
+        if (controls.showPause) {
+          actionRunCallback<PausePlaybackAction>()
+        } else {
+          actionRunCallback<PlayPlaybackAction>()
+        },
+      testTag = PLAY_PAUSE_TEST_TAG,
+    )
+    PlaybackControl(
+      icon = CoreUiR.drawable.fast_forward,
+      description = seekForwardDescription,
+      unavailableDescription = unavailableDescription,
+      enabled = controls.seekForwardEnabled,
+      action = actionRunCallback<SeekForwardPlaybackAction>(),
+      testTag = SEEK_FORWARD_TEST_TAG,
+    )
+  }
+}
+
+@Composable
+private fun PlaybackControl(
+  icon: Int,
+  description: String,
+  unavailableDescription: String,
+  enabled: Boolean,
+  action: Action,
+  testTag: String,
+) {
+  val modifier =
+    GlanceModifier.width(28.dp).height(28.dp).semantics {
+      contentDescription = if (enabled) description else "$description. $unavailableDescription"
+      this.testTag = testTag
+    }
+  Image(
+    provider = ImageProvider(icon),
+    contentDescription = null,
+    modifier = if (enabled) modifier.clickable(action) else modifier,
+    colorFilter =
+      androidx.glance.ColorFilter.tint(
+        if (enabled) GlanceTheme.colors.primary else GlanceTheme.colors.onSurfaceVariant
+      ),
+  )
 }
 
 @Composable
@@ -367,7 +469,7 @@ private fun playbackWidgetColorProviders(
 private fun ColorScheme.asExplicitColorProviders(): ColorProviders =
   androidx.glance.material3.ColorProviders(light = this, dark = this)
 
-private fun playbackWidgetEntryPoint(context: Context): PlaybackWidgetEntryPoint =
+internal fun playbackWidgetEntryPoint(context: Context): PlaybackWidgetEntryPoint =
   EntryPointAccessors.fromApplication(
     context.applicationContext,
     PlaybackWidgetEntryPoint::class.java,
@@ -389,6 +491,8 @@ internal interface PlaybackWidgetEntryPoint {
   fun settingsRepository(): SettingsRepository
 
   fun presentationLoader(): PlaybackWidgetPresentationLoader
+
+  fun commandHandler(): PlaybackWidgetCommandHandler
 }
 
 internal const val EMPTY_WIDGET_TEST_TAG = "empty_playback_widget"
@@ -398,3 +502,6 @@ internal const val ARTWORK_TEST_TAG = "current_playback_artwork"
 internal const val ARTWORK_FALLBACK_TEST_TAG = "current_playback_artwork_fallback"
 internal const val METADATA_TEST_TAG = "current_playback_metadata"
 internal const val RECOVERY_TEST_TAG = "current_playback_recovery"
+internal const val SEEK_BACK_TEST_TAG = "current_playback_seek_back"
+internal const val PLAY_PAUSE_TEST_TAG = "current_playback_play_pause"
+internal const val SEEK_FORWARD_TEST_TAG = "current_playback_seek_forward"

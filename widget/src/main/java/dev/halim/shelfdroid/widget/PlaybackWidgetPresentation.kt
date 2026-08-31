@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -24,7 +25,10 @@ import kotlinx.coroutines.withContext
 internal sealed interface PlaybackWidgetPresentation {
   data object Empty : PlaybackWidgetPresentation
 
-  data class Active(val media: CurrentPlaybackMedia) : PlaybackWidgetPresentation
+  data class Active(
+    val media: CurrentPlaybackMedia,
+    val controls: PrimaryPlaybackControls,
+  ) : PlaybackWidgetPresentation
 
   data class Error(val media: CurrentPlaybackMedia) : PlaybackWidgetPresentation
 }
@@ -41,6 +45,16 @@ internal data class PlaybackSessionSnapshot(
   val playbackState: Int,
   val playWhenReady: Boolean,
   val hasError: Boolean,
+  val playPauseEnabled: Boolean = true,
+  val seekBackEnabled: Boolean = true,
+  val seekForwardEnabled: Boolean = true,
+)
+
+internal data class PrimaryPlaybackControls(
+  val showPause: Boolean,
+  val playPauseEnabled: Boolean,
+  val seekBackEnabled: Boolean,
+  val seekForwardEnabled: Boolean,
 )
 
 internal data class PlaybackSessionItem(
@@ -81,7 +95,17 @@ internal fun mapPlaybackWidgetPresentation(
   return if (snapshot.hasError) {
     PlaybackWidgetPresentation.Error(media)
   } else {
-    PlaybackWidgetPresentation.Active(media)
+    PlaybackWidgetPresentation.Active(
+      media = media,
+      controls =
+        PrimaryPlaybackControls(
+          showPause =
+            snapshot.playWhenReady && snapshot.playbackState != Player.STATE_ENDED,
+          playPauseEnabled = snapshot.playPauseEnabled,
+          seekBackEnabled = snapshot.seekBackEnabled,
+          seekForwardEnabled = snapshot.seekForwardEnabled,
+        ),
+    )
   }
 }
 
@@ -101,6 +125,10 @@ constructor(@param:ApplicationContext private val context: Context) {
           playbackState = controller.playbackState,
           playWhenReady = controller.playWhenReady,
           hasError = controller.playerError != null,
+          playPauseEnabled = controller.isCommandAvailable(Player.COMMAND_PLAY_PAUSE),
+          seekBackEnabled = controller.isCommandAvailable(Player.COMMAND_SEEK_BACK),
+          seekForwardEnabled =
+            controller.isCommandAvailable(Player.COMMAND_SEEK_FORWARD),
         )
       } finally {
         MediaController.releaseFuture(controllerFuture)
