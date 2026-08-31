@@ -37,12 +37,17 @@ android {
 dependencies {
   implementation(project(libs.versions.coreUi.get()))
   implementation(project(libs.versions.coreData.get()))
+  implementation(project(libs.versions.helper.get()))
+  implementation(project(libs.versions.media.get()))
 
   implementation(libs.androidx.glance)
   implementation(libs.androidx.glance.appwidget)
+  implementation(libs.androidx.media3.session)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.compose.material3)
   implementation(libs.kotlinx.coroutines.android)
+  implementation(libs.kotlinx.coroutines.guava)
+  implementation(libs.coil)
 
   implementation(libs.hilt.android)
   ksp(libs.hilt.compiler)

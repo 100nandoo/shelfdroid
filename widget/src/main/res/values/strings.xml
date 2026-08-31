@@ -6,5 +6,11 @@
     <string name="playback_widget_empty_compact_message">Open ShelfDroid</string>
     <string name="playback_widget_empty_expanded_message">Nothing playing · Open ShelfDroid</string>
     <string name="playback_widget_brand_description">ShelfDroid headphones</string>
-    <string name="playback_widget_open_description">Open ShelfDroid</string>
+    <string name="playback_widget_open_description">Nothing playing. Open ShelfDroid</string>
+    <string name="playback_widget_artwork_description">Cover art for %1$s</string>
+    <string name="playback_widget_artwork_fallback_description">ShelfDroid placeholder for %1$s</string>
+    <string name="playback_widget_metadata_description">Current playback: %1$s. %2$s</string>
+    <string name="playback_widget_now_playing_description">Open Now Playing for %1$s</string>
+    <string name="playback_widget_recovery_action">Open ShelfDroid</string>
+    <string name="playback_widget_recovery_description">Open ShelfDroid for Current playback</string>
 </resources>

@@ -41,6 +41,7 @@ data class PlayerUiState(
   val episodeId: String = "",
   val author: String = "",
   val title: String = "",
+  val libraryItemTitle: String = "",
   val cover: String = "",
   val currentTime: Double = 0.0,
   val playerTracks: List<PlayerTrack> = emptyList(),

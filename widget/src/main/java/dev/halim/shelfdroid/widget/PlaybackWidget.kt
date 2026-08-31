@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.widget
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -20,12 +21,14 @@ import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.action.actionStartActivity as actionStartActivityIntent
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.color.ColorProviders
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
+import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
@@ -47,6 +50,8 @@ import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.screen.MainActivity
 import dev.halim.shelfdroid.core.ui.theme.darkScheme
 import dev.halim.shelfdroid.core.ui.theme.lightScheme
+import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
+import dev.halim.shelfdroid.helper.Helper.Companion.EXTRA_MEDIA_ID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -62,19 +67,182 @@ class PlaybackWidget : GlanceAppWidget() {
   override suspend fun provideGlance(context: Context, id: GlanceId) {
     val preferences = loadThemePreferences(context)
     val colors = playbackWidgetColorProviders(context, preferences)
+    val presentation = playbackWidgetEntryPoint(context).presentationLoader().load()
 
     provideContent {
       GlanceTheme(colors = colors) {
-        EmptyPlaybackWidget(
-          title = context.getString(R.string.playback_widget_empty_title),
-          compactMessage = context.getString(R.string.playback_widget_empty_compact_message),
-          expandedMessage = context.getString(R.string.playback_widget_empty_expanded_message),
-          brandDescription = context.getString(R.string.playback_widget_brand_description),
-          openDescription = context.getString(R.string.playback_widget_open_description),
-        )
+        PlaybackWidgetContent(context, presentation)
       }
     }
   }
+}
+
+@Composable
+private fun PlaybackWidgetContent(
+  context: Context,
+  presentation: PlaybackWidgetPresentation,
+) {
+  if (presentation == PlaybackWidgetPresentation.Empty) {
+    EmptyPlaybackWidget(
+      title = context.getString(R.string.playback_widget_empty_title),
+      compactMessage = context.getString(R.string.playback_widget_empty_compact_message),
+      expandedMessage = context.getString(R.string.playback_widget_empty_expanded_message),
+      brandDescription = context.getString(R.string.playback_widget_brand_description),
+      openDescription = context.getString(R.string.playback_widget_open_description),
+    )
+    return
+  }
+
+  val media =
+    when (presentation) {
+      is PlaybackWidgetPresentation.Active -> presentation.media
+      is PlaybackWidgetPresentation.Error -> presentation.media
+      PlaybackWidgetPresentation.Empty -> return
+    }
+  CurrentPlaybackWidget(
+    media = media,
+    isError = presentation is PlaybackWidgetPresentation.Error,
+    artworkDescription =
+      context.getString(R.string.playback_widget_artwork_description, media.mediaTitle),
+    fallbackArtworkDescription =
+      context.getString(
+        R.string.playback_widget_artwork_fallback_description,
+        media.mediaTitle,
+      ),
+    metadataDescription =
+      context.getString(
+        R.string.playback_widget_metadata_description,
+        media.mediaTitle,
+        media.playableTitle,
+      ),
+    openDescription =
+      context.getString(R.string.playback_widget_now_playing_description, media.mediaTitle),
+    recoveryLabel = context.getString(R.string.playback_widget_recovery_action),
+    recoveryDescription = context.getString(R.string.playback_widget_recovery_description),
+    openAction = openNowPlayingAction(context, media.mediaId),
+  )
+}
+
+@Composable
+internal fun CurrentPlaybackWidget(
+  media: CurrentPlaybackMedia,
+  isError: Boolean,
+  artworkDescription: String,
+  fallbackArtworkDescription: String,
+  metadataDescription: String,
+  openDescription: String,
+  recoveryLabel: String,
+  recoveryDescription: String,
+  openAction: Action,
+) {
+  val isLarge = LocalSize.current.width >= LargePlaybackWidgetSize.width
+  Row(
+    modifier =
+      GlanceModifier.fillMaxSize()
+        .background(GlanceTheme.colors.widgetBackground)
+        .cornerRadius(R.dimen.playback_widget_corner_radius)
+        .clickable(openAction)
+        .semantics {
+          contentDescription = openDescription
+          testTag = if (isError) ERROR_WIDGET_TEST_TAG else ACTIVE_WIDGET_TEST_TAG
+        }
+        .padding(horizontal = 12.dp, vertical = 12.dp),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalAlignment = Alignment.Start,
+  ) {
+    Image(
+      provider =
+        media.artwork?.let(::ImageProvider) ?: ImageProvider(R.drawable.widget_brand_headphones),
+      contentDescription =
+        if (media.artwork == null) fallbackArtworkDescription else artworkDescription,
+      modifier =
+        GlanceModifier.width(86.dp)
+          .height(86.dp)
+          .cornerRadius(8.dp)
+          .clickable(openAction)
+          .semantics {
+            testTag = if (media.artwork == null) ARTWORK_FALLBACK_TEST_TAG else ARTWORK_TEST_TAG
+          },
+      contentScale = ContentScale.Crop,
+    )
+    if (isLarge) {
+      Spacer(modifier = GlanceModifier.width(12.dp))
+      Column(
+        modifier =
+          GlanceModifier.defaultWeight().clickable(openAction).semantics {
+            contentDescription = metadataDescription
+            testTag = METADATA_TEST_TAG
+          },
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          text = media.mediaTitle,
+          style =
+            TextStyle(
+              color = GlanceTheme.colors.onSurface,
+              fontFamily = FontFamily.Serif,
+              fontSize = 16.sp,
+              fontWeight = FontWeight.Bold,
+            ),
+          maxLines = 1,
+        )
+        Spacer(modifier = GlanceModifier.height(2.dp))
+        Text(
+          text = media.playableTitle,
+          style =
+            TextStyle(
+              color = GlanceTheme.colors.onSurfaceVariant,
+              fontFamily = FontFamily.SansSerif,
+              fontSize = 13.sp,
+            ),
+          maxLines = 1,
+        )
+        if (isError) {
+          Spacer(modifier = GlanceModifier.height(6.dp))
+          PlaybackRecoveryAffordance(
+            label = recoveryLabel,
+            description = recoveryDescription,
+            openAction = openAction,
+          )
+        }
+      }
+    } else if (isError) {
+      Spacer(modifier = GlanceModifier.width(12.dp))
+      PlaybackRecoveryAffordance(
+        label = recoveryLabel,
+        description = recoveryDescription,
+        openAction = openAction,
+      )
+    }
+  }
+}
+
+@Composable
+private fun PlaybackRecoveryAffordance(
+  label: String,
+  description: String,
+  openAction: Action,
+) {
+  Text(
+    text = label,
+    modifier =
+      GlanceModifier.background(GlanceTheme.colors.secondaryContainer)
+        .cornerRadius(20.dp)
+        .clickable(openAction)
+        .semantics {
+          contentDescription = description
+          testTag = RECOVERY_TEST_TAG
+        }
+        .padding(horizontal = 10.dp, vertical = 6.dp),
+    style =
+      TextStyle(
+        color = GlanceTheme.colors.onSecondaryContainer,
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Medium,
+      ),
+    maxLines = 2,
+  )
 }
 
 @Composable
@@ -167,12 +335,7 @@ internal fun resolvePlaybackWidgetThemeVariant(
 
 private suspend fun loadThemePreferences(context: Context): PlaybackWidgetThemePreferences =
   withContext(Dispatchers.IO) {
-    val settingsRepository =
-      EntryPointAccessors.fromApplication(
-          context.applicationContext,
-          PlaybackWidgetEntryPoint::class.java,
-        )
-        .settingsRepository()
+    val settingsRepository = playbackWidgetEntryPoint(context).settingsRepository()
     settingsRepository.darkMode
       .combine(settingsRepository.dynamicTheme, ::PlaybackWidgetThemePreferences)
       .first()
@@ -204,10 +367,34 @@ private fun playbackWidgetColorProviders(
 private fun ColorScheme.asExplicitColorProviders(): ColorProviders =
   androidx.glance.material3.ColorProviders(light = this, dark = this)
 
+private fun playbackWidgetEntryPoint(context: Context): PlaybackWidgetEntryPoint =
+  EntryPointAccessors.fromApplication(
+    context.applicationContext,
+    PlaybackWidgetEntryPoint::class.java,
+  )
+
+private fun openNowPlayingAction(context: Context, mediaId: String): Action =
+  actionStartActivityIntent(createNowPlayingIntent(context, mediaId))
+
+internal fun createNowPlayingIntent(context: Context, mediaId: String): Intent =
+  Intent(context, MainActivity::class.java).apply {
+    action = ACTION_OPEN_PLAYER
+    putExtra(EXTRA_MEDIA_ID, mediaId)
+    flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+  }
+
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 internal interface PlaybackWidgetEntryPoint {
   fun settingsRepository(): SettingsRepository
+
+  fun presentationLoader(): PlaybackWidgetPresentationLoader
 }
 
 internal const val EMPTY_WIDGET_TEST_TAG = "empty_playback_widget"
+internal const val ACTIVE_WIDGET_TEST_TAG = "active_playback_widget"
+internal const val ERROR_WIDGET_TEST_TAG = "error_playback_widget"
+internal const val ARTWORK_TEST_TAG = "current_playback_artwork"
+internal const val ARTWORK_FALLBACK_TEST_TAG = "current_playback_artwork_fallback"
+internal const val METADATA_TEST_TAG = "current_playback_metadata"
+internal const val RECOVERY_TEST_TAG = "current_playback_recovery"

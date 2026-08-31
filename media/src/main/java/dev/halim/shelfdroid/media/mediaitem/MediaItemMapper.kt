@@ -42,14 +42,7 @@ constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoad
 
     val artworkData: ByteArray? = readDiskCachedImage(uiState.cover)
 
-    val mediaMetadata =
-      MediaMetadata.Builder()
-        .setTitle(uiState.title)
-        .setArtist(uiState.author)
-        .setArtworkUri(uiState.cover.toUri())
-        .setArtworkData(artworkData, PICTURE_TYPE_FRONT_COVER)
-        .setMediaType(mediaType)
-        .build()
+    val mediaMetadata = buildPlaybackMediaMetadata(uiState, artworkData, mediaType)
     return MediaItem.Builder()
       .setUri(uiState.currentTrack.url)
       .setMediaId(mediaId)
@@ -66,13 +59,11 @@ constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoad
     val artworkData: ByteArray? = readDiskCachedImage(uiState.cover)
 
     val mediaMetadata =
-      MediaMetadata.Builder()
-        .setTitle(uiState.title)
-        .setArtist(uiState.author)
-        .setArtworkUri(uiState.cover.toUri())
-        .setArtworkData(artworkData, PICTURE_TYPE_FRONT_COVER)
-        .setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK)
-        .build()
+      buildPlaybackMediaMetadata(
+        uiState,
+        artworkData,
+        MediaMetadata.MEDIA_TYPE_AUDIO_BOOK,
+      )
 
     val mediaItems = tracks.mapIndexed { index: Int, track: PlayerTrack ->
       val mediaIdWrapper = MediaIdWrapper(uiState.id, track.index.toString())
@@ -109,3 +100,30 @@ constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoad
     return artworkData
   }
 }
+
+internal fun buildPlaybackMediaMetadata(
+  uiState: PlayerUiState,
+  artworkData: ByteArray?,
+  mediaType: Int,
+): MediaMetadata {
+  val titles = playbackMetadataTitles(uiState)
+  return MediaMetadata.Builder()
+    .setTitle(titles.playableTitle)
+    .setAlbumTitle(titles.libraryItemTitle)
+    .setArtist(uiState.author)
+    .setArtworkUri(uiState.cover.toUri())
+    .setArtworkData(artworkData, PICTURE_TYPE_FRONT_COVER)
+    .setMediaType(mediaType)
+    .build()
+}
+
+internal data class PlaybackMetadataTitles(
+  val libraryItemTitle: String,
+  val playableTitle: String,
+)
+
+internal fun playbackMetadataTitles(uiState: PlayerUiState) =
+  PlaybackMetadataTitles(
+    libraryItemTitle = uiState.libraryItemTitle,
+    playableTitle = uiState.title,
+  )

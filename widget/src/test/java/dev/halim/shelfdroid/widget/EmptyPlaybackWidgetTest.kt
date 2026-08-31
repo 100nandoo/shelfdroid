@@ -81,7 +81,7 @@ class EmptyPlaybackWidgetTest {
     const val COMPACT_MESSAGE = "Open ShelfDroid"
     const val EXPANDED_MESSAGE = "Nothing playing · Open ShelfDroid"
     const val BRAND_DESCRIPTION = "ShelfDroid headphones"
-    const val OPEN_DESCRIPTION = "Open ShelfDroid"
+    const val OPEN_DESCRIPTION = "Nothing playing. Open ShelfDroid"
 
     val CONTROL_DESCRIPTIONS =
       listOf("Play", "Pause", "Seek back", "Seek forward", "Previous chapter", "Next chapter")
