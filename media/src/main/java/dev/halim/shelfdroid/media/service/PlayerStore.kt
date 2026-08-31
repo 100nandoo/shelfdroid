@@ -233,6 +233,7 @@ constructor(
     }
   }
 
+  @OptIn(UnstableApi::class)
   private fun syncControlStates() {
     with(playerManager.player.get()) {
       val playPause =

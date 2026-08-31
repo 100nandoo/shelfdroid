@@ -13,6 +13,8 @@ import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
+import dev.halim.shelfdroid.media.presentation.PlaybackPresentationNotifier
+import dev.halim.shelfdroid.media.presentation.hasPresentationVisibleChange
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.SLEEP_TIMER_OFF_BUTTON
@@ -26,6 +28,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @UnstableApi
 @AndroidEntryPoint
@@ -37,6 +40,7 @@ class PlaybackService : MediaLibraryService() {
   @Inject lateinit var mediaLibrarySessionCallback: Lazy<MediaLibrarySession.Callback>
   @Inject lateinit var helper: Lazy<Helper>
   @Inject lateinit var playerStore: Lazy<PlayerStore>
+  @Inject lateinit var playbackPresentationNotifier: Lazy<PlaybackPresentationNotifier>
 
   private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
   private var sleepTimerObserverJob: Job? = null
@@ -95,6 +99,14 @@ class PlaybackService : MediaLibraryService() {
               }
             }
           }
+
+          override fun onEvents(player: Player, events: Player.Events) {
+            if (events.hasPresentationVisibleChange()) {
+              serviceScope.launch {
+                playbackPresentationNotifier.get().notifyPresentationChanged()
+              }
+            }
+          }
         }
       )
   }
@@ -118,6 +130,9 @@ class PlaybackService : MediaLibraryService() {
     mediaLibrarySession.player.run {
       stop()
       clearMediaItems()
+    }
+    runBlocking(Dispatchers.IO) {
+      playbackPresentationNotifier.get().notifyPresentationChanged()
     }
   }
 }

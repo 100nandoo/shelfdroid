@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class LocalSessionCleanup
 internal constructor(
-  private val clearCurrentPlayback: () -> Unit,
+  private val clearCurrentPlayback: suspend () -> Unit,
   private val clearTransientDownloads: () -> Unit,
   private val resetLocalAppPreferences: suspend () -> Unit,
   private val clearSessionScopedDatabase: () -> Unit,

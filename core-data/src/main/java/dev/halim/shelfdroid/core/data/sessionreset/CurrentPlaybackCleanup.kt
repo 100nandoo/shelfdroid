@@ -1,5 +1,5 @@
 package dev.halim.shelfdroid.core.data.sessionreset
 
 interface CurrentPlaybackCleanup {
-  fun clearCurrentPlayback()
+  suspend fun clearCurrentPlayback()
 }

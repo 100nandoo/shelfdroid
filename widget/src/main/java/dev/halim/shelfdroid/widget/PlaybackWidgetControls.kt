@@ -52,7 +52,7 @@ internal fun interface PlaybackControllerGateway {
 }
 
 internal fun interface PlaybackWidgetRefreshRequester {
-  suspend fun requestRefresh()
+  suspend fun requestAllInstancesRefresh()
 }
 
 internal fun interface NormalAppNavigator {
@@ -75,7 +75,7 @@ internal suspend fun handlePlaybackWidgetCommand(
     }
 
   when (result) {
-    PlaybackCommandResult.Success -> refreshRequester.requestRefresh()
+    PlaybackCommandResult.Success -> refreshRequester.requestAllInstancesRefresh()
     PlaybackCommandResult.MissingCurrentPlayback -> normalAppNavigator.openNormalApp()
     PlaybackCommandResult.Failed -> Unit
   }
@@ -86,7 +86,7 @@ internal class PlaybackWidgetCommandHandler
 @Inject
 constructor(
   private val gateway: Media3PlaybackControllerGateway,
-  private val refreshRequester: GlancePlaybackWidgetRefreshRequester,
+  private val refreshRequester: PlaybackWidgetRefreshRequester,
   private val normalAppNavigator: ShelfDroidNormalAppNavigator,
 ) {
   suspend fun handle(command: PlaybackWidgetCommand) {
@@ -156,7 +156,7 @@ internal class GlancePlaybackWidgetRefreshRequester
 @Inject
 constructor(@param:ApplicationContext private val context: Context) :
   PlaybackWidgetRefreshRequester {
-  override suspend fun requestRefresh() {
+  override suspend fun requestAllInstancesRefresh() {
     PlaybackWidget().updateAll(context)
   }
 }

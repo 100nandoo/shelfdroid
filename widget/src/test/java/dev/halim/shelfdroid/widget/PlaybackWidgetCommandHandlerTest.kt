@@ -94,7 +94,7 @@ class PlaybackWidgetCommandHandlerTest {
   private class FakeRefreshRequester : PlaybackWidgetRefreshRequester {
     var wasRequested = false
 
-    override suspend fun requestRefresh() {
+    override suspend fun requestAllInstancesRefresh() {
       wasRequested = true
     }
   }
