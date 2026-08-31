@@ -17,6 +17,7 @@ helper = ":helper"
 media = ":media"
 socketIO = ":socketio"
 testApp = ":test-app"
+widget = ":widget"
 
 androidGradlePlugin = "9.3.2"
 androidxActivity = "1.13.0"
@@ -25,7 +26,7 @@ androidxComposeBom = "2026.08.00"
 androidxCore = "1.19.0"
 androidxSplashscreen = "1.2.0"
 androidxDatastore = "1.2.1"
-androidxGlance = "1.2.1"
+androidxGlance = "1.2.0"
 androidxHilt = "1.4.0"
 androidxLifecycle = "2.11.0"
 androidxLifecycleNavigation3 = "2.11.0"
@@ -52,6 +53,7 @@ accompanist = "0.37.3"
 coil = "3.4.0"
 retrofit = "3.0.0"
 retrofit-result = "1.1.0"
+robolectric = "4.16.1"
 socketioClient = "2.1.2"
 espressoCore = "3.7.0"
 appcompat = "1.8.0"
@@ -73,6 +75,9 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidxSplashscreen" }
 androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastore" }
 androidx-glance = { module = "androidx.glance:glance-material3", version.ref = "androidxGlance" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "androidxGlance" }
+androidx-glance-appwidget-testing = { module = "androidx.glance:glance-appwidget-testing", version.ref = "androidxGlance" }
+androidx-glance-testing = { module = "androidx.glance:glance-testing", version.ref = "androidxGlance" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHilt" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
@@ -115,6 +120,7 @@ coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 retrofit-result = { module = "com.github.skydoves:retrofit-adapters-result", version.ref = "retrofit-result" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 acra-core = { module = "ch.acra:acra-core", version.ref = "acra" }
 acra-toast = { module = "ch.acra:acra-toast", version.ref = "acra" }

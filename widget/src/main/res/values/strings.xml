@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playback_widget_name">ShelfDroid playback</string>
+    <string name="playback_widget_description">Open ShelfDroid and control Current playback from your Home screen.</string>
+    <string name="playback_widget_empty_title">ShelfDroid</string>
+    <string name="playback_widget_empty_compact_message">Open ShelfDroid</string>
+    <string name="playback_widget_empty_expanded_message">Nothing playing · Open ShelfDroid</string>
+    <string name="playback_widget_brand_description">ShelfDroid headphones</string>
+    <string name="playback_widget_open_description">Open ShelfDroid</string>
+</resources>

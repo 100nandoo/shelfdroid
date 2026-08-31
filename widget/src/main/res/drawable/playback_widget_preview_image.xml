@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/playback_widget_preview_background" />
+    <item
+        android:width="64dp"
+        android:height="64dp"
+        android:drawable="@drawable/widget_brand_headphones"
+        android:gravity="center" />
+</layer-list>

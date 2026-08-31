@@ -44,4 +44,6 @@ include(":socketio")
 
 include(":test-app")
 
+include(":widget")
+
 include(":benchmark")
