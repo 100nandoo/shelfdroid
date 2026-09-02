@@ -6,7 +6,7 @@ import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import javax.inject.Inject
 
 /** Narrow network seam used by the task reducer and its deterministic tests. */
-interface ServerTaskApi {
+interface TaskApi {
   suspend fun tasks(): Result<TasksResponse>
 
   suspend fun scanLibrary(libraryId: String): Result<Unit>
@@ -14,7 +14,7 @@ interface ServerTaskApi {
   suspend fun matchLibrary(libraryId: String): Result<Unit>
 }
 
-class ApiServerTaskApi @Inject constructor(private val api: ApiService) : ServerTaskApi {
+class ApiTaskApi @Inject constructor(private val api: ApiService) : TaskApi {
   override suspend fun tasks(): Result<TasksResponse> = api.tasks()
 
   override suspend fun scanLibrary(libraryId: String): Result<Unit> = api.scanLibrary(libraryId)
@@ -23,14 +23,13 @@ class ApiServerTaskApi @Inject constructor(private val api: ApiService) : Server
 }
 
 /** Catalog synchronization is intentionally separate from task state and can be retried. */
-interface ServerTaskCatalogSynchronizer {
+interface TaskCatalogSynchronizer {
   suspend fun synchronize(): Result<Unit>
 }
 
-class LibraryDataServerTaskCatalogSynchronizer
+class LibraryDataTaskCatalogSynchronizer
 @Inject
-constructor(private val libraryDataRepository: LibraryDataRepository) :
-  ServerTaskCatalogSynchronizer {
+constructor(private val libraryDataRepository: LibraryDataRepository) : TaskCatalogSynchronizer {
   override suspend fun synchronize(): Result<Unit> {
     val result = libraryDataRepository.synchronize()
     return if (result.isSuccess) {
@@ -41,10 +40,10 @@ constructor(private val libraryDataRepository: LibraryDataRepository) :
   }
 }
 
-fun interface ServerTaskClock {
+fun interface TaskClock {
   fun now(): Long
 }
 
-class SystemServerTaskClock @Inject constructor() : ServerTaskClock {
+class SystemTaskClock @Inject constructor() : TaskClock {
   override fun now(): Long = System.currentTimeMillis()
 }

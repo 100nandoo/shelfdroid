@@ -2,9 +2,9 @@ package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.GenericState
-import dev.halim.shelfdroid.core.data.task.ServerTask
-import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
-import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
+import dev.halim.shelfdroid.core.data.task.Task
+import dev.halim.shelfdroid.core.data.task.TaskNotification
+import dev.halim.shelfdroid.core.data.task.TaskStatus
 
 sealed interface LibraryAdminError {
   data class SafeMessage(val message: String) : LibraryAdminError
@@ -28,7 +28,7 @@ data class LibraryAdminUiState(
   val isRefreshing: Boolean = true,
   val connectionState: LibraryAdminConnectionState = LibraryAdminConnectionState.UNKNOWN,
   val taskStates: Map<String, LibraryAdminTaskState> = emptyMap(),
-  val tasks: List<ServerTask> = emptyList(),
+  val tasks: List<Task> = emptyList(),
   val scanError: LibraryAdminError? = null,
   val matchError: LibraryAdminError? = null,
   val taskSyncError: LibraryAdminError? = null,
@@ -37,7 +37,7 @@ data class LibraryAdminUiState(
   val deleteRetryLibraryId: String? = null,
   val deletingLibraryId: String? = null,
   val deleteConfirmationLibraryId: String? = null,
-  val taskNotification: ServerTaskNotification? = null,
+  val taskNotification: TaskNotification? = null,
   val reorderError: String? = null,
   val reorderSyncError: LibraryAdminError? = null,
   val reorderRetryOrder: List<LibraryAdminLibrary>? = null,
@@ -74,14 +74,14 @@ fun LibraryAdminUiState.canDelete(libraryId: String): Boolean =
     deletingLibraryId == null &&
     !isReordering
 
-fun LibraryAdminUiState.taskForLibrary(libraryId: String): ServerTask? =
-  tasks.firstOrNull { it.libraryId == libraryId && it.status == ServerTaskStatus.ACTIVE }
+fun LibraryAdminUiState.taskForLibrary(libraryId: String): Task? =
+  tasks.firstOrNull { it.libraryId == libraryId && it.status == TaskStatus.ACTIVE }
     ?: tasks.firstOrNull { it.libraryId == libraryId }
 
-fun ServerTaskStatus.toAdministrationTaskState(): LibraryAdminTaskState =
+fun TaskStatus.toAdministrationTaskState(): LibraryAdminTaskState =
   when (this) {
-    ServerTaskStatus.ACTIVE -> LibraryAdminTaskState.ACTIVE
-    ServerTaskStatus.COMPLETED,
-    ServerTaskStatus.FAILED,
-    ServerTaskStatus.CANCELLED -> LibraryAdminTaskState.IDLE
+    TaskStatus.ACTIVE -> LibraryAdminTaskState.ACTIVE
+    TaskStatus.COMPLETED,
+    TaskStatus.FAILED,
+    TaskStatus.CANCELLED -> LibraryAdminTaskState.IDLE
   }

@@ -2,11 +2,11 @@ package dev.halim.shelfdroid.core.data.task
 
 import kotlinx.coroutines.flow.StateFlow
 
-interface ServerTaskRepositoryContract {
-  val state: StateFlow<ServerTaskRepositoryState>
+interface TaskRepositoryContract {
+  val state: StateFlow<TaskRepositoryState>
 
   /** The oldest unacknowledged terminal notification, retained across screen recreation. */
-  val notifications: StateFlow<ServerTaskNotification?>
+  val notifications: StateFlow<TaskNotification?>
 
   suspend fun refresh(): Result<Unit>
 

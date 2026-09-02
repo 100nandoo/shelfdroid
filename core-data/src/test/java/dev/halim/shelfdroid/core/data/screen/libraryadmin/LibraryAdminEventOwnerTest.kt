@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
 import dev.halim.shelfdroid.core.MediaType
-import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
+import dev.halim.shelfdroid.core.data.task.TaskSocket
 import dev.halim.socketio.SocketEvent
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -15,7 +15,7 @@ import org.junit.Test
 class LibraryAdminEventOwnerTest {
   @Test
   fun ownerSharesSocketOwnershipAndReconcilesEventsWithoutPolling() = runTest {
-    val socket = FakeServerTaskSocket()
+    val socket = FakeTaskSocket()
     val taskOwner = socket.acquire()
     val podcastOwner = socket.acquire()
     var taskCalls = 0
@@ -118,7 +118,7 @@ class LibraryAdminEventOwnerTest {
     assertEquals(0, socket.activeOwners)
   }
 
-  private class FakeServerTaskSocket : ServerTaskSocket {
+  private class FakeTaskSocket : TaskSocket {
     private val listeners = mutableMapOf<String, MutableList<(Array<Any>) -> Unit>>()
     var activeOwners: Int = 0
       private set

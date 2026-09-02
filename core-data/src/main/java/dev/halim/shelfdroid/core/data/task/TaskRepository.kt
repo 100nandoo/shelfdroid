@@ -20,20 +20,20 @@ import kotlinx.serialization.json.Json
  * snapshot requests are initial bootstrap, explicit refresh, and socket reconnection recovery.
  */
 @Singleton
-class ServerTaskRepository
+class TaskRepository
 private constructor(
-  private val api: ServerTaskApi,
-  private val socket: ServerTaskSocket,
-  private val catalogSynchronizer: ServerTaskCatalogSynchronizer,
+  private val api: TaskApi,
+  private val socket: TaskSocket,
+  private val catalogSynchronizer: TaskCatalogSynchronizer,
   @Named("io") private val scope: CoroutineScope,
   private val json: Json,
-  private val clock: ServerTaskClock,
+  private val clock: TaskClock,
   private val terminalRetentionMillis: Long,
   startImmediately: Boolean,
-) : ServerTaskRepositoryContract {
+) : TaskRepositoryContract {
 
   private data class TaskReducerEffects(
-    val task: ServerTask,
+    val task: Task,
     val shouldSynchronize: Boolean,
     val shouldNotify: Boolean,
     val shouldScheduleExpiry: Boolean,
@@ -41,12 +41,12 @@ private constructor(
 
   @Inject
   constructor(
-    api: ServerTaskApi,
-    socket: ServerTaskSocket,
-    catalogSynchronizer: ServerTaskCatalogSynchronizer,
+    api: TaskApi,
+    socket: TaskSocket,
+    catalogSynchronizer: TaskCatalogSynchronizer,
     @Named("io") scope: CoroutineScope,
     json: Json,
-    clock: ServerTaskClock,
+    clock: TaskClock,
   ) : this(
     api,
     socket,
@@ -62,15 +62,15 @@ private constructor(
     const val TERMINAL_RETENTION_MILLIS = 60_000L
 
     fun forTest(
-      api: ServerTaskApi,
-      socket: ServerTaskSocket,
-      catalogSynchronizer: ServerTaskCatalogSynchronizer,
+      api: TaskApi,
+      socket: TaskSocket,
+      catalogSynchronizer: TaskCatalogSynchronizer,
       scope: CoroutineScope,
       json: Json,
-      clock: ServerTaskClock,
+      clock: TaskClock,
       terminalRetentionMillis: Long = TERMINAL_RETENTION_MILLIS,
-    ): ServerTaskRepository =
-      ServerTaskRepository(
+    ): TaskRepository =
+      TaskRepository(
         api,
         socket,
         catalogSynchronizer,
@@ -83,18 +83,18 @@ private constructor(
   }
 
   private val lock = Any()
-  private val tasks = LinkedHashMap<String, ServerTask>()
-  private val acceptedTasks = LinkedHashMap<String, ServerTask>()
+  private val tasks = LinkedHashMap<String, Task>()
+  private val acceptedTasks = LinkedHashMap<String, Task>()
   private val pendingTaskLibraries = mutableSetOf<String>()
   private val completedPendingTaskLibraries = mutableSetOf<String>()
   private val expiryJobs = mutableMapOf<String, Job>()
   private val notifiedTaskIds = mutableSetOf<String>()
   private var snapshotRequestGeneration = 0L
-  private val _state = MutableStateFlow(ServerTaskRepositoryState())
-  override val state: StateFlow<ServerTaskRepositoryState> = _state.asStateFlow()
-  private val pendingNotifications = LinkedHashMap<String, ServerTaskNotification>()
-  private val _notifications = MutableStateFlow<ServerTaskNotification?>(null)
-  override val notifications: StateFlow<ServerTaskNotification?> = _notifications.asStateFlow()
+  private val _state = MutableStateFlow(TaskRepositoryState())
+  override val state: StateFlow<TaskRepositoryState> = _state.asStateFlow()
+  private val pendingNotifications = LinkedHashMap<String, TaskNotification>()
+  private val _notifications = MutableStateFlow<TaskNotification?>(null)
+  override val notifications: StateFlow<TaskNotification?> = _notifications.asStateFlow()
 
   private val owner: AutoCloseable = socket.acquire()
   private val subscriptions: List<AutoCloseable>
@@ -105,17 +105,17 @@ private constructor(
         socket.subscribe(SocketEvent.Task.Started, ::handleTaskEvent),
         socket.subscribe(SocketEvent.Task.Finished, ::handleTaskEvent),
         socket.subscribe(SocketEvent.Connect) {
-          setConnection(ServerTaskConnectionState.CONNECTED)
+          setConnection(TaskConnectionState.CONNECTED)
           scope.launch { refresh() }
         },
         socket.subscribe(SocketEvent.Disconnect) {
-          setConnection(ServerTaskConnectionState.DISCONNECTED)
+          setConnection(TaskConnectionState.DISCONNECTED)
         },
         socket.subscribe(SocketEvent.ConnectError) {
-          setConnection(ServerTaskConnectionState.DISCONNECTED)
+          setConnection(TaskConnectionState.DISCONNECTED)
         },
       )
-    if (socket.isConnected()) setConnection(ServerTaskConnectionState.CONNECTED)
+    if (socket.isConnected()) setConnection(TaskConnectionState.CONNECTED)
     // Bootstrap once. This is intentionally not repeated on a timer.
     if (startImmediately) scope.launch { refresh() }
   }
@@ -146,7 +146,7 @@ private constructor(
             // rows that disappeared while the socket was disconnected.
             tasks.entries.removeIf { (id, task) ->
               val stale =
-                task.status == ServerTaskStatus.ACTIVE &&
+                task.status == TaskStatus.ACTIVE &&
                   id !in snapshotActiveIds &&
                   acceptedTasks.values.none { accepted ->
                     accepted.id == id
@@ -161,7 +161,7 @@ private constructor(
                 snapshotKnown = true,
                 tasks =
                   tasks.values.sortedWith(
-                    compareByDescending<ServerTask> { it.startedAt ?: 0L }.thenBy { it.id }
+                    compareByDescending<Task> { it.startedAt ?: 0L }.thenBy { it.id }
                   ),
               )
           }
@@ -182,7 +182,7 @@ private constructor(
   override suspend fun startLibraryScan(libraryId: String): Result<Unit> {
     return startLibraryOperation(
       libraryId = libraryId,
-      action = ServerTaskAction.LibraryScan,
+      action = TaskAction.LibraryScan,
       placeholderPrefix = "accepted-scan",
       request = { api.scanLibrary(libraryId) },
     )
@@ -191,7 +191,7 @@ private constructor(
   override suspend fun startLibraryMatch(libraryId: String): Result<Unit> {
     return startLibraryOperation(
       libraryId = libraryId,
-      action = ServerTaskAction.BookMatching,
+      action = TaskAction.BookMatching,
       placeholderPrefix = "accepted-match",
       request = { api.matchLibrary(libraryId) },
     )
@@ -199,14 +199,14 @@ private constructor(
 
   private suspend fun startLibraryOperation(
     libraryId: String,
-    action: ServerTaskAction,
+    action: TaskAction,
     placeholderPrefix: String,
     request: suspend () -> Result<Unit>,
   ): Result<Unit> {
     val requestStartedAt = clock.now()
     synchronized(lock) {
       val hasActiveTask =
-        tasks.values.any { it.libraryId == libraryId && it.status == ServerTaskStatus.ACTIVE }
+        tasks.values.any { it.libraryId == libraryId && it.status == TaskStatus.ACTIVE }
       if (libraryId in pendingTaskLibraries || hasActiveTask) {
         return Result.failure(IllegalStateException("Library already has an active task"))
       }
@@ -223,23 +223,23 @@ private constructor(
             completedPendingTaskLibraries.remove(libraryId)
             val hasKnownActiveTask =
               tasks.values.any {
-                it.libraryId == libraryId && it.status == ServerTaskStatus.ACTIVE
+                it.libraryId == libraryId && it.status == TaskStatus.ACTIVE
               }
             val hasTaskCompletedDuringRequest =
               tasks.values.any {
                 it.libraryId == libraryId &&
-                  it.status != ServerTaskStatus.ACTIVE &&
+                  it.status != TaskStatus.ACTIVE &&
                   maxOf(it.startedAt ?: Long.MIN_VALUE, it.finishedAt ?: Long.MIN_VALUE) >=
                     requestStartedAt
               }
             if (!hasKnownActiveTask && !observedCompletion && !hasTaskCompletedDuringRequest) {
               val placeholderId = "$placeholderPrefix-$libraryId-${System.nanoTime()}"
               acceptedTasks[libraryId] =
-                ServerTask(
+                Task(
                   id = placeholderId,
                   action = action,
                   libraryId = libraryId,
-                  status = ServerTaskStatus.ACTIVE,
+                  status = TaskStatus.ACTIVE,
                   startedAt = clock.now(),
                 )
             }
@@ -265,10 +265,10 @@ private constructor(
     val task =
       synchronized(lock) { tasks[taskId] }
         ?: return Result.failure(IllegalArgumentException("Unknown task"))
-    if (task.status != ServerTaskStatus.COMPLETED || task.syncState != ServerTaskSyncState.FAILED) {
+    if (task.status != TaskStatus.COMPLETED || task.syncState != TaskSyncState.FAILED) {
       return Result.failure(IllegalStateException("Task is not waiting for synchronization retry"))
     }
-    updateTask(task.copy(syncState = ServerTaskSyncState.SYNCHRONIZING, syncError = null))
+    updateTask(task.copy(syncState = TaskSyncState.SYNCHRONIZING, syncError = null))
     return synchronizeTask(task.id)
   }
 
@@ -284,20 +284,20 @@ private constructor(
       val result = catalogSynchronizer.synchronize()
       if (result.isSuccess) {
         updateTaskById(taskId) {
-          it.copy(syncState = ServerTaskSyncState.SUCCEEDED, syncError = null)
+          it.copy(syncState = TaskSyncState.SUCCEEDED, syncError = null)
         }
         Result.success(Unit)
       } else {
         val error = result.exceptionOrNull() ?: IllegalStateException()
         updateTaskById(taskId) {
-          it.copy(syncState = ServerTaskSyncState.FAILED, syncError = error.toServerTaskError())
+          it.copy(syncState = TaskSyncState.FAILED, syncError = error.toTaskError())
         }
         Result.failure(error)
       }
     } catch (error: Throwable) {
       if (error is CancellationException) throw error
       updateTaskById(taskId) {
-        it.copy(syncState = ServerTaskSyncState.FAILED, syncError = error.toServerTaskError())
+        it.copy(syncState = TaskSyncState.FAILED, syncError = error.toTaskError())
       }
       Result.failure(error)
     }
@@ -317,14 +317,14 @@ private constructor(
         tasks.remove(accepted.id)
       }
       if (
-        domainTask.status != ServerTaskStatus.ACTIVE &&
+        domainTask.status != TaskStatus.ACTIVE &&
           libraryId != null &&
           libraryId in pendingTaskLibraries
       ) {
         completedPendingTaskLibraries += libraryId
       }
       effects = reduceTaskLocked(domainTask)
-      if (libraryId != null && effects.task.status == ServerTaskStatus.ACTIVE) {
+      if (libraryId != null && effects.task.status == TaskStatus.ACTIVE) {
         val pending = libraryId in pendingTaskLibraries
         if (pending || accepted != null) acceptedTasks[libraryId] = effects.task
       }
@@ -333,41 +333,39 @@ private constructor(
   }
 
   /** Applies every task source through the same transition and effect calculation. */
-  private fun reduceTaskLocked(incoming: ServerTask): TaskReducerEffects {
+  private fun reduceTaskLocked(incoming: Task): TaskReducerEffects {
     val previous = tasks[incoming.id]
     val next =
       when {
         // Server tasks are monotonic: a stale active snapshot/event must not undo completion.
         previous != null &&
-          previous.status != ServerTaskStatus.ACTIVE &&
-          incoming.status == ServerTaskStatus.ACTIVE -> previous
-        previous?.status == ServerTaskStatus.COMPLETED &&
-          incoming.status == ServerTaskStatus.COMPLETED ->
+          previous.status != TaskStatus.ACTIVE &&
+          incoming.status == TaskStatus.ACTIVE -> previous
+        previous?.status == TaskStatus.COMPLETED && incoming.status == TaskStatus.COMPLETED ->
           incoming.copy(syncState = previous.syncState, syncError = previous.syncError)
         else -> incoming
       }
     val shouldSynchronize =
-      next.status == ServerTaskStatus.COMPLETED &&
+      next.status == TaskStatus.COMPLETED &&
         (previous == null ||
-          previous.status != ServerTaskStatus.COMPLETED ||
-          previous.syncState == ServerTaskSyncState.NOT_STARTED)
+          previous.status != TaskStatus.COMPLETED ||
+          previous.syncState == TaskSyncState.NOT_STARTED)
     val published =
       if (shouldSynchronize) {
-        next.copy(syncState = ServerTaskSyncState.SYNCHRONIZING, syncError = null)
+        next.copy(syncState = TaskSyncState.SYNCHRONIZING, syncError = null)
       } else {
         next
       }
     tasks[published.id] = published
-    if (published.status == ServerTaskStatus.ACTIVE) {
+    if (published.status == TaskStatus.ACTIVE) {
       expiryJobs.remove(published.id)?.cancel()
     }
     publishLocked()
     return TaskReducerEffects(
       task = published,
       shouldSynchronize = shouldSynchronize,
-      shouldNotify =
-        published.status != ServerTaskStatus.ACTIVE && previous?.status != published.status,
-      shouldScheduleExpiry = published.status != ServerTaskStatus.ACTIVE,
+      shouldNotify = published.status != TaskStatus.ACTIVE && previous?.status != published.status,
+      shouldScheduleExpiry = published.status != TaskStatus.ACTIVE,
     )
   }
 
@@ -396,13 +394,13 @@ private constructor(
     }
   }
 
-  private fun enqueueNotification(task: ServerTask) {
-    if (task.status == ServerTaskStatus.ACTIVE) return
+  private fun enqueueNotification(task: Task) {
+    if (task.status == TaskStatus.ACTIVE) return
     val shouldNotify = synchronized(lock) { notifiedTaskIds.add(task.id) }
     if (!shouldNotify) return
     synchronized(lock) {
       pendingNotifications[task.id] =
-        ServerTaskNotification(
+        TaskNotification(
           taskId = task.id,
           status = task.status,
           action = task.action,
@@ -422,48 +420,48 @@ private constructor(
 
   private fun mergeAcceptedTasksLocked(snapshotTaskIds: Set<String>) {
     acceptedTasks.values.toList().forEach { accepted ->
-      val serverTask =
+      val task =
         tasks.values.firstOrNull {
           it.id != accepted.id &&
             it.id in snapshotTaskIds &&
             it.libraryId == accepted.libraryId &&
             it.action == accepted.action &&
-            (it.status == ServerTaskStatus.ACTIVE ||
+            (it.status == TaskStatus.ACTIVE ||
               maxOf(it.startedAt ?: Long.MIN_VALUE, it.finishedAt ?: Long.MIN_VALUE) >=
                 (accepted.startedAt ?: Long.MIN_VALUE))
         }
-      if (serverTask == null) {
+      if (task == null) {
         // Keep accepted placeholders (or accepted real socket tasks) through every snapshot until
         // the server reports the corresponding task. This preserves action gating during the
         // HTTP/socket creation race without polling.
         tasks[accepted.id] = accepted
       } else {
         acceptedTasks.remove(accepted.libraryId)
-        if (serverTask.id != accepted.id) tasks.remove(accepted.id)
+        if (task.id != accepted.id) tasks.remove(accepted.id)
       }
     }
   }
 
-  private fun updateTask(task: ServerTask) {
+  private fun updateTask(task: Task) {
     synchronized(lock) {
       tasks[task.id] = task
       publishLocked()
     }
   }
 
-  private fun updateTaskById(taskId: String, transform: (ServerTask) -> ServerTask) {
+  private fun updateTaskById(taskId: String, transform: (Task) -> Task) {
     synchronized(lock) {
       tasks[taskId]?.let { tasks[taskId] = transform(it) }
       publishLocked()
     }
   }
 
-  private fun setConnection(connectionState: ServerTaskConnectionState) {
+  private fun setConnection(connectionState: TaskConnectionState) {
     _state.value =
       _state.value.copy(
         connectionState = connectionState,
         snapshotKnown =
-          if (connectionState == ServerTaskConnectionState.DISCONNECTED) false
+          if (connectionState == TaskConnectionState.DISCONNECTED) false
           else _state.value.snapshotKnown,
       )
   }
@@ -472,14 +470,12 @@ private constructor(
     _state.value =
       _state.value.copy(
         tasks =
-          tasks.values.sortedWith(
-            compareByDescending<ServerTask> { it.startedAt ?: 0L }.thenBy { it.id }
-          )
+          tasks.values.sortedWith(compareByDescending<Task> { it.startedAt ?: 0L }.thenBy { it.id })
       )
   }
 
   /**
    * Exception messages are implementation details; only server-provided task text is displayable.
    */
-  private fun Throwable.toServerTaskError(): ServerTaskError = ServerTaskError.Generic
+  private fun Throwable.toTaskError(): TaskError = TaskError.Generic
 }

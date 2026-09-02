@@ -4,7 +4,7 @@ import dev.halim.socketio.SocketEvent
 import dev.halim.socketio.SocketManager
 import javax.inject.Inject
 
-interface ServerTaskSocket {
+interface TaskSocket {
   fun isConnected(): Boolean = false
 
   fun acquire(): AutoCloseable
@@ -12,8 +12,7 @@ interface ServerTaskSocket {
   fun subscribe(event: SocketEvent, listener: (Array<Any>) -> Unit): AutoCloseable
 }
 
-class SocketManagerServerTaskSocket @Inject constructor(private val manager: SocketManager) :
-  ServerTaskSocket {
+class TaskSocketManager @Inject constructor(private val manager: SocketManager) : TaskSocket {
   override fun isConnected(): Boolean = manager.isConnected()
 
   override fun acquire(): AutoCloseable = manager.acquire()

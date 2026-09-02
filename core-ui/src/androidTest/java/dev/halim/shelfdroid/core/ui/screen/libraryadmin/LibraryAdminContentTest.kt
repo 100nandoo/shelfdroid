@@ -24,11 +24,11 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminError
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminTaskState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminUiState
-import dev.halim.shelfdroid.core.data.task.ServerTask
-import dev.halim.shelfdroid.core.data.task.ServerTaskAction
-import dev.halim.shelfdroid.core.data.task.ServerTaskResult
-import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
-import dev.halim.shelfdroid.core.data.task.ServerTaskSyncState
+import dev.halim.shelfdroid.core.data.task.Task
+import dev.halim.shelfdroid.core.data.task.TaskAction
+import dev.halim.shelfdroid.core.data.task.TaskResult
+import dev.halim.shelfdroid.core.data.task.TaskStatus
+import dev.halim.shelfdroid.core.data.task.TaskSyncState
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -315,13 +315,13 @@ class LibraryAdminContentTest {
               ),
             tasks =
               listOf(
-                ServerTask(
+                Task(
                   id = "scan",
-                  action = ServerTaskAction.LibraryScan,
+                  action = TaskAction.LibraryScan,
                   libraryId = "books",
-                  status = ServerTaskStatus.COMPLETED,
-                  result = ServerTaskResult(2, 3, 1, 4_500),
-                  syncState = ServerTaskSyncState.FAILED,
+                  status = TaskStatus.COMPLETED,
+                  result = TaskResult(2, 3, 1, 4_500),
+                  syncState = TaskSyncState.FAILED,
                 )
               ),
           ),
@@ -362,13 +362,13 @@ class LibraryAdminContentTest {
               ),
             tasks =
               listOf(
-                ServerTask(
+                Task(
                   id = "match",
-                  action = ServerTaskAction.BookMatching,
+                  action = TaskAction.BookMatching,
                   libraryId = "books",
-                  status = ServerTaskStatus.COMPLETED,
-                  result = ServerTaskResult(updated = 4, elapsedMillis = 4_500),
-                  syncState = ServerTaskSyncState.FAILED,
+                  status = TaskStatus.COMPLETED,
+                  result = TaskResult(updated = 4, elapsedMillis = 4_500),
+                  syncState = TaskSyncState.FAILED,
                 )
               ),
           ),

@@ -34,9 +34,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
-import dev.halim.shelfdroid.core.data.task.ServerTask
-import dev.halim.shelfdroid.core.data.task.ServerTaskError
-import dev.halim.shelfdroid.core.data.task.ServerTaskSyncState
+import dev.halim.shelfdroid.core.data.task.Task
+import dev.halim.shelfdroid.core.data.task.TaskError
+import dev.halim.shelfdroid.core.data.task.TaskSyncState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -54,7 +54,7 @@ fun LibraryAdminItem(
   deleteEnabled: Boolean = false,
   onDelete: () -> Unit = {},
   onEdit: () -> Unit = {},
-  task: ServerTask? = null,
+  task: Task? = null,
   onRetrySynchronization: (taskId: String) -> Unit = {},
 ) {
   val dragDistance = remember { mutableFloatStateOf(0f) }
@@ -99,11 +99,11 @@ fun LibraryAdminItem(
     supportingContent = {
       Column {
         if (task != null) {
-          val presentation = serverTaskPresentation(task.action, task.status)
+          val presentation = taskPresentation(task.action, task.status)
           Text(stringResource(presentation.statusLabel))
           task.result?.let { result ->
             when (presentation.kind) {
-              ServerTaskPresentationKind.LIBRARY_SCAN ->
+              TaskPresentationKind.LIBRARY_SCAN ->
                 Text(
                   stringResource(
                     presentation.countsLabel ?: R.string.library_scan_counts,
@@ -112,14 +112,14 @@ fun LibraryAdminItem(
                     result.missing ?: 0,
                   )
                 )
-              ServerTaskPresentationKind.BOOK_MATCHING ->
+              TaskPresentationKind.BOOK_MATCHING ->
                 Text(
                   stringResource(
                     presentation.countsLabel ?: R.string.library_match_counts,
                     result.updated ?: 0,
                   )
                 )
-              ServerTaskPresentationKind.UNKNOWN -> Unit
+              TaskPresentationKind.UNKNOWN -> Unit
             }
           }
           task.result?.elapsedMillis?.let { elapsed ->
@@ -127,7 +127,7 @@ fun LibraryAdminItem(
               Text(stringResource(elapsedLabel, elapsed / 1000))
             }
           }
-          if (task.syncState == ServerTaskSyncState.FAILED) {
+          if (task.syncState == TaskSyncState.FAILED) {
             Text(
               text = stringResource(R.string.library_task_sync_failed),
               color = androidx.compose.material3.MaterialTheme.colorScheme.error,
@@ -136,7 +136,7 @@ fun LibraryAdminItem(
               Text(stringResource(R.string.library_scan_retry_sync))
             }
           }
-          task.error?.let { error -> Text(serverTaskErrorText(error)) }
+          task.error?.let { error -> Text(taskErrorText(error)) }
         }
       }
     },
@@ -203,10 +203,10 @@ fun LibraryAdminItem(
 }
 
 @Composable
-private fun serverTaskErrorText(error: ServerTaskError): String =
+private fun taskErrorText(error: TaskError): String =
   when (error) {
-    is ServerTaskError.SafeMessage -> error.message
-    ServerTaskError.Generic -> stringResource(R.string.library_task_failed_generic)
+    is TaskError.SafeMessage -> error.message
+    TaskError.Generic -> stringResource(R.string.library_task_failed_generic)
   }
 
 @ShelfDroidPreview

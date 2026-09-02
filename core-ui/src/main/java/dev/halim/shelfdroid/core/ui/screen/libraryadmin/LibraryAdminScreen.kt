@@ -59,7 +59,7 @@ fun LibraryAdminScreen(
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val snackbarHostState = remember { SnackbarHostState() }
   val notification = uiState.taskNotification
-  val notificationPresentation = notification?.let { serverTaskPresentation(it.action, it.status) }
+  val notificationPresentation = notification?.let { taskPresentation(it.action, it.status) }
   val notificationMessage = notificationPresentation?.let { stringResource(it.statusLabel) }
   LaunchedEffect(notification?.taskId) {
     if (notificationMessage != null) {

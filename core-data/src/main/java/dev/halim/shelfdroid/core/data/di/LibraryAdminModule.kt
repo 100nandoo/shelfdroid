@@ -7,16 +7,16 @@ import dagger.hilt.components.SingletonComponent
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminContract
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminRepository
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateContract
-import dev.halim.shelfdroid.core.data.task.ApiServerTaskApi
-import dev.halim.shelfdroid.core.data.task.LibraryDataServerTaskCatalogSynchronizer
-import dev.halim.shelfdroid.core.data.task.ServerTaskApi
-import dev.halim.shelfdroid.core.data.task.ServerTaskCatalogSynchronizer
-import dev.halim.shelfdroid.core.data.task.ServerTaskClock
-import dev.halim.shelfdroid.core.data.task.ServerTaskRepository
-import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryContract
-import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
-import dev.halim.shelfdroid.core.data.task.SocketManagerServerTaskSocket
-import dev.halim.shelfdroid.core.data.task.SystemServerTaskClock
+import dev.halim.shelfdroid.core.data.task.ApiTaskApi
+import dev.halim.shelfdroid.core.data.task.LibraryDataTaskCatalogSynchronizer
+import dev.halim.shelfdroid.core.data.task.SystemTaskClock
+import dev.halim.shelfdroid.core.data.task.TaskApi
+import dev.halim.shelfdroid.core.data.task.TaskCatalogSynchronizer
+import dev.halim.shelfdroid.core.data.task.TaskClock
+import dev.halim.shelfdroid.core.data.task.TaskRepository
+import dev.halim.shelfdroid.core.data.task.TaskRepositoryContract
+import dev.halim.shelfdroid.core.data.task.TaskSocket
+import dev.halim.shelfdroid.core.data.task.TaskSocketManager
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -30,19 +30,16 @@ abstract class LibraryAdminModule {
     repository: LibraryAdminRepository
   ): LibraryAdminCreateContract
 
-  @Binds abstract fun bindServerTaskSocket(socket: SocketManagerServerTaskSocket): ServerTaskSocket
+  @Binds abstract fun bindTaskSocket(socket: TaskSocketManager): TaskSocket
 
-  @Binds abstract fun bindServerTaskApi(api: ApiServerTaskApi): ServerTaskApi
-
-  @Binds
-  abstract fun bindServerTaskCatalogSynchronizer(
-    synchronizer: LibraryDataServerTaskCatalogSynchronizer
-  ): ServerTaskCatalogSynchronizer
-
-  @Binds abstract fun bindServerTaskClock(clock: SystemServerTaskClock): ServerTaskClock
+  @Binds abstract fun bindTaskApi(api: ApiTaskApi): TaskApi
 
   @Binds
-  abstract fun bindServerTaskRepository(
-    repository: ServerTaskRepository
-  ): ServerTaskRepositoryContract
+  abstract fun bindTaskCatalogSynchronizer(
+    synchronizer: LibraryDataTaskCatalogSynchronizer
+  ): TaskCatalogSynchronizer
+
+  @Binds abstract fun bindTaskClock(clock: SystemTaskClock): TaskClock
+
+  @Binds abstract fun bindTaskRepository(repository: TaskRepository): TaskRepositoryContract
 }

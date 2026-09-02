@@ -13,9 +13,9 @@ import dev.halim.shelfdroid.core.data.library.LibraryDataSyncResult
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.*
-import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
-import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryContract
-import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
+import dev.halim.shelfdroid.core.data.task.TaskNotification
+import dev.halim.shelfdroid.core.data.task.TaskRepositoryContract
+import dev.halim.shelfdroid.core.data.task.TaskRepositoryState
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -35,32 +35,32 @@ constructor(
   private val libraryItemRepository: LibraryItemRepository,
   private val libraryDataRepository: LibraryDataRepository,
   private val mutationCoordinator: LibraryMutationCoordinator,
-  private val serverTaskRepository: ServerTaskRepositoryContract,
+  private val taskRepository: TaskRepositoryContract,
   private val libraryEventRepository: LibraryAdminEventRepository,
 ) : LibraryAdminContract, LibraryAdminCreateContract {
 
   override val libraryEvents = libraryEventRepository.events
 
-  override val taskState: StateFlow<ServerTaskRepositoryState>
-    get() = serverTaskRepository.state
+  override val taskState: StateFlow<TaskRepositoryState>
+    get() = taskRepository.state
 
-  override val taskNotifications: StateFlow<ServerTaskNotification?>
-    get() = serverTaskRepository.notifications
+  override val taskNotifications: StateFlow<TaskNotification?>
+    get() = taskRepository.notifications
 
   override fun acknowledgeTaskNotification(taskId: String) {
-    serverTaskRepository.acknowledgeNotification(taskId)
+    taskRepository.acknowledgeNotification(taskId)
   }
 
-  override suspend fun refreshTasks(): Result<Unit> = serverTaskRepository.refresh()
+  override suspend fun refreshTasks(): Result<Unit> = taskRepository.refresh()
 
   override suspend fun startScan(libraryId: String): Result<Unit> =
-    serverTaskRepository.startLibraryScan(libraryId)
+    taskRepository.startLibraryScan(libraryId)
 
   override suspend fun startMatch(libraryId: String): Result<Unit> =
-    serverTaskRepository.startLibraryMatch(libraryId)
+    taskRepository.startLibraryMatch(libraryId)
 
   override suspend fun retryTaskSynchronization(taskId: String): Result<Unit> =
-    serverTaskRepository.retrySynchronization(taskId)
+    taskRepository.retrySynchronization(taskId)
 
   override suspend fun loadLibraries(): Result<List<LibraryAdminLibrary>> {
     // Explicit refresh is the same authoritative Library data boundary used by socket events. It

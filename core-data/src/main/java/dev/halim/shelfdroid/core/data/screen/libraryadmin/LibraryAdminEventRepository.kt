@@ -5,7 +5,7 @@ import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
-import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
+import dev.halim.shelfdroid.core.data.task.TaskSocket
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
 class LibraryAdminEventRepository
 @Inject
 constructor(
-  socket: ServerTaskSocket,
+  socket: TaskSocket,
   private val json: Json,
   @Named("io") private val scope: CoroutineScope,
   libraryDataRepository: LibraryDataRepository,

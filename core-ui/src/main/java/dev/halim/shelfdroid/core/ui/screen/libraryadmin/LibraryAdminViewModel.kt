@@ -17,9 +17,9 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.canReorder
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.canStartMatch
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.canStartScan
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.toAdministrationTaskState
-import dev.halim.shelfdroid.core.data.task.ServerTaskConnectionState
-import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
-import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
+import dev.halim.shelfdroid.core.data.task.TaskConnectionState
+import dev.halim.shelfdroid.core.data.task.TaskRepositoryState
+import dev.halim.shelfdroid.core.data.task.TaskStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,7 +38,7 @@ class LibraryAdminViewModel @Inject constructor(private val repository: LibraryA
   private var intentGeneration = 0L
   private var lastAcceptedIntentGeneration = 0L
   private var lastServerLibraries: List<LibraryAdminLibrary> = emptyList()
-  private var latestTaskState = ServerTaskRepositoryState()
+  private var latestTaskState = TaskRepositoryState()
 
   private val _uiState = MutableStateFlow(LibraryAdminUiState())
   val uiState: StateFlow<LibraryAdminUiState> =
@@ -184,17 +184,16 @@ class LibraryAdminViewModel @Inject constructor(private val repository: LibraryA
   }
 
   private fun applyTaskState(
-    taskState: ServerTaskRepositoryState,
+    taskState: TaskRepositoryState,
     libraries: List<LibraryAdminLibrary>,
   ) {
     val taskStates = libraries.associate { library ->
       val libraryTasks = taskState.tasks.filter { it.libraryId == library.id }
-      val active = libraryTasks.firstOrNull { it.status == ServerTaskStatus.ACTIVE }
+      val active = libraryTasks.firstOrNull { it.status == TaskStatus.ACTIVE }
       val latest = libraryTasks.firstOrNull()
       val state =
         if (
-          !taskState.snapshotKnown ||
-            taskState.connectionState != ServerTaskConnectionState.CONNECTED
+          !taskState.snapshotKnown || taskState.connectionState != TaskConnectionState.CONNECTED
         ) {
           LibraryAdminTaskState.UNKNOWN
         } else {
@@ -485,12 +484,11 @@ class LibraryAdminViewModel @Inject constructor(private val repository: LibraryA
   }
 }
 
-private fun ServerTaskConnectionState.toAdministrationConnectionState():
-  LibraryAdminConnectionState =
+private fun TaskConnectionState.toAdministrationConnectionState(): LibraryAdminConnectionState =
   when (this) {
-    ServerTaskConnectionState.UNKNOWN -> LibraryAdminConnectionState.UNKNOWN
-    ServerTaskConnectionState.CONNECTED -> LibraryAdminConnectionState.CONNECTED
-    ServerTaskConnectionState.DISCONNECTED -> LibraryAdminConnectionState.DISCONNECTED
+    TaskConnectionState.UNKNOWN -> LibraryAdminConnectionState.UNKNOWN
+    TaskConnectionState.CONNECTED -> LibraryAdminConnectionState.CONNECTED
+    TaskConnectionState.DISCONNECTED -> LibraryAdminConnectionState.DISCONNECTED
   }
 
 private fun Throwable.safeMessage(

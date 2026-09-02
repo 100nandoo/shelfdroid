@@ -24,13 +24,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ServerTaskRepositoryBehaviorTest {
+class TaskRepositoryBehaviorTest {
 
   @Test
   fun refreshReconcilesActiveSnapshot_butRetainsTerminalRows() = runTest {
     val active = networkTask("active", finished = false)
     val terminal = networkTask("terminal", finished = true, finishedAt = 100L)
-    val api = FakeServerTaskApi(TasksResponse(listOf(active, terminal)), TasksResponse(emptyList()))
+    val api = FakeTaskApi(TasksResponse(listOf(active, terminal)), TasksResponse(emptyList()))
     val repository = repository(api)
 
     repository.refresh()
@@ -43,8 +43,8 @@ class ServerTaskRepositoryBehaviorTest {
 
   @Test
   fun realTaskStarted_replacesAcceptedPlaceholder() = runTest {
-    val api = FakeServerTaskApi(TasksResponse(emptyList()))
-    val socket = FakeServerTaskSocket()
+    val api = FakeTaskApi(TasksResponse(emptyList()))
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1_000_000L)
 
     repository.startLibraryScan("books")
@@ -59,14 +59,14 @@ class ServerTaskRepositoryBehaviorTest {
 
   @Test
   fun matchTaskStarted_replacesAcceptedPlaceholderAndUsesMatchAction() = runTest {
-    val api = FakeServerTaskApi(TasksResponse(emptyList()))
-    val socket = FakeServerTaskSocket()
+    val api = FakeTaskApi(TasksResponse(emptyList()))
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1_000_000L)
 
     repository.startLibraryMatch("books")
     val placeholder = repository.state.value.tasks.single()
     assertTrue(placeholder.id.startsWith("accepted-match-"))
-    assertEquals(ServerTaskAction.BookMatching, placeholder.action)
+    assertEquals(TaskAction.BookMatching, placeholder.action)
 
     socket.emit(
       "task_started",
@@ -74,13 +74,13 @@ class ServerTaskRepositoryBehaviorTest {
     )
 
     assertEquals(listOf("match"), repository.state.value.tasks.map { it.id })
-    assertEquals(ServerTaskAction.BookMatching, repository.state.value.tasks.single().action)
+    assertEquals(TaskAction.BookMatching, repository.state.value.tasks.single().action)
   }
 
   @Test
   fun scanAndMatchAreMutuallyExclusivePerLibraryButIndependentAcrossLibraries() = runTest {
-    val api = FakeServerTaskApi(TasksResponse(emptyList()))
-    val socket = FakeServerTaskSocket()
+    val api = FakeTaskApi(TasksResponse(emptyList()))
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1_000_000L)
 
     assertTrue(repository.startLibraryScan("books").isSuccess)
@@ -93,8 +93,8 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun taskFinishedBeforeHttpResponse_doesNotLeavePlaceholder() = runTest {
     val scanResponse = CompletableDeferred<Result<Unit>>()
-    val api = FakeServerTaskApi(TasksResponse(emptyList()), scanResponse)
-    val socket = FakeServerTaskSocket()
+    val api = FakeTaskApi(TasksResponse(emptyList()), scanResponse)
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1_000_000L)
 
     val request = async { repository.startLibraryScan("books") }
@@ -111,8 +111,8 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun taskFinishedBeforeHttpResponseWithoutTimestamp_doesNotLeavePlaceholder() = runTest {
     val scanResponse = CompletableDeferred<Result<Unit>>()
-    val api = FakeServerTaskApi(TasksResponse(emptyList()), scanResponse)
-    val socket = FakeServerTaskSocket()
+    val api = FakeTaskApi(TasksResponse(emptyList()), scanResponse)
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1_000_000L)
 
     val request = async { repository.startLibraryScan("books") }
@@ -128,8 +128,8 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun taskStartedBeforeHttpResponse_remainsActiveWithoutPlaceholder() = runTest {
     val scanResponse = CompletableDeferred<Result<Unit>>()
-    val api = FakeServerTaskApi(TasksResponse(emptyList()), scanResponse)
-    val socket = FakeServerTaskSocket()
+    val api = FakeTaskApi(TasksResponse(emptyList()), scanResponse)
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1_000_000L)
 
     val request = async { repository.startLibraryScan("books") }
@@ -140,7 +140,7 @@ class ServerTaskRepositoryBehaviorTest {
     runCurrent()
 
     assertEquals(listOf("real"), repository.state.value.tasks.map { it.id })
-    assertEquals(ServerTaskStatus.ACTIVE, repository.state.value.tasks.single().status)
+    assertEquals(TaskStatus.ACTIVE, repository.state.value.tasks.single().status)
     assertFalse(repository.state.value.tasks.any { it.id.startsWith("accepted-scan-") })
   }
 
@@ -149,7 +149,7 @@ class ServerTaskRepositoryBehaviorTest {
     val terminal = networkTask("real", finished = true, finishedAt = 1_000L)
     val repository =
       repository(
-        FakeServerTaskApi(TasksResponse(listOf(terminal))),
+        FakeTaskApi(TasksResponse(listOf(terminal))),
         retentionMillis = 1_000_000L,
       )
 
@@ -162,7 +162,7 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun acceptedScan_survivesImmediateRecoveryAndLaterExplicitRefresh() = runTest {
     val api =
-      FakeServerTaskApi(
+      FakeTaskApi(
         TasksResponse(emptyList()),
         TasksResponse(emptyList()),
       )
@@ -181,7 +181,7 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun acceptedScan_reconcilesTimestampLessActiveSnapshotWithoutDuplicate() = runTest {
     val api =
-      FakeServerTaskApi(
+      FakeTaskApi(
         TasksResponse(emptyList()),
         TasksResponse(listOf(networkTask("real", finished = false, startedAt = null))),
       )
@@ -199,11 +199,11 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun acceptedScan_survivesImmediateRecoveryAndReconnectRefresh() = runTest {
     val api =
-      FakeServerTaskApi(
+      FakeTaskApi(
         TasksResponse(emptyList()),
         TasksResponse(emptyList()),
       )
-    val socket = FakeServerTaskSocket()
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1_000_000L)
 
     repository.startLibraryScan("books")
@@ -213,7 +213,7 @@ class ServerTaskRepositoryBehaviorTest {
     advanceUntilIdle()
 
     assertEquals(2, api.taskRequests)
-    assertEquals(ServerTaskConnectionState.CONNECTED, repository.state.value.connectionState)
+    assertEquals(TaskConnectionState.CONNECTED, repository.state.value.connectionState)
     assertTrue(repository.state.value.snapshotKnown)
     assertTrue(repository.state.value.tasks.single().id.startsWith("accepted-scan-"))
   }
@@ -221,11 +221,11 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun acceptedSocketTask_survivesRefreshUntilServerSnapshotContainsIt() = runTest {
     val api =
-      FakeServerTaskApi(
+      FakeTaskApi(
         TasksResponse(emptyList()),
         TasksResponse(emptyList()),
       )
-    val socket = FakeServerTaskSocket()
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1_000_000L)
 
     repository.startLibraryScan("books")
@@ -234,13 +234,13 @@ class ServerTaskRepositoryBehaviorTest {
     repository.refresh()
 
     assertEquals(listOf("real"), repository.state.value.tasks.map { it.id })
-    assertEquals(ServerTaskStatus.ACTIVE, repository.state.value.tasks.single().status)
+    assertEquals(TaskStatus.ACTIVE, repository.state.value.tasks.single().status)
   }
 
   @Test
   fun reconnectAndExplicitRefreshAreTheOnlySnapshotRequests() = runTest {
-    val api = FakeServerTaskApi(TasksResponse(emptyList()))
-    val socket = FakeServerTaskSocket()
+    val api = FakeTaskApi(TasksResponse(emptyList()))
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket)
 
     assertEquals(0, api.taskRequests)
@@ -261,8 +261,8 @@ class ServerTaskRepositoryBehaviorTest {
 
   @Test
   fun terminalRowsExpireAfterRetentionWindow() = runTest {
-    val api = FakeServerTaskApi(TasksResponse(emptyList()))
-    val socket = FakeServerTaskSocket()
+    val api = FakeTaskApi(TasksResponse(emptyList()))
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, retentionMillis = 1L)
 
     socket.emit("task_finished", networkTask("finished", finished = true, finishedAt = 0L).json())
@@ -275,11 +275,11 @@ class ServerTaskRepositoryBehaviorTest {
   fun staleActiveSnapshotCannotReopenCompletedTaskOrRepeatSynchronization() = runTest {
     val catalog = FakeCatalogSynchronizer(ArrayDeque(listOf(Result.success(Unit))))
     val api =
-      FakeServerTaskApi(
+      FakeTaskApi(
         TasksResponse(emptyList()),
         TasksResponse(listOf(networkTask("finished", finished = false))),
       )
-    val socket = FakeServerTaskSocket()
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, catalog = catalog, retentionMillis = 1_000_000L)
 
     repository.startLibraryScan("books")
@@ -291,18 +291,18 @@ class ServerTaskRepositoryBehaviorTest {
     repository.refresh()
     runCurrent()
 
-    assertEquals(ServerTaskStatus.COMPLETED, repository.state.value.tasks.single().status)
-    assertEquals(ServerTaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
+    assertEquals(TaskStatus.COMPLETED, repository.state.value.tasks.single().status)
+    assertEquals(TaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
     assertEquals(1, catalog.synchronizationCalls)
   }
 
   @Test
   fun duplicateTerminalEventsScheduleOneNotificationAndOneSynchronization() = runTest {
     val catalog = FakeCatalogSynchronizer(ArrayDeque(listOf(Result.success(Unit))))
-    val socket = FakeServerTaskSocket()
+    val socket = FakeTaskSocket()
     val repository =
       repository(
-        FakeServerTaskApi(TasksResponse(emptyList())),
+        FakeTaskApi(TasksResponse(emptyList())),
         socket,
         catalog = catalog,
         retentionMillis = 1_000_000L,
@@ -315,19 +315,19 @@ class ServerTaskRepositoryBehaviorTest {
 
     assertEquals(1, catalog.synchronizationCalls)
     assertEquals(
-      ServerTaskNotification("finished", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan),
+      TaskNotification("finished", TaskStatus.COMPLETED, TaskAction.LibraryScan),
       repository.notifications.value,
     )
   }
 
   @Test
   fun completedTaskSyncFailureIsDistinctAndRetryable() = runTest {
-    val api = FakeServerTaskApi(TasksResponse(emptyList()))
+    val api = FakeTaskApi(TasksResponse(emptyList()))
     val catalog =
       FakeCatalogSynchronizer(
         ArrayDeque(listOf(Result.failure(IllegalStateException("internal")), Result.success(Unit)))
       )
-    val socket = FakeServerTaskSocket()
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, catalog = catalog, retentionMillis = 1_000_000L)
 
     socket.emit(
@@ -336,23 +336,23 @@ class ServerTaskRepositoryBehaviorTest {
     )
     runCurrent()
     val failed = repository.state.value.tasks.single()
-    assertEquals(ServerTaskSyncState.FAILED, failed.syncState)
-    assertEquals(ServerTaskError.Generic, failed.syncError)
+    assertEquals(TaskSyncState.FAILED, failed.syncState)
+    assertEquals(TaskError.Generic, failed.syncError)
 
     assertTrue(repository.retrySynchronization("finished").isSuccess)
     runCurrent()
-    assertEquals(ServerTaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
+    assertEquals(TaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
     assertEquals(0, api.scanCalls)
   }
 
   @Test
   fun completedMatchSyncFailureIsDistinctAndRetryDoesNotStartAnotherMatch() = runTest {
-    val api = FakeServerTaskApi(TasksResponse(emptyList()))
+    val api = FakeTaskApi(TasksResponse(emptyList()))
     val catalog =
       FakeCatalogSynchronizer(
         ArrayDeque(listOf(Result.failure(IllegalStateException("internal")), Result.success(Unit)))
       )
-    val socket = FakeServerTaskSocket()
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, catalog = catalog, retentionMillis = 1_000_000L)
 
     socket.emit(
@@ -361,20 +361,20 @@ class ServerTaskRepositoryBehaviorTest {
         .json(),
     )
     runCurrent()
-    assertEquals(ServerTaskSyncState.FAILED, repository.state.value.tasks.single().syncState)
+    assertEquals(TaskSyncState.FAILED, repository.state.value.tasks.single().syncState)
     assertTrue(repository.retrySynchronization("match").isSuccess)
     runCurrent()
-    assertEquals(ServerTaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
+    assertEquals(TaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
     assertEquals(0, api.matchCalls)
   }
 
   @Test
   fun refreshPreservesTerminalSynchronizationFailureForRetry() = runTest {
     val terminal = networkTask("finished", finished = true, finishedAt = 1_000L)
-    val api = FakeServerTaskApi(TasksResponse(listOf(terminal)))
+    val api = FakeTaskApi(TasksResponse(listOf(terminal)))
     val catalog =
       FakeCatalogSynchronizer(ArrayDeque(listOf(Result.failure(IllegalStateException("internal")))))
-    val socket = FakeServerTaskSocket()
+    val socket = FakeTaskSocket()
     val repository = repository(api, socket, catalog = catalog, retentionMillis = 1_000_000L)
 
     socket.emit("task_finished", terminal.json())
@@ -382,24 +382,24 @@ class ServerTaskRepositoryBehaviorTest {
     assertTrue(repository.refresh().isSuccess)
 
     val refreshed = repository.state.value.tasks.single()
-    assertEquals(ServerTaskSyncState.FAILED, refreshed.syncState)
-    assertEquals(ServerTaskError.Generic, refreshed.syncError)
+    assertEquals(TaskSyncState.FAILED, refreshed.syncState)
+    assertEquals(TaskError.Generic, refreshed.syncError)
   }
 
   @Test
   fun terminalNotificationIsDurableDeduplicatedAndAcknowledged() = runTest {
-    val repository = repository(FakeServerTaskApi(TasksResponse(emptyList())))
+    val repository = repository(FakeTaskApi(TasksResponse(emptyList())))
     val finished = networkTask("finished", finished = true, finishedAt = 1_000L).json()
 
     // No collector is attached: StateFlow retains the pending notification for a later screen.
     repository.socketForTest.emit("task_finished", finished)
     assertEquals(
-      ServerTaskNotification("finished", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan),
+      TaskNotification("finished", TaskStatus.COMPLETED, TaskAction.LibraryScan),
       repository.notifications.value,
     )
     repository.socketForTest.emit("task_finished", finished)
     assertEquals(
-      ServerTaskNotification("finished", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan),
+      TaskNotification("finished", TaskStatus.COMPLETED, TaskAction.LibraryScan),
       repository.notifications.value,
     )
 
@@ -409,7 +409,7 @@ class ServerTaskRepositoryBehaviorTest {
 
   @Test
   fun matchNotificationRetainsOperationForDelayedSnackbarPresentation() = runTest {
-    val repository = repository(FakeServerTaskApi(TasksResponse(emptyList())))
+    val repository = repository(FakeTaskApi(TasksResponse(emptyList())))
 
     repository.socketForTest.emit(
       "task_finished",
@@ -418,14 +418,14 @@ class ServerTaskRepositoryBehaviorTest {
     )
 
     assertEquals(
-      ServerTaskNotification("match", ServerTaskStatus.COMPLETED, ServerTaskAction.BookMatching),
+      TaskNotification("match", TaskStatus.COMPLETED, TaskAction.BookMatching),
       repository.notifications.value,
     )
   }
 
   @Test
   fun unknownTaskNotificationRetainsRawOperationForGenericPresentation() = runTest {
-    val repository = repository(FakeServerTaskApi(TasksResponse(emptyList())))
+    val repository = repository(FakeTaskApi(TasksResponse(emptyList())))
 
     repository.socketForTest.emit(
       "task_finished",
@@ -439,10 +439,10 @@ class ServerTaskRepositoryBehaviorTest {
     )
 
     assertEquals(
-      ServerTaskNotification(
+      TaskNotification(
         "future",
-        ServerTaskStatus.COMPLETED,
-        ServerTaskAction.Unknown("future-server-task"),
+        TaskStatus.COMPLETED,
+        TaskAction.Unknown("future-server-task"),
       ),
       repository.notifications.value,
     )
@@ -451,7 +451,7 @@ class ServerTaskRepositoryBehaviorTest {
   @Test
   fun refreshRecoversCompletedMatchAndSynchronizesCatalogWhenSocketEventWasMissed() = runTest {
     val api =
-      FakeServerTaskApi(
+      FakeTaskApi(
         TasksResponse(
           listOf(
             networkTask("match", finished = true, finishedAt = 1_000L, action = "library-match-all")
@@ -464,22 +464,22 @@ class ServerTaskRepositoryBehaviorTest {
     assertTrue(repository.refresh().isSuccess)
     runCurrent()
 
-    assertEquals(ServerTaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
+    assertEquals(TaskSyncState.SUCCEEDED, repository.state.value.tasks.single().syncState)
     assertEquals(
-      ServerTaskNotification("match", ServerTaskStatus.COMPLETED, ServerTaskAction.BookMatching),
+      TaskNotification("match", TaskStatus.COMPLETED, TaskAction.BookMatching),
       repository.notifications.value,
     )
   }
 
   private fun TestScope.repository(
-    api: FakeServerTaskApi,
-    socket: FakeServerTaskSocket = FakeServerTaskSocket(),
+    api: FakeTaskApi,
+    socket: FakeTaskSocket = FakeTaskSocket(),
     catalog: FakeCatalogSynchronizer = FakeCatalogSynchronizer(),
-    retentionMillis: Long = ServerTaskRepository.TERMINAL_RETENTION_MILLIS,
+    retentionMillis: Long = TaskRepository.TERMINAL_RETENTION_MILLIS,
   ): TestRepository {
     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
     val repository =
-      ServerTaskRepository.forTest(
+      TaskRepository.forTest(
         api = api,
         socket = socket,
         catalogSynchronizer = catalog,
@@ -489,16 +489,16 @@ class ServerTaskRepositoryBehaviorTest {
             ignoreUnknownKeys = true
             explicitNulls = false
           },
-        clock = ServerTaskClock { 1_000L },
+        clock = TaskClock { 1_000L },
         terminalRetentionMillis = retentionMillis,
       )
     return TestRepository(repository, socket)
   }
 
   private data class TestRepository(
-    val repository: ServerTaskRepository,
-    val socketForTest: FakeServerTaskSocket,
-  ) : ServerTaskRepositoryContract by repository
+    val repository: TaskRepository,
+    val socketForTest: FakeTaskSocket,
+  ) : TaskRepositoryContract by repository
 
   private fun networkTask(
     id: String,
@@ -522,7 +522,7 @@ class ServerTaskRepositoryBehaviorTest {
   }
     .encodeToString(NetworkServerTask.serializer(), this)
 
-  private class FakeServerTaskApi : ServerTaskApi {
+  private class FakeTaskApi : TaskApi {
     private val snapshots: ArrayDeque<TasksResponse>
     private val scanResponse: CompletableDeferred<Result<Unit>>?
     var taskRequests = 0
@@ -561,7 +561,7 @@ class ServerTaskRepositoryBehaviorTest {
 
   private class FakeCatalogSynchronizer(
     private val responses: ArrayDeque<Result<Unit>> = ArrayDeque()
-  ) : ServerTaskCatalogSynchronizer {
+  ) : TaskCatalogSynchronizer {
     var synchronizationCalls = 0
 
     override suspend fun synchronize(): Result<Unit> =
@@ -574,7 +574,7 @@ class ServerTaskRepositoryBehaviorTest {
       }
   }
 
-  private class FakeServerTaskSocket : ServerTaskSocket {
+  private class FakeTaskSocket : TaskSocket {
     private val listeners = mutableMapOf<String, MutableList<(Array<Any>) -> Unit>>()
 
     override fun acquire(): AutoCloseable = AutoCloseable {}

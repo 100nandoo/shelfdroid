@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.libraryadmin
 
-import dev.halim.shelfdroid.core.data.task.ServerTaskSocket
+import dev.halim.shelfdroid.core.data.task.TaskSocket
 import dev.halim.socketio.SocketEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
  * subscriptions.
  */
 internal class LibraryAdminEventOwner(
-  private val socket: ServerTaskSocket,
+  private val socket: TaskSocket,
   private val json: Json,
   private val scope: CoroutineScope,
   private val reconciler: LibraryAdminEventReconciler,

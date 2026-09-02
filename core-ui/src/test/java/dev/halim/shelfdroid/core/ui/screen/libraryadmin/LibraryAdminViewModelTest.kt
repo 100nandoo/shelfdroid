@@ -7,12 +7,12 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminError
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMutationResult
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.canDelete
-import dev.halim.shelfdroid.core.data.task.ServerTask
-import dev.halim.shelfdroid.core.data.task.ServerTaskAction
-import dev.halim.shelfdroid.core.data.task.ServerTaskConnectionState
-import dev.halim.shelfdroid.core.data.task.ServerTaskNotification
-import dev.halim.shelfdroid.core.data.task.ServerTaskRepositoryState
-import dev.halim.shelfdroid.core.data.task.ServerTaskStatus
+import dev.halim.shelfdroid.core.data.task.Task
+import dev.halim.shelfdroid.core.data.task.TaskAction
+import dev.halim.shelfdroid.core.data.task.TaskConnectionState
+import dev.halim.shelfdroid.core.data.task.TaskNotification
+import dev.halim.shelfdroid.core.data.task.TaskRepositoryState
+import dev.halim.shelfdroid.core.data.task.TaskStatus
 import java.util.ArrayDeque
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
@@ -289,7 +289,7 @@ class LibraryAdminViewModelTest {
 
     repository.mutableTaskState.value =
       repository.mutableTaskState.value.copy(
-        connectionState = ServerTaskConnectionState.CONNECTED,
+        connectionState = TaskConnectionState.CONNECTED,
         snapshotKnown = false,
       )
     viewModel.onEvent(LibraryAdminEvent.MoveLibrary("books", 1))
@@ -299,11 +299,11 @@ class LibraryAdminViewModelTest {
       repository.mutableTaskState.value.copy(
         tasks =
           listOf(
-            ServerTask(
+            Task(
               id = "scan",
-              action = ServerTaskAction.LibraryScan,
+              action = TaskAction.LibraryScan,
               libraryId = "books",
-              status = ServerTaskStatus.ACTIVE,
+              status = TaskStatus.ACTIVE,
             )
           )
       )
@@ -314,11 +314,11 @@ class LibraryAdminViewModelTest {
       repository.mutableTaskState.value.copy(
         tasks =
           listOf(
-            ServerTask(
+            Task(
               id = "scan",
-              action = ServerTaskAction.LibraryScan,
+              action = TaskAction.LibraryScan,
               libraryId = "podcasts",
-              status = ServerTaskStatus.ACTIVE,
+              status = TaskStatus.ACTIVE,
             )
           )
       )
@@ -327,7 +327,7 @@ class LibraryAdminViewModelTest {
 
     repository.mutableTaskState.value =
       repository.mutableTaskState.value.copy(
-        connectionState = ServerTaskConnectionState.DISCONNECTED,
+        connectionState = TaskConnectionState.DISCONNECTED,
         tasks = emptyList(),
       )
     viewModel.onEvent(LibraryAdminEvent.MoveLibrary("books", 1))
@@ -372,8 +372,8 @@ class LibraryAdminViewModelTest {
       TaskRepository(
         libraries = libraries("books"),
         initialTaskState =
-          ServerTaskRepositoryState(
-            connectionState = ServerTaskConnectionState.CONNECTED,
+          TaskRepositoryState(
+            connectionState = TaskConnectionState.CONNECTED,
             snapshotKnown = true,
           ),
       )
@@ -389,11 +389,11 @@ class LibraryAdminViewModelTest {
       repository.mutableTaskState.value.copy(
         tasks =
           listOf(
-            ServerTask(
+            Task(
               id = "scan",
-              action = ServerTaskAction.LibraryScan,
+              action = TaskAction.LibraryScan,
               libraryId = "books",
-              status = ServerTaskStatus.ACTIVE,
+              status = TaskStatus.ACTIVE,
             )
           )
       )
@@ -420,8 +420,8 @@ class LibraryAdminViewModelTest {
             ),
           ),
         initialTaskState =
-          ServerTaskRepositoryState(
-            connectionState = ServerTaskConnectionState.CONNECTED,
+          TaskRepositoryState(
+            connectionState = TaskConnectionState.CONNECTED,
             snapshotKnown = true,
           ),
       )
@@ -438,11 +438,11 @@ class LibraryAdminViewModelTest {
       repository.mutableTaskState.value.copy(
         tasks =
           listOf(
-            ServerTask(
+            Task(
               id = "match",
-              action = ServerTaskAction.BookMatching,
+              action = TaskAction.BookMatching,
               libraryId = "books",
-              status = ServerTaskStatus.ACTIVE,
+              status = TaskStatus.ACTIVE,
             )
           )
       )
@@ -462,8 +462,8 @@ class LibraryAdminViewModelTest {
       TaskRepository(
         libraries = libraries("books"),
         initialTaskState =
-          ServerTaskRepositoryState(
-            connectionState = ServerTaskConnectionState.CONNECTED,
+          TaskRepositoryState(
+            connectionState = TaskConnectionState.CONNECTED,
             snapshotKnown = true,
           ),
       )
@@ -497,10 +497,10 @@ class LibraryAdminViewModelTest {
     val repository =
       TaskRepository(
         libraries = libraries("books"),
-        initialTaskState = ServerTaskRepositoryState(),
+        initialTaskState = TaskRepositoryState(),
       )
     repository.taskNotification.value =
-      ServerTaskNotification("scan", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan)
+      TaskNotification("scan", TaskStatus.COMPLETED, TaskAction.LibraryScan)
 
     val first = LibraryAdminViewModel(repository)
     val firstCollection = collectState(first)
@@ -512,7 +512,7 @@ class LibraryAdminViewModelTest {
     val secondCollection = collectState(second)
     advanceUntilIdle()
     assertEquals(
-      ServerTaskNotification("scan", ServerTaskStatus.COMPLETED, ServerTaskAction.LibraryScan),
+      TaskNotification("scan", TaskStatus.COMPLETED, TaskAction.LibraryScan),
       second.uiState.value.taskNotification,
     )
 
@@ -555,11 +555,11 @@ class LibraryAdminViewModelTest {
       repository.mutableTaskState.value.copy(
         tasks =
           listOf(
-            ServerTask(
+            Task(
               id = "scan",
-              action = ServerTaskAction.LibraryScan,
+              action = TaskAction.LibraryScan,
               libraryId = "books",
-              status = ServerTaskStatus.ACTIVE,
+              status = TaskStatus.ACTIVE,
             )
           )
       )
@@ -568,7 +568,7 @@ class LibraryAdminViewModelTest {
 
     repository.mutableTaskState.value =
       repository.mutableTaskState.value.copy(
-        connectionState = ServerTaskConnectionState.DISCONNECTED,
+        connectionState = TaskConnectionState.DISCONNECTED,
         tasks = emptyList(),
       )
     viewModel.onEvent(LibraryAdminEvent.RequestDeleteLibrary("books"))
@@ -712,7 +712,7 @@ class LibraryAdminViewModelTest {
   private fun enableReorder(repository: TaskStateDriver, vararg ids: String) {
     repository.mutableTaskState.value =
       repository.mutableTaskState.value.copy(
-        connectionState = ServerTaskConnectionState.CONNECTED,
+        connectionState = TaskConnectionState.CONNECTED,
         snapshotKnown = true,
       )
   }
@@ -728,7 +728,7 @@ class LibraryAdminViewModelTest {
     }
 
   private interface TaskStateDriver {
-    val mutableTaskState: MutableStateFlow<ServerTaskRepositoryState>
+    val mutableTaskState: MutableStateFlow<TaskRepositoryState>
   }
 
   private class FakeRepository(
@@ -738,7 +738,7 @@ class LibraryAdminViewModelTest {
     deleteResults: List<Result<LibraryAdminMutationResult<Unit>>> = emptyList(),
     synchronizationResults: List<Result<Unit>> = emptyList(),
   ) : LibraryAdminContract, TaskStateDriver {
-    override val mutableTaskState = MutableStateFlow(ServerTaskRepositoryState())
+    override val mutableTaskState = MutableStateFlow(TaskRepositoryState())
     private val pendingResults = ArrayDeque(results)
     private val pendingReorderResults = ArrayDeque(reorderResults)
     private val pendingDeleteResults = ArrayDeque(deleteResults)
@@ -753,7 +753,7 @@ class LibraryAdminViewModelTest {
       mutableListOf<Pair<List<LibraryAdminLibrary>, List<LibraryAdminLibrary>>>()
     val deleteRequests = mutableListOf<String>()
 
-    override val taskState: StateFlow<ServerTaskRepositoryState>
+    override val taskState: StateFlow<TaskRepositoryState>
       get() = mutableTaskState
 
     override suspend fun loadLibraries(): Result<List<LibraryAdminLibrary>> {
@@ -803,9 +803,9 @@ class LibraryAdminViewModelTest {
         CompletableDeferred<Result<LibraryAdminMutationResult<List<LibraryAdminLibrary>>>>
       >,
   ) : LibraryAdminContract, TaskStateDriver {
-    override val mutableTaskState = MutableStateFlow(ServerTaskRepositoryState())
+    override val mutableTaskState = MutableStateFlow(TaskRepositoryState())
 
-    override val taskState: StateFlow<ServerTaskRepositoryState>
+    override val taskState: StateFlow<TaskRepositoryState>
       get() = mutableTaskState
 
     override suspend fun loadLibraries(): Result<List<LibraryAdminLibrary>> =
@@ -819,10 +819,10 @@ class LibraryAdminViewModelTest {
 
   private class TaskRepository(
     private val libraries: List<LibraryAdminLibrary>,
-    initialTaskState: ServerTaskRepositoryState,
+    initialTaskState: TaskRepositoryState,
   ) : LibraryAdminContract, TaskStateDriver {
     override val mutableTaskState = MutableStateFlow(initialTaskState)
-    val taskNotification = MutableStateFlow<ServerTaskNotification?>(null)
+    val taskNotification = MutableStateFlow<TaskNotification?>(null)
     var scanResult: Result<Unit> = Result.success(Unit)
     var matchResult: Result<Unit> = Result.success(Unit)
     var retryResult: Result<Unit> = Result.success(Unit)
@@ -830,10 +830,10 @@ class LibraryAdminViewModelTest {
     val matchRequests = mutableListOf<String>()
     var acknowledgements = 0
 
-    override val taskState: StateFlow<ServerTaskRepositoryState>
+    override val taskState: StateFlow<TaskRepositoryState>
       get() = mutableTaskState
 
-    override val taskNotifications: StateFlow<ServerTaskNotification?>
+    override val taskNotifications: StateFlow<TaskNotification?>
       get() = taskNotification
 
     override suspend fun loadLibraries(): Result<List<LibraryAdminLibrary>> =

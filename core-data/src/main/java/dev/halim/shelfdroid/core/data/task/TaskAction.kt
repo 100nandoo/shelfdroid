@@ -7,31 +7,31 @@ package dev.halim.shelfdroid.core.data.task
  * [Unknown] lets the operation-agnostic task repository retain those tasks instead of dropping or
  * misclassifying them.
  */
-sealed interface ServerTaskAction {
+sealed interface TaskAction {
   val rawValue: String
 
   /** Alias used when the value is being forwarded back to a server-facing boundary. */
   val raw: String
     get() = rawValue
 
-  data object LibraryScan : ServerTaskAction {
+  data object LibraryScan : TaskAction {
     override val rawValue: String = "library-scan"
   }
 
-  data object BookMatching : ServerTaskAction {
+  data object BookMatching : TaskAction {
     override val rawValue: String = "library-match-all"
   }
 
-  data class Unknown(override val rawValue: String) : ServerTaskAction
+  data class Unknown(override val rawValue: String) : TaskAction
 
   companion object {
-    fun fromRaw(rawValue: String): ServerTaskAction =
+    fun fromRaw(rawValue: String): TaskAction =
       when (rawValue) {
         LibraryScan.rawValue -> LibraryScan
         BookMatching.rawValue -> BookMatching
         else -> Unknown(rawValue)
       }
 
-    fun parse(rawValue: String): ServerTaskAction = fromRaw(rawValue)
+    fun parse(rawValue: String): TaskAction = fromRaw(rawValue)
   }
 }

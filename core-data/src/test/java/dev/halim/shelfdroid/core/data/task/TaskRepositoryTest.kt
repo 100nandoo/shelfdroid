@@ -9,19 +9,19 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class ServerTaskRepositoryTest {
+class TaskRepositoryTest {
 
   @Test
   fun actionMapping_recognizesSupportedActionsAndRetainsUnknownWireValue() {
-    assertEquals(ServerTaskAction.LibraryScan, ServerTaskAction.fromRaw("library-scan"))
-    assertEquals(ServerTaskAction.BookMatching, ServerTaskAction.fromRaw("library-match-all"))
+    assertEquals(TaskAction.LibraryScan, TaskAction.fromRaw("library-scan"))
+    assertEquals(TaskAction.BookMatching, TaskAction.fromRaw("library-match-all"))
     assertEquals(
-      ServerTaskAction.Unknown("future-server-task"),
-      ServerTaskAction.fromRaw("future-server-task"),
+      TaskAction.Unknown("future-server-task"),
+      TaskAction.fromRaw("future-server-task"),
     )
     assertEquals(
       "future-server-task",
-      (ServerTaskAction.fromRaw("future-server-task") as ServerTaskAction.Unknown).rawValue,
+      (TaskAction.fromRaw("future-server-task") as TaskAction.Unknown).rawValue,
     )
   }
 
@@ -49,9 +49,9 @@ class ServerTaskRepositoryTest {
     val mapped = task.toDomainTask()
 
     assertEquals("books", mapped.libraryId)
-    assertEquals(ServerTaskAction.LibraryScan, mapped.action)
-    assertEquals(ServerTaskStatus.COMPLETED, mapped.status)
-    assertEquals(ServerTaskResult(2, 3, 1, 4_500), mapped.result)
+    assertEquals(TaskAction.LibraryScan, mapped.action)
+    assertEquals(TaskStatus.COMPLETED, mapped.status)
+    assertEquals(TaskResult(2, 3, 1, 4_500), mapped.result)
   }
 
   @Test
@@ -75,9 +75,9 @@ class ServerTaskRepositoryTest {
     val failedMapped = failed.toDomainTask()
     val cancelledMapped = cancelled.toDomainTask()
 
-    assertEquals(ServerTaskStatus.FAILED, failedMapped.status)
-    assertEquals(ServerTaskError.Generic, failedMapped.error)
-    assertEquals(ServerTaskStatus.CANCELLED, cancelledMapped.status)
+    assertEquals(TaskStatus.FAILED, failedMapped.status)
+    assertEquals(TaskError.Generic, failedMapped.error)
+    assertEquals(TaskStatus.CANCELLED, cancelledMapped.status)
     assertNull(cancelledMapped.error)
   }
 
@@ -93,7 +93,7 @@ class ServerTaskRepositoryTest {
       )
 
     assertEquals(
-      ServerTaskError.SafeMessage("The selected library folder is unavailable."),
+      TaskError.SafeMessage("The selected library folder is unavailable."),
       task.toDomainTask().error,
     )
   }
@@ -104,8 +104,8 @@ class ServerTaskRepositoryTest {
 
     val mapped = task.toDomainTask()
 
-    assertEquals(ServerTaskStatus.ACTIVE, mapped.status)
-    assertTrue(mapped.syncState == ServerTaskSyncState.NOT_STARTED)
+    assertEquals(TaskStatus.ACTIVE, mapped.status)
+    assertTrue(mapped.syncState == TaskSyncState.NOT_STARTED)
   }
 
   @Test
@@ -118,7 +118,7 @@ class ServerTaskRepositoryTest {
         )
         .toDomainTask()
 
-    assertEquals(ServerTaskAction.Unknown("future-server-task"), mapped.action)
+    assertEquals(TaskAction.Unknown("future-server-task"), mapped.action)
     assertEquals("future-server-task", mapped.action.rawValue)
   }
 }

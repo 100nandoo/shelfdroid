@@ -7,12 +7,12 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
 /** Maps both HTTP snapshots and socket payloads into the same stable task model. */
-internal fun NetworkServerTask.toDomainTask(): ServerTask {
+internal fun NetworkServerTask.toDomainTask(): Task {
   val taskData = data ?: emptyMap()
   val libraryId = taskData["libraryId"]?.jsonPrimitive?.content
   val scanResults = taskData["scanResults"]?.jsonObject
   val result = scanResults?.let {
-    ServerTaskResult(
+    TaskResult(
       added = it["added"]?.jsonPrimitive?.intOrNull,
       updated = it["updated"]?.jsonPrimitive?.intOrNull,
       missing = it["missing"]?.jsonPrimitive?.intOrNull,
@@ -21,30 +21,30 @@ internal fun NetworkServerTask.toDomainTask(): ServerTask {
   }
   val status =
     when {
-      !isFinished -> ServerTaskStatus.ACTIVE
-      isFailed -> ServerTaskStatus.FAILED
+      !isFinished -> TaskStatus.ACTIVE
+      isFailed -> TaskStatus.FAILED
       descriptionKey == "MessageTaskCanceledByUser" ||
-        description?.contains("canceled", ignoreCase = true) == true -> ServerTaskStatus.CANCELLED
-      else -> ServerTaskStatus.COMPLETED
+        description?.contains("canceled", ignoreCase = true) == true -> TaskStatus.CANCELLED
+      else -> TaskStatus.COMPLETED
     }
-  return ServerTask(
+  return Task(
     id = id,
-    action = ServerTaskAction.fromRaw(action),
+    action = TaskAction.fromRaw(action),
     libraryId = libraryId,
     title = title,
     status = status,
     startedAt = startedAt,
     finishedAt = finishedAt,
     result = result,
-    error = error.toServerTaskError(),
+    error = error.toTaskError(),
   )
 }
 
-private fun String?.toServerTaskError(): ServerTaskError? {
+private fun String?.toTaskError(): TaskError? {
   if (isNullOrBlank()) return null
   return if (length <= 240 && !contains("Exception", ignoreCase = true) && !contains(" at ")) {
-    ServerTaskError.SafeMessage(this)
+    TaskError.SafeMessage(this)
   } else {
-    ServerTaskError.Generic
+    TaskError.Generic
   }
 }
