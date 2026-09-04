@@ -123,8 +123,7 @@ class LibraryAdminContentTest {
   }
 
   @Test
-  fun reorderActions_areAccessibleAndRespectBoundaries() {
-    val events = mutableListOf<LibraryAdminEvent>()
+  fun reorderHandles_areAvailableForEveryReorderableLibrary() {
     composeRule.setContent {
       LibraryAdminContent(
         uiState =
@@ -152,18 +151,19 @@ class LibraryAdminContentTest {
                   displayOrder = 2,
                 ),
               ),
-          ),
-        onEvent = events::add,
+          )
       )
     }
 
-    composeRule.onAllNodesWithText("Move down").get(0).performClick()
-    assertEquals(LibraryAdminEvent.MoveLibrary("books", 1), events.single())
-    composeRule.onAllNodesWithText("Move up").assertCountEquals(2)
+    composeRule
+      .onAllNodesWithContentDescription("Reorder library", useUnmergedTree = true)
+      .assertCountEquals(2)
+      .get(0)
+      .assertIsEnabled()
   }
 
   @Test
-  fun draggingLibraryHandle_emitsMoveLibraryEvent() {
+  fun draggingLibraryHandle_emitsOneFinalMoveToEvent() {
     val events = mutableListOf<LibraryAdminEvent>()
     composeRule.setContent {
       LibraryAdminContent(
@@ -202,11 +202,47 @@ class LibraryAdminContentTest {
       .get(0)
       .assertIsDisplayed()
       .performTouchInput {
-        swipe(start = center, end = center + Offset(0f, 96f), durationMillis = 200)
+        swipe(start = center, end = center + Offset(0f, 240f), durationMillis = 200)
       }
     composeRule.waitForIdle()
 
-    assertEquals(listOf(LibraryAdminEvent.MoveLibrary("books", 1)), events)
+    assertEquals(listOf(LibraryAdminEvent.MoveLibraryTo("books", 1)), events)
+  }
+
+  @Test
+  fun cancelledLibraryDrag_doesNotEmitAReorderEvent() {
+    val events = mutableListOf<LibraryAdminEvent>()
+    composeRule.setContent {
+      LibraryAdminContent(
+        uiState = reorderableLibraryState(),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule
+      .onAllNodesWithContentDescription("Reorder library", useUnmergedTree = true)
+      .get(0)
+      .performTouchInput {
+        down(center)
+        moveBy(Offset(0f, 96f))
+        cancel()
+      }
+    composeRule.waitForIdle()
+
+    assertEquals(emptyList<LibraryAdminEvent>(), events)
+  }
+
+  @Test
+  fun reorderHandles_remainVisibleButDisabledWhileSaving() {
+    composeRule.setContent {
+      LibraryAdminContent(uiState = reorderableLibraryState().copy(isReordering = true))
+    }
+
+    composeRule
+      .onAllNodesWithContentDescription("Reorder library", useUnmergedTree = true)
+      .assertCountEquals(2)
+      .get(0)
+      .assertIsNotEnabled()
   }
 
   @Test
@@ -507,3 +543,30 @@ class LibraryAdminContentTest {
     assertEquals(listOf(LibraryAdminEvent.RetryDeleteSynchronization), events)
   }
 }
+
+private fun reorderableLibraryState(): LibraryAdminUiState =
+  LibraryAdminUiState(
+    state = GenericState.Success,
+    isRefreshing = false,
+    connectionState = LibraryAdminConnectionState.CONNECTED,
+    taskStates =
+      mapOf(
+        "books" to LibraryAdminTaskState.IDLE,
+        "podcasts" to LibraryAdminTaskState.IDLE,
+      ),
+    libraries =
+      listOf(
+        LibraryAdminLibrary(
+          id = "books",
+          name = "Books",
+          mediaType = MediaType.BOOK,
+          displayOrder = 1,
+        ),
+        LibraryAdminLibrary(
+          id = "podcasts",
+          name = "Podcasts",
+          mediaType = MediaType.PODCAST,
+          displayOrder = 2,
+        ),
+      ),
+  )

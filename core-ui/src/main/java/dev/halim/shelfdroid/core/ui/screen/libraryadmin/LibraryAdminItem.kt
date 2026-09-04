@@ -1,11 +1,13 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:OptIn(
+  androidx.compose.foundation.ExperimentalFoundationApi::class,
+  androidx.compose.material3.ExperimentalMaterial3Api::class,
+)
 
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,13 +25,16 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.MediaType
@@ -44,9 +49,14 @@ import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.libraryIconR
 
 @Composable
 fun LibraryAdminItem(
+  modifier: Modifier = Modifier,
   library: LibraryAdminLibrary,
-  onDragMove: (delta: Int) -> Unit = {},
   reorderEnabled: Boolean = false,
+  reorderHandleVisible: Boolean = reorderEnabled,
+  onDragStart: () -> Unit = {},
+  onDrag: (delta: Float) -> Unit = {},
+  onDragEnd: () -> Unit = {},
+  onDragCancel: () -> Unit = {},
   scanEnabled: Boolean = false,
   onScan: () -> Unit = {},
   matchEnabled: Boolean = false,
@@ -57,38 +67,33 @@ fun LibraryAdminItem(
   task: Task? = null,
   onRetrySynchronization: (taskId: String) -> Unit = {},
 ) {
-  val dragDistance = remember { mutableFloatStateOf(0f) }
   val dragHandleDescription = stringResource(R.string.reorder_library)
   val scanDescription = stringResource(R.string.scan_library)
   val matchDescription = stringResource(R.string.match_book_metadata)
   val deleteDescription = stringResource(R.string.delete_library)
-  val dragState = rememberDraggableState { delta ->
-    dragDistance.floatValue += delta
-    // A row-height threshold makes drag reorder deterministic and keeps small pointer movement
-    // from generating a stream of server requests.
-    if (dragDistance.floatValue <= -48f) {
-      onDragMove(-1)
-      dragDistance.floatValue = 0f
-    } else if (dragDistance.floatValue >= 48f) {
-      onDragMove(1)
-      dragDistance.floatValue = 0f
-    }
-  }
+  val currentOnDragStart by rememberUpdatedState(onDragStart)
+  val currentOnDrag by rememberUpdatedState(onDrag)
+  val currentOnDragEnd by rememberUpdatedState(onDragEnd)
+  val currentOnDragCancel by rememberUpdatedState(onDragCancel)
   val dragModifier =
     if (reorderEnabled) {
-      Modifier.draggable(
-        state = dragState,
-        orientation = Orientation.Vertical,
-        startDragImmediately = true,
-        onDragStarted = {
-          dragDistance.floatValue = 0f
-        },
-        onDragStopped = { dragDistance.floatValue = 0f },
-      )
+      Modifier.pointerInput(Unit) {
+        detectDragGestures(
+          orientationLock = Orientation.Vertical,
+          onDragStart = { _, _, _ -> currentOnDragStart() },
+          onDragEnd = { currentOnDragEnd() },
+          onDragCancel = { currentOnDragCancel() },
+          shouldAwaitTouchSlop = { false },
+          onDrag = { change, dragAmount ->
+            change.consume()
+            currentOnDrag(dragAmount.y)
+          },
+        )
+      }
     } else Modifier
 
   ListItem(
-    modifier = Modifier.fillMaxWidth().clickable(onClick = onEdit),
+    modifier = modifier.fillMaxWidth().clickable(onClick = onEdit),
     headlineContent = { Text(library.name) },
     leadingContent = {
       Icon(
@@ -183,12 +188,16 @@ fun LibraryAdminItem(
             )
           }
         }
-        if (reorderEnabled) {
+        if (reorderHandleVisible) {
           Box(
             modifier =
-              Modifier.size(48.dp).then(dragModifier).semantics(mergeDescendants = true) {
-                contentDescription = dragHandleDescription
-              },
+              Modifier.size(48.dp)
+                .alpha(if (reorderEnabled) 1f else 0.38f)
+                .then(dragModifier)
+                .semantics(mergeDescendants = true) {
+                  contentDescription = dragHandleDescription
+                  if (!reorderEnabled) disabled()
+                },
             contentAlignment = Alignment.Center,
           ) {
             Icon(
