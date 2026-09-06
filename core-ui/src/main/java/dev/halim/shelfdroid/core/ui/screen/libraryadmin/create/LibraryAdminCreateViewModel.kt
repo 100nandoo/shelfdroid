@@ -27,8 +27,10 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminPro
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationException
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminUpdateResult
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.conflictingLibraryFolder
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.normalizeLibraryFolderPath
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.validateLibraryAdminDraft
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -48,6 +50,8 @@ constructor(
   internal constructor(repository: LibraryAdminCreateContract) : this(null, repository)
 
   private var originalEditSnapshot: LibraryAdminEditSnapshot? = null
+  private var filesystemJob: Job? = null
+  private var filesystemRequest = 0
 
   private val _uiState =
     MutableStateFlow(
@@ -131,13 +135,23 @@ constructor(
       is LibraryAdminCreateEvent.UpdateManualFolder ->
         updateForm { copy(manualFolderDraft = event.value) }
       LibraryAdminCreateEvent.AddManualFolder -> addManualFolder()
-      is LibraryAdminCreateEvent.SelectFolder -> addFolder(event.path)
+      is LibraryAdminCreateEvent.SelectFolder -> {
+        if (conflictingLibraryFolder(event.path, _uiState.value.draft.folders) == null) {
+          addFolder(event.path)
+          closeFilesystem()
+        }
+      }
       is LibraryAdminCreateEvent.RemoveFolder ->
         updateDraft { copy(folders = folders.filterNot { it == event.path }) }
-      LibraryAdminCreateEvent.OpenFilesystem -> browseFilesystem(null)
-      is LibraryAdminCreateEvent.OpenFilesystemPath -> browseFilesystem(event.path)
-      LibraryAdminCreateEvent.CloseFilesystem ->
-        _uiState.update { it.copy(filesystemState = LibraryAdminFilesystemState.Closed) }
+      LibraryAdminCreateEvent.OpenFilesystem ->
+        browseFilesystem(_uiState.value.filesystemHistory.lastOrNull())
+      is LibraryAdminCreateEvent.OpenFilesystemPath -> navigateFilesystem(event.path)
+      LibraryAdminCreateEvent.FilesystemUp -> {
+        val history = _uiState.value.filesystemHistory.dropLast(1)
+        _uiState.update { it.copy(filesystemHistory = history) }
+        browseFilesystem(history.lastOrNull())
+      }
+      LibraryAdminCreateEvent.CloseFilesystem -> closeFilesystem()
       LibraryAdminCreateEvent.Submit -> submit()
       LibraryAdminCreateEvent.RetryLocalSynchronization -> retryLocalSynchronization()
       LibraryAdminCreateEvent.Back -> handleBack()
@@ -248,23 +262,46 @@ constructor(
 
   private fun browseFilesystem(path: String?) {
     if (_uiState.value.isSubmitting) return
+    filesystemJob?.cancel()
+    val request = ++filesystemRequest
     _uiState.update { it.copy(filesystemState = LibraryAdminFilesystemState.Loading(path)) }
-    viewModelScope.launch {
+    filesystemJob = viewModelScope.launch {
       repository
         .browseLibraryFilesystem(path)
         .fold(
           onSuccess = { filesystem ->
+            if (request != filesystemRequest) return@fold
             _uiState.update {
               it.copy(filesystemState = LibraryAdminFilesystemState.Success(path, filesystem))
             }
           },
           onFailure = { _ ->
+            if (request != filesystemRequest) return@fold
             _uiState.update {
               it.copy(filesystemState = LibraryAdminFilesystemState.Failure(path, null))
             }
           },
         )
     }
+  }
+
+  private fun navigateFilesystem(path: String) {
+    val history = _uiState.value.filesystemHistory
+    val index = history.indexOf(path)
+    val next =
+      when {
+        path.isEmpty() -> emptyList()
+        index >= 0 -> history.take(index + 1)
+        else -> history + path
+      }
+    _uiState.update { it.copy(filesystemHistory = next) }
+    browseFilesystem(next.lastOrNull())
+  }
+
+  private fun closeFilesystem() {
+    ++filesystemRequest
+    filesystemJob?.cancel()
+    _uiState.update { it.copy(filesystemState = LibraryAdminFilesystemState.Closed) }
   }
 
   private fun addManualFolder() {
@@ -696,6 +733,8 @@ sealed interface LibraryAdminCreateEvent {
   data class RemoveFolder(val path: String) : LibraryAdminCreateEvent
 
   data object OpenFilesystem : LibraryAdminCreateEvent
+
+  data object FilesystemUp : LibraryAdminCreateEvent
 
   data class OpenFilesystemPath(val path: String) : LibraryAdminCreateEvent
 

@@ -68,6 +68,7 @@ data class LibraryAdminCreateUiState(
   val draft: LibraryAdminDraft = LibraryAdminDraft(),
   val providerState: LibraryAdminProviderState = LibraryAdminProviderState.Loading,
   val filesystemState: LibraryAdminFilesystemState = LibraryAdminFilesystemState.Closed,
+  val filesystemHistory: List<String> = emptyList(),
   val manualFolderDraft: String = "",
   val selectedTab: LibraryAdminCreateTab = LibraryAdminCreateTab.DETAILS,
   val validation: LibraryAdminValidation = LibraryAdminValidation(),

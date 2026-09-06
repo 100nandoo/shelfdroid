@@ -38,6 +38,10 @@ _Avoid_: Library scan, metadata editing, match all
 A long-running operation tracked by the **Audiobookshelf server**, such as a **Library scan** or **Book matching**, whose acceptance, progress, and completion are distinct states.
 _Avoid_: Request, background job, app task
 
+**Server folder**:
+A directory on the Audiobookshelf server that can be selected as a library's media location.
+_Avoid_: Device folder, local folder
+
 **Library folder**:
 A server-reported folder inside a **Library** that ShelfDroid may present as a placement target when creating or organizing a **Library item**.
 _Avoid_: Podcast folder, path, directory

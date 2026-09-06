@@ -9,13 +9,9 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -24,6 +20,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +43,7 @@ import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateField
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDirectory
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
-import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFilesystemState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
@@ -63,11 +59,10 @@ internal fun LibraryAdminDetailsTab(
   providerFocusRequester: FocusRequester,
   folderFocusRequester: FocusRequester,
 ) {
+  var showManualPath by rememberSaveable { mutableStateOf(false) }
   val errors = uiState.validation.errors
   Column(
-    modifier = Modifier
-      .fillMaxWidth()
-      .padding(horizontal = 16.dp),
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
     val bookLabel = stringResource(R.string.book_library)
@@ -130,34 +125,43 @@ internal fun LibraryAdminDetailsTab(
         }
       }
     }
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-      OutlinedTextField(
-        modifier = Modifier
-          .weight(1f)
-          .focusRequester(folderFocusRequester),
-        value = uiState.manualFolderDraft,
-        onValueChange = { onEvent(LibraryAdminCreateEvent.UpdateManualFolder(it)) },
-        label = { Text(stringResource(R.string.library_folder_path)) },
-        isError = errors.containsKey(LibraryAdminCreateField.FOLDERS),
-        supportingText =
-          errors[LibraryAdminCreateField.FOLDERS]?.let { folderErrors ->
-            { Text(createErrorText(folderErrors)) }
-          },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-      )
-      Spacer(Modifier.width(8.dp))
-      TextButton(
-        onClick = { onEvent(LibraryAdminCreateEvent.AddManualFolder) },
-        modifier = Modifier.padding(top = 4.dp),
-      ) {
-        Text(stringResource(R.string.add))
+    if (
+      showManualPath ||
+        errors.containsKey(LibraryAdminCreateField.FOLDERS) ||
+        uiState.manualFolderDraft.isNotEmpty()
+    ) {
+      Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+        OutlinedTextField(
+          modifier = Modifier.weight(1f).focusRequester(folderFocusRequester),
+          value = uiState.manualFolderDraft,
+          onValueChange = { onEvent(LibraryAdminCreateEvent.UpdateManualFolder(it)) },
+          label = { Text(stringResource(R.string.library_folder_path)) },
+          isError = errors.containsKey(LibraryAdminCreateField.FOLDERS),
+          supportingText =
+            errors[LibraryAdminCreateField.FOLDERS]?.let { folderErrors ->
+              { Text(createErrorText(folderErrors)) }
+            },
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        )
+        Spacer(Modifier.width(8.dp))
+        TextButton(
+          onClick = { onEvent(LibraryAdminCreateEvent.AddManualFolder) },
+          modifier = Modifier.padding(top = 4.dp),
+        ) {
+          Text(stringResource(R.string.add))
+        }
       }
     }
-    TextButton(
+    OutlinedButton(
       onClick = { onEvent(LibraryAdminCreateEvent.OpenFilesystem) },
       modifier = Modifier.fillMaxWidth(),
     ) {
       Text(stringResource(R.string.library_browse_server_folders))
+    }
+    if (!showManualPath) {
+      TextButton(onClick = { showManualPath = true }) {
+        Text(stringResource(R.string.library_enter_path_manually))
+      }
     }
   }
 }
@@ -181,13 +185,9 @@ private fun LibraryAdminProviderPicker(
         TextButton(
           onClick = { onEvent(LibraryAdminCreateEvent.RetryProviders) },
           modifier =
-            Modifier
-              .fillMaxWidth()
-              .focusRequester(focusRequester)
-              .focusable()
-              .semantics {
-                contentDescription = "$errorDescription $retryDescription"
-              },
+            Modifier.fillMaxWidth().focusRequester(focusRequester).focusable().semantics {
+              contentDescription = "$errorDescription $retryDescription"
+            },
         ) {
           Text(retryDescription)
         }
@@ -202,8 +202,7 @@ private fun LibraryAdminProviderPicker(
         val selected = providerState.providers.firstOrNull { it.id == uiState.draft.provider }
         OutlinedTextField(
           modifier =
-            Modifier
-              .fillMaxWidth()
+            Modifier.fillMaxWidth()
               .focusRequester(focusRequester)
               .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
           readOnly = true,
@@ -232,65 +231,6 @@ private fun LibraryAdminProviderPicker(
     }
 
     else -> Unit
-  }
-}
-
-@Composable
-internal fun LibraryAdminFilesystemDialog(
-  filesystemState: LibraryAdminFilesystemState.Success,
-  onEvent: (LibraryAdminCreateEvent) -> Unit,
-) {
-  AlertDialog(
-    onDismissRequest = { onEvent(LibraryAdminCreateEvent.CloseFilesystem) },
-    title = { Text(stringResource(R.string.library_filesystem_browser)) },
-    text = {
-      val currentPathDescription = stringResource(R.string.library_filesystem_current_path)
-      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-          text = filesystemState.path ?: stringResource(R.string.library_filesystem_root),
-          modifier = Modifier.semantics { contentDescription = currentPathDescription },
-        )
-        if (filesystemState.filesystem.directories.isEmpty()) {
-          Text(stringResource(R.string.library_filesystem_empty))
-        } else {
-          val directoryListDescription = stringResource(R.string.library_filesystem_directory_list)
-          Column(
-            modifier =
-              Modifier
-                .fillMaxWidth()
-                .heightIn(max = 320.dp)
-                .verticalScroll(rememberScrollState())
-                .semantics { contentDescription = directoryListDescription },
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-          ) {
-            filesystemState.filesystem.directories.forEach { directory ->
-              LibraryAdminDirectoryItem(directory, onEvent)
-            }
-          }
-        }
-      }
-    },
-    confirmButton = {
-      TextButton(onClick = { onEvent(LibraryAdminCreateEvent.CloseFilesystem) }) {
-        Text(stringResource(R.string.cancel))
-      }
-    },
-  )
-}
-
-@Composable
-private fun LibraryAdminDirectoryItem(
-  directory: LibraryAdminDirectory,
-  onEvent: (LibraryAdminCreateEvent) -> Unit,
-) {
-  Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-    Text(directory.name, modifier = Modifier.weight(1f))
-    TextButton(onClick = { onEvent(LibraryAdminCreateEvent.SelectFolder(directory.path)) }) {
-      Text(stringResource(R.string.select_folder))
-    }
-    TextButton(onClick = { onEvent(LibraryAdminCreateEvent.OpenFilesystemPath(directory.path)) }) {
-      Text(stringResource(R.string.open))
-    }
   }
 }
 

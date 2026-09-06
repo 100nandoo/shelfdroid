@@ -57,6 +57,65 @@ class LibraryAdminCreateContentTest {
   @get:Rule val composeRule = createComposeRule()
 
   @Test
+  fun filesystemEmptyFolder_canBeAddedAndBreadcrumbNavigates() {
+    val events = mutableListOf<LibraryAdminCreateEvent>()
+    composeRule.setContent {
+      LibraryAdminFilesystemContent(
+        LibraryAdminCreateUiState(
+          filesystemHistory = listOf("/media", "/media/books"),
+          filesystemState =
+            LibraryAdminFilesystemState.Success(
+              "/media/books",
+              LibraryAdminFilesystem(true, emptyList()),
+            ),
+        ),
+        events::add,
+      )
+    }
+    composeRule.onNodeWithText("No folders returned").assertIsDisplayed()
+    composeRule.onNodeWithText("Add this folder").assertIsEnabled().performClick()
+    assertEquals(LibraryAdminCreateEvent.SelectFolder("/media/books"), events.last())
+    composeRule.onNodeWithText("media").performClick()
+    assertEquals(LibraryAdminCreateEvent.OpenFilesystemPath("/media"), events.last())
+  }
+
+  @Test
+  fun filesystemRoot_cannotBeAdded() {
+    composeRule.setContent {
+      LibraryAdminFilesystemContent(
+        LibraryAdminCreateUiState(
+          filesystemState =
+            LibraryAdminFilesystemState.Success(
+              null,
+              LibraryAdminFilesystem(false, emptyList()),
+            )
+        ),
+        {},
+      )
+    }
+    composeRule.onNodeWithText("Add this folder").assertIsNotEnabled()
+  }
+
+  @Test
+  fun filesystemOverlap_explainsDisabledSelection() {
+    composeRule.setContent {
+      LibraryAdminFilesystemContent(
+        LibraryAdminCreateUiState(
+          draft = LibraryAdminDraft(folders = listOf("C:/Media")),
+          filesystemState =
+            LibraryAdminFilesystemState.Success(
+              "c:/media/books",
+              LibraryAdminFilesystem(false, emptyList()),
+            ),
+        ),
+        {},
+      )
+    }
+    composeRule.onNodeWithText("Add this folder").assertIsNotEnabled()
+    composeRule.onNodeWithText("Already added or overlaps with C:/Media").assertIsDisplayed()
+  }
+
+  @Test
   fun details_supportBothMediaTypesProviderFoldersAndPersistentSubmit() {
     composeRule.setContent {
       LibraryAdminCreateContent(
@@ -226,7 +285,7 @@ class LibraryAdminCreateContentTest {
   @Test
   fun filesystemDirectoryList_isScrollable() {
     composeRule.setContent {
-      LibraryAdminCreateContent(
+      LibraryAdminCreateFlow(
         uiState =
           LibraryAdminCreateUiState(
             filesystemState =
@@ -246,11 +305,14 @@ class LibraryAdminCreateContentTest {
                       },
                   ),
               )
-          )
+          ),
+        onEvent = {},
       )
     }
 
     composeRule.onNodeWithContentDescription("Filesystem directories").assert(hasScrollAction())
+    composeRule.onAllNodesWithText("Details").assertCountEquals(0)
+    composeRule.onNodeWithText("Add this folder").assertIsDisplayed()
   }
 
   @Test

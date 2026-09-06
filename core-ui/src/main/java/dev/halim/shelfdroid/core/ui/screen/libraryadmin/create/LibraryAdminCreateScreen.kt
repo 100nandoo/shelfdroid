@@ -36,6 +36,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateError
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateField
@@ -50,7 +54,6 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminDetailsTab
-import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminFilesystemDialog
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminScannerTab
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminScheduleTab
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminSettingsTab
@@ -67,7 +70,9 @@ fun LibraryAdminCreateScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  BackHandler { viewModel.onEvent(LibraryAdminCreateEvent.Back) }
+  BackHandler(enabled = uiState.filesystemState == LibraryAdminFilesystemState.Closed) {
+    viewModel.onEvent(LibraryAdminCreateEvent.Back)
+  }
 
   LaunchedEffect(uiState.navigation) {
     when (val navigation = uiState.navigation) {
@@ -90,7 +95,45 @@ fun LibraryAdminCreateScreen(
     }
   }
 
-  LibraryAdminCreateContent(uiState, viewModel::onEvent)
+  LibraryAdminCreateFlow(uiState, viewModel::onEvent)
+}
+
+private enum class LibraryAdminCreateDestination : NavKey {
+  Details,
+  ServerFolders,
+}
+
+@Composable
+internal fun LibraryAdminCreateFlow(
+  uiState: LibraryAdminCreateUiState,
+  onEvent: (LibraryAdminCreateEvent) -> Unit,
+) {
+  val destinations = buildList {
+    add(LibraryAdminCreateDestination.Details)
+    if (uiState.filesystemState != LibraryAdminFilesystemState.Closed) {
+      add(LibraryAdminCreateDestination.ServerFolders)
+    }
+  }
+  NavDisplay(
+    backStack = destinations,
+    onBack = {
+      onEvent(
+        if (uiState.filesystemHistory.isEmpty()) LibraryAdminCreateEvent.CloseFilesystem
+        else LibraryAdminCreateEvent.FilesystemUp
+      )
+    },
+    entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
+    entryProvider =
+      entryProvider {
+        entry<LibraryAdminCreateDestination> { destination ->
+          when (destination) {
+            LibraryAdminCreateDestination.Details -> LibraryAdminCreateContent(uiState, onEvent)
+            LibraryAdminCreateDestination.ServerFolders ->
+              LibraryAdminFilesystemScreen(uiState, onEvent)
+          }
+        }
+      },
+  )
 }
 
 @Composable
@@ -124,15 +167,16 @@ internal fun LibraryAdminCreateContent(
     if (uiState.isLoadingLibrary || uiState.providerState is LibraryAdminProviderState.Loading) {
       val loadingDescription = stringResource(R.string.library_provider_loading)
       val progressModifier =
-        Modifier.fillMaxWidth().then(
-          if (uiState.providerState is LibraryAdminProviderState.Loading) {
-            Modifier.focusRequester(providerFocusRequester).focusable().semantics {
-              contentDescription = loadingDescription
+        Modifier.fillMaxWidth()
+          .then(
+            if (uiState.providerState is LibraryAdminProviderState.Loading) {
+              Modifier.focusRequester(providerFocusRequester).focusable().semantics {
+                contentDescription = loadingDescription
+              }
+            } else {
+              Modifier
             }
-          } else {
-            Modifier
-          }
-        )
+          )
       LinearProgressIndicator(progressModifier)
     }
     if (uiState.libraryLoadFailed) {
@@ -277,42 +321,6 @@ internal fun LibraryAdminCreateContent(
         }
       },
     )
-  }
-
-  when (val filesystem = uiState.filesystemState) {
-    is LibraryAdminFilesystemState.Success -> LibraryAdminFilesystemDialog(filesystem, onEvent)
-    is LibraryAdminFilesystemState.Failure ->
-      AlertDialog(
-        onDismissRequest = { onEvent(LibraryAdminCreateEvent.CloseFilesystem) },
-        title = { Text(stringResource(R.string.library_filesystem_browser)) },
-        text = {
-          Text(stringResource(R.string.library_filesystem_load_failed))
-        },
-        confirmButton = {
-          TextButton(
-            onClick = {
-              onEvent(LibraryAdminCreateEvent.OpenFilesystemPath(filesystem.path.orEmpty()))
-            }
-          ) {
-            Text(stringResource(R.string.retry))
-          }
-        },
-        dismissButton = {
-          TextButton(onClick = { onEvent(LibraryAdminCreateEvent.CloseFilesystem) }) {
-            Text(stringResource(R.string.cancel))
-          }
-        },
-      )
-
-    is LibraryAdminFilesystemState.Loading ->
-      AlertDialog(
-        onDismissRequest = { onEvent(LibraryAdminCreateEvent.CloseFilesystem) },
-        title = { Text(stringResource(R.string.library_filesystem_browser)) },
-        text = { LinearProgressIndicator(Modifier.fillMaxWidth()) },
-        confirmButton = {},
-      )
-
-    LibraryAdminFilesystemState.Closed -> Unit
   }
 }
 

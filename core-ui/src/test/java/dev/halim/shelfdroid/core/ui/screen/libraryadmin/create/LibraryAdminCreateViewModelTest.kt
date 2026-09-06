@@ -39,6 +39,66 @@ import org.junit.Test
 class LibraryAdminCreateViewModelTest {
 
   @Test
+  fun filesystemNavigation_remembersLocationAndSupportsAncestorsAndDriveRoots() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val repository = FakeRepository(ArrayDeque(listOf(Result.success(emptyList()))))
+    val viewModel = LibraryAdminCreateViewModel(repository)
+    val collection = collectState(viewModel)
+    viewModel.onEvent(LibraryAdminCreateEvent.OpenFilesystem)
+    viewModel.onEvent(LibraryAdminCreateEvent.OpenFilesystemPath("C:/"))
+    viewModel.onEvent(LibraryAdminCreateEvent.OpenFilesystemPath("C:/Media"))
+    viewModel.onEvent(LibraryAdminCreateEvent.CloseFilesystem)
+    viewModel.onEvent(LibraryAdminCreateEvent.OpenFilesystem)
+    advanceUntilIdle()
+    assertEquals("C:/Media", repository.browsedPaths.last())
+    viewModel.onEvent(LibraryAdminCreateEvent.FilesystemUp)
+    advanceUntilIdle()
+    assertEquals("C:/", repository.browsedPaths.last())
+    viewModel.onEvent(LibraryAdminCreateEvent.OpenFilesystemPath(""))
+    advanceUntilIdle()
+    assertNull(repository.browsedPaths.last())
+    assertTrue(viewModel.uiState.value.filesystemHistory.isEmpty())
+    collection.cancel()
+  }
+
+  @Test
+  fun filesystemSelection_closesAndRejectsOverlappingPaths() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val viewModel =
+      LibraryAdminCreateViewModel(FakeRepository(ArrayDeque(listOf(Result.success(emptyList())))))
+    val collection = collectState(viewModel)
+    viewModel.onEvent(LibraryAdminCreateEvent.OpenFilesystemPath("/media/books"))
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectFolder("/media/books"))
+    advanceUntilIdle()
+    assertEquals(LibraryAdminFilesystemState.Closed, viewModel.uiState.value.filesystemState)
+    viewModel.onEvent(LibraryAdminCreateEvent.OpenFilesystemPath("/media/books/fiction"))
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectFolder("/media/books/fiction"))
+    advanceUntilIdle()
+    assertEquals(listOf("/media/books"), viewModel.uiState.value.draft.folders)
+    assertTrue(viewModel.uiState.value.filesystemState is LibraryAdminFilesystemState.Success)
+    viewModel.onEvent(LibraryAdminCreateEvent.SelectFolder("/media"))
+    assertEquals(listOf("/media/books"), viewModel.uiState.value.draft.folders)
+    collection.cancel()
+  }
+
+  @Test
+  fun filesystemDismiss_ignoresLateResponseEvenWhenCancellationIsIgnored() = runTest {
+    Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
+    val gate = CompletableDeferred<Result<LibraryAdminFilesystem>>()
+    val viewModel =
+      LibraryAdminCreateViewModel(
+        FakeRepository(ArrayDeque(listOf(Result.success(emptyList()))), filesystemGate = gate)
+      )
+    val collection = collectState(viewModel)
+    viewModel.onEvent(LibraryAdminCreateEvent.OpenFilesystem)
+    viewModel.onEvent(LibraryAdminCreateEvent.CloseFilesystem)
+    gate.complete(Result.success(LibraryAdminFilesystem(true, emptyList())))
+    advanceUntilIdle()
+    assertEquals(LibraryAdminFilesystemState.Closed, viewModel.uiState.value.filesystemState)
+    collection.cancel()
+  }
+
+  @Test
   fun providerFailure_isRetryableAndPreventsSubmission() = runTest {
     Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
     val repository =
@@ -677,6 +737,7 @@ class LibraryAdminCreateViewModelTest {
     providerResults: ArrayDeque<Result<List<LibraryAdminProvider>>>,
     private val filesystemResult: Result<LibraryAdminFilesystem> =
       Result.success(LibraryAdminFilesystem(true, emptyList())),
+    private val filesystemGate: CompletableDeferred<Result<LibraryAdminFilesystem>>? = null,
     private val createResult: Result<LibraryAdminCreateResult> =
       Result.failure(IllegalStateException("not configured")),
     private val validationResult: Result<Unit> = Result.success(Unit),
@@ -690,6 +751,7 @@ class LibraryAdminCreateViewModelTest {
     var providerCalls = 0
     var createCalls = 0
     var browseCalls = 0
+    val browsedPaths = mutableListOf<String?>()
     var synchronizeCalls = 0
     var validationCalls = 0
     var updateCalls = 0
@@ -703,10 +765,14 @@ class LibraryAdminCreateViewModelTest {
       return providers.removeFirst()
     }
 
-    override suspend fun browseLibraryFilesystem(path: String?): Result<LibraryAdminFilesystem> =
-      filesystemResult.also {
-        browseCalls++
+    override suspend fun browseLibraryFilesystem(path: String?): Result<LibraryAdminFilesystem> {
+      browseCalls++
+      browsedPaths += path
+      return if (filesystemGate == null) filesystemResult
+      else {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) { filesystemGate.await() }
       }
+    }
 
     override suspend fun createLibrary(draft: LibraryAdminDraft): Result<LibraryAdminCreateResult> {
       createCalls++

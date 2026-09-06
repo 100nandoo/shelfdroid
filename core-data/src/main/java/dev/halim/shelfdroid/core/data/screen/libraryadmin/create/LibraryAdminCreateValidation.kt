@@ -139,6 +139,14 @@ fun normalizeLibraryFolderPath(path: String): String {
   }
 }
 
+fun conflictingLibraryFolder(path: String, folders: List<String>): String? {
+  val normalized = normalizeLibraryFolderPath(path)
+  return folders.firstOrNull {
+    val existing = normalizeLibraryFolderPath(it)
+    existing.isSameOrParentOf(normalized) || normalized.isSameOrParentOf(existing)
+  }
+}
+
 private fun String.comparisonKey(): String =
   if (isWindowsLibraryPath(this)) lowercase(Locale.ROOT) else this
 
