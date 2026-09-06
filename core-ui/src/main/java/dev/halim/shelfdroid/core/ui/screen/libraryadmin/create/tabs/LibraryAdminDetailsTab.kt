@@ -24,7 +24,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,7 +65,9 @@ internal fun LibraryAdminDetailsTab(
 ) {
   val errors = uiState.validation.errors
   Column(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
     val bookLabel = stringResource(R.string.book_library)
@@ -131,7 +132,9 @@ internal fun LibraryAdminDetailsTab(
     }
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
       OutlinedTextField(
-        modifier = Modifier.weight(1f).focusRequester(folderFocusRequester),
+        modifier = Modifier
+          .weight(1f)
+          .focusRequester(folderFocusRequester),
         value = uiState.manualFolderDraft,
         onValueChange = { onEvent(LibraryAdminCreateEvent.UpdateManualFolder(it)) },
         label = { Text(stringResource(R.string.library_folder_path)) },
@@ -167,20 +170,6 @@ private fun LibraryAdminProviderPicker(
 ) {
   var expanded by remember { mutableStateOf(false) }
   when (val providerState = uiState.providerState) {
-    LibraryAdminProviderState.Loading -> {
-      val loadingDescription = stringResource(R.string.library_provider_loading)
-      Column(
-        modifier =
-          Modifier.fillMaxWidth().focusRequester(focusRequester).focusable().semantics {
-            contentDescription = loadingDescription
-          },
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-      ) {
-        LinearProgressIndicator(Modifier.fillMaxWidth())
-        Text(loadingDescription)
-      }
-    }
-
     is LibraryAdminProviderState.Failure -> {
       val errorDescription = stringResource(R.string.library_provider_load_failed)
       val retryDescription = stringResource(R.string.retry)
@@ -192,9 +181,13 @@ private fun LibraryAdminProviderPicker(
         TextButton(
           onClick = { onEvent(LibraryAdminCreateEvent.RetryProviders) },
           modifier =
-            Modifier.fillMaxWidth().focusRequester(focusRequester).semantics {
-              contentDescription = "$errorDescription $retryDescription"
-            },
+            Modifier
+              .fillMaxWidth()
+              .focusRequester(focusRequester)
+              .focusable()
+              .semantics {
+                contentDescription = "$errorDescription $retryDescription"
+              },
         ) {
           Text(retryDescription)
         }
@@ -209,7 +202,8 @@ private fun LibraryAdminProviderPicker(
         val selected = providerState.providers.firstOrNull { it.id == uiState.draft.provider }
         OutlinedTextField(
           modifier =
-            Modifier.fillMaxWidth()
+            Modifier
+              .fillMaxWidth()
               .focusRequester(focusRequester)
               .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
           readOnly = true,
@@ -236,6 +230,8 @@ private fun LibraryAdminProviderPicker(
         }
       }
     }
+
+    else -> Unit
   }
 }
 
@@ -260,7 +256,8 @@ internal fun LibraryAdminFilesystemDialog(
           val directoryListDescription = stringResource(R.string.library_filesystem_directory_list)
           Column(
             modifier =
-              Modifier.fillMaxWidth()
+              Modifier
+                .fillMaxWidth()
                 .heightIn(max = 320.dp)
                 .verticalScroll(rememberScrollState())
                 .semantics { contentDescription = directoryListDescription },

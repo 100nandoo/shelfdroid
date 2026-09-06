@@ -3,6 +3,7 @@
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin.create
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +29,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -117,8 +121,19 @@ internal fun LibraryAdminCreateContent(
   }
 
   Column(modifier = Modifier.fillMaxSize()) {
-    if (uiState.isLoadingLibrary) {
-      LinearProgressIndicator(Modifier.fillMaxWidth())
+    if (uiState.isLoadingLibrary || uiState.providerState is LibraryAdminProviderState.Loading) {
+      val loadingDescription = stringResource(R.string.library_provider_loading)
+      val progressModifier =
+        Modifier.fillMaxWidth().then(
+          if (uiState.providerState is LibraryAdminProviderState.Loading) {
+            Modifier.focusRequester(providerFocusRequester).focusable().semantics {
+              contentDescription = loadingDescription
+            }
+          } else {
+            Modifier
+          }
+        )
+      LinearProgressIndicator(progressModifier)
     }
     if (uiState.libraryLoadFailed) {
       Text(

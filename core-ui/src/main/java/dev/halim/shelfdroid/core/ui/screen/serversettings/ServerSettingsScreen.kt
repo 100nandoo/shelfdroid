@@ -349,12 +349,18 @@ private fun DisplaySection(uiState: ServerSettingsUiState, onEvent: (ServerSetti
 @Composable
 private fun CacheSection(onEvent: (ServerSettingsEvent) -> Unit) {
   TextTitleMedium(text = stringResource(R.string.cache))
-  Row(modifier = Modifier.padding(start = 8.dp)) {
-    TextButton(onClick = { onEvent(ServerSettingsEvent.PurgeCache) }) {
+  Row(modifier = Modifier.padding(start = 8.dp).fillMaxWidth()) {
+    TextButton(
+      modifier = Modifier.weight(1f),
+      onClick = { onEvent(ServerSettingsEvent.PurgeCache) },
+    ) {
       Text(stringResource(R.string.purge_all_cache))
     }
     Spacer(modifier = Modifier.width(8.dp))
-    TextButton(onClick = { onEvent(ServerSettingsEvent.PurgeItemsCache) }) {
+    TextButton(
+      modifier = Modifier.weight(1f),
+      onClick = { onEvent(ServerSettingsEvent.PurgeItemsCache) },
+    ) {
       Text(stringResource(R.string.purge_items_cache))
     }
   }

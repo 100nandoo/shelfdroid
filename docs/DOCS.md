@@ -16,11 +16,11 @@
 
 ## 🔗 Module Dependencies
 
-Below is a diagram representing the module dependencies in this project. Arrows indicate
-dependencies.
-For example: **Network** → **Data** means **Data** depends on **Network**, or in other words, *
-*Network**
-code is accessible within the **Data** module.
+[View module dependencies diagram](./images/module_dependencies.svg)
+
+The diagram shows the runtime module dependencies in this project. An arrow points from a
+dependency to the module that depends on it. For example, **core-network** → **core-data** means
+that **core-data** can use code from **core-network**.
 
 ```mermaid
 ---
@@ -30,78 +30,184 @@ config:
   look: neo
 ---
 flowchart TD
-%% Relationships
-    C --> A & D & S & N & U & Do
-    S --> D & N
-    B --> D
-    N --> D & M & Do
-    D --> U & A & M
-    U --> A
-    M --> U
-    SI --> U
-    H --> D & U & M
-    Do --> D
-    C --> SI
-%% Declarations
-    C["Core"]
-    A["App"]
-    U["UI"]
-    N["Network"]
-    S["Datastore"]
-    B["Database"]
-    D["Data"]
-    M["Media"]
-    Do["Download"]
-    H["Helper"]
-    SI["SocketIO"]
+    Core["core"] --> App["app"]
+    Core --> Data["core-data"]
+    Core --> Database["core-database"]
+    Core --> Datastore["core-datastore"]
+    Core --> Network["core-network"]
+    Core --> Download["download"]
+    Core --> Helper["helper"]
+    Core --> SocketIO["socketio"]
+    Core --> UI["core-ui"]
+    Core --> Media["media"]
+
+    Data --> App
+    UI --> App
+    Data --> UI
+    Data --> Media
+    Database --> Data
+    Datastore --> Data
+    Datastore --> Network
+    Datastore --> Helper
+    Datastore --> SocketIO
+    Network --> Data
+    Network --> Download
+    Network --> Media
+    Download --> Data
+    Download --> UI
+    Download --> Media
+    Media --> UI
+    Helper --> Data
+    Helper --> Download
+    Helper --> UI
+    Helper --> Media
+    SocketIO --> Data
+    SocketIO --> UI
 ```
+
+The test-only modules are outside the runtime graph: **core-testing** provides shared test
+infrastructure, **test-app** is the instrumentation target for **app**, and **benchmark** runs
+macrobenchmarks against **app**. **core-data** uses **core-testing** from its Android tests.
 
 ## 📱 Screen Flow
 
+Back and save actions return to the previous navigation-stack entry and are omitted from the
+diagrams below for readability. Logging out from `Settings` returns to `Login`.
+
 <details>
-<summary>Overall</summary>
-Screen with orange border indicate that mini player will be shown when there is an ongoing playback.
+<summary>User</summary>
+
+[View user screen flow diagram](./images/screen_flow_user.svg)
+
+The player is an overlay managed by `PlayerHandler`, not a navigation destination. The orange
+border marks the routes where it can be shown during ongoing playback: `Home`, `Book`, `Podcast`,
+and `Episode`. It is temporarily hidden on login, settings, and administration routes.
+
+The edit routes are available to users with the server's update permission; they are not limited to
+administrators. The administrator-only search and add routes are shown in the flow below.
 
 ```mermaid
 ---
 config:
-theme: dark
+  theme: dark
 ---
 flowchart LR
-    L[Login]
-    H[Home]
-    S[Settings]
-    SPo[Search Podcast]
-    P[Podcast]
-    B[Book]
-    E[Episode]
-    AE[Add Episode]
-    LS[Listening Session]
-    OS[Open Session]
-    US[Users Settings]
-    AP[Add Podcast]
-    SPB[Settings Playback]
-    STP[Settings Podcast]
-    SLS[Settings Listening Session]
-    Pl[Player]
+    L["Login"]
+    H["Home"]
+    S["Settings"]
+    P["Podcast"]
+    B["Book"]
+    E["Episode"]
+    EditItem["Edit library item"]
+    EditEpisode["Edit episode"]
+    ChangePassword["Change password"]
+    SettingsPlayback["Playback settings"]
+    SettingsPlayer["Player settings"]
+    SettingsNotification["Notification settings"]
+    SettingsPodcast["Podcast settings"]
+    SettingsListeningSession["Listening session settings"]
+
     L --> H
     H --> S
     H --> P
     H --> B
-    H --> SPo
-    H --> LS
-    H --> OS
-    H --> US
     P --> E
-    P --> AE
-    SPo --> AP
-    AP --> P
-    S --> SPB
-    S --> STP
-    S --> SLS
-    S --> L
-class H, P, B, E, Pl primary
-classDef primary stroke: #FFC981
+    P --> EditEpisode
+    B --> EditItem
+    E --> EditEpisode
+
+    S --> SettingsPlayback
+    S --> SettingsPlayer
+    S --> SettingsNotification
+    S --> SettingsPodcast
+    S --> SettingsListeningSession
+    S --> ChangePassword
+
+class H,P,B,E primary;
+classDef primary stroke:#FFC981,stroke-width:2px;
+```
+
+</details>
+
+<details>
+<summary>Administrator</summary>
+
+[View administrator screen flow diagram](./images/screen_flow_admin.svg)
+
+The server section on `Home` is visible only to administrators. This flow is in addition to the
+user flow above; it shows the administrator-only server screens and entry points.
+
+```mermaid
+---
+config:
+  theme: dark
+---
+flowchart LR
+    L["Login"]
+    H["Home"]
+    Search["Search podcast"]
+    AddPodcast["Add podcast"]
+    P["Podcast"]
+    AddEpisode["Add episode"]
+    Users["Users"]
+    EditUser["Edit user"]
+    UserInfo["User info"]
+    ChangePassword["Change password"]
+    Libraries["Library administration"]
+    CreateLibrary["Create library"]
+    EditLibrary["Edit library"]
+    ApiKeys["API keys"]
+    EditApiKey["Create/edit API key"]
+    ServerSettings["Server settings"]
+    AuthenticationSettings["Authentication settings"]
+    EmailManagement["Email management"]
+    Notifications["Notifications"]
+    EditNotificationRule["Edit notification rule"]
+    RssFeeds["Generated RSS feeds"]
+    Logs["Logs"]
+    Backups["Backups"]
+    MetadataUtils["Item metadata utils"]
+    Tags["Tags"]
+    Genres["Genres"]
+    CustomMetadata["Custom metadata providers"]
+    OpenSessions["Open sessions"]
+    ListeningSessions["Listening sessions"]
+
+    L --> H
+    H --> Search
+    H --> Users
+    H --> Libraries
+    H --> ApiKeys
+    H --> ServerSettings
+    H --> AuthenticationSettings
+    H --> EmailManagement
+    H --> Notifications
+    H --> RssFeeds
+    H --> Logs
+    H --> Backups
+    H --> MetadataUtils
+    H --> OpenSessions
+    H --> ListeningSessions
+
+    Search --> AddPodcast
+    Search --> P
+    AddPodcast --> P
+    P --> AddEpisode
+
+    Users --> EditUser
+    Users --> UserInfo
+    EditUser --> ChangePassword
+
+    Libraries --> CreateLibrary
+    Libraries --> EditLibrary
+
+    ApiKeys --> EditApiKey
+
+    Notifications --> EditNotificationRule
+
+    MetadataUtils --> Tags
+    MetadataUtils --> Genres
+    MetadataUtils --> CustomMetadata
 ```
 
 </details>

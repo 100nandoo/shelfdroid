@@ -37,9 +37,10 @@ Android device, and handle common server management tasks from the same app.
 - Stream audiobooks and podcast episodes with synced progress
 - Download books and episodes for durable offline playback
 - Use chapters, bookmarks, sleep timer, playback speed, and player controls
-- Manage backups, API keys, users, logs, and server settings when your account has permission
-- Review listening sessions and other admin screens available to your account
-- Customize sorting, display preferences, and playback settings
+- All server management functionality available to your account*
+
+\* Embedding metadata and editing chapters are the only missing server management features; mobile
+implementation is still being explored.
 
 ## Server Management Functionality
 
@@ -61,7 +62,7 @@ Android device, and handle common server management tasks from the same app.
 | Notifications                 | ☑️          |
 | Authentication                | ☑️          |
 | Item Metadata Utils           | ☑️          |
-| Edit Libraries                | ❌           |
+| Edit Libraries                | ☑️          |
 
 </details>
 
@@ -87,10 +88,11 @@ Android device, and handle common server management tasks from the same app.
 
 ## Roadmap
 
-- [ ] Edit Libraries
-- [ ] Introduce custom themes for personalization
+- [ ] Add in-app settings for notification customization
+- [ ] Android Auto
 - [ ] Add in-app settings for customization
 - [ ] Integrate Google Assistant for voice control
+- [ ] Introduce custom themes for personalization
 - [x] Enhance playback controls with bookmarks and sleep timers
 - [x] Develop a modern and user-friendly UI
 - [x] Support audiobook chapters for easy navigation
@@ -102,6 +104,7 @@ Android device, and handle common server management tasks from the same app.
 - [x] Item Metadata Utils
 - [x] Listening Sessions
 - [x] Authentication management
+- [x] Edit Libraries
 
 See the [issue tracker](https://github.com/100nandoo/shelfdroid/issues) for current work and feature
 requests.

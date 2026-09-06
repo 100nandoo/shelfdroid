@@ -166,29 +166,36 @@ class LibraryAdminCreateContentTest {
 
   @Test
   fun providerLoadingAndSuccessStates_exposeFocusableProviderTargets() {
+    var uiState by
+      mutableStateOf(
+        LibraryAdminCreateUiState(
+          providerState = LibraryAdminProviderState.Loading,
+          focusField = LibraryAdminCreateField.PROVIDER,
+        )
+      )
+
     composeRule.setContent {
       LibraryAdminCreateContent(
-        uiState =
-          LibraryAdminCreateUiState(
-            providerState = LibraryAdminProviderState.Loading,
-            focusField = LibraryAdminCreateField.PROVIDER,
-          )
+        uiState = uiState,
+        onEvent = { event ->
+          if (event == LibraryAdminCreateEvent.ConsumeFocus) {
+            uiState = uiState.copy(focusField = null)
+          }
+        },
       )
     }
 
     composeRule.onNodeWithContentDescription("Loading providers…").assertIsFocused()
+    composeRule.onAllNodesWithText("Loading providers…").assertCountEquals(0)
 
-    composeRule.setContent {
-      LibraryAdminCreateContent(
-        uiState =
-          LibraryAdminCreateUiState(
-            draft = LibraryAdminDraft(bookProvider = "audible"),
-            providerState =
-              LibraryAdminProviderState.Success(listOf(LibraryAdminProvider("audible", "Audible"))),
-            focusField = LibraryAdminCreateField.PROVIDER,
-          )
+    uiState =
+      uiState.copy(
+        draft = LibraryAdminDraft(bookProvider = "audible"),
+        providerState =
+          LibraryAdminProviderState.Success(listOf(LibraryAdminProvider("audible", "Audible"))),
+        focusField = LibraryAdminCreateField.PROVIDER,
       )
-    }
+    composeRule.waitForIdle()
 
     composeRule.onNodeWithText("Audible").assertIsFocused()
   }
