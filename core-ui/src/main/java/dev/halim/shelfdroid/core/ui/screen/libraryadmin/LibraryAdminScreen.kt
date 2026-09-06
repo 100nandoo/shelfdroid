@@ -2,7 +2,6 @@
 
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin
 
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,17 +25,11 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.result.ResultEffect
@@ -55,9 +47,11 @@ import dev.halim.shelfdroid.core.navigation.LibraryChangedNavResult
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.DeleteConfirmationDialog
 import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
+import dev.halim.shelfdroid.core.ui.components.ReorderHandle
+import dev.halim.shelfdroid.core.ui.components.rememberReorderableLazyListState
+import dev.halim.shelfdroid.core.ui.components.reorderableItemModifier
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
-import kotlinx.coroutines.isActive
 
 @Composable
 fun LibraryAdminScreen(
@@ -100,66 +94,16 @@ internal fun LibraryAdminContent(
   onEditLibraryClicked: (String) -> Unit = {},
 ) {
   val listState = rememberLazyListState()
-  val density = LocalDensity.current
-  val edgeScrollZone = with(density) { 72.dp.toPx() }
-  val maximumEdgeScrollSpeed = with(density) { 1_200.dp.toPx() }
-  val draggedElevation = with(density) { 8.dp.toPx() }
-  var displayedLibraries by remember { mutableStateOf(uiState.libraries) }
-  var dragSession by remember { mutableStateOf<LibraryDragSession?>(null) }
-
-  fun cancelDrag() {
-    val session = dragSession ?: return
-    displayedLibraries = session.sourceLibraries
-    dragSession = null
-  }
-
-  fun moveDraggedLibrary(delta: Float) {
-    val session = dragSession ?: return
-    val currentInfo =
-      listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == session.libraryId }
-    val movedSession =
-      session.copy(
-        translationY = session.translationY + delta,
-        pointerY = session.pointerY + delta,
-      )
-    if (currentInfo == null || currentInfo.index != session.currentIndex) {
-      dragSession = movedSession
-      return
-    }
-
-    val draggedCenter = currentInfo.offset + movedSession.translationY + currentInfo.size / 2f
-    val targetInfo =
-      listState.layoutInfo.visibleItemsInfo.dragTarget(
-        draggedCenter = draggedCenter,
-        currentIndex = session.currentIndex,
-        libraries = displayedLibraries,
-      )
-    if (targetInfo == null) {
-      dragSession = movedSession
-      return
-    }
-
-    val targetIndex = displayedLibraries.indexOfFirst { it.id == targetInfo.key }
-    if (targetIndex < 0 || targetIndex == session.currentIndex) {
-      dragSession = movedSession
-      return
-    }
-    val newBaseOffset =
-      if (targetIndex > session.currentIndex) {
-        targetInfo.offset + targetInfo.size - currentInfo.size
-      } else {
-        targetInfo.offset
-      }
-    displayedLibraries =
-      displayedLibraries.toMutableList().apply {
-        add(targetIndex, removeAt(session.currentIndex))
-      }
-    dragSession =
-      movedSession.copy(
-        currentIndex = targetIndex,
-        translationY = movedSession.translationY + currentInfo.offset - newBaseOffset,
-      )
-  }
+  val reorderState =
+    rememberReorderableLazyListState(
+      items = uiState.libraries,
+      key = { library -> library.id },
+      lazyListState = listState,
+      enabled = !uiState.isReordering,
+      onMove = { libraryId, destinationIndex ->
+        onEvent(LibraryAdminEvent.MoveLibraryTo(libraryId, destinationIndex))
+      },
+    )
 
   LaunchedEffect(
     uiState.libraries,
@@ -170,38 +114,7 @@ internal fun LibraryAdminContent(
     uiState.deleteConfirmationLibraryId,
     uiState.isReordering,
   ) {
-    dragSession = null
-    displayedLibraries = uiState.libraries
-  }
-
-  LaunchedEffect(dragSession?.libraryId) {
-    var previousFrameNanos = 0L
-    while (isActive && dragSession != null) {
-      val frameNanos = withFrameNanos { it }
-      val session = dragSession ?: continue
-      val layoutInfo = listState.layoutInfo
-      val scrollSpeed =
-        when {
-          session.pointerY < layoutInfo.viewportStartOffset + edgeScrollZone ->
-            -maximumEdgeScrollSpeed *
-              ((layoutInfo.viewportStartOffset + edgeScrollZone - session.pointerY) /
-                  edgeScrollZone)
-                .coerceIn(0f, 1f)
-          session.pointerY > layoutInfo.viewportEndOffset - edgeScrollZone ->
-            maximumEdgeScrollSpeed *
-              ((session.pointerY - (layoutInfo.viewportEndOffset - edgeScrollZone)) /
-                  edgeScrollZone)
-                .coerceIn(0f, 1f)
-          else -> 0f
-        }
-      if (previousFrameNanos != 0L && scrollSpeed != 0f) {
-        val elapsedSeconds = (frameNanos - previousFrameNanos) / 1_000_000_000f
-        val consumed = listState.scrollBy(scrollSpeed * elapsedSeconds)
-        dragSession = dragSession?.copy(translationY = session.translationY + consumed)
-        moveDraggedLibrary(0f)
-      }
-      previousFrameNanos = frameNanos
-    }
+    reorderState.resetToCallerItems()
   }
 
   Column(modifier = modifier.fillMaxSize()) {
@@ -297,29 +210,16 @@ internal fun LibraryAdminContent(
                 )
               }
             } else {
-              items(displayedLibraries, key = { library -> library.id }) { library ->
-                val session = dragSession
-                val isDragging = session?.libraryId == library.id
+              items(reorderState.items, key = { library -> library.id }) { library ->
+                val isDragging = reorderState.isDragging(library.id)
                 val reorderEnabled =
                   uiState.canReorder(library.id) &&
                     !uiState.isReordering &&
-                    (session == null || isDragging)
-                val itemModifier =
-                  if (isDragging) {
-                    Modifier.zIndex(1f).graphicsLayer {
-                      translationY = session.translationY
-                      scaleX = 1.02f
-                      scaleY = 1.02f
-                      shadowElevation = draggedElevation
-                    }
-                  } else {
-                    Modifier.animateItem()
-                  }
+                    (reorderState.draggedKey == null || isDragging)
+                val index = reorderState.indexOf(library.id)
                 LibraryAdminItem(
-                  modifier = itemModifier,
+                  modifier = reorderableItemModifier(reorderState, library.id),
                   library = library,
-                  reorderEnabled = reorderEnabled,
-                  reorderHandleVisible = reorderEnabled || session != null || uiState.isReordering,
                   scanEnabled = uiState.canStartScan(library.id),
                   matchEnabled = uiState.canStartMatch(library.id),
                   deleteEnabled = uiState.canDelete(library.id),
@@ -331,39 +231,24 @@ internal fun LibraryAdminContent(
                   onRetrySynchronization = { taskId ->
                     onEvent(LibraryAdminEvent.RetryTaskSynchronization(taskId))
                   },
-                  onDragStart = {
-                    val itemInfo =
-                      listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == library.id }
-                    val sourceIndex = displayedLibraries.indexOfFirst { it.id == library.id }
-                    if (itemInfo != null && sourceIndex >= 0) {
-                      dragSession =
-                        LibraryDragSession(
-                          libraryId = library.id,
-                          sourceLibraries = displayedLibraries,
-                          originalIndex = sourceIndex,
-                          currentIndex = sourceIndex,
-                          pointerY = itemInfo.offset + itemInfo.size / 2f,
-                        )
-                    }
+                  reorderHandle = {
+                    ReorderHandle(
+                      state = reorderState,
+                      itemKey = library.id,
+                      enabled = reorderEnabled,
+                      visible =
+                        reorderEnabled || reorderState.draggedKey != null || uiState.isReordering,
+                      contentDescription =
+                        stringResource(
+                          R.string.reorder_item_position,
+                          library.name,
+                          index + 1,
+                          reorderState.items.size,
+                        ),
+                      moveUpLabel = stringResource(R.string.move_item_up, library.name),
+                      moveDownLabel = stringResource(R.string.move_item_down, library.name),
+                    )
                   },
-                  onDrag = ::moveDraggedLibrary,
-                  onDragEnd = {
-                    val completedDrag = dragSession
-                    dragSession = null
-                    if (completedDrag != null) {
-                      if (completedDrag.currentIndex == completedDrag.originalIndex) {
-                        displayedLibraries = completedDrag.sourceLibraries
-                      } else {
-                        onEvent(
-                          LibraryAdminEvent.MoveLibraryTo(
-                            libraryId = completedDrag.libraryId,
-                            destinationIndex = completedDrag.currentIndex,
-                          )
-                        )
-                      }
-                    }
-                  },
-                  onDragCancel = ::cancelDrag,
                 )
               }
             }
@@ -412,37 +297,6 @@ internal fun LibraryAdminContent(
         onDismiss = { onEvent(LibraryAdminEvent.CancelDeleteLibrary) },
       )
     }
-  }
-}
-
-private data class LibraryDragSession(
-  val libraryId: String,
-  val sourceLibraries: List<LibraryAdminLibrary>,
-  val originalIndex: Int,
-  val currentIndex: Int,
-  val translationY: Float = 0f,
-  val pointerY: Float,
-)
-
-private fun List<LazyListItemInfo>.dragTarget(
-  draggedCenter: Float,
-  currentIndex: Int,
-  libraries: List<LibraryAdminLibrary>,
-): LazyListItemInfo? {
-  val currentInfo = firstOrNull { it.index == currentIndex } ?: return null
-  val currentCenter = currentInfo.offset + currentInfo.size / 2f
-  return if (draggedCenter > currentCenter) {
-    filter { item ->
-      val index = libraries.indexOfFirst { it.id == item.key }
-      index > currentIndex && draggedCenter > item.offset + item.size / 2f
-    }
-      .maxByOrNull { item -> libraries.indexOfFirst { it.id == item.key } }
-  } else {
-    filter { item ->
-      val index = libraries.indexOfFirst { it.id == item.key }
-      index in 0 until currentIndex && draggedCenter < item.offset + item.size / 2f
-    }
-      .minByOrNull { item -> libraries.indexOfFirst { it.id == item.key } }
   }
 }
 

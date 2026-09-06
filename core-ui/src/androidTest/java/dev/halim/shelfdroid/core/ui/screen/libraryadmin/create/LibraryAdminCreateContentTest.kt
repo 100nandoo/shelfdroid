@@ -1,25 +1,40 @@
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin.create
 
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminBookSettings
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateError
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateField
+import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateSubmissionState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateTab
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
@@ -28,6 +43,10 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFil
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProvider
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminValidation
+import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LIBRARY_ADMIN_SCANNER_LIST_TAG
+import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminScannerTab
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -291,7 +310,7 @@ class LibraryAdminCreateContentTest {
   }
 
   @Test
-  fun scanner_exposesAllSixSourcesAndAccessibleReorderActions() {
+  fun scanner_exposesAllSixSourcesAndReorderHandles() {
     composeRule.setContent {
       LibraryAdminCreateContent(
         uiState =
@@ -302,19 +321,215 @@ class LibraryAdminCreateContentTest {
       )
     }
 
-    composeRule.onNodeWithText("Folder structure").performScrollTo().assertIsDisplayed()
-    composeRule
-      .onNodeWithText("Audio file meta tags OR ebook metadata")
-      .performScrollTo()
-      .assertIsDisplayed()
-    composeRule.onNodeWithText("NFO file").performScrollTo().assertIsDisplayed()
-    composeRule.onNodeWithText("desc.txt & reader.txt files").performScrollTo().assertIsDisplayed()
-    composeRule.onNodeWithText("OPF file").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithText("Audiobookshelf metadata file").performScrollTo().assertIsDisplayed()
     composeRule
       .onNodeWithContentDescription("Audiobookshelf metadata file, priority 1")
       .assertIsDisplayed()
+    composeRule.onNodeWithTag(LIBRARY_ADMIN_SCANNER_LIST_TAG).performScrollToIndex(6)
+    composeRule.onNodeWithText("Folder structure").assertIsDisplayed()
     composeRule.onNodeWithContentDescription("Folder structure, priority 6").assertIsDisplayed()
-    composeRule.onAllNodesWithText("Move up").assertCountEquals(6)
+    composeRule
+      .onNodeWithContentDescription("Reorder Folder structure, position 6 of 6")
+      .assertIsDisplayed()
+    composeRule.onAllNodesWithText("Move up").assertCountEquals(0)
+    composeRule.onAllNodesWithText("Move down").assertCountEquals(0)
+  }
+
+  @Test
+  fun scannerAccessibilityMove_commitsOneMoveAndUpdatesThePosition() {
+    var uiState by
+      mutableStateOf(
+        LibraryAdminCreateUiState(
+          selectedTab = LibraryAdminCreateTab.SCANNER,
+          draft = LibraryAdminDraft(),
+        )
+      )
+    val events = mutableListOf<LibraryAdminCreateEvent>()
+    composeRule.setContent {
+      LibraryAdminCreateContent(
+        uiState = uiState,
+        onEvent = { event ->
+          events += event
+          if (event is LibraryAdminCreateEvent.MoveMetadataSource) {
+            uiState = uiState.copy(draft = uiState.draft.moveMetadataSource(event.id, event.delta))
+          }
+        },
+      )
+    }
+
+    val handle =
+      composeRule.onNodeWithContentDescription(
+        "Reorder Audiobookshelf metadata file, position 1 of 6"
+      )
+    val actions = handle.fetchSemanticsNode().config[SemanticsActions.CustomActions]
+    composeRule.runOnIdle {
+      assertTrue(actions.first { it.label == "Move Audiobookshelf metadata file down" }.action())
+    }
+    composeRule.waitForIdle()
+
+    assertEquals(
+      listOf(LibraryAdminCreateEvent.MoveMetadataSource("absMetadata", 1)),
+      events,
+    )
+    composeRule
+      .onNodeWithContentDescription("Reorder Audiobookshelf metadata file, position 2 of 6")
+      .assertIsDisplayed()
+  }
+
+  @Test
+  fun scannerDrag_downwardCommitsOneFinalMove() {
+    val events = mutableListOf<LibraryAdminCreateEvent>()
+    composeRule.setContent {
+      LibraryAdminCreateContent(
+        uiState =
+          LibraryAdminCreateUiState(
+            selectedTab = LibraryAdminCreateTab.SCANNER,
+            draft = LibraryAdminDraft(),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule
+      .onNodeWithContentDescription("Reorder Audiobookshelf metadata file, position 1 of 6")
+      .performTouchInput {
+        swipe(start = center, end = center + Offset(0f, 180f), durationMillis = 200)
+      }
+    composeRule.waitForIdle()
+
+    assertEquals(1, events.size)
+    val event = events.single() as LibraryAdminCreateEvent.MoveMetadataSource
+    assertEquals("absMetadata", event.id)
+    assertTrue(event.delta > 0)
+  }
+
+  @Test
+  fun scannerDrag_upwardCommitsOneFinalMove() {
+    val events = mutableListOf<LibraryAdminCreateEvent>()
+    composeRule.setContent {
+      LibraryAdminCreateContent(
+        uiState =
+          LibraryAdminCreateUiState(
+            selectedTab = LibraryAdminCreateTab.SCANNER,
+            draft = LibraryAdminDraft(),
+          ),
+        onEvent = events::add,
+      )
+    }
+    composeRule.onNodeWithTag(LIBRARY_ADMIN_SCANNER_LIST_TAG).performScrollToIndex(6)
+
+    composeRule
+      .onNodeWithContentDescription("Reorder Folder structure, position 6 of 6")
+      .performTouchInput {
+        swipe(start = center, end = center - Offset(0f, 180f), durationMillis = 200)
+      }
+    composeRule.waitForIdle()
+
+    assertEquals(1, events.size)
+    val event = events.single() as LibraryAdminCreateEvent.MoveMetadataSource
+    assertEquals("folderStructure", event.id)
+    assertTrue(event.delta < 0)
+  }
+
+  @Test
+  fun scannerDrag_atBottomEdgeAutoScrollsAcrossOffscreenSources() {
+    val events = mutableListOf<LibraryAdminCreateEvent>()
+    composeRule.setContent {
+      LibraryAdminScannerTab(
+        title = "Create Library",
+        uiState =
+          LibraryAdminCreateUiState(
+            selectedTab = LibraryAdminCreateTab.SCANNER,
+            draft = LibraryAdminDraft(),
+          ),
+        onEvent = events::add,
+        focusRequester = remember { FocusRequester() },
+        listState = rememberLazyListState(),
+        modifier = Modifier.height(280.dp),
+      )
+    }
+    val listBottom =
+      composeRule
+        .onNodeWithTag(LIBRARY_ADMIN_SCANNER_LIST_TAG)
+        .fetchSemanticsNode()
+        .boundsInRoot
+        .bottom
+    val handle =
+      composeRule.onNodeWithContentDescription(
+        "Reorder Audiobookshelf metadata file, position 1 of 6"
+      )
+    val handleCenterY = handle.fetchSemanticsNode().boundsInRoot.center.y
+
+    composeRule.mainClock.autoAdvance = false
+    handle.performTouchInput {
+      down(center)
+      moveBy(Offset(0f, listBottom - handleCenterY - 2f))
+    }
+    composeRule.mainClock.advanceTimeBy(1_000)
+    composeRule.onNodeWithTag(LIBRARY_ADMIN_SCANNER_LIST_TAG).performTouchInput { up() }
+    composeRule.mainClock.autoAdvance = true
+    composeRule.waitForIdle()
+
+    val event = events.single() as LibraryAdminCreateEvent.MoveMetadataSource
+    assertEquals("absMetadata", event.id)
+    assertTrue(event.delta > 1)
+  }
+
+  @Test
+  fun scannerCancelledDrag_doesNotCommit() {
+    val events = mutableListOf<LibraryAdminCreateEvent>()
+    composeRule.setContent {
+      LibraryAdminCreateContent(
+        uiState =
+          LibraryAdminCreateUiState(
+            selectedTab = LibraryAdminCreateTab.SCANNER,
+            draft = LibraryAdminDraft(),
+          ),
+        onEvent = events::add,
+      )
+    }
+
+    composeRule
+      .onNodeWithContentDescription("Reorder Audiobookshelf metadata file, position 1 of 6")
+      .performTouchInput {
+        down(center)
+        moveBy(Offset(0f, 96f))
+        cancel()
+      }
+    composeRule.waitForIdle()
+
+    assertEquals(emptyList<LibraryAdminCreateEvent>(), events)
+  }
+
+  @Test
+  fun scannerDisabledSource_remainsReorderableWhileBusyStateDisablesTheHandle() {
+    val disabledFirstSource =
+      LibraryAdminDraft().let { draft ->
+        draft.copy(
+          metadataSources =
+            draft.metadataSources.mapIndexed { index, source ->
+              if (index == 0) source.copy(enabled = false) else source
+            }
+        )
+      }
+    var uiState by
+      mutableStateOf(
+        LibraryAdminCreateUiState(
+          selectedTab = LibraryAdminCreateTab.SCANNER,
+          draft = disabledFirstSource,
+        )
+      )
+    composeRule.setContent { LibraryAdminCreateContent(uiState = uiState) }
+
+    composeRule
+      .onNodeWithContentDescription("Reorder Audiobookshelf metadata file, position 1 of 6")
+      .assertIsEnabled()
+
+    uiState = uiState.copy(submissionState = LibraryAdminCreateSubmissionState.Submitting)
+    composeRule.waitForIdle()
+
+    composeRule
+      .onNodeWithContentDescription("Reorder Audiobookshelf metadata file, position 1 of 6")
+      .assertIsNotEnabled()
   }
 }

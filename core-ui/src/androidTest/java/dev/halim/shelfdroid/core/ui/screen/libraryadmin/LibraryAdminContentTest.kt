@@ -156,9 +156,10 @@ class LibraryAdminContentTest {
     }
 
     composeRule
-      .onAllNodesWithContentDescription("Reorder library", useUnmergedTree = true)
-      .assertCountEquals(2)
-      .get(0)
+      .onNodeWithContentDescription("Reorder Books, position 1 of 2", useUnmergedTree = true)
+      .assertIsEnabled()
+    composeRule
+      .onNodeWithContentDescription("Reorder Podcasts, position 2 of 2", useUnmergedTree = true)
       .assertIsEnabled()
   }
 
@@ -198,8 +199,7 @@ class LibraryAdminContentTest {
     }
 
     composeRule
-      .onAllNodesWithContentDescription("Reorder library", useUnmergedTree = true)
-      .get(0)
+      .onNodeWithContentDescription("Reorder Books, position 1 of 2", useUnmergedTree = true)
       .assertIsDisplayed()
       .performTouchInput {
         swipe(start = center, end = center + Offset(0f, 240f), durationMillis = 200)
@@ -220,8 +220,7 @@ class LibraryAdminContentTest {
     }
 
     composeRule
-      .onAllNodesWithContentDescription("Reorder library", useUnmergedTree = true)
-      .get(0)
+      .onNodeWithContentDescription("Reorder Books, position 1 of 2", useUnmergedTree = true)
       .performTouchInput {
         down(center)
         moveBy(Offset(0f, 96f))
@@ -239,9 +238,10 @@ class LibraryAdminContentTest {
     }
 
     composeRule
-      .onAllNodesWithContentDescription("Reorder library", useUnmergedTree = true)
-      .assertCountEquals(2)
-      .get(0)
+      .onNodeWithContentDescription("Reorder Books, position 1 of 2", useUnmergedTree = true)
+      .assertIsNotEnabled()
+    composeRule
+      .onNodeWithContentDescription("Reorder Podcasts, position 2 of 2", useUnmergedTree = true)
       .assertIsNotEnabled()
   }
 

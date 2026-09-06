@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -99,6 +100,8 @@ internal fun LibraryAdminCreateContent(
   val settingsFocusRequester = remember { FocusRequester() }
   val scannerFocusRequester = remember { FocusRequester() }
   val scheduleFocusRequester = remember { FocusRequester() }
+  val formScrollState = rememberScrollState()
+  val scannerListState = rememberLazyListState()
 
   LaunchedEffect(uiState.focusField) {
     when (uiState.focusField) {
@@ -129,42 +132,49 @@ internal fun LibraryAdminCreateContent(
         Text(stringResource(R.string.retry))
       }
     }
-    Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
-      Text(
-        text =
-          stringResource(if (uiState.isEdit) R.string.edit_library else R.string.create_library),
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+    val title =
+      stringResource(if (uiState.isEdit) R.string.edit_library else R.string.create_library)
+    if (uiState.selectedTab == LibraryAdminCreateTab.SCANNER) {
+      LibraryAdminScannerTab(
+        modifier = Modifier.fillMaxWidth().weight(1f),
+        title = title,
+        uiState = uiState,
+        onEvent = onEvent,
+        focusRequester = scannerFocusRequester,
+        listState = scannerListState,
       )
-      when (uiState.selectedTab) {
-        LibraryAdminCreateTab.DETAILS ->
-          LibraryAdminDetailsTab(
-            uiState = uiState,
-            onEvent = onEvent,
-            nameFocusRequester = nameFocusRequester,
-            providerFocusRequester = providerFocusRequester,
-            folderFocusRequester = folderFocusRequester,
-          )
+    } else {
+      Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(formScrollState)) {
+        Text(
+          text = title,
+          modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        )
+        when (uiState.selectedTab) {
+          LibraryAdminCreateTab.DETAILS ->
+            LibraryAdminDetailsTab(
+              uiState = uiState,
+              onEvent = onEvent,
+              nameFocusRequester = nameFocusRequester,
+              providerFocusRequester = providerFocusRequester,
+              folderFocusRequester = folderFocusRequester,
+            )
 
-        LibraryAdminCreateTab.SETTINGS ->
-          LibraryAdminSettingsTab(
-            uiState = uiState,
-            onEvent = onEvent,
-            focusRequester = settingsFocusRequester,
-          )
+          LibraryAdminCreateTab.SETTINGS ->
+            LibraryAdminSettingsTab(
+              uiState = uiState,
+              onEvent = onEvent,
+              focusRequester = settingsFocusRequester,
+            )
 
-        LibraryAdminCreateTab.SCANNER ->
-          LibraryAdminScannerTab(
-            uiState = uiState,
-            onEvent = onEvent,
-            focusRequester = scannerFocusRequester,
-          )
+          LibraryAdminCreateTab.SCANNER -> Unit
 
-        LibraryAdminCreateTab.SCHEDULE ->
-          LibraryAdminScheduleTab(
-            uiState = uiState,
-            onEvent = onEvent,
-            focusRequester = scheduleFocusRequester,
-          )
+          LibraryAdminCreateTab.SCHEDULE ->
+            LibraryAdminScheduleTab(
+              uiState = uiState,
+              onEvent = onEvent,
+              focusRequester = scheduleFocusRequester,
+            )
+        }
       }
     }
 

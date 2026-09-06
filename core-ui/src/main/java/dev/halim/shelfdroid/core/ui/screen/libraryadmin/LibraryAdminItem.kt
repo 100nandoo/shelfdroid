@@ -6,14 +6,10 @@
 package dev.halim.shelfdroid.core.ui.screen.libraryadmin
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -25,17 +21,10 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.disabled
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminLibrary
@@ -51,12 +40,7 @@ import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.libraryIconR
 fun LibraryAdminItem(
   modifier: Modifier = Modifier,
   library: LibraryAdminLibrary,
-  reorderEnabled: Boolean = false,
-  reorderHandleVisible: Boolean = reorderEnabled,
-  onDragStart: () -> Unit = {},
-  onDrag: (delta: Float) -> Unit = {},
-  onDragEnd: () -> Unit = {},
-  onDragCancel: () -> Unit = {},
+  reorderHandle: @Composable () -> Unit = {},
   scanEnabled: Boolean = false,
   onScan: () -> Unit = {},
   matchEnabled: Boolean = false,
@@ -67,30 +51,9 @@ fun LibraryAdminItem(
   task: Task? = null,
   onRetrySynchronization: (taskId: String) -> Unit = {},
 ) {
-  val dragHandleDescription = stringResource(R.string.reorder_library)
   val scanDescription = stringResource(R.string.scan_library)
   val matchDescription = stringResource(R.string.match_book_metadata)
   val deleteDescription = stringResource(R.string.delete_library)
-  val currentOnDragStart by rememberUpdatedState(onDragStart)
-  val currentOnDrag by rememberUpdatedState(onDrag)
-  val currentOnDragEnd by rememberUpdatedState(onDragEnd)
-  val currentOnDragCancel by rememberUpdatedState(onDragCancel)
-  val dragModifier =
-    if (reorderEnabled) {
-      Modifier.pointerInput(Unit) {
-        detectDragGestures(
-          orientationLock = Orientation.Vertical,
-          onDragStart = { _, _, _ -> currentOnDragStart() },
-          onDragEnd = { currentOnDragEnd() },
-          onDragCancel = { currentOnDragCancel() },
-          shouldAwaitTouchSlop = { false },
-          onDrag = { change, dragAmount ->
-            change.consume()
-            currentOnDrag(dragAmount.y)
-          },
-        )
-      }
-    } else Modifier
 
   ListItem(
     modifier = modifier.fillMaxWidth().clickable(onClick = onEdit),
@@ -188,24 +151,7 @@ fun LibraryAdminItem(
             )
           }
         }
-        if (reorderHandleVisible) {
-          Box(
-            modifier =
-              Modifier.size(48.dp)
-                .alpha(if (reorderEnabled) 1f else 0.38f)
-                .then(dragModifier)
-                .semantics(mergeDescendants = true) {
-                  contentDescription = dragHandleDescription
-                  if (!reorderEnabled) disabled()
-                },
-            contentAlignment = Alignment.Center,
-          ) {
-            Icon(
-              painter = painterResource(R.drawable.drag_handle),
-              contentDescription = null,
-            )
-          }
-        }
+        reorderHandle()
       }
     },
   )
@@ -229,8 +175,7 @@ private fun LibraryAdminItemPreview() {
           name = "Books",
           mediaType = MediaType.BOOK,
           displayOrder = 0,
-        ),
-      reorderEnabled = true,
+        )
     )
   }
 }
