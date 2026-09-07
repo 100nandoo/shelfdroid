@@ -1,0 +1,22 @@
+DELETE FROM PodcastEpisodeEntity;
+DELETE FROM BookEntity;
+DELETE FROM PodcastEntity;
+
+DROP TABLE LibraryItemEntity;
+
+CREATE TABLE LibraryItemEntity (
+  id TEXT PRIMARY KEY NOT NULL,
+  libraryId TEXT NOT NULL,
+  author TEXT NOT NULL DEFAULT '',
+  authorFirstLast TEXT NOT NULL DEFAULT '',
+  authorLastFirst TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  cover TEXT NOT NULL DEFAULT '',
+  updatedAt INTEGER NOT NULL DEFAULT 0,
+  rssFeed TEXT,
+  isBook INTEGER NOT NULL DEFAULT 1,
+  inoId TEXT NOT NULL DEFAULT '',
+  duration REAL NOT NULL DEFAULT 0,
+  addedAt INTEGER NOT NULL
+);

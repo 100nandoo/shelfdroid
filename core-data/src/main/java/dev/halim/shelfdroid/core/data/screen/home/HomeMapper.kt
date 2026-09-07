@@ -9,17 +9,7 @@ class HomeMapper @Inject constructor(private val progressRepo: ProgressRepositor
 
   suspend fun toBookUiState(item: LibraryItemCatalog, isDownloaded: Boolean): BookUiState {
     val progress = progressRepo.bookById(item.id)
-    return BookUiState(
-      id = item.id,
-      author = item.author,
-      authorFirstLast = item.authorFirstLast.ifBlank { item.author },
-      authorLastFirst =
-        item.authorLastFirst.ifBlank {
-          item.authorFirstLast.ifBlank { item.author }
-        },
-      title = item.title,
-      cover = item.cover,
-      addedAt = item.addedAt,
+    return item.toBookUiState(
       isDownloaded = isDownloaded,
       progressLastUpdate = progress?.lastUpdate ?: 0,
     )
@@ -55,6 +45,24 @@ class HomeMapper @Inject constructor(private val progressRepo: ProgressRepositor
       unfinishedAndDownloadCount = downloadCounts.unfinishedAndDownloadCount,
     )
   }
+}
+
+internal fun LibraryItemCatalog.toBookUiState(
+  isDownloaded: Boolean,
+  progressLastUpdate: Long,
+): BookUiState {
+  return BookUiState(
+    id = id,
+    author = author,
+    authorFirstLast = authorFirstLast.ifBlank { author },
+    authorLastFirst = authorLastFirst.ifBlank { authorFirstLast.ifBlank { author } },
+    title = title,
+    cover = cover,
+    duration = duration,
+    addedAt = addedAt,
+    isDownloaded = isDownloaded,
+    progressLastUpdate = progressLastUpdate,
+  )
 }
 
 internal data class PodcastDownloadCounts(

@@ -93,7 +93,7 @@ class PodcastEpisodeRepositoryTest {
           rssFeed = null,
           isBook = 0,
           inoId = "",
-          duration = "",
+          duration = 0.0,
           addedAt = 1,
         )
       )
@@ -112,6 +112,7 @@ class PodcastEpisodeRepositoryTest {
           authorLastFirst = "Author",
           title = "Podcast",
           cover = "cover",
+          duration = 0.0,
           isBook = 0,
           addedAt = 1,
           episodeCount = 2,

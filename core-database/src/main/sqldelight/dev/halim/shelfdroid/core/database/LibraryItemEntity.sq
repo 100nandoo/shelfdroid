@@ -11,7 +11,7 @@ CREATE TABLE LibraryItemEntity (
   rssFeed TEXT,
   isBook INTEGER NOT NULL DEFAULT 1,
   inoId TEXT NOT NULL DEFAULT '',
-  duration TEXT NOT NULL DEFAULT '',
+  duration REAL NOT NULL DEFAULT 0,
   addedAt INTEGER NOT NULL
 );
 
@@ -27,6 +27,7 @@ SELECT
   authorLastFirst,
   title,
   cover,
+  duration,
   isBook,
   addedAt,
   (

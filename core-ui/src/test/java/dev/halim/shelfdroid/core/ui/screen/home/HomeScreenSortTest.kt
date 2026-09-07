@@ -77,6 +77,46 @@ class HomeScreenSortTest {
   }
 
   @Test
+  fun bookFilterAndSort_whenDurationAscending_ordersByDuration() {
+    val sorted =
+      bookFilterAndSort(
+        books =
+          listOf(
+            book(id = "long", duration = 300.0),
+            book(id = "short-first", duration = 100.0),
+            book(id = "short-second", duration = 100.0),
+            book(id = "medium", duration = 200.0),
+          ),
+        displayPrefs = DisplayPrefs(bookSort = BookSort.Duration, sortOrder = SortOrder.Asc),
+      )
+
+    assertEquals(
+      listOf("short-first", "short-second", "medium", "long"),
+      sorted.map(BookUiState::id),
+    )
+  }
+
+  @Test
+  fun bookFilterAndSort_whenDurationDescending_ordersByDuration() {
+    val sorted =
+      bookFilterAndSort(
+        books =
+          listOf(
+            book(id = "medium", duration = 200.0),
+            book(id = "long-first", duration = 300.0),
+            book(id = "long-second", duration = 300.0),
+            book(id = "short", duration = 100.0),
+          ),
+        displayPrefs = DisplayPrefs(bookSort = BookSort.Duration, sortOrder = SortOrder.Desc),
+      )
+
+    assertEquals(
+      listOf("long-first", "long-second", "medium", "short"),
+      sorted.map(BookUiState::id),
+    )
+  }
+
+  @Test
   fun podcastFilterAndSort_whenDownloadedOnly_keepsPodcastsWithDownloadedEpisodes() {
     val filtered =
       podcastFilterAndSort(
@@ -222,6 +262,7 @@ class HomeScreenSortTest {
     authorFirstLast: String = "",
     authorLastFirst: String = authorFirstLast,
     title: String = id,
+    duration: Double = 0.0,
   ): BookUiState {
     return BookUiState(
       id = id,
@@ -229,6 +270,7 @@ class HomeScreenSortTest {
       authorFirstLast = authorFirstLast,
       authorLastFirst = authorLastFirst,
       title = title,
+      duration = duration,
     )
   }
 }

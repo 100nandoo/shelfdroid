@@ -70,6 +70,8 @@ class LibraryItemRefreshTest {
       id = id,
       libraryId = libraryId,
       author = "Author",
+      authorFirstLast = "Author",
+      authorLastFirst = "Author",
       title = id,
       description = "",
       cover = "",
@@ -77,7 +79,7 @@ class LibraryItemRefreshTest {
       rssFeed = null,
       isBook = if (libraryId == FakeApiService.BOOK_LIBRARY_ID) 1L else 0L,
       inoId = "",
-      duration = "",
+      duration = 0.0,
       addedAt = 0L,
     )
 

@@ -1,10 +1,31 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
+import dev.halim.shelfdroid.core.database.LibraryItemCatalog
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class HomeMapperTest {
+
+  @Test
+  fun toBookUiState_mapsCachedDuration() {
+    val state =
+      LibraryItemCatalog(
+        id = "book-1",
+        libraryId = "library-1",
+        author = "Author",
+        authorFirstLast = "Author",
+        authorLastFirst = "Author",
+        title = "Book",
+        cover = "cover",
+        duration = 1234.5,
+        isBook = 1,
+        addedAt = 1,
+        episodeCount = 0,
+      ).toBookUiState(isDownloaded = false, progressLastUpdate = 0)
+
+    assertEquals(1234.5, state.duration, 0.0)
+  }
 
   @Test
   fun podcastProgressLastUpdate_usesMostRecentEpisodeUpdateIncludingFinishedEpisodes() {

@@ -39,7 +39,7 @@ class LibraryItemCatalogMigrationTest {
           rssFeed = null,
           isBook = 0,
           inoId = "",
-          duration = "",
+          duration = 1234.5,
           addedAt = 1,
         )
       )
@@ -53,6 +53,7 @@ class LibraryItemCatalogMigrationTest {
           authorLastFirst = "Author",
           title = "Podcast",
           cover = "cover",
+          duration = 1234.5,
           isBook = 0,
           addedAt = 1,
           episodeCount = 0,
@@ -238,6 +239,8 @@ class LibraryItemCatalogMigrationTest {
           "id",
           "libraryId",
           "author",
+          "authorFirstLast",
+          "authorLastFirst",
           "title",
           "description",
           "cover",
@@ -247,8 +250,6 @@ class LibraryItemCatalogMigrationTest {
           "inoId",
           "duration",
           "addedAt",
-          "authorFirstLast",
-          "authorLastFirst",
         ),
         database.rawQuery("PRAGMA table_info(LibraryItemEntity)", null).use { cursor ->
           buildList {

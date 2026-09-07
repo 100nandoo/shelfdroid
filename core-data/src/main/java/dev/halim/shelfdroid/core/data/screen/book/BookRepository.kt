@@ -101,7 +101,7 @@ constructor(
             narrator = narrator,
             title = book.title,
             subtitle = subtitle,
-            duration = book.duration,
+            duration = helper.formatDuration(book.duration),
             remaining = remaining,
             cover = book.cover,
             description = description,
