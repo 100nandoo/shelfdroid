@@ -1,6 +1,7 @@
 package dev.halim.core.network
 
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
+import dev.halim.core.network.response.libraryitem.BookMetadata
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -113,6 +114,25 @@ class LibraryItemsQueryTest {
     assertTrue(result.isSuccess)
     assertEquals("/api/libraries/library-1/items", request.url.encodedPath)
     assertNull(request.url.query)
+  }
+
+  @Test
+  fun bookMetadata_readsAudiobookshelfAuthorSortKeys() {
+    val metadata =
+      json.decodeFromString<BookMetadata>(
+        """
+        {
+          "title": "Book",
+          "authors": [{"name": "John Smith"}],
+          "authorName": "John Smith",
+          "authorNameLF": "Smith, John"
+        }
+        """
+          .trimIndent()
+      )
+
+    assertEquals("John Smith", metadata.authorName)
+    assertEquals("Smith, John", metadata.authorNameLastFirst)
   }
 
   private fun apiService(onRequest: (Request) -> Unit): ApiService {

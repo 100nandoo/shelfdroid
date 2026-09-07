@@ -1,0 +1,10 @@
+DELETE FROM PodcastEpisodeEntity;
+DELETE FROM BookEntity;
+DELETE FROM PodcastEntity;
+DELETE FROM LibraryItemEntity;
+
+ALTER TABLE LibraryItemEntity
+ADD COLUMN authorFirstLast TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE LibraryItemEntity
+ADD COLUMN authorLastFirst TEXT NOT NULL DEFAULT '';

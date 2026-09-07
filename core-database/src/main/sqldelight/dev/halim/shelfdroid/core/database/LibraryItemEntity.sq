@@ -2,6 +2,8 @@ CREATE TABLE LibraryItemEntity (
   id TEXT PRIMARY KEY NOT NULL,
   libraryId TEXT NOT NULL,
   author TEXT NOT NULL DEFAULT '',
+  authorFirstLast TEXT NOT NULL DEFAULT '',
+  authorLastFirst TEXT NOT NULL DEFAULT '',
   title TEXT NOT NULL DEFAULT '',
   description TEXT NOT NULL DEFAULT '',
   cover TEXT NOT NULL DEFAULT '',
@@ -21,6 +23,8 @@ SELECT
   id,
   libraryId,
   author,
+  authorFirstLast,
+  authorLastFirst,
   title,
   cover,
   isBook,
@@ -48,7 +52,7 @@ FROM LibraryItemEntity
 WHERE id = :id;
 
 insert:
-INSERT OR REPLACE INTO LibraryItemEntity(id, libraryId, author, title, description, cover, updatedAt, rssFeed, isBook, inoId, duration, addedAt)
+INSERT OR REPLACE INTO LibraryItemEntity(id, libraryId, author, authorFirstLast, authorLastFirst, title, description, cover, updatedAt, rssFeed, isBook, inoId, duration, addedAt)
 VALUES ?;
 
 deleteById:

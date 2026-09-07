@@ -47,10 +47,14 @@ constructor(
 
   init {
     viewModelScope.launch {
-      repository.item().collect { (prefs, libraries) ->
+      settingsRepository.prefs.collect { prefs ->
+        _uiState.update { state -> state.copy(prefs = prefs) }
+      }
+    }
+    viewModelScope.launch {
+      repository.item().collect { libraries ->
         _uiState.update { state ->
           state.copy(
-            prefs = prefs,
             activeLibraryId =
               reconcileActiveLibraryId(
                 previousLibraries = state.librariesUiState,
@@ -83,48 +87,53 @@ constructor(
       is HomeEvent.HomeDisplayPrefsEvent -> {
         when (event.displayPrefsEvent) {
           is DisplayPrefsEvent.BookSort -> {
+            val bookSort = BookSort.fromLabel(event.displayPrefsEvent.bookSort)
             _uiState.update { state ->
-              val bookSort = BookSort.fromLabel(event.displayPrefsEvent.bookSort)
-              viewModelScope.launch { settingsRepository.updateBookSort(bookSort) }
-              val updatedDisplayPrefs = state.prefs.displayPrefs.copy(bookSort = bookSort)
-              val prefs = state.prefs.copy(displayPrefs = updatedDisplayPrefs)
-              state.copy(prefs = prefs)
+              val displayPrefs = state.prefs.displayPrefs.selectBookSort(bookSort)
+              state.copy(prefs = state.prefs.copy(displayPrefs = displayPrefs))
+            }
+            viewModelScope.launch {
+              settingsRepository.updateBookSort(bookSort)
             }
           }
           is DisplayPrefsEvent.Filter -> {
+            val filter = Filter.valueOf(event.displayPrefsEvent.filter)
             _uiState.update { state ->
-              val filter = Filter.valueOf(event.displayPrefsEvent.filter)
-              viewModelScope.launch { settingsRepository.updateFilter(filter) }
-              val updatedDisplayPrefs = state.prefs.displayPrefs.copy(filter = filter)
-              val prefs = state.prefs.copy(displayPrefs = updatedDisplayPrefs)
-              state.copy(prefs = prefs)
+              val displayPrefs = state.prefs.displayPrefs.copy(filter = filter)
+              state.copy(prefs = state.prefs.copy(displayPrefs = displayPrefs))
+            }
+            viewModelScope.launch {
+              settingsRepository.updateFilter(filter)
             }
           }
           is DisplayPrefsEvent.PodcastSort -> {
+            val podcastSort = PodcastSort.fromLabel(event.displayPrefsEvent.podcastSort)
             _uiState.update { state ->
-              val podcastSort = PodcastSort.fromLabel(event.displayPrefsEvent.podcastSort)
-              viewModelScope.launch { settingsRepository.updatePodcastSort(podcastSort) }
-              val updatedDisplayPrefs = state.prefs.displayPrefs.copy(podcastSort = podcastSort)
-              val prefs = state.prefs.copy(displayPrefs = updatedDisplayPrefs)
-              state.copy(prefs = prefs)
+              val displayPrefs = state.prefs.displayPrefs.selectPodcastSort(podcastSort)
+              state.copy(prefs = state.prefs.copy(displayPrefs = displayPrefs))
+            }
+            viewModelScope.launch {
+              settingsRepository.updatePodcastSort(podcastSort)
             }
           }
           is DisplayPrefsEvent.PodcastSortOrder -> {
+            val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
             _uiState.update { state ->
-              val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
-              viewModelScope.launch { settingsRepository.updatePodcastSortOrder(sortOrder) }
-              val updatedDisplayPrefs = state.prefs.displayPrefs.copy(podcastSortOrder = sortOrder)
-              val prefs = state.prefs.copy(displayPrefs = updatedDisplayPrefs)
-              state.copy(prefs = prefs)
+              val displayPrefs = state.prefs.displayPrefs.copy(podcastSortOrder = sortOrder)
+              state.copy(prefs = state.prefs.copy(displayPrefs = displayPrefs))
+            }
+            viewModelScope.launch {
+              settingsRepository.updatePodcastSortOrder(sortOrder)
             }
           }
           is DisplayPrefsEvent.SortOrder -> {
+            val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
             _uiState.update { state ->
-              val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
-              viewModelScope.launch { settingsRepository.updateSortOrder(sortOrder) }
-              val updatedDisplayPrefs = state.prefs.displayPrefs.copy(sortOrder = sortOrder)
-              val prefs = state.prefs.copy(displayPrefs = updatedDisplayPrefs)
-              state.copy(prefs = prefs)
+              val displayPrefs = state.prefs.displayPrefs.copy(sortOrder = sortOrder)
+              state.copy(prefs = state.prefs.copy(displayPrefs = displayPrefs))
+            }
+            viewModelScope.launch {
+              settingsRepository.updateSortOrder(sortOrder)
             }
           }
         }

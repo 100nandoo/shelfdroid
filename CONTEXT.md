@@ -258,6 +258,22 @@ _Avoid_: Re-login, session recovery
 On-device ShelfDroid preferences controlled by the app rather than the **Audiobookshelf server**, such as theme, list presentation, filters, and sort order.
 _Avoid_: Server settings, user settings
 
+**Book author sort criterion**:
+An ordering choice available only for a book **Library** that uses an **Author name order** as its primary key and book title as its secondary key. ShelfDroid exposes separate first-name-first and last-name-first criteria rather than one author criterion with a separate formatting preference.
+_Avoid_: Author format, author preference
+
+**Author name order**:
+The canonical first-name-first or last-name-first representation of a **Book** author name supplied by the **Audiobookshelf server** for display and ordering.
+_Avoid_: Author format, parsed author name
+
+**Podcast author**:
+The canonical podcast-level author or creator string supplied by the **Audiobookshelf server**. It belongs to the **Podcast**, not to an individual **Episode**, and is not assumed to be a person's name.
+_Avoid_: Host, episode author, parsed author name
+
+**Podcast author sort criterion**:
+An ordering choice available only for a podcast **Library** that uses the **Podcast author** as its primary key and podcast title as its secondary key. ShelfDroid exposes one Author criterion without person-name reformatting.
+_Avoid_: Podcast host sort, author name order
+
 **Cached content**:
 Server-derived data kept locally to make ShelfDroid faster or usable between requests, excluding completed **Downloads**.
 _Avoid_: Downloads, local app preferences

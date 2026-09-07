@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.core.database
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -29,6 +30,8 @@ class LibraryItemCatalogMigrationTest {
           id = "podcast-1",
           libraryId = "library-1",
           author = "Author",
+          authorFirstLast = "Author",
+          authorLastFirst = "Author",
           title = "Podcast",
           description = "",
           cover = "cover",
@@ -46,6 +49,8 @@ class LibraryItemCatalogMigrationTest {
           id = "podcast-1",
           libraryId = "library-1",
           author = "Author",
+          authorFirstLast = "Author",
+          authorLastFirst = "Author",
           title = "Podcast",
           cover = "cover",
           isBook = 0,
@@ -58,7 +63,7 @@ class LibraryItemCatalogMigrationTest {
   }
 
   @Test
-  fun openingLegacyDatabaseRemovesPodcastPayloadAndRetainsCompactBookCatalog() {
+  fun openingLegacyDatabaseRemovesPodcastPayloadAndDestructivelyRebuildsCatalog() {
     context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
       database.execSQL(
         """
@@ -128,6 +133,10 @@ class LibraryItemCatalogMigrationTest {
           1,
         ),
       )
+      createLegacyLibraryEntity(database)
+      database.execSQL(
+        "INSERT INTO LibraryEntity(id, name, folders, isBookLibrary) VALUES ('library-1', 'Books', '[]', 1)"
+      )
       database.version = 2
     }
 
@@ -137,7 +146,7 @@ class LibraryItemCatalogMigrationTest {
 
     context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
       assertEquals(
-        listOf("book-1"),
+        emptyList<String>(),
         database.rawQuery("SELECT id FROM LibraryItemEntity", null).use { cursor ->
           buildList {
             while (cursor.moveToNext()) {
@@ -150,7 +159,7 @@ class LibraryItemCatalogMigrationTest {
   }
 
   @Test
-  fun openingLegacyDatabaseMovesBookMediaIntoBookEntity() {
+  fun openingLegacyDatabaseDiscardsLegacyBookMediaCache() {
     context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
       database.execSQL(
         """
@@ -196,25 +205,33 @@ class LibraryItemCatalogMigrationTest {
           1,
         ),
       )
+      createLegacyLibraryEntity(database)
+      database.execSQL(
+        "INSERT INTO LibraryEntity(id, name, folders, isBookLibrary) VALUES ('library-1', 'Books', '[]', 1)"
+      )
       database.version = 2
     }
 
     AndroidSqliteDriver(MyDatabase.Schema, context, databaseName).use { driver ->
-      assertEquals(
-        BookEntity(libraryItemId = "book-1", media = "book-media"),
-        BookEntityQueries(driver).byLibraryItemId("book-1").executeAsOne(),
-      )
+      assertEquals(null, BookEntityQueries(driver).byLibraryItemId("book-1").executeAsOneOrNull())
     }
 
     context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { database ->
       assertEquals(
-        "book-media",
+        null,
         database
           .rawQuery("SELECT media FROM BookEntity WHERE libraryItemId = 'book-1'", null)
           .use { cursor ->
-            cursor.moveToFirst()
-            cursor.getString(0)
+            if (cursor.moveToFirst()) cursor.getString(0) else null
           },
+      )
+      assertEquals(
+        listOf("library-1"),
+        database.rawQuery("SELECT id FROM LibraryEntity", null).use { cursor ->
+          buildList {
+            while (cursor.moveToNext()) add(cursor.getString(0))
+          }
+        },
       )
       assertEquals(
         listOf(
@@ -230,6 +247,8 @@ class LibraryItemCatalogMigrationTest {
           "inoId",
           "duration",
           "addedAt",
+          "authorFirstLast",
+          "authorLastFirst",
         ),
         database.rawQuery("PRAGMA table_info(LibraryItemEntity)", null).use { cursor ->
           buildList {
@@ -289,6 +308,7 @@ class LibraryItemCatalogMigrationTest {
           1,
         ),
       )
+      createLegacyLibraryEntity(database)
       database.version = 2
     }
 
@@ -306,5 +326,19 @@ class LibraryItemCatalogMigrationTest {
         PodcastEpisodeEntityQueries(driver).byLibraryItemId("podcast-1").executeAsList(),
       )
     }
+  }
+
+  private fun createLegacyLibraryEntity(database: SQLiteDatabase) {
+    database.execSQL(
+      """
+      CREATE TABLE LibraryEntity (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL DEFAULT '',
+        folders TEXT NOT NULL,
+        isBookLibrary INTEGER NOT NULL DEFAULT 1
+      )
+      """
+        .trimIndent()
+    )
   }
 }

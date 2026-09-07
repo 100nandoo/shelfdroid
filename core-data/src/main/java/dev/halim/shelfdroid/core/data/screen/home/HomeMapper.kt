@@ -12,6 +12,11 @@ class HomeMapper @Inject constructor(private val progressRepo: ProgressRepositor
     return BookUiState(
       id = item.id,
       author = item.author,
+      authorFirstLast = item.authorFirstLast.ifBlank { item.author },
+      authorLastFirst =
+        item.authorLastFirst.ifBlank {
+          item.authorFirstLast.ifBlank { item.author }
+        },
       title = item.title,
       cover = item.cover,
       addedAt = item.addedAt,

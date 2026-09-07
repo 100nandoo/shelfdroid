@@ -274,12 +274,12 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   }
 
   suspend fun updateBookSort(bookSort: BookSort) {
-    val current = displayPrefs.firstOrNull()?.copy(bookSort = bookSort)
+    val current = displayPrefs.firstOrNull()?.selectBookSort(bookSort)
     current?.let { updateDisplayPrefs(it) }
   }
 
   suspend fun updatePodcastSort(podcastSort: PodcastSort) {
-    val current = displayPrefs.firstOrNull()?.copy(podcastSort = podcastSort)
+    val current = displayPrefs.firstOrNull()?.selectPodcastSort(podcastSort)
     current?.let { updateDisplayPrefs(it) }
   }
 

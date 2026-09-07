@@ -398,7 +398,7 @@ fun LibraryContent(
         listView = listView,
         id = book.id,
         title = book.title,
-        author = book.author,
+        author = book.authorFor(displayPrefs.bookSort),
         cover = book.cover,
         onClick = { onBookClicked(book.id) },
         onLongClick = { onLongClick(book, null) },
@@ -459,12 +459,33 @@ internal fun bookFilterAndSort(
 ): List<BookUiState> {
   val filtered = books.filter { !displayPrefs.filter.isDownloaded() || it.isDownloaded }
 
+  if (displayPrefs.bookSort.isAuthorSort) {
+    val orderMultiplier = if (displayPrefs.sortOrder == SortOrder.Desc) -1 else 1
+    return filtered.sortedWith { left, right ->
+      val leftAuthor = left.authorFor(displayPrefs.bookSort)
+      val rightAuthor = right.authorFor(displayPrefs.bookSort)
+      val leftMissing = leftAuthor.isBlank()
+      val rightMissing = rightAuthor.isBlank()
+      if (leftMissing != rightMissing) {
+        if (leftMissing) 1 else -1
+      } else {
+        val authorComparison = leftAuthor.compareTo(rightAuthor, ignoreCase = true)
+        if (authorComparison != 0) {
+          authorComparison * orderMultiplier
+        } else {
+          left.title.compareTo(right.title, ignoreCase = true) * orderMultiplier
+        }
+      }
+    }
+  }
+
   val comparator =
     when (displayPrefs.bookSort) {
       BookSort.AddedAt -> compareBy<BookUiState> { it.addedAt }
       BookSort.Duration -> compareBy { it.duration }
       BookSort.Title -> compareBy { it.title }
       BookSort.Progress -> compareBy { it.progressLastUpdate }
+      else -> error("Author sorting is handled above")
     }
 
   return if (displayPrefs.sortOrder == SortOrder.Desc) {
@@ -479,6 +500,26 @@ internal fun podcastFilterAndSort(
   displayPrefs: DisplayPrefs,
 ): List<PodcastUiState> {
   val filtered = podcasts.filter { !displayPrefs.filter.isDownloaded() || it.downloadedCount > 0 }
+
+  if (displayPrefs.podcastSort == PodcastSort.Author) {
+    val orderMultiplier = if (displayPrefs.podcastSortOrder == SortOrder.Desc) -1 else 1
+    return filtered.sortedWith { left, right ->
+      val leftMissing = left.author.isBlank()
+      val rightMissing = right.author.isBlank()
+      if (leftMissing != rightMissing) {
+        if (leftMissing) 1 else -1
+      } else if (leftMissing) {
+        left.title.compareTo(right.title, ignoreCase = true) * orderMultiplier
+      } else {
+        val authorComparison = left.author.compareTo(right.author, ignoreCase = true)
+        if (authorComparison != 0) {
+          authorComparison * orderMultiplier
+        } else {
+          left.title.compareTo(right.title, ignoreCase = true) * orderMultiplier
+        }
+      }
+    }
+  }
 
   val comparator =
     when (displayPrefs.podcastSort) {
@@ -500,6 +541,7 @@ internal fun podcastFilterAndSort(
         } else {
           compareBy<PodcastUiState>({ it.progressLastUpdate }, { it.title })
         }
+      PodcastSort.Author -> error("Author sorting is handled above")
     }
 
   return filtered.sortedWith(comparator)

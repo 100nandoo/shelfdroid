@@ -15,7 +15,23 @@ data class DisplayPrefs(
   val podcastSort: PodcastSort = PodcastSort.Progress,
   val sortOrder: SortOrder = SortOrder.Desc,
   val podcastSortOrder: SortOrder = SortOrder.Desc,
-)
+) {
+  fun selectBookSort(bookSort: BookSort): DisplayPrefs {
+    val resetOrder = bookSort.isAuthorSort && bookSort != this.bookSort
+    return copy(
+      bookSort = bookSort,
+      sortOrder = if (resetOrder) SortOrder.Asc else sortOrder,
+    )
+  }
+
+  fun selectPodcastSort(podcastSort: PodcastSort): DisplayPrefs {
+    val resetOrder = podcastSort == PodcastSort.Author && podcastSort != this.podcastSort
+    return copy(
+      podcastSort = podcastSort,
+      podcastSortOrder = if (resetOrder) SortOrder.Asc else podcastSortOrder,
+    )
+  }
+}
 
 @Serializable
 data class CrudPrefs(
@@ -108,20 +124,30 @@ enum class Filter {
 }
 
 const val LABEL_ADDED_AT = "Added At"
+const val LABEL_AUTHOR = "Author"
+const val LABEL_AUTHOR_FIRST_LAST = "Author (First Last)"
+const val LABEL_AUTHOR_LAST_FIRST = "Author (Last, First)"
 const val LABEL_DURATION = "Duration"
 const val LABEL_TITLE = "Title"
 const val LABEL_PROGRESS = "Progress"
 
 enum class BookSort(val label: String) {
   AddedAt(LABEL_ADDED_AT),
+  AuthorFirstLast(LABEL_AUTHOR_FIRST_LAST),
+  AuthorLastFirst(LABEL_AUTHOR_LAST_FIRST),
   Duration(LABEL_DURATION),
   Title(LABEL_TITLE),
   Progress(LABEL_PROGRESS);
+
+  val isAuthorSort: Boolean
+    get() = this == AuthorFirstLast || this == AuthorLastFirst
 
   companion object {
     fun fromLabel(label: String): BookSort {
       return when (label) {
         LABEL_ADDED_AT -> AddedAt
+        LABEL_AUTHOR_FIRST_LAST -> AuthorFirstLast
+        LABEL_AUTHOR_LAST_FIRST -> AuthorLastFirst
         LABEL_DURATION -> Duration
         LABEL_TITLE -> Title
         LABEL_PROGRESS -> Progress
@@ -133,6 +159,7 @@ enum class BookSort(val label: String) {
 
 enum class PodcastSort(val label: String) {
   AddedAt(LABEL_ADDED_AT),
+  Author(LABEL_AUTHOR),
   Title(LABEL_TITLE),
   Progress(LABEL_PROGRESS);
 
@@ -140,6 +167,7 @@ enum class PodcastSort(val label: String) {
     fun fromLabel(label: String): PodcastSort {
       return when (label) {
         LABEL_ADDED_AT -> AddedAt
+        LABEL_AUTHOR -> Author
         LABEL_TITLE -> Title
         LABEL_PROGRESS -> Progress
         else -> AddedAt

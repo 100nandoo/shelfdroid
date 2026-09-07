@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
+import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.GenericState
 import kotlinx.serialization.Serializable
@@ -25,6 +26,8 @@ data class LibraryUiState(
 data class BookUiState(
   val id: String = "",
   val author: String = "",
+  val authorFirstLast: String = "",
+  val authorLastFirst: String = "",
   val title: String = "",
   val cover: String = "",
   val duration: Double = 0.0,
@@ -32,7 +35,13 @@ data class BookUiState(
   val isDownloaded: Boolean = false,
   val trackIndexes: List<Int> = emptyList(),
   val progressLastUpdate: Long = 0,
-)
+) {
+  fun authorFor(sort: BookSort): String =
+    when (sort) {
+      BookSort.AuthorLastFirst -> authorLastFirst.ifBlank { authorFirstLast }.ifBlank { author }
+      else -> authorFirstLast.ifBlank { author }
+    }
+}
 
 data class PodcastUiState(
   val id: String = "",

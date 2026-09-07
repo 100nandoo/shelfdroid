@@ -24,6 +24,8 @@ data class BookMetadata(
   @SerialName("genres") override val genres: List<String> = listOf(),
   @SerialName("subtitle") val subtitle: String? = "",
   @SerialName("authors") val authors: List<Author> = listOf(),
+  @SerialName("authorName") val authorName: String? = null,
+  @SerialName("authorNameLF") val authorNameLastFirst: String? = null,
   @SerialName("narrators") val narrators: List<String> = listOf(),
   @SerialName("series") val series: List<Series> = listOf(),
   @SerialName("publishedYear") val publishedYear: String? = "",

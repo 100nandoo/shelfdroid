@@ -311,13 +311,20 @@ constructor(
   private fun toEntity(item: LibraryItem, libraryId: String): LibraryItemEntity {
     val media = item.media
     return if (media is Book) {
+      val authorFirstLast =
+        media.metadata.authorName?.takeUnless(String::isBlank)
+          ?: media.metadata.authors.joinToString { it.name }
+      val authorLastFirst =
+        media.metadata.authorNameLastFirst?.takeUnless(String::isBlank) ?: authorFirstLast
       LibraryItemEntity(
         id = item.id,
         libraryId = libraryId,
         inoId = media.primaryInoId(),
         title = media.metadata.title ?: "",
         description = media.metadata.description ?: "",
-        author = media.metadata.authors.joinToString { it.name },
+        author = authorFirstLast,
+        authorFirstLast = authorFirstLast,
+        authorLastFirst = authorLastFirst,
         cover = helper.generateItemCoverUrl(item.id, item.updatedAt),
         updatedAt = item.updatedAt,
         duration = helper.formatDuration(media.duration ?: 0.0),
@@ -334,6 +341,8 @@ constructor(
         title = media.metadata.title ?: "",
         description = media.metadata.description ?: "",
         author = media.metadata.author ?: "",
+        authorFirstLast = "",
+        authorLastFirst = "",
         cover = helper.generateItemCoverUrl(item.id, item.updatedAt),
         updatedAt = item.updatedAt,
         duration = "",

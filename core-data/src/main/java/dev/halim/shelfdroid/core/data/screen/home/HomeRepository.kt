@@ -1,12 +1,10 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
 import dev.halim.core.network.ApiService
-import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
-import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.extensions.toBoolean
 import dev.halim.shelfdroid.download.DownloadRepo
 import javax.inject.Inject
@@ -22,22 +20,19 @@ constructor(
   private val progressRepo: ProgressRepository,
   private val libraryRepo: LibraryRepository,
   private val mapper: HomeMapper,
-  private val prefsRepository: PrefsRepository,
   private val downloadRepo: DownloadRepo,
 ) {
 
-  fun item(): Flow<Pair<Prefs, List<LibraryUiState>>> {
+  fun item(): Flow<List<LibraryUiState>> {
     val libraries = libraryRepo.observeLibraries()
     val libraryItems = libraryItemRepo.observeLibraryItemCatalog()
     val progresses = progressRepo.observeAllProgress()
-    val prefs = prefsRepository.prefsFlow()
     val downloads = downloadRepo.completedDownloads
     val downloadSignals = combine(downloads, downloadRepo.durableDownloads) { _, _ -> Unit }
 
-    return combine(libraries, libraryItems, prefs, progresses, downloadSignals) {
+    return combine(libraries, libraryItems, progresses, downloadSignals) {
       libraries,
       libraryItems,
-      prefs,
       _,
       _ ->
       val result = libraries.map { (id, name, _, isBookLibrary) ->
@@ -76,7 +71,7 @@ constructor(
           }
         library
       }
-      prefs to result
+      result
     }
   }
 

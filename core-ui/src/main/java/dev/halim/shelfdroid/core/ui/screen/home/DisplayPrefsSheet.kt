@@ -3,19 +3,28 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.BookSort
 import dev.halim.shelfdroid.core.DisplayPrefs
@@ -68,22 +77,50 @@ fun DisplayPrefsSheet(
           onSortOrderChange,
         )
 
-        val options =
-          if (isBookLibrary) BookSort.entries.map { it.label }
-          else PodcastSort.entries.map { it.label }
-        val sortInitialValue =
-          if (isBookLibrary) displayPrefs.bookSort.label else displayPrefs.podcastSort.label
-        val onSortChange = if (isBookLibrary) onBookSortChange else onPodcastSortChange
-        MySegmentedButton(
-          modifier = Modifier.fillMaxWidth(),
-          options,
-          stringResource(R.string.sort),
-          sortInitialValue,
-          onSortChange,
-        )
+        if (isBookLibrary) {
+          SortOptions(
+            options = BookSort.entries.map { it.label },
+            selected = displayPrefs.bookSort.label,
+            onSelected = onBookSortChange,
+          )
+        } else {
+          SortOptions(
+            options = PodcastSort.entries.map { it.label },
+            selected = displayPrefs.podcastSort.label,
+            onSelected = onPodcastSortChange,
+          )
+        }
       }
     }
   }
+}
+
+@Composable
+private fun SortOptions(
+  options: List<String>,
+  selected: String,
+  onSelected: (String) -> Unit,
+) {
+  Text(text = stringResource(R.string.sort), style = MaterialTheme.typography.bodyMedium)
+  Column(Modifier.selectableGroup()) {
+    options.forEach { option ->
+      Row(
+        modifier =
+          Modifier.fillMaxWidth()
+            .selectable(
+              selected = option == selected,
+              onClick = { onSelected(option) },
+              role = Role.RadioButton,
+            )
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        RadioButton(selected = option == selected, onClick = null)
+        Text(text = option, modifier = Modifier.padding(start = 8.dp))
+      }
+    }
+  }
+  Spacer(Modifier.height(16.dp))
 }
 
 @ShelfDroidPreview
