@@ -92,7 +92,7 @@ fun HomeScreen(
   val pagerState =
     rememberPagerState(
       pageCount = { libraryCount },
-      initialPage = if (libraryCount > 1) 1 else 0,
+      initialPage = initialHomePage(uiState.currentPage, libraryCount),
     )
   LaunchedEffect(pagerState.currentPage) {
     viewModel.onEvent(HomeEvent.ChangeLibrary(pagerState.currentPage))
@@ -100,7 +100,11 @@ fun HomeScreen(
   LaunchedEffect(uiState.activeLibraryId, uiState.librariesUiState.map { it.id }) {
     val activeLibraryPage =
       uiState.librariesUiState.indexOfFirst { it.id == uiState.activeLibraryId }
-    if (activeLibraryPage >= 0 && pagerState.currentPage != activeLibraryPage) {
+    if (
+      activeLibraryPage >= 0 &&
+        pagerState.currentPage != libraryCount - 1 &&
+        pagerState.currentPage != activeLibraryPage
+    ) {
       // Home selection changes do not dispatch PlayerEvents, preserving any buffered playback.
       pagerState.scrollToPage(activeLibraryPage)
     }
@@ -131,6 +135,11 @@ fun HomeScreen(
     onEditItemClicked,
     onAuthenticationSettingsClicked,
   )
+}
+
+internal fun initialHomePage(currentPage: Int, libraryCount: Int): Int {
+  val lastPage = libraryCount - 1
+  return if (currentPage == lastPage) lastPage else if (libraryCount > 1) 1 else 0
 }
 
 @Composable

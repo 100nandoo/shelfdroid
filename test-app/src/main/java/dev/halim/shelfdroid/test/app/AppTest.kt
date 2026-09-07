@@ -75,6 +75,24 @@ class AppTest {
   }
 
   @Test
+  fun returning_from_logs_restores_misc_screen() {
+    launchMainActivity()
+    login()
+
+    repeat(2) {
+      composeTestRule.onRoot().performTouchInput { swipeLeft() }
+      composeTestRule.waitForIdle()
+    }
+    composeTestRule.onNodeWithText("Logs").performClick()
+    waitForText("Server log level")
+
+    scenario!!.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Client").assertExists()
+  }
+
+  @Test
   fun home_supports_relogin_from_settings() {
     launchMainActivity()
     login()

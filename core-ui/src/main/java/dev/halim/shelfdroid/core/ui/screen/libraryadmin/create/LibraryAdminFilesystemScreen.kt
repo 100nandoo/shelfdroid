@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -71,34 +73,19 @@ internal fun LibraryAdminFilesystemContent(
       IconButton(onClick = { onEvent(LibraryAdminCreateEvent.CloseFilesystem) }) {
         Icon(painterResource(R.drawable.close), stringResource(R.string.cancel))
       }
-      Column {
-        Text(
-          stringResource(R.string.library_browse_server_folders),
-          style = MaterialTheme.typography.titleLarge,
-        )
-        Text(
-          stringResource(R.string.library_server_folder_subtitle),
-          style = MaterialTheme.typography.bodySmall,
-        )
-      }
-    }
-    Row(
-      Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      TextButton(onClick = { onEvent(LibraryAdminCreateEvent.OpenFilesystemPath("")) }) {
-        Text(stringResource(R.string.library_filesystem_root))
-      }
-      uiState.filesystemHistory.forEach { ancestor ->
-        Text("›")
-        TextButton(onClick = { onEvent(LibraryAdminCreateEvent.OpenFilesystemPath(ancestor)) }) {
-          Text(ancestor.trimEnd('/').substringAfterLast('/'))
+      Row(
+        Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        TextButton(onClick = { onEvent(LibraryAdminCreateEvent.OpenFilesystemPath("")) }) {
+          Text(stringResource(R.string.library_filesystem_root))
         }
-      }
-    }
-    if (uiState.filesystemHistory.isNotEmpty()) {
-      TextButton(onClick = { onEvent(LibraryAdminCreateEvent.FilesystemUp) }) {
-        Text(stringResource(R.string.library_filesystem_up))
+        uiState.filesystemHistory.forEach { ancestor ->
+          Text("›")
+          TextButton(onClick = { onEvent(LibraryAdminCreateEvent.OpenFilesystemPath(ancestor)) }) {
+            Text(ancestor.trimEnd('/').substringAfterLast('/'))
+          }
+        }
       }
     }
     HorizontalDivider()
@@ -141,6 +128,16 @@ internal fun LibraryAdminFilesystemContent(
       Modifier.fillMaxWidth().padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+      if (uiState.filesystemHistory.isNotEmpty()) {
+        TextButton(onClick = { onEvent(LibraryAdminCreateEvent.FilesystemUp) }) {
+          Icon(
+            painter = painterResource(R.drawable.arrow_left),
+            contentDescription = null,
+          )
+          Spacer(Modifier.width(8.dp))
+          Text(stringResource(R.string.library_filesystem_up))
+        }
+      }
       Text(
         path ?: stringResource(R.string.library_filesystem_choose_folder),
         style = MaterialTheme.typography.bodyMedium,

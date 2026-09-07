@@ -72,7 +72,7 @@ class LibraryAdminCreateContentTest {
         events::add,
       )
     }
-    composeRule.onNodeWithText("No folders returned").assertIsDisplayed()
+    composeRule.onNodeWithText("Folder is empty").assertIsDisplayed()
     composeRule.onNodeWithText("Add this folder").assertIsEnabled().performClick()
     assertEquals(LibraryAdminCreateEvent.SelectFolder("/media/books"), events.last())
     composeRule.onNodeWithText("media").performClick()

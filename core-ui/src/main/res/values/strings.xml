@@ -856,7 +856,6 @@
     <string name="library_filesystem_browser">Server filesystem</string>
     <string name="library_filesystem_root">Server</string>
     <string name="library_enter_path_manually">Enter path manually</string>
-    <string name="library_server_folder_subtitle">On your Audiobookshelf server</string>
     <string name="library_filesystem_up">Up one level</string>
     <string name="library_filesystem_choose_folder">Open a folder or drive to select it.</string>
     <string name="library_filesystem_add_current">Add this folder</string>
@@ -864,7 +863,7 @@
     <string name="library_filesystem_current_path">Current filesystem path</string>
     <string name="library_filesystem_directory_list">Filesystem directories</string>
     <string name="library_filesystem_load_failed">Could not load server folders.</string>
-    <string name="library_filesystem_empty">No folders returned</string>
+    <string name="library_filesystem_empty">Folder is empty</string>
     <string name="library_create_settings_coming_soon">Library settings will be available here.</string>
     <string name="library_create_scanner_coming_soon">Scanner settings will be available here.</string>
     <string name="library_settings_covers_heading">Covers and watcher</string>
