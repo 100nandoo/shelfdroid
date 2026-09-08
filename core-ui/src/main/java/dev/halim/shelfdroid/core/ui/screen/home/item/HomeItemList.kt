@@ -19,7 +19,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 fun LazyGridItemScope.HomeItemList(
   id: String,
   title: String,
-  author: String,
+  secondaryText: String,
   cover: String,
   onClick: () -> Unit,
   onLongClick: () -> Unit,
@@ -29,7 +29,7 @@ fun LazyGridItemScope.HomeItemList(
     Modifier.animateItem().padding(horizontal = 16.dp),
     id,
     title,
-    author,
+    secondaryText,
     cover,
     onClick,
     onLongClick,
@@ -50,7 +50,7 @@ fun PreviewHomeBookItemList() {
         HomeItemList(
           id = book.id,
           title = book.title,
-          author = book.author,
+          secondaryText = book.author,
           cover = book.cover,
           onClick = {},
           onLongClick = {},
@@ -73,7 +73,7 @@ fun PreviewHomePodcastItemList() {
         HomeItemList(
           id = podcast.id,
           title = podcast.title,
-          author = podcast.author,
+          secondaryText = podcast.author,
           cover = podcast.cover,
           onClick = {},
           onLongClick = {},

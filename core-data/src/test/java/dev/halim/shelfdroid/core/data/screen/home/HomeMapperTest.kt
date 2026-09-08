@@ -11,18 +11,19 @@ class HomeMapperTest {
   fun toBookUiState_mapsCachedDuration() {
     val state =
       LibraryItemCatalog(
-        id = "book-1",
-        libraryId = "library-1",
-        author = "Author",
-        authorFirstLast = "Author",
-        authorLastFirst = "Author",
-        title = "Book",
-        cover = "cover",
-        duration = 1234.5,
-        isBook = 1,
-        addedAt = 1,
-        episodeCount = 0,
-      ).toBookUiState(isDownloaded = false, progressLastUpdate = 0)
+          id = "book-1",
+          libraryId = "library-1",
+          author = "Author",
+          authorFirstLast = "Author",
+          authorLastFirst = "Author",
+          title = "Book",
+          cover = "cover",
+          duration = 1234.5,
+          isBook = 1,
+          addedAt = 1,
+          episodeCount = 0,
+        )
+        .toBookUiState(isDownloaded = false, progressLastUpdate = 0)
 
     assertEquals(1234.5, state.duration, 0.0)
   }

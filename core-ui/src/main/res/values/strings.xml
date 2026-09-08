@@ -227,6 +227,10 @@
     <string name="library_item">Library item</string>
     <string name="collection">Collection</string>
     <string name="unknown_title">Unknown</string>
+    <string name="unknown_duration">Unknown</string>
+    <string name="added_date">Added %1$s</string>
+    <string name="unknown_added_date">Unknown</string>
+    <string name="no_progress_yet">No progress yet</string>
     <string name="last_updated">Last updated</string>
     <string name="public_feed_url">Public feed URL</string>
     <string name="rss_feed_slug">Slug</string>

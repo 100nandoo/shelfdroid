@@ -7,6 +7,10 @@ import dev.halim.shelfdroid.core.PodcastSort
 import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -117,6 +121,210 @@ class HomeScreenSortTest {
   }
 
   @Test
+  fun bookFilterAndSort_whenProgressAscending_keepsNoProgressLast() {
+    val sorted =
+      bookFilterAndSort(
+        books =
+          listOf(
+            book(id = "no-progress", progressLastUpdate = 0L),
+            book(id = "older", progressLastUpdate = 100L),
+            book(id = "newer", progressLastUpdate = 200L),
+          ),
+        displayPrefs = DisplayPrefs(bookSort = BookSort.Progress, sortOrder = SortOrder.Asc),
+      )
+
+    assertEquals(listOf("older", "newer", "no-progress"), sorted.map(BookUiState::id))
+  }
+
+  @Test
+  fun bookFilterAndSort_whenProgressDescending_keepsNoProgressLast() {
+    val sorted =
+      bookFilterAndSort(
+        books =
+          listOf(
+            book(id = "no-progress", progressLastUpdate = 0L),
+            book(id = "older", progressLastUpdate = 100L),
+            book(id = "newer", progressLastUpdate = 200L),
+          ),
+        displayPrefs = DisplayPrefs(bookSort = BookSort.Progress, sortOrder = SortOrder.Desc),
+      )
+
+    assertEquals(listOf("newer", "older", "no-progress"), sorted.map(BookUiState::id))
+  }
+
+  @Test
+  fun bookSecondaryText_whenDurationSort_formatsTotalRuntime() {
+    val book = book(id = "book", duration = 3660.0)
+
+    assertEquals("1h 1m", book.secondaryText(BookSort.Duration, "Unknown"))
+  }
+
+  @Test
+  fun bookSecondaryText_whenDurationIsMissing_usesUnknownText() {
+    assertEquals(
+      "Unknown",
+      book(id = "book", duration = 0.0).secondaryText(BookSort.Duration, "Unknown"),
+    )
+    assertEquals(
+      "Unknown",
+      book(id = "book", duration = -1.0).secondaryText(BookSort.Duration, "Unknown"),
+    )
+  }
+
+  @Test
+  fun formatAddedDate_formatsSingleDigitDayWithAbbreviatedMonth() {
+    val addedAt =
+      ZonedDateTime.of(2026, 1, 7, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant().toEpochMilli()
+
+    assertEquals(
+      "7 Jan 2026",
+      formatAddedDate(addedAt, locale = Locale.ENGLISH, zoneId = ZoneId.of("UTC")),
+    )
+  }
+
+  @Test
+  fun formatAddedDate_formatsDoubleDigitDayWithAbbreviatedMonth() {
+    val addedAt =
+      ZonedDateTime.of(2025, 12, 27, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant().toEpochMilli()
+
+    assertEquals(
+      "27 Dec 2025",
+      formatAddedDate(addedAt, locale = Locale.ENGLISH, zoneId = ZoneId.of("UTC")),
+    )
+  }
+
+  @Test
+  fun formatAddedDate_usesLocalTimeZoneForCalendarDate() {
+    val addedAt = Instant.parse("2026-01-07T23:30:00Z").toEpochMilli()
+
+    assertEquals(
+      "8 Jan 2026",
+      formatAddedDate(addedAt, locale = Locale.ENGLISH, zoneId = ZoneId.of("Asia/Singapore")),
+    )
+  }
+
+  @Test
+  fun formatAddedDateSecondaryText_whenTimestampIsMissing_usesUnknownText() {
+    assertEquals(
+      "Unknown",
+      formatAddedDateSecondaryText(
+        addedAt = 0,
+        addedDateLabel = "Added %1\$s",
+        unknownAddedDate = "Unknown",
+        locale = Locale.ENGLISH,
+        zoneId = ZoneId.of("UTC"),
+      ),
+    )
+  }
+
+  @Test
+  fun formatAddedDateSecondaryText_whenTimestampIsPresent_appliesAddedLabel() {
+    val addedAt =
+      ZonedDateTime.of(2025, 12, 27, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant().toEpochMilli()
+
+    assertEquals(
+      "Added 27 Dec 2025",
+      formatAddedDateSecondaryText(
+        addedAt = addedAt,
+        addedDateLabel = "Added %1\$s",
+        unknownAddedDate = "Unknown",
+        locale = Locale.ENGLISH,
+        zoneId = ZoneId.of("UTC"),
+      ),
+    )
+  }
+
+  @Test
+  fun bookSecondaryText_whenAddedAt_usesAddedDateText() {
+    val book =
+      book(
+        id = "book",
+        addedAt =
+          ZonedDateTime.of(2026, 1, 7, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant().toEpochMilli(),
+      )
+
+    assertEquals(
+      "Added 7 Jan 2026",
+      book.secondaryText(
+        BookSort.AddedAt,
+        "Unknown",
+        formatAddedDateSecondaryText(
+          addedAt = book.addedAt,
+          addedDateLabel = "Added %1\$s",
+          unknownAddedDate = "Unknown",
+          locale = Locale.ENGLISH,
+          zoneId = ZoneId.of("UTC"),
+        ),
+      ),
+    )
+  }
+
+  @Test
+  fun formatProgressLastUpdated_includesDateYearHourAndMinuteWithoutSeconds() {
+    val lastUpdate =
+      ZonedDateTime.of(2026, 1, 7, 12, 34, 56, 0, ZoneId.of("UTC")).toInstant().toEpochMilli()
+
+    assertEquals(
+      "Jan 7, 2026, 12:34\u202fPM",
+      formatProgressLastUpdated(lastUpdate, locale = Locale.US, zoneId = ZoneId.of("UTC")),
+    )
+  }
+
+  @Test
+  fun formatProgressLastUpdated_usesDeviceTimeZoneForDisplayedDateAndTime() {
+    val lastUpdate = Instant.parse("2026-01-07T23:30:00Z").toEpochMilli()
+
+    assertEquals(
+      "Jan 8, 2026, 7:30\u202fAM",
+      formatProgressLastUpdated(
+        lastUpdate,
+        locale = Locale.US,
+        zoneId = ZoneId.of("Asia/Singapore"),
+      ),
+    )
+  }
+
+  @Test
+  fun formatProgressLastUpdatedSecondaryText_whenTimestampIsMissing_usesFallback() {
+    assertEquals(
+      "No progress yet",
+      formatProgressLastUpdatedSecondaryText(
+        lastUpdate = 0L,
+        noProgressYet = "No progress yet",
+        locale = Locale.US,
+        zoneId = ZoneId.of("UTC"),
+      ),
+    )
+  }
+
+  @Test
+  fun bookSecondaryText_whenProgressSort_usesLastUpdatedText() {
+    assertEquals(
+      "Jan 7, 2026, 12:34\u202fPM",
+      book(id = "book")
+        .secondaryText(
+          bookSort = BookSort.Progress,
+          unknownDuration = "Unknown",
+          progressLastUpdatedText = "Jan 7, 2026, 12:34\u202fPM",
+        ),
+    )
+  }
+
+  @Test
+  fun bookSecondaryText_whenNotSortedByDuration_usesAuthorName() {
+    val book =
+      book(
+        id = "book",
+        authorFirstLast = "John Doe",
+        authorLastFirst = "Doe, John",
+        duration = 3660.0,
+      )
+
+    assertEquals("John Doe", book.secondaryText(BookSort.AuthorFirstLast, "Unknown"))
+    assertEquals("Doe, John", book.secondaryText(BookSort.AuthorLastFirst, "Unknown"))
+  }
+
+  @Test
   fun podcastFilterAndSort_whenDownloadedOnly_keepsPodcastsWithDownloadedEpisodes() {
     val filtered =
       podcastFilterAndSort(
@@ -129,6 +337,42 @@ class HomeScreenSortTest {
       )
 
     assertEquals(listOf("Downloaded"), filtered.map(PodcastUiState::title))
+  }
+
+  @Test
+  fun podcastSecondaryText_whenAddedAt_usesAddedDateText() {
+    val podcast =
+      podcast(
+        title = "Podcast",
+        addedAt =
+          ZonedDateTime.of(2025, 12, 27, 12, 0, 0, 0, ZoneId.of("UTC")).toInstant().toEpochMilli(),
+      )
+
+    assertEquals(
+      "Added 27 Dec 2025",
+      podcast.secondaryText(
+        PodcastSort.AddedAt,
+        formatAddedDateSecondaryText(
+          addedAt = podcast.addedAt,
+          addedDateLabel = "Added %1\$s",
+          unknownAddedDate = "Unknown",
+          locale = Locale.ENGLISH,
+          zoneId = ZoneId.of("UTC"),
+        ),
+      ),
+    )
+  }
+
+  @Test
+  fun podcastSecondaryText_whenProgressSort_usesLastUpdatedText() {
+    assertEquals(
+      "Jan 7, 2026, 12:34\u202fPM",
+      podcast(title = "Podcast")
+        .secondaryText(
+          podcastSort = PodcastSort.Progress,
+          progressLastUpdatedText = "Jan 7, 2026, 12:34\u202fPM",
+        ),
+    )
   }
 
   @Test
@@ -207,6 +451,7 @@ class HomeScreenSortTest {
             podcast(title = "Charlie", progressLastUpdate = 200L),
             podcast(title = "Alpha", progressLastUpdate = 0L),
             podcast(title = "Bravo", progressLastUpdate = 200L),
+            podcast(title = "Echo", progressLastUpdate = 100L),
           ),
         displayPrefs =
           DisplayPrefs(
@@ -216,7 +461,10 @@ class HomeScreenSortTest {
           ),
       )
 
-    assertEquals(listOf("Bravo", "Charlie", "Alpha", "Zulu"), sorted.map(PodcastUiState::title))
+    assertEquals(
+      listOf("Bravo", "Charlie", "Echo", "Alpha", "Zulu"),
+      sorted.map(PodcastUiState::title),
+    )
   }
 
   @Test
@@ -229,6 +477,7 @@ class HomeScreenSortTest {
             podcast(title = "Charlie", progressLastUpdate = 200L),
             podcast(title = "Alpha", progressLastUpdate = 0L),
             podcast(title = "Bravo", progressLastUpdate = 200L),
+            podcast(title = "Echo", progressLastUpdate = 100L),
           ),
         displayPrefs =
           DisplayPrefs(
@@ -238,13 +487,17 @@ class HomeScreenSortTest {
           ),
       )
 
-    assertEquals(listOf("Alpha", "Zulu", "Bravo", "Charlie"), sorted.map(PodcastUiState::title))
+    assertEquals(
+      listOf("Echo", "Bravo", "Charlie", "Alpha", "Zulu"),
+      sorted.map(PodcastUiState::title),
+    )
   }
 
   private fun podcast(
     title: String,
     id: String = title.lowercase(),
     author: String = "",
+    addedAt: Long = 0L,
     progressLastUpdate: Long = 0L,
     downloadedCount: Int = 0,
   ): PodcastUiState {
@@ -252,6 +505,7 @@ class HomeScreenSortTest {
       id = id,
       author = author,
       title = title,
+      addedAt = addedAt,
       progressLastUpdate = progressLastUpdate,
       downloadedCount = downloadedCount,
     )
@@ -263,6 +517,8 @@ class HomeScreenSortTest {
     authorLastFirst: String = authorFirstLast,
     title: String = id,
     duration: Double = 0.0,
+    addedAt: Long = 0L,
+    progressLastUpdate: Long = 0L,
   ): BookUiState {
     return BookUiState(
       id = id,
@@ -271,6 +527,8 @@ class HomeScreenSortTest {
       authorLastFirst = authorLastFirst,
       title = title,
       duration = duration,
+      addedAt = addedAt,
+      progressLastUpdate = progressLastUpdate,
     )
   }
 }

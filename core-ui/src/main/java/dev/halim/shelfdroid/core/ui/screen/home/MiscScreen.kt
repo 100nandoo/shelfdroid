@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -76,7 +78,10 @@ private fun MiscScreenContent(
   onMetadataUtilitiesClicked: () -> Unit = {},
 ) {
   val modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-  Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+  Column(
+    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+    verticalArrangement = Arrangement.Bottom,
+  ) {
     if (shouldShowServerSection(isAdmin)) {
       TextHeadlineSmall(
         modifier.padding(top = 16.dp),

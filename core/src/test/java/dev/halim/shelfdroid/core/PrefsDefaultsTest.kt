@@ -27,6 +27,13 @@ class PrefsDefaultsTest {
   }
 
   @Test
+  fun progressSort_usesLastUpdatedLabelForBothLibraries() {
+    assertEquals("Progress: Last Updated", LABEL_PROGRESS)
+    assertEquals(BookSort.Progress, BookSort.fromLabel("Progress: Last Updated"))
+    assertEquals(PodcastSort.Progress, PodcastSort.fromLabel("Progress: Last Updated"))
+  }
+
+  @Test
   fun displayPrefs_selectPodcastSort_resetsOnlyWhenSwitchingToAuthor() {
     val descending =
       DisplayPrefs(podcastSort = PodcastSort.Title, podcastSortOrder = SortOrder.Desc)

@@ -54,6 +54,14 @@ _Avoid_: Item, media object
 A library item representing an audiobook, potentially as a single track or multiple tracks.
 _Avoid_: Book file, title
 
+**Library item added date**:
+The calendar date, in the device's local time zone, when a **Library item** was added to its server **Library**. For a **Podcast**, this refers to the podcast itself, independently of its **Episodes**.
+_Avoid_: Download date, episode published date
+
+**Book duration**:
+The total audio runtime of a **Book**, independent of its listening **Progress**.
+_Avoid_: Remaining time, listening time
+
 **ASIN**:
 The Audible catalog identifier stored on a **Book** and usable as a direct search value for Audible-backed metadata lookup.
 _Avoid_: Search ID, product code

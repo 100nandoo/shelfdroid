@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -47,6 +48,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
+import dev.halim.shelfdroid.core.extensions.formatDurationShort
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.components.VisibilityDown
@@ -58,6 +60,12 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 import dev.halim.shelfdroid.core.ui.screen.home.item.HomeItem
 import dev.halim.shelfdroid.core.ui.screen.home.item.HomeItemBottomSheet
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.FormatStyle
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 @Composable
@@ -317,6 +325,7 @@ fun LibraryContent(
 ) {
   val gridState = rememberLazyGridState(initialFirstVisibleItemIndex = 0)
   val displayPrefs = prefs.displayPrefs
+  val unknownDuration = stringResource(R.string.unknown_duration)
   val listView = displayPrefs.listView
   val columnCount = remember(listView) { if (listView) 1 else 3 }
   val isDownloaded = displayPrefs.filter.isDownloaded()
@@ -398,7 +407,12 @@ fun LibraryContent(
         listView = listView,
         id = book.id,
         title = book.title,
-        author = book.authorFor(displayPrefs.bookSort),
+        secondaryText =
+          when (displayPrefs.bookSort) {
+            BookSort.AddedAt -> addedDateSecondaryText(book.addedAt)
+            BookSort.Progress -> progressLastUpdatedSecondaryText(book.progressLastUpdate)
+            else -> book.secondaryText(displayPrefs.bookSort, unknownDuration)
+          },
         cover = book.cover,
         onClick = { onBookClicked(book.id) },
         onLongClick = { onLongClick(book, null) },
@@ -416,7 +430,12 @@ fun LibraryContent(
         listView = listView,
         id = podcast.id,
         title = podcast.title,
-        author = podcast.author,
+        secondaryText =
+          when (displayPrefs.podcastSort) {
+            PodcastSort.AddedAt -> addedDateSecondaryText(podcast.addedAt)
+            PodcastSort.Progress -> progressLastUpdatedSecondaryText(podcast.progressLastUpdate)
+            else -> podcast.secondaryText(displayPrefs.podcastSort)
+          },
         cover = podcast.cover,
         unfinishedEpisodeCount = count,
         onClick = { onPodcastClicked(podcast.id) },
@@ -428,6 +447,103 @@ fun LibraryContent(
     }
   }
 }
+
+private const val ADDED_DATE_PATTERN = "d MMM yyyy"
+
+internal fun formatAddedDate(
+  addedAt: Long,
+  locale: Locale = Locale.getDefault(),
+  zoneId: ZoneId = ZoneId.systemDefault(),
+): String? {
+  if (addedAt <= 0L) return null
+
+  return Instant.ofEpochMilli(addedAt)
+    .atZone(zoneId)
+    .format(DateTimeFormatter.ofPattern(ADDED_DATE_PATTERN, locale))
+}
+
+internal fun formatAddedDateSecondaryText(
+  addedAt: Long,
+  addedDateLabel: String,
+  unknownAddedDate: String,
+  locale: Locale = Locale.getDefault(),
+  zoneId: ZoneId = ZoneId.systemDefault(),
+): String {
+  val formattedDate = formatAddedDate(addedAt, locale, zoneId)
+  return formattedDate?.let { String.format(Locale.ROOT, addedDateLabel, it) } ?: unknownAddedDate
+}
+
+@Composable
+private fun addedDateSecondaryText(addedAt: Long): String {
+  val locale = LocalConfiguration.current.locales[0]
+  return formatAddedDateSecondaryText(
+    addedAt = addedAt,
+    addedDateLabel = stringResource(R.string.added_date),
+    unknownAddedDate = stringResource(R.string.unknown_added_date),
+    locale = locale,
+  )
+}
+
+private fun progressLastUpdatedFormatter(locale: Locale): DateTimeFormatter {
+  return DateTimeFormatterBuilder()
+    .appendLocalized(FormatStyle.MEDIUM, FormatStyle.SHORT)
+    .toFormatter(locale)
+}
+
+internal fun formatProgressLastUpdated(
+  lastUpdate: Long,
+  locale: Locale = Locale.getDefault(),
+  zoneId: ZoneId = ZoneId.systemDefault(),
+): String? {
+  if (lastUpdate <= 0L) return null
+
+  return Instant.ofEpochMilli(lastUpdate)
+    .atZone(zoneId)
+    .format(progressLastUpdatedFormatter(locale))
+}
+
+internal fun formatProgressLastUpdatedSecondaryText(
+  lastUpdate: Long,
+  noProgressYet: String,
+  locale: Locale = Locale.getDefault(),
+  zoneId: ZoneId = ZoneId.systemDefault(),
+): String {
+  return formatProgressLastUpdated(lastUpdate, locale, zoneId) ?: noProgressYet
+}
+
+@Composable
+private fun progressLastUpdatedSecondaryText(lastUpdate: Long): String {
+  val locale = LocalConfiguration.current.locales[0]
+  return formatProgressLastUpdatedSecondaryText(
+    lastUpdate = lastUpdate,
+    noProgressYet = stringResource(R.string.no_progress_yet),
+    locale = locale,
+  )
+}
+
+internal fun BookUiState.secondaryText(
+  bookSort: BookSort,
+  unknownDuration: String,
+  addedDateText: String = "",
+  progressLastUpdatedText: String = "",
+): String =
+  when (bookSort) {
+    BookSort.AddedAt -> addedDateText
+    BookSort.Duration -> if (duration > 0.0) duration.formatDurationShort() else unknownDuration
+    BookSort.Progress -> progressLastUpdatedText
+    else -> authorFor(bookSort)
+  }
+
+internal fun PodcastUiState.secondaryText(
+  podcastSort: PodcastSort,
+  addedDateText: String = "",
+  progressLastUpdatedText: String = "",
+): String =
+  when (podcastSort) {
+    PodcastSort.AddedAt -> addedDateText
+    PodcastSort.Progress -> progressLastUpdatedText
+    else -> author
+  }
 
 @Composable
 private fun DownloadedEmptyState() {
@@ -484,11 +600,19 @@ internal fun bookFilterAndSort(
       BookSort.AddedAt -> compareBy<BookUiState> { it.addedAt }
       BookSort.Duration -> compareBy { it.duration }
       BookSort.Title -> compareBy { it.title }
-      BookSort.Progress -> compareBy { it.progressLastUpdate }
+      BookSort.Progress ->
+        if (displayPrefs.sortOrder == SortOrder.Desc) {
+          compareBy<BookUiState> { it.progressLastUpdate <= 0L }
+            .thenByDescending { it.progressLastUpdate }
+        } else {
+          compareBy<BookUiState> { it.progressLastUpdate <= 0L }.thenBy { it.progressLastUpdate }
+        }
       else -> error("Author sorting is handled above")
     }
 
-  return if (displayPrefs.sortOrder == SortOrder.Desc) {
+  return if (
+    displayPrefs.sortOrder == SortOrder.Desc && displayPrefs.bookSort != BookSort.Progress
+  ) {
     filtered.sortedWith(comparator.reversed())
   } else {
     filtered.sortedWith(comparator)
@@ -537,9 +661,13 @@ internal fun podcastFilterAndSort(
         }
       PodcastSort.Progress ->
         if (displayPrefs.podcastSortOrder == SortOrder.Desc) {
-          compareByDescending<PodcastUiState> { it.progressLastUpdate }.thenBy { it.title }
+          compareBy<PodcastUiState> { it.progressLastUpdate <= 0L }
+            .thenByDescending { it.progressLastUpdate }
+            .thenBy { it.title }
         } else {
-          compareBy<PodcastUiState>({ it.progressLastUpdate }, { it.title })
+          compareBy<PodcastUiState> { it.progressLastUpdate <= 0L }
+            .thenBy { it.progressLastUpdate }
+            .thenBy { it.title }
         }
       PodcastSort.Author -> error("Author sorting is handled above")
     }

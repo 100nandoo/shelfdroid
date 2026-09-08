@@ -129,7 +129,9 @@ const val LABEL_AUTHOR_FIRST_LAST = "Author (First Last)"
 const val LABEL_AUTHOR_LAST_FIRST = "Author (Last, First)"
 const val LABEL_DURATION = "Duration"
 const val LABEL_TITLE = "Title"
-const val LABEL_PROGRESS = "Progress"
+const val LABEL_PROGRESS = "Progress: Last Updated"
+
+private const val LEGACY_LABEL_PROGRESS = "Progress"
 
 enum class BookSort(val label: String) {
   AddedAt(LABEL_ADDED_AT),
@@ -150,7 +152,8 @@ enum class BookSort(val label: String) {
         LABEL_AUTHOR_LAST_FIRST -> AuthorLastFirst
         LABEL_DURATION -> Duration
         LABEL_TITLE -> Title
-        LABEL_PROGRESS -> Progress
+        LABEL_PROGRESS,
+        LEGACY_LABEL_PROGRESS -> Progress
         else -> AddedAt
       }
     }
@@ -169,7 +172,8 @@ enum class PodcastSort(val label: String) {
         LABEL_ADDED_AT -> AddedAt
         LABEL_AUTHOR -> Author
         LABEL_TITLE -> Title
-        LABEL_PROGRESS -> Progress
+        LABEL_PROGRESS,
+        LEGACY_LABEL_PROGRESS -> Progress
         else -> AddedAt
       }
     }

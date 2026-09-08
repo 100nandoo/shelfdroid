@@ -2,13 +2,9 @@ package dev.halim.shelfdroid.core.ui.screen.settings.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -25,6 +21,7 @@ import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.settings.home.SettingsHomeUiState
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
+import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
@@ -84,55 +81,49 @@ fun SettingsHomeScreenContent(
       Modifier.padding(start = 24.dp, top = 4.dp),
       text = stringResource(R.string.book_library),
     )
-    Row(
+    ChipDropdownMenu(
       modifier = paddingStartTwo.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-      ChipDropdownMenu(
-        modifier = Modifier.weight(1f),
-        label = stringResource(R.string.sort),
-        options = BookSort.entries.map { it.label },
-        initialValue = uiState.displayPrefs.bookSort.label,
-        onClick = {
-          onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.BookSort(it)))
-        },
-      )
-      Spacer(Modifier.width(8.dp))
-      ChipDropdownMenu(
-        label = stringResource(R.string.order),
-        options = SortOrder.entries.map { it.name },
-        initialValue = uiState.displayPrefs.sortOrder.name,
-        onClick = { onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.SortOrder(it))) },
-      )
-    }
+      label = stringResource(R.string.sort),
+      labelPosition = LabelPosition.Expand,
+      options = BookSort.entries.map { it.label },
+      initialValue = uiState.displayPrefs.bookSort.label,
+      onClick = {
+        onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.BookSort(it)))
+      },
+    )
+    ChipDropdownMenu(
+      modifier = paddingStartTwo.fillMaxWidth(),
+      label = stringResource(R.string.order),
+      labelPosition = LabelPosition.Expand,
+      options = SortOrder.entries.map { it.name },
+      initialValue = uiState.displayPrefs.sortOrder.name,
+      onClick = { onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.SortOrder(it))) },
+    )
 
     SettingsSublabel(
       Modifier.padding(start = 24.dp, top = 4.dp),
       text = stringResource(R.string.podcast_library),
     )
-    Row(
+    ChipDropdownMenu(
       modifier = paddingStartTwo.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-      ChipDropdownMenu(
-        modifier = Modifier.weight(1f),
-        label = stringResource(R.string.sort),
-        options = PodcastSort.entries.map { it.label },
-        initialValue = uiState.displayPrefs.podcastSort.label,
-        onClick = {
-          onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.PodcastSort(it)))
-        },
-      )
-      Spacer(Modifier.width(8.dp))
-      ChipDropdownMenu(
-        label = stringResource(R.string.order),
-        options = SortOrder.entries.map { it.name },
-        initialValue = uiState.displayPrefs.podcastSortOrder.name,
-        onClick = {
-          onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.PodcastSortOrder(it)))
-        },
-      )
-    }
+      label = stringResource(R.string.sort),
+      labelPosition = LabelPosition.Expand,
+      options = PodcastSort.entries.map { it.label },
+      initialValue = uiState.displayPrefs.podcastSort.label,
+      onClick = {
+        onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.PodcastSort(it)))
+      },
+    )
+    ChipDropdownMenu(
+      modifier = paddingStartTwo.fillMaxWidth(),
+      label = stringResource(R.string.order),
+      labelPosition = LabelPosition.Expand,
+      options = SortOrder.entries.map { it.name },
+      initialValue = uiState.displayPrefs.podcastSortOrder.name,
+      onClick = {
+        onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.PodcastSortOrder(it)))
+      },
+    )
   }
 }
 

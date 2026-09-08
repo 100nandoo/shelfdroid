@@ -20,9 +20,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class SettingsHomeViewModel @Inject constructor(
-  private val settingsRepository: SettingsRepository,
-) : ViewModel() {
+class SettingsHomeViewModel
+@Inject
+constructor(private val settingsRepository: SettingsRepository) : ViewModel() {
   private val _uiState = MutableStateFlow(SettingsHomeUiState())
   val uiState: StateFlow<SettingsHomeUiState> =
     combine(_uiState, settingsRepository.prefs) { uiState: SettingsHomeUiState, prefs: Prefs ->

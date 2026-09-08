@@ -38,7 +38,7 @@ import dev.halim.shelfdroid.core.ui.screen.home.UnreadEpisodeCount
 fun LazyGridItemScope.HomeItemGrid(
   id: String,
   title: String,
-  author: String,
+  secondaryText: String,
   cover: String,
   onClick: () -> Unit,
   onLongClick: () -> Unit,
@@ -79,14 +79,14 @@ fun LazyGridItemScope.HomeItemGrid(
         )
 
         Text(
-          text = author,
+          text = secondaryText,
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
           textAlign = TextAlign.Center,
           modifier =
-            Modifier.mySharedBound(Animations.authorKey(id, author))
+            Modifier.mySharedBound(Animations.authorKey(id, secondaryText))
               .skipToLookaheadSize()
               .padding(horizontal = 8.dp)
               .padding(top = 4.dp, bottom = 8.dp),
@@ -178,7 +178,7 @@ fun PreviewHomeItemTwoGrid() {
         HomeItemGrid(
           id = book.id,
           title = book.title,
-          author = book.author,
+          secondaryText = book.author,
           cover = book.cover,
           onClick = {},
           onLongClick = {},
@@ -201,7 +201,7 @@ fun PreviewHomeItemThreeGrid() {
         HomeItemGrid(
           id = book.id,
           title = book.title,
-          author = book.author,
+          secondaryText = book.author,
           cover = book.cover,
           onClick = {},
           onLongClick = {},
