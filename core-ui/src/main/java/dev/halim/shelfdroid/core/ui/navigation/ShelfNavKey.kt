@@ -17,6 +17,8 @@ data class Login(val reLogin: Boolean = false, val reason: AuthPromptReason? = n
 
 @Serializable data object Settings : ShelfNavKey
 
+@Serializable data object SettingsHome : ShelfNavKey
+
 @Serializable data object SettingsPlayback : ShelfNavKey
 
 @Serializable data object SettingsPlayer : ShelfNavKey

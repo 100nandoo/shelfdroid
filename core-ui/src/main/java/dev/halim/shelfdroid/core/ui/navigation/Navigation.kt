@@ -66,6 +66,7 @@ import dev.halim.shelfdroid.core.ui.screen.rssfeeds.RssFeedsScreen
 import dev.halim.shelfdroid.core.ui.screen.searchpodcast.SearchPodcastScreen
 import dev.halim.shelfdroid.core.ui.screen.serversettings.ServerSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsScreen
+import dev.halim.shelfdroid.core.ui.screen.settings.home.SettingsHomeScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.notification.SettingsNotificationScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.player.SettingsPlayerScreen
@@ -271,6 +272,7 @@ private fun ColumnScope.NavHostContainer(
       entry<Settings> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           SettingsScreen(
+            onHomeClicked = { navigator.navigate(SettingsHome) },
             onPlayerClicked = { navigator.navigate(SettingsPlayer) },
             onPlaybackClicked = { navigator.navigate(SettingsPlayback) },
             onNotificationClicked = { navigator.navigate(SettingsNotification) },
@@ -281,6 +283,7 @@ private fun ColumnScope.NavHostContainer(
           )
         }
       }
+      entry<SettingsHome> { Nav3ScreenWrapper(sharedTransitionScope) { SettingsHomeScreen() } }
       entry<SettingsPlayback> {
         Nav3ScreenWrapper(sharedTransitionScope) { SettingsPlaybackScreen() }
       }

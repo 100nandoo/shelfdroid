@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -26,18 +24,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.BookSort
-import dev.halim.shelfdroid.core.Filter
-import dev.halim.shelfdroid.core.PodcastSort
-import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.ui.R
-import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
-import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -51,6 +43,7 @@ fun SettingsScreen(
   onPodcastClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   changePassword: () -> Unit = {},
+  onHomeClicked: () -> Unit = {},
   onLoggedOut: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,12 +71,13 @@ fun SettingsScreen(
     version = version,
     user = uiState.username,
     onPlayerClicked = onPlayerClicked,
+    onHomeClicked = onHomeClicked,
     onPlaybackClicked = onPlaybackClicked,
     onNotificationClicked = onNotificationClicked,
     onPodcastClicked = onPodcastClicked,
     onListeningSessionClicked = onListeningSessionClicked,
     changePassword = changePassword,
-    { settingsEvent -> viewModel.onEvent(settingsEvent) },
+    onEvent = { settingsEvent -> viewModel.onEvent(settingsEvent) },
   )
 
   MyAlertDialog(
@@ -108,6 +102,7 @@ fun SettingsScreenContent(
   onPodcastClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
   changePassword: () -> Unit = {},
+  onHomeClicked: () -> Unit = {},
   onEvent: (SettingsEvent) -> Unit = {},
 ) {
   Column(
@@ -122,8 +117,14 @@ fun SettingsScreenContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     DisplaySection(uiState, onEvent)
-    HomeScreenSection(uiState, onEvent)
     Spacer(modifier = Modifier.height(16.dp))
+
+    SettingsClickLabel(
+      text = stringResource(R.string.home_screen),
+      supportingText =
+        stringResource(R.string.settings_and_behaviour, stringResource(R.string.home_screen)),
+      onClick = onHomeClicked,
+    )
 
     SettingsClickLabel(
       text = stringResource(R.string.player),
@@ -182,91 +183,6 @@ private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) ->
     enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
     onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
   )
-}
-
-@Composable
-private fun HomeScreenSection(uiState: SettingsUiState, onEvent: (SettingsEvent) -> Unit) {
-  TextTitleMedium(
-    Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-    text = stringResource(R.string.home_screen),
-  )
-  val paddingStart = Modifier.padding(start = 24.dp, end = 16.dp)
-  MySwitch(
-    modifier = paddingStart,
-    title = stringResource(R.string.list_view),
-    checked = uiState.displayPrefs.listView,
-    contentDescription = stringResource(R.string.list_view),
-    onCheckedChange = { onEvent(SettingsEvent.SwitchListView(it)) },
-  )
-  MySwitch(
-    modifier = paddingStart,
-    title = stringResource(R.string.show_only_downloaded),
-    checked = uiState.displayPrefs.filter.isDownloaded(),
-    contentDescription = stringResource(R.string.show_only_downloaded),
-    onCheckedChange = {
-      val filter = if (it) Filter.Downloaded else Filter.All
-      onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.Filter(filter.name)))
-    },
-  )
-  if (uiState.canDelete) {
-    MySwitch(
-      modifier = paddingStart,
-      title = stringResource(R.string.user_permanent_delete),
-      checked = uiState.crudPrefs.hardDelete,
-      contentDescription = stringResource(R.string.user_permanent_delete),
-      onCheckedChange = { onEvent(SettingsEvent.SwitchHardDelete(it)) },
-    )
-  }
-  val paddingStartTwo = Modifier.padding(start = 24.dp, top = 4.dp, end = 16.dp)
-  SettingsSublabel(
-    Modifier.padding(start = 24.dp, top = 4.dp),
-    text = stringResource(R.string.book_library),
-  )
-  Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-    ChipDropdownMenu(
-      modifier = Modifier.weight(1f),
-      label = stringResource(R.string.sort),
-      options = BookSort.entries.map { it.label },
-      initialValue = uiState.displayPrefs.bookSort.label,
-      onClick = {
-        onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.BookSort(it)))
-      },
-    )
-    Spacer(Modifier.width(8.dp))
-    ChipDropdownMenu(
-      label = stringResource(R.string.order),
-      options = SortOrder.entries.map { it.name },
-      initialValue = uiState.displayPrefs.sortOrder.name,
-      onClick = {
-        onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.SortOrder(it)))
-      },
-    )
-  }
-
-  SettingsSublabel(
-    Modifier.padding(start = 24.dp, top = 4.dp),
-    text = stringResource(R.string.podcast_library),
-  )
-  Row(modifier = paddingStartTwo.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-    ChipDropdownMenu(
-      modifier = Modifier.weight(1f),
-      label = stringResource(R.string.sort),
-      options = PodcastSort.entries.map { it.label },
-      initialValue = uiState.displayPrefs.podcastSort.label,
-      onClick = {
-        onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSort(it)))
-      },
-    )
-    Spacer(Modifier.width(8.dp))
-    ChipDropdownMenu(
-      label = stringResource(R.string.order),
-      options = SortOrder.entries.map { it.name },
-      initialValue = uiState.displayPrefs.podcastSortOrder.name,
-      onClick = {
-        onEvent(SettingsEvent.SettingsDisplayPrefsEvent(DisplayPrefsEvent.PodcastSortOrder(it)))
-      },
-    )
-  }
 }
 
 @Composable
