@@ -12,6 +12,70 @@ This is the maintainer release path for ShelfDroid.
 - The Google Play Android Developer API is enabled, and the service account is granted release access to the ShelfDroid app in Play Console.
 - Local signing is available if you want to verify the release build before pushing.
 
+## Google Play Actions setup
+
+The workflow uses Workload Identity Federation, so no long-lived Google service-account JSON key is stored in GitHub. The provider and service-account values are non-sensitive configuration; the Android signing material remains secret.
+
+### GitHub Production environment
+
+Under **Settings → Environments → Production**, configure these existing signing secrets:
+
+- `ANDROID_SIGNING_KEY`: base64-encoded Android `.jks` file
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_PASSWORD`
+
+Add these environment variables:
+
+- `GCP_WORKLOAD_IDENTITY_PROVIDER`: the complete provider resource name, using the Google Cloud project number:
+
+  ```text
+  projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL>/providers/<PROVIDER>
+  ```
+
+- `GCP_SERVICE_ACCOUNT`: the service-account email, for example:
+
+  ```text
+  shelfdroid-release@<PROJECT_ID>.iam.gserviceaccount.com
+  ```
+
+### Google Cloud and Play Console
+
+1. Enable the **Google Play Developer API** in the Google Cloud project.
+2. Create a service account for release uploads.
+3. Create a Workload Identity Federation OIDC provider with issuer `https://token.actions.githubusercontent.com`.
+4. Map the `repository`, `ref`, `ref_type`, and `event_name` claims, and restrict the provider to this repository and tag pushes. For example:
+
+   ```text
+   assertion.repository == '<OWNER>/<REPO>' &&
+   assertion.ref_type == 'tag' &&
+   assertion.event_name == 'push'
+   ```
+
+5. Grant the workload identity pool permission to impersonate the service account (`roles/iam.workloadIdentityUser`).
+6. In Play Console → **Users and permissions**, invite the service-account email and grant the ShelfDroid app permission to release to production.
+
+Allow several minutes for new identity-provider and IAM permissions to propagate.
+
+## Testing the workflow
+
+Push the feature branch without creating a release tag:
+
+```bash
+git push -u origin feat/upload-google-play
+```
+
+Use **Actions → Android CI → Run workflow** and select that branch. A manual dispatch builds and signs only the APK; the GitHub Release and Play upload jobs remain skipped.
+
+For an end-to-end Play test, create the next release with a new `VERSION_CODE` and matching tag. Do not reuse an existing version code or tag. Push the tag and verify that:
+
+- `build` produces and signs both APK and AAB artifacts
+- `github-release` publishes the APK
+- `play-upload` authenticates and creates a draft on the `production` track
+- the draft contains the changelog and R8 mapping file
+
+If authentication fails, inspect the WIF provider condition, full provider resource name, and service-account impersonation grant. If authentication succeeds but the upload returns a Play API permission error, review the service account’s Play Console app permissions.
+
 ## What `cz bump` does in this repo
 
 A successful `cz bump` run:
