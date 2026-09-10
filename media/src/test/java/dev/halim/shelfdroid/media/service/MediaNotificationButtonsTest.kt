@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList
 import dev.halim.shelfdroid.core.ChapterPosition
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import org.junit.Assert.assertEquals
@@ -116,6 +117,18 @@ class MediaNotificationButtonsTest {
       listOf(CUSTOM_BACK, CUSTOM_FORWARD),
       buttons.map { it.sessionCommand?.customAction },
     )
+  }
+
+  @Test
+  fun `uses rounded icon matching selected playback speed`() {
+    assertEquals(CoreR.drawable.speed_0_5x, playbackSpeedIconResId(0.5f))
+    assertEquals(CoreR.drawable.speed_0_75, playbackSpeedIconResId(0.75f))
+    assertEquals(CoreR.drawable.speed, playbackSpeedIconResId(1f))
+    assertEquals(CoreR.drawable.speed_1_25, playbackSpeedIconResId(1.25f))
+    assertEquals(CoreR.drawable.speed_1_5, playbackSpeedIconResId(1.5f))
+    assertEquals(CoreR.drawable.speed_1_75, playbackSpeedIconResId(1.75f))
+    assertEquals(CoreR.drawable.speed_2x, playbackSpeedIconResId(2f))
+    assertEquals(CoreR.drawable.speed, playbackSpeedIconResId(1.1f))
   }
 
   @Test

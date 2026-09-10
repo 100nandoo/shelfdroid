@@ -44,12 +44,35 @@ internal object MediaNotificationButtons {
       .build()
 
   val PLAYBACK_SPEED_BUTTON: CommandButton =
-    CommandButton.Builder(CommandButton.ICON_UNDEFINED)
-      .setCustomIconResId(CoreR.drawable.speed)
-      .setSessionCommand(SessionCommand(CUSTOM_PLAYBACK_SPEED, Bundle()))
-      .setDisplayName("Playback speed")
-      .build()
+    playbackSpeedCommandButton(1f)
 }
+
+internal data class MediaNotificationButtonState(
+  val nextChapterState: NextChapterControlState,
+  val isSleepTimerActive: Boolean,
+  val playbackSpeed: Float,
+  val notificationPrefs: NotificationPrefs,
+)
+
+internal fun playbackSpeedIconResId(playbackSpeed: Float): Int =
+  when (playbackSpeed) {
+    0.5f -> CoreR.drawable.speed_0_5x
+    0.75f -> CoreR.drawable.speed_0_75
+    1f -> CoreR.drawable.speed
+    1.25f -> CoreR.drawable.speed_1_25
+    1.5f -> CoreR.drawable.speed_1_5
+    1.75f -> CoreR.drawable.speed_1_75
+    2f -> CoreR.drawable.speed_2x
+    else -> CoreR.drawable.speed
+  }
+
+@UnstableApi
+internal fun playbackSpeedCommandButton(playbackSpeed: Float): CommandButton =
+  CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+    .setCustomIconResId(playbackSpeedIconResId(playbackSpeed))
+    .setSessionCommand(SessionCommand(CUSTOM_PLAYBACK_SPEED, Bundle()))
+    .setDisplayName("Playback speed")
+    .build()
 
 @UnstableApi
 internal fun nextChapterCommandButton(
@@ -76,6 +99,7 @@ fun mediaNotificationButtons(
     nextChapterControlState(uiState, isChapterTransitioning),
     isSleepTimerActive,
     notificationPrefs,
+    uiState.advancedControl.speed,
   )
 
 @UnstableApi
@@ -84,6 +108,7 @@ fun mediaNotificationButtons(
   nextChapterState: NextChapterControlState,
   isSleepTimerActive: Boolean,
   notificationPrefs: NotificationPrefs = NotificationPrefs(),
+  currentPlaybackSpeed: Float = 1f,
 ): List<CommandButton> {
   return buildList {
     add(MediaNotificationButtons.BACK_COMMAND_BUTTON)
@@ -103,7 +128,8 @@ fun mediaNotificationButtons(
           if (nextChapterState.visible) {
             add(nextChapterCommandButton(nextChapterDisplayName, nextChapterState.enabled))
           }
-        MediaNotificationAction.PlaybackSpeed -> add(MediaNotificationButtons.PLAYBACK_SPEED_BUTTON)
+        MediaNotificationAction.PlaybackSpeed ->
+          add(playbackSpeedCommandButton(currentPlaybackSpeed))
         MediaNotificationAction.None -> Unit
       }
     }
