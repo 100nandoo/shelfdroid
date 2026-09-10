@@ -7,10 +7,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.BookSort
-import dev.halim.shelfdroid.core.Filter
-import dev.halim.shelfdroid.core.PodcastSort
-import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
@@ -20,6 +16,10 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminEventRepos
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.sync.SyncCoordinator
 import dev.halim.shelfdroid.core.data.sync.SyncEvent
+import dev.halim.shelfdroid.core.prefs.BookSort
+import dev.halim.shelfdroid.core.prefs.Filter
+import dev.halim.shelfdroid.core.prefs.PodcastSort
+import dev.halim.shelfdroid.core.prefs.SortOrder
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.navigation.Home
 import kotlinx.coroutines.flow.MutableStateFlow

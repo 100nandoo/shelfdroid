@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core
 
+import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import kotlin.time.Duration
 
 sealed interface PlayerState {

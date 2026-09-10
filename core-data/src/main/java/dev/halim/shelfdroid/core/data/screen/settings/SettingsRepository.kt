@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.settings
 
-import dev.halim.shelfdroid.core.BookSort
-import dev.halim.shelfdroid.core.Filter
-import dev.halim.shelfdroid.core.PodcastSort
-import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.BookSort
+import dev.halim.shelfdroid.core.prefs.Filter
+import dev.halim.shelfdroid.core.prefs.PodcastSort
+import dev.halim.shelfdroid.core.prefs.SortOrder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 

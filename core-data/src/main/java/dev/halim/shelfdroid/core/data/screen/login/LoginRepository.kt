@@ -6,10 +6,10 @@ import dev.halim.core.network.request.LoginRequest
 import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.AuthPromptReason
-import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.ServerAccessMode
 import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder

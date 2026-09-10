@@ -6,10 +6,10 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.client.HostSelectionInterceptor
 import dev.halim.core.network.client.SessionCookieJar
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.screen.login.LoginMethod
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.CoroutineScope

@@ -5,8 +5,6 @@ import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
-import dev.halim.shelfdroid.core.ServerAccessMode
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryState
@@ -17,6 +15,8 @@ import dev.halim.shelfdroid.core.data.screen.login.OpenIdLoginFailureStore
 import dev.halim.shelfdroid.core.data.screen.login.PendingOpenIdCallbackStore
 import dev.halim.shelfdroid.core.data.screen.login.PendingOpenIdLoginStore
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.ServerAccessMode
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import java.nio.file.Files
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

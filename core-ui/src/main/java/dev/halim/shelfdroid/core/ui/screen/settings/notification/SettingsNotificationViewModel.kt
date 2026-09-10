@@ -3,10 +3,10 @@ package dev.halim.shelfdroid.core.ui.screen.settings.notification
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.MediaNotificationAction
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationRepository
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
-import dev.halim.shelfdroid.core.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

@@ -1,6 +1,6 @@
 package dev.halim.shelfdroid.core.data.sync
 
-import dev.halim.shelfdroid.core.UserPrefs
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test

@@ -2,8 +2,8 @@ package dev.halim.shelfdroid.core.data.screen.login
 
 import dev.halim.core.network.response.login.User
 import dev.halim.core.network.response.login.UserType as NetworkUserType
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import javax.inject.Inject
 
 class LoginMapper @Inject constructor() {

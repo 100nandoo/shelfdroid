@@ -4,10 +4,10 @@ import android.os.Bundle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
 import androidx.media3.session.SessionCommand
-import dev.halim.shelfdroid.core.MediaNotificationAction
-import dev.halim.shelfdroid.core.NotificationPrefs
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.R as CoreR
+import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 
 const val CUSTOM_BACK = "CUSTOM_BACK"
 const val CUSTOM_FORWARD = "CUSTOM_FORWARD"
@@ -103,8 +103,7 @@ fun mediaNotificationButtons(
           if (nextChapterState.visible) {
             add(nextChapterCommandButton(nextChapterDisplayName, nextChapterState.enabled))
           }
-        MediaNotificationAction.PlaybackSpeed ->
-          add(MediaNotificationButtons.PLAYBACK_SPEED_BUTTON)
+        MediaNotificationAction.PlaybackSpeed -> add(MediaNotificationButtons.PLAYBACK_SPEED_BUTTON)
         MediaNotificationAction.None -> Unit
       }
     }

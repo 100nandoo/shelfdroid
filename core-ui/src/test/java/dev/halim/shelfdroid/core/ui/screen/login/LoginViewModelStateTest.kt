@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
 import dev.halim.shelfdroid.core.AuthPromptReason
-import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
@@ -17,6 +16,7 @@ import dev.halim.shelfdroid.core.data.screen.login.PendingLocalNetworkAction
 import dev.halim.shelfdroid.core.data.screen.login.isOpenIdOnly
 import dev.halim.shelfdroid.core.data.screen.login.showsMixedLoginMethods
 import dev.halim.shelfdroid.core.data.screen.login.supportsLocalLogin
+import dev.halim.shelfdroid.core.prefs.ServerAccessMode
 import dev.halim.shelfdroid.core.ui.navigation.Login
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals

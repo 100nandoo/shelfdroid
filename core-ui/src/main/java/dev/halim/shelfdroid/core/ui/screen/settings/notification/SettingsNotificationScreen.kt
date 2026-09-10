@@ -25,12 +25,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.MediaNotificationAction
-import dev.halim.shelfdroid.core.PLAYBACK_SPEED_PRESET_VALUES
 import dev.halim.shelfdroid.core.R as CoreR
-import dev.halim.shelfdroid.core.SLEEP_TIMER_PRESET_MINUTES
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
-import dev.halim.shelfdroid.core.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.PLAYBACK_SPEED_PRESET_VALUES
+import dev.halim.shelfdroid.core.playback.SLEEP_TIMER_PRESET_MINUTES
+import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition

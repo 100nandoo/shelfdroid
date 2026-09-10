@@ -2,10 +2,10 @@ package dev.halim.shelfdroid.media.service
 
 import com.google.common.collect.ImmutableList
 import dev.halim.shelfdroid.core.ChapterPosition
-import dev.halim.shelfdroid.core.MediaNotificationAction
-import dev.halim.shelfdroid.core.NotificationPrefs
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

@@ -35,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.AdvancedControl
 import dev.halim.shelfdroid.core.ChapterPosition
-import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.PlayerBookmark
@@ -43,6 +42,7 @@ import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
+import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.AutoSizeText

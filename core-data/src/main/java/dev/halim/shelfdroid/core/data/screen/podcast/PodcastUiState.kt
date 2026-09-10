@@ -2,9 +2,9 @@ package dev.halim.shelfdroid.core.data.screen.podcast
 
 import dev.halim.shelfdroid.core.DownloadUiState
 import dev.halim.shelfdroid.core.PlayPauseControlState
-import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedUiState
+import dev.halim.shelfdroid.core.prefs.Prefs
 
 data class PodcastUiState(
   val state: GenericState = GenericState.Loading,

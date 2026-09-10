@@ -3,9 +3,9 @@ package dev.halim.shelfdroid.core.ui.screen.settingsplayback
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.PlaybackPrefs
 import dev.halim.shelfdroid.core.data.screen.settingsplayback.SettingsPlaybackRepository
 import dev.halim.shelfdroid.core.data.screen.settingsplayback.SettingsPlaybackUiState
+import dev.halim.shelfdroid.core.prefs.PlaybackPrefs
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

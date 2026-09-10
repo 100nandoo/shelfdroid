@@ -14,11 +14,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.BookSort
-import dev.halim.shelfdroid.core.Filter
-import dev.halim.shelfdroid.core.PodcastSort
-import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.settings.home.SettingsHomeUiState
+import dev.halim.shelfdroid.core.prefs.BookSort
+import dev.halim.shelfdroid.core.prefs.Filter
+import dev.halim.shelfdroid.core.prefs.PodcastSort
+import dev.halim.shelfdroid.core.prefs.SortOrder
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition

@@ -3,11 +3,11 @@ package dev.halim.shelfdroid.core.ui.screen.settings.listeningsession
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.ItemsPerPage
-import dev.halim.shelfdroid.core.ListeningSessionPrefs
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.listeningsession.SettingsListeningSessionRepository
 import dev.halim.shelfdroid.core.data.screen.settings.listeningsession.SettingsListeningSessionUiState
+import dev.halim.shelfdroid.core.prefs.ItemsPerPage
+import dev.halim.shelfdroid.core.prefs.ListeningSessionPrefs
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

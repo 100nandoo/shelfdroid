@@ -3,8 +3,8 @@ package dev.halim.core.network.client
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import dagger.Lazy
 import dev.halim.core.network.ApiService
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import java.nio.file.Files
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

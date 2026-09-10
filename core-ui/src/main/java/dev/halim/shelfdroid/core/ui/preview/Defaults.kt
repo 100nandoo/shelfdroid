@@ -5,8 +5,6 @@ import dev.halim.shelfdroid.core.LogLevel
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
-import dev.halim.shelfdroid.core.Prefs
-import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.library.LibraryFolder
@@ -50,6 +48,8 @@ import dev.halim.shelfdroid.core.data.screen.rssfeeds.RssFeedsUiState
 import dev.halim.shelfdroid.core.data.screen.searchpodcast.SearchPodcastUi
 import dev.halim.shelfdroid.core.data.screen.userinfo.UserInfoUiState
 import dev.halim.shelfdroid.core.data.screen.usersettings.UserSettingsUiState
+import dev.halim.shelfdroid.core.prefs.Prefs
+import dev.halim.shelfdroid.core.prefs.ServerAccessMode
 
 object Defaults {
   const val USERNAME = "testuser"

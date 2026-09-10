@@ -26,11 +26,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.core.BookSort
-import dev.halim.shelfdroid.core.DisplayPrefs
-import dev.halim.shelfdroid.core.Filter
-import dev.halim.shelfdroid.core.PodcastSort
-import dev.halim.shelfdroid.core.SortOrder
+import dev.halim.shelfdroid.core.prefs.BookSort
+import dev.halim.shelfdroid.core.prefs.DisplayPrefs
+import dev.halim.shelfdroid.core.prefs.Filter
+import dev.halim.shelfdroid.core.prefs.PodcastSort
+import dev.halim.shelfdroid.core.prefs.SortOrder
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper

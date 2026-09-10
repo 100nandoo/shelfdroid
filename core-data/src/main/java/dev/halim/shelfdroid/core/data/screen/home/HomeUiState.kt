@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
-import dev.halim.shelfdroid.core.BookSort
-import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.prefs.BookSort
+import dev.halim.shelfdroid.core.prefs.Prefs
 import kotlinx.serialization.Serializable
 
 data class HomeUiState(

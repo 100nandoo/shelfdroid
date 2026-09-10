@@ -16,8 +16,6 @@ import dev.halim.core.network.response.libraryitem.PodcastMetadata
 import dev.halim.shelfdroid.core.Device
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.core.ServerPrefs
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
@@ -27,6 +25,8 @@ import dev.halim.shelfdroid.core.database.LocalSessionEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.toBoolean
+import dev.halim.shelfdroid.core.prefs.ServerPrefs
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlin.time.Clock

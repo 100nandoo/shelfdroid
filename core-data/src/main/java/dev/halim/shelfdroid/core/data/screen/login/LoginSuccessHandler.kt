@@ -1,11 +1,11 @@
 package dev.halim.shelfdroid.core.data.screen.login
 
 import dev.halim.core.network.response.login.LoginResponse
-import dev.halim.shelfdroid.core.ServerAccessMode
-import dev.halim.shelfdroid.core.ServerPrefs
 import dev.halim.shelfdroid.core.data.listening.BookmarkRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.ServerAccessMode
+import dev.halim.shelfdroid.core.prefs.ServerPrefs
 import javax.inject.Inject
 
 interface LoginSuccessHandler {

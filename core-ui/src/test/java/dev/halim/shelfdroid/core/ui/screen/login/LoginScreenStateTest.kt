@@ -1,10 +1,10 @@
 package dev.halim.shelfdroid.core.ui.screen.login
 
 import dev.halim.shelfdroid.core.AuthPromptReason
-import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.data.screen.login.LocalNetworkPermissionState
 import dev.halim.shelfdroid.core.data.screen.login.LoginDiscoveryMessage
 import dev.halim.shelfdroid.core.data.screen.login.LoginUiState
+import dev.halim.shelfdroid.core.prefs.ServerAccessMode
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

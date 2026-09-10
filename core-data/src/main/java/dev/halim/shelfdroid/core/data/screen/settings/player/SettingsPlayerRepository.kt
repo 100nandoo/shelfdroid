@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.settings.player
 
-import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
+import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 

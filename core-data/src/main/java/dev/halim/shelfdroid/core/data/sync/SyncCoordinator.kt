@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.data.sync
 
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.data.listening.ListeningStatsRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import javax.inject.Inject
 import javax.inject.Named
 import kotlinx.coroutines.CoroutineScope

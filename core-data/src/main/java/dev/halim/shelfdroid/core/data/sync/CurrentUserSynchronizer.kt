@@ -2,12 +2,12 @@ package dev.halim.shelfdroid.core.data.sync
 
 import dev.halim.core.network.response.login.LoginResponse
 import dev.halim.core.network.response.login.UserType as NetworkUserType
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.listening.BookmarkRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.users.UserRepository
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull

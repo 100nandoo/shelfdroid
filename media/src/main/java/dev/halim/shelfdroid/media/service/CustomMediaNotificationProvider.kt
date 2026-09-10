@@ -48,8 +48,9 @@ class CustomMediaNotificationProvider @Inject constructor(context: Context) :
     actionFactory: MediaNotification.ActionFactory,
   ): IntArray {
     val playPauseButton = mediaButtons.firstOrNull { it.playerCommand == Player.COMMAND_PLAY_PAUSE }
-    val customButtons =
-      mediaButtons.filter { it.sessionCommand?.customAction in CUSTOM_NOTIFICATION_ACTIONS }
+    val customButtons = mediaButtons.filter {
+      it.sessionCommand?.customAction in CUSTOM_NOTIFICATION_ACTIONS
+    }
 
     val notificationButtons =
       if (playPauseButton != null) {
@@ -92,18 +93,16 @@ internal fun addDisabledNextChapterButton(
     disabledNextChapterButton != null &&
       mediaButtons.none { it.sessionCommand?.customAction == CUSTOM_NEXT_CHAPTER }
   ) {
-    val nextPreferenceIndex =
-      mediaButtonPreferences.indexOfFirst {
-        it.sessionCommand?.customAction == CUSTOM_NEXT_CHAPTER && !it.isEnabled
+    val nextPreferenceIndex = mediaButtonPreferences.indexOfFirst {
+      it.sessionCommand?.customAction == CUSTOM_NEXT_CHAPTER && !it.isEnabled
+    }
+    val insertionIndex = mediaButtons.indexOfFirst { button ->
+      val preferenceIndex = mediaButtonPreferences.indexOfFirst {
+        it.sessionCommand?.customAction == button.sessionCommand?.customAction
       }
-    val insertionIndex =
-      mediaButtons.indexOfFirst { button ->
-        val preferenceIndex = mediaButtonPreferences.indexOfFirst {
-          it.sessionCommand?.customAction == button.sessionCommand?.customAction
-        }
-        preferenceIndex > nextPreferenceIndex &&
-          button.sessionCommand?.customAction in CUSTOM_NOTIFICATION_ACTIONS
-      }
+      preferenceIndex > nextPreferenceIndex &&
+        button.sessionCommand?.customAction in CUSTOM_NOTIFICATION_ACTIONS
+    }
     val result = mediaButtons.toMutableList()
     result.add(if (insertionIndex == -1) result.size else insertionIndex, disabledNextChapterButton)
     ImmutableList.copyOf(result)

@@ -1,8 +1,8 @@
 package dev.halim.shelfdroid.core.data.screen.settings.notification
 
-import dev.halim.shelfdroid.core.MediaNotificationAction
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
-import dev.halim.shelfdroid.core.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex

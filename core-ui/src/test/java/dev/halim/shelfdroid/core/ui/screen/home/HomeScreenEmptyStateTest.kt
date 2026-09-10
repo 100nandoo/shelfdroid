@@ -1,9 +1,9 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import dev.halim.shelfdroid.core.DisplayPrefs
-import dev.halim.shelfdroid.core.Filter
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
+import dev.halim.shelfdroid.core.prefs.DisplayPrefs
+import dev.halim.shelfdroid.core.prefs.Filter
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test

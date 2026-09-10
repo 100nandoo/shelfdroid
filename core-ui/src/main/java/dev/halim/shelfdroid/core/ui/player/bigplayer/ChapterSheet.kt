@@ -31,10 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.extensions.formatDurationShort
+import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
 import dev.halim.shelfdroid.core.ui.components.TextLabelMedium
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent

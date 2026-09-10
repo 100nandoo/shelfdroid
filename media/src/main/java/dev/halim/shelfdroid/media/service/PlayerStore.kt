@@ -6,14 +6,14 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import dagger.Lazy
 import dev.halim.shelfdroid.core.MediaStructure
-import dev.halim.shelfdroid.core.NotificationPrefs
 import dev.halim.shelfdroid.core.PlayPauseControlStateHolder
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
-import dev.halim.shelfdroid.core.nextPlaybackSpeed
+import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
+import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
 import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow

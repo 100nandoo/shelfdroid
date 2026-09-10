@@ -3,9 +3,9 @@ package dev.halim.shelfdroid.core.ui.screen.settings.podcast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.podcast.SettingsPodcastUiState
+import dev.halim.shelfdroid.core.prefs.Prefs
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

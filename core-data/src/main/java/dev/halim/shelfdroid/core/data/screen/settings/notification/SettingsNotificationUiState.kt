@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.settings.notification
 
-import dev.halim.shelfdroid.core.MediaNotificationAction
-import dev.halim.shelfdroid.core.NotificationPrefs
+import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 
 data class SettingsNotificationUiState(
   val sleepTimerMinutes: Int = 15,

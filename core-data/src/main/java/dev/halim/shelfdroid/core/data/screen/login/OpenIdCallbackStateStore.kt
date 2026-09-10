@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.screen.login
 
-import dev.halim.shelfdroid.core.ServerAccessMode
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.ServerAccessMode
 import javax.inject.Inject
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.Serializable

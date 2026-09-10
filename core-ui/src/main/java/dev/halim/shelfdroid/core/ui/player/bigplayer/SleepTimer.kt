@@ -33,7 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.R as CoreR
-import dev.halim.shelfdroid.core.SLEEP_TIMER_PRESET_MINUTES
+import dev.halim.shelfdroid.core.playback.SLEEP_TIMER_PRESET_MINUTES
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.extensions.toSleepTimerText
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent

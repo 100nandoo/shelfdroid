@@ -7,7 +7,6 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.client.HostSelectionInterceptor
 import dev.halim.core.network.client.SessionCookieJar
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.UserType
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationError
 import dev.halim.shelfdroid.core.data.metadata.custommetadata.MetadataValidationException
@@ -15,6 +14,7 @@ import dev.halim.shelfdroid.core.data.metadata.genre.GenreMutation
 import dev.halim.shelfdroid.core.data.metadata.tag.TagMutation
 import dev.halim.shelfdroid.core.data.tags.TagRepository
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import dev.halim.shelfdroid.helper.Helper
 import java.io.File
 import java.nio.file.Files

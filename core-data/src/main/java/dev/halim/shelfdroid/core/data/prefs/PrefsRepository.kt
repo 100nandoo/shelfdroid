@@ -1,15 +1,15 @@
 package dev.halim.shelfdroid.core.data.prefs
 
 import dev.halim.core.network.response.login.ServerSettings
-import dev.halim.shelfdroid.core.CrudPrefs
-import dev.halim.shelfdroid.core.ListeningSessionPrefs
-import dev.halim.shelfdroid.core.NotificationPrefs
-import dev.halim.shelfdroid.core.PlaybackPrefs
-import dev.halim.shelfdroid.core.PlayerPrefs
-import dev.halim.shelfdroid.core.Prefs
-import dev.halim.shelfdroid.core.ServerPrefs
-import dev.halim.shelfdroid.core.UserPrefs
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.CrudPrefs
+import dev.halim.shelfdroid.core.prefs.ListeningSessionPrefs
+import dev.halim.shelfdroid.core.prefs.NotificationPrefs
+import dev.halim.shelfdroid.core.prefs.PlaybackPrefs
+import dev.halim.shelfdroid.core.prefs.PlayerPrefs
+import dev.halim.shelfdroid.core.prefs.Prefs
+import dev.halim.shelfdroid.core.prefs.ServerPrefs
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine

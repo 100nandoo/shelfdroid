@@ -3,12 +3,12 @@ package dev.halim.shelfdroid.core.ui.screen.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.Prefs
 import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsState
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsUiState
 import dev.halim.shelfdroid.core.data.sessionreset.SessionResetRepository
+import dev.halim.shelfdroid.core.prefs.Prefs
 import javax.inject.Inject
 import javax.inject.Named
 import kotlinx.coroutines.flow.MutableSharedFlow

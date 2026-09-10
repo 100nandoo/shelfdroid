@@ -3,9 +3,9 @@ package dev.halim.shelfdroid.core.ui.screen.settings.player
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.data.screen.settings.player.SettingsPlayerRepository
 import dev.halim.shelfdroid.core.data.screen.settings.player.SettingsPlayerUiState
+import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

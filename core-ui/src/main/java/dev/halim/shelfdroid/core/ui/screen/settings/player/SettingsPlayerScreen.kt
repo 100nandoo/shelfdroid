@@ -14,9 +14,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.CHAPTER_TITLE_PRESET_LINE
-import dev.halim.shelfdroid.core.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.data.screen.settings.player.SettingsPlayerUiState
+import dev.halim.shelfdroid.core.prefs.CHAPTER_TITLE_PRESET_LINE
+import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition

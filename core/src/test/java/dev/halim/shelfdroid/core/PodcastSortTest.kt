@@ -1,5 +1,7 @@
 package dev.halim.shelfdroid.core
 
+import dev.halim.shelfdroid.core.prefs.LABEL_PROGRESS
+import dev.halim.shelfdroid.core.prefs.PodcastSort
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

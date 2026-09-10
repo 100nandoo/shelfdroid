@@ -1,5 +1,12 @@
 package dev.halim.shelfdroid.core
 
+import dev.halim.shelfdroid.core.prefs.BookSort
+import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
+import dev.halim.shelfdroid.core.prefs.DisplayPrefs
+import dev.halim.shelfdroid.core.prefs.LABEL_PROGRESS
+import dev.halim.shelfdroid.core.prefs.PlayerPrefs
+import dev.halim.shelfdroid.core.prefs.PodcastSort
+import dev.halim.shelfdroid.core.prefs.SortOrder
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

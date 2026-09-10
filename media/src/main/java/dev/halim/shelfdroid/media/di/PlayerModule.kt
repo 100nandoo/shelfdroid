@@ -45,8 +45,8 @@ import dev.halim.shelfdroid.media.service.CUSTOM_SLEEP_TIMER
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
 import dev.halim.shelfdroid.media.service.MediaNotificationButtons.BACK_COMMAND_BUTTON
 import dev.halim.shelfdroid.media.service.MediaNotificationButtons.FORWARD_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.service.MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
 import dev.halim.shelfdroid.media.service.MediaNotificationButtons.PLAYBACK_SPEED_BUTTON
+import dev.halim.shelfdroid.media.service.MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
 import dev.halim.shelfdroid.media.service.PlayerStore
 import dev.halim.shelfdroid.media.service.mediaNotificationButtons
 import javax.inject.Singleton

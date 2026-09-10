@@ -1,12 +1,12 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
-import dev.halim.shelfdroid.core.BookSort
-import dev.halim.shelfdroid.core.DisplayPrefs
-import dev.halim.shelfdroid.core.Filter
-import dev.halim.shelfdroid.core.PodcastSort
-import dev.halim.shelfdroid.core.SortOrder
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
+import dev.halim.shelfdroid.core.prefs.BookSort
+import dev.halim.shelfdroid.core.prefs.DisplayPrefs
+import dev.halim.shelfdroid.core.prefs.Filter
+import dev.halim.shelfdroid.core.prefs.PodcastSort
+import dev.halim.shelfdroid.core.prefs.SortOrder
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
