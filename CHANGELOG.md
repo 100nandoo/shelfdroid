@@ -1,3 +1,12 @@
+## 0.6.0 (2026-09-10)
+
+### What's new
+
+- Home sorting now supports duration, date added, author, and last progress update.
+- New library administration screens let you browse server folders, create and edit libraries,
+  reorder them, and configure scanning and scheduling.
+- Add Item Metadata Utils implementation
+
 ## 0.5.1 (2026-08-13)
 
 ### What's new
