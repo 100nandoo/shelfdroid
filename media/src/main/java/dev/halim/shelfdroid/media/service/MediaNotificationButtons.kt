@@ -6,6 +6,7 @@ import androidx.media3.session.CommandButton
 import androidx.media3.session.SessionCommand
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.R as CoreR
+import dev.halim.shelfdroid.core.prefs.DEFAULT_SEEK_INTERVAL_SECONDS
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 
@@ -17,17 +18,9 @@ const val CUSTOM_PLAYBACK_SPEED = "CUSTOM_PLAYBACK_SPEED"
 
 @UnstableApi
 internal object MediaNotificationButtons {
-  val BACK_COMMAND_BUTTON: CommandButton =
-    CommandButton.Builder(CommandButton.ICON_REWIND)
-      .setSessionCommand(SessionCommand(CUSTOM_BACK, Bundle()))
-      .setDisplayName("Rewind 10s")
-      .build()
+  val BACK_COMMAND_BUTTON: CommandButton = seekBackCommandButton(DEFAULT_SEEK_INTERVAL_SECONDS)
 
-  val FORWARD_COMMAND_BUTTON: CommandButton =
-    CommandButton.Builder(CommandButton.ICON_FAST_FORWARD)
-      .setSessionCommand(SessionCommand(CUSTOM_FORWARD, Bundle()))
-      .setDisplayName("Forward 10s")
-      .build()
+  val FORWARD_COMMAND_BUTTON: CommandButton = seekForwardCommandButton(DEFAULT_SEEK_INTERVAL_SECONDS)
 
   val SLEEP_TIMER_OFF_BUTTON: CommandButton =
     CommandButton.Builder(CommandButton.ICON_UNDEFINED)
@@ -47,11 +40,27 @@ internal object MediaNotificationButtons {
     playbackSpeedCommandButton(1f)
 }
 
+@UnstableApi
+internal fun seekBackCommandButton(seconds: Int): CommandButton =
+  CommandButton.Builder(CommandButton.ICON_REWIND)
+    .setSessionCommand(SessionCommand(CUSTOM_BACK, Bundle()))
+    .setDisplayName("Rewind ${seconds}s")
+    .build()
+
+@UnstableApi
+internal fun seekForwardCommandButton(seconds: Int): CommandButton =
+  CommandButton.Builder(CommandButton.ICON_FAST_FORWARD)
+    .setSessionCommand(SessionCommand(CUSTOM_FORWARD, Bundle()))
+    .setDisplayName("Forward ${seconds}s")
+    .build()
+
 internal data class MediaNotificationButtonState(
   val nextChapterState: NextChapterControlState,
   val isSleepTimerActive: Boolean,
   val playbackSpeed: Float,
   val notificationPrefs: NotificationPrefs,
+  val seekBackSeconds: Int,
+  val seekForwardSeconds: Int,
 )
 
 internal fun playbackSpeedIconResId(playbackSpeed: Float): Int =
@@ -93,6 +102,8 @@ fun mediaNotificationButtons(
   isChapterTransitioning: Boolean,
   isSleepTimerActive: Boolean,
   notificationPrefs: NotificationPrefs = NotificationPrefs(),
+  seekBackSeconds: Int = DEFAULT_SEEK_INTERVAL_SECONDS,
+  seekForwardSeconds: Int = DEFAULT_SEEK_INTERVAL_SECONDS,
 ): List<CommandButton> =
   mediaNotificationButtons(
     nextChapterDisplayName,
@@ -100,6 +111,8 @@ fun mediaNotificationButtons(
     isSleepTimerActive,
     notificationPrefs,
     uiState.advancedControl.speed,
+    seekBackSeconds,
+    seekForwardSeconds,
   )
 
 @UnstableApi
@@ -109,10 +122,12 @@ fun mediaNotificationButtons(
   isSleepTimerActive: Boolean,
   notificationPrefs: NotificationPrefs = NotificationPrefs(),
   currentPlaybackSpeed: Float = 1f,
+  seekBackSeconds: Int = DEFAULT_SEEK_INTERVAL_SECONDS,
+  seekForwardSeconds: Int = DEFAULT_SEEK_INTERVAL_SECONDS,
 ): List<CommandButton> {
   return buildList {
-    add(MediaNotificationButtons.BACK_COMMAND_BUTTON)
-    add(MediaNotificationButtons.FORWARD_COMMAND_BUTTON)
+    add(seekBackCommandButton(seekBackSeconds))
+    add(seekForwardCommandButton(seekForwardSeconds))
     val actions = listOf(notificationPrefs.firstAction, notificationPrefs.secondAction).distinct()
     actions.forEach { action ->
       when (action) {

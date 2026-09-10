@@ -14,6 +14,7 @@ import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
+import dev.halim.shelfdroid.core.prefs.PlayerPrefs
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
 import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
@@ -53,16 +54,26 @@ constructor(
   val uiState = MutableStateFlow(PlayerUiState())
   val isChapterTransitioning = MutableStateFlow(false)
   val notificationPrefs = MutableStateFlow(NotificationPrefs())
+  val playerPrefs = MutableStateFlow(PlayerPrefs())
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
   init {
     syncScope.launch {
       prefsRepository.playerPrefs.collect { prefs ->
+        playerPrefs.value = prefs
         uiState.update {
           it.copy(
             chapterTitleLine = prefs.chapterTitleLine,
             chapterTimeDisplay = prefs.chapterTimeDisplay,
           )
+        }
+      }
+    }
+    syncScope.launch(Dispatchers.Main) {
+      playerPrefs.collect { prefs ->
+        playerManager.player.get().apply {
+          setSeekBackIncrementMs(prefs.seekBackSeconds * 1000L)
+          setSeekForwardIncrementMs(prefs.seekForwardSeconds * 1000L)
         }
       }
     }

@@ -98,4 +98,12 @@ class PrefsDefaultsTest {
 
     assertEquals(ChapterTimeDisplay.DurationShort, prefs.chapterTimeDisplay)
   }
+
+  @Test
+  fun playerPrefs_defaultsSeekIntervalsToTenSeconds() {
+    val prefs = PlayerPrefs()
+
+    assertEquals(10, prefs.seekBackSeconds)
+    assertEquals(10, prefs.seekForwardSeconds)
+  }
 }

@@ -197,15 +197,16 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
   }
 
   val playerPrefs: Flow<PlayerPrefs> =
-    dataStore.data.map { prefs ->
-      prefs[Keys.PLAYER_PREFS]?.let { json ->
-        runCatching { Json.decodeFromString<PlayerPrefs>(json) }.getOrNull()
-      } ?: PlayerPrefs()
-    }
+    dataStore.data.map { prefs -> playerPrefsFrom(prefs[Keys.PLAYER_PREFS]) }
 
   suspend fun updatePlayerPrefs(playerPrefs: PlayerPrefs) {
-    val json = Json.encodeToString(playerPrefs)
-    dataStore.edit { prefs -> prefs[Keys.PLAYER_PREFS] = json }
+    updatePlayerPrefs { playerPrefs }
+  }
+
+  suspend fun updatePlayerPrefs(update: (PlayerPrefs) -> PlayerPrefs) {
+    dataStore.edit { prefs ->
+      prefs[Keys.PLAYER_PREFS] = Json.encodeToString(update(playerPrefsFrom(prefs[Keys.PLAYER_PREFS])))
+    }
   }
 
   val crudPrefs: Flow<CrudPrefs> =
@@ -261,6 +262,11 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
         prefs[key] = value
       }
     }
+  }
+
+  private fun playerPrefsFrom(json: String?): PlayerPrefs {
+    return json?.let { runCatching { Json.decodeFromString<PlayerPrefs>(it) }.getOrNull() }
+      ?: PlayerPrefs()
   }
 
   suspend fun updateListView(listView: Boolean) {

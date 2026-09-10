@@ -104,6 +104,10 @@ _Avoid_: Download, attachment
 
 ### Playback and access
 
+**Seek interval**:
+The amount of playback time moved by one forward or backward seek action. Listeners choose each direction independently, and each choice applies across playback controls.
+_Avoid_: Skip duration, seek speed
+
 **Media notification action**:
 A listener-selectable control in the Android media notification, such as sleep timer, next chapter, or playback speed.
 _Avoid_: Notification rule, server notification action

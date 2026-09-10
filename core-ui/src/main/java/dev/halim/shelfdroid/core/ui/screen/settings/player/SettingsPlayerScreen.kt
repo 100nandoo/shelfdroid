@@ -16,6 +16,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.settings.player.SettingsPlayerUiState
 import dev.halim.shelfdroid.core.prefs.CHAPTER_TITLE_PRESET_LINE
+import dev.halim.shelfdroid.core.prefs.DEFAULT_SEEK_INTERVAL_SECONDS
+import dev.halim.shelfdroid.core.prefs.SEEK_INTERVAL_OPTIONS
 import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
@@ -40,8 +42,48 @@ private fun SettingsPlayerContent(
     modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
+    SeekSection(uiState, onEvent)
     ChapterSection(uiState, onEvent)
   }
+}
+
+@Composable
+private fun SeekSection(uiState: SettingsPlayerUiState, onEvent: (SettingsPlayerEvent) -> Unit) {
+  TextTitleMedium(text = stringResource(R.string.seek))
+  SeekIntervalDropdown(
+    label = stringResource(R.string.seek_back_interval),
+    selectedSeconds = uiState.seekBackSeconds,
+    onSelected = { onEvent(SettingsPlayerEvent.ChangeSeekBackSeconds(it)) },
+  )
+  SeekIntervalDropdown(
+    label = stringResource(R.string.seek_forward_interval),
+    selectedSeconds = uiState.seekForwardSeconds,
+    onSelected = { onEvent(SettingsPlayerEvent.ChangeSeekForwardSeconds(it)) },
+  )
+}
+
+@Composable
+private fun SeekIntervalDropdown(
+  label: String,
+  selectedSeconds: Int,
+  onSelected: (Int) -> Unit,
+) {
+  val seekIntervalOptions = SEEK_INTERVAL_OPTIONS.associateWith { stringResource(R.string.seconds, it) }
+  ChipDropdownMenu(
+    modifier = Modifier.fillMaxWidth(),
+    label = label,
+    labelPosition = LabelPosition.Expand,
+    options = seekIntervalOptions.values.toList(),
+    initialValue =
+      seekIntervalOptions[selectedSeconds]
+        ?: seekIntervalOptions.getValue(DEFAULT_SEEK_INTERVAL_SECONDS),
+    onClick = { selected ->
+      seekIntervalOptions.entries
+        .firstOrNull { it.value == selected }
+        ?.key
+        ?.let(onSelected)
+    },
+  )
 }
 
 @Composable

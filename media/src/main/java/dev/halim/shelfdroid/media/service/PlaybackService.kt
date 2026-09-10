@@ -72,12 +72,15 @@ class PlaybackService : MediaLibraryService() {
             .map { it.advancedControl.sleepTimerLeft > Duration.ZERO }
             .distinctUntilChanged(),
           store.notificationPrefs,
-        ) { uiState, isTransitioning, isSleepTimerActive, notificationPrefs ->
+          store.playerPrefs,
+        ) { uiState, isTransitioning, isSleepTimerActive, notificationPrefs, playerPrefs ->
           MediaNotificationButtonState(
             nextChapterControlState(uiState, isTransitioning),
             isSleepTimerActive,
             uiState.advancedControl.speed,
             notificationPrefs,
+            playerPrefs.seekBackSeconds,
+            playerPrefs.seekForwardSeconds,
           )
         }
         .distinctUntilChanged()
@@ -89,6 +92,8 @@ class PlaybackService : MediaLibraryService() {
               state.isSleepTimerActive,
               state.notificationPrefs,
               state.playbackSpeed,
+              state.seekBackSeconds,
+              state.seekForwardSeconds,
             )
           )
         }

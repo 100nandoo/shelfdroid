@@ -24,6 +24,8 @@ constructor(private val repository: SettingsPlayerRepository) : ViewModel() {
         SettingsPlayerUiState(
           chapterTitleLine = it.chapterTitleLine,
           chapterTimeDisplay = it.chapterTimeDisplay,
+          seekBackSeconds = it.seekBackSeconds,
+          seekForwardSeconds = it.seekForwardSeconds,
         )
       }
       .stateIn(viewModelScope, SharingStarted.Lazily, SettingsPlayerUiState())
@@ -34,6 +36,10 @@ constructor(private val repository: SettingsPlayerRepository) : ViewModel() {
         viewModelScope.launch { repository.updateChapterTitleLine(event.line) }
       is SettingsPlayerEvent.ChangeChapterTimeDisplay ->
         viewModelScope.launch { repository.updateChapterTimeDisplay(event.display) }
+      is SettingsPlayerEvent.ChangeSeekBackSeconds ->
+        viewModelScope.launch { repository.updateSeekBackSeconds(event.seconds) }
+      is SettingsPlayerEvent.ChangeSeekForwardSeconds ->
+        viewModelScope.launch { repository.updateSeekForwardSeconds(event.seconds) }
     }
   }
 }
@@ -42,4 +48,8 @@ sealed interface SettingsPlayerEvent {
   data class ChangeChapterTitleLine(val line: Int) : SettingsPlayerEvent
 
   data class ChangeChapterTimeDisplay(val display: ChapterTimeDisplay) : SettingsPlayerEvent
+
+  data class ChangeSeekBackSeconds(val seconds: Int) : SettingsPlayerEvent
+
+  data class ChangeSeekForwardSeconds(val seconds: Int) : SettingsPlayerEvent
 }

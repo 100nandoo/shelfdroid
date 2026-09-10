@@ -48,26 +48,32 @@ class CustomMediaNotificationProvider @Inject constructor(context: Context) :
     actionFactory: MediaNotification.ActionFactory,
   ): IntArray {
     val playPauseButton = mediaButtons.firstOrNull { it.playerCommand == Player.COMMAND_PLAY_PAUSE }
+    val backButton =
+      mediaButtons.firstOrNull { it.sessionCommand?.customAction == CUSTOM_BACK }
+        ?: MediaNotificationButtons.BACK_COMMAND_BUTTON
+    val forwardButton =
+      mediaButtons.firstOrNull { it.sessionCommand?.customAction == CUSTOM_FORWARD }
+        ?: MediaNotificationButtons.FORWARD_COMMAND_BUTTON
     val customButtons = mediaButtons.filter {
       it.sessionCommand?.customAction in CUSTOM_NOTIFICATION_ACTIONS
     }
 
     val notificationButtons =
       if (playPauseButton != null) {
-        MediaNotificationButtons.BACK_COMMAND_BUTTON.extras.putInt(
+        backButton.extras.putInt(
           COMMAND_KEY_COMPACT_VIEW_INDEX,
           0,
         )
         playPauseButton.extras.putInt(COMMAND_KEY_COMPACT_VIEW_INDEX, 1)
-        MediaNotificationButtons.FORWARD_COMMAND_BUTTON.extras.putInt(
+        forwardButton.extras.putInt(
           COMMAND_KEY_COMPACT_VIEW_INDEX,
           2,
         )
 
         ImmutableList.builder<CommandButton>()
-          .add(MediaNotificationButtons.BACK_COMMAND_BUTTON)
+          .add(backButton)
           .add(playPauseButton)
-          .add(MediaNotificationButtons.FORWARD_COMMAND_BUTTON)
+          .add(forwardButton)
           .addAll(customButtons)
           .build()
       } else {

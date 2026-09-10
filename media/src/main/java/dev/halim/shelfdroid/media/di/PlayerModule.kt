@@ -169,6 +169,8 @@ object PlayerModule {
             store.isChapterTransitioning.value,
             store.uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO,
             store.notificationPrefs.value,
+            seekBackSeconds = store.playerPrefs.value.seekBackSeconds,
+            seekForwardSeconds = store.playerPrefs.value.seekForwardSeconds,
           )
         return Futures.immediateFuture(
           MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
@@ -188,11 +190,11 @@ object PlayerModule {
         val resultCode =
           when (customCommand.customAction) {
             CUSTOM_BACK -> {
-              session.player.seekTo(session.player.currentPosition - 10000)
+              session.player.seekBack()
               SessionResult.RESULT_SUCCESS
             }
             CUSTOM_FORWARD -> {
-              session.player.seekTo(session.player.currentPosition + 10000)
+              session.player.seekForward()
               SessionResult.RESULT_SUCCESS
             }
             CUSTOM_SLEEP_TIMER -> {

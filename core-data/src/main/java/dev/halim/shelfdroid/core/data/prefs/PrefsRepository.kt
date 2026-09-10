@@ -62,6 +62,10 @@ class PrefsRepository @Inject constructor(private val dataStoreManager: DataStor
     dataStoreManager.updatePlayerPrefs(playerPrefs)
   }
 
+  suspend fun updatePlayerPrefs(update: (PlayerPrefs) -> PlayerPrefs) {
+    dataStoreManager.updatePlayerPrefs(update)
+  }
+
   suspend fun updateCrudPrefs(crudPrefs: CrudPrefs) {
     dataStoreManager.updateCrudPrefs(crudPrefs)
   }

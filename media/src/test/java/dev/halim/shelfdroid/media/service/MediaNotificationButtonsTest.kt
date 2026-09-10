@@ -120,6 +120,21 @@ class MediaNotificationButtonsTest {
   }
 
   @Test
+  fun `uses configured seek intervals for notification controls`() {
+    val buttons =
+      mediaNotificationButtons(
+        "Next chapter",
+        NextChapterControlState(visible = true, enabled = true),
+        isSleepTimerActive = false,
+        seekBackSeconds = 60,
+        seekForwardSeconds = 15,
+      )
+
+    assertEquals("Rewind 60s", buttons[0].displayName)
+    assertEquals("Forward 15s", buttons[1].displayName)
+  }
+
+  @Test
   fun `uses rounded icon matching selected playback speed`() {
     assertEquals(CoreR.drawable.speed_0_5x, playbackSpeedIconResId(0.5f))
     assertEquals(CoreR.drawable.speed_0_75, playbackSpeedIconResId(0.75f))
