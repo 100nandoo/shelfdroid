@@ -40,11 +40,13 @@ import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.media.service.CUSTOM_BACK
 import dev.halim.shelfdroid.media.service.CUSTOM_FORWARD
 import dev.halim.shelfdroid.media.service.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.service.CUSTOM_PLAYBACK_SPEED
 import dev.halim.shelfdroid.media.service.CUSTOM_SLEEP_TIMER
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
 import dev.halim.shelfdroid.media.service.MediaNotificationButtons.BACK_COMMAND_BUTTON
 import dev.halim.shelfdroid.media.service.MediaNotificationButtons.FORWARD_COMMAND_BUTTON
 import dev.halim.shelfdroid.media.service.MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
+import dev.halim.shelfdroid.media.service.MediaNotificationButtons.PLAYBACK_SPEED_BUTTON
 import dev.halim.shelfdroid.media.service.PlayerStore
 import dev.halim.shelfdroid.media.service.mediaNotificationButtons
 import javax.inject.Singleton
@@ -145,6 +147,7 @@ object PlayerModule {
               BACK_COMMAND_BUTTON,
               FORWARD_COMMAND_BUTTON,
               SLEEP_TIMER_OFF_BUTTON,
+              PLAYBACK_SPEED_BUTTON,
             )
             .forEach { commandButton ->
               commandButton.sessionCommand?.let { add(it) }
@@ -165,6 +168,7 @@ object PlayerModule {
             store.uiState.value,
             store.isChapterTransitioning.value,
             store.uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO,
+            store.notificationPrefs.value,
           )
         return Futures.immediateFuture(
           MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
@@ -202,6 +206,13 @@ object PlayerModule {
             }
             CUSTOM_NEXT_CHAPTER -> {
               if (playerStore.get().nextChapterFromMediaNotification()) {
+                SessionResult.RESULT_SUCCESS
+              } else {
+                SessionResult.RESULT_ERROR_INVALID_STATE
+              }
+            }
+            CUSTOM_PLAYBACK_SPEED -> {
+              if (playerStore.get().changeSpeedFromMediaNotification()) {
                 SessionResult.RESULT_SUCCESS
               } else {
                 SessionResult.RESULT_ERROR_INVALID_STATE

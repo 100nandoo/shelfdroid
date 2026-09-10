@@ -236,18 +236,18 @@ fun AdvancedPlayerControl(advancedControl: AdvancedControl, onEvent: (PlayerEven
 @Composable
 fun SpeedSlider(speed: Float, onEvent: (PlayerEvent) -> Unit) {
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    var speed by remember { mutableFloatStateOf(speed) }
+    var sliderSpeed by remember(speed) { mutableFloatStateOf(speed) }
 
-    val speedText = remember(speed) { speed.toSpeedText() }
+    val speedText = remember(sliderSpeed) { sliderSpeed.toSpeedText() }
 
     Text(text = stringResource(R.string.speed, speedText))
     Spacer(modifier = Modifier.height(4.dp))
 
     Slider(
       modifier = Modifier.width(150.dp),
-      value = speed,
-      onValueChange = { speed = it },
-      onValueChangeFinished = { onEvent(PlayerEvent.ChangeSpeed(speed)) },
+      value = sliderSpeed,
+      onValueChange = { sliderSpeed = it },
+      onValueChangeFinished = { onEvent(PlayerEvent.ChangeSpeed(sliderSpeed)) },
       valueRange = 0.5f..2f,
       steps = 5,
     )

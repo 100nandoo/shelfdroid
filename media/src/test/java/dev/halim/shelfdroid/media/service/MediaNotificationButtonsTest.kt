@@ -2,6 +2,8 @@ package dev.halim.shelfdroid.media.service
 
 import com.google.common.collect.ImmutableList
 import dev.halim.shelfdroid.core.ChapterPosition
+import dev.halim.shelfdroid.core.MediaNotificationAction
+import dev.halim.shelfdroid.core.NotificationPrefs
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerUiState
 import org.junit.Assert.assertEquals
@@ -77,6 +79,46 @@ class MediaNotificationButtonsTest {
   }
 
   @Test
+  fun `uses configured custom action order and omits empty slots`() {
+    val buttons =
+      mediaNotificationButtons(
+        "Next chapter",
+        NextChapterControlState(visible = true, enabled = true),
+        isSleepTimerActive = false,
+        notificationPrefs =
+          NotificationPrefs(
+            firstAction = MediaNotificationAction.PlaybackSpeed,
+            secondAction = MediaNotificationAction.None,
+          ),
+      )
+
+    assertEquals(
+      listOf(CUSTOM_BACK, CUSTOM_FORWARD, CUSTOM_PLAYBACK_SPEED),
+      buttons.map { it.sessionCommand?.customAction },
+    )
+  }
+
+  @Test
+  fun `supports two empty notification action slots`() {
+    val buttons =
+      mediaNotificationButtons(
+        "Next chapter",
+        NextChapterControlState(visible = true, enabled = true),
+        isSleepTimerActive = false,
+        notificationPrefs =
+          NotificationPrefs(
+            firstAction = MediaNotificationAction.None,
+            secondAction = MediaNotificationAction.None,
+          ),
+      )
+
+    assertEquals(
+      listOf(CUSTOM_BACK, CUSTOM_FORWARD),
+      buttons.map { it.sessionCommand?.customAction },
+    )
+  }
+
+  @Test
   fun `provider button resolution restores disabled next chapter after Media3 filtering`() {
     val disabledNextChapter = nextChapterCommandButton("Next chapter", isEnabled = false)
     val preferences =
@@ -97,5 +139,29 @@ class MediaNotificationButtonsTest {
 
     assertEquals(CUSTOM_NEXT_CHAPTER, notificationButtons.last().sessionCommand?.customAction)
     assertFalse(notificationButtons.last().isEnabled)
+  }
+
+  @Test
+  fun `restores disabled next chapter in configured custom action order`() {
+    val disabledNextChapter = nextChapterCommandButton("Next chapter", isEnabled = false)
+    val preferences =
+      ImmutableList.of(
+        MediaNotificationButtons.BACK_COMMAND_BUTTON,
+        MediaNotificationButtons.FORWARD_COMMAND_BUTTON,
+        disabledNextChapter,
+        MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON,
+      )
+    val resolved =
+      ImmutableList.of(
+        MediaNotificationButtons.BACK_COMMAND_BUTTON,
+        MediaNotificationButtons.FORWARD_COMMAND_BUTTON,
+        MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON,
+      )
+
+    val notificationButtons = addDisabledNextChapterButton(resolved, preferences)
+
+    assertEquals(CUSTOM_NEXT_CHAPTER, notificationButtons[2].sessionCommand?.customAction)
+    assertEquals(CUSTOM_SLEEP_TIMER, notificationButtons[3].sessionCommand?.customAction)
+    assertFalse(notificationButtons[2].isEnabled)
   }
 }

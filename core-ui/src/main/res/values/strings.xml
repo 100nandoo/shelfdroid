@@ -624,6 +624,12 @@
 
     <!--Settings Notification-->
     <string name="default_sleep_timer">Default sleep timer: </string>
+    <string name="media_notification">Media notification</string>
+    <string name="media_notification_button_1">Notification button 1: </string>
+    <string name="media_notification_button_2">Notification button 2: </string>
+    <string name="playback_speed_cycle">Playback speed cycle</string>
+    <string name="playback_speed_cycle_supporting_text">Select at least two speeds. Playback cycles from slowest to fastest.</string>
+    <string name="none">None</string>
     <!--Settings Notification-->
 
     <!--Settings Podcast-->

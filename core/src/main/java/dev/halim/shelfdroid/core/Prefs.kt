@@ -62,7 +62,40 @@ data class PlaybackPrefs(
   val bookKeepSleepTimer: Boolean = true,
 )
 
-@Serializable data class NotificationPrefs(val sleepTimerMinutes: Int = 1)
+@Serializable
+enum class MediaNotificationAction {
+  SleepTimer,
+  NextChapter,
+  PlaybackSpeed,
+  None,
+}
+
+val PLAYBACK_SPEED_PRESET_VALUES: List<Float> =
+  listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f)
+
+val DEFAULT_PLAYBACK_SPEED_CYCLE: List<Float> = listOf(1f, 1.25f, 1.5f, 2f)
+
+@Serializable
+data class NotificationPrefs(
+  val sleepTimerMinutes: Int = 1,
+  val firstAction: MediaNotificationAction = MediaNotificationAction.SleepTimer,
+  val secondAction: MediaNotificationAction = MediaNotificationAction.NextChapter,
+  val playbackSpeedCycle: List<Float> = DEFAULT_PLAYBACK_SPEED_CYCLE,
+)
+
+fun normalizePlaybackSpeedCycle(speeds: List<Float>): List<Float> {
+  val normalized =
+    speeds
+      .filter { it in PLAYBACK_SPEED_PRESET_VALUES }
+      .distinct()
+      .sorted()
+  return if (normalized.size >= 2) normalized else DEFAULT_PLAYBACK_SPEED_CYCLE
+}
+
+fun nextPlaybackSpeed(currentSpeed: Float, selectedSpeeds: List<Float>): Float {
+  val speeds = normalizePlaybackSpeedCycle(selectedSpeeds)
+  return speeds.firstOrNull { it > currentSpeed + 0.001f } ?: speeds.first()
+}
 
 val CHAPTER_TITLE_PRESET_LINE: List<Int> = listOf(1, 2, 3)
 

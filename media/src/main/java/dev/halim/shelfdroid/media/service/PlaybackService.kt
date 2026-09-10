@@ -71,16 +71,22 @@ class PlaybackService : MediaLibraryService() {
           store.uiState
             .map { it.advancedControl.sleepTimerLeft > Duration.ZERO }
             .distinctUntilChanged(),
-        ) { uiState, isTransitioning, isSleepTimerActive ->
-          nextChapterControlState(uiState, isTransitioning) to isSleepTimerActive
+          store.notificationPrefs,
+        ) { uiState, isTransitioning, isSleepTimerActive, notificationPrefs ->
+          Triple(
+            nextChapterControlState(uiState, isTransitioning),
+            isSleepTimerActive,
+            notificationPrefs,
+          )
         }
         .distinctUntilChanged()
-        .collect { (nextChapterState, isSleepTimerActive) ->
+        .collect { (nextChapterState, isSleepTimerActive, notificationPrefs) ->
           mediaLibrarySession.setMediaButtonPreferences(
             mediaNotificationButtons(
               getString(CoreR.string.next_chapter),
               nextChapterState,
               isSleepTimerActive,
+              notificationPrefs,
             )
           )
         }

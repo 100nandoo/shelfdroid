@@ -6,12 +6,14 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import dagger.Lazy
 import dev.halim.shelfdroid.core.MediaStructure
+import dev.halim.shelfdroid.core.NotificationPrefs
 import dev.halim.shelfdroid.core.PlayPauseControlStateHolder
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
+import dev.halim.shelfdroid.core.nextPlaybackSpeed
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
 import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+@OptIn(UnstableApi::class)
 @Singleton
 class PlayerStore
 @Inject
@@ -49,6 +52,7 @@ constructor(
 ) {
   val uiState = MutableStateFlow(PlayerUiState())
   val isChapterTransitioning = MutableStateFlow(false)
+  val notificationPrefs = MutableStateFlow(NotificationPrefs())
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
   init {
@@ -62,6 +66,7 @@ constructor(
         }
       }
     }
+    syncScope.launch { prefsRepository.notificationPrefs.collect { notificationPrefs.value = it } }
   }
 
   fun playContent(shouldPlay: Boolean = true) {
@@ -138,6 +143,17 @@ constructor(
   fun startDefaultSleepTimer() {
     val minutes = runBlocking { prefsRepository.notificationPrefs.first().sleepTimerMinutes }
     sleepTimer(minutes.minutes)
+  }
+
+  fun changeSpeedFromMediaNotification(): Boolean {
+    val speed =
+      nextPlaybackSpeed(
+        uiState.value.advancedControl.speed,
+        notificationPrefs.value.playbackSpeedCycle,
+      )
+    uiState.update { playerRepository.changeSpeed(it, speed) }
+    playerManager.player.get().setPlaybackSpeed(speed)
+    return true
   }
 
   fun emptyState(): PlayerUiState {

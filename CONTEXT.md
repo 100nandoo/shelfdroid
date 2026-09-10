@@ -104,6 +104,14 @@ _Avoid_: Download, attachment
 
 ### Playback and access
 
+**Media notification action**:
+A listener-selectable control in the Android media notification, such as sleep timer, next chapter, or playback speed.
+_Avoid_: Notification rule, server notification action
+
+**Playback speed cycle**:
+An ordered list of playback speeds that the listener advances through by tapping the playback-speed media notification action.
+_Avoid_: Speed increment, playback-speed picker
+
 **Track**:
 An individual downloadable or playable audio file belonging to a book.
 _Avoid_: Chapter, episode
