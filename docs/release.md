@@ -8,6 +8,8 @@ This is the maintainer release path for ShelfDroid.
 - The working tree is clean before starting `cz bump`.
 - Commits intended for the release follow the Commitizen convention so changelog generation works as expected.
 - GitHub `Production` environment secrets are configured for the Android signing key.
+- GitHub `Production` environment variables `GCP_WORKLOAD_IDENTITY_PROVIDER` and `GCP_SERVICE_ACCOUNT` are configured for Google Cloud Workload Identity Federation.
+- The Google Play Android Developer API is enabled, and the service account is granted release access to the ShelfDroid app in Play Console.
 - Local signing is available if you want to verify the release build before pushing.
 
 ## What `cz bump` does in this repo
@@ -109,7 +111,10 @@ git push origin --tags
 
 - `.github/workflows/android.yaml` builds from the exact tag.
 - The workflow fails if the tag and `VERSION_NAME` do not match.
-- The workflow signs the APK and publishes `shelfdroid-<tag>.apk`.
+- The workflow signs the APK and AAB, then starts the GitHub Release and Google Play upload in parallel.
+- The GitHub Release publishes `shelfdroid-<tag>.apk` with the generated release notes.
+- The Google Play upload creates a draft on the `production` track, including the localized release notes and R8 mapping file.
+- A failed Google Play upload leaves the GitHub Release intact but marks the workflow failed for follow-up.
 - The workflow uses `fastlane/metadata/android/en-US/changelogs/<VERSION_CODE>.txt` as the GitHub Release notes body.
 
 9. Verify the published GitHub Release.
@@ -124,6 +129,13 @@ Check:
 - the release notes match the generated Fastlane changelog file
 - the tag points at the intended release commit
 
+10. Verify the Google Play draft.
+
+- the draft is on the `production` track
+- the bundle version matches the tag
+- the “What’s new” text matches the generated Fastlane changelog
+- the release has its mapping file attached
+
 ## Release checklist
 
 - `dev` contains the intended release code
@@ -133,4 +145,5 @@ Check:
 - `fastlane/metadata/android/en-US/changelogs/<VERSION_CODE>.txt` contains the new release notes
 - local release build succeeded
 - bump commit and tag were pushed
-- GitHub Release contains both the signed APK and the expected release notes
+- GitHub Release contains the signed APK and the expected release notes
+- Google Play contains the signed AAB as a production-track draft

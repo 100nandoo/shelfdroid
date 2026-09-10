@@ -7,7 +7,7 @@ on:
       - "*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -39,7 +39,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Verify tag matches app version
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         run: |
           expected_version_name=$(grep '^VERSION_NAME=' app/version.properties | cut -d'=' -f2)
           if [ "$expected_version_name" != "${{ github.ref_name }}" ]; then
@@ -48,22 +48,34 @@ jobs:
           fi
 
       - name: Build with Gradle
-        run: ./gradlew :app:assembleRelease
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/tags/* ]]; then
+            ./gradlew :app:assembleRelease :app:bundleRelease
+          else
+            ./gradlew :app:assembleRelease
+          fi
 
       - name: Verify release artifact version metadata
         run: |
           expected_version_name=$(grep '^VERSION_NAME=' app/version.properties | cut -d'=' -f2)
           expected_version_code=$(grep '^VERSION_CODE=' app/version.properties | cut -d'=' -f2)
-          output_metadata=app/build/outputs/apk/release/output-metadata.json
-          actual_version_name=$(perl -0ne 'print $1 if /"versionName"\s*:\s*"([^"]+)"/' "$output_metadata")
-          actual_version_code=$(perl -0ne 'print $1 if /"versionCode"\s*:\s*([0-9]+)/' "$output_metadata")
-          if [ "$actual_version_name" != "$expected_version_name" ]; then
-            echo "Release artifact versionName '$actual_version_name' does not match '$expected_version_name'."
-            exit 1
-          fi
-          if [ "$actual_version_code" != "$expected_version_code" ]; then
-            echo "Release artifact versionCode '$actual_version_code' does not match '$expected_version_code'."
-            exit 1
+          verify_metadata() {
+            output_metadata="$1"
+            actual_version_name=$(perl -0ne 'print $1 if /"versionName"\s*:\s*"([^"]+)"/' "$output_metadata")
+            actual_version_code=$(perl -0ne 'print $1 if /"versionCode"\s*:\s*([0-9]+)/' "$output_metadata")
+            if [ "$actual_version_name" != "$expected_version_name" ]; then
+              echo "Release artifact versionName '$actual_version_name' does not match '$expected_version_name' in '$output_metadata'."
+              exit 1
+            fi
+            if [ "$actual_version_code" != "$expected_version_code" ]; then
+              echo "Release artifact versionCode '$actual_version_code' does not match '$expected_version_code' in '$output_metadata'."
+              exit 1
+            fi
+          }
+
+          verify_metadata app/build/outputs/apk/release/output-metadata.json
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/tags/* ]]; then
+            verify_metadata app/build/outputs/bundle/release/output-metadata.json
           fi
 
       - name: Sign app APK
@@ -76,17 +88,23 @@ jobs:
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
           buildToolsVersion: 34.0.0
 
+      - name: Sign app AAB
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: ilharp/sign-android-release@v2
+        id: sign_bundle
+        with:
+          releaseDir: app/build/outputs/bundle/release
+          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          buildToolsVersion: 34.0.0
+
       - name: List APK output
         run: ls -al ./app/build/outputs/apk/release/
 
-      - name: Rename APK with tag name
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          mv ${{ steps.sign_app.outputs.signedFile }} ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk
-
-      - name: Resolve release notes file
-        if: startsWith(github.ref, 'refs/tags/')
-        id: release_notes
+      - name: Prepare tagged release outputs
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         run: |
           version_code=$(grep '^VERSION_CODE=' app/version.properties | cut -d'=' -f2)
           changelog_file="fastlane/metadata/android/en-US/changelogs/${version_code}.txt"
@@ -94,27 +112,87 @@ jobs:
             echo "Release notes file '$changelog_file' not found."
             exit 1
           fi
-          echo "path=$changelog_file" >> "$GITHUB_OUTPUT"
+
+          mkdir -p dist/whatsnew
+          cp "${{ steps.sign_app.outputs.signedFile }}" "dist/shelfdroid-${{ github.ref_name }}.apk"
+          cp "${{ steps.sign_bundle.outputs.signedFile }}" "dist/shelfdroid-${{ github.ref_name }}.aab"
+          cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
+          cp "$changelog_file" dist/release-notes.txt
+          cp "$changelog_file" dist/whatsnew/whatsnew-en-US
 
       - name: Upload tagged build artifact
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
           name: shelfdroid-${{ github.ref_name }}.apk
-          path: |
-            ./app/build/outputs/apk/release/
+          path: dist/shelfdroid-${{ github.ref_name }}.apk
+
+      - name: Upload production release bundle
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v7
+        with:
+          name: shelfdroid-${{ github.ref_name }}-production
+          path: dist/
 
       - name: Upload workflow dispatch artifact
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
           name: shelfdroid-${{ github.sha }}.apk
           path: |
             ./app/build/outputs/apk/release/
 
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/')
+  github-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download tagged release outputs
+        uses: actions/download-artifact@v7
+        with:
+          name: shelfdroid-${{ github.ref_name }}-production
+          path: dist
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          files: ./app/build/outputs/apk/release/shelfdroid-${{ github.ref_name }}.apk
-          body_path: ${{ steps.release_notes.outputs.path }}
+          files: dist/shelfdroid-${{ github.ref_name }}.apk
+          body_path: dist/release-notes.txt
+
+  play-upload:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    environment: Production
+    concurrency:
+      group: production-play-upload
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download tagged release outputs
+        uses: actions/download-artifact@v7
+        with:
+          name: shelfdroid-${{ github.ref_name }}-production
+          path: dist
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Upload bundle to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
+          packageName: dev.halim.shelfdroid
+          releaseFiles: dist/shelfdroid-${{ github.ref_name }}.aab
+          tracks: production
+          status: draft
+          whatsNewDirectory: dist/whatsnew
+          mappingFile: dist/mapping.txt
