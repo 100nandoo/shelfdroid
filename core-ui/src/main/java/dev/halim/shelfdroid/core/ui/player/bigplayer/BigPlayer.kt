@@ -40,6 +40,7 @@ import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlaybackProgress
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerChapter
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.ui.Animations
@@ -216,8 +217,8 @@ fun BasicPlayerControl(
     SeekForwardButton({ onEvent(PlayerEvent.SeekForwardButton) }, seekControls, id)
 
     MyIconButton(
-      painter = painterResource(R.drawable.skip_next),
-      contentDescription = stringResource(R.string.next_chapter),
+      painter = painterResource(CoreR.drawable.skip_next),
+      contentDescription = stringResource(CoreR.string.next_chapter),
       onClick = { onEvent(PlayerEvent.SkipNextButton) },
       enabled = currentChapter?.chapterPosition != ChapterPosition.Last && currentChapter != null,
     )

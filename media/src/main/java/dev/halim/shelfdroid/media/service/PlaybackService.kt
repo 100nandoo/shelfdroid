@@ -4,25 +4,23 @@ import android.content.Intent
 import android.os.Process
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import com.google.common.collect.ImmutableList
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
-import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.SLEEP_TIMER_OFF_BUTTON
-import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.SLEEP_TIMER_ON_BUTTON
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -39,7 +37,7 @@ class PlaybackService : MediaLibraryService() {
   @Inject lateinit var playerStore: Lazy<PlayerStore>
 
   private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-  private var sleepTimerObserverJob: Job? = null
+  private var mediaButtonObserverJob: Job? = null
 
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession {
     return mediaLibrarySession
@@ -60,21 +58,30 @@ class PlaybackService : MediaLibraryService() {
     setupPlayerListener()
     playerManager.get().addDefaultListener()
     setMediaNotificationProvider(mediaNotificationProvider.get())
-    observeSleepTimerState()
+    observeMediaButtonState()
   }
 
-  private fun observeSleepTimerState() {
-    sleepTimerObserverJob?.cancel()
-    sleepTimerObserverJob = serviceScope.launch {
-      playerStore
-        .get()
-        .uiState
-        .map { it.advancedControl.sleepTimerLeft > Duration.ZERO }
+  private fun observeMediaButtonState() {
+    mediaButtonObserverJob?.cancel()
+    val store = playerStore.get()
+    mediaButtonObserverJob = serviceScope.launch {
+      combine(
+          store.uiState,
+          store.isChapterTransitioning,
+          store.uiState
+            .map { it.advancedControl.sleepTimerLeft > Duration.ZERO }
+            .distinctUntilChanged(),
+        ) { uiState, isTransitioning, isSleepTimerActive ->
+          nextChapterControlState(uiState, isTransitioning) to isSleepTimerActive
+        }
         .distinctUntilChanged()
-        .collect { isActive ->
-          val sleepButton = if (isActive) SLEEP_TIMER_ON_BUTTON else SLEEP_TIMER_OFF_BUTTON
+        .collect { (nextChapterState, isSleepTimerActive) ->
           mediaLibrarySession.setMediaButtonPreferences(
-            ImmutableList.of(BACK_COMMAND_BUTTON, FORWARD_COMMAND_BUTTON, sleepButton)
+            mediaNotificationButtons(
+              getString(CoreR.string.next_chapter),
+              nextChapterState,
+              isSleepTimerActive,
+            )
           )
         }
     }
@@ -85,6 +92,18 @@ class PlaybackService : MediaLibraryService() {
       .get()
       .addListener(
         object : Player.Listener {
+          override fun onPlaybackStateChanged(playbackState: Int) {
+            super.onPlaybackStateChanged(playbackState)
+            if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
+              playerStore.get().completeChapterTransition()
+            }
+          }
+
+          override fun onPlayerError(error: PlaybackException) {
+            super.onPlayerError(error)
+            playerStore.get().completeChapterTransition()
+          }
+
           override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
             if (isPlaying) {
@@ -100,7 +119,7 @@ class PlaybackService : MediaLibraryService() {
   }
 
   override fun onDestroy() {
-    sleepTimerObserverJob?.cancel()
+    mediaButtonObserverJob?.cancel()
     stopAndClear()
     mediaLibrarySession.release()
     stopForeground(STOP_FOREGROUND_REMOVE)

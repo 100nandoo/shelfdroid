@@ -2,17 +2,12 @@
 
 ## High Priority
 
-- [ ] Edit libraries
 - [ ] Socket implementation
     - [ ] Handle download event
 - [ ] Widget
 - [ ] Expand Compose screenshot coverage
     - [ ] Follow plan: `docs/plan/compose-screenshot-coverage-expansion.md`
 - [ ] Window Manager
-- [ ] Create release build with https://github.com/ilharp/sign-android-release
-- [ ] close playback implementation
-    - [ ] library item finished
-    - [ ] exoplayer/service stop
 
 ## Low Priority
 
@@ -108,3 +103,4 @@
 - [x] Notifications
 - [x] authentications
 - [x] Item metadata utils
+- [x] Edit libraries

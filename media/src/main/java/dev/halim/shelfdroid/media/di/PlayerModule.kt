@@ -36,14 +36,17 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.media.service.CUSTOM_BACK
 import dev.halim.shelfdroid.media.service.CUSTOM_FORWARD
+import dev.halim.shelfdroid.media.service.CUSTOM_NEXT_CHAPTER
 import dev.halim.shelfdroid.media.service.CUSTOM_SLEEP_TIMER
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
-import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.BACK_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.FORWARD_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider.Companion.SLEEP_TIMER_OFF_BUTTON
+import dev.halim.shelfdroid.media.service.MediaNotificationButtons.BACK_COMMAND_BUTTON
+import dev.halim.shelfdroid.media.service.MediaNotificationButtons.FORWARD_COMMAND_BUTTON
+import dev.halim.shelfdroid.media.service.MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
 import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.service.mediaNotificationButtons
 import javax.inject.Singleton
 import kotlin.time.Duration
 
@@ -131,14 +134,22 @@ object PlayerModule {
   @Singleton
   @Provides
   fun provideMediaLibrarySessionCallback(
-    playerStore: Lazy<PlayerStore>
+    @ApplicationContext context: Context,
+    playerStore: Lazy<PlayerStore>,
   ): MediaLibrarySession.Callback {
 
-    val commandButtons = listOf(BACK_COMMAND_BUTTON, FORWARD_COMMAND_BUTTON, SLEEP_TIMER_OFF_BUTTON)
     val sessionCommands =
       MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
         .apply {
-          commandButtons.forEach { commandButton -> commandButton.sessionCommand?.let { add(it) } }
+          listOf(
+              BACK_COMMAND_BUTTON,
+              FORWARD_COMMAND_BUTTON,
+              SLEEP_TIMER_OFF_BUTTON,
+            )
+            .forEach { commandButton ->
+              commandButton.sessionCommand?.let { add(it) }
+            }
+          add(SessionCommand(CUSTOM_NEXT_CHAPTER, Bundle()))
         }
         .build()
     return object : MediaLibrarySession.Callback {
@@ -147,6 +158,14 @@ object PlayerModule {
         session: MediaSession,
         controller: MediaSession.ControllerInfo,
       ): ListenableFuture<MediaSession.ConnectionResult> {
+        val store = playerStore.get()
+        val commandButtons =
+          mediaNotificationButtons(
+            context.getString(CoreR.string.next_chapter),
+            store.uiState.value,
+            store.isChapterTransitioning.value,
+            store.uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO,
+          )
         return Futures.immediateFuture(
           MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
             .setAvailableSessionCommands(sessionCommands)
@@ -162,19 +181,35 @@ object PlayerModule {
         customCommand: SessionCommand,
         args: Bundle,
       ): ListenableFuture<SessionResult> {
-        when (customCommand.customAction) {
-          CUSTOM_BACK -> session.player.seekTo(session.player.currentPosition - 10000)
-          CUSTOM_FORWARD -> session.player.seekTo(session.player.currentPosition + 10000)
-          CUSTOM_SLEEP_TIMER -> {
-            val store = playerStore.get()
-            if (store.uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO) {
-              store.clearTimer()
-            } else {
-              store.startDefaultSleepTimer()
+        val resultCode =
+          when (customCommand.customAction) {
+            CUSTOM_BACK -> {
+              session.player.seekTo(session.player.currentPosition - 10000)
+              SessionResult.RESULT_SUCCESS
             }
+            CUSTOM_FORWARD -> {
+              session.player.seekTo(session.player.currentPosition + 10000)
+              SessionResult.RESULT_SUCCESS
+            }
+            CUSTOM_SLEEP_TIMER -> {
+              val store = playerStore.get()
+              if (store.uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO) {
+                store.clearTimer()
+              } else {
+                store.startDefaultSleepTimer()
+              }
+              SessionResult.RESULT_SUCCESS
+            }
+            CUSTOM_NEXT_CHAPTER -> {
+              if (playerStore.get().nextChapterFromMediaNotification()) {
+                SessionResult.RESULT_SUCCESS
+              } else {
+                SessionResult.RESULT_ERROR_INVALID_STATE
+              }
+            }
+            else -> SessionResult.RESULT_ERROR_NOT_SUPPORTED
           }
-        }
-        return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        return Futures.immediateFuture(SessionResult(resultCode))
       }
     }
   }

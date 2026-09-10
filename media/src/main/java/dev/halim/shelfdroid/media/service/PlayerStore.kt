@@ -48,6 +48,7 @@ constructor(
   private val prefsRepository: PrefsRepository,
 ) {
   val uiState = MutableStateFlow(PlayerUiState())
+  val isChapterTransitioning = MutableStateFlow(false)
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
   init {
@@ -63,14 +64,40 @@ constructor(
     }
   }
 
-  fun playContent() {
+  fun playContent(shouldPlay: Boolean = true) {
     playerManager.player.get().apply {
       changeContent()
-      play()
+      if (shouldPlay) {
+        play()
+      } else {
+        pause()
+      }
       collectPlaybackProgress()
       listenPlayer()
       syncSession()
     }
+  }
+
+  fun nextChapterFromMediaNotification(): Boolean {
+    val currentUiState = uiState.value
+    if (isChapterTransitioning.value || !nextChapterControlState(currentUiState).enabled) {
+      return false
+    }
+
+    isChapterTransitioning.value = true
+    return try {
+      val shouldPlay = playerManager.player.get().playWhenReady
+      uiState.value = playerRepository.previousNextChapter(currentUiState, false)
+      playContent(shouldPlay)
+      true
+    } catch (exception: RuntimeException) {
+      isChapterTransitioning.value = false
+      throw exception
+    }
+  }
+
+  fun completeChapterTransition() {
+    isChapterTransitioning.value = false
   }
 
   fun changeContent() {
@@ -114,6 +141,7 @@ constructor(
   }
 
   fun emptyState(): PlayerUiState {
+    isChapterTransitioning.value = false
     playPauseControlStateHolder.update(playPauseControlStateMapper.map(emptyControlSnapshot()))
     return PlayerUiState()
   }

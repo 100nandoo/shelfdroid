@@ -101,6 +101,7 @@ flowchart LR
     EditItem["Edit library item"]
     EditEpisode["Edit episode"]
     ChangePassword["Change password"]
+    SettingsHome["Home screen settings"]
     SettingsPlayback["Playback settings"]
     SettingsPlayer["Player settings"]
     SettingsNotification["Notification settings"]
@@ -116,6 +117,7 @@ flowchart LR
     B --> EditItem
     E --> EditEpisode
 
+    S --> SettingsHome
     S --> SettingsPlayback
     S --> SettingsPlayer
     S --> SettingsNotification
@@ -156,6 +158,7 @@ flowchart LR
     Libraries["Library administration"]
     CreateLibrary["Create library"]
     EditLibrary["Edit library"]
+    ServerFolders["Browse server folders"]
     ApiKeys["API keys"]
     EditApiKey["Create/edit API key"]
     ServerSettings["Server settings"]
@@ -193,6 +196,9 @@ flowchart LR
     Search --> P
     AddPodcast --> P
     P --> AddEpisode
+
+    CreateLibrary --> ServerFolders
+    EditLibrary --> ServerFolders
 
     Users --> EditUser
     Users --> UserInfo
