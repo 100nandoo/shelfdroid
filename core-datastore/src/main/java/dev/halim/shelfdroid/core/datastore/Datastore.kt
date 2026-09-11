@@ -205,7 +205,8 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
 
   suspend fun updatePlayerPrefs(update: (PlayerPrefs) -> PlayerPrefs) {
     dataStore.edit { prefs ->
-      prefs[Keys.PLAYER_PREFS] = Json.encodeToString(update(playerPrefsFrom(prefs[Keys.PLAYER_PREFS])))
+      prefs[Keys.PLAYER_PREFS] =
+        Json.encodeToString(update(playerPrefsFrom(prefs[Keys.PLAYER_PREFS])))
     }
   }
 

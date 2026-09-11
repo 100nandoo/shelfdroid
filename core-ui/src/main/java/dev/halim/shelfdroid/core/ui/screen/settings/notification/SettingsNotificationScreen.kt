@@ -14,12 +14,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -35,6 +37,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
+import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -47,16 +50,25 @@ fun SettingsNotificationScreen(viewModel: SettingsNotificationViewModel = hiltVi
 }
 
 @Composable
-private fun SettingsNotificationContent(
+internal fun SettingsNotificationContent(
   uiState: SettingsNotificationUiState = SettingsNotificationUiState(),
   onEvent: (SettingsNotificationEvent) -> Unit = {},
 ) {
+  val sleepTimerEnabled =
+    uiState.firstAction == MediaNotificationAction.SleepTimer ||
+      uiState.secondAction == MediaNotificationAction.SleepTimer
+  val playbackSpeedEnabled =
+    uiState.firstAction == MediaNotificationAction.PlaybackSpeed ||
+      uiState.secondAction == MediaNotificationAction.PlaybackSpeed
+
   Column(
-    modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
+    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    SleepTimerSection(uiState, onEvent)
-    Spacer(modifier = Modifier.height(16.dp))
+    SleepTimerSection(uiState, sleepTimerEnabled, onEvent)
+    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+    PlaybackSpeedCycle(uiState, playbackSpeedEnabled, onEvent)
+    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
     MediaNotificationSection(uiState, onEvent)
   }
 }
@@ -64,15 +76,20 @@ private fun SettingsNotificationContent(
 @Composable
 private fun SleepTimerSection(
   uiState: SettingsNotificationUiState,
+  enabled: Boolean,
   onEvent: (SettingsNotificationEvent) -> Unit,
 ) {
-  TextTitleMedium(text = stringResource(R.string.sleep_timer))
+  TextTitleMedium(
+    modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
+    text = stringResource(R.string.sleep_timer),
+  )
   ChipDropdownMenu(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
     label = stringResource(R.string.default_sleep_timer),
     labelPosition = LabelPosition.Expand,
     options = SLEEP_TIMER_PRESET_MINUTES.map { it.toString() },
     initialValue = uiState.sleepTimerMinutes.toString(),
+    enabled = enabled,
     onClick = { selected ->
       selected.toIntOrNull()?.let { onEvent(SettingsNotificationEvent.ChangeSleepTimerMinutes(it)) }
     },
@@ -84,7 +101,10 @@ private fun MediaNotificationSection(
   uiState: SettingsNotificationUiState,
   onEvent: (SettingsNotificationEvent) -> Unit,
 ) {
-  TextTitleMedium(text = stringResource(R.string.media_notification))
+  TextTitleMedium(
+    modifier = Modifier.padding(horizontal = 16.dp),
+    text = stringResource(R.string.media_notification),
+  )
   NotificationActionSlot(
     label = stringResource(R.string.media_notification_button_1),
     selected = uiState.firstAction,
@@ -98,8 +118,6 @@ private fun MediaNotificationSection(
     other = uiState.firstAction,
     onSelected = { onEvent(SettingsNotificationEvent.ChangeActionSlot(2, it)) },
   )
-  Spacer(modifier = Modifier.height(16.dp))
-  PlaybackSpeedCycle(uiState, onEvent)
 }
 
 @Composable
@@ -122,7 +140,7 @@ private fun NotificationActionSlot(
       it == MediaNotificationAction.None || it == selected || it != other
     }
   ChipDropdownMenu(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
     label = label,
     labelPosition = LabelPosition.Expand,
     options = options.map { it.name },
@@ -136,18 +154,23 @@ private fun NotificationActionSlot(
 @Composable
 private fun PlaybackSpeedCycle(
   uiState: SettingsNotificationUiState,
+  enabled: Boolean,
   onEvent: (SettingsNotificationEvent) -> Unit,
 ) {
   val speedCycle = normalizePlaybackSpeedCycle(uiState.playbackSpeedCycle)
-  Text(text = stringResource(R.string.playback_speed_cycle))
+  TextTitleMedium(
+    text = stringResource(R.string.playback_speed_cycle),
+    modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
+  )
   Text(
     text = stringResource(R.string.playback_speed_cycle_supporting_text),
     style = MaterialTheme.typography.bodySmall,
     color = MaterialTheme.colorScheme.onSurfaceVariant,
+    modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
   )
   Spacer(modifier = Modifier.height(8.dp))
   FlowRow(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
@@ -155,7 +178,7 @@ private fun PlaybackSpeedCycle(
       val selected = speed in speedCycle
       FilterChip(
         selected = selected,
-        enabled = !selected || speedCycle.size > 2,
+        enabled = enabled && (!selected || speedCycle.size > 2),
         onClick = {
           val updated =
             if (selected) {
@@ -185,4 +208,32 @@ private fun PlaybackSpeedCycle(
 @Composable
 fun SettingsNotificationContentPreview() {
   PreviewWrapper(dynamicColor = false) { SettingsNotificationContent() }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun SettingsNotificationContentDisabledPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    SettingsNotificationContent(
+      uiState =
+        SettingsNotificationUiState(
+          firstAction = MediaNotificationAction.None,
+          secondAction = MediaNotificationAction.NextChapter,
+        )
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun SettingsNotificationContentPlaybackSpeedPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    SettingsNotificationContent(
+      uiState =
+        SettingsNotificationUiState(
+          firstAction = MediaNotificationAction.PlaybackSpeed,
+          secondAction = MediaNotificationAction.None,
+        )
+    )
+  }
 }

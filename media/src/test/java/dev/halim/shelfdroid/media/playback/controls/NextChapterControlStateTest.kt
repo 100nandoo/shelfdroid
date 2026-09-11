@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.media.service
+package dev.halim.shelfdroid.media.playback.controls
 
 import dev.halim.shelfdroid.core.ChapterPosition
 import dev.halim.shelfdroid.core.PlayerChapter

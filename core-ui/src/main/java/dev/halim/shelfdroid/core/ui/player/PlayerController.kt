@@ -7,7 +7,7 @@ import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerState.Hidden
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.di.MediaControllerManager
-import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.playback.PlayerStore
 import javax.inject.Inject
 import javax.inject.Named
 import kotlin.time.Duration

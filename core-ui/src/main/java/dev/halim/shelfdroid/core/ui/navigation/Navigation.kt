@@ -76,7 +76,7 @@ import dev.halim.shelfdroid.core.ui.screen.userinfo.UserInfoScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePasswordScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.EditUserScreen
-import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.playback.PlayerStore
 import kotlinx.coroutines.launch
 
 @Composable

@@ -4,7 +4,7 @@ import dagger.Lazy
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import dev.halim.shelfdroid.core.data.sessionreset.CurrentPlaybackCleanup
 import dev.halim.shelfdroid.media.di.MediaControllerManager
-import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.playback.PlayerStore
 import javax.inject.Inject
 import kotlinx.coroutines.flow.update
 

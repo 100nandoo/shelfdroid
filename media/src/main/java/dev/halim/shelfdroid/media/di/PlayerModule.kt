@@ -37,19 +37,19 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.halim.shelfdroid.core.R as CoreR
-import dev.halim.shelfdroid.media.service.CUSTOM_BACK
-import dev.halim.shelfdroid.media.service.CUSTOM_FORWARD
-import dev.halim.shelfdroid.media.service.CUSTOM_NEXT_CHAPTER
-import dev.halim.shelfdroid.media.service.CUSTOM_PREVIOUS_CHAPTER
-import dev.halim.shelfdroid.media.service.CUSTOM_PLAYBACK_SPEED
-import dev.halim.shelfdroid.media.service.CUSTOM_SLEEP_TIMER
-import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
-import dev.halim.shelfdroid.media.service.MediaNotificationButtons.BACK_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.service.MediaNotificationButtons.FORWARD_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.service.MediaNotificationButtons.PLAYBACK_SPEED_BUTTON
-import dev.halim.shelfdroid.media.service.MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
-import dev.halim.shelfdroid.media.service.PlayerStore
-import dev.halim.shelfdroid.media.service.mediaNotificationButtons
+import dev.halim.shelfdroid.media.notification.CustomMediaNotificationProvider
+import dev.halim.shelfdroid.media.notification.MediaNotificationButtons.BACK_COMMAND_BUTTON
+import dev.halim.shelfdroid.media.notification.MediaNotificationButtons.FORWARD_COMMAND_BUTTON
+import dev.halim.shelfdroid.media.notification.MediaNotificationButtons.PLAYBACK_SPEED_BUTTON
+import dev.halim.shelfdroid.media.notification.MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
+import dev.halim.shelfdroid.media.notification.mediaNotificationButtons
+import dev.halim.shelfdroid.media.playback.PlayerStore
+import dev.halim.shelfdroid.media.session.CUSTOM_BACK
+import dev.halim.shelfdroid.media.session.CUSTOM_FORWARD
+import dev.halim.shelfdroid.media.session.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.session.CUSTOM_PLAYBACK_SPEED
+import dev.halim.shelfdroid.media.session.CUSTOM_PREVIOUS_CHAPTER
+import dev.halim.shelfdroid.media.session.CUSTOM_SLEEP_TIMER
 import javax.inject.Singleton
 import kotlin.time.Duration
 

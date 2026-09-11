@@ -11,7 +11,7 @@ import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.player.bigplayer.BigPlayerContent
-import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.playback.PlayerStore
 
 @Composable
 fun Player(

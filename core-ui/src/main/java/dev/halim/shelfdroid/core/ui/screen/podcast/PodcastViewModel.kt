@@ -20,7 +20,7 @@ import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
 import dev.halim.shelfdroid.core.ui.navigation.Podcast
 import dev.halim.shelfdroid.core.ui.player.forItemAction
 import dev.halim.shelfdroid.download.DownloadRepo
-import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.playback.PlayerStore
 import dev.halim.socketio.SocketEvent
 import dev.halim.socketio.SocketManager
 import dev.halim.socketio.model.PodcastEpisodeDownload

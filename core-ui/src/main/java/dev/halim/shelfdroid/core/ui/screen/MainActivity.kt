@@ -29,7 +29,7 @@ import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.media.di.MediaControllerManager
-import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.playback.PlayerStore
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking

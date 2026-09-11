@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.media.service
+package dev.halim.shelfdroid.media.notification
 
 import com.google.common.collect.ImmutableList
 import dev.halim.shelfdroid.core.ChapterPosition
@@ -7,6 +7,13 @@ import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
+import dev.halim.shelfdroid.media.playback.controls.NextChapterControlState
+import dev.halim.shelfdroid.media.session.CUSTOM_BACK
+import dev.halim.shelfdroid.media.session.CUSTOM_FORWARD
+import dev.halim.shelfdroid.media.session.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.session.CUSTOM_PLAYBACK_SPEED
+import dev.halim.shelfdroid.media.session.CUSTOM_PREVIOUS_CHAPTER
+import dev.halim.shelfdroid.media.session.CUSTOM_SLEEP_TIMER
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -186,7 +193,12 @@ class MediaNotificationButtonsTest {
         MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON,
       )
 
-    val notificationButtons = addDisabledNextChapterButton(resolved, preferences)
+    val notificationButtons =
+      addDisabledChapterButtons(
+        resolved,
+        preferences,
+        chapterActions = setOf(CUSTOM_NEXT_CHAPTER),
+      )
 
     assertEquals(CUSTOM_NEXT_CHAPTER, notificationButtons.last().sessionCommand?.customAction)
     assertFalse(notificationButtons.last().isEnabled)
@@ -209,7 +221,12 @@ class MediaNotificationButtonsTest {
         MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON,
       )
 
-    val notificationButtons = addDisabledNextChapterButton(resolved, preferences)
+    val notificationButtons =
+      addDisabledChapterButtons(
+        resolved,
+        preferences,
+        chapterActions = setOf(CUSTOM_NEXT_CHAPTER),
+      )
 
     assertEquals(CUSTOM_NEXT_CHAPTER, notificationButtons[2].sessionCommand?.customAction)
     assertEquals(CUSTOM_SLEEP_TIMER, notificationButtons[3].sessionCommand?.customAction)
@@ -218,7 +235,8 @@ class MediaNotificationButtonsTest {
 
   @Test
   fun `restores disabled previous chapter after Media3 filtering`() {
-    val disabledPreviousChapter = previousChapterCommandButton("Previous chapter", isEnabled = false)
+    val disabledPreviousChapter =
+      previousChapterCommandButton("Previous chapter", isEnabled = false)
     val preferences =
       ImmutableList.of(
         MediaNotificationButtons.BACK_COMMAND_BUTTON,

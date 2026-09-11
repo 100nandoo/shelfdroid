@@ -1,25 +1,26 @@
-package dev.halim.shelfdroid.media.service
+package dev.halim.shelfdroid.media.playback.controls
 
 import dev.halim.shelfdroid.core.PlayerUiState
 
-data class PreviousChapterControlState(
+data class NextChapterControlState(
   val visible: Boolean,
   val enabled: Boolean,
 )
 
-fun previousChapterControlState(
+fun nextChapterControlState(
   uiState: PlayerUiState,
   isTransitioning: Boolean = false,
-): PreviousChapterControlState {
+): NextChapterControlState {
   val isMultiChapterBook =
     uiState.episodeId.isBlank() && uiState.currentChapter != null && uiState.playerChapters.size > 1
   if (!isMultiChapterBook) {
-    return PreviousChapterControlState(visible = false, enabled = false)
+    return NextChapterControlState(visible = false, enabled = false)
   }
 
   val currentChapterIndex = uiState.playerChapters.indexOf(uiState.currentChapter)
-  return PreviousChapterControlState(
+  val hasNextChapter = currentChapterIndex in 0 until uiState.playerChapters.lastIndex
+  return NextChapterControlState(
     visible = true,
-    enabled = currentChapterIndex > 0 && !isTransitioning,
+    enabled = hasNextChapter && !isTransitioning,
   )
 }

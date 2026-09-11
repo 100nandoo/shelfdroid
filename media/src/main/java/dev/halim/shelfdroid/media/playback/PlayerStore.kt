@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.media.service
+package dev.halim.shelfdroid.media.playback
 
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
@@ -21,6 +21,10 @@ import dev.halim.shelfdroid.media.exoplayer.playbackProgressFlow
 import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper
 import dev.halim.shelfdroid.media.misc.SessionManager
 import dev.halim.shelfdroid.media.misc.TimerManager
+import dev.halim.shelfdroid.media.playback.controls.PlayPauseControlStateMapper
+import dev.halim.shelfdroid.media.playback.controls.PlayerControlSnapshot
+import dev.halim.shelfdroid.media.playback.controls.nextChapterControlState
+import dev.halim.shelfdroid.media.playback.controls.previousChapterControlState
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration

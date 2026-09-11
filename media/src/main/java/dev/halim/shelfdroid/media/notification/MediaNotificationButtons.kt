@@ -1,27 +1,40 @@
-package dev.halim.shelfdroid.media.service
+package dev.halim.shelfdroid.media.notification
 
 import android.os.Bundle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
 import androidx.media3.session.SessionCommand
+import com.google.common.collect.ImmutableList
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.prefs.DEFAULT_SEEK_INTERVAL_SECONDS
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
+import dev.halim.shelfdroid.media.playback.controls.NextChapterControlState
+import dev.halim.shelfdroid.media.playback.controls.PreviousChapterControlState
+import dev.halim.shelfdroid.media.playback.controls.nextChapterControlState
+import dev.halim.shelfdroid.media.playback.controls.previousChapterControlState
+import dev.halim.shelfdroid.media.session.CUSTOM_BACK
+import dev.halim.shelfdroid.media.session.CUSTOM_FORWARD
+import dev.halim.shelfdroid.media.session.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.session.CUSTOM_PLAYBACK_SPEED
+import dev.halim.shelfdroid.media.session.CUSTOM_PREVIOUS_CHAPTER
+import dev.halim.shelfdroid.media.session.CUSTOM_SLEEP_TIMER
 
-const val CUSTOM_BACK = "CUSTOM_BACK"
-const val CUSTOM_FORWARD = "CUSTOM_FORWARD"
-const val CUSTOM_SLEEP_TIMER = "CUSTOM_SLEEP_TIMER"
-const val CUSTOM_NEXT_CHAPTER = "CUSTOM_NEXT_CHAPTER"
-const val CUSTOM_PREVIOUS_CHAPTER = "CUSTOM_PREVIOUS_CHAPTER"
-const val CUSTOM_PLAYBACK_SPEED = "CUSTOM_PLAYBACK_SPEED"
+internal val CUSTOM_NOTIFICATION_ACTIONS =
+  setOf(
+    CUSTOM_SLEEP_TIMER,
+    CUSTOM_NEXT_CHAPTER,
+    CUSTOM_PREVIOUS_CHAPTER,
+    CUSTOM_PLAYBACK_SPEED,
+  )
 
 @UnstableApi
 internal object MediaNotificationButtons {
   val BACK_COMMAND_BUTTON: CommandButton = seekBackCommandButton(DEFAULT_SEEK_INTERVAL_SECONDS)
 
-  val FORWARD_COMMAND_BUTTON: CommandButton = seekForwardCommandButton(DEFAULT_SEEK_INTERVAL_SECONDS)
+  val FORWARD_COMMAND_BUTTON: CommandButton =
+    seekForwardCommandButton(DEFAULT_SEEK_INTERVAL_SECONDS)
 
   val SLEEP_TIMER_OFF_BUTTON: CommandButton =
     CommandButton.Builder(CommandButton.ICON_UNDEFINED)
@@ -37,8 +50,7 @@ internal object MediaNotificationButtons {
       .setDisplayName("Cancel sleep timer")
       .build()
 
-  val PLAYBACK_SPEED_BUTTON: CommandButton =
-    playbackSpeedCommandButton(1f)
+  val PLAYBACK_SPEED_BUTTON: CommandButton = playbackSpeedCommandButton(1f)
 }
 
 @UnstableApi
@@ -54,16 +66,6 @@ internal fun seekForwardCommandButton(seconds: Int): CommandButton =
     .setSessionCommand(SessionCommand(CUSTOM_FORWARD, Bundle()))
     .setDisplayName("Forward ${seconds}s")
     .build()
-
-internal data class MediaNotificationButtonState(
-  val nextChapterState: NextChapterControlState,
-  val previousChapterState: PreviousChapterControlState,
-  val isSleepTimerActive: Boolean,
-  val playbackSpeed: Float,
-  val notificationPrefs: NotificationPrefs,
-  val seekBackSeconds: Int,
-  val seekForwardSeconds: Int,
-)
 
 internal fun playbackSpeedIconResId(playbackSpeed: Float): Int =
   when (playbackSpeed) {
@@ -178,4 +180,34 @@ fun mediaNotificationButtons(
       }
     }
   }
+}
+
+@UnstableApi
+internal fun addDisabledChapterButtons(
+  mediaButtons: ImmutableList<CommandButton>,
+  mediaButtonPreferences: ImmutableList<CommandButton>,
+  chapterActions: Set<String> = setOf(CUSTOM_NEXT_CHAPTER, CUSTOM_PREVIOUS_CHAPTER),
+): ImmutableList<CommandButton> {
+  // Media3 filters disabled preferences before addNotificationActions. NotificationCompat has no
+  // disabled action state, so keep the button visible and rely on the session callback's
+  // invalid-state guard to make taps a no-op.
+  val result = mediaButtons.toMutableList()
+  mediaButtonPreferences.forEachIndexed { preferenceIndex, preference ->
+    val customAction = preference.sessionCommand?.customAction
+    if (
+      customAction in chapterActions &&
+        !preference.isEnabled &&
+        result.none { it.sessionCommand?.customAction == customAction }
+    ) {
+      val insertionIndex = result.indexOfFirst { button ->
+        val buttonPreferenceIndex = mediaButtonPreferences.indexOfFirst {
+          it.sessionCommand?.customAction == button.sessionCommand?.customAction
+        }
+        buttonPreferenceIndex > preferenceIndex &&
+          button.sessionCommand?.customAction in CUSTOM_NOTIFICATION_ACTIONS
+      }
+      result.add(if (insertionIndex == -1) result.size else insertionIndex, preference)
+    }
+  }
+  return ImmutableList.copyOf(result)
 }

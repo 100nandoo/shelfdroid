@@ -16,9 +16,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.data.screen.settings.player.SettingsPlayerUiState
 import dev.halim.shelfdroid.core.prefs.CHAPTER_TITLE_PRESET_LINE
+import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.prefs.DEFAULT_SEEK_INTERVAL_SECONDS
 import dev.halim.shelfdroid.core.prefs.SEEK_INTERVAL_OPTIONS
-import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition
@@ -68,7 +68,9 @@ private fun SeekIntervalDropdown(
   selectedSeconds: Int,
   onSelected: (Int) -> Unit,
 ) {
-  val seekIntervalOptions = SEEK_INTERVAL_OPTIONS.associateWith { stringResource(R.string.seconds, it) }
+  val seekIntervalOptions = SEEK_INTERVAL_OPTIONS.associateWith {
+    stringResource(R.string.seconds, it)
+  }
   ChipDropdownMenu(
     modifier = Modifier.fillMaxWidth(),
     label = label,
@@ -78,10 +80,7 @@ private fun SeekIntervalDropdown(
       seekIntervalOptions[selectedSeconds]
         ?: seekIntervalOptions.getValue(DEFAULT_SEEK_INTERVAL_SECONDS),
     onClick = { selected ->
-      seekIntervalOptions.entries
-        .firstOrNull { it.value == selected }
-        ?.key
-        ?.let(onSelected)
+      seekIntervalOptions.entries.firstOrNull { it.value == selected }?.key?.let(onSelected)
     },
   )
 }

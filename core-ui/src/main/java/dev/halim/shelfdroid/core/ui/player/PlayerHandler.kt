@@ -10,7 +10,7 @@ import dev.halim.shelfdroid.core.ui.navigation.Episode
 import dev.halim.shelfdroid.core.ui.navigation.Home
 import dev.halim.shelfdroid.core.ui.navigation.Podcast
 import dev.halim.shelfdroid.core.ui.navigation.ShelfNavKey
-import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.playback.PlayerStore
 
 @Composable
 fun PlayerHandler(

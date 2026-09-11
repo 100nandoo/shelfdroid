@@ -51,7 +51,7 @@ import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.home.item.ItemDetail
 import dev.halim.shelfdroid.core.ui.screen.rssfeeds.ItemGeneratedRssFeedSheet
-import dev.halim.shelfdroid.media.service.PlayerStore
+import dev.halim.shelfdroid.media.playback.PlayerStore
 import kotlinx.coroutines.launch
 
 @Composable

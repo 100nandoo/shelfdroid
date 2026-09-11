@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.media.service
+package dev.halim.shelfdroid.media.playback.controls
 
 import androidx.media3.common.Player
 import dev.halim.shelfdroid.core.PlayPauseControlState

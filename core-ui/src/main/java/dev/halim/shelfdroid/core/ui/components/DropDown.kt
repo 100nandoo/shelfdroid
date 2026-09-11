@@ -25,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.extensions.enable
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -60,7 +61,7 @@ fun ChipDropdownMenu(
         Text(
           text = it,
           style = MaterialTheme.typography.labelSmall,
-          color = OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
+          color = OutlinedTextFieldDefaults.colors().unfocusedLabelColor.enable(enabled),
           modifier =
             mod.then(
               if (labelPosition == LabelPosition.Top) Modifier else Modifier.padding(end = 8.dp)
@@ -81,6 +82,9 @@ fun ChipDropdownMenu(
         } else {
           FilterChipDefaults.filterChipBorder(enabled = true, selected = false)
         }
+
+      val color =
+        if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
       FilterChip(
         modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         selected = expanded,
@@ -89,8 +93,7 @@ fun ChipDropdownMenu(
         label = {
           Text(
             text = optionLabel(selected).ifEmpty { label ?: "" },
-            color =
-              if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            color = color.enable(enabled),
           )
         },
         border = errorBorder,
