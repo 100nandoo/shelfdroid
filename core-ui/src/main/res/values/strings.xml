@@ -783,6 +783,9 @@
     <string name="edit_item_chapter_number">#</string>
     <string name="edit_item_chapter_start">Start</string>
     <string name="edit_item_edit_chapters">Edit Chapters</string>
+    <string name="edit_item_set_chapters_from_tracks">Set Chapters from Tracks</string>
+    <string name="edit_item_confirm_set_chapters_from_tracks">This will replace the existing chapters with one chapter for each eligible audio track.</string>
+    <string name="edit_item_confirm_set_chapters_action">Set Chapters</string>
     <string name="edit_item_chapter_end">End</string>
 
     <string name="edit_item_library_files_count">Library Files (%1$d)</string>

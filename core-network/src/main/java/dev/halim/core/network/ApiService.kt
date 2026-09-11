@@ -21,6 +21,7 @@ import dev.halim.core.network.request.SyncLocalAllSessionRequest
 import dev.halim.core.network.request.SyncLocalSessionRequest
 import dev.halim.core.network.request.SyncSessionRequest
 import dev.halim.core.network.request.UpdateApiKeyRequest
+import dev.halim.core.network.request.UpdateLibraryItemChaptersRequest
 import dev.halim.core.network.request.UpdateLibraryItemMediaRequest
 import dev.halim.core.network.request.UpdateLibraryRequest
 import dev.halim.core.network.request.UpdatePodcastEpisodeRequest
@@ -68,6 +69,7 @@ import dev.halim.core.network.response.SessionsResponse
 import dev.halim.core.network.response.SetItemCoverResponse
 import dev.halim.core.network.response.SyncLocalAllSessionResponse
 import dev.halim.core.network.response.TasksResponse
+import dev.halim.core.network.response.UpdateLibraryItemChaptersResponse
 import dev.halim.core.network.response.UpdateLibraryItemMediaResponse
 import dev.halim.core.network.response.UpdateUserResponse
 import dev.halim.core.network.response.UserWithMediaProgressDetail
@@ -257,6 +259,12 @@ interface ApiService {
     @Path("itemId") itemId: String,
     @Body request: UpdateLibraryItemMediaRequest,
   ): Result<UpdateLibraryItemMediaResponse>
+
+  @POST("/api/items/{itemId}/chapters")
+  suspend fun updateLibraryItemChapters(
+    @Path("itemId") itemId: String,
+    @Body request: UpdateLibraryItemChaptersRequest,
+  ): Result<UpdateLibraryItemChaptersResponse>
 
   @POST("/api/items/{itemId}/match")
   suspend fun matchItem(

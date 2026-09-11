@@ -12,6 +12,7 @@ internal data class MappedEditItemMedia(
   val details: DetailsForm,
   val schedule: PodcastScheduleForm,
   val chapters: List<ChapterRow>,
+  val chapterTracks: List<ChapterSourceTrack>,
   val episodes: List<EpisodeRow>,
   val episodeUpdate: EpisodeUpdateState,
 )
@@ -44,6 +45,14 @@ internal object EditItemMapper {
             ),
           schedule = PodcastScheduleForm(),
           chapters = media.chapters.map { ChapterRow(it.id, it.title, it.start, it.end) },
+          chapterTracks =
+            media.audioFiles.map {
+              ChapterSourceTrack(
+                filename = it.metadata.filename,
+                duration = it.duration,
+                excluded = it.exclude,
+              )
+            },
           episodes = emptyList(),
           episodeUpdate = EpisodeUpdateState(),
         )
@@ -75,6 +84,7 @@ internal object EditItemMapper {
               maxNewEpisodesToDownloadInput = media.maxNewEpisodesToDownload.toString(),
             ),
           chapters = emptyList(),
+          chapterTracks = emptyList(),
           episodes = mapEpisodes(media.episodes),
           episodeUpdate =
             EpisodeUpdateState(
@@ -91,6 +101,7 @@ internal object EditItemMapper {
           details = DetailsForm(),
           schedule = PodcastScheduleForm(),
           chapters = emptyList(),
+          chapterTracks = emptyList(),
           episodes = emptyList(),
           episodeUpdate = EpisodeUpdateState(),
         )

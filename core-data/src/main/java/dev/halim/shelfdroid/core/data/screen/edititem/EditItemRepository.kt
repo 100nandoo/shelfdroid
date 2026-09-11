@@ -15,6 +15,7 @@ import dev.halim.core.network.response.SearchProviders
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.GenericUiEvent
+import dev.halim.shelfdroid.core.data.library.LibraryItemChapterUpdate
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import dev.halim.shelfdroid.core.data.screen.edititem.episodes.EditItemEpisodeUpdateRunner
 import dev.halim.shelfdroid.core.data.screen.edititem.schedule.EditItemScheduleSaveRunner
@@ -113,6 +114,7 @@ constructor(
       scheduleMode = schedulePresentation.mode,
       simpleScheduleBuilder = schedulePresentation.simpleBuilder,
       chapters = mappedMedia.chapters,
+      chapterTracks = mappedMedia.chapterTracks,
       episodes = mappedMedia.episodes,
       episodeUpdate = mappedMedia.episodeUpdate,
       libraryFiles =
@@ -166,6 +168,34 @@ constructor(
     val result = scheduleSaveRunner.run(state)
     result.events.forEach { events.emit(it) }
     return result.state
+  }
+
+  suspend fun setChaptersFromTracks(
+    state: EditItemUiState,
+    events: MutableSharedFlow<GenericUiEvent>,
+  ): EditItemUiState {
+    val chapters =
+      generateChaptersFromTracks(state.chapterTracks).getOrElse {
+        events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
+        return state.copy(isSaving = false, isSettingChapters = false)
+      }
+    val updated =
+      libraryItemRepo.updateLibraryItemChapters(
+        state.itemId,
+        chapters.map { chapter ->
+          LibraryItemChapterUpdate(
+            id = chapter.id,
+            title = chapter.title,
+            start = chapter.start,
+            end = chapter.end,
+          )
+        },
+      ).getOrElse {
+        events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
+        return state.copy(isSaving = false, isSettingChapters = false)
+      }
+    events.emit(GenericUiEvent.ShowSuccessSnackbar())
+    return mergeUpdated(state, updated).copy(isSaving = false, isSettingChapters = false)
   }
 
   private fun buildUpdateRequest(

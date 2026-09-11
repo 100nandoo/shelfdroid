@@ -7,9 +7,11 @@ import dev.halim.core.network.ApiService
 import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.OpenItemRssFeedMetadataDetails
 import dev.halim.core.network.request.OpenItemRssFeedRequest
+import dev.halim.core.network.request.UpdateLibraryItemChaptersRequest
 import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.RssFeed
+import dev.halim.core.network.response.UpdateLibraryItemChaptersResponse
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
@@ -135,6 +137,30 @@ constructor(
     val result = api.item(id, include = include)
     result.getOrNull()?.let(::updateItem)
     return result
+  }
+
+  suspend fun updateLibraryItemChapters(
+    itemId: String,
+    chapters: List<LibraryItemChapterUpdate>,
+  ): Result<LibraryItem> {
+    val request =
+      UpdateLibraryItemChaptersRequest(
+        chapters =
+          chapters.map { chapter ->
+            UpdateLibraryItemChaptersRequest.Chapter(
+              id = chapter.id,
+              title = chapter.title,
+              start = chapter.start,
+              end = chapter.end,
+            )
+          }
+      )
+    return updateLibraryItemChaptersAndRefresh(
+      itemId = itemId,
+      request = request,
+      update = api::updateLibraryItemChapters,
+      refresh = ::refreshItem,
+    )
   }
 
   suspend fun openGeneratedRssFeedForItem(
@@ -389,6 +415,20 @@ constructor(
   private fun currentWebBaseUrl(): String =
     AudiobookshelfBaseUrl.parse(DataStoreManager.BASE_URL)?.value
       ?: AudiobookshelfBaseUrl.DEFAULT_VALUE
+}
+
+internal suspend fun updateLibraryItemChaptersAndRefresh(
+  itemId: String,
+  request: UpdateLibraryItemChaptersRequest,
+  update: suspend (String, UpdateLibraryItemChaptersRequest) ->
+    Result<UpdateLibraryItemChaptersResponse>,
+  refresh: suspend (String) -> Result<LibraryItem>,
+): Result<LibraryItem> {
+  val response = update(itemId, request).getOrElse { return Result.failure(it) }
+  if (!response.success) {
+    return Result.failure(IllegalStateException("The server did not update the chapters"))
+  }
+  return refresh(itemId)
 }
 
 internal suspend fun fetchLibraryItemsInBatches(

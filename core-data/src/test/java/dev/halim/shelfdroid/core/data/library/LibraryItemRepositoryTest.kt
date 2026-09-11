@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.core.data.library
 
 import dev.halim.core.network.response.LibraryItem
+import dev.halim.core.network.request.UpdateLibraryItemChaptersRequest
+import dev.halim.core.network.response.UpdateLibraryItemChaptersResponse
 import dev.halim.core.network.response.libraryitem.AudioFile
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.Podcast
@@ -105,5 +107,55 @@ class LibraryItemRepositoryTest {
 
     assertTrue(result.isFailure)
     assertSame(failure, result.exceptionOrNull())
+  }
+
+  @Test
+  fun updateLibraryItemChaptersAndRefresh_doesNotRefreshAfterUpdateFailure() = runTest {
+    val failure = IllegalStateException("update failed")
+    var refreshed = false
+
+    val result =
+      updateLibraryItemChaptersAndRefresh(
+        itemId = "book-1",
+        request = UpdateLibraryItemChaptersRequest(chapters = emptyList()),
+        update = { _, _ -> Result.failure(failure) },
+        refresh = {
+          refreshed = true
+          Result.success(LibraryItem(id = "book-1", media = Book()))
+        },
+      )
+
+    assertSame(failure, result.exceptionOrNull())
+    assertFalse(refreshed)
+  }
+
+  @Test
+  fun updateLibraryItemChaptersAndRefresh_returnsRefreshFailureAfterSuccessfulUpdate() = runTest {
+    val failure = IllegalStateException("refresh failed")
+
+    val result =
+      updateLibraryItemChaptersAndRefresh(
+        itemId = "book-1",
+        request = UpdateLibraryItemChaptersRequest(chapters = emptyList()),
+        update = { _, _ -> Result.success(UpdateLibraryItemChaptersResponse(success = true)) },
+        refresh = { Result.failure(failure) },
+      )
+
+    assertSame(failure, result.exceptionOrNull())
+  }
+
+  @Test
+  fun updateLibraryItemChaptersAndRefresh_returnsRefreshedItemAfterSuccessfulUpdate() = runTest {
+    val refreshedItem = LibraryItem(id = "book-1", media = Book())
+
+    val result =
+      updateLibraryItemChaptersAndRefresh(
+        itemId = "book-1",
+        request = UpdateLibraryItemChaptersRequest(chapters = emptyList()),
+        update = { _, _ -> Result.success(UpdateLibraryItemChaptersResponse(success = true)) },
+        refresh = { Result.success(refreshedItem) },
+      )
+
+    assertSame(refreshedItem, result.getOrNull())
   }
 }

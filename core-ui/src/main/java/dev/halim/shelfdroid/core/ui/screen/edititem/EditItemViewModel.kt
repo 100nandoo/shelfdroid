@@ -86,6 +86,7 @@ constructor(
 
       EditItemEvent.Save -> save()
       EditItemEvent.SaveSchedule -> saveSchedule()
+      EditItemEvent.SetChaptersFromTracks -> setChaptersFromTracks()
       EditItemEvent.QuickMatch -> quickMatch()
       EditItemEvent.ReScan -> reScan()
       is EditItemEvent.UploadCover -> uploadCover(event.uri, event.contentResolver)
@@ -239,6 +240,11 @@ constructor(
   private fun saveSchedule() = viewModelScope.launch {
     _uiState.update { it.copy(isSaving = true) }
     _uiState.value = repository.saveSchedule(_uiState.value, _events).normalized()
+  }
+
+  private fun setChaptersFromTracks() = viewModelScope.launch {
+    _uiState.update { it.copy(isSaving = true, isSettingChapters = true) }
+    _uiState.value = repository.setChaptersFromTracks(_uiState.value, _events).normalized()
   }
 
   private fun quickMatch() = viewModelScope.launch {
@@ -437,6 +443,8 @@ sealed interface EditItemEvent {
   data class UpdateScheduleMaxNewEpisodesToDownloadInput(val value: String) : EditItemEvent
 
   data object SaveSchedule : EditItemEvent
+
+  data object SetChaptersFromTracks : EditItemEvent
 
   data object RunEpisodeUpdateCheck : EditItemEvent
 }

@@ -1,11 +1,13 @@
 package dev.halim.shelfdroid.core.data.screen.edititem
 
 import dev.halim.core.network.response.LibraryItem
+import dev.halim.core.network.response.libraryitem.AudioFile
 import dev.halim.core.network.response.libraryitem.Author
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.BookChapter
 import dev.halim.core.network.response.libraryitem.BookMetadata
 import dev.halim.core.network.response.libraryitem.Enclosure
+import dev.halim.core.network.response.libraryitem.FileMetadata
 import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.core.network.response.libraryitem.PodcastMetadata
@@ -45,6 +47,20 @@ class EditItemMapperTest {
                   explicit = true,
                 ),
               chapters = listOf(BookChapter(id = 7, title = "Arrakis", start = 1.0, end = 2.0)),
+              audioFiles =
+                listOf(
+                  AudioFile(
+                    index = 0,
+                    metadata = FileMetadata(filename = "01-intro.mp3"),
+                    duration = 12.5,
+                  ),
+                  AudioFile(
+                    index = 1,
+                    metadata = FileMetadata(filename = "excluded.mp3"),
+                    duration = 4.0,
+                    exclude = true,
+                  ),
+                ),
             ),
         )
       )
@@ -56,6 +72,13 @@ class EditItemMapperTest {
     assertEquals("1965", mapped.details.publishedYear)
     assertEquals(1, mapped.chapters.size)
     assertEquals(7, mapped.chapters.single().id)
+    assertEquals(
+      listOf(
+        ChapterSourceTrack(filename = "01-intro.mp3", duration = 12.5),
+        ChapterSourceTrack(filename = "excluded.mp3", duration = 4.0, excluded = true),
+      ),
+      mapped.chapterTracks,
+    )
   }
 
   @Test

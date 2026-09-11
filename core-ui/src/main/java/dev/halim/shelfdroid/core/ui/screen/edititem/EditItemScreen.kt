@@ -140,7 +140,7 @@ private fun EditItemContent(uiState: EditItemUiState, onEvent: (EditItemEvent) -
               PodcastDetailsTab(details = uiState.details, onEvent = onEvent)
           }
         EditItemTab.Cover -> CoverTab(uiState, onEvent)
-        EditItemTab.Chapters -> ChaptersTab(uiState)
+        EditItemTab.Chapters -> ChaptersTab(uiState, onEvent)
         EditItemTab.Episodes -> EpisodesTab(uiState, onEvent)
         EditItemTab.Files -> FilesTab(uiState, onEvent)
         EditItemTab.Match ->

@@ -421,6 +421,26 @@ class FakeApiService @Inject constructor() : ApiService {
       )
     )
 
+  override suspend fun updateLibrary(
+    libraryId: String,
+    request: UpdateLibraryRequest,
+  ): Result<Library> =
+    synchronized(this) {
+      val current = libraries.firstOrNull { it.id == libraryId }
+      if (current == null) {
+        Result.failure(IllegalArgumentException("Unknown library"))
+      } else {
+        val updated =
+          current.copy(
+            name = request.name ?: current.name,
+            icon = request.icon ?: current.icon,
+            provider = request.provider ?: current.provider,
+          )
+        libraries[libraries.indexOf(current)] = updated
+        Result.success(updated)
+      }
+    }
+
   override suspend fun deleteLibrary(libraryId: String): Result<Library> =
     synchronized(this) {
       deleteFailure?.let { error ->
@@ -528,6 +548,42 @@ class FakeApiService @Inject constructor() : ApiService {
     itemId: String,
     request: UpdateLibraryItemMediaRequest,
   ): Result<UpdateLibraryItemMediaResponse> = Result.success(UpdateLibraryItemMediaResponse())
+
+  override suspend fun updateLibraryItemChapters(
+    itemId: String,
+    request: UpdateLibraryItemChaptersRequest,
+  ): Result<UpdateLibraryItemChaptersResponse> {
+    synchronized(this) {
+      val item = items[itemId] ?: return Result.failure(IllegalArgumentException("Unknown item"))
+      val book =
+        item.media as? Book
+          ?: return Result.failure(IllegalArgumentException("Item is not a book"))
+      items[itemId] =
+        item.copy(
+          media =
+            Book(
+              libraryItemId = book.libraryItemId,
+              coverPath = book.coverPath,
+              tags = book.tags,
+              metadata = book.metadata,
+              audioFiles = book.audioFiles,
+              chapters =
+                request.chapters.map { chapter ->
+                  BookChapter(
+                    id = chapter.id,
+                    title = chapter.title,
+                    start = chapter.start,
+                    end = chapter.end,
+                  )
+                },
+              audioTracks = book.audioTracks,
+              ebookFile = book.ebookFile,
+              duration = book.duration,
+            )
+        )
+    }
+    return Result.success(UpdateLibraryItemChaptersResponse(success = true, updated = true))
+  }
 
   override suspend fun matchItem(
     itemId: String,
