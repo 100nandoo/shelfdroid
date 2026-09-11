@@ -14,6 +14,7 @@ const val CUSTOM_BACK = "CUSTOM_BACK"
 const val CUSTOM_FORWARD = "CUSTOM_FORWARD"
 const val CUSTOM_SLEEP_TIMER = "CUSTOM_SLEEP_TIMER"
 const val CUSTOM_NEXT_CHAPTER = "CUSTOM_NEXT_CHAPTER"
+const val CUSTOM_PREVIOUS_CHAPTER = "CUSTOM_PREVIOUS_CHAPTER"
 const val CUSTOM_PLAYBACK_SPEED = "CUSTOM_PLAYBACK_SPEED"
 
 @UnstableApi
@@ -56,6 +57,7 @@ internal fun seekForwardCommandButton(seconds: Int): CommandButton =
 
 internal data class MediaNotificationButtonState(
   val nextChapterState: NextChapterControlState,
+  val previousChapterState: PreviousChapterControlState,
   val isSleepTimerActive: Boolean,
   val playbackSpeed: Float,
   val notificationPrefs: NotificationPrefs,
@@ -96,6 +98,18 @@ internal fun nextChapterCommandButton(
     .build()
 
 @UnstableApi
+internal fun previousChapterCommandButton(
+  displayName: CharSequence,
+  isEnabled: Boolean,
+): CommandButton =
+  CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+    .setCustomIconResId(CoreR.drawable.skip_previous)
+    .setSessionCommand(SessionCommand(CUSTOM_PREVIOUS_CHAPTER, Bundle()))
+    .setDisplayName(displayName)
+    .setEnabled(isEnabled)
+    .build()
+
+@UnstableApi
 fun mediaNotificationButtons(
   nextChapterDisplayName: CharSequence,
   uiState: PlayerUiState,
@@ -104,15 +118,18 @@ fun mediaNotificationButtons(
   notificationPrefs: NotificationPrefs = NotificationPrefs(),
   seekBackSeconds: Int = DEFAULT_SEEK_INTERVAL_SECONDS,
   seekForwardSeconds: Int = DEFAULT_SEEK_INTERVAL_SECONDS,
+  previousChapterDisplayName: CharSequence = "Previous chapter",
 ): List<CommandButton> =
   mediaNotificationButtons(
-    nextChapterDisplayName,
-    nextChapterControlState(uiState, isChapterTransitioning),
-    isSleepTimerActive,
-    notificationPrefs,
-    uiState.advancedControl.speed,
-    seekBackSeconds,
-    seekForwardSeconds,
+    nextChapterDisplayName = nextChapterDisplayName,
+    nextChapterState = nextChapterControlState(uiState, isChapterTransitioning),
+    isSleepTimerActive = isSleepTimerActive,
+    notificationPrefs = notificationPrefs,
+    currentPlaybackSpeed = uiState.advancedControl.speed,
+    seekBackSeconds = seekBackSeconds,
+    seekForwardSeconds = seekForwardSeconds,
+    previousChapterDisplayName = previousChapterDisplayName,
+    previousChapterState = previousChapterControlState(uiState, isChapterTransitioning),
   )
 
 @UnstableApi
@@ -124,6 +141,9 @@ fun mediaNotificationButtons(
   currentPlaybackSpeed: Float = 1f,
   seekBackSeconds: Int = DEFAULT_SEEK_INTERVAL_SECONDS,
   seekForwardSeconds: Int = DEFAULT_SEEK_INTERVAL_SECONDS,
+  previousChapterDisplayName: CharSequence = "Previous chapter",
+  previousChapterState: PreviousChapterControlState =
+    PreviousChapterControlState(visible = false, enabled = false),
 ): List<CommandButton> {
   return buildList {
     add(seekBackCommandButton(seekBackSeconds))
@@ -142,6 +162,15 @@ fun mediaNotificationButtons(
         MediaNotificationAction.NextChapter ->
           if (nextChapterState.visible) {
             add(nextChapterCommandButton(nextChapterDisplayName, nextChapterState.enabled))
+          }
+        MediaNotificationAction.PreviousChapter ->
+          if (previousChapterState.visible) {
+            add(
+              previousChapterCommandButton(
+                previousChapterDisplayName,
+                previousChapterState.enabled,
+              )
+            )
           }
         MediaNotificationAction.PlaybackSpeed ->
           add(playbackSpeedCommandButton(currentPlaybackSpeed))

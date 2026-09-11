@@ -55,6 +55,29 @@ class MediaNotificationButtonsTest {
   }
 
   @Test
+  fun `shows previous chapter when it is configured and available`() {
+    val buttons =
+      mediaNotificationButtons(
+        "Next chapter",
+        PlayerUiState(
+          playerChapters = listOf(firstChapter, lastChapter),
+          currentChapter = lastChapter,
+        ),
+        isChapterTransitioning = false,
+        isSleepTimerActive = false,
+        notificationPrefs =
+          NotificationPrefs(
+            firstAction = MediaNotificationAction.PreviousChapter,
+            secondAction = MediaNotificationAction.None,
+          ),
+        previousChapterDisplayName = "Previous chapter",
+      )
+
+    assertEquals(CUSTOM_PREVIOUS_CHAPTER, buttons[2].sessionCommand?.customAction)
+    assertTrue(buttons[2].isEnabled)
+  }
+
+  @Test
   fun `omits next chapter for episodes and single chapter books`() {
     val podcastButtons =
       mediaNotificationButtons(
@@ -191,5 +214,26 @@ class MediaNotificationButtonsTest {
     assertEquals(CUSTOM_NEXT_CHAPTER, notificationButtons[2].sessionCommand?.customAction)
     assertEquals(CUSTOM_SLEEP_TIMER, notificationButtons[3].sessionCommand?.customAction)
     assertFalse(notificationButtons[2].isEnabled)
+  }
+
+  @Test
+  fun `restores disabled previous chapter after Media3 filtering`() {
+    val disabledPreviousChapter = previousChapterCommandButton("Previous chapter", isEnabled = false)
+    val preferences =
+      ImmutableList.of(
+        MediaNotificationButtons.BACK_COMMAND_BUTTON,
+        MediaNotificationButtons.FORWARD_COMMAND_BUTTON,
+        disabledPreviousChapter,
+      )
+    val resolved =
+      ImmutableList.of(
+        MediaNotificationButtons.BACK_COMMAND_BUTTON,
+        MediaNotificationButtons.FORWARD_COMMAND_BUTTON,
+      )
+
+    val notificationButtons = addDisabledChapterButtons(resolved, preferences)
+
+    assertEquals(CUSTOM_PREVIOUS_CHAPTER, notificationButtons.last().sessionCommand?.customAction)
+    assertFalse(notificationButtons.last().isEnabled)
   }
 }

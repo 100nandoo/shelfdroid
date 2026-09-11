@@ -14,7 +14,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private val CUSTOM_NOTIFICATION_ACTIONS =
-  setOf(CUSTOM_SLEEP_TIMER, CUSTOM_NEXT_CHAPTER, CUSTOM_PLAYBACK_SPEED)
+  setOf(
+    CUSTOM_SLEEP_TIMER,
+    CUSTOM_NEXT_CHAPTER,
+    CUSTOM_PREVIOUS_CHAPTER,
+    CUSTOM_PLAYBACK_SPEED,
+  )
 
 @UnstableApi
 @Singleton
@@ -38,7 +43,7 @@ class CustomMediaNotificationProvider @Inject constructor(context: Context) :
         mediaButtonPreferences,
         showPauseButton,
       )
-    return addDisabledNextChapterButton(mediaButtons, mediaButtonPreferences)
+    return addDisabledChapterButtons(mediaButtons, mediaButtonPreferences)
   }
 
   override fun addNotificationActions(
@@ -88,31 +93,35 @@ class CustomMediaNotificationProvider @Inject constructor(context: Context) :
 internal fun addDisabledNextChapterButton(
   mediaButtons: ImmutableList<CommandButton>,
   mediaButtonPreferences: ImmutableList<CommandButton>,
+): ImmutableList<CommandButton> =
+  addDisabledChapterButtons(mediaButtons, mediaButtonPreferences, setOf(CUSTOM_NEXT_CHAPTER))
+
+@UnstableApi
+internal fun addDisabledChapterButtons(
+  mediaButtons: ImmutableList<CommandButton>,
+  mediaButtonPreferences: ImmutableList<CommandButton>,
+  chapterActions: Set<String> = setOf(CUSTOM_NEXT_CHAPTER, CUSTOM_PREVIOUS_CHAPTER),
 ): ImmutableList<CommandButton> {
   // Media3 filters disabled preferences before addNotificationActions. NotificationCompat has no
-  // disabled action state, so keep the button visible for legacy notifications and rely on the
-  // session callback's invalid-state guard to make taps a no-op.
-  val disabledNextChapterButton = mediaButtonPreferences.firstOrNull {
-    it.sessionCommand?.customAction == CUSTOM_NEXT_CHAPTER && !it.isEnabled
-  }
-  return if (
-    disabledNextChapterButton != null &&
-      mediaButtons.none { it.sessionCommand?.customAction == CUSTOM_NEXT_CHAPTER }
-  ) {
-    val nextPreferenceIndex = mediaButtonPreferences.indexOfFirst {
-      it.sessionCommand?.customAction == CUSTOM_NEXT_CHAPTER && !it.isEnabled
-    }
-    val insertionIndex = mediaButtons.indexOfFirst { button ->
-      val preferenceIndex = mediaButtonPreferences.indexOfFirst {
-        it.sessionCommand?.customAction == button.sessionCommand?.customAction
+  // disabled action state, so keep the button visible and rely on the session callback's
+  // invalid-state guard to make taps a no-op.
+  val result = mediaButtons.toMutableList()
+  mediaButtonPreferences.forEachIndexed { preferenceIndex, preference ->
+    val customAction = preference.sessionCommand?.customAction
+    if (
+      customAction in chapterActions &&
+        !preference.isEnabled &&
+        result.none { it.sessionCommand?.customAction == customAction }
+    ) {
+      val insertionIndex = result.indexOfFirst { button ->
+        val buttonPreferenceIndex = mediaButtonPreferences.indexOfFirst {
+          it.sessionCommand?.customAction == button.sessionCommand?.customAction
+        }
+        buttonPreferenceIndex > preferenceIndex &&
+          button.sessionCommand?.customAction in CUSTOM_NOTIFICATION_ACTIONS
       }
-      preferenceIndex > nextPreferenceIndex &&
-        button.sessionCommand?.customAction in CUSTOM_NOTIFICATION_ACTIONS
+      result.add(if (insertionIndex == -1) result.size else insertionIndex, preference)
     }
-    val result = mediaButtons.toMutableList()
-    result.add(if (insertionIndex == -1) result.size else insertionIndex, disabledNextChapterButton)
-    ImmutableList.copyOf(result)
-  } else {
-    mediaButtons
   }
+  return ImmutableList.copyOf(result)
 }

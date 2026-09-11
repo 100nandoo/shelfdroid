@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 enum class MediaNotificationAction {
   SleepTimer,
   NextChapter,
+  PreviousChapter,
   PlaybackSpeed,
   None,
 }

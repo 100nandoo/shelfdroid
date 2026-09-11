@@ -40,6 +40,7 @@ import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.media.service.CUSTOM_BACK
 import dev.halim.shelfdroid.media.service.CUSTOM_FORWARD
 import dev.halim.shelfdroid.media.service.CUSTOM_NEXT_CHAPTER
+import dev.halim.shelfdroid.media.service.CUSTOM_PREVIOUS_CHAPTER
 import dev.halim.shelfdroid.media.service.CUSTOM_PLAYBACK_SPEED
 import dev.halim.shelfdroid.media.service.CUSTOM_SLEEP_TIMER
 import dev.halim.shelfdroid.media.service.CustomMediaNotificationProvider
@@ -153,6 +154,7 @@ object PlayerModule {
               commandButton.sessionCommand?.let { add(it) }
             }
           add(SessionCommand(CUSTOM_NEXT_CHAPTER, Bundle()))
+          add(SessionCommand(CUSTOM_PREVIOUS_CHAPTER, Bundle()))
         }
         .build()
     return object : MediaLibrarySession.Callback {
@@ -171,6 +173,7 @@ object PlayerModule {
             store.notificationPrefs.value,
             seekBackSeconds = store.playerPrefs.value.seekBackSeconds,
             seekForwardSeconds = store.playerPrefs.value.seekForwardSeconds,
+            previousChapterDisplayName = context.getString(CoreR.string.previous_chapter),
           )
         return Futures.immediateFuture(
           MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
@@ -208,6 +211,13 @@ object PlayerModule {
             }
             CUSTOM_NEXT_CHAPTER -> {
               if (playerStore.get().nextChapterFromMediaNotification()) {
+                SessionResult.RESULT_SUCCESS
+              } else {
+                SessionResult.RESULT_ERROR_INVALID_STATE
+              }
+            }
+            CUSTOM_PREVIOUS_CHAPTER -> {
+              if (playerStore.get().previousChapterFromMediaNotification()) {
                 SessionResult.RESULT_SUCCESS
               } else {
                 SessionResult.RESULT_ERROR_INVALID_STATE

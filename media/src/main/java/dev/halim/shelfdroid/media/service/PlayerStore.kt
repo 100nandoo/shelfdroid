@@ -95,15 +95,26 @@ constructor(
   }
 
   fun nextChapterFromMediaNotification(): Boolean {
+    return chapterFromMediaNotification(isPrevious = false)
+  }
+
+  fun previousChapterFromMediaNotification(): Boolean {
+    return chapterFromMediaNotification(isPrevious = true)
+  }
+
+  private fun chapterFromMediaNotification(isPrevious: Boolean): Boolean {
     val currentUiState = uiState.value
-    if (isChapterTransitioning.value || !nextChapterControlState(currentUiState).enabled) {
+    val isEnabled =
+      if (isPrevious) previousChapterControlState(currentUiState).enabled
+      else nextChapterControlState(currentUiState).enabled
+    if (isChapterTransitioning.value || !isEnabled) {
       return false
     }
 
     isChapterTransitioning.value = true
     return try {
       val shouldPlay = playerManager.player.get().playWhenReady
-      uiState.value = playerRepository.previousNextChapter(currentUiState, false)
+      uiState.value = playerRepository.previousNextChapter(currentUiState, isPrevious)
       playContent(shouldPlay)
       true
     } catch (exception: RuntimeException) {

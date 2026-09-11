@@ -113,6 +113,7 @@ private fun NotificationActionSlot(
     mapOf(
       MediaNotificationAction.SleepTimer to stringResource(R.string.timer),
       MediaNotificationAction.NextChapter to stringResource(CoreR.string.next_chapter),
+      MediaNotificationAction.PreviousChapter to stringResource(CoreR.string.previous_chapter),
       MediaNotificationAction.PlaybackSpeed to stringResource(CoreR.string.playback_speed),
       MediaNotificationAction.None to stringResource(R.string.none),
     )
