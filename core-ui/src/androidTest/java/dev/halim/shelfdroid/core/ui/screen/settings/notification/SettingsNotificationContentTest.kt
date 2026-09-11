@@ -1,9 +1,15 @@
 package dev.halim.shelfdroid.core.ui.screen.settings.notification
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -113,5 +119,51 @@ class SettingsNotificationContentTest {
     }
 
     composeRule.onNodeWithText("0.5x").performScrollTo().assertIsEnabled()
+  }
+
+  @Test
+  fun mediaNotificationPreview_showsDummyMediaAndConfiguredActions() {
+    composeRule.setContent {
+      SettingsNotificationContent(
+        uiState =
+          SettingsNotificationUiState(
+            firstAction = MediaNotificationAction.SleepTimer,
+            secondAction = MediaNotificationAction.NextChapter,
+          )
+      )
+    }
+
+    composeRule.onNodeWithText("The Red-Headed League").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("Sir Arthur Conan Doyle").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("Chapter 2").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Seek back").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Play").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Seek forward").performScrollTo().assertIsDisplayed()
+    composeRule
+      .onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo(0.6f, 0f..1f)))
+      .performScrollTo()
+      .assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Timer").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Next chapter").performScrollTo().assertIsDisplayed()
+  }
+
+  @Test
+  fun mediaNotificationPreview_updatesActionsAndOmitsNone() {
+    val state =
+      mutableStateOf(
+        SettingsNotificationUiState(
+          firstAction = MediaNotificationAction.None,
+          secondAction = MediaNotificationAction.None,
+        )
+      )
+    composeRule.setContent { SettingsNotificationContent(uiState = state.value) }
+
+    composeRule.onAllNodesWithContentDescription("Timer").assertCountEquals(0)
+    composeRule.onAllNodesWithContentDescription("Next chapter").assertCountEquals(0)
+
+    state.value = state.value.copy(firstAction = MediaNotificationAction.PlaybackSpeed)
+    composeRule.waitForIdle()
+
+    composeRule.onNodeWithContentDescription("Playback speed").performScrollTo().assertIsDisplayed()
   }
 }

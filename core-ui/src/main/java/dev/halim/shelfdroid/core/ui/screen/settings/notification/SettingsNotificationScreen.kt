@@ -1,9 +1,12 @@
 package dev.halim.shelfdroid.core.ui.screen.settings.notification
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,19 +14,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +53,7 @@ import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.media.R as MediaR
 
 @Composable
 fun SettingsNotificationScreen(viewModel: SettingsNotificationViewModel = hiltViewModel()) {
@@ -105,6 +118,8 @@ private fun MediaNotificationSection(
     modifier = Modifier.padding(horizontal = 16.dp),
     text = stringResource(R.string.media_notification),
   )
+  MediaNotificationPreview(uiState)
+  Spacer(modifier = Modifier.height(16.dp))
   NotificationActionSlot(
     label = stringResource(R.string.media_notification_button_1),
     selected = uiState.firstAction,
@@ -121,6 +136,159 @@ private fun MediaNotificationSection(
 }
 
 @Composable
+private fun MediaNotificationPreview(uiState: SettingsNotificationUiState) {
+  val colorScheme = MaterialTheme.colorScheme
+  val contentColor = colorScheme.onSurface
+  val configuredActions =
+    listOf(uiState.firstAction, uiState.secondAction).filter {
+      it != MediaNotificationAction.None
+    }
+
+  Box(
+    modifier =
+      Modifier
+        .padding(horizontal = 16.dp)
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(28.dp))
+        .background(
+          Brush.linearGradient(
+            listOf(
+              colorScheme.primaryContainer,
+              colorScheme.secondaryContainer,
+              colorScheme.tertiaryContainer,
+            )
+          )
+        )
+        .padding(16.dp)
+  ) {
+    Box(
+      modifier =
+        Modifier
+          .matchParentSize()
+          .background(colorScheme.surface.copy(alpha = 0.22f))
+    )
+    Column(modifier = Modifier.fillMaxWidth()) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+          painter = painterResource(MediaR.drawable.ic_notification),
+          contentDescription = null,
+          tint = contentColor,
+          modifier = Modifier.size(24.dp),
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+          text = stringResource(R.string.media_notification_preview_app_name),
+          style = MaterialTheme.typography.labelMedium,
+          color = contentColor,
+        )
+      }
+      Spacer(modifier = Modifier.height(12.dp))
+      Text(
+        text = stringResource(R.string.media_notification_preview_title),
+        style = MaterialTheme.typography.titleLarge,
+        color = contentColor,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      Text(
+        text = stringResource(R.string.media_notification_preview_author),
+        style = MaterialTheme.typography.bodyMedium,
+        color = contentColor,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      Text(
+        text = stringResource(R.string.media_notification_preview_chapter),
+        style = MaterialTheme.typography.bodySmall,
+        color = contentColor.copy(alpha = 0.8f),
+      )
+      Spacer(modifier = Modifier.height(12.dp))
+      LinearProgressIndicator(
+        progress = { 0.6f },
+        modifier = Modifier.fillMaxWidth(),
+        color = contentColor,
+        trackColor = contentColor.copy(alpha = 0.24f),
+      )
+      Spacer(modifier = Modifier.height(8.dp))
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        MediaNotificationPreviewIcon(
+          painter = painterResource(R.drawable.fast_rewind),
+          contentDescription = stringResource(R.string.seek_back),
+          tint = contentColor,
+        )
+        Box(
+          modifier =
+            Modifier
+              .size(40.dp)
+              .clip(CircleShape)
+              .background(contentColor),
+          contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+            painter = painterResource(R.drawable.play_arrow),
+            contentDescription = stringResource(R.string.play),
+            tint = colorScheme.surface,
+            modifier = Modifier.size(28.dp),
+          )
+        }
+        MediaNotificationPreviewIcon(
+          painter = painterResource(R.drawable.fast_forward),
+          contentDescription = stringResource(R.string.seek_forward),
+          tint = contentColor,
+        )
+        configuredActions.forEach { action ->
+          MediaNotificationPreviewIcon(
+            painter = painterResource(action.previewIconResId()),
+            contentDescription = action.previewContentDescription(),
+            tint = contentColor,
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun MediaNotificationPreviewIcon(
+  painter: Painter,
+  contentDescription: String,
+  tint: Color,
+) {
+  Icon(
+    painter = painter,
+    contentDescription = contentDescription,
+    tint = tint,
+    modifier = Modifier.size(32.dp),
+  )
+}
+
+private fun MediaNotificationAction.previewIconResId(): Int =
+  when (this) {
+    MediaNotificationAction.SleepTimer -> CoreR.drawable.timer
+    MediaNotificationAction.NextChapter -> CoreR.drawable.skip_next
+    MediaNotificationAction.PreviousChapter -> CoreR.drawable.skip_previous
+    MediaNotificationAction.PlaybackSpeed -> CoreR.drawable.speed
+    MediaNotificationAction.None -> error("None has no preview icon")
+  }
+
+@Composable
+private fun MediaNotificationAction.previewContentDescription(): String =
+  stringResource(labelResId())
+
+private fun MediaNotificationAction.labelResId(): Int =
+  when (this) {
+    MediaNotificationAction.SleepTimer -> R.string.timer
+    MediaNotificationAction.NextChapter -> CoreR.string.next_chapter
+    MediaNotificationAction.PreviousChapter -> CoreR.string.previous_chapter
+    MediaNotificationAction.PlaybackSpeed -> CoreR.string.playback_speed
+    MediaNotificationAction.None -> R.string.none
+  }
+
+@Composable
 private fun NotificationActionSlot(
   label: String,
   selected: MediaNotificationAction,
@@ -128,13 +296,7 @@ private fun NotificationActionSlot(
   onSelected: (MediaNotificationAction) -> Unit,
 ) {
   val labels =
-    mapOf(
-      MediaNotificationAction.SleepTimer to stringResource(R.string.timer),
-      MediaNotificationAction.NextChapter to stringResource(CoreR.string.next_chapter),
-      MediaNotificationAction.PreviousChapter to stringResource(CoreR.string.previous_chapter),
-      MediaNotificationAction.PlaybackSpeed to stringResource(CoreR.string.playback_speed),
-      MediaNotificationAction.None to stringResource(R.string.none),
-    )
+    MediaNotificationAction.entries.associateWith { stringResource(it.labelResId()) }
   val options =
     MediaNotificationAction.entries.filter {
       it == MediaNotificationAction.None || it == selected || it != other

@@ -629,6 +629,10 @@
     <!--Settings Notification-->
     <string name="default_sleep_timer">Default sleep timer: </string>
     <string name="media_notification">Media notification</string>
+    <string name="media_notification_preview_app_name">ShelfDroid</string>
+    <string name="media_notification_preview_title">The Red-Headed League</string>
+    <string name="media_notification_preview_author">Sir Arthur Conan Doyle</string>
+    <string name="media_notification_preview_chapter">Chapter 2</string>
     <string name="media_notification_button_1">Notification button 1: </string>
     <string name="media_notification_button_2">Notification button 2: </string>
     <string name="playback_speed_cycle">Playback speed cycle</string>
