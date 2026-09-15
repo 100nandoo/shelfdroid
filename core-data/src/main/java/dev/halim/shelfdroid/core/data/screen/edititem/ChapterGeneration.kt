@@ -20,19 +20,18 @@ fun generateChaptersFromTracks(tracks: List<ChapterSourceTrack>): Result<List<Ch
   }
 
   var currentStart = 0.0
-  val chapters =
-    includedTracks.mapIndexed { index, track ->
-      val title = track.filename.fileNameWithoutExtension()
-      val chapter =
-        ChapterRow(
-          id = index,
-          title = title,
-          start = currentStart,
-          end = currentStart + track.duration,
-        )
-      currentStart = chapter.end
-      chapter
-    }
+  val chapters = includedTracks.mapIndexed { index, track ->
+    val title = track.filename.fileNameWithoutExtension()
+    val chapter =
+      ChapterRow(
+        id = index,
+        title = title,
+        start = currentStart,
+        end = currentStart + track.duration,
+      )
+    currentStart = chapter.end
+    chapter
+  }
 
   return if (chapters.any { it.title.isBlank() }) {
     Result.failure(IllegalArgumentException("Invalid track filename"))

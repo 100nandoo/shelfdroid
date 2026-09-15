@@ -30,9 +30,7 @@ class ChapterGenerationTest {
   @Test
   fun generateChaptersFromTracks_rejectsInvalidTrackData() {
     val result =
-      generateChaptersFromTracks(
-        listOf(ChapterSourceTrack(filename = "01.mp3", duration = 0.0))
-      )
+      generateChaptersFromTracks(listOf(ChapterSourceTrack(filename = "01.mp3", duration = 0.0)))
 
     assertTrue(result.isFailure)
   }

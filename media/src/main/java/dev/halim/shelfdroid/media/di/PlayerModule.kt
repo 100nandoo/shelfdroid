@@ -118,10 +118,11 @@ object PlayerModule {
         .setSeekForwardIncrementMs(10000)
         .build()
 
-    player.trackSelectionParameters
-      .buildUpon()
-      .setAudioOffloadPreferences(audioOffloadPreferences)
-      .build()
+    player.trackSelectionParameters =
+      player.trackSelectionParameters
+        .buildUpon()
+        .setAudioOffloadPreferences(audioOffloadPreferences)
+        .build()
 
     return player
   }

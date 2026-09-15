@@ -60,7 +60,9 @@ class ChapterApiServiceTest {
             .protocol(Protocol.HTTP_1_1)
             .code(200)
             .message("OK")
-            .body("{\"success\":true,\"updated\":true}".toResponseBody("application/json".toMediaType()))
+            .body(
+              "{\"success\":true,\"updated\":true}".toResponseBody("application/json".toMediaType())
+            )
             .build()
         }
         .build()

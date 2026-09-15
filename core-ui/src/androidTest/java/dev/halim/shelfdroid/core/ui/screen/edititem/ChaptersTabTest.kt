@@ -1,9 +1,9 @@
 package dev.halim.shelfdroid.core.ui.screen.edititem
 
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -12,7 +12,6 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.screen.edititem.ChapterSourceTrack
 import dev.halim.shelfdroid.core.data.screen.edititem.EditItemUiState
-import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemEvent
 import dev.halim.shelfdroid.core.ui.screen.edititem.tabs.ChaptersTab
 import org.junit.Assert.assertTrue
 import org.junit.Rule

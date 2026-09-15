@@ -28,8 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -146,8 +146,7 @@ private fun MediaNotificationPreview(uiState: SettingsNotificationUiState) {
 
   Box(
     modifier =
-      Modifier
-        .padding(horizontal = 16.dp)
+      Modifier.padding(horizontal = 16.dp)
         .fillMaxWidth()
         .clip(RoundedCornerShape(28.dp))
         .background(
@@ -161,12 +160,7 @@ private fun MediaNotificationPreview(uiState: SettingsNotificationUiState) {
         )
         .padding(16.dp)
   ) {
-    Box(
-      modifier =
-        Modifier
-          .matchParentSize()
-          .background(colorScheme.surface.copy(alpha = 0.22f))
-    )
+    Box(modifier = Modifier.matchParentSize().background(colorScheme.surface.copy(alpha = 0.22f)))
     Column(modifier = Modifier.fillMaxWidth()) {
       Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
@@ -221,11 +215,7 @@ private fun MediaNotificationPreview(uiState: SettingsNotificationUiState) {
           tint = contentColor,
         )
         Box(
-          modifier =
-            Modifier
-              .size(40.dp)
-              .clip(CircleShape)
-              .background(contentColor),
+          modifier = Modifier.size(40.dp).clip(CircleShape).background(contentColor),
           contentAlignment = Alignment.Center,
         ) {
           Icon(
@@ -295,8 +285,7 @@ private fun NotificationActionSlot(
   other: MediaNotificationAction,
   onSelected: (MediaNotificationAction) -> Unit,
 ) {
-  val labels =
-    MediaNotificationAction.entries.associateWith { stringResource(it.labelResId()) }
+  val labels = MediaNotificationAction.entries.associateWith { stringResource(it.labelResId()) }
   val options =
     MediaNotificationAction.entries.filter {
       it == MediaNotificationAction.None || it == selected || it != other

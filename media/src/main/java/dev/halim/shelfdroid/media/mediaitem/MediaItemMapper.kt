@@ -12,6 +12,7 @@ import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
 import javax.inject.Inject
 import okio.FileSystem
+import okio.IOException
 
 @SuppressLint("UnsafeOptInUsageError")
 class MediaItemMapper
@@ -102,10 +103,13 @@ constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoad
   }
 
   private fun readDiskCachedImage(cover: String): ByteArray? {
-    val artworkPath = imageLoader.diskCache?.openSnapshot(cover)?.data
-    val fileSystem = FileSystem.SYSTEM
-    var artworkData: ByteArray? = null
-    artworkPath?.let { artworkData = fileSystem.read(artworkPath) { readByteArray() } }
-    return artworkData
+    val snapshot = imageLoader.diskCache?.openSnapshot(cover) ?: return null
+    return try {
+      FileSystem.SYSTEM.read(snapshot.data) { readByteArray() }
+    } catch (_: IOException) {
+      null
+    } finally {
+      snapshot.close()
+    }
   }
 }

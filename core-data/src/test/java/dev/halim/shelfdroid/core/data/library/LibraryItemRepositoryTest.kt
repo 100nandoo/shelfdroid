@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.core.data.library
 
-import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.request.UpdateLibraryItemChaptersRequest
+import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.UpdateLibraryItemChaptersResponse
 import dev.halim.core.network.response.libraryitem.AudioFile
 import dev.halim.core.network.response.libraryitem.Book

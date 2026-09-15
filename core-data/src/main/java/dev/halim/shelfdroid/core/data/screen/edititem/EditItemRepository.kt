@@ -180,20 +180,22 @@ constructor(
         return state.copy(isSaving = false, isSettingChapters = false)
       }
     val updated =
-      libraryItemRepo.updateLibraryItemChapters(
-        state.itemId,
-        chapters.map { chapter ->
-          LibraryItemChapterUpdate(
-            id = chapter.id,
-            title = chapter.title,
-            start = chapter.start,
-            end = chapter.end,
-          )
-        },
-      ).getOrElse {
-        events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
-        return state.copy(isSaving = false, isSettingChapters = false)
-      }
+      libraryItemRepo
+        .updateLibraryItemChapters(
+          state.itemId,
+          chapters.map { chapter ->
+            LibraryItemChapterUpdate(
+              id = chapter.id,
+              title = chapter.title,
+              start = chapter.start,
+              end = chapter.end,
+            )
+          },
+        )
+        .getOrElse {
+          events.emit(GenericUiEvent.ShowErrorSnackbar(it.message.orEmpty()))
+          return state.copy(isSaving = false, isSettingChapters = false)
+        }
     events.emit(GenericUiEvent.ShowSuccessSnackbar())
     return mergeUpdated(state, updated).copy(isSaving = false, isSettingChapters = false)
   }

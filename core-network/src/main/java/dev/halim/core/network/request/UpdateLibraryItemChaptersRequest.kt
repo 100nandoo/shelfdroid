@@ -5,9 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UpdateLibraryItemChaptersRequest(
-  @SerialName("chapters") val chapters: List<Chapter>,
-) {
+data class UpdateLibraryItemChaptersRequest(@SerialName("chapters") val chapters: List<Chapter>) {
   @Serializable
   data class Chapter(
     @EncodeDefault(EncodeDefault.Mode.ALWAYS) @SerialName("id") val id: Int,

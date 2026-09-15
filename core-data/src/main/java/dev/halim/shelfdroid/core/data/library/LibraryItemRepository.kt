@@ -420,11 +420,14 @@ constructor(
 internal suspend fun updateLibraryItemChaptersAndRefresh(
   itemId: String,
   request: UpdateLibraryItemChaptersRequest,
-  update: suspend (String, UpdateLibraryItemChaptersRequest) ->
-    Result<UpdateLibraryItemChaptersResponse>,
+  update:
+    suspend (String, UpdateLibraryItemChaptersRequest) -> Result<UpdateLibraryItemChaptersResponse>,
   refresh: suspend (String) -> Result<LibraryItem>,
 ): Result<LibraryItem> {
-  val response = update(itemId, request).getOrElse { return Result.failure(it) }
+  val response =
+    update(itemId, request).getOrElse {
+      return Result.failure(it)
+    }
   if (!response.success) {
     return Result.failure(IllegalStateException("The server did not update the chapters"))
   }

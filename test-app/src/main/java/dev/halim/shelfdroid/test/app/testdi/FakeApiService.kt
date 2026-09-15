@@ -556,8 +556,7 @@ class FakeApiService @Inject constructor() : ApiService {
     synchronized(this) {
       val item = items[itemId] ?: return Result.failure(IllegalArgumentException("Unknown item"))
       val book =
-        item.media as? Book
-          ?: return Result.failure(IllegalArgumentException("Item is not a book"))
+        item.media as? Book ?: return Result.failure(IllegalArgumentException("Item is not a book"))
       items[itemId] =
         item.copy(
           media =
