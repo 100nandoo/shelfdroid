@@ -34,7 +34,9 @@ import dev.halim.shelfdroid.core.data.screen.edititem.schedule.PodcastScheduleMo
 import dev.halim.shelfdroid.core.data.screen.edititem.schedule.PodcastScheduleSimpleBuilder
 import dev.halim.shelfdroid.core.data.screen.edititem.schedule.PodcastScheduleSimpleInterval
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
+import dev.halim.shelfdroid.core.data.screen.home.HomeCatalogState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
+import dev.halim.shelfdroid.core.data.screen.home.LibraryDataSyncState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.data.screen.listeningsession.ListeningSessionUiState
@@ -157,12 +159,15 @@ object Defaults {
       ),
     )
   val HOME_UI_STATE =
-    HomeUiState(state = GenericState.Success, librariesUiState = HOME_LIBRARY_STATE)
+    HomeUiState(
+      catalog = HomeCatalogState.Ready(HOME_LIBRARY_STATE),
+      libraryDataSyncState = LibraryDataSyncState.Synced,
+    )
   val HOME_UI_STATE_LIST =
     HomeUiState(
-      state = GenericState.Success,
+      catalog = HomeCatalogState.Ready(HOME_LIBRARY_STATE),
+      libraryDataSyncState = LibraryDataSyncState.Synced,
       prefs = Prefs(),
-      librariesUiState = HOME_LIBRARY_STATE,
     )
 
   // Book

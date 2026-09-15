@@ -972,6 +972,8 @@
     <string name="genre">Genre</string>
     <string name="language">Language</string>
     <string name="no_libraries_available">No libraries available.</string>
+    <string name="home_offline_empty">No cached library data is available while offline.</string>
+    <string name="home_sync_failed">Unable to load library data. Please try again.</string>
     <string name="server_address">Server URL</string>
     <string name="server_access">Server access</string>
     <string name="server_access_internet">Internet</string>

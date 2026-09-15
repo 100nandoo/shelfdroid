@@ -7,10 +7,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.halim.shelfdroid.core.data.GenericState
+import dev.halim.shelfdroid.core.connectivity.ConnectivityObserver
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
+import dev.halim.shelfdroid.core.data.screen.home.HomeCatalogState
 import dev.halim.shelfdroid.core.data.screen.home.HomeRepository
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
+import dev.halim.shelfdroid.core.data.screen.home.LibraryDataSyncState
 import dev.halim.shelfdroid.core.data.screen.home.reconcileActiveLibraryId
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminEventRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
@@ -22,10 +24,10 @@ import dev.halim.shelfdroid.core.prefs.PodcastSort
 import dev.halim.shelfdroid.core.prefs.SortOrder
 import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.navigation.Home
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -41,9 +43,12 @@ constructor(
   private val libraryAdminEventRepository: LibraryAdminEventRepository,
   private val syncCoordinator: SyncCoordinator,
   private val settingsRepository: SettingsRepository,
+  private val connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(HomeUiState())
   val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+  private val syncRetryCoordinator = LibrarySyncRetryCoordinator()
+  private var wasConnected = connectivityObserver.isConnected.value
 
   init {
     viewModelScope.launch {
@@ -61,9 +66,17 @@ constructor(
                 activeLibraryId = state.activeLibraryId,
                 updatedLibraries = libraries,
               ),
-            librariesUiState = libraries,
+            catalog = HomeCatalogState.Ready(libraries),
           )
         }
+      }
+    }
+    viewModelScope.launch {
+      connectivityObserver.isConnected.collect { connected ->
+        if (connected && !wasConnected) {
+          refresh(SyncEvent.NetworkAvailable)
+        }
+        wasConnected = connected
       }
     }
     refresh(if (navKey.fromLogin) SyncEvent.AfterLogin else SyncEvent.UserRequested)
@@ -72,9 +85,10 @@ constructor(
   fun onEvent(event: HomeEvent) {
     when (event) {
       is HomeEvent.RefreshLibrary -> {
-        _uiState.update { it.copy(state = GenericState.Loading, currentPage = event.page) }
+        _uiState.update { it.copy(currentPage = event.page) }
         refresh(SyncEvent.UserRequested)
       }
+
       is HomeEvent.ChangeLibrary -> {
         _uiState.update { state ->
           state.copy(
@@ -84,6 +98,7 @@ constructor(
           )
         }
       }
+
       is HomeEvent.HomeDisplayPrefsEvent -> {
         when (event.displayPrefsEvent) {
           is DisplayPrefsEvent.BookSort -> {
@@ -96,6 +111,7 @@ constructor(
               settingsRepository.updateBookSort(bookSort)
             }
           }
+
           is DisplayPrefsEvent.Filter -> {
             val filter = Filter.valueOf(event.displayPrefsEvent.filter)
             _uiState.update { state ->
@@ -106,6 +122,7 @@ constructor(
               settingsRepository.updateFilter(filter)
             }
           }
+
           is DisplayPrefsEvent.PodcastSort -> {
             val podcastSort = PodcastSort.fromLabel(event.displayPrefsEvent.podcastSort)
             _uiState.update { state ->
@@ -116,6 +133,7 @@ constructor(
               settingsRepository.updatePodcastSort(podcastSort)
             }
           }
+
           is DisplayPrefsEvent.PodcastSortOrder -> {
             val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
             _uiState.update { state ->
@@ -126,6 +144,7 @@ constructor(
               settingsRepository.updatePodcastSortOrder(sortOrder)
             }
           }
+
           is DisplayPrefsEvent.SortOrder -> {
             val sortOrder = SortOrder.valueOf(event.displayPrefsEvent.sortOrder)
             _uiState.update { state ->
@@ -138,6 +157,7 @@ constructor(
           }
         }
       }
+
       is HomeEvent.Delete -> {
         viewModelScope.launch {
           _uiState.update {
@@ -149,19 +169,47 @@ constructor(
   }
 
   private fun refresh(event: SyncEvent) {
+    if (!syncRetryCoordinator.tryStart(event)) return
+    _uiState.update { it.copy(libraryDataSyncState = LibraryDataSyncState.Syncing) }
     viewModelScope.launch {
-      syncCoordinator.prepareSync(event)
-      val result = libraryDataRepository.synchronize()
-      syncCoordinator.syncBackgroundData()
-      _uiState.update { state ->
-        state.copy(
-          state =
-            if (result.isSuccess) {
-              GenericState.Success
-            } else {
-              GenericState.Failure(result.error?.message)
-            }
-        )
+      var hadTransportFailure = false
+      try {
+        syncCoordinator.prepareSync(event)
+        val result = libraryDataRepository.synchronize()
+        hadTransportFailure = result.isTransportFailure
+        _uiState.update { state ->
+          state.copy(
+            libraryDataSyncState =
+              if (result.isSuccess || result.isTransportFailure) {
+                if (result.isTransportFailure) {
+                  LibraryDataSyncState.Offline
+                } else {
+                  LibraryDataSyncState.Synced
+                }
+              } else {
+                LibraryDataSyncState.Failed(result.error?.message)
+              },
+            )
+        }
+        try {
+          syncCoordinator.syncBackgroundData()
+        } catch (error: Throwable) {
+          if (error is CancellationException) throw error
+        }
+      } catch (error: Throwable) {
+        if (error is CancellationException) throw error
+        _uiState.update { state ->
+          state.copy(libraryDataSyncState = LibraryDataSyncState.Failed(error.message))
+        }
+      } finally {
+        if (
+          syncRetryCoordinator.finish(
+            hadTransportFailure = hadTransportFailure,
+            hasInternet = connectivityObserver.isConnected.value,
+          )
+        ) {
+          refresh(SyncEvent.NetworkAvailable)
+        }
       }
     }
   }

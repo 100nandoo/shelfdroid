@@ -38,9 +38,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
+import dev.halim.shelfdroid.core.data.screen.home.HomeCatalogState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
+import dev.halim.shelfdroid.core.data.screen.home.LibraryDataSyncState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.extensions.formatDurationShort
 import dev.halim.shelfdroid.core.prefs.BookSort
@@ -176,18 +177,37 @@ fun HomeScreenContent(
   onEditItemClicked: (String) -> Unit = {},
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
-  val homeState = uiState.state
-  if (homeState is GenericState.Failure) {
-    GenericMessageScreen(homeState.errorMessage ?: "")
+  val catalog = uiState.catalog
+  val libraryDataSyncState = uiState.libraryDataSyncState
+  val showOfflineEmptyState =
+    catalog is HomeCatalogState.Ready &&
+      libraryDataSyncState is LibraryDataSyncState.Offline &&
+      uiState.librariesUiState.isEmpty()
+
+  if (libraryDataSyncState is LibraryDataSyncState.Failed) {
+    GenericMessageScreen(
+      libraryDataSyncState.errorMessage ?: stringResource(R.string.home_sync_failed)
+    )
   }
 
   HorizontalPager(state = pagerState) { page ->
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-      VisibilityDown(uiState.state is GenericState.Loading) {
+      VisibilityDown(
+        libraryDataSyncState is LibraryDataSyncState.Syncing ||
+          catalog is HomeCatalogState.Loading
+      ) {
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
       }
       if (pagerState.pageCount - 1 == page) {
+        if (showOfflineEmptyState) {
+          Text(
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(16.dp),
+            text = stringResource(R.string.home_offline_empty),
+            textAlign = TextAlign.Center,
+          )
+        }
         MiscScreen(
+          modifier = Modifier.weight(1f),
           isAdmin = uiState.prefs.userPrefs.isAdmin,
           onOpenSessionClicked = onOpenSessionClicked,
           onListeningSessionClicked = onSessionClicked,
@@ -729,7 +749,8 @@ fun HomeScreenContentDownloadedEmptyPreview() {
       uiState =
         Defaults.HOME_UI_STATE.copy(
           prefs = Prefs(displayPrefs = DisplayPrefs(filter = Filter.Downloaded)),
-          librariesUiState = listOf(Defaults.HOME_LIBRARY_STATE.first()),
+          catalog =
+            HomeCatalogState.Ready(listOf(Defaults.HOME_LIBRARY_STATE.first())),
         ),
     )
   }

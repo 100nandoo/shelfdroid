@@ -6,6 +6,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.halim.core.network.ApiService
+import dev.halim.core.network.connectivity.NetworkMonitor
+import dev.halim.shelfdroid.core.connectivity.ConnectivityObserver
 import dev.halim.core.network.client.HostSelectionInterceptor
 import dev.halim.core.network.client.SessionCookieJar
 import dev.halim.core.network.client.TokenAuthenticator
@@ -21,6 +23,10 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+  @Provides
+  fun providesConnectivityObserver(networkMonitor: NetworkMonitor): ConnectivityObserver =
+    networkMonitor
 
   @Singleton
   @Provides

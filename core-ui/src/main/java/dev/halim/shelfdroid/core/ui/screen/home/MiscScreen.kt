@@ -22,6 +22,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @Composable
 fun MiscScreen(
+  modifier: Modifier = Modifier,
   isAdmin: Boolean = false,
   onSettingsClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
@@ -39,6 +40,7 @@ fun MiscScreen(
   onAuthenticationSettingsClicked: () -> Unit = {},
 ) {
   MiscScreenContent(
+    modifier = modifier,
     isAdmin = isAdmin,
     onSettingsClicked = onSettingsClicked,
     onListeningSessionClicked = onListeningSessionClicked,
@@ -61,6 +63,7 @@ fun shouldShowServerSection(isAdmin: Boolean): Boolean = isAdmin
 
 @Composable
 private fun MiscScreenContent(
+  modifier: Modifier = Modifier,
   isAdmin: Boolean = false,
   onOpenSessionClicked: () -> Unit = {},
   onListeningSessionClicked: () -> Unit = {},
@@ -77,104 +80,104 @@ private fun MiscScreenContent(
   onBackupsClicked: () -> Unit = {},
   onMetadataUtilitiesClicked: () -> Unit = {},
 ) {
-  val modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+  val buttonModifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
   Column(
-    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+    modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
     if (shouldShowServerSection(isAdmin)) {
       TextHeadlineSmall(
-        modifier.padding(top = 16.dp),
+        buttonModifier.padding(top = 16.dp),
         text = stringResource(R.string.server),
         textAlign = TextAlign.Center,
       )
 
       MyTextButton(
         onClick = onRssFeedsClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.rss_feeds),
       )
 
       MyTextButton(
         onClick = onBackupsClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.backups),
       )
 
       MyTextButton(
         onClick = onLogsClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.logs),
       )
 
       MyTextButton(
         onClick = onApiKeysClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.api_keys),
       )
 
       MyTextButton(
         onClick = onUsersClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.users),
       )
 
       MyTextButton(
         onClick = onServerSettingsClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.settings),
       )
 
       MyTextButton(
         onClick = onAuthenticationSettingsClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.authentication_settings),
       )
 
       MyTextButton(
         onClick = onEmailManagementClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.email_management),
       )
 
       MyTextButton(
         onClick = onAppriseNotificationSettingsClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.apprise_notification_settings),
       )
 
       MyTextButton(
         onClick = onMetadataUtilitiesClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.library_item_metadata_utilities),
       )
 
       MyTextButton(
         onClick = onLibrariesClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.libraries),
       )
 
       MyTextButton(
         onClick = onOpenSessionClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.open_sessions),
       )
 
       MyTextButton(
         onClick = onListeningSessionClicked,
-        modifier = modifier,
+        modifier = buttonModifier,
         text = stringResource(R.string.listening_sessions),
       )
     }
     TextHeadlineSmall(
-      modifier.padding(top = 32.dp),
+      buttonModifier.padding(top = 32.dp),
       text = stringResource(R.string.client),
       textAlign = TextAlign.Center,
     )
     MyTextButton(
       onClick = onSettingsClicked,
-      modifier = modifier,
+      modifier = buttonModifier,
       text = stringResource(R.string.settings),
     )
     Spacer(Modifier.height(16.dp))

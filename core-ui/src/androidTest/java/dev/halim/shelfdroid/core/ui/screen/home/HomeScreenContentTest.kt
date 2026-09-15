@@ -5,13 +5,16 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
+import dev.halim.shelfdroid.core.data.screen.home.HomeCatalogState
 import dev.halim.shelfdroid.core.data.screen.home.HomeUiState
+import dev.halim.shelfdroid.core.data.screen.home.LibraryDataSyncState
 import dev.halim.shelfdroid.core.data.screen.home.LibraryUiState
 import dev.halim.shelfdroid.core.data.screen.home.PodcastUiState
 import dev.halim.shelfdroid.core.prefs.BookSort
@@ -86,6 +89,76 @@ class HomeScreenContentTest {
     }
 
     composeRule.onAllNodesWithText("Libraries").assertCountEquals(0)
+  }
+
+  @Test
+  fun emptyOfflineCatalog_explainsThatNoCachedDataIsAvailable() {
+    composeRule.setContent {
+      HomeScreenContent(
+        libraryCount = 1,
+        pagerState = rememberPagerState(initialPage = 0, pageCount = { 1 }),
+        uiState =
+          emptyCatalogUiState(isAdmin = false)
+            .copy(libraryDataSyncState = LibraryDataSyncState.Offline),
+      )
+    }
+
+    composeRule
+      .onNodeWithText("No cached library data is available while offline.")
+      .assertIsDisplayed()
+  }
+
+  @Test
+  fun unresolvedOfflineCatalog_showsProgressWithoutEmptyMessage() {
+    composeRule.setContent {
+      HomeScreenContent(
+        libraryCount = 1,
+        pagerState = rememberPagerState(initialPage = 0, pageCount = { 1 }),
+        uiState =
+          emptyCatalogUiState(isAdmin = false)
+            .copy(
+              catalog = HomeCatalogState.Loading,
+              libraryDataSyncState = LibraryDataSyncState.Offline,
+            ),
+      )
+    }
+
+    composeRule
+      .onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate))
+      .assertIsDisplayed()
+    composeRule
+      .onAllNodesWithText("No cached library data is available while offline.")
+      .assertCountEquals(0)
+  }
+
+  @Test
+  fun offlineCatalog_keepsCachedLibrariesVisible() {
+    composeRule.setContent {
+      HomeScreenContent(
+        libraryCount = 2,
+        pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 }),
+        uiState =
+          libraryCatalogUiState()
+            .copy(libraryDataSyncState = LibraryDataSyncState.Offline),
+      )
+    }
+
+    composeRule.onNodeWithText("Books").assertIsDisplayed()
+  }
+
+  @Test
+  fun failureWithoutMessage_showsSafeGenericMessage() {
+    composeRule.setContent {
+      HomeScreenContent(
+        libraryCount = 1,
+        pagerState = rememberPagerState(initialPage = 0, pageCount = { 1 }),
+        uiState =
+          emptyCatalogUiState(isAdmin = false)
+            .copy(libraryDataSyncState = LibraryDataSyncState.Failed()),
+      )
+    }
+
+    composeRule.onNodeWithText("Unable to load library data. Please try again.").assertIsDisplayed()
   }
 
   @Test
@@ -307,7 +380,8 @@ class HomeScreenContentTest {
 
   private fun emptyCatalogUiState(isAdmin: Boolean): HomeUiState =
     HomeUiState(
-      state = GenericState.Success,
+      catalog = HomeCatalogState.Ready(emptyList()),
+      libraryDataSyncState = LibraryDataSyncState.Synced,
       prefs = Prefs(userPrefs = UserPrefs(isAdmin = isAdmin)),
     )
 
@@ -315,7 +389,8 @@ class HomeScreenContentTest {
     emptyCatalogUiState(isAdmin = true)
       .copy(
         activeLibraryId = "books",
-        librariesUiState = listOf(LibraryUiState(id = "books", name = "Books")),
+        catalog =
+          HomeCatalogState.Ready(listOf(LibraryUiState(id = "books", name = "Books"))),
       )
 
   private fun homeUiState(
@@ -323,10 +398,10 @@ class HomeScreenContentTest {
     librariesUiState: List<LibraryUiState>,
   ): HomeUiState =
     HomeUiState(
-      state = GenericState.Success,
+      catalog = HomeCatalogState.Ready(librariesUiState),
+      libraryDataSyncState = LibraryDataSyncState.Synced,
       prefs = prefs,
       activeLibraryId = librariesUiState.firstOrNull()?.id,
-      librariesUiState = librariesUiState,
     )
 
   private fun localTimestamp(year: Int, month: Int, day: Int): Long =

@@ -101,6 +101,6 @@ constructor(
       }
 
     libraryItemRepo.cleanupItem(itemId)
-    return state.copy(librariesUiState = updatedLibraries)
+    return state.copy(catalog = HomeCatalogState.Ready(updatedLibraries))
   }
 }

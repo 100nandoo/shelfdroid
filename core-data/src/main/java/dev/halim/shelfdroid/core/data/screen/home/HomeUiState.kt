@@ -1,18 +1,36 @@
 package dev.halim.shelfdroid.core.data.screen.home
 
-import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.prefs.BookSort
 import dev.halim.shelfdroid.core.prefs.Prefs
 import kotlinx.serialization.Serializable
 
 data class HomeUiState(
-  val state: GenericState = GenericState.Loading,
+  val catalog: HomeCatalogState = HomeCatalogState.Loading,
+  val libraryDataSyncState: LibraryDataSyncState = LibraryDataSyncState.Syncing,
   val prefs: Prefs = Prefs(),
   val currentPage: Int = 0,
   /** The last Library selected by the user, retained while the pager is on Misc/admin pages. */
   val activeLibraryId: String? = null,
-  val librariesUiState: List<LibraryUiState> = emptyList(),
-)
+) {
+  val librariesUiState: List<LibraryUiState>
+    get() = (catalog as? HomeCatalogState.Ready)?.libraries.orEmpty()
+}
+
+sealed interface HomeCatalogState {
+  data object Loading : HomeCatalogState
+
+  data class Ready(val libraries: List<LibraryUiState>) : HomeCatalogState
+}
+
+sealed interface LibraryDataSyncState {
+  data object Syncing : LibraryDataSyncState
+
+  data object Synced : LibraryDataSyncState
+
+  data object Offline : LibraryDataSyncState
+
+  data class Failed(val errorMessage: String? = null) : LibraryDataSyncState
+}
 
 data class LibraryUiState(
   val id: String = "",
@@ -79,12 +97,4 @@ fun reconcileActiveLibraryId(
   if (previousIndex < 0) return updatedLibraries.first().id
 
   return updatedLibraries.getOrNull(previousIndex)?.id ?: updatedLibraries.last().id
-}
-
-sealed interface HomeState {
-  data object Loading : HomeState
-
-  data object Success : HomeState
-
-  data class Failure(val errorMessage: String?) : HomeState
 }
