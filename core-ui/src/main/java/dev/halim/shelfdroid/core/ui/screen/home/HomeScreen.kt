@@ -2,6 +2,7 @@
 
 package dev.halim.shelfdroid.core.ui.screen.home
 
+import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -97,6 +99,11 @@ fun HomeScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val libraryCount = uiState.librariesUiState.size + 1
+
+  ReportDrawnWhen {
+    uiState.catalog is HomeCatalogState.Ready &&
+      uiState.libraryDataSyncState !is LibraryDataSyncState.Syncing
+  }
 
   val pagerState =
     rememberPagerState(
@@ -190,11 +197,10 @@ fun HomeScreenContent(
     )
   }
 
-  HorizontalPager(state = pagerState) { page ->
+  HorizontalPager(state = pagerState, modifier = Modifier.testTag("catalog")) { page ->
     Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
       VisibilityDown(
-        libraryDataSyncState is LibraryDataSyncState.Syncing ||
-          catalog is HomeCatalogState.Loading
+        libraryDataSyncState is LibraryDataSyncState.Syncing || catalog is HomeCatalogState.Loading
       ) {
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
       }
@@ -398,7 +404,7 @@ fun LibraryContent(
   LazyVerticalGrid(
     state = gridState,
     columns = GridCells.Fixed(columnCount),
-    modifier = modifier.fillMaxSize(),
+    modifier = modifier.fillMaxSize().testTag("catalog-library"),
     reverseLayout = true,
     verticalArrangement = Arrangement.Bottom,
   ) {
@@ -749,8 +755,7 @@ fun HomeScreenContentDownloadedEmptyPreview() {
       uiState =
         Defaults.HOME_UI_STATE.copy(
           prefs = Prefs(displayPrefs = DisplayPrefs(filter = Filter.Downloaded)),
-          catalog =
-            HomeCatalogState.Ready(listOf(Defaults.HOME_LIBRARY_STATE.first())),
+          catalog = HomeCatalogState.Ready(listOf(Defaults.HOME_LIBRARY_STATE.first())),
         ),
     )
   }
