@@ -72,6 +72,10 @@ constructor(
     return withContext(ioDispatcher) { trackUrisInternal(bookTitle, author, filenames) }
   }
 
+  fun refresh() {
+    bumpChanges()
+  }
+
   private fun trackUrisInternal(
     bookTitle: String,
     author: String?,
@@ -209,7 +213,7 @@ constructor(
   private fun loadSnapshot(): BookCatalogSnapshot {
     val projection =
       arrayOf(
-        MediaStore.Downloads._ID,
+        MediaStore.Audio.Media._ID,
         MediaStore.MediaColumns.RELATIVE_PATH,
         MediaStore.MediaColumns.DISPLAY_NAME,
       )
@@ -221,7 +225,7 @@ constructor(
 
     resolver
       .query(
-        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
         projection,
         selection,
         selectionArgs,
@@ -236,7 +240,7 @@ constructor(
           val filename = cursor.getString(displayNameIndex)
           val uri =
             ContentUris.withAppendedId(
-              MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+              MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
               cursor.getLong(idIndex),
             )
 

@@ -317,6 +317,12 @@ constructor(
 
   fun clearTransientDownloads() {
     DownloadService.sendRemoveAllDownloads(context, ShelfDownloadService::class.java, false)
+    refreshDurableDownloads()
+  }
+
+  fun refreshDurableDownloads() {
+    bookDurableDownloadCatalog.refresh()
+    podcastDurableDownloadCatalog.refresh()
   }
 
   suspend fun deletePodcastEpisode(download: DownloadUiState) {

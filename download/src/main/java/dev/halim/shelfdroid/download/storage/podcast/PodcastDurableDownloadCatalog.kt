@@ -40,6 +40,10 @@ constructor(
   val changes: StateFlow<Int> = _changes.asStateFlow()
   @Volatile private var cachedSnapshot: PodcastCatalogSnapshot? = null
 
+  fun refresh() {
+    bumpChanges()
+  }
+
   suspend fun findEpisodeUri(podcastTitle: String, filename: String): Uri? {
     return withContext(ioDispatcher) { findEpisodeUriInternal(podcastTitle, filename) }
   }
@@ -150,7 +154,7 @@ constructor(
   private fun loadSnapshot(): PodcastCatalogSnapshot {
     val projection =
       arrayOf(
-        MediaStore.Downloads._ID,
+        MediaStore.Audio.Media._ID,
         MediaStore.MediaColumns.RELATIVE_PATH,
         MediaStore.MediaColumns.DISPLAY_NAME,
       )
@@ -162,7 +166,7 @@ constructor(
 
     resolver
       .query(
-        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
         projection,
         selection,
         selectionArgs,
@@ -177,7 +181,7 @@ constructor(
           val filename = cursor.getString(displayNameIndex)
           val uri =
             ContentUris.withAppendedId(
-              MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+              MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
               cursor.getLong(idIndex),
             )
 

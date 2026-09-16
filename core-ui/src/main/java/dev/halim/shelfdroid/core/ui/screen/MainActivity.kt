@@ -1,14 +1,20 @@
 package dev.halim.shelfdroid.core.ui.screen
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.Lazy
@@ -27,6 +34,7 @@ import dev.halim.shelfdroid.core.ui.navigation.NavRequest
 import dev.halim.shelfdroid.core.ui.navigation.toLoginKey
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
+import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import dev.halim.shelfdroid.media.playback.PlayerStore
@@ -46,6 +54,7 @@ class MainActivity : ComponentActivity() {
   @Inject lateinit var mediaControllerManager: Lazy<MediaControllerManager>
   @Inject lateinit var playerStore: PlayerStore
   @Inject lateinit var playerController: PlayerController
+  @Inject lateinit var downloadRepo: DownloadRepo
 
   private var navRequest by mutableStateOf<NavRequest>(NavRequest.None)
 
@@ -67,6 +76,28 @@ class MainActivity : ComponentActivity() {
         authStateRepository.authPromptReason.collectAsStateWithLifecycle(
           runBlocking { authStateRepository.authPromptReason.first() }
         )
+      val isLoggedIn = token.isNotBlank()
+      val audioPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+          if (granted) downloadRepo.refreshDurableDownloads()
+        }
+      LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+          val permission =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+              Manifest.permission.READ_MEDIA_AUDIO
+            } else {
+              Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+          if (ContextCompat.checkSelfPermission(this@MainActivity, permission) ==
+            PackageManager.PERMISSION_GRANTED
+          ) {
+            downloadRepo.refreshDurableDownloads()
+          } else {
+            audioPermissionLauncher.launch(permission)
+          }
+        }
+      }
       ShelfDroidTheme(darkTheme = isDarkMode, dynamicColor = isDynamic) {
         Surface(
           modifier =
@@ -74,7 +105,7 @@ class MainActivity : ComponentActivity() {
           color = MaterialTheme.colorScheme.background,
         ) {
           MainNavigation(
-            isLoggedIn = token.isBlank().not(),
+            isLoggedIn = isLoggedIn,
             loginKey = authPromptReason.toLoginKey(),
             playerStore = playerStore,
             playerController = playerController,
