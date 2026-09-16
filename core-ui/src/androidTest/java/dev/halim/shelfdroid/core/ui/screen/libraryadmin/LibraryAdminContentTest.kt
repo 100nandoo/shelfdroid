@@ -40,7 +40,7 @@ class LibraryAdminContentTest {
   @get:Rule val composeRule = createComposeRule()
 
   @Test
-  fun loadingState_isVisibleAndRefreshIsAccessible() {
+  fun loadingState_isVisible() {
     composeRule.setContent {
       LibraryAdminContent(uiState = LibraryAdminUiState())
     }
@@ -48,7 +48,6 @@ class LibraryAdminContentTest {
     composeRule
       .onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate))
       .assertIsDisplayed()
-    composeRule.onNodeWithContentDescription("Refresh Libraries").assertIsDisplayed()
   }
 
   @Test

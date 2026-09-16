@@ -101,8 +101,13 @@ class CustomMetadataContentTest {
       .onAllNodesWithContentDescription("Edit Custom metadata provider")
       .assertCountEquals(0)
     composeRule.onNodeWithText("Delete Custom metadata provider").assertIsDisplayed()
-    composeRule.onNodeWithText("Community", substring = true).assertIsDisplayed()
-    composeRule.onNodeWithText("Google metadata source", substring = true).assertIsDisplayed()
+    composeRule.onNodeWithText("https://provider.example").assertIsDisplayed()
+    composeRule
+      .onNodeWithText(
+        "Delete “Community”? Libraries using this provider will fall back to Audiobookshelf’s Google metadata source.",
+        substring = true,
+      )
+      .assertIsDisplayed()
   }
 
   private fun provider(authHeaderValue: String? = null) =

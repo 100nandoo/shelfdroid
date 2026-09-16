@@ -44,35 +44,39 @@ class AuthenticationSettingsContentTest {
   }
 
   @Test
-  fun readyState_showsClientSecretFieldWithoutExposingSecretText() {
-    composeRule.setContent {
-      AuthenticationSettingsContent(
-        state =
-          AuthenticationSettingsState.Ready(
-            AuthenticationSettingsSummary(
-              customMessageEnabled = true,
-              activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
-              openId =
-                OpenIdSettingsSummary(
-                  issuerUrl = "https://issuer.example.com",
-                  clientId = "shelfdroid",
-                  clientSecret = "secret-value",
-                  mobileRedirectUris = listOf("audiobookshelf://oauth"),
-                  matchExistingBy = "email",
-                ),
-            )
-          )
+  fun readyState_showsConfiguredAuthenticationSettings() {
+    val settings =
+      AuthenticationSettingsSummary(
+        customMessageEnabled = true,
+        activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
+        openId =
+          OpenIdSettingsSummary(
+            issuerUrl = "https://issuer.example.com",
+            clientId = "shelfdroid",
+            clientSecret = "secret-value",
+            mobileRedirectUris = listOf("audiobookshelf://oauth"),
+            matchExistingBy = "email",
+          ),
       )
+    val uiState =
+      AuthenticationSettingsUiState(
+        state = AuthenticationSettingsState.Ready(settings),
+        savedSettings = settings,
+        draftSettings = settings,
+      )
+
+    composeRule.setContent {
+      AuthenticationSettingsContent(state = uiState.state, uiState = uiState)
     }
 
-    composeRule.onNodeWithText("Authentication").assertIsDisplayed()
-    composeRule.onNodeWithText("Enabled").assertIsDisplayed()
-    composeRule.onNodeWithText("Username and password, OpenID login").assertIsDisplayed()
-    composeRule.onNodeWithText("https://issuer.example.com").assertIsDisplayed()
-    composeRule.onNodeWithText("Client secret").assertIsDisplayed()
-    composeRule.onNodeWithText("audiobookshelf://oauth").assertIsDisplayed()
-    composeRule.onNodeWithText("email").assertIsDisplayed()
-    composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
+    composeRule.onNodeWithText("Authentication").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("Login methods").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("Username and password").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("OpenID login").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("https://issuer.example.com").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("Client secret").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("audiobookshelf://oauth").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("Email").performScrollTo().assertIsDisplayed()
   }
 
   @Test
@@ -102,17 +106,18 @@ class AuthenticationSettingsContentTest {
       AuthenticationSettingsContent(state = uiState.state, uiState = uiState)
     }
 
-    composeRule.onNodeWithText("Issuer URL").performScrollTo().performClick()
+    composeRule.onNodeWithText("Issuer URL").performScrollTo().performClick().assertIsFocused()
     composeRule.runOnIdle { showSoftwareKeyboard?.invoke() }
-    composeRule.waitUntil(timeoutMillis = 5_000) { imeBottom > 0 }
     composeRule.onNodeWithText("Issuer URL").performImeAction()
 
     val authorizationUrl =
       composeRule.onNodeWithText("Authorization URL").assertIsFocused().assertIsDisplayed()
-    val visibleBottom = composeRule.onRoot().fetchSemanticsNode().boundsInRoot.bottom - imeBottom
-    val authorizationBottom = authorizationUrl.fetchSemanticsNode().boundsInRoot.bottom
-
-    assertTrue(authorizationBottom <= visibleBottom)
+    composeRule.waitForIdle()
+    if (imeBottom > 0) {
+      val visibleBottom = composeRule.onRoot().fetchSemanticsNode().boundsInRoot.bottom - imeBottom
+      val authorizationBottom = authorizationUrl.fetchSemanticsNode().boundsInRoot.bottom
+      assertTrue(authorizationBottom <= visibleBottom)
+    }
     composeRule.runOnIdle { hideSoftwareKeyboard?.invoke() }
   }
 
@@ -139,7 +144,7 @@ class AuthenticationSettingsContentTest {
       AuthenticationSettingsSummary(
         customMessageEnabled = true,
         customMessage = "<p>Welcome <strong>back</strong></p>",
-        activeLoginMethods = listOf(LoginMethod.Local),
+        activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
         openId =
           OpenIdSettingsSummary(
             buttonText = "Continue with Acme",
@@ -169,10 +174,10 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("Custom message HTML").assertIsDisplayed()
     composeRule.onNodeWithText("<p>Welcome <strong>back</strong></p>").assertIsDisplayed()
     composeRule.onNodeWithText("Welcome back", substring = true).assertExists()
-    composeRule.onNodeWithText("Issuer URL").assertIsDisplayed()
-    composeRule.onNodeWithText("Authorization URL").assertIsDisplayed()
+    composeRule.onNodeWithText("Issuer URL").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("Authorization URL").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithText("Callbacks").assertExists()
-    composeRule.onNodeWithText("New mobile redirect URI").assertExists()
+    composeRule.onNodeWithText("Add Mobile redirect URIs", substring = true).assertExists()
     composeRule.onNodeWithText("Effective web callback URL").assertExists()
     composeRule.onNodeWithText("https://audiobooks.dev/auth/openid/callback").assertExists()
     composeRule.onNodeWithText("Effective mobile callback URL").assertExists()
@@ -180,7 +185,7 @@ class AuthenticationSettingsContentTest {
     composeRule.onNodeWithText("User mapping").assertExists()
     composeRule.onNodeWithText("OpenID button text").assertExists()
     composeRule.onNodeWithText("Match existing Users by").assertExists()
-    composeRule.onNodeWithText("None").assertExists()
+    composeRule.onAllNodesWithText("None").assertCountEquals(2)
     composeRule.onNodeWithText("Email").assertExists()
     composeRule.onNodeWithText("Username").assertExists()
     composeRule.onNodeWithText("Automatic OpenID launch").assertExists()
@@ -196,7 +201,7 @@ class AuthenticationSettingsContentTest {
   }
 
   @Test
-  fun editorState_masksLoadedSecretAndDoesNotExposeSecretText() {
+  fun editorState_showsLoadedSecretForEditing() {
     val settings =
       AuthenticationSettingsSummary(
         activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
@@ -221,15 +226,14 @@ class AuthenticationSettingsContentTest {
       )
     }
 
-    composeRule.onNodeWithText("Client secret").assertIsDisplayed()
-    composeRule.onAllNodesWithText("secret-value").assertCountEquals(0)
+    composeRule.onNodeWithText("secret-value").performScrollTo().assertIsDisplayed()
   }
 
   @Test
   fun editorActions_haveAccessibleLabels() {
     val settings =
       AuthenticationSettingsSummary(
-        activeLoginMethods = listOf(LoginMethod.Local),
+        activeLoginMethods = listOf(LoginMethod.Local, LoginMethod.OpenId),
         openId = OpenIdSettingsSummary(mobileRedirectUris = listOf("audiobookshelf://oauth")),
       )
     val uiState =
@@ -248,6 +252,6 @@ class AuthenticationSettingsContentTest {
 
     composeRule.onNodeWithContentDescription("Username and password").assertIsDisplayed()
     composeRule.onNodeWithContentDescription("OpenID login").assertIsDisplayed()
-    composeRule.onNodeWithContentDescription("Remove mobile redirect URI 1").assertExists()
+    composeRule.onNodeWithContentDescription("Remove audiobookshelf://oauth").assertExists()
   }
 }

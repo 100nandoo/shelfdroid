@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.screen.home
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollAction
@@ -22,9 +23,10 @@ class MiscScreenEntryTest {
   @Test
   fun librariesEntry_isNavigableForAdminsAndHiddenForOtherUsers() {
     var clickCount = 0
+    val isAdmin = mutableStateOf(true)
     composeRule.setContent {
       MiscScreen(
-        isAdmin = true,
+        isAdmin = isAdmin.value,
         onUsersClicked = {},
         onLibrariesClicked = { clickCount += 1 },
         onApiKeysClicked = {},
@@ -40,20 +42,7 @@ class MiscScreenEntryTest {
     composeRule.onNodeWithText("Libraries").assertIsDisplayed().performClick()
     assertEquals(1, clickCount)
 
-    composeRule.setContent {
-      MiscScreen(
-        isAdmin = false,
-        onUsersClicked = {},
-        onLibrariesClicked = { clickCount += 1 },
-        onApiKeysClicked = {},
-        onServerSettingsClicked = {},
-        onEmailManagementClicked = {},
-        onAppriseNotificationSettingsClicked = {},
-        onRssFeedsClicked = {},
-        onLogsClicked = {},
-        onBackupsClicked = {},
-      )
-    }
+    composeRule.runOnIdle { isAdmin.value = false }
 
     composeRule.onAllNodesWithText("Libraries").assertCountEquals(0)
     assertEquals(1, clickCount)
