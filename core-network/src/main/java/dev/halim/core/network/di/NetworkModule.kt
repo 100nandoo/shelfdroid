@@ -6,12 +6,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.halim.core.network.ApiService
-import dev.halim.core.network.connectivity.NetworkMonitor
-import dev.halim.shelfdroid.core.connectivity.ConnectivityObserver
 import dev.halim.core.network.client.HostSelectionInterceptor
 import dev.halim.core.network.client.SessionCookieJar
 import dev.halim.core.network.client.TokenAuthenticator
+import dev.halim.core.network.connectivity.NetworkMonitor
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
+import dev.halim.shelfdroid.core.connectivity.ConnectivityObserver
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json

@@ -3,13 +3,13 @@ package dev.halim.shelfdroid.core.ui.screen.home
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.screen.home.BookUiState
 import dev.halim.shelfdroid.core.data.screen.home.HomeCatalogState
@@ -137,9 +137,7 @@ class HomeScreenContentTest {
       HomeScreenContent(
         libraryCount = 2,
         pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 }),
-        uiState =
-          libraryCatalogUiState()
-            .copy(libraryDataSyncState = LibraryDataSyncState.Offline),
+        uiState = libraryCatalogUiState().copy(libraryDataSyncState = LibraryDataSyncState.Offline),
       )
     }
 
@@ -389,8 +387,7 @@ class HomeScreenContentTest {
     emptyCatalogUiState(isAdmin = true)
       .copy(
         activeLibraryId = "books",
-        catalog =
-          HomeCatalogState.Ready(listOf(LibraryUiState(id = "books", name = "Books"))),
+        catalog = HomeCatalogState.Ready(listOf(LibraryUiState(id = "books", name = "Books"))),
       )
 
   private fun homeUiState(

@@ -188,8 +188,8 @@ constructor(
                 }
               } else {
                 LibraryDataSyncState.Failed(result.error?.message)
-              },
-            )
+              }
+          )
         }
         try {
           syncCoordinator.syncBackgroundData()

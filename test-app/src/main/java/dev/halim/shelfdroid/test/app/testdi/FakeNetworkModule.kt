@@ -6,13 +6,22 @@ import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.di.NetworkModule
+import dev.halim.shelfdroid.core.connectivity.ConnectivityObserver
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [NetworkModule::class])
 object FakeNetworkModule {
+
+  @Provides
+  @Singleton
+  fun provideConnectivityObserver(): ConnectivityObserver =
+    object : ConnectivityObserver {
+      override val isConnected = MutableStateFlow(true)
+    }
 
   @Provides
   @Singleton

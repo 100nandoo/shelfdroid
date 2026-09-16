@@ -2,8 +2,8 @@ package dev.halim.shelfdroid.core.data.library
 
 import java.io.IOException
 import java.net.UnknownHostException
-import org.junit.Assert.assertSame
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 

@@ -21,8 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.Lazy
@@ -89,8 +89,9 @@ class MainActivity : ComponentActivity() {
             } else {
               Manifest.permission.READ_EXTERNAL_STORAGE
             }
-          if (ContextCompat.checkSelfPermission(this@MainActivity, permission) ==
-            PackageManager.PERMISSION_GRANTED
+          if (
+            ContextCompat.checkSelfPermission(this@MainActivity, permission) ==
+              PackageManager.PERMISSION_GRANTED
           ) {
             downloadRepo.refreshDurableDownloads()
           } else {
