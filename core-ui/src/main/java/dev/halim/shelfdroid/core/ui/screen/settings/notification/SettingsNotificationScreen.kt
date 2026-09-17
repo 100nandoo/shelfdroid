@@ -56,6 +56,7 @@ import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition
 import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
+import dev.halim.shelfdroid.core.ui.components.VisibilityVertical
 import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
@@ -116,8 +117,10 @@ private fun SleepTimerSection(
       onEvent(SettingsNotificationEvent.ChangeSleepTimerMode(SleepTimerNotificationMode.valueOf(it)))
     },
   )
-  when (uiState.sleepTimerMode) {
-    SleepTimerNotificationMode.Toggle ->
+  Column {
+    VisibilityVertical(
+      visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Toggle,
+    ) {
       ChipDropdownMenu(
         modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
         label = stringResource(R.string.default_sleep_timer),
@@ -129,7 +132,12 @@ private fun SleepTimerSection(
           selected.toIntOrNull()?.let { onEvent(SettingsNotificationEvent.ChangeSleepTimerMinutes(it)) }
         },
       )
-    SleepTimerNotificationMode.Cyclical -> SleepTimerCycle(uiState.sleepTimerCycle, enabled, onEvent)
+    }
+    VisibilityVertical(
+      visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Cyclical,
+    ) {
+      Column { SleepTimerCycle(uiState.sleepTimerCycle, enabled, onEvent) }
+    }
   }
 }
 
