@@ -628,6 +628,12 @@
 
     <!--Settings Notification-->
     <string name="default_sleep_timer">Default sleep timer: </string>
+    <string name="sleep_timer_notification_mode">Notification mode: </string>
+    <string name="sleep_timer_mode_toggle">Toggle</string>
+    <string name="sleep_timer_mode_cyclical">Cyclical</string>
+    <string name="sleep_timer_cycle">Sleep timer cycle</string>
+    <string name="sleep_timer_cycle_supporting_text">Select at least one duration. Taps cycle from shortest to longest, then Off.</string>
+    <string name="sleep_timer_cycle_minutes">%1$d min</string>
     <string name="preview">Preview</string>
     <string name="media_notification_preview_app_name">ShelfDroid</string>
     <string name="media_notification_preview_chapter">The Red-Headed League</string>

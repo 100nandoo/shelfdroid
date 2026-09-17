@@ -48,7 +48,9 @@ import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotif
 import dev.halim.shelfdroid.core.playback.PLAYBACK_SPEED_PRESET_VALUES
 import dev.halim.shelfdroid.core.playback.SLEEP_TIMER_PRESET_MINUTES
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition
@@ -101,17 +103,89 @@ private fun SleepTimerSection(
     modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
     text = stringResource(R.string.sleep_timer),
   )
+  val modeLabels = SleepTimerNotificationMode.entries.associateWith { stringResource(it.labelResId()) }
   ChipDropdownMenu(
     modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-    label = stringResource(R.string.default_sleep_timer),
+    label = stringResource(R.string.sleep_timer_notification_mode),
     labelPosition = LabelPosition.Expand,
-    options = SLEEP_TIMER_PRESET_MINUTES.map { it.toString() },
-    initialValue = uiState.sleepTimerMinutes.toString(),
+    options = SleepTimerNotificationMode.entries.map { it.name },
+    initialValue = uiState.sleepTimerMode.name,
+    optionLabel = { modeLabels.getValue(SleepTimerNotificationMode.valueOf(it)) },
     enabled = enabled,
-    onClick = { selected ->
-      selected.toIntOrNull()?.let { onEvent(SettingsNotificationEvent.ChangeSleepTimerMinutes(it)) }
+    onClick = {
+      onEvent(SettingsNotificationEvent.ChangeSleepTimerMode(SleepTimerNotificationMode.valueOf(it)))
     },
   )
+  when (uiState.sleepTimerMode) {
+    SleepTimerNotificationMode.Toggle ->
+      ChipDropdownMenu(
+        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+        label = stringResource(R.string.default_sleep_timer),
+        labelPosition = LabelPosition.Expand,
+        options = SLEEP_TIMER_PRESET_MINUTES.map { it.toString() },
+        initialValue = uiState.sleepTimerMinutes.toString(),
+        enabled = enabled,
+        onClick = { selected ->
+          selected.toIntOrNull()?.let { onEvent(SettingsNotificationEvent.ChangeSleepTimerMinutes(it)) }
+        },
+      )
+    SleepTimerNotificationMode.Cyclical -> SleepTimerCycle(uiState.sleepTimerCycle, enabled, onEvent)
+  }
+}
+
+private fun SleepTimerNotificationMode.labelResId(): Int =
+  when (this) {
+    SleepTimerNotificationMode.Toggle -> R.string.sleep_timer_mode_toggle
+    SleepTimerNotificationMode.Cyclical -> R.string.sleep_timer_mode_cyclical
+  }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SleepTimerCycle(
+  selectedMinutes: List<Int>,
+  enabled: Boolean,
+  onEvent: (SettingsNotificationEvent) -> Unit,
+) {
+  val cycle = normalizeSleepTimerCycle(selectedMinutes)
+  TextTitleMedium(
+    text = stringResource(R.string.sleep_timer_cycle),
+    modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
+  )
+  Text(
+    text = stringResource(R.string.sleep_timer_cycle_supporting_text),
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+    modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
+  )
+  Spacer(modifier = Modifier.height(8.dp))
+  FlowRow(
+    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    SLEEP_TIMER_PRESET_MINUTES.forEach { minutes ->
+      val selected = minutes in cycle
+      FilterChip(
+        selected = selected,
+        enabled = enabled && (!selected || cycle.size > 1),
+        onClick = {
+          val updated = if (selected) cycle.filterNot { it == minutes } else cycle + minutes
+          onEvent(SettingsNotificationEvent.ChangeSleepTimerCycle(updated))
+        },
+        label = { Text(stringResource(R.string.sleep_timer_cycle_minutes, minutes)) },
+        leadingIcon =
+          if (selected) {
+            {
+              Icon(
+                painter = painterResource(R.drawable.check),
+                contentDescription = stringResource(R.string.selected),
+                modifier = Modifier.size(FilterChipDefaults.IconSize),
+              )
+            }
+          } else null,
+      )
+    }
+  }
 }
 
 @Composable
@@ -406,6 +480,16 @@ private fun SettingsNotificationContentPlaybackSpeedPreview() {
           firstAction = MediaNotificationAction.PlaybackSpeed,
           secondAction = MediaNotificationAction.None,
         )
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun SettingsNotificationContentCyclicalPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    SettingsNotificationContent(
+      uiState = SettingsNotificationUiState(sleepTimerMode = SleepTimerNotificationMode.Cyclical)
     )
   }
 }

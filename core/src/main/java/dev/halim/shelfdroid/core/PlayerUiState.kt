@@ -96,6 +96,7 @@ data class PlaybackProgress(
 data class AdvancedControl(
   val speed: Float = 1f,
   val sleepTimerLeft: Duration = Duration.Companion.ZERO,
+  val sleepTimerDuration: Duration = Duration.ZERO,
 )
 
 data class PlayerBookmark(val title: String = "", val readableTime: String = "", val time: Long = 0)

@@ -84,6 +84,7 @@ class PlaybackService : MediaLibraryService() {
             nextChapterControlState(uiState, isTransitioning),
             previousChapterControlState(uiState, isTransitioning),
             isSleepTimerActive,
+            uiState.advancedControl.sleepTimerDuration,
             uiState.advancedControl.speed,
             notificationPrefs,
             playerPrefs.seekBackSeconds,
@@ -103,6 +104,7 @@ class PlaybackService : MediaLibraryService() {
               state.seekForwardSeconds,
               getString(CoreR.string.previous_chapter),
               state.previousChapterState,
+              sleepTimerDuration = state.sleepTimerDuration,
             )
           )
         }

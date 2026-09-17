@@ -202,12 +202,7 @@ object PlayerModule {
               SessionResult.RESULT_SUCCESS
             }
             CUSTOM_SLEEP_TIMER -> {
-              val store = playerStore.get()
-              if (store.uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO) {
-                store.clearTimer()
-              } else {
-                store.startDefaultSleepTimer()
-              }
+              playerStore.get().sleepTimerFromMediaNotification()
               SessionResult.RESULT_SUCCESS
             }
             CUSTOM_NEXT_CHAPTER -> {

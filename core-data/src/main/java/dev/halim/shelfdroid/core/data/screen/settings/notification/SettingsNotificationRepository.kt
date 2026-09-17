@@ -2,7 +2,9 @@ package dev.halim.shelfdroid.core.data.screen.settings.notification
 
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -17,6 +19,20 @@ constructor(private val prefsRepository: PrefsRepository) {
   suspend fun updateDefaultSleepTimerMinutes(minutes: Int) {
     updateMutex.withLock {
       val current = notificationPrefs.first().copy(sleepTimerMinutes = minutes)
+      prefsRepository.updateNotificationPrefs(current)
+    }
+  }
+
+  suspend fun updateSleepTimerMode(mode: SleepTimerNotificationMode) {
+    updateMutex.withLock {
+      val current = notificationPrefs.first().copy(sleepTimerMode = mode)
+      prefsRepository.updateNotificationPrefs(current)
+    }
+  }
+
+  suspend fun updateSleepTimerCycle(minutes: List<Int>) {
+    updateMutex.withLock {
+      val current = notificationPrefs.first().copy(sleepTimerCycle = normalizeSleepTimerCycle(minutes))
       prefsRepository.updateNotificationPrefs(current)
     }
   }

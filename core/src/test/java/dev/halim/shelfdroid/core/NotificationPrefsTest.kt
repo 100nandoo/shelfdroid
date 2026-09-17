@@ -5,6 +5,7 @@ import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
+import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,6 +19,15 @@ class NotificationPrefsTest {
     assertEquals(MediaNotificationAction.SleepTimer, prefs.firstAction)
     assertEquals(MediaNotificationAction.NextChapter, prefs.secondAction)
     assertEquals(DEFAULT_PLAYBACK_SPEED_CYCLE, prefs.playbackSpeedCycle)
+  }
+
+  @Test
+  fun legacyNotificationPrefsKeepToggleModeAndInitialOneFiveCycle() {
+    val prefs = Json.decodeFromString(NotificationPrefs.serializer(), """{"sleepTimerMinutes":30}""")
+
+    assertEquals(30, prefs.sleepTimerMinutes)
+    assertEquals(SleepTimerNotificationMode.Toggle, prefs.sleepTimerMode)
+    assertEquals(listOf(1, 5), prefs.sleepTimerCycle)
   }
 
   @Test
@@ -49,6 +59,8 @@ class NotificationPrefsTest {
         firstAction = MediaNotificationAction.PlaybackSpeed,
         secondAction = MediaNotificationAction.None,
         playbackSpeedCycle = listOf(0.5f, 1.5f),
+        sleepTimerMode = SleepTimerNotificationMode.Cyclical,
+        sleepTimerCycle = listOf(5, 30),
       )
 
     val encoded = Json.encodeToString(NotificationPrefs.serializer(), prefs)

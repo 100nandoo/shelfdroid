@@ -7,6 +7,8 @@ import androidx.media3.session.SessionCommand
 import com.google.common.collect.ImmutableList
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.R as CoreR
+import dev.halim.shelfdroid.core.playback.nextSleepTimerDuration
+import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.prefs.DEFAULT_SEEK_INTERVAL_SECONDS
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
@@ -20,6 +22,7 @@ import dev.halim.shelfdroid.media.session.CUSTOM_NEXT_CHAPTER
 import dev.halim.shelfdroid.media.session.CUSTOM_PLAYBACK_SPEED
 import dev.halim.shelfdroid.media.session.CUSTOM_PREVIOUS_CHAPTER
 import dev.halim.shelfdroid.media.session.CUSTOM_SLEEP_TIMER
+import kotlin.time.Duration
 
 internal val CUSTOM_NOTIFICATION_ACTIONS =
   setOf(
@@ -51,6 +54,31 @@ internal object MediaNotificationButtons {
       .build()
 
   val PLAYBACK_SPEED_BUTTON: CommandButton = playbackSpeedCommandButton(1f)
+}
+
+@UnstableApi
+internal fun sleepTimerCommandButton(
+  isActive: Boolean,
+  originalDuration: Duration,
+  prefs: NotificationPrefs,
+): CommandButton {
+  if (prefs.sleepTimerMode == SleepTimerNotificationMode.Toggle) {
+    return if (isActive) MediaNotificationButtons.SLEEP_TIMER_ON_BUTTON
+    else MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
+  }
+  val nextDuration = prefs.nextSleepTimerDuration(isActive, originalDuration)
+  val minutes = nextDuration.inWholeMinutes
+  val displayName =
+    if (nextDuration > Duration.ZERO) {
+      "Set sleep timer to $minutes ${if (minutes == 1L) "minute" else "minutes"}"
+    } else {
+      "Cancel sleep timer"
+    }
+  return CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+    .setCustomIconResId(if (isActive) CoreR.drawable.timer else CoreR.drawable.timer_off)
+    .setSessionCommand(SessionCommand(CUSTOM_SLEEP_TIMER, Bundle()))
+    .setDisplayName(displayName)
+    .build()
 }
 
 @UnstableApi
@@ -128,6 +156,7 @@ fun mediaNotificationButtons(
     isSleepTimerActive = isSleepTimerActive,
     notificationPrefs = notificationPrefs,
     currentPlaybackSpeed = uiState.advancedControl.speed,
+    sleepTimerDuration = uiState.advancedControl.sleepTimerDuration,
     seekBackSeconds = seekBackSeconds,
     seekForwardSeconds = seekForwardSeconds,
     previousChapterDisplayName = previousChapterDisplayName,
@@ -146,6 +175,7 @@ fun mediaNotificationButtons(
   previousChapterDisplayName: CharSequence = "Previous chapter",
   previousChapterState: PreviousChapterControlState =
     PreviousChapterControlState(visible = false, enabled = false),
+  sleepTimerDuration: Duration = Duration.ZERO,
 ): List<CommandButton> {
   return buildList {
     add(seekBackCommandButton(seekBackSeconds))
@@ -154,13 +184,7 @@ fun mediaNotificationButtons(
     actions.forEach { action ->
       when (action) {
         MediaNotificationAction.SleepTimer ->
-          add(
-            if (isSleepTimerActive) {
-              MediaNotificationButtons.SLEEP_TIMER_ON_BUTTON
-            } else {
-              MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
-            }
-          )
+          add(sleepTimerCommandButton(isSleepTimerActive, sleepTimerDuration, notificationPrefs))
         MediaNotificationAction.NextChapter ->
           if (nextChapterState.visible) {
             add(nextChapterCommandButton(nextChapterDisplayName, nextChapterState.enabled))

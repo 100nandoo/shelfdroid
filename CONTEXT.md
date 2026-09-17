@@ -112,6 +112,14 @@ _Avoid_: Skip duration, seek speed
 A listener-selectable control in the Android media notification, such as sleep timer, next chapter, or playback speed.
 _Avoid_: Notification rule, server notification action
 
+**Sleep timer notification mode**:
+The listener's choice of how the sleep-timer **Media notification action** behaves: Toggle starts or cancels a timer; Cyclical advances through a **Sleep timer cycle**.
+_Avoid_: Timer type, repeating timer
+
+**Sleep timer cycle**:
+An ordered sequence of listener-enabled preset durations and Off, advanced by tapping the sleep-timer **Media notification action**. It excludes custom durations and End of chapter.
+_Avoid_: Recurring timer, repeating timer
+
 **Playback speed cycle**:
 An ordered list of playback speeds that the listener advances through by tapping the playback-speed media notification action.
 _Avoid_: Speed increment, playback-speed picker

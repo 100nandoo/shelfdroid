@@ -6,7 +6,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationRepository
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +26,8 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
       .map {
         SettingsNotificationUiState(
           sleepTimerMinutes = it.sleepTimerMinutes,
+          sleepTimerMode = it.sleepTimerMode,
+          sleepTimerCycle = normalizeSleepTimerCycle(it.sleepTimerCycle),
           firstAction = it.firstAction,
           secondAction = it.secondAction,
           playbackSpeedCycle = normalizePlaybackSpeedCycle(it.playbackSpeedCycle),
@@ -35,6 +39,10 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
     when (event) {
       is SettingsNotificationEvent.ChangeSleepTimerMinutes ->
         viewModelScope.launch { repository.updateDefaultSleepTimerMinutes(event.minutes) }
+      is SettingsNotificationEvent.ChangeSleepTimerMode ->
+        viewModelScope.launch { repository.updateSleepTimerMode(event.mode) }
+      is SettingsNotificationEvent.ChangeSleepTimerCycle ->
+        viewModelScope.launch { repository.updateSleepTimerCycle(event.minutes) }
       is SettingsNotificationEvent.ChangeActionSlot ->
         viewModelScope.launch { repository.updateActionSlot(event.slot, event.action) }
       is SettingsNotificationEvent.ChangePlaybackSpeedCycle ->
@@ -45,6 +53,10 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
 
 sealed interface SettingsNotificationEvent {
   data class ChangeSleepTimerMinutes(val minutes: Int) : SettingsNotificationEvent
+
+  data class ChangeSleepTimerMode(val mode: SleepTimerNotificationMode) : SettingsNotificationEvent
+
+  data class ChangeSleepTimerCycle(val minutes: List<Int>) : SettingsNotificationEvent
 
   data class ChangeActionSlot(val slot: Int, val action: MediaNotificationAction) :
     SettingsNotificationEvent

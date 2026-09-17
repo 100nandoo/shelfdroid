@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasProgressBarRangeInfo
@@ -11,10 +13,12 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -34,7 +38,7 @@ class SettingsNotificationContentTest {
     val playbackSpeedTop =
       composeRule.onNodeWithText("Playback speed cycle").fetchSemanticsNode().boundsInRoot.top
     val mediaNotificationTop =
-      composeRule.onNodeWithText("Media notification").fetchSemanticsNode().boundsInRoot.top
+      composeRule.onNodeWithText("Preview").fetchSemanticsNode().boundsInRoot.top
 
     assertTrue(sleepTimerTop < playbackSpeedTop)
     assertTrue(playbackSpeedTop < mediaNotificationTop)
@@ -53,7 +57,7 @@ class SettingsNotificationContentTest {
     }
 
     composeRule.onNodeWithText("Sleep Timer").performScrollTo().assertIsDisplayed()
-    composeRule.onNodeWithText("15").performScrollTo().assertIsNotEnabled()
+    composeRule.onNodeWithText("1").performScrollTo().assertIsNotEnabled()
     composeRule.onNodeWithText("Playback speed cycle").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithText("0.5x").performScrollTo().assertIsNotEnabled()
     composeRule.onNodeWithText("None").performScrollTo().assertIsEnabled()
@@ -71,7 +75,7 @@ class SettingsNotificationContentTest {
       )
     }
 
-    composeRule.onNodeWithText("15").performScrollTo().assertIsEnabled()
+    composeRule.onNodeWithText("1").performScrollTo().assertIsEnabled()
     composeRule.onNodeWithText("0.5x").performScrollTo().assertIsNotEnabled()
   }
 
@@ -87,7 +91,7 @@ class SettingsNotificationContentTest {
       )
     }
 
-    composeRule.onNodeWithText("15").performScrollTo().assertIsEnabled()
+    composeRule.onNodeWithText("1").performScrollTo().assertIsEnabled()
   }
 
   @Test
@@ -102,7 +106,7 @@ class SettingsNotificationContentTest {
       )
     }
 
-    composeRule.onNodeWithText("15").performScrollTo().assertIsNotEnabled()
+    composeRule.onNodeWithText("1").performScrollTo().assertIsNotEnabled()
     composeRule.onNodeWithText("0.5x").performScrollTo().assertIsEnabled()
   }
 
@@ -122,6 +126,66 @@ class SettingsNotificationContentTest {
   }
 
   @Test
+  fun switchingSleepTimerModesShowsTheirControlsAndPreservesSelections() {
+    val state = mutableStateOf(SettingsNotificationUiState(sleepTimerMinutes = 30))
+    composeRule.setContent {
+      SettingsNotificationContent(uiState = state.value) { event ->
+        when (event) {
+          is SettingsNotificationEvent.ChangeSleepTimerMode ->
+            state.value = state.value.copy(sleepTimerMode = event.mode)
+          is SettingsNotificationEvent.ChangeSleepTimerCycle ->
+            state.value = state.value.copy(sleepTimerCycle = event.minutes)
+          else -> Unit
+        }
+      }
+    }
+
+    composeRule.onNodeWithText("Toggle").performScrollTo().performClick()
+    composeRule.onNodeWithText("Cyclical").performClick()
+    composeRule.onNodeWithText("30").assertDoesNotExist()
+    composeRule.onNodeWithText("1 min").performScrollTo().assertIsSelected()
+    composeRule.onNodeWithText("5 min").performScrollTo().assertIsSelected()
+    composeRule.onNodeWithText("10 min").performScrollTo().assertIsNotSelected().performClick()
+    composeRule.onNodeWithText("10 min").assertIsSelected()
+    composeRule.onNodeWithText("End of chapter").assertDoesNotExist()
+    composeRule.onNodeWithText("Custom").assertDoesNotExist()
+
+    composeRule.onNodeWithText("Cyclical").performScrollTo().performClick()
+    composeRule.onNodeWithText("Toggle").performClick()
+    composeRule.onNodeWithText("30").performScrollTo().assertIsDisplayed()
+    composeRule.onNodeWithText("1 min").assertDoesNotExist()
+
+    composeRule.onNodeWithText("Toggle").performScrollTo().performClick()
+    composeRule.onNodeWithText("Cyclical").performClick()
+    composeRule.onNodeWithText("10 min").performScrollTo().assertIsSelected()
+  }
+
+  @Test
+  fun cyclicalModeRequiresOneDurationAndDisablesControlsWithoutTimerAction() {
+    val state =
+      mutableStateOf(
+        SettingsNotificationUiState(
+          sleepTimerMode = SleepTimerNotificationMode.Cyclical,
+          sleepTimerCycle = listOf(5),
+        )
+      )
+    composeRule.setContent { SettingsNotificationContent(uiState = state.value) }
+
+    composeRule.onNodeWithText("5 min").performScrollTo().assertIsSelected().assertIsNotEnabled()
+    composeRule.onNodeWithText("1 min").performScrollTo().assertIsEnabled()
+    composeRule.onNodeWithText("60 min").performScrollTo().assertIsEnabled()
+
+    state.value =
+      state.value.copy(
+        firstAction = MediaNotificationAction.None,
+        secondAction = MediaNotificationAction.NextChapter,
+      )
+    composeRule.onNodeWithText("Cyclical").performScrollTo().assertIsNotEnabled()
+    composeRule.onNodeWithText("1 min").performScrollTo().assertIsNotEnabled()
+    composeRule.onNodeWithText("60 min").performScrollTo().assertIsNotEnabled()
+  }
+
+  @Test
   fun mediaNotificationPreview_showsDummyMediaAndConfiguredActions() {
     composeRule.setContent {
       SettingsNotificationContent(
@@ -135,12 +199,11 @@ class SettingsNotificationContentTest {
 
     composeRule.onNodeWithText("The Red-Headed League").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithText("Sir Arthur Conan Doyle").performScrollTo().assertIsDisplayed()
-    composeRule.onNodeWithText("Chapter 2").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithContentDescription("Seek back").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithContentDescription("Play").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithContentDescription("Seek forward").performScrollTo().assertIsDisplayed()
     composeRule
-      .onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo(0.6f, 0f..1f)))
+      .onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo(0.5f, 0f..1f)))
       .performScrollTo()
       .assertIsDisplayed()
     composeRule.onNodeWithContentDescription("Timer").performScrollTo().assertIsDisplayed()

@@ -13,6 +13,7 @@ import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
+import dev.halim.shelfdroid.core.playback.nextSleepTimerDuration
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import dev.halim.shelfdroid.core.prefs.PlayerPrefs
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
@@ -28,16 +29,13 @@ import dev.halim.shelfdroid.media.playback.controls.previousChapterControlState
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @OptIn(UnstableApi::class)
 @Singleton
@@ -145,7 +143,8 @@ constructor(
       }
       setPlaybackSpeed(uiState.value.advancedControl.speed)
       if (uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO) {
-        sleepTimer(uiState.value.advancedControl.sleepTimerLeft)
+        val control = uiState.value.advancedControl
+        startSleepTimer(control.sleepTimerLeft, control.sleepTimerDuration)
       } else {
         clearTimer()
       }
@@ -154,8 +153,14 @@ constructor(
   }
 
   fun sleepTimer(duration: Duration) {
+    startSleepTimer(duration, duration)
+  }
+
+  private fun startSleepTimer(duration: Duration, originalDuration: Duration) {
+    sleepTimerJob?.cancel()
     uiState.update {
-      val advancedControl = uiState.value.advancedControl.copy(sleepTimerLeft = duration)
+      val advancedControl =
+        it.advancedControl.copy(sleepTimerLeft = duration, sleepTimerDuration = originalDuration)
       it.copy(advancedControl = advancedControl)
     }
     timerManager.start(duration, { playerManager.player.get().pause() })
@@ -164,11 +169,22 @@ constructor(
 
   fun clearTimer() {
     timerManager.clear()
+    uiState.update {
+      it.copy(
+        advancedControl =
+          it.advancedControl.copy(sleepTimerLeft = Duration.ZERO, sleepTimerDuration = Duration.ZERO)
+      )
+    }
   }
 
-  fun startDefaultSleepTimer() {
-    val minutes = runBlocking { prefsRepository.notificationPrefs.first().sleepTimerMinutes }
-    sleepTimer(minutes.minutes)
+  fun sleepTimerFromMediaNotification() {
+    val current = uiState.value.advancedControl
+    val duration =
+      notificationPrefs.value.nextSleepTimerDuration(
+        current.sleepTimerLeft > Duration.ZERO,
+        current.sleepTimerDuration,
+      )
+    if (duration > Duration.ZERO) sleepTimer(duration) else clearTimer()
   }
 
   fun changeSpeedFromMediaNotification(): Boolean {
@@ -331,10 +347,16 @@ constructor(
   private fun collectSleepTimer() {
     sleepTimerJob?.cancel()
     sleepTimerJob =
-      CoroutineScope(Dispatchers.Default).launch {
+      CoroutineScope(Dispatchers.Main).launch {
         timerManager.duration.collect { currentDuration ->
           uiState.update {
-            val updatedAdvancedControl = it.advancedControl.copy(sleepTimerLeft = currentDuration)
+            val updatedAdvancedControl =
+              it.advancedControl.copy(
+                sleepTimerLeft = currentDuration,
+                sleepTimerDuration =
+                  if (currentDuration > Duration.ZERO) it.advancedControl.sleepTimerDuration
+                  else Duration.ZERO,
+              )
             it.copy(advancedControl = updatedAdvancedControl)
           }
         }
