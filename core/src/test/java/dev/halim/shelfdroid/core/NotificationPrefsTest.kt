@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core
 import dev.halim.shelfdroid.core.playback.DEFAULT_PLAYBACK_SPEED_CYCLE
 import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.togglePlaybackSpeed
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
@@ -65,5 +66,27 @@ class NotificationPrefsTest {
 
     val encoded = Json.encodeToString(NotificationPrefs.serializer(), prefs)
     assertEquals(prefs, Json.decodeFromString(NotificationPrefs.serializer(), encoded))
+  }
+
+  @Test
+  fun legacyNotificationPrefsDefaultToCyclicalPlaybackSpeedMode() {
+    val prefs = Json.decodeFromString(NotificationPrefs.serializer(), "{\"sleepTimerMinutes\":30}")
+
+    assertEquals("Cyclical", prefs.playbackSpeedMode.name)
+    assertEquals(1.5f, prefs.playbackSpeedToggleTarget)
+  }
+
+  @Test
+  fun togglePlaybackSpeedUsesOneXAsBaseline() {
+    assertEquals(1.5f, togglePlaybackSpeed(1f, 1.5f))
+    assertEquals(1f, togglePlaybackSpeed(1.5f, 1.5f))
+    assertEquals(1.5f, togglePlaybackSpeed(1.25f, 1.5f))
+    assertEquals(1f, togglePlaybackSpeed(1.5005f, 1.5f))
+  }
+
+  @Test
+  fun togglePlaybackSpeedRejectsOneXAndUnsupportedTargets() {
+    assertEquals(1.5f, togglePlaybackSpeed(1f, 1f))
+    assertEquals(1.5f, togglePlaybackSpeed(1f, 1.1f))
   }
 }

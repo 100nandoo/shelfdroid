@@ -120,6 +120,10 @@ _Avoid_: Timer type, repeating timer
 An ordered sequence of listener-enabled preset durations and Off, advanced by tapping the sleep-timer **Media notification action**. It excludes custom durations and End of chapter.
 _Avoid_: Recurring timer, repeating timer
 
+**Playback speed notification mode**:
+The listener's choice of how the playback-speed **Media notification action** behaves: Toggle switches between 1× and a chosen target speed; Cyclical advances through a **Playback speed cycle**.
+_Avoid_: Speed type, playback mode
+
 **Playback speed cycle**:
 An ordered list of playback speeds that the listener advances through by tapping the playback-speed media notification action.
 _Avoid_: Speed increment, playback-speed picker

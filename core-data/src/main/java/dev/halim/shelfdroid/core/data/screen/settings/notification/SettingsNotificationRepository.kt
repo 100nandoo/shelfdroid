@@ -5,6 +5,8 @@ import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
+import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
+import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedToggleTarget
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -73,6 +75,21 @@ constructor(private val prefsRepository: PrefsRepository) {
       val current = notificationPrefs.first()
       val updated = current.copy(playbackSpeedCycle = normalizePlaybackSpeedCycle(speeds))
       prefsRepository.updateNotificationPrefs(updated)
+    }
+  }
+
+  suspend fun updatePlaybackSpeedMode(mode: PlaybackSpeedNotificationMode) {
+    updateMutex.withLock {
+      prefsRepository.updateNotificationPrefs(notificationPrefs.first().copy(playbackSpeedMode = mode))
+    }
+  }
+
+  suspend fun updatePlaybackSpeedToggleTarget(speed: Float) {
+    updateMutex.withLock {
+      val current = notificationPrefs.first()
+      prefsRepository.updateNotificationPrefs(
+        current.copy(playbackSpeedToggleTarget = normalizePlaybackSpeedToggleTarget(speed))
+      )
     }
   }
 }

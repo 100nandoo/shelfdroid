@@ -20,6 +20,12 @@ enum class SleepTimerNotificationMode {
 }
 
 @Serializable
+enum class PlaybackSpeedNotificationMode {
+  Toggle,
+  Cyclical,
+}
+
+@Serializable
 data class NotificationPrefs(
   val sleepTimerMinutes: Int = 1,
   val firstAction: MediaNotificationAction = MediaNotificationAction.SleepTimer,
@@ -27,4 +33,6 @@ data class NotificationPrefs(
   val playbackSpeedCycle: List<Float> = DEFAULT_PLAYBACK_SPEED_CYCLE,
   val sleepTimerMode: SleepTimerNotificationMode = SleepTimerNotificationMode.Toggle,
   val sleepTimerCycle: List<Int> = DEFAULT_SLEEP_TIMER_CYCLE,
+  val playbackSpeedMode: PlaybackSpeedNotificationMode = PlaybackSpeedNotificationMode.Cyclical,
+  val playbackSpeedToggleTarget: Float = 1.5f,
 )

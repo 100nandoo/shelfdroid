@@ -7,6 +7,7 @@ import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
+import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.media.playback.controls.NextChapterControlState
 import dev.halim.shelfdroid.media.session.CUSTOM_BACK
 import dev.halim.shelfdroid.media.session.CUSTOM_FORWARD
@@ -174,6 +175,33 @@ class MediaNotificationButtonsTest {
     assertEquals(CoreR.drawable.speed_1_75, playbackSpeedIconResId(1.75f))
     assertEquals(CoreR.drawable.speed_2x, playbackSpeedIconResId(2f))
     assertEquals(CoreR.drawable.speed, playbackSpeedIconResId(1.1f))
+  }
+
+  @Test
+  fun `describes the next toggle playback speed`() {
+    val button =
+      playbackSpeedCommandButton(
+        playbackSpeed = 1f,
+        prefs =
+          NotificationPrefs(
+            playbackSpeedMode = PlaybackSpeedNotificationMode.Toggle,
+            playbackSpeedToggleTarget = 1.5f,
+          ),
+      )
+
+    assertEquals("Set playback speed to 1.5x", button.displayName)
+  }
+
+  @Test
+  fun `describes the next cyclical playback speed`() {
+    val button =
+      playbackSpeedCommandButton(
+        playbackSpeed = 1.5f,
+        prefs =
+          NotificationPrefs(playbackSpeedCycle = listOf(1f, 1.5f, 2f)),
+      )
+
+    assertEquals("Set playback speed to 2.0x", button.displayName)
   }
 
   @Test

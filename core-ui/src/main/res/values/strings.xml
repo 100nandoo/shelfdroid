@@ -642,6 +642,11 @@
     <string name="media_notification_button_2">Notification button 2: </string>
     <string name="playback_speed_cycle">Playback speed cycle</string>
     <string name="playback_speed_cycle_supporting_text">Select at least two speeds. Playback cycles from slowest to fastest.</string>
+    <string name="playback_speed">Playback speed</string>
+    <string name="playback_speed_notification_mode">Notification mode: </string>
+    <string name="playback_speed_mode_toggle">Toggle</string>
+    <string name="playback_speed_mode_cyclical">Cyclical</string>
+    <string name="playback_speed_toggle_target">Toggle target: </string>
     <string name="none">None</string>
     <!--Settings Notification-->
 

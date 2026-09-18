@@ -13,6 +13,8 @@ import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
+import dev.halim.shelfdroid.core.playback.togglePlaybackSpeed
+import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.playback.nextSleepTimerDuration
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import dev.halim.shelfdroid.core.prefs.PlayerPrefs
@@ -188,11 +190,14 @@ constructor(
   }
 
   fun changeSpeedFromMediaNotification(): Boolean {
+    val prefs = notificationPrefs.value
+    val currentSpeed = uiState.value.advancedControl.speed
     val speed =
-      nextPlaybackSpeed(
-        uiState.value.advancedControl.speed,
-        notificationPrefs.value.playbackSpeedCycle,
-      )
+      if (prefs.playbackSpeedMode == PlaybackSpeedNotificationMode.Toggle) {
+        togglePlaybackSpeed(currentSpeed, prefs.playbackSpeedToggleTarget)
+      } else {
+        nextPlaybackSpeed(currentSpeed, prefs.playbackSpeedCycle)
+      }
     uiState.update { playerRepository.changeSpeed(it, speed) }
     playerManager.player.get().setPlaybackSpeed(speed)
     return true

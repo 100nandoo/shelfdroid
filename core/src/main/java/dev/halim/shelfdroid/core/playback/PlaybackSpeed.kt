@@ -13,3 +13,11 @@ fun nextPlaybackSpeed(currentSpeed: Float, selectedSpeeds: List<Float>): Float {
   val speeds = normalizePlaybackSpeedCycle(selectedSpeeds)
   return speeds.firstOrNull { it > currentSpeed + 0.001f } ?: speeds.first()
 }
+
+fun normalizePlaybackSpeedToggleTarget(speed: Float): Float =
+  speed.takeIf { it in PLAYBACK_SPEED_PRESET_VALUES && it != 1f } ?: 1.5f
+
+fun togglePlaybackSpeed(currentSpeed: Float, targetSpeed: Float): Float {
+  val target = normalizePlaybackSpeedToggleTarget(targetSpeed)
+  return if (kotlin.math.abs(currentSpeed - target) <= 0.001f) 1f else target
+}

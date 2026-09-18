@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.data.screen.settings.notification
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
+import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 
 data class SettingsNotificationUiState(
   val sleepTimerMinutes: Int = NotificationPrefs().sleepTimerMinutes,
@@ -11,4 +12,6 @@ data class SettingsNotificationUiState(
   val playbackSpeedCycle: List<Float> = NotificationPrefs().playbackSpeedCycle,
   val sleepTimerMode: SleepTimerNotificationMode = NotificationPrefs().sleepTimerMode,
   val sleepTimerCycle: List<Int> = NotificationPrefs().sleepTimerCycle,
+  val playbackSpeedMode: PlaybackSpeedNotificationMode = NotificationPrefs().playbackSpeedMode,
+  val playbackSpeedToggleTarget: Float = NotificationPrefs().playbackSpeedToggleTarget,
 )

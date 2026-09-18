@@ -8,6 +8,9 @@ import com.google.common.collect.ImmutableList
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.playback.nextSleepTimerDuration
+import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
+import dev.halim.shelfdroid.core.playback.togglePlaybackSpeed
+import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.prefs.DEFAULT_SEEK_INTERVAL_SECONDS
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
@@ -116,6 +119,24 @@ internal fun playbackSpeedCommandButton(playbackSpeed: Float): CommandButton =
     .build()
 
 @UnstableApi
+internal fun playbackSpeedCommandButton(
+  playbackSpeed: Float,
+  prefs: NotificationPrefs,
+): CommandButton {
+  val nextSpeed =
+    if (prefs.playbackSpeedMode == PlaybackSpeedNotificationMode.Toggle) {
+      togglePlaybackSpeed(playbackSpeed, prefs.playbackSpeedToggleTarget)
+    } else {
+      nextPlaybackSpeed(playbackSpeed, prefs.playbackSpeedCycle)
+    }
+  return CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+    .setCustomIconResId(playbackSpeedIconResId(playbackSpeed))
+    .setSessionCommand(SessionCommand(CUSTOM_PLAYBACK_SPEED, Bundle()))
+    .setDisplayName("Set playback speed to ${nextSpeed}x")
+    .build()
+}
+
+@UnstableApi
 internal fun nextChapterCommandButton(
   displayName: CharSequence,
   isEnabled: Boolean,
@@ -199,7 +220,7 @@ fun mediaNotificationButtons(
             )
           }
         MediaNotificationAction.PlaybackSpeed ->
-          add(playbackSpeedCommandButton(currentPlaybackSpeed))
+          add(playbackSpeedCommandButton(currentPlaybackSpeed, notificationPrefs))
         MediaNotificationAction.None -> Unit
       }
     }

@@ -45,12 +45,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
-import dev.halim.shelfdroid.core.playback.PLAYBACK_SPEED_PRESET_VALUES
 import dev.halim.shelfdroid.core.playback.SLEEP_TIMER_PRESET_MINUTES
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.PLAYBACK_SPEED_PRESET_VALUES
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
+import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition
@@ -88,7 +89,7 @@ internal fun SettingsNotificationContent(
   ) {
     SleepTimerSection(uiState, sleepTimerEnabled, onEvent)
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-    PlaybackSpeedCycle(uiState, playbackSpeedEnabled, onEvent)
+    PlaybackSpeedSection(uiState, playbackSpeedEnabled, onEvent)
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
     MediaNotificationSection(uiState, onEvent)
   }
@@ -406,6 +407,56 @@ private fun NotificationActionSlot(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
+private fun PlaybackSpeedSection(
+  uiState: SettingsNotificationUiState,
+  enabled: Boolean,
+  onEvent: (SettingsNotificationEvent) -> Unit,
+) {
+  val modeLabels =
+    PlaybackSpeedNotificationMode.entries.associateWith {
+      when (it) {
+        PlaybackSpeedNotificationMode.Toggle -> stringResource(R.string.playback_speed_mode_toggle)
+        PlaybackSpeedNotificationMode.Cyclical -> stringResource(R.string.playback_speed_mode_cyclical)
+      }
+    }
+  TextTitleMedium(
+    text = stringResource(R.string.playback_speed),
+    modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
+  )
+  ChipDropdownMenu(
+    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+    label = stringResource(R.string.playback_speed_notification_mode),
+    labelPosition = LabelPosition.Expand,
+    options = PlaybackSpeedNotificationMode.entries.map { it.name },
+    initialValue = uiState.playbackSpeedMode.name,
+    optionLabel = { modeLabels.getValue(PlaybackSpeedNotificationMode.valueOf(it)) },
+    enabled = enabled,
+    onClick = {
+      onEvent(SettingsNotificationEvent.ChangePlaybackSpeedMode(PlaybackSpeedNotificationMode.valueOf(it)))
+    },
+  )
+  VisibilityVertical(visible = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Toggle) {
+    ChipDropdownMenu(
+      modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+      label = stringResource(R.string.playback_speed_toggle_target),
+      labelPosition = LabelPosition.Expand,
+      options = PLAYBACK_SPEED_PRESET_VALUES.filter { it != 1f }.map { it.toString() },
+      initialValue = uiState.playbackSpeedToggleTarget.toString(),
+      enabled = enabled,
+      onClick = { selected ->
+        selected.toFloatOrNull()?.let {
+          onEvent(SettingsNotificationEvent.ChangePlaybackSpeedToggleTarget(it))
+        }
+      },
+    )
+  }
+  VisibilityVertical(visible = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Cyclical) {
+    Column { PlaybackSpeedCycle(uiState, enabled, onEvent) }
+  }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 private fun PlaybackSpeedCycle(
   uiState: SettingsNotificationUiState,
   enabled: Boolean,
@@ -487,6 +538,21 @@ private fun SettingsNotificationContentPlaybackSpeedPreview() {
         SettingsNotificationUiState(
           firstAction = MediaNotificationAction.PlaybackSpeed,
           secondAction = MediaNotificationAction.None,
+        )
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun SettingsNotificationContentPlaybackSpeedTogglePreview() {
+  PreviewWrapper(dynamicColor = false) {
+    SettingsNotificationContent(
+      uiState =
+        SettingsNotificationUiState(
+          firstAction = MediaNotificationAction.PlaybackSpeed,
+          secondAction = MediaNotificationAction.None,
+          playbackSpeedMode = PlaybackSpeedNotificationMode.Toggle,
         )
     )
   }

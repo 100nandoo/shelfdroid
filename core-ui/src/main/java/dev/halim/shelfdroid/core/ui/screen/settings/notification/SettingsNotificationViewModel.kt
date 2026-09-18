@@ -6,9 +6,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationRepository
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
+import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedToggleTarget
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
+import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +33,8 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
           firstAction = it.firstAction,
           secondAction = it.secondAction,
           playbackSpeedCycle = normalizePlaybackSpeedCycle(it.playbackSpeedCycle),
+          playbackSpeedMode = it.playbackSpeedMode,
+          playbackSpeedToggleTarget = normalizePlaybackSpeedToggleTarget(it.playbackSpeedToggleTarget),
         )
       }
       .stateIn(viewModelScope, SharingStarted.Lazily, SettingsNotificationUiState())
@@ -47,6 +51,10 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
         viewModelScope.launch { repository.updateActionSlot(event.slot, event.action) }
       is SettingsNotificationEvent.ChangePlaybackSpeedCycle ->
         viewModelScope.launch { repository.updatePlaybackSpeedCycle(event.speeds) }
+      is SettingsNotificationEvent.ChangePlaybackSpeedMode ->
+        viewModelScope.launch { repository.updatePlaybackSpeedMode(event.mode) }
+      is SettingsNotificationEvent.ChangePlaybackSpeedToggleTarget ->
+        viewModelScope.launch { repository.updatePlaybackSpeedToggleTarget(event.speed) }
     }
   }
 }
@@ -62,4 +70,8 @@ sealed interface SettingsNotificationEvent {
     SettingsNotificationEvent
 
   data class ChangePlaybackSpeedCycle(val speeds: List<Float>) : SettingsNotificationEvent
+
+  data class ChangePlaybackSpeedMode(val mode: PlaybackSpeedNotificationMode) : SettingsNotificationEvent
+
+  data class ChangePlaybackSpeedToggleTarget(val speed: Float) : SettingsNotificationEvent
 }
