@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +26,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -37,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,6 +54,7 @@ import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.playback.PLAYBACK_SPEED_PRESET_VALUES
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.ui.R
@@ -204,6 +209,27 @@ private fun MediaNotificationSection(
 ) {
   TextTitleMedium(
     modifier = Modifier.padding(horizontal = 16.dp),
+    text = stringResource(R.string.media_notification_tap_destination),
+  )
+  Column(modifier = Modifier.selectableGroup()) {
+    MediaNotificationTapOption(
+      label = stringResource(R.string.expanded_player),
+      selected = uiState.tapDestination == MediaNotificationTapDestination.ExpandedPlayer,
+      onClick = {
+        onEvent(SettingsNotificationEvent.ChangeTapDestination(MediaNotificationTapDestination.ExpandedPlayer))
+      },
+    )
+    MediaNotificationTapOption(
+      label = stringResource(R.string.mini_player),
+      selected = uiState.tapDestination == MediaNotificationTapDestination.MiniPlayer,
+      onClick = {
+        onEvent(SettingsNotificationEvent.ChangeTapDestination(MediaNotificationTapDestination.MiniPlayer))
+      },
+    )
+  }
+  Spacer(modifier = Modifier.height(16.dp))
+  TextTitleMedium(
+    modifier = Modifier.padding(horizontal = 16.dp),
     text = stringResource(R.string.preview),
   )
   Spacer(modifier = Modifier.height(16.dp))
@@ -223,6 +249,20 @@ private fun MediaNotificationSection(
     onSelected = { onEvent(SettingsNotificationEvent.ChangeActionSlot(2, it)) },
   )
   Spacer(modifier = Modifier.height(16.dp))
+}
+
+@Composable
+private fun MediaNotificationTapOption(label: String, selected: Boolean, onClick: () -> Unit) {
+  Row(
+    modifier =
+      Modifier.fillMaxWidth()
+        .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
+        .padding(horizontal = 16.dp, vertical = 4.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    RadioButton(selected = selected, onClick = null)
+    Text(text = label, modifier = Modifier.padding(start = 8.dp))
+  }
 }
 
 @Composable

@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.navigation
 
+import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.player.PlayerEvent
 import dev.halim.shelfdroid.media.mediaitem.MediaIdWrapper
@@ -7,12 +8,18 @@ import dev.halim.shelfdroid.media.mediaitem.MediaIdWrapper
 sealed interface NavRequest {
   data object None : NavRequest
 
-  data object OpenPlayer : NavRequest
+  data class OpenPlayer(val destination: MediaNotificationTapDestination) : NavRequest
 
-  data class OpenMedia(val mediaId: String, val openPlayer: Boolean) : NavRequest
+  data class OpenMedia(
+    val mediaId: String,
+    val playerDestination: MediaNotificationTapDestination?,
+  ) : NavRequest
 }
 
-data class ResolvedNavRequest(val backStack: List<ShelfNavKey>, val openPlayer: Boolean)
+data class ResolvedNavRequest(
+  val backStack: List<ShelfNavKey>,
+  val playerDestination: MediaNotificationTapDestination?,
+)
 
 fun handleNavRequest(
   navRequest: NavRequest,
@@ -26,8 +33,12 @@ fun handleNavRequest(
   if (resolved.backStack.isNotEmpty()) {
     navigator.replaceStack(resolved.backStack)
   }
-  if (resolved.openPlayer) {
-    playerController.onEvent(PlayerEvent.Big)
+  if (playerController.hasCurrentPlayback()) {
+    when (resolved.playerDestination) {
+      MediaNotificationTapDestination.ExpandedPlayer -> playerController.onEvent(PlayerEvent.Big)
+      MediaNotificationTapDestination.MiniPlayer -> playerController.onEvent(PlayerEvent.Small)
+      null -> Unit
+    }
   }
 
   onNavRequestComplete()
@@ -38,7 +49,11 @@ fun resolveNavRequest(navRequest: NavRequest, isLoggedIn: Boolean): ResolvedNavR
 
   return when (navRequest) {
     NavRequest.None -> null
-    NavRequest.OpenPlayer -> ResolvedNavRequest(backStack = emptyList(), openPlayer = true)
+    is NavRequest.OpenPlayer ->
+      ResolvedNavRequest(
+        backStack = listOf(Home(false)),
+        playerDestination = navRequest.destination,
+      )
     is NavRequest.OpenMedia -> {
       val request = MediaIdWrapper.fromMediaId(navRequest.mediaId)
       val secondaryId = request.secondaryId
@@ -49,7 +64,7 @@ fun resolveNavRequest(navRequest: NavRequest, isLoggedIn: Boolean): ResolvedNavR
           listOf(Home(false), Podcast(request.itemId), Episode(request.itemId, secondaryId))
         }
 
-      ResolvedNavRequest(backStack = backStack, openPlayer = navRequest.openPlayer)
+      ResolvedNavRequest(backStack = backStack, playerDestination = navRequest.playerDestination)
     }
   }
 }

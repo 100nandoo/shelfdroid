@@ -14,6 +14,12 @@ enum class MediaNotificationAction {
 }
 
 @Serializable
+enum class MediaNotificationTapDestination {
+  ExpandedPlayer,
+  MiniPlayer,
+}
+
+@Serializable
 enum class SleepTimerNotificationMode {
   Toggle,
   Cyclical,
@@ -27,6 +33,7 @@ enum class PlaybackSpeedNotificationMode {
 
 @Serializable
 data class NotificationPrefs(
+  val tapDestination: MediaNotificationTapDestination = MediaNotificationTapDestination.ExpandedPlayer,
   val sleepTimerMinutes: Int = 1,
   val firstAction: MediaNotificationAction = MediaNotificationAction.SleepTimer,
   val secondAction: MediaNotificationAction = MediaNotificationAction.NextChapter,

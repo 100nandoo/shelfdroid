@@ -112,6 +112,10 @@ _Avoid_: Skip duration, seek speed
 A listener-selectable control in the Android media notification, such as sleep timer, next chapter, or playback speed.
 _Avoid_: Notification rule, server notification action
 
+**Media notification tap destination**:
+The listener's choice of player presentation shown when the Android media notification is tapped: Expanded player or Mini player.
+_Avoid_: Notification click target, player size
+
 **Sleep timer notification mode**:
 The listener's choice of how the sleep-timer **Media notification action** behaves: Toggle starts or cancels a timer; Cyclical advances through a **Sleep timer cycle**.
 _Avoid_: Timer type, repeating timer

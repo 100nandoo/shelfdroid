@@ -9,6 +9,7 @@ import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedToggleTarget
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import javax.inject.Inject
@@ -27,6 +28,7 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
     repository.notificationPrefs
       .map {
         SettingsNotificationUiState(
+          tapDestination = it.tapDestination,
           sleepTimerMinutes = it.sleepTimerMinutes,
           sleepTimerMode = it.sleepTimerMode,
           sleepTimerCycle = normalizeSleepTimerCycle(it.sleepTimerCycle),
@@ -41,6 +43,8 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
 
   fun onEvent(event: SettingsNotificationEvent) {
     when (event) {
+      is SettingsNotificationEvent.ChangeTapDestination ->
+        viewModelScope.launch { repository.updateTapDestination(event.destination) }
       is SettingsNotificationEvent.ChangeSleepTimerMinutes ->
         viewModelScope.launch { repository.updateDefaultSleepTimerMinutes(event.minutes) }
       is SettingsNotificationEvent.ChangeSleepTimerMode ->
@@ -60,6 +64,9 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
 }
 
 sealed interface SettingsNotificationEvent {
+  data class ChangeTapDestination(val destination: MediaNotificationTapDestination) :
+    SettingsNotificationEvent
+
   data class ChangeSleepTimerMinutes(val minutes: Int) : SettingsNotificationEvent
 
   data class ChangeSleepTimerMode(val mode: SleepTimerNotificationMode) : SettingsNotificationEvent

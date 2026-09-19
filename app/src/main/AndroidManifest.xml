@@ -54,6 +54,7 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="dev.halim.shelfdroid.OPEN_PLAYER" />
+                <action android:name="dev.halim.shelfdroid.OPEN_MINI_PLAYER" />
                 <action android:name="dev.halim.shelfdroid.OPEN_DETAIL" />
 
                 <category android:name="android.intent.category.DEFAULT" />

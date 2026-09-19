@@ -12,6 +12,7 @@ import androidx.media3.session.MediaSession
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.core.R as CoreR
+import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.notification.CustomMediaNotificationProvider
@@ -93,6 +94,7 @@ class PlaybackService : MediaLibraryService() {
         }
         .distinctUntilChanged()
         .collect { state ->
+          updateSessionActivity(state.notificationPrefs.tapDestination)
           mediaLibrarySession.setMediaButtonPreferences(
             mediaNotificationButtons(
               getString(CoreR.string.next_chapter),
@@ -131,15 +133,19 @@ class PlaybackService : MediaLibraryService() {
           override fun onIsPlayingChanged(isPlaying: Boolean) {
             super.onIsPlayingChanged(isPlaying)
             if (isPlaying) {
-              playerManager.get().currentMediaItem()?.mediaId?.let {
-                val intent = helper.get().createOpenPlayerIntent(it, this@PlaybackService)
-                Log.d("media3", "onIsPlayingChanged: $it")
-                mediaLibrarySession.setSessionActivity(intent)
-              }
+              updateSessionActivity(playerStore.get().notificationPrefs.value.tapDestination)
             }
           }
         }
       )
+  }
+
+  private fun updateSessionActivity(destination: MediaNotificationTapDestination) {
+    playerManager.get().currentMediaItem()?.mediaId?.let { mediaId ->
+      mediaLibrarySession.setSessionActivity(
+        helper.get().createOpenPlayerIntent(mediaId, this, destination)
+      )
+    }
   }
 
   override fun onDestroy() {

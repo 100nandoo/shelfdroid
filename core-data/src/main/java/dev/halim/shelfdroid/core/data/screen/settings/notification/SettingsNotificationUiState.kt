@@ -1,11 +1,13 @@
 package dev.halim.shelfdroid.core.data.screen.settings.notification
 
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 
 data class SettingsNotificationUiState(
+  val tapDestination: MediaNotificationTapDestination = NotificationPrefs().tapDestination,
   val sleepTimerMinutes: Int = NotificationPrefs().sleepTimerMinutes,
   val firstAction: MediaNotificationAction = NotificationPrefs().firstAction,
   val secondAction: MediaNotificationAction = NotificationPrefs().secondAction,

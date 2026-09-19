@@ -27,6 +27,8 @@ constructor(
   private val uiState
     get() = playerStore.uiState
 
+  fun hasCurrentPlayback(): Boolean = uiState.value.id.isNotBlank()
+
   fun onEvent(event: PlayerEvent) {
     when (event) {
       is PlayerEvent.PlayBook -> {

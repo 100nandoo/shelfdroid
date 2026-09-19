@@ -4,6 +4,7 @@ import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedToggleTarget
@@ -17,6 +18,14 @@ class SettingsNotificationRepository
 constructor(private val prefsRepository: PrefsRepository) {
   val notificationPrefs = prefsRepository.notificationPrefs
   private val updateMutex = Mutex()
+
+  suspend fun updateTapDestination(destination: MediaNotificationTapDestination) {
+    updateMutex.withLock {
+      prefsRepository.updateNotificationPrefs(
+        notificationPrefs.first().copy(tapDestination = destination)
+      )
+    }
+  }
 
   suspend fun updateDefaultSleepTimerMinutes(minutes: Int) {
     updateMutex.withLock {

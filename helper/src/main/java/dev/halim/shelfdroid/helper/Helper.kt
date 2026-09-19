@@ -11,6 +11,7 @@ import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.extensions.formatDurationShort
+import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -314,8 +315,17 @@ constructor(
     return System.currentTimeMillis()
   }
 
-  fun createOpenPlayerIntent(mediaId: String, context: Context): PendingIntent =
-    createGenericIntent(context, ACTION_OPEN_PLAYER, mediaId)
+  fun createOpenPlayerIntent(
+    mediaId: String,
+    context: Context,
+    destination: MediaNotificationTapDestination = MediaNotificationTapDestination.ExpandedPlayer,
+  ): PendingIntent =
+    createGenericIntent(
+      context,
+      if (destination == MediaNotificationTapDestination.MiniPlayer) ACTION_OPEN_MINI_PLAYER
+      else ACTION_OPEN_PLAYER,
+      mediaId,
+    )
 
   fun createOpenDetailIntent(mediaId: String, context: Context): PendingIntent =
     createGenericIntent(context, ACTION_OPEN_DETAIL, mediaId)
@@ -379,6 +389,7 @@ constructor(
 
   companion object {
     const val ACTION_OPEN_PLAYER = "dev.halim.shelfdroid.OPEN_PLAYER"
+    const val ACTION_OPEN_MINI_PLAYER = "dev.halim.shelfdroid.OPEN_MINI_PLAYER"
     const val ACTION_OPEN_DETAIL = "dev.halim.shelfdroid.OPEN_DETAIL"
     const val EXTRA_MEDIA_ID = "media_id"
   }
