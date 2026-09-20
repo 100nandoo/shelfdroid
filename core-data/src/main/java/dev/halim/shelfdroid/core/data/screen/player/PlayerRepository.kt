@@ -19,6 +19,7 @@ import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper
 import javax.inject.Inject
 import kotlin.time.Duration
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 
 class PlayerRepository
@@ -38,60 +39,61 @@ constructor(
   private val playbackSessionResolver: PlaybackSessionResolver,
 ) {
 
-  suspend fun playBook(
+  suspend fun prepareBookPlayback(
     id: String,
     advancedControl: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
-  ): PlayerUiState {
-    val playerUiState = buildBookPlaybackState(id, advancedControl, changeBehaviour)
-    if (playerUiState.state is PlayerState.Hidden) {
-      return playerUiState
-    }
-    val result = runCatching {
+  ): Result<PreparedPlayback> {
+    return try {
+      val playerUiState = buildBookPlaybackState(id, advancedControl, changeBehaviour)
+        ?: return Result.failure(IllegalStateException("Book not found"))
       val sessionId =
         playbackSessionResolver.resolve(playerUiState.downloadState) {
           val request = mapper.toPlayRequest()
           val response = apiService.playBook(id, request)
           response.id
         }
-      state.changeMedia(playerUiState, sessionId)
-      playerUiState
+      Result.success(PreparedPlayback(playerUiState, sessionId))
+    } catch (exception: CancellationException) {
+      throw exception
+    } catch (exception: Exception) {
+      Result.failure(exception)
     }
-      .getOrNull()
-
-    return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Book")))
   }
 
-  suspend fun playPodcast(
+  suspend fun preparePodcastPlayback(
     itemId: String,
     episodeId: String,
     advancedControl: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
-  ): PlayerUiState {
-    val playerUiState =
-      buildPodcastPlaybackState(itemId, episodeId, advancedControl, changeBehaviour)
-    if (playerUiState.state is PlayerState.Hidden) {
-      return playerUiState
-    }
-    val result = runCatching {
+  ): Result<PreparedPlayback> {
+    return try {
+      val playerUiState =
+        buildPodcastPlaybackState(itemId, episodeId, advancedControl, changeBehaviour)
+          ?: return Result.failure(IllegalStateException("Podcast episode not found"))
       val sessionId =
         playbackSessionResolver.resolve(playerUiState.downloadState) {
           val request = mapper.toPlayRequest()
           val response = apiService.playPodcast(itemId, episodeId, request)
           response.id
         }
-      state.changeMedia(playerUiState, sessionId)
-      playerUiState
+      Result.success(PreparedPlayback(playerUiState, sessionId))
+    } catch (exception: CancellationException) {
+      throw exception
+    } catch (exception: Exception) {
+      Result.failure(exception)
     }
-      .getOrNull()
-    return result ?: PlayerUiState(state = PlayerState.Hidden(Error("Can't Play Podcast Episode")))
+  }
+
+  fun activatePlayback(playback: PreparedPlayback) {
+    state.changeMedia(playback.uiState, playback.sessionId)
   }
 
   private suspend fun buildBookPlaybackState(
     id: String,
     existing: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
-  ): PlayerUiState {
+  ): PlayerUiState? {
     val result = libraryItemRepo.byId(id)
     val media = libraryItemRepo.bookById(id)
     val progress = progressRepo.bookById(id)
@@ -149,7 +151,7 @@ constructor(
         chapterTitleLine = playerPrefs.chapterTitleLine,
         chapterTimeDisplay = playerPrefs.chapterTimeDisplay,
       )
-    } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
+    } else null
   }
 
   private suspend fun buildPodcastPlaybackState(
@@ -157,14 +159,14 @@ constructor(
     episodeId: String,
     existing: AdvancedControl,
     changeBehaviour: ChangeBehaviour,
-  ): PlayerUiState {
+  ): PlayerUiState? {
     val result = libraryItemRepo.byId(itemId)
     val progress = progressRepo.episodeById(episodeId)
     val playerPrefs = prefsRepository.playerPrefs.first()
     return if (result != null && result.isBook.toBoolean().not()) {
       val episode =
         podcastEpisodeRepo.byId(episodeId)?.takeIf { it.libraryItemId == itemId }
-          ?: return PlayerUiState(state = PlayerState.Hidden(Error("Failed to find episode")))
+          ?: return null
 
       val downloadState =
         downloadRepo
@@ -201,7 +203,7 @@ constructor(
         chapterTitleLine = playerPrefs.chapterTitleLine,
         chapterTimeDisplay = playerPrefs.chapterTimeDisplay,
       )
-    } else PlayerUiState(state = PlayerState.Hidden(Error("Item not found")))
+    } else null
   }
 
   suspend fun decideAdvanceControl(
@@ -282,14 +284,11 @@ constructor(
     return uiState.copy(advancedControl = advancedControl)
   }
 
-  suspend fun deleteBookmark(uiState: PlayerUiState, bookmark: PlayerBookmark): PlayerUiState {
-    val id = uiState.id
-    val result = apiService.deleteBookmark(uiState.id, bookmark.time.toInt()).getOrNull()
-    if (result == null) return uiState
-    bookmarkRepo.delete(id, bookmark.time)
-    val bookmarks = uiState.playerBookmarks.toMutableList()
-    bookmarks.remove(bookmark)
-    return uiState.copy(playerBookmarks = bookmarks)
+  suspend fun deleteBookmark(itemId: String, bookmark: PlayerBookmark): Boolean {
+    val result = apiService.deleteBookmark(itemId, bookmark.time.toInt()).getOrNull()
+    if (result == null) return false
+    bookmarkRepo.delete(itemId, bookmark.time)
+    return true
   }
 
   fun goToBookmark(uiState: PlayerUiState, time: Long): PlayerUiState {
@@ -316,18 +315,15 @@ constructor(
   }
 
   suspend fun updateBookmark(
-    uiState: PlayerUiState,
+    itemId: String,
     bookmark: PlayerBookmark,
     title: String,
-  ): PlayerUiState {
-    val id = uiState.id
+  ): Boolean {
     val request = BookmarkRequest(bookmark.time, title)
-    val result = apiService.updateBookmark(uiState.id, request).getOrNull()
-    if (result == null) return uiState
-    bookmarkRepo.updateTitle(id, bookmark.time, title)
-    val bookmarks =
-      uiState.playerBookmarks.map { if (it.time == bookmark.time) it.copy(title = title) else it }
-    return uiState.copy(playerBookmarks = bookmarks)
+    val result = apiService.updateBookmark(itemId, request).getOrNull()
+    if (result == null) return false
+    bookmarkRepo.updateTitle(itemId, bookmark.time, title)
+    return true
   }
 
   fun newBookmarkTime(uiState: PlayerUiState, currentTime: Long): PlayerUiState {
@@ -337,14 +333,10 @@ constructor(
     return uiState.copy(newBookmarkTime = bookmark)
   }
 
-  suspend fun createBookmark(uiState: PlayerUiState, time: Long, title: String): PlayerUiState {
+  suspend fun createBookmark(itemId: String, time: Long, title: String): PlayerBookmark? {
     val request = BookmarkRequest(time, title)
-    val result = apiService.createBookmark(uiState.id, request).getOrNull()
-    if (result == null) return uiState
+    val result = apiService.createBookmark(itemId, request).getOrNull() ?: return null
     val entity = bookmarkRepo.insertAndConvert(result)
-    val playerBookmark = mapper.toPlayerBookmark(entity)
-    val bookmarks = uiState.playerBookmarks.toMutableList()
-    bookmarks.add(playerBookmark)
-    return uiState.copy(playerBookmarks = bookmarks)
+    return mapper.toPlayerBookmark(entity)
   }
 }

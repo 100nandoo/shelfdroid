@@ -8,6 +8,7 @@ import dagger.Lazy
 import dev.halim.shelfdroid.core.MediaStructure
 import dev.halim.shelfdroid.core.PlayPauseControlStateHolder
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
+import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
@@ -60,6 +61,7 @@ constructor(
   val notificationPrefs = MutableStateFlow(NotificationPrefs())
   val playerPrefs = MutableStateFlow(PlayerPrefs())
   private val syncScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+  private val playbackScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
   init {
     syncScope.launch {
@@ -119,6 +121,10 @@ constructor(
     return try {
       val shouldPlay = playerManager.player.get().playWhenReady
       uiState.value = playerRepository.previousNextChapter(currentUiState, isPrevious)
+      if (uiState.value.state is PlayerState.Hidden) {
+        isChapterTransitioning.value = false
+        return false
+      }
       playContent(shouldPlay)
       true
     } catch (exception: RuntimeException) {
@@ -132,20 +138,21 @@ constructor(
   }
 
   fun changeContent() {
+    val current = uiState.value
     playerManager.player.get().apply {
       val multiTrackWithChapters = state.mediaStructure() == MediaStructure.MultiTrackWithChapters
       if (multiTrackWithChapters) {
-        val mediaItems = mediaItemMapper.toMediaItemList(uiState.value)
-        val positionMs = uiState.value.currentTime.toLong() * 1000
+        val mediaItems = mediaItemMapper.toMediaItemList(current)
+        val positionMs = current.currentTime.toLong() * 1000
         setMediaItems(mediaItems, 0, positionMs)
       } else {
-        val mediaItem = mediaItemMapper.toMediaItem(uiState.value, state)
-        val positionMs = uiState.value.currentTime.toLong() * 1000
+        val mediaItem = mediaItemMapper.toMediaItem(current, state)
+        val positionMs = current.currentTime.toLong() * 1000
         setMediaItem(mediaItem, positionMs)
       }
-      setPlaybackSpeed(uiState.value.advancedControl.speed)
-      if (uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO) {
-        val control = uiState.value.advancedControl
+      setPlaybackSpeed(current.advancedControl.speed)
+      if (current.advancedControl.sleepTimerLeft > Duration.ZERO) {
+        val control = current.advancedControl
         startSleepTimer(control.sleepTimerLeft, control.sleepTimerDuration)
       } else {
         clearTimer()
@@ -204,6 +211,13 @@ constructor(
   }
 
   fun emptyState(): PlayerUiState {
+    playbackProgressJob?.cancel()
+    playbackProgressJob = null
+    listenPlayer?.cancel()
+    listenPlayer = null
+    sleepTimerJob?.cancel()
+    sleepTimerJob = null
+    timerManager.clear()
     isChapterTransitioning.value = false
     playPauseControlStateHolder.update(playPauseControlStateMapper.map(emptyControlSnapshot()))
     return PlayerUiState()
@@ -226,78 +240,20 @@ constructor(
           uiState.value,
           changeChapterCallback(),
           { events ->
-            handleSeekSliderState(events)
-            handleSeekBackState(events)
-            handleSeekForwardState(events)
-            handlePlayPauseState(events)
+            if (
+              events.containsAny(
+                Player.EVENT_PLAYBACK_STATE_CHANGED,
+                Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                Player.EVENT_IS_LOADING_CHANGED,
+                Player.EVENT_IS_PLAYING_CHANGED,
+                Player.EVENT_AVAILABLE_COMMANDS_CHANGED,
+              )
+            ) {
+              syncControlStates()
+            }
           },
         )
     syncControlStates()
-  }
-
-  private fun handleSeekSliderState(events: Player.Events) {
-    with(playerManager.player.get()) {
-      if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
-        val seekControls =
-          uiState.value.seekControls.copy(
-            seekSliderEnabled = isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
-          )
-        uiState.update { it.copy(seekControls = seekControls) }
-      }
-    }
-  }
-
-  private fun handleSeekBackState(events: Player.Events) {
-    with(playerManager.player.get()) {
-      if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
-        val seekControls =
-          uiState.value.seekControls.copy(
-            seekBackEnabled = isCommandAvailable(Player.COMMAND_SEEK_BACK)
-          )
-        uiState.update { it.copy(seekControls = seekControls) }
-      }
-    }
-  }
-
-  private fun handleSeekForwardState(events: Player.Events) {
-    with(playerManager.player.get()) {
-      if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED)) {
-        val seekControls =
-          uiState.value.seekControls.copy(
-            seekForwardEnabled = isCommandAvailable(Player.COMMAND_SEEK_FORWARD)
-          )
-        uiState.update { it.copy(seekControls = seekControls) }
-      }
-    }
-  }
-
-  @OptIn(UnstableApi::class)
-  private fun handlePlayPauseState(events: Player.Events) {
-    with(playerManager.player.get()) {
-      if (
-        events.containsAny(
-          Player.EVENT_PLAYBACK_STATE_CHANGED,
-          Player.EVENT_PLAY_WHEN_READY_CHANGED,
-          Player.EVENT_IS_LOADING_CHANGED,
-          Player.EVENT_IS_PLAYING_CHANGED,
-          Player.EVENT_AVAILABLE_COMMANDS_CHANGED,
-        )
-      ) {
-        val playPause =
-          playPauseControlStateMapper.map(
-            PlayerControlSnapshot(
-              isPlaying = isPlaying,
-              playWhenReady = playWhenReady,
-              isLoading = isLoading,
-              playbackState = playbackState,
-              playPauseEnabled = Util.shouldEnablePlayPauseButton(this),
-              showPlayIcon = Util.shouldShowPlayButton(this),
-            )
-          )
-        playPauseControlStateHolder.update(playPause)
-        uiState.update { it.copy(playPause = playPause) }
-      }
-    }
   }
 
   private fun syncControlStates() {
@@ -335,16 +291,16 @@ constructor(
     )
 
   private fun changeChapterCallback() = {
-    uiState.update { playerRepository.previousNextChapter(uiState.value, false) }
-    playContent()
+    uiState.update { playerRepository.previousNextChapter(it, false) }
+    if (uiState.value.state !is PlayerState.Hidden) playContent()
   }
 
   private fun collectPlaybackProgress() {
     playbackProgressJob?.cancel()
     playbackProgressJob =
-      CoroutineScope(Dispatchers.Main).launch {
+      playbackScope.launch {
         playerManager.player.get().playbackProgressFlow().collect { raw ->
-          uiState.update { playerRepository.toPlayback(uiState.value, raw) }
+          uiState.update { playerRepository.toPlayback(it, raw) }
         }
       }
   }
@@ -352,7 +308,7 @@ constructor(
   private fun collectSleepTimer() {
     sleepTimerJob?.cancel()
     sleepTimerJob =
-      CoroutineScope(Dispatchers.Main).launch {
+      playbackScope.launch {
         timerManager.duration.collect { currentDuration ->
           uiState.update {
             val updatedAdvancedControl =

@@ -4,7 +4,7 @@ import dev.halim.shelfdroid.core.prefs.ChapterTimeDisplay
 import kotlin.time.Duration
 
 sealed interface PlayerState {
-  class Hidden(error: Error? = null) : PlayerState
+  class Hidden(val error: Throwable? = null) : PlayerState
 
   data object TempHidden : PlayerState
 

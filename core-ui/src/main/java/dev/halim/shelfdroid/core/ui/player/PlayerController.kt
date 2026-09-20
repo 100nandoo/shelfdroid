@@ -5,9 +5,12 @@ import dev.halim.shelfdroid.core.ChangeBehaviour
 import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerState.Hidden
+import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.data.screen.player.PreparedPlayback
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import dev.halim.shelfdroid.media.playback.PlayerStore
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Named
 import kotlin.time.Duration
@@ -26,65 +29,62 @@ constructor(
 ) {
   private val uiState
     get() = playerStore.uiState
+  private val playbackRequestId = AtomicLong()
 
   fun hasCurrentPlayback(): Boolean = uiState.value.id.isNotBlank()
 
   fun onEvent(event: PlayerEvent) {
     when (event) {
       is PlayerEvent.PlayBook -> {
+        val requestId = playbackRequestId.incrementAndGet()
         mainScope.launch {
           when {
             uiState.value.id != event.id -> {
               val advancedControl = uiState.value.advancedControl
               val changeBehaviour = changeBehaviour(event)
 
-              uiState.update {
-                playerRepository.playBook(
-                  event.id,
-                  advancedControl,
-                  changeBehaviour,
-                )
-              }
-              playerStore.playContent()
+              val playback =
+                playerRepository.prepareBookPlayback(event.id, advancedControl, changeBehaviour)
+              completePlayback(requestId, playback)
             }
             else -> mediaControl.get().playPause()
           }
         }
       }
       is PlayerEvent.PlayPodcast -> {
+        val requestId = playbackRequestId.incrementAndGet()
         mainScope.launch {
           when {
             uiState.value.episodeId != event.episodeId -> {
               val advancedControl = uiState.value.advancedControl
               val changeBehaviour = changeBehaviour(event)
-              uiState.update {
-                playerRepository.playPodcast(
+              val playback =
+                playerRepository.preparePodcastPlayback(
                   event.itemId,
                   event.episodeId,
                   advancedControl,
                   changeBehaviour,
                 )
-              }
-              playerStore.playContent()
+              completePlayback(requestId, playback)
             }
             else -> mediaControl.get().playPause()
           }
         }
       }
       is PlayerEvent.ChangeChapter -> {
-        uiState.update { playerRepository.changeChapter(uiState.value, event.target) }
-        playerStore.playContent()
+        uiState.update { playerRepository.changeChapter(it, event.target) }
+        if (uiState.value.state !is Hidden) playerStore.playContent()
       }
       PlayerEvent.SeekBackButton -> mediaControl.get().seekBack()
       PlayerEvent.SeekForwardButton -> mediaControl.get().seekForward()
       PlayerEvent.PlayPauseButton -> mediaControl.get().playPause()
       is PlayerEvent.SeekTo -> {
-        uiState.update { playerRepository.seekTo(uiState.value, event.target) }
+        uiState.update { playerRepository.seekTo(it, event.target) }
         val positionMs = uiState.value.currentTime.toLong() * 1000
         mediaControl.get().seekTo(positionMs)
       }
       is PlayerEvent.ChangeSpeed -> {
-        uiState.update { playerRepository.changeSpeed(uiState.value, event.speed) }
+        uiState.update { playerRepository.changeSpeed(it, event.speed) }
         mediaControl.get().changeSpeed(event.speed)
       }
       is PlayerEvent.SleepTimer -> {
@@ -96,32 +96,52 @@ constructor(
       }
       PlayerEvent.NewBookmarkTime -> {
         val currentTimeInSeconds = mediaControl.get().currentPosition() / 1000
-        uiState.update { playerRepository.newBookmarkTime(uiState.value, currentTimeInSeconds) }
+        uiState.update { playerRepository.newBookmarkTime(it, currentTimeInSeconds) }
       }
 
       is PlayerEvent.CreateBookmark -> {
+        val itemId = uiState.value.id
         scope.launch {
-          uiState.update { playerRepository.createBookmark(uiState.value, event.time, event.title) }
+          val bookmark = playerRepository.createBookmark(itemId, event.time, event.title)
+          if (bookmark != null) {
+            uiState.update { current ->
+              if (current.id == itemId) {
+                current.copy(playerBookmarks = current.playerBookmarks + bookmark)
+              } else current
+            }
+          }
         }
       }
       is PlayerEvent.DeleteBookmark -> {
+        val itemId = uiState.value.id
         scope.launch {
-          uiState.update { playerRepository.deleteBookmark(uiState.value, event.bookmark) }
+          if (playerRepository.deleteBookmark(itemId, event.bookmark)) {
+            uiState.update { current ->
+              if (current.id == itemId) {
+                current.copy(playerBookmarks = current.playerBookmarks - event.bookmark)
+              } else current
+            }
+          }
         }
       }
       is PlayerEvent.GoToBookmark -> {
-        scope.launch {
-          uiState.update {
-            val newUiState = playerRepository.goToBookmark(uiState.value, event.time)
-            newUiState
-          }
-          playerStore.changeContent()
-        }
+        uiState.update { playerRepository.goToBookmark(it, event.time) }
+        playerStore.changeContent()
       }
       is PlayerEvent.UpdateBookmark -> {
+        val itemId = uiState.value.id
         scope.launch {
-          uiState.update {
-            playerRepository.updateBookmark(uiState.value, event.bookmark, event.title)
+          if (playerRepository.updateBookmark(itemId, event.bookmark, event.title)) {
+            uiState.update { current ->
+              if (current.id == itemId) {
+                current.copy(
+                  playerBookmarks =
+                    current.playerBookmarks.map {
+                      if (it.time == event.bookmark.time) it.copy(title = event.title) else it
+                    }
+                )
+              } else current
+            }
           }
         }
       }
@@ -133,13 +153,13 @@ constructor(
         ) {
           mediaControl.get().seekTo(0)
         } else {
-          uiState.update { playerRepository.previousNextChapter(uiState.value, true) }
-          playerStore.playContent()
+          uiState.update { playerRepository.previousNextChapter(it, true) }
+          if (uiState.value.state !is Hidden) playerStore.playContent()
         }
       }
       PlayerEvent.SkipNextButton -> {
-        uiState.update { playerRepository.previousNextChapter(uiState.value, false) }
-        playerStore.playContent()
+        uiState.update { playerRepository.previousNextChapter(it, false) }
+        if (uiState.value.state !is Hidden) playerStore.playContent()
       }
       PlayerEvent.Big -> uiState.update { it.copy(state = PlayerState.Big) }
       PlayerEvent.Small -> uiState.update { it.copy(state = PlayerState.Small) }
@@ -162,7 +182,24 @@ constructor(
     }
   }
 
+  private fun completePlayback(requestId: Long, result: Result<PreparedPlayback>) {
+    if (requestId != playbackRequestId.get()) return
+    result.fold(
+      onSuccess = { playback ->
+        playerRepository.activatePlayback(playback)
+        uiState.value = playback.uiState
+        playerStore.playContent()
+      },
+      onFailure = { error ->
+        playerStore.emptyState()
+        uiState.value = PlayerUiState(state = Hidden(error))
+        mediaControl.get().clearAndStop()
+      },
+    )
+  }
+
   private fun logout() {
+    playbackRequestId.incrementAndGet()
     uiState.update { playerStore.emptyState() }
     mediaControl.get().clearAndStop()
   }
