@@ -23,7 +23,7 @@ import kotlinx.coroutines.isActive
 private const val NANOSECONDS_PER_SECOND = 1_000_000_000f
 
 @Stable
-internal class ReorderableLazyListState<T, K : Any>
+class ReorderableLazyListState<T, K : Any>
 internal constructor(
   val lazyListState: LazyListState,
   initialItems: List<T>,
@@ -187,7 +187,7 @@ internal constructor(
 }
 
 @Composable
-internal fun <T, K : Any> rememberReorderableLazyListState(
+fun <T, K : Any> rememberReorderableLazyListState(
   items: List<T>,
   key: (T) -> K,
   lazyListState: LazyListState,
@@ -231,7 +231,7 @@ internal fun <T, K : Any> rememberReorderableLazyListState(
 }
 
 @SuppressLint("ModifierFactoryExtensionFunction")
-internal fun <T, K : Any> LazyItemScope.reorderableItemModifier(
+fun <T, K : Any> LazyItemScope.reorderableItemModifier(
   state: ReorderableLazyListState<T, K>,
   key: K,
 ): Modifier =

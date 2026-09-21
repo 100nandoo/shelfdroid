@@ -36,6 +36,8 @@ include(":core-ui")
 
 include(":download")
 
+include(":feature-library-admin")
+
 include(":helper")
 
 include(":media")

@@ -4,7 +4,7 @@
 
 ShelfDroid already has most of the playback infrastructure required for Android Auto:
 
-- Media3 `1.11.0`
+- Media3 `1.11.1`
 - an exported `MediaLibraryService`
 - a `MediaLibrarySession`
 - ExoPlayer-based foreground playback
@@ -32,7 +32,8 @@ Automotive OS packaging and distribution are separate follow-up work.
 
 - exports `PlaybackService`
 - declares `foregroundServiceType="mediaPlayback"`
-- registers the `androidx.media3.session.MediaSessionService` action
+- registers the `androidx.media3.session.MediaSessionService` action, but not the
+  `androidx.media3.session.MediaLibraryService` action recommended for library discovery
 - registers the compatibility `android.media.browse.MediaBrowserService` action
 
 The final merged manifest must continue to contain both `android.permission.FOREGROUND_SERVICE` and
@@ -49,7 +50,7 @@ does not implement any library callbacks:
 - `onGetItem`
 - `onSearch`
 - `onGetSearchResult`
-- `onAddMediaItems` or `onSetMediaItems`
+- `onAddMediaItems` or `onSetMediaItems` for browse selections and voice playback requests
 
 Android Auto can therefore connect to the playback session, but ShelfDroid does not yet expose a
 browsable Catalog or a way to start new content from a browser request.
@@ -92,13 +93,17 @@ Create `app/src/main/res/xml/automotive_app_desc.xml`:
 ```
 
 Verify the merged manifest rather than relying only on individual library manifests. In particular,
-confirm the foreground-service permissions and both playback-service intent actions are present.
+confirm the foreground-service permissions and both `androidx.media3.session.MediaLibraryService`
+and `android.media.browse.MediaBrowserService` intent actions are present. The existing
+`MediaSessionService` action may remain for existing clients, but it does not replace the library
+service action for Media3 browser discovery.
 
 **Files:**
 
 - `app/src/main/AndroidManifest.xml`
 - `app/src/main/res/xml/automotive_app_desc.xml` (new)
-- `media/src/main/AndroidManifest.xml` if permission ownership needs clarification
+- `media/src/main/AndroidManifest.xml` for the library service action and, if needed, permission
+  ownership
 
 ---
 
@@ -201,17 +206,26 @@ Audiobookshelf server may happen asynchronously, but browsing must not wait inde
 ## Phase 4 — Resolve Car Playback Requests
 
 Selecting an Android Auto browse result generally sends ShelfDroid a media ID without a playable
-URI. Implement `onAddMediaItems` or `onSetMediaItems` to:
+URI. Media3 also conveys some voice playback requests through
+`MediaItem.RequestMetadata.searchQuery`. Use `onAddMediaItems` to resolve individual requested
+items, or `onSetMediaItems` when the request needs a Track list, start index, or saved position:
 
-1. Parse the typed media ID.
+1. Parse the typed media ID or voice search query.
 2. Validate that the selected Book or Episode still exists and is accessible to the current User.
-3. Call the existing `PlayerRepository.playBook()` or `playPodcast()` path.
-4. Reuse `MediaItemMapper` to produce the complete playable item or Track list.
-5. Return a failed session result with an actionable error when content cannot be resolved.
+3. Reuse the existing `PlayerRepository.playBook()` or `playPodcast()` preparation path so
+   Progress, Downloads, preferences, and listening-session behavior stay consistent.
+4. Reuse `MediaItemMapper` to produce playable items and the correct start index and position.
+5. Complete the Media3 callback with those items so the session performs the requested player
+   command. On failure, use the callback's supported error path and expose an actionable car-safe
+   message; do not report success with an unresolved item.
 
 Extract a small application-scoped playback coordinator if necessary so both phone UI requests and
-car requests enter the same pipeline. Do not make the callback navigate through `MainActivity` to
-start playback; Android Auto must work when no Activity exists or can be shown.
+car requests enter the same preparation pipeline. The current phone flow updates `PlayerStore` and
+calls `playContent()`, which itself sets Media3 player items and starts playback. Define one owner
+for that final player update: the car callback must not call `playContent()` and also return the
+same items for Media3 to set. Keep `PlayerStore` UI state and session synchronization consistent
+for both entry points. Do not make the callback navigate through `MainActivity` to start playback;
+Android Auto must work when no Activity exists or can be shown.
 
 Preserve existing behavior for:
 
@@ -269,21 +283,31 @@ the media-notification controller separately when necessary.
 
 ---
 
-## Phase 6 — Voice Search and Playback Resumption
+## Phase 6 — Voice Playback, Browsable Search, and Playback Resumption
 
-### Search
+### Voice playback
 
-Implement Media3 library search so Android Auto and Google Assistant can find Books, Podcasts, and
-Episodes by title and, where useful, author. Handle an empty query as a general playback request by
-resuming the most recent unfinished content.
+Handle voice-initiated playback separately from the browsable search-results UI. Android Auto and
+Google Assistant can send a play-from-search request that Media3 represents as an incoming
+`MediaItem` with `RequestMetadata.searchQuery`. Resolve that query through the playback coordinator
+in `onAddMediaItems` or `onSetMediaItems`, matching Books, Podcasts, and Episodes by title and, where
+useful, author. Handle an empty query as a general playback request by resuming the most recent
+unfinished content or another appropriate current item. Voice-initiated playback is required before
+public release.
+
+### Browsable search results
+
+Implement `onSearch` and `onGetSearchResult` so Android Auto can display selectable results. This is
+an additional browse experience and does not by itself handle voice-initiated playback. Advertise
+search-result support to compatible browsers when this behavior is implemented.
 
 Search work must be asynchronous and bounded. Prefer indexed local Catalog queries rather than
 scanning large in-memory collections or waiting for network search.
 
 This overlaps with Part 1 of `docs/plan/google-assistant-integration.md`. The shared
 `ShelfMediaLibraryCallback` and playback coordinator from this plan should own the common Media3
-browse, search, and playback-resolution behavior instead of adding more methods to the anonymous
-callback in `PlayerModule`.
+browse, voice, search-result, and playback-resolution behavior instead of adding more methods to
+the anonymous callback in `PlayerModule`.
 
 ### Resumption
 
@@ -315,9 +339,10 @@ Add tests for:
 - signed-out and offline results
 - playback resolution for Books and Episodes
 - local Download preference over remote playback
-- search ranking and empty-query behavior
+- voice-initiated playback for Book, Podcast, Episode, and empty queries
+- browsable search ranking and results, when enabled
 - custom-command availability for Android Auto controllers
-- playback resumption state
+- playback resumption state, when enabled
 
 ### Integration tests
 
@@ -334,10 +359,11 @@ Test at least:
 6. Browse and play Downloads with the server unreachable.
 7. Play, pause, seek back, seek forward, and use steering-wheel media buttons.
 8. Switch audio focus between Android Auto and another source.
-9. Run voice searches for a Book, Podcast, and Episode.
-10. Exercise day/night mode, touch, rotary input, and driving restrictions.
-11. Verify artwork and text on small, wide, and high-resolution DHU configurations.
-12. Swipe ShelfDroid from phone recents while Android Auto playback is active.
+9. Start a Book, Podcast, and Episode by voice; also test an empty voice query.
+10. Open and select browsable search results, when enabled.
+11. Exercise day/night mode, touch, rotary input, and driving restrictions.
+12. Verify artwork and text on small, wide, and high-resolution DHU configurations.
+13. Swipe ShelfDroid from phone recents while Android Auto playback is active.
 
 Run the existing relevant Gradle test suites and add the DHU result to the manual release checklist.
 
@@ -368,28 +394,32 @@ Use Conventional Commit titles in Commitizen format.
 3. `feat(auto): expose the cached catalog to media browsers`
 4. `feat(auto): resolve browser selections into playback`
 5. `fix(media): support playback without an active phone task`
-6. `feat(auto): add car search and playback resumption`
-7. `test(auto): cover media browsing and playback flows`
+6. `feat(auto): support voice-initiated playback`
+7. `feat(auto): add browsable search and playback resumption`
+8. `test(auto): cover media browsing and playback flows`
 
 Each commit should build and keep existing phone playback tests passing.
 
 ---
 
-## MVP Exit Criteria
+## Public Release Exit Criteria
 
-Android Auto support is minimally complete when:
+Android Auto support is ready for public release when:
 
 - Android Auto discovers ShelfDroid as a media app.
-- The four-root hierarchy renders from the cached Catalog.
+- The root tabs render from the cached Catalog and honor the browser's root-child limit.
 - A User can browse and play a Book or Episode without opening the phone Activity.
+- A User can start a Book, Podcast, or Episode by voice, and an empty voice query starts appropriate
+  current or recent content.
 - play, pause, seek back, and seek forward work from the car.
 - signed-out, offline, and unavailable-server states do not hang or crash the service.
 - active playback survives dismissal of the phone task.
 - Media Controller Test and DHU verification pass.
 - the implementation meets the applicable Media car quality requirements.
 
-Voice search and playback resumption are strongly recommended for the first public release, but they
-can follow the basic browse-and-play MVP if necessary.
+Displayed, selectable search results and playback resumption may follow the first public release.
+Voice-initiated playback remains a public-release requirement even if displayed search results are
+deferred.
 
 ---
 

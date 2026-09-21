@@ -26,7 +26,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun <T, K : Any> ReorderHandle(
+fun <T, K : Any> ReorderHandle(
   state: ReorderableLazyListState<T, K>,
   itemKey: K,
   contentDescription: String,

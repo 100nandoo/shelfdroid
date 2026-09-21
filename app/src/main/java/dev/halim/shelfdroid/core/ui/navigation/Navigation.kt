@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,15 +21,11 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.result.LocalResultEventBus
 import androidx.navigation3.runtime.result.rememberResultEventBusNavEntryDecorator
-import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.navigation3.ui.NavDisplay
 import dev.halim.shelfdroid.core.navigation.ApiKeyChangedNavResult
 import dev.halim.shelfdroid.core.navigation.AppriseNotificationRuleChangedNavResult
-import dev.halim.shelfdroid.core.navigation.LibraryChangedNavResult
 import dev.halim.shelfdroid.core.navigation.NavEditApiKeys
 import dev.halim.shelfdroid.core.navigation.NavEditUser
-import dev.halim.shelfdroid.core.ui.LocalAnimatedContentScope
-import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MySnackbarHost
 import dev.halim.shelfdroid.core.ui.components.showSuccessSnackbar
@@ -51,8 +46,7 @@ import dev.halim.shelfdroid.core.ui.screen.edititem.EditItemScreen
 import dev.halim.shelfdroid.core.ui.screen.emailmanagement.EmailManagementScreen
 import dev.halim.shelfdroid.core.ui.screen.episode.EpisodeScreen
 import dev.halim.shelfdroid.core.ui.screen.home.HomeScreen
-import dev.halim.shelfdroid.core.ui.screen.libraryadmin.LibraryAdminScreen
-import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.LibraryAdminCreateScreen
+import dev.halim.shelfdroid.feature.library.admin.navigation.libraryAdministrationEntries
 import dev.halim.shelfdroid.core.ui.screen.listeningsession.ListeningSessionScreen
 import dev.halim.shelfdroid.core.ui.screen.login.LoginScreen
 import dev.halim.shelfdroid.core.ui.screen.logs.LogsScreen
@@ -322,40 +316,11 @@ private fun ColumnScope.NavHostContainer(
           )
         }
       }
-      entry<Libraries> {
-        Nav3ScreenWrapper(sharedTransitionScope) {
-          LibraryAdminScreen(
-            collectNavResultEvent = true,
-            onCreateLibraryClicked = { navigator.navigate(CreateLibrary) },
-            onEditLibraryClicked = { navigator.navigate(EditLibrary(it)) },
-          )
-        }
-      }
-      entry<CreateLibrary> {
-        val resultBus = LocalResultEventBus.current
-        Nav3ScreenWrapper(sharedTransitionScope) {
-          LibraryAdminCreateScreen(
-            onNavigateBack = { navigator.pop() },
-            onSaved = { id ->
-              resultBus.sendResult(LibraryChangedNavResult(id))
-              navigator.pop()
-            },
-          )
-        }
-      }
-      entry<EditLibrary> { key ->
-        val resultBus = LocalResultEventBus.current
-        Nav3ScreenWrapper(sharedTransitionScope) {
-          LibraryAdminCreateScreen(
-            libraryId = key.libraryId,
-            onNavigateBack = { navigator.pop() },
-            onSaved = { id ->
-              resultBus.sendResult(LibraryChangedNavResult(id))
-              navigator.pop()
-            },
-          )
-        }
-      }
+      libraryAdministrationEntries(
+        sharedTransitionScope = sharedTransitionScope,
+        navigate = navigator::navigate,
+        pop = { navigator.pop() },
+      )
       entry<EditUser> { key ->
         Nav3ScreenWrapper(sharedTransitionScope) {
           EditUserScreen(
@@ -508,19 +473,5 @@ private fun ColumnScope.NavHostContainer(
         fadeIn() togetherWith fadeOut()
       },
     )
-  }
-}
-
-@Composable
-private fun Nav3ScreenWrapper(
-  sharedTransitionScope: SharedTransitionScope,
-  content: @Composable () -> Unit,
-) {
-  val animatedContentScope = LocalNavAnimatedContentScope.current
-  CompositionLocalProvider(
-    LocalSharedTransitionScope provides sharedTransitionScope,
-    LocalAnimatedContentScope provides animatedContentScope,
-  ) {
-    content()
   }
 }
