@@ -45,7 +45,7 @@ import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastApiState
 import dev.halim.shelfdroid.core.data.screen.podcast.PodcastUiState
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
+import dev.halim.shelfdroid.core.ui.OnScreenResume
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.CheckboxRow
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
@@ -74,11 +74,12 @@ fun PodcastScreen(
     },
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
+  onResume: () -> Unit,
   onEpisodeClicked: (String, String) -> Unit,
   onEditEpisodeClicked: (String, String) -> Unit,
   onFetchEpisodeSuccess: (String) -> Unit,
 ) {
-  InitMediaControllerIfMainActivity()
+  OnScreenResume(onResume)
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
   val context = LocalContext.current

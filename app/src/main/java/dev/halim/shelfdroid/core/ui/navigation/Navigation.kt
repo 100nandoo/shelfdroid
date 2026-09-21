@@ -86,6 +86,7 @@ fun MainNavigation(
   playerStore: PlayerStore,
   playerController: PlayerController,
   navRequest: NavRequest,
+  onMediaScreenResume: () -> Unit,
   onNavRequestComplete: () -> Unit = {},
 ) {
   SharedTransitionLayout {
@@ -112,6 +113,7 @@ fun MainNavigation(
         sharedTransitionScope = this@SharedTransitionLayout,
         playerStore = playerStore,
         playerController = playerController,
+        onMediaScreenResume = onMediaScreenResume,
       )
       PlayerHandler(
         currentKey = navigator.current,
@@ -130,6 +132,7 @@ private fun ColumnScope.NavHostContainer(
   sharedTransitionScope: SharedTransitionScope,
   playerStore: PlayerStore,
   playerController: PlayerController,
+  onMediaScreenResume: () -> Unit,
 ) {
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
@@ -180,6 +183,7 @@ private fun ColumnScope.NavHostContainer(
             navKey = key,
             playerController = playerController,
             snackbarHostState = snackbarHostState,
+            onResume = onMediaScreenResume,
             onEpisodeClicked = { itemId, episodeId ->
               navigator.navigate(Episode(itemId = itemId, episodeId = episodeId))
             },
@@ -236,6 +240,7 @@ private fun ColumnScope.NavHostContainer(
             playerStore = playerStore,
             playerController = playerController,
             snackbarHostState = snackbarHostState,
+            onResume = onMediaScreenResume,
             onEditClicked = { navigator.navigate(EditItem(it)) },
           )
         }

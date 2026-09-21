@@ -113,6 +113,7 @@ class MainActivity : ComponentActivity() {
             playerStore = playerStore,
             playerController = playerController,
             navRequest = navRequest,
+            onMediaScreenResume = ::initMediaController,
             onNavRequestComplete = { navRequest = NavRequest.None },
           )
         }

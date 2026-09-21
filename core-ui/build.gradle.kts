@@ -41,6 +41,7 @@ dependencies {
   implementation(project(libs.versions.download.get()))
   implementation(project(libs.versions.helper.get()))
   implementation(project(libs.versions.media.get()))
+  implementation(project(libs.versions.navigationApi.get()))
   implementation(project(libs.versions.socketIO.get()))
 
   val composeBom = platform(libs.androidx.compose.bom)
@@ -52,7 +53,6 @@ dependencies {
 
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)
-  implementation(libs.androidx.core.splashscreen)
   implementation(libs.androidx.browser)
 
   // Arch Components
@@ -60,7 +60,6 @@ dependencies {
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
-  implementation(libs.androidx.lifecycle.viewmodel.navigation3)
   implementation(libs.androidx.media3.exoplayer)
   implementation(libs.androidx.navigation3.runtime)
   implementation(libs.androidx.navigation3.ui)

@@ -40,6 +40,8 @@ include(":helper")
 
 include(":media")
 
+include(":navigation-api")
+
 include(":socketio")
 
 include(":test-app")

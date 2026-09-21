@@ -15,6 +15,7 @@ coreUi = ":core-ui"
 download = ":download"
 helper = ":helper"
 media = ":media"
+navigationApi = ":navigation-api"
 socketIO = ":socketio"
 testApp = ":test-app"
 

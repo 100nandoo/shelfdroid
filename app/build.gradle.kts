@@ -112,9 +112,14 @@ dependencies {
   implementation(project(libs.versions.core.get()))
   implementation(project(libs.versions.coreUi.get()))
   implementation(project(libs.versions.coreData.get()))
+  implementation(project(libs.versions.download.get()))
+  implementation(project(libs.versions.helper.get()))
+  implementation(project(libs.versions.media.get()))
+  implementation(project(libs.versions.navigationApi.get()))
 
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)
+  implementation(libs.androidx.core.splashscreen)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity.compose)
 
@@ -126,6 +131,10 @@ dependencies {
   // Arch Components
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+  implementation(libs.androidx.navigation3.runtime)
+  implementation(libs.androidx.navigation3.ui)
+  implementation(libs.kotlinx.serialization)
 
   // Compose
   val composeBom = platform(libs.androidx.compose.bom)
@@ -148,4 +157,5 @@ dependencies {
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)
+  testImplementation(libs.junit)
 }

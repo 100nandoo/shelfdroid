@@ -33,7 +33,7 @@ import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.book.BookApiState
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.InitMediaControllerIfMainActivity
+import dev.halim.shelfdroid.core.ui.OnScreenResume
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ExpandShrinkText
 import dev.halim.shelfdroid.core.ui.components.PlayDownloadAndEdit
@@ -62,9 +62,10 @@ fun BookScreen(
   playerStore: PlayerStore,
   playerController: PlayerController,
   snackbarHostState: SnackbarHostState,
+  onResume: () -> Unit,
   onEditClicked: (String) -> Unit = {},
 ) {
-  InitMediaControllerIfMainActivity()
+  OnScreenResume(onResume)
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val playerUiState by playerStore.uiState.collectAsStateWithLifecycle()
   val scope = rememberCoroutineScope()
