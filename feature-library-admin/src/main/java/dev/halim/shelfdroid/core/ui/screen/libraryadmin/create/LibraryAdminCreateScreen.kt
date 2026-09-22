@@ -51,13 +51,13 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminFil
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProvider
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
 import dev.halim.shelfdroid.core.ui.R as CoreUiR
-import dev.halim.shelfdroid.feature.library.admin.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminDetailsTab
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminScannerTab
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminScheduleTab
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.LibraryAdminSettingsTab
+import dev.halim.shelfdroid.feature.library.admin.R
 
 @Composable
 internal fun LibraryAdminCreateScreen(

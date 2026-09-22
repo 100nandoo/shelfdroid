@@ -31,8 +31,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-internal class LibraryAdminViewModel @Inject constructor(private val repository: LibraryAdminContract) :
-  ViewModel() {
+internal class LibraryAdminViewModel
+@Inject
+constructor(private val repository: LibraryAdminContract) : ViewModel() {
 
   private var loadGeneration = 0L
   private var intentGeneration = 0L

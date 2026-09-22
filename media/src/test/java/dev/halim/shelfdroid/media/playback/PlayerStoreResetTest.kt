@@ -5,10 +5,10 @@ import dagger.Lazy
 import dev.halim.shelfdroid.core.PlayPauseControlStateHolder
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.core.prefs.NotificationPrefs
-import dev.halim.shelfdroid.core.prefs.PlayerPrefs
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
+import dev.halim.shelfdroid.core.prefs.NotificationPrefs
+import dev.halim.shelfdroid.core.prefs.PlayerPrefs
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
 import dev.halim.shelfdroid.media.mediaitem.MediaItemMapper
@@ -29,8 +29,8 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 
@@ -49,57 +49,57 @@ class PlayerStoreResetTest {
   }
 
   @Test
-  fun emptyStateStopsSleepTimerUpdates() = runTest(dispatcher) {
-    val timerManager = mock(TimerManager::class.java)
-    val timerDuration = MutableStateFlow(30.seconds)
-    `when`(timerManager.duration).thenReturn(timerDuration)
-    val playerManager = mock(ExoPlayerManager::class.java)
-    val player = mock(ExoPlayer::class.java)
-    `when`(playerManager.player).thenReturn(Lazy { player })
-    val store = createStore(timerManager, playerManager)
-    store.isChapterTransitioning.value = true
-    store.uiState.value = PlayerUiState(id = "book-id")
-    store.sleepTimer(30.seconds)
-    runCurrent()
-    assertEquals(30.seconds, store.uiState.value.advancedControl.sleepTimerLeft)
+  fun emptyStateStopsSleepTimerUpdates() =
+    runTest(dispatcher) {
+      val timerManager = mock(TimerManager::class.java)
+      val timerDuration = MutableStateFlow(30.seconds)
+      `when`(timerManager.duration).thenReturn(timerDuration)
+      val playerManager = mock(ExoPlayerManager::class.java)
+      val player = mock(ExoPlayer::class.java)
+      `when`(playerManager.player).thenReturn(Lazy { player })
+      val store = createStore(timerManager, playerManager)
+      store.isChapterTransitioning.value = true
+      store.uiState.value = PlayerUiState(id = "book-id")
+      store.sleepTimer(30.seconds)
+      runCurrent()
+      assertEquals(30.seconds, store.uiState.value.advancedControl.sleepTimerLeft)
 
-    val empty = store.emptyState()
-    store.uiState.value = empty
-    timerDuration.value = 20.seconds
-    runCurrent()
+      val empty = store.emptyState()
+      store.uiState.value = empty
+      timerDuration.value = 20.seconds
+      runCurrent()
 
-    verify(timerManager).clear()
-    assertEquals(false, store.isChapterTransitioning.value)
-    assertEquals("", empty.id)
-    assertEquals(0.seconds, store.uiState.value.advancedControl.sleepTimerLeft)
-  }
+      verify(timerManager).clear()
+      assertEquals(false, store.isChapterTransitioning.value)
+      assertEquals("", empty.id)
+      assertEquals(0.seconds, store.uiState.value.advancedControl.sleepTimerLeft)
+    }
 
   @Test
-  fun emptyStateStopsPlaybackProgressAndPlayerListener() = runTest(dispatcher) {
-    val timerManager = mock(TimerManager::class.java)
-    `when`(timerManager.duration).thenReturn(MutableStateFlow(0.seconds))
-    val player = mock(ExoPlayer::class.java)
-    val playerManager = mock(ExoPlayerManager::class.java)
-    `when`(playerManager.player).thenReturn(Lazy { player })
-    val eventListener = mock(PlayerEventListener::class.java)
-    val listenerJob = Job()
-    doReturn(listenerJob)
-      .`when`(eventListener)
-      .listen(anyMock(), anyMock(), anyMock())
-    val store = createStore(timerManager, playerManager, eventListener)
-    store.uiState.value = PlayerUiState(id = "book-id")
+  fun emptyStateStopsPlaybackProgressAndPlayerListener() =
+    runTest(dispatcher) {
+      val timerManager = mock(TimerManager::class.java)
+      `when`(timerManager.duration).thenReturn(MutableStateFlow(0.seconds))
+      val player = mock(ExoPlayer::class.java)
+      val playerManager = mock(ExoPlayerManager::class.java)
+      `when`(playerManager.player).thenReturn(Lazy { player })
+      val eventListener = mock(PlayerEventListener::class.java)
+      val listenerJob = Job()
+      doReturn(listenerJob).`when`(eventListener).listen(anyMock(), anyMock(), anyMock())
+      val store = createStore(timerManager, playerManager, eventListener)
+      store.uiState.value = PlayerUiState(id = "book-id")
 
-    store.playContent()
-    runCurrent()
-    assertEquals(false, listenerJob.isCancelled)
-    verify(player).addListener(anyMock())
+      store.playContent()
+      runCurrent()
+      assertEquals(false, listenerJob.isCancelled)
+      verify(player).addListener(anyMock())
 
-    store.emptyState()
-    runCurrent()
+      store.emptyState()
+      runCurrent()
 
-    assertEquals(true, listenerJob.isCancelled)
-    verify(player).removeListener(anyMock())
-  }
+      assertEquals(true, listenerJob.isCancelled)
+      verify(player).removeListener(anyMock())
+    }
 
   private fun createStore(
     timerManager: TimerManager,

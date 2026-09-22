@@ -49,14 +49,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
+import dev.halim.shelfdroid.core.playback.PLAYBACK_SPEED_PRESET_VALUES
 import dev.halim.shelfdroid.core.playback.SLEEP_TIMER_PRESET_MINUTES
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
-import dev.halim.shelfdroid.core.playback.PLAYBACK_SPEED_PRESET_VALUES
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
 import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
-import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
+import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.ChipDropdownMenu
 import dev.halim.shelfdroid.core.ui.components.LabelPosition
@@ -92,8 +92,10 @@ internal fun SettingsNotificationContent(
     modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    SleepTimerSection(uiState, sleepTimerEnabled, onEvent)
+    OpenNotificationInSection(uiState, onEvent)
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+    MediaNotificationPreviewSection(uiState)
+    SleepTimerSection(uiState, sleepTimerEnabled, onEvent)
     PlaybackSpeedSection(uiState, playbackSpeedEnabled, onEvent)
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
     MediaNotificationSection(uiState, onEvent)
@@ -110,7 +112,8 @@ private fun SleepTimerSection(
     modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
     text = stringResource(R.string.sleep_timer),
   )
-  val modeLabels = SleepTimerNotificationMode.entries.associateWith { stringResource(it.labelResId()) }
+  val modeLabels =
+    SleepTimerNotificationMode.entries.associateWith { stringResource(it.labelResId()) }
   ChipDropdownMenu(
     modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
     label = stringResource(R.string.sleep_timer_notification_mode),
@@ -120,13 +123,13 @@ private fun SleepTimerSection(
     optionLabel = { modeLabels.getValue(SleepTimerNotificationMode.valueOf(it)) },
     enabled = enabled,
     onClick = {
-      onEvent(SettingsNotificationEvent.ChangeSleepTimerMode(SleepTimerNotificationMode.valueOf(it)))
+      onEvent(
+        SettingsNotificationEvent.ChangeSleepTimerMode(SleepTimerNotificationMode.valueOf(it))
+      )
     },
   )
   Column {
-    VisibilityVertical(
-      visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Toggle,
-    ) {
+    VisibilityVertical(visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Toggle) {
       ChipDropdownMenu(
         modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
         label = stringResource(R.string.default_sleep_timer),
@@ -135,16 +138,17 @@ private fun SleepTimerSection(
         initialValue = uiState.sleepTimerMinutes.toString(),
         enabled = enabled,
         onClick = { selected ->
-          selected.toIntOrNull()?.let { onEvent(SettingsNotificationEvent.ChangeSleepTimerMinutes(it)) }
+          selected.toIntOrNull()?.let {
+            onEvent(SettingsNotificationEvent.ChangeSleepTimerMinutes(it))
+          }
         },
       )
     }
-    VisibilityVertical(
-      visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Cyclical,
-    ) {
+    VisibilityVertical(visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Cyclical) {
       Column { SleepTimerCycle(uiState.sleepTimerCycle, enabled, onEvent) }
     }
   }
+  Spacer(modifier = Modifier.height(24.dp))
 }
 
 private fun SleepTimerNotificationMode.labelResId(): Int =
@@ -175,7 +179,6 @@ private fun SleepTimerCycle(
   FlowRow(
     modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     SLEEP_TIMER_PRESET_MINUTES.forEach { minutes ->
       val selected = minutes in cycle
@@ -203,7 +206,7 @@ private fun SleepTimerCycle(
 }
 
 @Composable
-private fun MediaNotificationSection(
+private fun OpenNotificationInSection(
   uiState: SettingsNotificationUiState,
   onEvent: (SettingsNotificationEvent) -> Unit,
 ) {
@@ -216,24 +219,44 @@ private fun MediaNotificationSection(
       label = stringResource(R.string.expanded_player),
       selected = uiState.tapDestination == MediaNotificationTapDestination.ExpandedPlayer,
       onClick = {
-        onEvent(SettingsNotificationEvent.ChangeTapDestination(MediaNotificationTapDestination.ExpandedPlayer))
+        onEvent(
+          SettingsNotificationEvent.ChangeTapDestination(
+            MediaNotificationTapDestination.ExpandedPlayer
+          )
+        )
       },
     )
     MediaNotificationTapOption(
       label = stringResource(R.string.mini_player),
       selected = uiState.tapDestination == MediaNotificationTapDestination.MiniPlayer,
       onClick = {
-        onEvent(SettingsNotificationEvent.ChangeTapDestination(MediaNotificationTapDestination.MiniPlayer))
+        onEvent(
+          SettingsNotificationEvent.ChangeTapDestination(MediaNotificationTapDestination.MiniPlayer)
+        )
       },
     )
   }
-  Spacer(modifier = Modifier.height(16.dp))
+}
+
+@Composable
+private fun MediaNotificationPreviewSection(uiState: SettingsNotificationUiState) {
   TextTitleMedium(
     modifier = Modifier.padding(horizontal = 16.dp),
     text = stringResource(R.string.preview),
   )
-  Spacer(modifier = Modifier.height(16.dp))
   MediaNotificationPreview(uiState)
+  Spacer(modifier = Modifier.height(24.dp))
+}
+
+@Composable
+private fun MediaNotificationSection(
+  uiState: SettingsNotificationUiState,
+  onEvent: (SettingsNotificationEvent) -> Unit,
+) {
+  TextTitleMedium(
+    modifier = Modifier.padding(horizontal = 16.dp),
+    text = stringResource(R.string.media_notification_buttons),
+  )
   Spacer(modifier = Modifier.height(16.dp))
   NotificationActionSlot(
     label = stringResource(R.string.media_notification_button_1),
@@ -456,7 +479,8 @@ private fun PlaybackSpeedSection(
     PlaybackSpeedNotificationMode.entries.associateWith {
       when (it) {
         PlaybackSpeedNotificationMode.Toggle -> stringResource(R.string.playback_speed_mode_toggle)
-        PlaybackSpeedNotificationMode.Cyclical -> stringResource(R.string.playback_speed_mode_cyclical)
+        PlaybackSpeedNotificationMode.Cyclical ->
+          stringResource(R.string.playback_speed_mode_cyclical)
       }
     }
   TextTitleMedium(
@@ -472,7 +496,9 @@ private fun PlaybackSpeedSection(
     optionLabel = { modeLabels.getValue(PlaybackSpeedNotificationMode.valueOf(it)) },
     enabled = enabled,
     onClick = {
-      onEvent(SettingsNotificationEvent.ChangePlaybackSpeedMode(PlaybackSpeedNotificationMode.valueOf(it)))
+      onEvent(
+        SettingsNotificationEvent.ChangePlaybackSpeedMode(PlaybackSpeedNotificationMode.valueOf(it))
+      )
     },
   )
   VisibilityVertical(visible = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Toggle) {
@@ -490,7 +516,9 @@ private fun PlaybackSpeedSection(
       },
     )
   }
-  VisibilityVertical(visible = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Cyclical) {
+  VisibilityVertical(
+    visible = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Cyclical
+  ) {
     Column { PlaybackSpeedCycle(uiState, enabled, onEvent) }
   }
 }
@@ -517,7 +545,6 @@ private fun PlaybackSpeedCycle(
   FlowRow(
     modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     PLAYBACK_SPEED_PRESET_VALUES.forEach { speed ->
       val selected = speed in speedCycle

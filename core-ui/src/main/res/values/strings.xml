@@ -636,6 +636,7 @@
     <string name="sleep_timer_cycle_minutes">%1$d min</string>
     <string name="preview">Preview</string>
     <string name="media_notification_tap_destination">Open notification in</string>
+    <string name="media_notification_buttons">Notification buttons</string>
     <string name="expanded_player">Expanded player</string>
     <string name="mini_player">Mini player</string>
     <string name="media_notification_preview_app_name">ShelfDroid</string>

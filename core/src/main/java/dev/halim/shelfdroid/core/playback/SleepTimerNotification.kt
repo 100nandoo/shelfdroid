@@ -10,7 +10,8 @@ fun NotificationPrefs.nextSleepTimerDuration(
   sleepTimerDuration: Duration,
 ): Duration {
   return when (sleepTimerMode) {
-    SleepTimerNotificationMode.Toggle -> if (isSleepTimerActive) Duration.ZERO else sleepTimerMinutes.minutes
+    SleepTimerNotificationMode.Toggle ->
+      if (isSleepTimerActive) Duration.ZERO else sleepTimerMinutes.minutes
     SleepTimerNotificationMode.Cyclical -> {
       val cycle = normalizeSleepTimerCycle(sleepTimerCycle).map { it.minutes }
       if (!isSleepTimerActive) {

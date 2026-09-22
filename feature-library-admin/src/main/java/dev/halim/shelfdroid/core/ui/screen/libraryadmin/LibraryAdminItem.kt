@@ -33,10 +33,10 @@ import dev.halim.shelfdroid.core.data.task.Task
 import dev.halim.shelfdroid.core.data.task.TaskError
 import dev.halim.shelfdroid.core.data.task.TaskSyncState
 import dev.halim.shelfdroid.core.ui.R as CoreUiR
-import dev.halim.shelfdroid.feature.library.admin.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.tabs.libraryIconResource
+import dev.halim.shelfdroid.feature.library.admin.R
 
 @Composable
 internal fun LibraryAdminItem(

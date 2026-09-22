@@ -45,8 +45,9 @@ constructor(
     changeBehaviour: ChangeBehaviour,
   ): Result<PreparedPlayback> {
     return try {
-      val playerUiState = buildBookPlaybackState(id, advancedControl, changeBehaviour)
-        ?: return Result.failure(IllegalStateException("Book not found"))
+      val playerUiState =
+        buildBookPlaybackState(id, advancedControl, changeBehaviour)
+          ?: return Result.failure(IllegalStateException("Book not found"))
       val sessionId =
         playbackSessionResolver.resolve(playerUiState.downloadState) {
           val request = mapper.toPlayRequest()
@@ -165,8 +166,7 @@ constructor(
     val playerPrefs = prefsRepository.playerPrefs.first()
     return if (result != null && result.isBook.toBoolean().not()) {
       val episode =
-        podcastEpisodeRepo.byId(episodeId)?.takeIf { it.libraryItemId == itemId }
-          ?: return null
+        podcastEpisodeRepo.byId(episodeId)?.takeIf { it.libraryItemId == itemId } ?: return null
 
       val downloadState =
         downloadRepo

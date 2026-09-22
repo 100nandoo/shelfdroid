@@ -1,9 +1,9 @@
 package dev.halim.shelfdroid.media.notification
 
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
-import kotlin.time.Duration
 import dev.halim.shelfdroid.media.playback.controls.NextChapterControlState
 import dev.halim.shelfdroid.media.playback.controls.PreviousChapterControlState
+import kotlin.time.Duration
 
 internal data class MediaNotificationButtonState(
   val nextChapterState: NextChapterControlState,

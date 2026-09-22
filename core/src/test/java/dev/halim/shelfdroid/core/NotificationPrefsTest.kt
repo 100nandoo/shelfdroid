@@ -24,7 +24,8 @@ class NotificationPrefsTest {
 
   @Test
   fun legacyNotificationPrefsKeepToggleModeAndInitialOneFiveCycle() {
-    val prefs = Json.decodeFromString(NotificationPrefs.serializer(), """{"sleepTimerMinutes":30}""")
+    val prefs =
+      Json.decodeFromString(NotificationPrefs.serializer(), """{"sleepTimerMinutes":30}""")
 
     assertEquals(30, prefs.sleepTimerMinutes)
     assertEquals(SleepTimerNotificationMode.Toggle, prefs.sleepTimerMode)

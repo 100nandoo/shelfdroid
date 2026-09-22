@@ -21,8 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -98,47 +98,45 @@ fun BigPlayerContent(
   ) {
     Column(
       modifier =
-        Modifier.fillMaxWidth()
-          .pointerInput(containerHeight) {
-            val velocityTracker = VelocityTracker()
-            fun progressForDistance(distance: Float): Float =
-              if (containerHeight == 0) 0f
-              else (distance / containerHeight).coerceIn(0f, 1f)
+        Modifier.fillMaxWidth().pointerInput(containerHeight) {
+          val velocityTracker = VelocityTracker()
+          fun progressForDistance(distance: Float): Float =
+            if (containerHeight == 0) 0f else (distance / containerHeight).coerceIn(0f, 1f)
 
-            var dragDistance = 0f
-            var isDownwardDrag = false
-            detectVerticalDragGestures(
-              onDragStart = {
-                dragDistance = 0f
-                isDownwardDrag = false
-                velocityTracker.resetTracking()
-              },
-              onDragEnd = {
-                if (isDownwardDrag) {
-                  onSwipeDownEnd(
-                    progressForDistance(dragDistance),
-                    velocityTracker.calculateVelocity().y,
-                  )
-                }
-              },
-              onDragCancel = {
-                if (isDownwardDrag) onSwipeDownCancel()
-              },
-            ) { change, dragAmount ->
-              velocityTracker.addPointerInputChange(change)
+          var dragDistance = 0f
+          var isDownwardDrag = false
+          detectVerticalDragGestures(
+            onDragStart = {
+              dragDistance = 0f
+              isDownwardDrag = false
+              velocityTracker.resetTracking()
+            },
+            onDragEnd = {
               if (isDownwardDrag) {
-                dragDistance = (dragDistance + dragAmount).coerceAtLeast(0f)
-                onSwipeDownProgress(progressForDistance(dragDistance))
-              } else if (dragAmount > 0f) {
-                isDownwardDrag = true
-                dragDistance = dragAmount
-                onSwipeDownProgress(progressForDistance(dragDistance))
-              } else {
-                onSwipeUp()
+                onSwipeDownEnd(
+                  progressForDistance(dragDistance),
+                  velocityTracker.calculateVelocity().y,
+                )
               }
-              change.consume()
+            },
+            onDragCancel = {
+              if (isDownwardDrag) onSwipeDownCancel()
+            },
+          ) { change, dragAmount ->
+            velocityTracker.addPointerInputChange(change)
+            if (isDownwardDrag) {
+              dragDistance = (dragDistance + dragAmount).coerceAtLeast(0f)
+              onSwipeDownProgress(progressForDistance(dragDistance))
+            } else if (dragAmount > 0f) {
+              isDownwardDrag = true
+              dragDistance = dragAmount
+              onSwipeDownProgress(progressForDistance(dragDistance))
+            } else {
+              onSwipeUp()
             }
-          },
+            change.consume()
+          }
+        },
       verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
       BasicPlayerContent(id, author, title, cover)

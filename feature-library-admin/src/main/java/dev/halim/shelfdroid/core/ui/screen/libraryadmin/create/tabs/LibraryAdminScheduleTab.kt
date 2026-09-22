@@ -42,11 +42,11 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCre
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminScheduleValidationState
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.nextLibraryScheduleRun
-import dev.halim.shelfdroid.feature.library.admin.R
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.LibraryAdminCreateEvent
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.createErrorText
+import dev.halim.shelfdroid.feature.library.admin.R
 
 @Composable
 internal fun LibraryAdminScheduleTab(

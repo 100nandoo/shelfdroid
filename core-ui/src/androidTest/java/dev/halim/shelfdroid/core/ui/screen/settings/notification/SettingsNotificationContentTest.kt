@@ -4,10 +4,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -30,18 +30,24 @@ class SettingsNotificationContentTest {
   @get:Rule val composeRule = createComposeRule()
 
   @Test
-  fun sections_areOrderedWithMediaNotificationActionsAtTheBottom() {
+  fun sections_areOrderedWithNotificationButtonsAfterPreview() {
     composeRule.setContent { SettingsNotificationContent() }
 
     val sleepTimerTop =
       composeRule.onNodeWithText("Sleep Timer").fetchSemanticsNode().boundsInRoot.top
     val playbackSpeedTop =
       composeRule.onNodeWithText("Playback speed cycle").fetchSemanticsNode().boundsInRoot.top
+    val tapDestinationTop =
+      composeRule.onNodeWithText("Open notification in").fetchSemanticsNode().boundsInRoot.top
     val mediaNotificationTop =
       composeRule.onNodeWithText("Preview").fetchSemanticsNode().boundsInRoot.top
+    val notificationButtonsTop =
+      composeRule.onNodeWithText("Notification buttons").fetchSemanticsNode().boundsInRoot.top
 
     assertTrue(sleepTimerTop < playbackSpeedTop)
-    assertTrue(playbackSpeedTop < mediaNotificationTop)
+    assertTrue(playbackSpeedTop < tapDestinationTop)
+    assertTrue(tapDestinationTop < mediaNotificationTop)
+    assertTrue(mediaNotificationTop < notificationButtonsTop)
   }
 
   @Test

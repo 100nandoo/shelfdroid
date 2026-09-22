@@ -23,12 +23,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateField
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCreateUiState
-import dev.halim.shelfdroid.feature.library.admin.R
 import dev.halim.shelfdroid.core.ui.components.ReorderHandle
 import dev.halim.shelfdroid.core.ui.components.rememberReorderableLazyListState
 import dev.halim.shelfdroid.core.ui.components.reorderableItemModifier
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.LibraryAdminCreateEvent
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.createErrorText
+import dev.halim.shelfdroid.feature.library.admin.R
 
 @Composable
 internal fun LibraryAdminScannerTab(

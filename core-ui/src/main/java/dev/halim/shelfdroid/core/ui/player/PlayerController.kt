@@ -6,8 +6,8 @@ import dev.halim.shelfdroid.core.PlayerBookmark
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerState.Hidden
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.core.data.screen.player.PreparedPlayback
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
+import dev.halim.shelfdroid.core.data.screen.player.PreparedPlayback
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import dev.halim.shelfdroid.media.playback.PlayerStore
 import java.util.concurrent.atomic.AtomicLong
@@ -29,6 +29,7 @@ constructor(
 ) {
   private val uiState
     get() = playerStore.uiState
+
   private val playbackRequestId = AtomicLong()
 
   fun hasCurrentPlayback(): Boolean = uiState.value.id.isNotBlank()

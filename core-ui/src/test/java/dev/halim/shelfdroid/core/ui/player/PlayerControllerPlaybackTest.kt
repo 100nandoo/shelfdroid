@@ -4,8 +4,8 @@ import dagger.Lazy
 import dev.halim.shelfdroid.core.ChangeBehaviour
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.core.data.screen.player.PreparedPlayback
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
+import dev.halim.shelfdroid.core.data.screen.player.PreparedPlayback
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import dev.halim.shelfdroid.media.playback.PlayerStore
 import java.util.concurrent.CountDownLatch

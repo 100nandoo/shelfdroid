@@ -46,11 +46,11 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminCre
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDraft
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminProviderState
 import dev.halim.shelfdroid.core.ui.R as CoreUiR
-import dev.halim.shelfdroid.feature.library.admin.R
 import dev.halim.shelfdroid.core.ui.components.MyOutlinedTextField
 import dev.halim.shelfdroid.core.ui.components.MySegmentedButton
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.LibraryAdminCreateEvent
 import dev.halim.shelfdroid.core.ui.screen.libraryadmin.create.createErrorText
+import dev.halim.shelfdroid.feature.library.admin.R
 
 @Composable
 internal fun LibraryAdminDetailsTab(

@@ -15,7 +15,10 @@ class PendingMediaIdHandlerTest {
       )
 
     assertEquals(
-      ResolvedNavRequest(backStack = listOf(Home(false), Book("book-id")), playerDestination = null),
+      ResolvedNavRequest(
+        backStack = listOf(Home(false), Book("book-id")),
+        playerDestination = null,
+      ),
       resolved,
     )
   }

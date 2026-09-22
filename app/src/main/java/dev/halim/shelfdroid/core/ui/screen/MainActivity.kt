@@ -36,8 +36,8 @@ import dev.halim.shelfdroid.core.ui.navigation.toLoginKey
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.download.DownloadRepo
-import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_MINI_PLAYER
+import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import dev.halim.shelfdroid.media.playback.PlayerStore
 import javax.inject.Inject

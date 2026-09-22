@@ -56,7 +56,8 @@ fun Player(
     if (latestPlayerState != PlayerState.Big) return
     val fraction = transitionState.fraction
     if (transitionState.targetState == PlayerState.Small && fraction > 0f) {
-      val totalDurationMillis = (transition.totalDurationNanos / 1_000_000L).toInt().coerceAtLeast(1)
+      val totalDurationMillis =
+        (transition.totalDurationNanos / 1_000_000L).toInt().coerceAtLeast(1)
       coroutineScope {
         animate(
           initialValue = fraction,

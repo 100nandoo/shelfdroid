@@ -197,8 +197,7 @@ class MediaNotificationButtonsTest {
     val button =
       playbackSpeedCommandButton(
         playbackSpeed = 1.5f,
-        prefs =
-          NotificationPrefs(playbackSpeedCycle = listOf(1f, 1.5f, 2f)),
+        prefs = NotificationPrefs(playbackSpeedCycle = listOf(1f, 1.5f, 2f)),
       )
 
     assertEquals("Set playback speed to 2.0x", button.displayName)

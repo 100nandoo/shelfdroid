@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.create.LibraryAdminDirectory
 import dev.halim.shelfdroid.core.ui.R as CoreUiR
-import dev.halim.shelfdroid.feature.library.admin.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 

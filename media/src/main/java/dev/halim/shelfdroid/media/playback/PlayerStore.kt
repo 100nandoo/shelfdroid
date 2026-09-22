@@ -14,10 +14,10 @@ import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.data.prefs.PrefsRepository
 import dev.halim.shelfdroid.core.data.screen.player.PlayerRepository
 import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
-import dev.halim.shelfdroid.core.playback.togglePlaybackSpeed
-import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.playback.nextSleepTimerDuration
+import dev.halim.shelfdroid.core.playback.togglePlaybackSpeed
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
+import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.prefs.PlayerPrefs
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
 import dev.halim.shelfdroid.media.exoplayer.PlayerEventListener
@@ -181,7 +181,10 @@ constructor(
     uiState.update {
       it.copy(
         advancedControl =
-          it.advancedControl.copy(sleepTimerLeft = Duration.ZERO, sleepTimerDuration = Duration.ZERO)
+          it.advancedControl.copy(
+            sleepTimerLeft = Duration.ZERO,
+            sleepTimerDuration = Duration.ZERO,
+          )
       )
     }
   }
@@ -297,30 +300,28 @@ constructor(
 
   private fun collectPlaybackProgress() {
     playbackProgressJob?.cancel()
-    playbackProgressJob =
-      playbackScope.launch {
-        playerManager.player.get().playbackProgressFlow().collect { raw ->
-          uiState.update { playerRepository.toPlayback(it, raw) }
-        }
+    playbackProgressJob = playbackScope.launch {
+      playerManager.player.get().playbackProgressFlow().collect { raw ->
+        uiState.update { playerRepository.toPlayback(it, raw) }
       }
+    }
   }
 
   private fun collectSleepTimer() {
     sleepTimerJob?.cancel()
-    sleepTimerJob =
-      playbackScope.launch {
-        timerManager.duration.collect { currentDuration ->
-          uiState.update {
-            val updatedAdvancedControl =
-              it.advancedControl.copy(
-                sleepTimerLeft = currentDuration,
-                sleepTimerDuration =
-                  if (currentDuration > Duration.ZERO) it.advancedControl.sleepTimerDuration
-                  else Duration.ZERO,
-              )
-            it.copy(advancedControl = updatedAdvancedControl)
-          }
+    sleepTimerJob = playbackScope.launch {
+      timerManager.duration.collect { currentDuration ->
+        uiState.update {
+          val updatedAdvancedControl =
+            it.advancedControl.copy(
+              sleepTimerLeft = currentDuration,
+              sleepTimerDuration =
+                if (currentDuration > Duration.ZERO) it.advancedControl.sleepTimerDuration
+                else Duration.ZERO,
+            )
+          it.copy(advancedControl = updatedAdvancedControl)
         }
       }
+    }
   }
 }

@@ -45,7 +45,6 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.canStartScan
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.taskForLibrary
 import dev.halim.shelfdroid.core.navigation.LibraryChangedNavResult
 import dev.halim.shelfdroid.core.ui.R as CoreUiR
-import dev.halim.shelfdroid.feature.library.admin.R
 import dev.halim.shelfdroid.core.ui.components.DeleteConfirmationDialog
 import dev.halim.shelfdroid.core.ui.components.MyTextButtonRetry
 import dev.halim.shelfdroid.core.ui.components.ReorderHandle
@@ -53,6 +52,7 @@ import dev.halim.shelfdroid.core.ui.components.rememberReorderableLazyListState
 import dev.halim.shelfdroid.core.ui.components.reorderableItemModifier
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.feature.library.admin.R
 
 @Composable
 internal fun LibraryAdminScreen(
