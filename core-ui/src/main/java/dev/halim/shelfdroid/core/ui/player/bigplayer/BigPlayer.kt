@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.input.pointer.util.addPointerInputChange
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -77,27 +81,68 @@ fun BigPlayerContent(
   playPause: PlayPauseControlState = PlayPauseControlState(),
   seekControls: SeekControlsState = SeekControlsState(),
   onSwipeUp: () -> Unit = {},
-  onSwipeDown: () -> Unit = {},
+  onSwipeDownProgress: (Float) -> Unit = {},
+  onSwipeDownEnd: (Float, Float) -> Unit = { _, _ -> },
+  onSwipeDownCancel: () -> Unit = {},
   onEvent: (PlayerEvent) -> Unit = {},
 ) {
+  var containerHeight by remember { mutableIntStateOf(0) }
   Column(
     modifier =
       Modifier.mySharedBound(Animations.Companion.Player.containerKey(id))
         .fillMaxSize()
-        .pointerInput(Unit) {
-          detectVerticalDragGestures { _, dragAmount ->
-            if (dragAmount < 0) {
-              onSwipeUp()
-            } else {
-              onSwipeDown()
-            }
-          }
-        }
+        .onSizeChanged { containerHeight = it.height }
         .padding(16.dp),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.spacedBy(4.dp, alignment = Alignment.Bottom),
   ) {
-    BasicPlayerContent(id, author, title, cover)
+    Column(
+      modifier =
+        Modifier.fillMaxWidth()
+          .pointerInput(containerHeight) {
+            val velocityTracker = VelocityTracker()
+            fun progressForDistance(distance: Float): Float =
+              if (containerHeight == 0) 0f
+              else (distance / containerHeight).coerceIn(0f, 1f)
+
+            var dragDistance = 0f
+            var isDownwardDrag = false
+            detectVerticalDragGestures(
+              onDragStart = {
+                dragDistance = 0f
+                isDownwardDrag = false
+                velocityTracker.resetTracking()
+              },
+              onDragEnd = {
+                if (isDownwardDrag) {
+                  onSwipeDownEnd(
+                    progressForDistance(dragDistance),
+                    velocityTracker.calculateVelocity().y,
+                  )
+                }
+              },
+              onDragCancel = {
+                if (isDownwardDrag) onSwipeDownCancel()
+              },
+            ) { change, dragAmount ->
+              velocityTracker.addPointerInputChange(change)
+              if (isDownwardDrag) {
+                dragDistance = (dragDistance + dragAmount).coerceAtLeast(0f)
+                onSwipeDownProgress(progressForDistance(dragDistance))
+              } else if (dragAmount > 0f) {
+                isDownwardDrag = true
+                dragDistance = dragAmount
+                onSwipeDownProgress(progressForDistance(dragDistance))
+              } else {
+                onSwipeUp()
+              }
+              change.consume()
+            }
+          },
+      verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+      BasicPlayerContent(id, author, title, cover)
+    }
 
     BookmarkAndChapter(
       isBook,

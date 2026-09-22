@@ -104,6 +104,14 @@ _Avoid_: Download, attachment
 
 ### Playback and access
 
+**Mini player**:
+The compact presentation of **Current playback** that remains visible while browsing ShelfDroid.
+_Avoid_: Small player
+
+**Expanded player**:
+The full-screen presentation of **Current playback**, opened from the **Mini player** and collapsed back to it.
+_Avoid_: Big player
+
 **Seek interval**:
 The amount of playback time moved by one forward or backward seek action. Listeners choose each direction independently, and each choice applies across playback controls.
 _Avoid_: Skip duration, seek speed
