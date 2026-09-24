@@ -11,6 +11,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,7 +19,10 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.halim.shelfdroid.core.data.screen.settings.notification.SettingsNotificationUiState
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.MediaNotificationOpeningScreen
+import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -30,24 +34,55 @@ class SettingsNotificationContentTest {
   @get:Rule val composeRule = createComposeRule()
 
   @Test
-  fun sections_areOrderedWithNotificationButtonsAfterPreview() {
+  fun notificationOpeningAndPresentationPrecedePreviewAndNotificationButtonsFollowSettings() {
     composeRule.setContent { SettingsNotificationContent() }
 
+    val openingScreenTop =
+      composeRule.onNodeWithText("Open notification in").fetchSemanticsNode().boundsInRoot.top
+    val presentationTop =
+      composeRule.onNodeWithText("Player presentation").fetchSemanticsNode().boundsInRoot.top
+    val mediaNotificationTop =
+      composeRule.onNodeWithText("Preview").fetchSemanticsNode().boundsInRoot.top
     val sleepTimerTop =
       composeRule.onNodeWithText("Sleep Timer").fetchSemanticsNode().boundsInRoot.top
     val playbackSpeedTop =
       composeRule.onNodeWithText("Playback speed cycle").fetchSemanticsNode().boundsInRoot.top
-    val tapDestinationTop =
-      composeRule.onNodeWithText("Open notification in").fetchSemanticsNode().boundsInRoot.top
-    val mediaNotificationTop =
-      composeRule.onNodeWithText("Preview").fetchSemanticsNode().boundsInRoot.top
     val notificationButtonsTop =
       composeRule.onNodeWithText("Notification buttons").fetchSemanticsNode().boundsInRoot.top
 
+    assertTrue(openingScreenTop < presentationTop)
+    assertTrue(presentationTop < mediaNotificationTop)
+    assertTrue(mediaNotificationTop < sleepTimerTop)
     assertTrue(sleepTimerTop < playbackSpeedTop)
-    assertTrue(playbackSpeedTop < tapDestinationTop)
-    assertTrue(tapDestinationTop < mediaNotificationTop)
-    assertTrue(mediaNotificationTop < notificationButtonsTop)
+    assertTrue(playbackSpeedTop < notificationButtonsTop)
+  }
+
+  @Test
+  fun notificationTapSettingsExposeIndependentOpeningScreenAndPlayerPresentationOptions() {
+    val events = mutableListOf<SettingsNotificationEvent>()
+    composeRule.setContent { SettingsNotificationContent(onEvent = events::add) }
+
+    composeRule.onNodeWithText("Home").performScrollTo().assertIsSelected()
+    composeRule.onNodeWithText("Expanded player").performScrollTo().assertIsSelected()
+
+    composeRule
+      .onNodeWithText("Media details")
+      .performScrollTo()
+      .performClick()
+    composeRule
+      .onNodeWithText("Mini player")
+      .performScrollTo()
+      .performClick()
+
+    assertEquals(
+      listOf(
+        SettingsNotificationEvent.ChangeOpeningScreen(MediaNotificationOpeningScreen.MediaDetails),
+        SettingsNotificationEvent.ChangePlayerPresentation(
+          MediaNotificationPlayerPresentation.MiniPlayer
+        ),
+      ),
+      events,
+    )
   }
 
   @Test
@@ -147,7 +182,7 @@ class SettingsNotificationContentTest {
     }
 
     composeRule.onNodeWithText("Toggle").performScrollTo().performClick()
-    composeRule.onNodeWithText("Cyclical").performClick()
+    composeRule.onAllNodesWithText("Cyclical").get(1).performClick()
     composeRule.onNodeWithText("30").assertDoesNotExist()
     composeRule.onNodeWithText("1 min").performScrollTo().assertIsSelected()
     composeRule.onNodeWithText("5 min").performScrollTo().assertIsSelected()
@@ -156,13 +191,13 @@ class SettingsNotificationContentTest {
     composeRule.onNodeWithText("End of chapter").assertDoesNotExist()
     composeRule.onNodeWithText("Custom").assertDoesNotExist()
 
-    composeRule.onNodeWithText("Cyclical").performScrollTo().performClick()
+    composeRule.onAllNodesWithText("Cyclical").get(0).performScrollTo().performClick()
     composeRule.onNodeWithText("Toggle").performClick()
     composeRule.onNodeWithText("30").performScrollTo().assertIsDisplayed()
     composeRule.onNodeWithText("1 min").assertDoesNotExist()
 
     composeRule.onNodeWithText("Toggle").performScrollTo().performClick()
-    composeRule.onNodeWithText("Cyclical").performClick()
+    composeRule.onAllNodesWithText("Cyclical").get(1).performClick()
     composeRule.onNodeWithText("10 min").performScrollTo().assertIsSelected()
   }
 
@@ -186,7 +221,11 @@ class SettingsNotificationContentTest {
         firstAction = MediaNotificationAction.None,
         secondAction = MediaNotificationAction.NextChapter,
       )
-    composeRule.onNodeWithText("Cyclical").performScrollTo().assertIsNotEnabled()
+    composeRule
+      .onAllNodesWithText("Cyclical")
+      .get(0)
+      .performScrollTo()
+      .assertIsNotEnabled()
     composeRule.onNodeWithText("1 min").performScrollTo().assertIsNotEnabled()
     composeRule.onNodeWithText("60 min").performScrollTo().assertIsNotEnabled()
   }

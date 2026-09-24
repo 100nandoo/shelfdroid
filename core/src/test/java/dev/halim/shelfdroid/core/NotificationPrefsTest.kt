@@ -5,6 +5,8 @@ import dev.halim.shelfdroid.core.playback.nextPlaybackSpeed
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.playback.togglePlaybackSpeed
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
+import dev.halim.shelfdroid.core.prefs.MediaNotificationOpeningScreen
+import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import kotlinx.serialization.json.Json
@@ -23,6 +25,14 @@ class NotificationPrefsTest {
   }
 
   @Test
+  fun notificationTapDefaultsToHomeWithExpandedPlayer() {
+    val prefs = NotificationPrefs()
+
+    assertEquals(MediaNotificationOpeningScreen.Home, prefs.openingScreen)
+    assertEquals(MediaNotificationPlayerPresentation.ExpandedPlayer, prefs.playerPresentation)
+  }
+
+  @Test
   fun legacyNotificationPrefsKeepToggleModeAndInitialOneFiveCycle() {
     val prefs =
       Json.decodeFromString(NotificationPrefs.serializer(), """{"sleepTimerMinutes":30}""")
@@ -30,6 +40,18 @@ class NotificationPrefsTest {
     assertEquals(30, prefs.sleepTimerMinutes)
     assertEquals(SleepTimerNotificationMode.Toggle, prefs.sleepTimerMode)
     assertEquals(listOf(1, 5), prefs.sleepTimerCycle)
+  }
+
+  @Test
+  fun legacyNotificationPrefsKeepPlayerPresentationAndDefaultOpeningScreenToHome() {
+    val prefs =
+      Json.decodeFromString(
+        NotificationPrefs.serializer(),
+        """{"tapDestination":"MiniPlayer"}""",
+      )
+
+    assertEquals(MediaNotificationPlayerPresentation.MiniPlayer, prefs.playerPresentation)
+    assertEquals(MediaNotificationOpeningScreen.Home, prefs.openingScreen)
   }
 
   @Test
@@ -60,6 +82,8 @@ class NotificationPrefsTest {
       NotificationPrefs(
         firstAction = MediaNotificationAction.PlaybackSpeed,
         secondAction = MediaNotificationAction.None,
+        playerPresentation = MediaNotificationPlayerPresentation.MiniPlayer,
+        openingScreen = MediaNotificationOpeningScreen.MediaDetails,
         playbackSpeedCycle = listOf(0.5f, 1.5f),
         sleepTimerMode = SleepTimerNotificationMode.Cyclical,
         sleepTimerCycle = listOf(5, 30),

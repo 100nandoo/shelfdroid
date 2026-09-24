@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.core.ui.navigation
 import androidx.navigation3.runtime.NavBackStack
 import dev.halim.shelfdroid.core.AuthPromptReason
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -15,6 +16,18 @@ class ShelfNavigatorTest {
     navigator.replaceStack(Home(fromLogin = true))
 
     assertEquals(listOf(Home(fromLogin = true)), backStack.toList())
+  }
+
+  @Test
+  fun replace_stack_preserving_home_keeps_login_home_and_clears_detail_history() {
+    val home = Home(fromLogin = true)
+    val backStack = NavBackStack<ShelfNavKey>(home, Book("book-id"))
+    val navigator = ShelfNavigator(backStack)
+
+    navigator.replaceStackPreservingHome(listOf(Home(fromLogin = false)))
+
+    assertEquals(listOf(home), backStack.toList())
+    assertSame(home, backStack.first())
   }
 
   @Test

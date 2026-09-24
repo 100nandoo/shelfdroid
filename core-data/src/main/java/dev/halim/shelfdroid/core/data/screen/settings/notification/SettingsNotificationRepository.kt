@@ -5,7 +5,8 @@ import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedToggleTarget
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
-import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
+import dev.halim.shelfdroid.core.prefs.MediaNotificationOpeningScreen
+import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
 import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import javax.inject.Inject
@@ -19,10 +20,18 @@ constructor(private val prefsRepository: PrefsRepository) {
   val notificationPrefs = prefsRepository.notificationPrefs
   private val updateMutex = Mutex()
 
-  suspend fun updateTapDestination(destination: MediaNotificationTapDestination) {
+  suspend fun updatePlayerPresentation(presentation: MediaNotificationPlayerPresentation) {
     updateMutex.withLock {
       prefsRepository.updateNotificationPrefs(
-        notificationPrefs.first().copy(tapDestination = destination)
+        notificationPrefs.first().copy(playerPresentation = presentation)
+      )
+    }
+  }
+
+  suspend fun updateOpeningScreen(openingScreen: MediaNotificationOpeningScreen) {
+    updateMutex.withLock {
+      prefsRepository.updateNotificationPrefs(
+        notificationPrefs.first().copy(openingScreen = openingScreen)
       )
     }
   }

@@ -27,13 +27,37 @@ class ShelfNavigator(private val backStack: NavBackStack<ShelfNavKey>) {
   }
 
   fun replaceStack(vararg keys: ShelfNavKey) {
-    backStack.clear()
-    backStack.addAll(keys)
+    replaceStack(keys.toList())
   }
 
   fun replaceStack(keys: List<ShelfNavKey>) {
-    backStack.clear()
-    backStack.addAll(keys)
+    replaceStack(keys, preserveHomeRoot = false)
+  }
+
+  fun replaceStackPreservingHome(keys: List<ShelfNavKey>) {
+    replaceStack(keys, preserveHomeRoot = true)
+  }
+
+  private fun replaceStack(keys: List<ShelfNavKey>, preserveHomeRoot: Boolean) {
+    var commonPrefixLength = 0
+    while (
+      commonPrefixLength < backStack.size &&
+        commonPrefixLength < keys.size &&
+        (backStack[commonPrefixLength] == keys[commonPrefixLength] ||
+          (preserveHomeRoot &&
+            commonPrefixLength == 0 &&
+            backStack[commonPrefixLength] is Home &&
+            keys[commonPrefixLength] is Home))
+    ) {
+      commonPrefixLength++
+    }
+
+    while (backStack.size > commonPrefixLength) {
+      backStack.removeAt(backStack.lastIndex)
+    }
+    for (index in commonPrefixLength until keys.size) {
+      backStack.add(keys[index])
+    }
   }
 }
 

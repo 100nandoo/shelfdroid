@@ -54,7 +54,8 @@ import dev.halim.shelfdroid.core.playback.SLEEP_TIMER_PRESET_MINUTES
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
-import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
+import dev.halim.shelfdroid.core.prefs.MediaNotificationOpeningScreen
+import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
 import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import dev.halim.shelfdroid.core.ui.R
@@ -92,7 +93,8 @@ internal fun SettingsNotificationContent(
     modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    OpenNotificationInSection(uiState, onEvent)
+    MediaNotificationOpeningScreenSection(uiState, onEvent)
+    MediaNotificationPlayerPresentationSection(uiState, onEvent)
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
     MediaNotificationPreviewSection(uiState)
     SleepTimerSection(uiState, sleepTimerEnabled, onEvent)
@@ -206,32 +208,63 @@ private fun SleepTimerCycle(
 }
 
 @Composable
-private fun OpenNotificationInSection(
+private fun MediaNotificationOpeningScreenSection(
   uiState: SettingsNotificationUiState,
   onEvent: (SettingsNotificationEvent) -> Unit,
 ) {
   TextTitleMedium(
     modifier = Modifier.padding(horizontal = 16.dp),
-    text = stringResource(R.string.media_notification_tap_destination),
+    text = stringResource(R.string.media_notification_opening_screen),
   )
   Column(modifier = Modifier.selectableGroup()) {
-    MediaNotificationTapOption(
-      label = stringResource(R.string.expanded_player),
-      selected = uiState.tapDestination == MediaNotificationTapDestination.ExpandedPlayer,
+    MediaNotificationOption(
+      label = stringResource(R.string.media_notification_home),
+      selected = uiState.openingScreen == MediaNotificationOpeningScreen.Home,
+      onClick = {
+        onEvent(SettingsNotificationEvent.ChangeOpeningScreen(MediaNotificationOpeningScreen.Home))
+      },
+    )
+    MediaNotificationOption(
+      label = stringResource(R.string.media_details),
+      selected = uiState.openingScreen == MediaNotificationOpeningScreen.MediaDetails,
       onClick = {
         onEvent(
-          SettingsNotificationEvent.ChangeTapDestination(
-            MediaNotificationTapDestination.ExpandedPlayer
+          SettingsNotificationEvent.ChangeOpeningScreen(MediaNotificationOpeningScreen.MediaDetails)
+        )
+      },
+    )
+  }
+}
+
+@Composable
+private fun MediaNotificationPlayerPresentationSection(
+  uiState: SettingsNotificationUiState,
+  onEvent: (SettingsNotificationEvent) -> Unit,
+) {
+  TextTitleMedium(
+    modifier = Modifier.padding(horizontal = 16.dp),
+    text = stringResource(R.string.media_notification_player_presentation),
+  )
+  Column(modifier = Modifier.selectableGroup()) {
+    MediaNotificationOption(
+      label = stringResource(R.string.expanded_player),
+      selected = uiState.playerPresentation == MediaNotificationPlayerPresentation.ExpandedPlayer,
+      onClick = {
+        onEvent(
+          SettingsNotificationEvent.ChangePlayerPresentation(
+            MediaNotificationPlayerPresentation.ExpandedPlayer
           )
         )
       },
     )
-    MediaNotificationTapOption(
+    MediaNotificationOption(
       label = stringResource(R.string.mini_player),
-      selected = uiState.tapDestination == MediaNotificationTapDestination.MiniPlayer,
+      selected = uiState.playerPresentation == MediaNotificationPlayerPresentation.MiniPlayer,
       onClick = {
         onEvent(
-          SettingsNotificationEvent.ChangeTapDestination(MediaNotificationTapDestination.MiniPlayer)
+          SettingsNotificationEvent.ChangePlayerPresentation(
+            MediaNotificationPlayerPresentation.MiniPlayer
+          )
         )
       },
     )
@@ -275,7 +308,7 @@ private fun MediaNotificationSection(
 }
 
 @Composable
-private fun MediaNotificationTapOption(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun MediaNotificationOption(label: String, selected: Boolean, onClick: () -> Unit) {
   Row(
     modifier =
       Modifier.fillMaxWidth()

@@ -29,15 +29,14 @@ import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
 import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
-import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
 import dev.halim.shelfdroid.core.ui.navigation.MainNavigation
 import dev.halim.shelfdroid.core.ui.navigation.NavRequest
+import dev.halim.shelfdroid.core.ui.navigation.navRequestFromIntent
 import dev.halim.shelfdroid.core.ui.navigation.toLoginKey
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.download.DownloadRepo
-import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_MINI_PLAYER
-import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
+import dev.halim.shelfdroid.helper.Helper.Companion.EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import dev.halim.shelfdroid.media.playback.PlayerStore
 import javax.inject.Inject
@@ -138,17 +137,11 @@ class MainActivity : ComponentActivity() {
 
   private fun handleExtra() {
     val mediaId = intent.getStringExtra(EXTRA_MEDIA_ID)?.takeIf { it.isNotBlank() }
-    val destination =
-      when (intent.action) {
-        ACTION_OPEN_PLAYER -> MediaNotificationTapDestination.ExpandedPlayer
-        ACTION_OPEN_MINI_PLAYER -> MediaNotificationTapDestination.MiniPlayer
-        else -> null
-      }
     navRequest =
-      when {
-        mediaId != null -> NavRequest.OpenMedia(mediaId = mediaId, playerDestination = destination)
-        destination != null -> NavRequest.OpenPlayer(destination)
-        else -> NavRequest.None
-      }
+      navRequestFromIntent(
+        action = intent.action,
+        mediaId = mediaId,
+        openingScreenName = intent.getStringExtra(EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN),
+      )
   }
 }

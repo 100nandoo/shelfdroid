@@ -635,10 +635,13 @@
     <string name="sleep_timer_cycle_supporting_text">Select at least one duration. Taps cycle from shortest to longest, then Off.</string>
     <string name="sleep_timer_cycle_minutes">%1$d min</string>
     <string name="preview">Preview</string>
-    <string name="media_notification_tap_destination">Open notification in</string>
+    <string name="media_notification_opening_screen">Open notification in</string>
+    <string name="media_notification_player_presentation">Player presentation</string>
     <string name="media_notification_buttons">Notification buttons</string>
     <string name="expanded_player">Expanded player</string>
     <string name="mini_player">Mini player</string>
+    <string name="media_notification_home">Home</string>
+    <string name="media_details">Media details</string>
     <string name="media_notification_preview_app_name">ShelfDroid</string>
     <string name="media_notification_preview_chapter">The Red-Headed League</string>
     <string name="media_notification_preview_author">Sir Arthur Conan Doyle</string>

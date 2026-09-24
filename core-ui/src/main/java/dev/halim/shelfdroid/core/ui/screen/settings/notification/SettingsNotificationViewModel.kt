@@ -9,7 +9,8 @@ import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedCycle
 import dev.halim.shelfdroid.core.playback.normalizePlaybackSpeedToggleTarget
 import dev.halim.shelfdroid.core.playback.normalizeSleepTimerCycle
 import dev.halim.shelfdroid.core.prefs.MediaNotificationAction
-import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
+import dev.halim.shelfdroid.core.prefs.MediaNotificationOpeningScreen
+import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
 import dev.halim.shelfdroid.core.prefs.PlaybackSpeedNotificationMode
 import dev.halim.shelfdroid.core.prefs.SleepTimerNotificationMode
 import javax.inject.Inject
@@ -28,7 +29,8 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
     repository.notificationPrefs
       .map {
         SettingsNotificationUiState(
-          tapDestination = it.tapDestination,
+          playerPresentation = it.playerPresentation,
+          openingScreen = it.openingScreen,
           sleepTimerMinutes = it.sleepTimerMinutes,
           sleepTimerMode = it.sleepTimerMode,
           sleepTimerCycle = normalizeSleepTimerCycle(it.sleepTimerCycle),
@@ -44,8 +46,10 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
 
   fun onEvent(event: SettingsNotificationEvent) {
     when (event) {
-      is SettingsNotificationEvent.ChangeTapDestination ->
-        viewModelScope.launch { repository.updateTapDestination(event.destination) }
+      is SettingsNotificationEvent.ChangePlayerPresentation ->
+        viewModelScope.launch { repository.updatePlayerPresentation(event.presentation) }
+      is SettingsNotificationEvent.ChangeOpeningScreen ->
+        viewModelScope.launch { repository.updateOpeningScreen(event.openingScreen) }
       is SettingsNotificationEvent.ChangeSleepTimerMinutes ->
         viewModelScope.launch { repository.updateDefaultSleepTimerMinutes(event.minutes) }
       is SettingsNotificationEvent.ChangeSleepTimerMode ->
@@ -65,7 +69,10 @@ constructor(private val repository: SettingsNotificationRepository) : ViewModel(
 }
 
 sealed interface SettingsNotificationEvent {
-  data class ChangeTapDestination(val destination: MediaNotificationTapDestination) :
+  data class ChangePlayerPresentation(val presentation: MediaNotificationPlayerPresentation) :
+    SettingsNotificationEvent
+
+  data class ChangeOpeningScreen(val openingScreen: MediaNotificationOpeningScreen) :
     SettingsNotificationEvent
 
   data class ChangeSleepTimerMinutes(val minutes: Int) : SettingsNotificationEvent

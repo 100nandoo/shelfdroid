@@ -11,7 +11,8 @@ import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.datastore.DataStoreManager
 import dev.halim.shelfdroid.core.extensions.formatChapterTime
 import dev.halim.shelfdroid.core.extensions.formatDurationShort
-import dev.halim.shelfdroid.core.prefs.MediaNotificationTapDestination
+import dev.halim.shelfdroid.core.prefs.MediaNotificationOpeningScreen
+import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -318,13 +319,16 @@ constructor(
   fun createOpenPlayerIntent(
     mediaId: String,
     context: Context,
-    destination: MediaNotificationTapDestination = MediaNotificationTapDestination.ExpandedPlayer,
+    presentation: MediaNotificationPlayerPresentation =
+      MediaNotificationPlayerPresentation.ExpandedPlayer,
+    openingScreen: MediaNotificationOpeningScreen = MediaNotificationOpeningScreen.Home,
   ): PendingIntent =
     createGenericIntent(
       context,
-      if (destination == MediaNotificationTapDestination.MiniPlayer) ACTION_OPEN_MINI_PLAYER
+      if (presentation == MediaNotificationPlayerPresentation.MiniPlayer) ACTION_OPEN_MINI_PLAYER
       else ACTION_OPEN_PLAYER,
       mediaId,
+      openingScreen,
     )
 
   fun createOpenDetailIntent(mediaId: String, context: Context): PendingIntent =
@@ -361,11 +365,13 @@ constructor(
     context: Context,
     action: String,
     mediaId: String,
+    openingScreen: MediaNotificationOpeningScreen? = null,
   ): PendingIntent {
     val intent = Intent(action)
     intent.apply {
       setPackage(context.packageName)
       putExtra(EXTRA_MEDIA_ID, mediaId)
+      openingScreen?.let { putExtra(EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN, it.name) }
       flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
     }
     return PendingIntent.getActivity(
@@ -392,5 +398,6 @@ constructor(
     const val ACTION_OPEN_MINI_PLAYER = "dev.halim.shelfdroid.OPEN_MINI_PLAYER"
     const val ACTION_OPEN_DETAIL = "dev.halim.shelfdroid.OPEN_DETAIL"
     const val EXTRA_MEDIA_ID = "media_id"
+    const val EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN = "media_notification_opening_screen"
   }
 }

@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.core.prefs
 
 import dev.halim.shelfdroid.core.playback.DEFAULT_PLAYBACK_SPEED_CYCLE
 import dev.halim.shelfdroid.core.playback.DEFAULT_SLEEP_TIMER_CYCLE
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,9 +15,15 @@ enum class MediaNotificationAction {
 }
 
 @Serializable
-enum class MediaNotificationTapDestination {
+enum class MediaNotificationPlayerPresentation {
   ExpandedPlayer,
   MiniPlayer,
+}
+
+@Serializable
+enum class MediaNotificationOpeningScreen {
+  Home,
+  MediaDetails,
 }
 
 @Serializable
@@ -33,8 +40,10 @@ enum class PlaybackSpeedNotificationMode {
 
 @Serializable
 data class NotificationPrefs(
-  val tapDestination: MediaNotificationTapDestination =
-    MediaNotificationTapDestination.ExpandedPlayer,
+  @SerialName("tapDestination")
+  val playerPresentation: MediaNotificationPlayerPresentation =
+    MediaNotificationPlayerPresentation.ExpandedPlayer,
+  val openingScreen: MediaNotificationOpeningScreen = MediaNotificationOpeningScreen.Home,
   val sleepTimerMinutes: Int = 1,
   val firstAction: MediaNotificationAction = MediaNotificationAction.SleepTimer,
   val secondAction: MediaNotificationAction = MediaNotificationAction.NextChapter,
