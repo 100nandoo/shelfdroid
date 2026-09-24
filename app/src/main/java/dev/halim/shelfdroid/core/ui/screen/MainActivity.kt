@@ -32,6 +32,7 @@ import dev.halim.shelfdroid.core.data.screen.settings.SettingsRepository
 import dev.halim.shelfdroid.core.ui.navigation.MainNavigation
 import dev.halim.shelfdroid.core.ui.navigation.NavRequest
 import dev.halim.shelfdroid.core.ui.navigation.navRequestFromIntent
+import dev.halim.shelfdroid.core.ui.navigation.shouldHandleLaunchIntent
 import dev.halim.shelfdroid.core.ui.navigation.toLoginKey
 import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
 
   companion object {
     const val EXTRA_MEDIA_ID = "media_id"
+    private const val KEY_PENDING_NAV_REQUEST = "pending_nav_request"
   }
 
   @Inject lateinit var settingsRepository: SettingsRepository
@@ -63,7 +65,14 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
 
     installSplashScreen()
-    handleExtra()
+    if (
+      shouldHandleLaunchIntent(
+        isFirstCreation = savedInstanceState == null,
+        hadPendingNavRequest = savedInstanceState?.getBoolean(KEY_PENDING_NAV_REQUEST) == true,
+      )
+    ) {
+      handleExtra()
+    }
     Log.d("MainActivity", "onCreate called")
 
     setContent {
@@ -124,6 +133,11 @@ class MainActivity : ComponentActivity() {
     super.onNewIntent(intent)
     setIntent(intent)
     handleExtra()
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    outState.putBoolean(KEY_PENDING_NAV_REQUEST, navRequest != NavRequest.None)
   }
 
   fun initMediaController() {

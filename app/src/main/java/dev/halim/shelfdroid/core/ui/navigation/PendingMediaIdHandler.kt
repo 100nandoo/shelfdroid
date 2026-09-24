@@ -25,6 +25,11 @@ data class ResolvedNavRequest(
   val playerPresentation: MediaNotificationPlayerPresentation?,
 )
 
+internal fun shouldHandleLaunchIntent(
+  isFirstCreation: Boolean,
+  hadPendingNavRequest: Boolean,
+): Boolean = isFirstCreation || hadPendingNavRequest
+
 fun navRequestFromIntent(
   action: String?,
   mediaId: String?,

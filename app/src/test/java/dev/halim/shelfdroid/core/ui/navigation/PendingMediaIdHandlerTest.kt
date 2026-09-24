@@ -5,10 +5,27 @@ import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
 import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_MINI_PLAYER
 import dev.halim.shelfdroid.helper.Helper.Companion.ACTION_OPEN_PLAYER
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PendingMediaIdHandlerTest {
+  @Test
+  fun restoredActivityDoesNotReplayACompletedNotificationRequest() {
+    assertFalse(shouldHandleLaunchIntent(isFirstCreation = false, hadPendingNavRequest = false))
+  }
+
+  @Test
+  fun restoredActivityReplaysARequestThatWasStillPending() {
+    assertTrue(shouldHandleLaunchIntent(isFirstCreation = false, hadPendingNavRequest = true))
+  }
+
+  @Test
+  fun firstActivityCreationHandlesItsLaunchIntent() {
+    assertTrue(shouldHandleLaunchIntent(isFirstCreation = true, hadPendingNavRequest = false))
+  }
+
   @Test
   fun notificationIntentUsesSelectedOpeningScreenAndPlayerPresentation() {
     assertEquals(
