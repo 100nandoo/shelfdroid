@@ -38,6 +38,7 @@ import dev.halim.shelfdroid.core.ui.player.PlayerController
 import dev.halim.shelfdroid.core.ui.theme.ShelfDroidTheme
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.helper.Helper.Companion.EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN
+import dev.halim.shelfdroid.helper.Helper.Companion.EXTRA_MEDIA_NOTIFICATION_PLAYER_PRESENTATION
 import dev.halim.shelfdroid.media.di.MediaControllerManager
 import dev.halim.shelfdroid.media.playback.PlayerStore
 import javax.inject.Inject
@@ -156,6 +157,8 @@ class MainActivity : ComponentActivity() {
         action = intent.action,
         mediaId = mediaId,
         openingScreenName = intent.getStringExtra(EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN),
+        playerPresentationName =
+          intent.getStringExtra(EXTRA_MEDIA_NOTIFICATION_PLAYER_PRESENTATION),
       )
   }
 }

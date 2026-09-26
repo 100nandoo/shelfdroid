@@ -1,6 +1,6 @@
 # Media notification opening screen
 
-Status: Implemented; code review complete.
+Status: Implemented; notification presentation regression fixed and verified.
 
 Extends commit `653e62f557e611e0a724b68f5b0088d6c211a2b4`.
 
@@ -30,9 +30,10 @@ All interview decisions are settled and implemented.
 - Unit tests cover legacy preference decoding, all four opening-screen/player-presentation combinations for Books and Episodes, and missing or invalid notification extras.
 - Navigation tests verify Home-only and Media details stacks, plus retention of an existing `Home(true)` entry while notification replacement clears the detail history.
 - The notification settings UI instrumentation test passed: `./gradlew :core-ui:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=dev.halim.shelfdroid.core.ui.screen.settings.notification.SettingsNotificationContentTest`.
+- Emulator regression tests send a retained tap `PendingIntent` after switching Mini to Expanded and Expanded to Mini; both resolve to the updated presentation.
 - The full unit suite passed: `./gradlew test`.
 - The media module compiled successfully with `:media:compileDebugKotlin`.
-- A full UI test of OS notification delivery, cold and warm activity launches, player collapse/back behavior, and the visible selected Home page was not run. Preference decoding, intent parsing, resolved stacks, and Home-root retention are covered by unit tests; end-to-end player transitions and Back handling are not.
+- The emulator regression sends the retained `PendingIntent` directly; a full test that taps the published Media3 notification while ShelfDroid is backgrounded, checks cold and warm activity launches, or asserts the visible player and Home page was not run. Intent parsing, resolved stacks, and Home-root retention are covered by unit tests; end-to-end player transitions and Back handling are not.
 
 ## Documentation
 

@@ -323,12 +323,13 @@ constructor(
       MediaNotificationPlayerPresentation.ExpandedPlayer,
     openingScreen: MediaNotificationOpeningScreen = MediaNotificationOpeningScreen.Home,
   ): PendingIntent =
+    // Keep the action stable so preference changes update the existing system tap target.
     createGenericIntent(
       context,
-      if (presentation == MediaNotificationPlayerPresentation.MiniPlayer) ACTION_OPEN_MINI_PLAYER
-      else ACTION_OPEN_PLAYER,
+      ACTION_OPEN_PLAYER,
       mediaId,
       openingScreen,
+      presentation,
     )
 
   fun createOpenDetailIntent(mediaId: String, context: Context): PendingIntent =
@@ -366,12 +367,14 @@ constructor(
     action: String,
     mediaId: String,
     openingScreen: MediaNotificationOpeningScreen? = null,
+    presentation: MediaNotificationPlayerPresentation? = null,
   ): PendingIntent {
     val intent = Intent(action)
     intent.apply {
       setPackage(context.packageName)
       putExtra(EXTRA_MEDIA_ID, mediaId)
       openingScreen?.let { putExtra(EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN, it.name) }
+      presentation?.let { putExtra(EXTRA_MEDIA_NOTIFICATION_PLAYER_PRESENTATION, it.name) }
       flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
     }
     return PendingIntent.getActivity(
@@ -399,5 +402,7 @@ constructor(
     const val ACTION_OPEN_DETAIL = "dev.halim.shelfdroid.OPEN_DETAIL"
     const val EXTRA_MEDIA_ID = "media_id"
     const val EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN = "media_notification_opening_screen"
+    const val EXTRA_MEDIA_NOTIFICATION_PLAYER_PRESENTATION =
+      "media_notification_player_presentation"
   }
 }

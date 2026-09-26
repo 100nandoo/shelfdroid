@@ -12,6 +12,38 @@ import org.junit.Test
 
 class PendingMediaIdHandlerTest {
   @Test
+  fun stableNotificationActionUsesPresentationExtra() {
+    MediaNotificationPlayerPresentation.entries.forEach { presentation ->
+      assertEquals(
+        NavRequest.OpenMedia(
+          mediaId = "book-id",
+          playerPresentation = presentation,
+          openingScreen = MediaNotificationOpeningScreen.Home,
+        ),
+        navRequestFromIntent(
+          action = ACTION_OPEN_PLAYER,
+          mediaId = "book-id",
+          openingScreenName = "Home",
+          playerPresentationName = presentation.name,
+        ),
+      )
+    }
+  }
+
+  @Test
+  fun invalidPresentationExtraFallsBackToLegacyAction() {
+    assertEquals(
+      NavRequest.OpenPlayer(MediaNotificationPlayerPresentation.MiniPlayer),
+      navRequestFromIntent(
+        action = ACTION_OPEN_MINI_PLAYER,
+        mediaId = null,
+        openingScreenName = null,
+        playerPresentationName = "invalid",
+      ),
+    )
+  }
+
+  @Test
   fun restoredActivityDoesNotReplayACompletedNotificationRequest() {
     assertFalse(shouldHandleLaunchIntent(isFirstCreation = false, hadPendingNavRequest = false))
   }
@@ -67,7 +99,12 @@ class PendingMediaIdHandlerTest {
         mediaId = "book-id",
         openingScreen = MediaNotificationOpeningScreen.MediaDetails,
       ),
-      navRequestFromIntent(action = null, mediaId = "book-id", openingScreenName = "Home"),
+      navRequestFromIntent(
+        action = null,
+        mediaId = "book-id",
+        openingScreenName = "Home",
+        playerPresentationName = MediaNotificationPlayerPresentation.ExpandedPlayer.name,
+      ),
     )
   }
 

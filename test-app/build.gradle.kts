@@ -41,6 +41,7 @@ dependencies {
   implementation(project(libs.versions.download.get()))
   implementation(project(libs.versions.helper.get()))
   implementation(project(libs.versions.media.get()))
+  implementation(project(libs.versions.navigationApi.get()))
   implementation(project(libs.versions.socketIO.get()))
   implementation(libs.androidx.datastore)
   implementation(libs.androidx.media3.datasource.okhttp)

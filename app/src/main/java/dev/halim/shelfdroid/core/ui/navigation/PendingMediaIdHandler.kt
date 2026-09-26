@@ -34,13 +34,18 @@ fun navRequestFromIntent(
   action: String?,
   mediaId: String?,
   openingScreenName: String?,
+  playerPresentationName: String? = null,
 ): NavRequest {
-  val playerPresentation =
+  val defaultPresentationFromAction =
     when (action) {
       ACTION_OPEN_PLAYER -> MediaNotificationPlayerPresentation.ExpandedPlayer
       ACTION_OPEN_MINI_PLAYER -> MediaNotificationPlayerPresentation.MiniPlayer
       else -> null
     }
+  val playerPresentation = defaultPresentationFromAction?.let { fallback ->
+    MediaNotificationPlayerPresentation.entries.firstOrNull { it.name == playerPresentationName }
+      ?: fallback
+  }
   val openingScreen =
     if (playerPresentation != null) {
       openingScreenName?.let { value ->
