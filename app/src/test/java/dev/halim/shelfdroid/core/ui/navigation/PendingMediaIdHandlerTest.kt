@@ -164,7 +164,11 @@ class PendingMediaIdHandlerTest {
 
     val episodeMediaId = "podcast-id|12345678901234567890123456789012"
     val episodeDetailsBackStack =
-      listOf(Home(false), Podcast("podcast-id"), Episode("podcast-id", "12345678901234567890123456789012"))
+      listOf(
+        Home(false),
+        Podcast("podcast-id"),
+        Episode("podcast-id", "12345678901234567890123456789012"),
+      )
     val cases =
       listOf(
         Case(

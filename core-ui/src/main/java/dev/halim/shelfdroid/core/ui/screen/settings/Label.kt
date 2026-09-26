@@ -18,6 +18,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MySwitch
+import dev.halim.shelfdroid.core.ui.components.TextBodyMedium
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -35,9 +36,8 @@ fun SettingsClickLabel(
   ) {
     Column {
       TextTitleMedium(text = text, modifier = modifier.padding(end = 12.dp))
-      Text(
+      TextBodyMedium(
         text = supportingText,
-        style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier,
       )

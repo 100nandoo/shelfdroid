@@ -43,9 +43,9 @@ fun navRequestFromIntent(
     }
   val openingScreen =
     if (playerPresentation != null) {
-      openingScreenName
-        ?.let { value -> MediaNotificationOpeningScreen.entries.firstOrNull { it.name == value } }
-        ?: MediaNotificationOpeningScreen.Home
+      openingScreenName?.let { value ->
+        MediaNotificationOpeningScreen.entries.firstOrNull { it.name == value }
+      } ?: MediaNotificationOpeningScreen.Home
     } else {
       MediaNotificationOpeningScreen.MediaDetails
     }
@@ -76,7 +76,8 @@ fun handleNavRequest(
   }
   if (playerController.hasCurrentPlayback()) {
     when (resolved.playerPresentation) {
-      MediaNotificationPlayerPresentation.ExpandedPlayer -> playerController.onEvent(PlayerEvent.Big)
+      MediaNotificationPlayerPresentation.ExpandedPlayer ->
+        playerController.onEvent(PlayerEvent.Big)
       MediaNotificationPlayerPresentation.MiniPlayer -> playerController.onEvent(PlayerEvent.Small)
       null -> Unit
     }
@@ -98,14 +99,15 @@ fun resolveNavRequest(navRequest: NavRequest, isLoggedIn: Boolean): ResolvedNavR
     is NavRequest.OpenMedia -> {
       val request = MediaIdWrapper.fromMediaId(navRequest.mediaId)
       val secondaryId = request.secondaryId
-      val backStack = when (navRequest.openingScreen) {
-        MediaNotificationOpeningScreen.Home -> listOf(Home(false))
-        MediaNotificationOpeningScreen.MediaDetails ->
-          if (secondaryId == null || secondaryId.length < 32) {
-            listOf(Home(false), Book(request.itemId))
-          } else {
-            listOf(Home(false), Podcast(request.itemId), Episode(request.itemId, secondaryId))
-          }
+      val backStack =
+        when (navRequest.openingScreen) {
+          MediaNotificationOpeningScreen.Home -> listOf(Home(false))
+          MediaNotificationOpeningScreen.MediaDetails ->
+            if (secondaryId == null || secondaryId.length < 32) {
+              listOf(Home(false), Book(request.itemId))
+            } else {
+              listOf(Home(false), Podcast(request.itemId), Episode(request.itemId, secondaryId))
+            }
         }
 
       ResolvedNavRequest(backStack = backStack, playerPresentation = navRequest.playerPresentation)

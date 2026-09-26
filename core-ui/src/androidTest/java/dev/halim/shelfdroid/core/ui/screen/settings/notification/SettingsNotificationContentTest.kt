@@ -65,14 +65,8 @@ class SettingsNotificationContentTest {
     composeRule.onNodeWithText("Home").performScrollTo().assertIsSelected()
     composeRule.onNodeWithText("Expanded player").performScrollTo().assertIsSelected()
 
-    composeRule
-      .onNodeWithText("Media details")
-      .performScrollTo()
-      .performClick()
-    composeRule
-      .onNodeWithText("Mini player")
-      .performScrollTo()
-      .performClick()
+    composeRule.onNodeWithText("Media details").performScrollTo().performClick()
+    composeRule.onNodeWithText("Mini player").performScrollTo().performClick()
 
     assertEquals(
       listOf(
@@ -221,11 +215,7 @@ class SettingsNotificationContentTest {
         firstAction = MediaNotificationAction.None,
         secondAction = MediaNotificationAction.NextChapter,
       )
-    composeRule
-      .onAllNodesWithText("Cyclical")
-      .get(0)
-      .performScrollTo()
-      .assertIsNotEnabled()
+    composeRule.onAllNodesWithText("Cyclical").get(0).performScrollTo().assertIsNotEnabled()
     composeRule.onNodeWithText("1 min").performScrollTo().assertIsNotEnabled()
     composeRule.onNodeWithText("60 min").performScrollTo().assertIsNotEnabled()
   }

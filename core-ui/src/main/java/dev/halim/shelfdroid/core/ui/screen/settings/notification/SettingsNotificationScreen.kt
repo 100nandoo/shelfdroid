@@ -94,6 +94,7 @@ internal fun SettingsNotificationContent(
     verticalArrangement = Arrangement.Bottom,
   ) {
     MediaNotificationOpeningScreenSection(uiState, onEvent)
+    Spacer(Modifier.height(12.dp))
     MediaNotificationPlayerPresentationSection(uiState, onEvent)
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
     MediaNotificationPreviewSection(uiState)
@@ -117,7 +118,7 @@ private fun SleepTimerSection(
   val modeLabels =
     SleepTimerNotificationMode.entries.associateWith { stringResource(it.labelResId()) }
   ChipDropdownMenu(
-    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+    modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
     label = stringResource(R.string.sleep_timer_notification_mode),
     labelPosition = LabelPosition.Expand,
     options = SleepTimerNotificationMode.entries.map { it.name },
@@ -133,7 +134,7 @@ private fun SleepTimerSection(
   Column {
     VisibilityVertical(visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Toggle) {
       ChipDropdownMenu(
-        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+        modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
         label = stringResource(R.string.default_sleep_timer),
         labelPosition = LabelPosition.Expand,
         options = SLEEP_TIMER_PRESET_MINUTES.map { it.toString() },
@@ -179,7 +180,7 @@ private fun SleepTimerCycle(
   )
   Spacer(modifier = Modifier.height(8.dp))
   FlowRow(
-    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+    modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     SLEEP_TIMER_PRESET_MINUTES.forEach { minutes ->
@@ -313,11 +314,16 @@ private fun MediaNotificationOption(label: String, selected: Boolean, onClick: (
     modifier =
       Modifier.fillMaxWidth()
         .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
-        .padding(horizontal = 16.dp, vertical = 4.dp),
+        .padding(horizontal = 16.dp, vertical = 4.dp)
+        .padding(start = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     RadioButton(selected = selected, onClick = null)
-    Text(text = label, modifier = Modifier.padding(start = 8.dp))
+    TextBodyMedium(
+      text = label,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.padding(start = 8.dp),
+    )
   }
 }
 
@@ -491,7 +497,7 @@ private fun NotificationActionSlot(
       it == MediaNotificationAction.None || it == selected || it != other
     }
   ChipDropdownMenu(
-    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+    modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
     label = label,
     labelPosition = LabelPosition.Expand,
     options = options.map { it.name },
@@ -521,7 +527,7 @@ private fun PlaybackSpeedSection(
     modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
   )
   ChipDropdownMenu(
-    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+    modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
     label = stringResource(R.string.playback_speed_notification_mode),
     labelPosition = LabelPosition.Expand,
     options = PlaybackSpeedNotificationMode.entries.map { it.name },
@@ -536,7 +542,7 @@ private fun PlaybackSpeedSection(
   )
   VisibilityVertical(visible = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Toggle) {
     ChipDropdownMenu(
-      modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+      modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
       label = stringResource(R.string.playback_speed_toggle_target),
       labelPosition = LabelPosition.Expand,
       options = PLAYBACK_SPEED_PRESET_VALUES.filter { it != 1f }.map { it.toString() },
@@ -576,7 +582,7 @@ private fun PlaybackSpeedCycle(
   )
   Spacer(modifier = Modifier.height(8.dp))
   FlowRow(
-    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+    modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     PLAYBACK_SPEED_PRESET_VALUES.forEach { speed ->

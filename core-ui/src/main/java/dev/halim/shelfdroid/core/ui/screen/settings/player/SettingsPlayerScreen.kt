@@ -72,7 +72,7 @@ private fun SeekIntervalDropdown(
     stringResource(R.string.seconds, it)
   }
   ChipDropdownMenu(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
     label = label,
     labelPosition = LabelPosition.Expand,
     options = seekIntervalOptions.values.toList(),
@@ -98,7 +98,7 @@ private fun ChapterSection(uiState: SettingsPlayerUiState, onEvent: (SettingsPla
       ChapterTimeDisplay.DurationShort to durationShortLabel,
     )
   ChipDropdownMenu(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
     label = stringResource(R.string.chapter_time_display),
     labelPosition = LabelPosition.Expand,
     options = chapterTimeDisplayOptions.values.toList(),
@@ -111,7 +111,7 @@ private fun ChapterSection(uiState: SettingsPlayerUiState, onEvent: (SettingsPla
     },
   )
   ChipDropdownMenu(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
     label = stringResource(R.string.chapter_title_max_lines),
     labelPosition = LabelPosition.Expand,
     options = CHAPTER_TITLE_PRESET_LINE.map { it.toString() },
