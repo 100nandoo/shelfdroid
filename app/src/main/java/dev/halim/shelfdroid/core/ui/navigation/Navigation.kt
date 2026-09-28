@@ -192,7 +192,6 @@ private fun ColumnScope.NavHostContainer(
         Nav3ScreenWrapper(sharedTransitionScope) {
           SearchPodcastScreen(
             navKey = key,
-            collectNavResultEvent = true,
             onItemClicked = { payload -> navigator.navigate(AddPodcast(payload)) },
             onAddedClick = { id -> navigator.navigate(Podcast(id)) },
           )
@@ -345,7 +344,6 @@ private fun ColumnScope.NavHostContainer(
       entry<NavApiKeys> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           ApiKeysScreen(
-            collectNavResultEvent = true,
             snackbarHostState = snackbarHostState,
             onEditClicked = { navigator.navigate(EditApiKeys(it)) },
             createApiKeyClicked = { navigator.navigate(EditApiKeys(NavEditApiKeys())) },
@@ -387,7 +385,6 @@ private fun ColumnScope.NavHostContainer(
         Nav3ScreenWrapper(sharedTransitionScope) {
           AppriseNotificationSettingsScreen(
             snackbarHostState = snackbarHostState,
-            collectNavResultEvent = true,
             onCreateRule = { navigator.navigate(EditAppriseNotificationRule(it)) },
             onEditRule = { navigator.navigate(EditAppriseNotificationRule(it)) },
           )
