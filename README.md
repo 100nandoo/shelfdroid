@@ -88,7 +88,7 @@ implementation is still being explored.
 
 ## Roadmap
 
-- [ ] Add in-app settings for notification customization
+- [x] Add in-app settings for notification customization
 - [ ] Android Auto
 - [ ] Add in-app settings for customization
 - [ ] Integrate Google Assistant for voice control
