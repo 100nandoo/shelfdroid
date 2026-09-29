@@ -1,3 +1,11 @@
+## 0.6.1 (2026-09-29)
+
+### What's new
+
+- Customize the controls shown in your media notification, including playback speed and chapter skipping.
+- Choose which screen opens when you tap the media notification.
+- Find and manage books and podcasts more reliably, including when offline or after reinstalling the app.
+
 ## 0.6.0 (2026-09-10)
 
 ### What's new
