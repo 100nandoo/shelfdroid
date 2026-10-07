@@ -48,7 +48,7 @@ mockito = "5.24.0"
 kotlin = "2.3.21"
 ksp = "2.3.12"
 kotlinSerialization = "1.11.0"
-sqldelight = "2.4.0"
+sqldelight = "2.4.1"
 
 # 3rd party
 accompanist = "0.37.3"
