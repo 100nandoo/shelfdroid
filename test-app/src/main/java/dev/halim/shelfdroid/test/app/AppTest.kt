@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.test.app
 
+import android.Manifest
 import android.content.Intent
+import android.os.Build
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -14,6 +16,7 @@ import androidx.compose.ui.test.swipeRight
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.rule.GrantPermissionRule
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dev.halim.shelfdroid.core.data.di.DatabaseModule
@@ -32,7 +35,17 @@ class AppTest {
 
   @get:Rule(order = 0) var hiltRule = HiltAndroidRule(this)
 
-  @get:Rule(order = 1) val composeTestRule = createEmptyComposeRule()
+  @get:Rule(order = 1)
+  val mediaPermissionRule =
+    GrantPermissionRule.grant(
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_AUDIO
+      } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+      }
+    )
+
+  @get:Rule(order = 2) val composeTestRule = createEmptyComposeRule()
 
   @Inject lateinit var fakeApiService: FakeApiService
   @Inject lateinit var dataStoreManager: DataStoreManager
@@ -84,7 +97,7 @@ class AppTest {
       composeTestRule.waitForIdle()
     }
     composeTestRule.onNodeWithText("Logs").performClick()
-    waitForText("Server log level")
+    waitForText("Server Log Level")
 
     scenario!!.onActivity { it.onBackPressedDispatcher.onBackPressed() }
     composeTestRule.waitForIdle()
@@ -106,7 +119,7 @@ class AppTest {
     composeTestRule.onNodeWithText("OK").performClick()
     composeTestRule.onNodeWithText("Login").performClick()
 
-    composeTestRule.onNodeWithText("Daily Bytes").assertExists()
+    composeTestRule.onNodeWithText("Daily Bytes", useUnmergedTree = true).assertExists()
   }
 
   @Test

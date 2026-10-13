@@ -57,6 +57,7 @@ dependencies {
 
   // Testing
   implementation(libs.androidx.test.core)
+  implementation(libs.androidx.test.rules)
 
   // Hilt and instrumented tests.
   implementation(libs.hilt.android.testing)

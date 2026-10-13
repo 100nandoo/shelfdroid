@@ -52,9 +52,12 @@ class LibraryAdminRepositoryTest {
     assertTrue(result.isSuccess)
     val outcome = result.getOrThrow()
     assertTrue(outcome is LibraryAdminMutationResult.AcceptedButNotSynchronized)
-    assertEquals(listOf("podcasts", "books"), acceptedOrder(outcome))
     assertEquals(
-      listOf("podcasts", "books"),
+      listOf(FakeApiService.PODCAST_LIBRARY_ID, FakeApiService.BOOK_LIBRARY_ID),
+      acceptedOrder(outcome),
+    )
+    assertEquals(
+      listOf(FakeApiService.PODCAST_LIBRARY_ID, FakeApiService.BOOK_LIBRARY_ID),
       database.libraryEntityQueries.all().executeAsList().map { it.id },
     )
   }
@@ -122,13 +125,13 @@ class LibraryAdminRepositoryTest {
   private fun order() =
     listOf(
       LibraryAdminLibrary(
-        id = "podcasts",
+        id = FakeApiService.PODCAST_LIBRARY_ID,
         name = "Podcasts",
         mediaType = MediaType.PODCAST,
         displayOrder = 1,
       ),
       LibraryAdminLibrary(
-        id = "books",
+        id = FakeApiService.BOOK_LIBRARY_ID,
         name = "Books",
         mediaType = MediaType.BOOK,
         displayOrder = 2,

@@ -33,7 +33,6 @@ class UserSettingsViewModel @Inject constructor(private val repository: UserSett
 
   fun onEvent(event: UserSettingsEvent) {
     when (event) {
-      UserSettingsEvent.AddUser -> TODO()
       is UserSettingsEvent.DeleteUser -> {
         viewModelScope.launch {
           _uiState.update { UserSettingsApiState.Loading }
@@ -45,8 +44,5 @@ class UserSettingsViewModel @Inject constructor(private val repository: UserSett
 }
 
 sealed interface UserSettingsEvent {
-
-  data object AddUser : UserSettingsEvent
-
   data class DeleteUser(val user: UserSettingsUiState.User) : UserSettingsEvent
 }

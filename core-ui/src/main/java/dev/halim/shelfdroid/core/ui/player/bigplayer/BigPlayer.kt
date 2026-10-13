@@ -137,6 +137,7 @@ fun BigPlayerContent(
             change.consume()
           }
         },
+      horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
       BasicPlayerContent(id, author, title, cover)

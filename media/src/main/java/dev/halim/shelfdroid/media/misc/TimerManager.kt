@@ -29,7 +29,10 @@ class TimerManager @Inject constructor(private val exoPlayerManager: ExoPlayerMa
       exoPlayerManager.events.distinctUntilChanged().collect { event ->
         when (event) {
           PlayerEvent.Pause -> {
-            sleepJob?.cancel()
+            // Player events are emitted asynchronously, so this may be stale after a resume.
+            if (!exoPlayerManager.isPlayingSafe()) {
+              sleepJob?.cancel()
+            }
           }
           PlayerEvent.Resume -> {
             startSleepJob()
