@@ -19,6 +19,7 @@ media = ":media"
 navigationApi = ":navigation-api"
 socketIO = ":socketio"
 testApp = ":test-app"
+widget = ":widget"
 
 androidGradlePlugin = "9.4.1"
 androidxActivity = "1.13.0"
@@ -27,7 +28,7 @@ androidxComposeBom = "2026.09.00"
 androidxCore = "1.19.1"
 androidxSplashscreen = "1.2.0"
 androidxDatastore = "1.2.1"
-androidxGlance = "1.2.1"
+androidxGlance = "1.2.0"
 androidxHilt = "1.4.0"
 androidxLifecycle = "2.11.0"
 androidxLifecycleNavigation3 = "2.11.0"
@@ -76,6 +77,7 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidxSplashscreen" }
 androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "androidxDatastore" }
 androidx-glance = { module = "androidx.glance:glance-material3", version.ref = "androidxGlance" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "androidxGlance" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHilt" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }

@@ -20,9 +20,7 @@
         android:theme="@style/Theme.ShelfDroid"
         android:usesCleartextTraffic="true"
         tools:targetApi="35">
-        <profileable
-            android:shell="true"
-            tools:targetApi="29" />
+        <profileable android:shell="true" />
 
         <activity
             android:name=".auth.OpenIdCallbackActivity"

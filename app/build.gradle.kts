@@ -117,6 +117,7 @@ dependencies {
   implementation(project(libs.versions.helper.get()))
   implementation(project(libs.versions.media.get()))
   implementation(project(libs.versions.navigationApi.get()))
+  implementation(project(libs.versions.widget.get()))
 
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)

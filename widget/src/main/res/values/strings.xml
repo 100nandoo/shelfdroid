@@ -1,0 +1,4 @@
+<resources>
+    <string name="player_widget_label">PlayerWidget</string>
+    <string name="player_widget_description">Player widget</string>
+</resources>
