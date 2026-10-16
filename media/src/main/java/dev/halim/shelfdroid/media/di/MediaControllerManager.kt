@@ -1,7 +1,9 @@
 package dev.halim.shelfdroid.media.di
 
 import android.util.Log
+import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.scopes.ActivityRetainedScoped
@@ -48,11 +50,7 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
   }
 
   fun playPause() {
-    if (mediaController.isPlaying) {
-      mediaController.pause()
-    } else {
-      mediaController.play()
-    }
+    mediaController.togglePlayback()
   }
 
   fun changeSpeed(speed: Float) {
@@ -99,4 +97,8 @@ constructor(val mediaControllerFuture: ListenableFuture<MediaController>) {
       mediaController.release()
     }
   }
+}
+
+internal fun Player.togglePlayback() {
+  if (Util.shouldShowPlayButton(this)) play() else pause()
 }
