@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.compose.compiler)
+  alias(libs.plugins.hilt.gradle)
+  alias(libs.plugins.ksp)
 }
 
 android {
@@ -26,7 +28,23 @@ android {
 }
 
 dependencies {
+  // Project modules
+  implementation(project(libs.versions.core.get()))
+  implementation(project(libs.versions.media.get()))
+
+  // Hilt
+  implementation(libs.hilt.android)
+  ksp(libs.hilt.compiler)
+
+  // Coroutines
+  implementation(libs.kotlinx.coroutines.android)
+
+  // Compose and Glance
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.glance.appwidget)
+
+  // Unit testing
+  testImplementation(libs.junit)
+  testImplementation(libs.kotlinx.coroutines.test)
 }

@@ -6,7 +6,12 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import dagger.hilt.android.HiltAndroidApp
+import dev.halim.shelfdroid.widget.observePlayerWidgetUpdates
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.acra.config.toastConfiguration
 import org.acra.ktx.initAcra
 
@@ -14,6 +19,13 @@ import org.acra.ktx.initAcra
 class ShelfDroid : Application(), SingletonImageLoader.Factory {
 
   @Inject lateinit var imageLoader: ImageLoader
+
+  private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+  override fun onCreate() {
+    super.onCreate()
+    applicationScope.launch { observePlayerWidgetUpdates(this@ShelfDroid) }
+  }
 
   override fun attachBaseContext(base: Context) {
     super.attachBaseContext(base)

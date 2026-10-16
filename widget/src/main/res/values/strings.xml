@@ -1,4 +1,5 @@
 <resources>
     <string name="player_widget_label">PlayerWidget</string>
     <string name="player_widget_description">Player widget</string>
+    <string name="player_widget_nothing_playing">Nothing playing</string>
 </resources>

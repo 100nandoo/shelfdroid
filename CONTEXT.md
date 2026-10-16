@@ -108,6 +108,10 @@ _Avoid_: Download, attachment
 The compact presentation of **Current playback** that remains visible while browsing ShelfDroid.
 _Avoid_: Small player
 
+**Player widget**:
+The home-screen presentation of **Current playback**, using the same title and author as the **Mini player** and **Expanded player**. Pausing or hiding those players does not remove the current media; the widget is empty only when no media is selected.
+_Avoid_: Mini player
+
 **Expanded player**:
 The full-screen presentation of **Current playback**, opened from the **Mini player** and collapsed back to it.
 _Avoid_: Big player
