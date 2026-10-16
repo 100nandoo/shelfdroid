@@ -6,8 +6,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.ImageProvider
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -23,7 +23,8 @@ class PlayerWidget : GlanceAppWidget() {
       Box(
         modifier =
           GlanceModifier.fillMaxSize()
-            .background(ImageProvider(R.drawable.player_widget_background))
+            .background(ColorProvider(Color(0xFFFFC981)))
+            .cornerRadius(R.dimen.player_widget_background_radius)
             .padding(16.dp),
         contentAlignment = Alignment.Center,
       ) {

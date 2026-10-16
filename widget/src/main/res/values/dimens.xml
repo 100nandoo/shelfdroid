@@ -1,0 +1,3 @@
+<resources>
+    <dimen name="player_widget_background_radius">16dp</dimen>
+</resources>
