@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.result.LocalResultEventBus
 import androidx.navigation3.runtime.result.ResultEffect
 import dev.halim.shelfdroid.core.MediaType
 import dev.halim.shelfdroid.core.data.GenericState
@@ -59,7 +60,6 @@ internal fun LibraryAdminScreen(
   viewModel: LibraryAdminViewModel = hiltViewModel(),
   onCreateLibraryClicked: () -> Unit = {},
   onEditLibraryClicked: (String) -> Unit = {},
-  collectNavResultEvent: Boolean = false,
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val snackbarHostState = remember { SnackbarHostState() }
@@ -72,8 +72,10 @@ internal fun LibraryAdminScreen(
       viewModel.consumeTaskNotification()
     }
   }
-  if (collectNavResultEvent) {
-    ResultEffect<LibraryChangedNavResult> { viewModel.onEvent(LibraryAdminEvent.Refresh) }
+  val resultBus = LocalResultEventBus.current
+  ResultEffect<LibraryChangedNavResult> {
+    viewModel.onEvent(LibraryAdminEvent.Refresh)
+    resultBus.removeResult<LibraryChangedNavResult>()
   }
   Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
     LibraryAdminContent(

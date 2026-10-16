@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.result.LocalResultEventBus
 import androidx.navigation3.runtime.result.ResultEffect
 import dev.halim.shelfdroid.core.data.GenericState
 import dev.halim.shelfdroid.core.data.screen.apprisenotificationsettings.AppriseGlobalSettingsFieldError
@@ -62,16 +63,15 @@ import dev.halim.shelfdroid.core.ui.screen.GenericMessageScreen
 @Composable
 fun AppriseNotificationSettingsScreen(
   snackbarHostState: SnackbarHostState,
-  collectNavResultEvent: Boolean = false,
   onCreateRule: (NavEditAppriseNotificationRule) -> Unit = {},
   onEditRule: (NavEditAppriseNotificationRule) -> Unit = {},
   viewModel: AppriseNotificationSettingsViewModel = hiltViewModel(),
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  if (collectNavResultEvent) {
-    ResultEffect<AppriseNotificationRuleChangedNavResult> { result ->
-      viewModel.onEvent(AppriseNotificationSettingsEvent.ApplyRuleChange(result))
-    }
+  val resultBus = LocalResultEventBus.current
+  ResultEffect<AppriseNotificationRuleChangedNavResult> { result ->
+    viewModel.onEvent(AppriseNotificationSettingsEvent.ApplyRuleChange(result))
+    resultBus.removeResult<AppriseNotificationRuleChangedNavResult>()
   }
   HandleAppriseNotificationSettingsSnackbar(uiState, snackbarHostState)
   AppriseNotificationSettingsContent(

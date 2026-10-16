@@ -30,10 +30,3 @@ data class AppriseNotificationRuleNavResult(
   val statusValue: String = "",
   val consecutiveFailedAttempts: String = "0",
 ) : Parcelable
-
-object NavResultKey {
-  const val CREATE_PODCAST = "create_podcast"
-  const val API_KEY_CHANGED = "api_key_changed"
-  const val LIBRARY_CHANGED = "library_changed"
-  const val APPRISE_NOTIFICATION_RULE_CHANGED = "apprise_notification_rule_changed"
-}

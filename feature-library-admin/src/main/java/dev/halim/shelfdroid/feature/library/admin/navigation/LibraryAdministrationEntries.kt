@@ -20,7 +20,6 @@ fun EntryProviderScope<ShelfNavKey>.libraryAdministrationEntries(
   entry<Libraries> {
     Nav3ScreenWrapper(sharedTransitionScope) {
       LibraryAdminScreen(
-        collectNavResultEvent = true,
         onCreateLibraryClicked = { navigate(CreateLibrary) },
         onEditLibraryClicked = { navigate(EditLibrary(it)) },
       )
