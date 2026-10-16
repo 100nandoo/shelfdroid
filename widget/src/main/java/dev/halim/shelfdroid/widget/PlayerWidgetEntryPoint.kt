@@ -14,5 +14,8 @@ internal interface PlayerWidgetEntryPoint {
 }
 
 internal fun playerWidgetStore(context: Context): PlayerStore =
-  EntryPointAccessors.fromApplication(context.applicationContext, PlayerWidgetEntryPoint::class.java)
+  EntryPointAccessors.fromApplication(
+      context.applicationContext,
+      PlayerWidgetEntryPoint::class.java,
+    )
     .playerStore()

@@ -15,5 +15,6 @@ internal data class PlayerWidgetContent(
 internal fun PlayerUiState.toWidgetContent(): PlayerWidgetContent? =
   if (id.isBlank()) null else PlayerWidgetContent(id, episodeId, title, author)
 
-internal fun Flow<PlayerUiState>.widgetContent(): Flow<PlayerWidgetContent?> =
-  map { it.toWidgetContent() }.distinctUntilChanged()
+internal fun Flow<PlayerUiState>.widgetContent(): Flow<PlayerWidgetContent?> = map {
+  it.toWidgetContent()
+}.distinctUntilChanged()
