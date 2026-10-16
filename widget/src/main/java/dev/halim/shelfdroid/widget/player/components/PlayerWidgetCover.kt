@@ -38,11 +38,7 @@ internal fun PlayerWidgetCover(cover: String, size: Dp) {
     if (cover.isNotBlank()) {
       val imageSize = (48 * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
       val request =
-        ImageRequest.Builder(context)
-          .data(cover)
-          .size(imageSize)
-          .allowHardware(false)
-          .build()
+        ImageRequest.Builder(context).data(cover).size(imageSize).allowHardware(false).build()
       bitmap = SingletonImageLoader.get(context).execute(request).image?.toBitmap()
     }
   }

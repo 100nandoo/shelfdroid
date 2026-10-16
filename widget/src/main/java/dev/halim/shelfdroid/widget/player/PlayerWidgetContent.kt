@@ -18,4 +18,5 @@ internal fun PlayerUiState.toWidgetContent(): PlayerWidgetContent? =
 
 internal fun Flow<PlayerUiState>.widgetContent(): Flow<PlayerWidgetContent?> = map {
   it.toWidgetContent()
-}.distinctUntilChanged()
+}
+  .distinctUntilChanged()

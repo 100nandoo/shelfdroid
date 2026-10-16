@@ -27,7 +27,6 @@ object ActivityModule {
   }
 
   @Provides
-  @ActivityRetainedScoped
   fun provideMediaControllerFuture(
     @ApplicationContext context: Context,
     sessionToken: SessionToken,

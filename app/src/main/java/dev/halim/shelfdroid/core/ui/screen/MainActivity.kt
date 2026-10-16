@@ -145,9 +145,14 @@ class MainActivity : ComponentActivity() {
     mediaControllerManager.get().init(lifecycleScope)
   }
 
-  override fun onDestroy() {
-    super.onDestroy()
+  override fun onStart() {
+    super.onStart()
+    initMediaController()
+  }
+
+  override fun onStop() {
     mediaControllerManager.get().release()
+    super.onStop()
   }
 
   private fun handleExtra() {
