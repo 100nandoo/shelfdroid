@@ -2,4 +2,6 @@
     <string name="player_widget_label">PlayerWidget</string>
     <string name="player_widget_description">Player widget</string>
     <string name="player_widget_nothing_playing">Nothing playing</string>
+    <string name="player_widget_no_cover">No cover</string>
+    <string name="player_widget_cover_image">Library item cover image</string>
 </resources>

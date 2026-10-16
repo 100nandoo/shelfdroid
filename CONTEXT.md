@@ -109,7 +109,7 @@ The compact presentation of **Current playback** that remains visible while brow
 _Avoid_: Small player
 
 **Player widget**:
-The home-screen presentation of **Current playback**, using the same title and author as the **Mini player** and **Expanded player**. Pausing or hiding those players does not remove the current media; the widget is empty only when no media is selected.
+The home-screen presentation of **Current playback**, using the same cover image, title, and author as the **Mini player** and **Expanded player**. Pausing or hiding those players does not remove the current media; the widget is empty only when no media is selected.
 _Avoid_: Mini player
 
 **Expanded player**:

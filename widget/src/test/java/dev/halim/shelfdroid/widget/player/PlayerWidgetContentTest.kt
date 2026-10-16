@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.widget
+package dev.halim.shelfdroid.widget.player
 
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlayerState
@@ -11,6 +11,24 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class PlayerWidgetContentTest {
+  @Test
+  fun `cover changes refresh widget even when title and author stay the same`() = runTest {
+    val current = PlayerUiState(id = "book", title = "Book", author = "Author", cover = "cover-a")
+
+    val content =
+      flowOf(
+          current,
+          current.copy(currentTime = 10.0),
+          current.copy(cover = "cover-b"),
+          current.copy(cover = ""),
+          PlayerUiState(),
+        )
+        .widgetContent()
+        .toList()
+
+    assertEquals(listOf("cover-a", "cover-b", "", null), content.map { it?.cover })
+  }
+
   @Test
   fun `pause and player visibility preserve metadata without redundant updates`() = runTest {
     val current =

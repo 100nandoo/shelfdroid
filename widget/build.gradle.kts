@@ -44,6 +44,9 @@ dependencies {
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.glance.appwidget)
 
+  // Coil
+  implementation(libs.coil)
+
   // Unit testing
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)

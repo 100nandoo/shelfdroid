@@ -6,7 +6,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import dagger.hilt.android.HiltAndroidApp
-import dev.halim.shelfdroid.widget.observePlayerWidgetUpdates
+import dev.halim.shelfdroid.widget.player.observePlayerWidgetUpdates
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

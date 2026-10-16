@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.widget
+package dev.halim.shelfdroid.widget.player
 
 import android.content.Context
 import android.util.Log

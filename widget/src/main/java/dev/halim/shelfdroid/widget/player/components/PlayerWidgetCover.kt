@@ -1,0 +1,75 @@
+package dev.halim.shelfdroid.widget.player.components
+
+import android.graphics.Bitmap
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
+import androidx.glance.appwidget.cornerRadius
+import androidx.glance.background
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.ContentScale
+import androidx.glance.layout.size
+import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
+import androidx.glance.text.TextStyle
+import coil3.SingletonImageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
+import dev.halim.shelfdroid.widget.R
+
+@Composable
+internal fun PlayerWidgetCover(cover: String, size: Dp) {
+  val context = LocalContext.current
+  var bitmap by remember(cover) { mutableStateOf<Bitmap?>(null) }
+  LaunchedEffect(cover) {
+    if (cover.isNotBlank()) {
+      val imageSize = (48 * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
+      val request =
+        ImageRequest.Builder(context)
+          .data(cover)
+          .size(imageSize)
+          .allowHardware(false)
+          .build()
+      bitmap = SingletonImageLoader.get(context).execute(request).image?.toBitmap()
+    }
+  }
+
+  val modifier = GlanceModifier.size(size).cornerRadius(4.dp)
+  val image = bitmap
+  if (image != null) {
+    Image(
+      provider = ImageProvider(image),
+      contentDescription = context.getString(R.string.player_widget_cover_image),
+      modifier = modifier,
+      contentScale = ContentScale.Fit,
+    )
+  } else {
+    Box(
+      modifier = modifier.background(GlanceTheme.colors.secondaryContainer),
+      contentAlignment = Alignment.Center,
+    ) {
+      Text(
+        text = context.getString(R.string.player_widget_no_cover),
+        style =
+          TextStyle(
+            color = GlanceTheme.colors.onSecondaryContainer,
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center,
+          ),
+      )
+    }
+  }
+}
