@@ -31,41 +31,50 @@ import coil3.toBitmap
 import dev.halim.shelfdroid.widget.R
 
 @Composable
-internal fun PlayerWidgetCover(cover: String, size: Dp) {
+internal fun PlayerWidgetCover(cover: String, size: Dp, previewCoverResource: Int? = null) {
   val context = LocalContext.current
-  var bitmap by remember(cover) { mutableStateOf<Bitmap?>(null) }
-  LaunchedEffect(cover) {
-    if (cover.isNotBlank()) {
-      val imageSize = (48 * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
-      val request =
-        ImageRequest.Builder(context).data(cover).size(imageSize).allowHardware(false).build()
-      bitmap = SingletonImageLoader.get(context).execute(request).image?.toBitmap()
-    }
-  }
-
   val modifier = GlanceModifier.size(size).cornerRadius(4.dp)
-  val image = bitmap
-  if (image != null) {
+  if (previewCoverResource != null) {
     Image(
-      provider = ImageProvider(image),
+      provider = ImageProvider(previewCoverResource),
       contentDescription = context.getString(R.string.player_widget_cover_image),
       modifier = modifier,
       contentScale = ContentScale.Fit,
     )
   } else {
-    Box(
-      modifier = modifier.background(GlanceTheme.colors.secondaryContainer),
-      contentAlignment = Alignment.Center,
-    ) {
-      Text(
-        text = context.getString(R.string.player_widget_no_cover),
-        style =
-          TextStyle(
-            color = GlanceTheme.colors.onSecondaryContainer,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-          ),
+    var bitmap by remember(cover) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(cover) {
+      if (cover.isNotBlank()) {
+        val imageSize = (48 * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
+        val request =
+          ImageRequest.Builder(context).data(cover).size(imageSize).allowHardware(false).build()
+        bitmap = SingletonImageLoader.get(context).execute(request).image?.toBitmap()
+      }
+    }
+
+    val image = bitmap
+    if (image != null) {
+      Image(
+        provider = ImageProvider(image),
+        contentDescription = context.getString(R.string.player_widget_cover_image),
+        modifier = modifier,
+        contentScale = ContentScale.Fit,
       )
+    } else {
+      Box(
+        modifier = modifier.background(GlanceTheme.colors.secondaryContainer),
+        contentAlignment = Alignment.Center,
+      ) {
+        Text(
+          text = context.getString(R.string.player_widget_no_cover),
+          style =
+            TextStyle(
+              color = GlanceTheme.colors.onSecondaryContainer,
+              fontSize = 10.sp,
+              textAlign = TextAlign.Center,
+            ),
+        )
+      }
     }
   }
 }

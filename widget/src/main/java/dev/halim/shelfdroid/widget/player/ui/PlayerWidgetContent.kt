@@ -49,7 +49,11 @@ internal fun PlayerWidgetContent(content: PlayerWidgetData?) {
       content
         ?.takeIf { size.width >= 280.dp }
         ?.let { current ->
-          PlayerWidgetCover(cover = current.cover, size = coverSize)
+          PlayerWidgetCover(
+            cover = current.cover,
+            size = coverSize,
+            previewCoverResource = current.coverResource,
+          )
           Spacer(GlanceModifier.width(8.dp))
         }
       Column(modifier = GlanceModifier.defaultWeight()) {
@@ -88,6 +92,7 @@ internal fun PlayerWidgetContent(content: PlayerWidgetData?) {
             tint = GlanceTheme.colors.onSurfaceVariant,
             action = widgetAction(WIDGET_ACTION_SEEK_BACK),
           )
+          Spacer(GlanceModifier.width(2.dp))
           PlayerWidgetControlButton(
             icon = if (current.showPlayIcon) CoreR.drawable.play_arrow else CoreR.drawable.pause,
             contentDescription =
@@ -99,6 +104,7 @@ internal fun PlayerWidgetContent(content: PlayerWidgetData?) {
             action = widgetAction(WIDGET_ACTION_PLAY_PAUSE),
             background = GlanceTheme.colors.primary,
           )
+          Spacer(GlanceModifier.width(2.dp))
           PlayerWidgetControlButton(
             icon = CoreR.drawable.fast_forward,
             contentDescription = context.getString(CoreR.string.seek_forward),

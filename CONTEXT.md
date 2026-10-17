@@ -112,6 +112,10 @@ _Avoid_: Small player
 The home-screen presentation of **Current playback**, using the same cover image, title, and author as the **Mini player** and **Expanded player**. Pausing or hiding those players does not remove the current media; the widget is empty only when no media is selected.
 _Avoid_: Mini player
 
+**Player widget preview**:
+The sample presentation of the **Player widget** in the widget picker, showing curated book content independently of the listener's library or **Current playback**.
+_Avoid_: Current playback, Studio preview
+
 **Expanded player**:
 The full-screen presentation of **Current playback**, opened from the **Mini player** and collapsed back to it.
 _Avoid_: Big player

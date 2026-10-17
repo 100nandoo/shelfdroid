@@ -7,6 +7,7 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import dev.halim.shelfdroid.widget.player.observePlayerWidgetUpdates
+import dev.halim.shelfdroid.widget.player.updatePlayerWidgetPreview
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ class ShelfDroid : Application(), SingletonImageLoader.Factory {
 
   override fun onCreate() {
     super.onCreate()
+    applicationScope.launch { updatePlayerWidgetPreview(this@ShelfDroid) }
     applicationScope.launch { observePlayerWidgetUpdates(this@ShelfDroid) }
   }
 
