@@ -16,9 +16,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.PlayPauseControlState
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.SeekControlsState
 import dev.halim.shelfdroid.core.ui.Animations
-import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyIconButton
 import dev.halim.shelfdroid.core.ui.mySharedBound
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
@@ -32,10 +32,11 @@ fun PlayPauseButton(
   size: Int = 48,
 ) {
   val icon =
-    if (playPause.showPlayIcon) painterResource(R.drawable.play_arrow)
-    else painterResource(R.drawable.pause)
+    if (playPause.showPlayIcon) painterResource(CoreR.drawable.play_arrow)
+    else painterResource(CoreR.drawable.pause)
   val contentDescription =
-    if (playPause.showPlayIcon) stringResource(R.string.play) else stringResource(R.string.pause)
+    if (playPause.showPlayIcon) stringResource(CoreR.string.play)
+    else stringResource(CoreR.string.pause)
   val contentSize = (size - 2 * (size / 6)).dp
   FilledTonalIconButton(
     modifier = Modifier.size(size.dp).mySharedBound(Animations.Companion.Player.playKey(id)),
@@ -66,9 +67,9 @@ fun PlayPauseButton(
 fun SeekBackButton(onClick: () -> Unit, state: SeekControlsState, id: String, size: Int = 48) {
   MyIconButton(
     modifier = Modifier.mySharedBound(Animations.Companion.Player.seekBackKey(id)),
-    painter = painterResource(R.drawable.fast_rewind),
+    painter = painterResource(CoreR.drawable.fast_rewind),
     size = size,
-    contentDescription = stringResource(R.string.seek_back),
+    contentDescription = stringResource(CoreR.string.seek_back),
     onClick = { onClick() },
     enabled = state.seekBackEnabled,
   )
@@ -78,9 +79,9 @@ fun SeekBackButton(onClick: () -> Unit, state: SeekControlsState, id: String, si
 fun SeekForwardButton(onClick: () -> Unit, state: SeekControlsState, id: String, size: Int = 48) {
   MyIconButton(
     modifier = Modifier.mySharedBound(Animations.Companion.Player.seekForwardKey(id)),
-    painter = painterResource(R.drawable.fast_forward),
+    painter = painterResource(CoreR.drawable.fast_forward),
     size = size,
-    contentDescription = stringResource(R.string.seek_forward),
+    contentDescription = stringResource(CoreR.string.seek_forward),
     onClick = { onClick() },
     enabled = state.seekForwardEnabled,
   )

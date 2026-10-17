@@ -100,6 +100,23 @@ constructor(
     }
   }
 
+  fun playPause() {
+    if (!uiState.value.playPause.enabled) return
+    playerManager.player.get().apply {
+      if (Util.shouldShowPlayButton(this)) play() else pause()
+    }
+  }
+
+  fun seekBack() {
+    val player = playerManager.player.get()
+    if (player.isCommandAvailable(Player.COMMAND_SEEK_BACK)) player.seekBack()
+  }
+
+  fun seekForward() {
+    val player = playerManager.player.get()
+    if (player.isCommandAvailable(Player.COMMAND_SEEK_FORWARD)) player.seekForward()
+  }
+
   fun nextChapterFromMediaNotification(): Boolean {
     return chapterFromMediaNotification(isPrevious = false)
   }

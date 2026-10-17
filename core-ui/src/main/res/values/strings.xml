@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--Content Description-->
-    <string name="play">Play</string>
-    <string name="pause">Pause</string>
-    <string name="seek_back">Seek back</string>
-    <string name="seek_forward">Seek forward</string>
     <string name="library_item_cover_image">Library item cover image</string>
     <string name="delete_bookmark">Delete bookmark</string>
     <string name="edit_bookmark">Edit bookmark</string>

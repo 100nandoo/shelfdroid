@@ -6,7 +6,7 @@ import androidx.glance.appwidget.updateAll
 import kotlinx.coroutines.CancellationException
 
 suspend fun observePlayerWidgetUpdates(context: Context) {
-  playerWidgetStore(context).uiState.widgetContent().collect {
+  playerWidgetStore(context).uiState.playerWidgetData().collect {
     try {
       PlayerWidget().updateAll(context)
     } catch (exception: CancellationException) {

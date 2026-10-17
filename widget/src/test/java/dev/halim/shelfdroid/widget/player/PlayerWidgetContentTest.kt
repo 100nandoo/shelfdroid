@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.widget.player
 import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.SeekControlsState
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -23,42 +24,54 @@ class PlayerWidgetContentTest {
           current.copy(cover = ""),
           PlayerUiState(),
         )
-        .widgetContent()
+        .playerWidgetData()
         .toList()
 
     assertEquals(listOf("cover-a", "cover-b", "", null), content.map { it?.cover })
   }
 
   @Test
-  fun `pause and player visibility preserve metadata without redundant updates`() = runTest {
+  fun `playback controls refresh while player visibility preserves metadata`() = runTest {
     val current =
       PlayerUiState(
         id = "book",
         title = "Chapter 2",
         author = "Book author",
         state = PlayerState.Big,
-        playPause = PlayPauseControlState(isPlaying = true),
+        playPause = PlayPauseControlState(isPlaying = true, enabled = true, showPlayIcon = false),
+        seekControls = SeekControlsState(seekBackEnabled = true, seekForwardEnabled = true),
       )
+    val paused =
+      current.copy(
+        playPause = PlayPauseControlState(isPlaying = false, enabled = true, showPlayIcon = true)
+      )
+    val seekDisabled = paused.copy(seekControls = SeekControlsState(seekForwardEnabled = true))
 
     val content =
       flowOf(
           current,
           current.copy(currentTime = 10.0),
-          current.copy(playPause = PlayPauseControlState(isPlaying = false)),
-          current.copy(state = PlayerState.Small),
-          current.copy(state = PlayerState.TempHidden),
-          current.copy(state = PlayerState.Hidden()),
-          current.copy(title = "Chapter 3"),
+          paused,
+          seekDisabled,
+          seekDisabled.copy(state = PlayerState.Small),
+          seekDisabled.copy(state = PlayerState.TempHidden),
+          seekDisabled.copy(state = PlayerState.Hidden()),
+          seekDisabled.copy(title = "Chapter 3"),
           PlayerUiState(),
         )
-        .widgetContent()
+        .playerWidgetData()
         .toList()
 
-    assertEquals(3, content.size)
+    assertEquals(5, content.size)
     assertEquals("Chapter 2", content[0]?.title)
     assertEquals("Book author", content[0]?.author)
-    assertEquals("Chapter 3", content[1]?.title)
-    assertNull(content[2])
+    assertEquals(false, content[0]?.showPlayIcon)
+    assertEquals(true, content[0]?.playPauseEnabled)
+    assertEquals(true, content[0]?.seekBackEnabled)
+    assertEquals(true, content[1]?.showPlayIcon)
+    assertEquals(false, content[2]?.seekBackEnabled)
+    assertEquals("Chapter 3", content[3]?.title)
+    assertNull(content[4])
   }
 
   @Test
@@ -71,9 +84,9 @@ class PlayerWidgetContentTest {
         author = "Podcast creator",
       )
 
-    assertEquals("Episode title", episode.toWidgetContent()?.title)
-    assertEquals("Podcast creator", episode.toWidgetContent()?.author)
-    assertNull(episode.copy(id = "").toWidgetContent())
-    assertEquals("", episode.copy(title = "").toWidgetContent()?.title)
+    assertEquals("Episode title", episode.toPlayerWidgetData()?.title)
+    assertEquals("Podcast creator", episode.toPlayerWidgetData()?.author)
+    assertNull(episode.copy(id = "").toPlayerWidgetData())
+    assertEquals("", episode.copy(title = "").toPlayerWidgetData()?.title)
   }
 }

@@ -28,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.data.screen.podcast.Episode
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.R
@@ -153,11 +154,11 @@ fun EpisodeItem(
             CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
           } else {
             val icon =
-              if (episode.playPause.showPlayIcon) painterResource(R.drawable.play_arrow)
-              else painterResource(R.drawable.pause)
+              if (episode.playPause.showPlayIcon) painterResource(CoreR.drawable.play_arrow)
+              else painterResource(CoreR.drawable.pause)
             val contentDescription =
-              if (episode.playPause.showPlayIcon) stringResource(R.string.play)
-              else stringResource(R.string.pause)
+              if (episode.playPause.showPlayIcon) stringResource(CoreR.string.play)
+              else stringResource(CoreR.string.pause)
             Icon(painter = icon, contentDescription = contentDescription)
           }
         }

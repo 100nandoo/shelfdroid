@@ -28,6 +28,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.PlayPauseControlState
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -75,8 +76,8 @@ fun MyTonalIconButton(
 private fun SampleMyIconButton(size: Int = 48) {
   MyIconButton(
     size = size,
-    painter = painterResource(R.drawable.play_arrow),
-    contentDescription = stringResource(R.string.play),
+    painter = painterResource(CoreR.drawable.play_arrow),
+    contentDescription = stringResource(CoreR.string.play),
     onClick = {},
   )
 }
@@ -100,10 +101,11 @@ fun RowScope.PlayButton(
   onPlayClicked: () -> Unit,
 ) {
   val icon =
-    if (playPause.showPlayIcon) painterResource(R.drawable.play_arrow)
-    else painterResource(R.drawable.pause)
+    if (playPause.showPlayIcon) painterResource(CoreR.drawable.play_arrow)
+    else painterResource(CoreR.drawable.pause)
   val contentDescription =
-    if (playPause.showPlayIcon) stringResource(R.string.play) else stringResource(R.string.pause)
+    if (playPause.showPlayIcon) stringResource(CoreR.string.play)
+    else stringResource(CoreR.string.pause)
   Button(
     onClick = { onPlayClicked() },
     modifier = modifier.weight(1f),

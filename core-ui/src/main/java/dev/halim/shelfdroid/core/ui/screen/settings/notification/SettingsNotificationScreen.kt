@@ -383,8 +383,8 @@ private fun MediaNotificationPreview(uiState: SettingsNotificationUiState) {
           contentAlignment = Alignment.Center,
         ) {
           Icon(
-            painter = painterResource(R.drawable.play_arrow),
-            contentDescription = stringResource(R.string.play),
+            painter = painterResource(CoreR.drawable.play_arrow),
+            contentDescription = stringResource(CoreR.string.play),
             tint = colorScheme.surface,
             modifier = Modifier.size(28.dp),
           )
@@ -397,8 +397,8 @@ private fun MediaNotificationPreview(uiState: SettingsNotificationUiState) {
         verticalAlignment = Alignment.CenterVertically,
       ) {
         MediaNotificationPreviewIcon(
-          painter = painterResource(R.drawable.fast_rewind),
-          contentDescription = stringResource(R.string.seek_back),
+          painter = painterResource(CoreR.drawable.fast_rewind),
+          contentDescription = stringResource(CoreR.string.seek_back),
           tint = contentColor,
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -431,8 +431,8 @@ private fun MediaNotificationPreview(uiState: SettingsNotificationUiState) {
         )
         Spacer(modifier = Modifier.width(16.dp))
         MediaNotificationPreviewIcon(
-          painter = painterResource(R.drawable.fast_forward),
-          contentDescription = stringResource(R.string.seek_forward),
+          painter = painterResource(CoreR.drawable.fast_forward),
+          contentDescription = stringResource(CoreR.string.seek_forward),
           tint = contentColor,
         )
         configuredActions.forEach { action ->

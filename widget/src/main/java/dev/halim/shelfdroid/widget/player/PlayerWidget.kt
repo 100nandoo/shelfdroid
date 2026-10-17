@@ -25,7 +25,9 @@ import androidx.glance.layout.width
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.widget.R
+import dev.halim.shelfdroid.widget.player.components.PlayerWidgetControlButton
 import dev.halim.shelfdroid.widget.player.components.PlayerWidgetCover
 
 class PlayerWidget : GlanceAppWidget() {
@@ -33,29 +35,30 @@ class PlayerWidget : GlanceAppWidget() {
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
     val playerState = playerWidgetStore(context).uiState
-    val contentFlow = playerState.widgetContent()
+    val contentFlow = playerState.playerWidgetData()
     provideContent {
-      val content by contentFlow.collectAsState(playerState.value.toWidgetContent())
+      val content by contentFlow.collectAsState(playerState.value.toPlayerWidgetData())
       val size = LocalSize.current
       val coverSize =
         minOf(
           48.dp,
-          (size.height - 16.dp).coerceAtLeast(1.dp),
-          ((size.width - 40.dp) / 2).coerceAtLeast(1.dp),
+          (size.height - 8.dp).coerceAtLeast(1.dp),
         )
       Box(
         modifier =
           GlanceModifier.fillMaxSize()
             .background(ColorProvider(Color(0xFFFFC981)))
             .cornerRadius(R.dimen.player_widget_background_radius)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center,
       ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-          content?.let { current ->
-            PlayerWidgetCover(cover = current.cover, size = coverSize)
-            Spacer(GlanceModifier.width(8.dp))
-          }
+          content
+            ?.takeIf { size.width >= 280.dp }
+            ?.let { current ->
+              PlayerWidgetCover(cover = current.cover, size = coverSize)
+              Spacer(GlanceModifier.width(8.dp))
+            }
           Column(modifier = GlanceModifier.defaultWeight()) {
             Text(
               text = content?.title ?: context.getString(R.string.player_widget_nothing_playing),
@@ -67,6 +70,37 @@ class PlayerWidget : GlanceAppWidget() {
                 text = current.author,
                 style = TextStyle(color = ColorProvider(Color.White), fontSize = 14.sp),
                 maxLines = 1,
+              )
+            }
+          }
+          content?.let { current ->
+            Spacer(GlanceModifier.width(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              PlayerWidgetControlButton(
+                icon = CoreR.drawable.fast_rewind,
+                contentDescription = context.getString(CoreR.string.seek_back),
+                enabled = current.seekBackEnabled,
+                tint = Color.White,
+                action = widgetAction(WIDGET_ACTION_SEEK_BACK),
+              )
+              PlayerWidgetControlButton(
+                icon =
+                  if (current.showPlayIcon) CoreR.drawable.play_arrow else CoreR.drawable.pause,
+                contentDescription =
+                  context.getString(
+                    if (current.showPlayIcon) CoreR.string.play else CoreR.string.pause
+                  ),
+                enabled = current.playPauseEnabled,
+                tint = Color(0xFF8C4F00),
+                action = widgetAction(WIDGET_ACTION_PLAY_PAUSE),
+                background = Color.White,
+              )
+              PlayerWidgetControlButton(
+                icon = CoreR.drawable.fast_forward,
+                contentDescription = context.getString(CoreR.string.seek_forward),
+                enabled = current.seekForwardEnabled,
+                tint = Color.White,
+                action = widgetAction(WIDGET_ACTION_SEEK_FORWARD),
               )
             }
           }

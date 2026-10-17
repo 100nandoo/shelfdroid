@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 
@@ -63,13 +63,13 @@ fun MyFilledTonalIconButtonPreview() {
           enabled = true,
           size = 72,
           onClick = {},
-          painter = painterResource(R.drawable.play_arrow),
+          painter = painterResource(CoreR.drawable.play_arrow),
           contentDescription = "",
         )
         MyFilledTonalIconButton(
           enabled = true,
           onClick = {},
-          painter = painterResource(R.drawable.pause),
+          painter = painterResource(CoreR.drawable.pause),
           contentDescription = "",
         )
       }
