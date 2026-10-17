@@ -590,6 +590,10 @@
     <string name="home_screen">Home Screen</string>
     <string name="playback_settings_and_behaviour">Playback settings and behaviour</string>
     <string name="player">Player</string>
+    <string name="widget">Widget</string>
+    <string name="widget_settings_description">Add the Player widget to your home screen to control current playback.</string>
+    <string name="add_widget">Add widget</string>
+    <string name="widget_pin_request_failed">Could not add widget</string>
     <string name="playback">Playback</string>
     <string name="notification">Notification</string>
     <string name="notification_settings_supporting">Media notification settings</string>

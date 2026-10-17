@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -120,6 +121,21 @@ class AppTest {
     composeTestRule.onNodeWithText("Login").performClick()
 
     composeTestRule.onNodeWithText("Daily Bytes", useUnmergedTree = true).assertExists()
+  }
+
+  @Test
+  fun widget_settings_can_be_opened_from_settings() {
+    launchMainActivity()
+    login()
+
+    repeat(2) {
+      composeTestRule.onRoot().performTouchInput { swipeLeft() }
+      composeTestRule.waitForIdle()
+    }
+    composeTestRule.onAllNodesWithText("Settings")[1].performClick()
+    composeTestRule.onNodeWithText("Widget").performScrollTo().performClick()
+
+    composeTestRule.onNodeWithText("Add widget").assertExists()
   }
 
   @Test

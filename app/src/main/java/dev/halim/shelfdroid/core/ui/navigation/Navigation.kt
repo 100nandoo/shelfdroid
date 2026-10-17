@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -64,6 +65,7 @@ import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsLis
 import dev.halim.shelfdroid.core.ui.screen.settings.notification.SettingsNotificationScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.player.SettingsPlayerScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
+import dev.halim.shelfdroid.core.ui.screen.settings.widget.SettingsWidgetScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import dev.halim.shelfdroid.core.ui.screen.userinfo.UserInfoScreen
 import dev.halim.shelfdroid.core.ui.screen.usersettings.UserSettingsScreen
@@ -71,6 +73,7 @@ import dev.halim.shelfdroid.core.ui.screen.usersettings.changepassword.ChangePas
 import dev.halim.shelfdroid.core.ui.screen.usersettings.edit.EditUserScreen
 import dev.halim.shelfdroid.feature.library.admin.navigation.libraryAdministrationEntries
 import dev.halim.shelfdroid.media.playback.PlayerStore
+import dev.halim.shelfdroid.widget.player.requestPinPlayerWidget
 import kotlinx.coroutines.launch
 
 @Composable
@@ -128,6 +131,7 @@ private fun ColumnScope.NavHostContainer(
   playerController: PlayerController,
   onMediaScreenResume: () -> Unit,
 ) {
+  val context = LocalContext.current
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
   val notificationRuleSavedMessage = stringResource(R.string.notification_rule_saved)
@@ -272,6 +276,7 @@ private fun ColumnScope.NavHostContainer(
           SettingsScreen(
             onHomeClicked = { navigator.navigate(SettingsHome) },
             onPlayerClicked = { navigator.navigate(SettingsPlayer) },
+            onWidgetClicked = { navigator.navigate(SettingsWidget) },
             onPlaybackClicked = { navigator.navigate(SettingsPlayback) },
             onNotificationClicked = { navigator.navigate(SettingsNotification) },
             onPodcastClicked = { navigator.navigate(SettingsPodcast) },
@@ -286,6 +291,14 @@ private fun ColumnScope.NavHostContainer(
         Nav3ScreenWrapper(sharedTransitionScope) { SettingsPlaybackScreen() }
       }
       entry<SettingsPlayer> { Nav3ScreenWrapper(sharedTransitionScope) { SettingsPlayerScreen() } }
+      entry<SettingsWidget> {
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          SettingsWidgetScreen(
+            snackbarHostState = snackbarHostState,
+            onRequestPin = { requestPinPlayerWidget(context, playerStore.uiState.value) },
+          )
+        }
+      }
       entry<SettingsNotification> {
         Nav3ScreenWrapper(sharedTransitionScope) { SettingsNotificationScreen() }
       }

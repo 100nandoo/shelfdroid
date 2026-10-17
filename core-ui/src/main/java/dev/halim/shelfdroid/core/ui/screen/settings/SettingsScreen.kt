@@ -38,6 +38,7 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 fun SettingsScreen(
   viewModel: SettingsViewModel = hiltViewModel(),
   onPlayerClicked: () -> Unit = {},
+  onWidgetClicked: () -> Unit = {},
   onPlaybackClicked: () -> Unit = {},
   onNotificationClicked: () -> Unit = {},
   onPodcastClicked: () -> Unit = {},
@@ -71,6 +72,7 @@ fun SettingsScreen(
     version = version,
     user = uiState.username,
     onPlayerClicked = onPlayerClicked,
+    onWidgetClicked = onWidgetClicked,
     onHomeClicked = onHomeClicked,
     onPlaybackClicked = onPlaybackClicked,
     onNotificationClicked = onNotificationClicked,
@@ -97,6 +99,7 @@ fun SettingsScreenContent(
   version: String = Defaults.VERSION,
   user: String = Defaults.USERNAME,
   onPlayerClicked: () -> Unit = {},
+  onWidgetClicked: () -> Unit = {},
   onPlaybackClicked: () -> Unit = {},
   onNotificationClicked: () -> Unit = {},
   onPodcastClicked: () -> Unit = {},
@@ -131,6 +134,13 @@ fun SettingsScreenContent(
       supportingText =
         stringResource(R.string.settings_and_behaviour, stringResource(R.string.player)),
       onClick = onPlayerClicked,
+    )
+
+    SettingsClickLabel(
+      text = stringResource(R.string.widget),
+      supportingText =
+        stringResource(R.string.settings_and_behaviour, stringResource(R.string.widget)),
+      onClick = onWidgetClicked,
     )
 
     SettingsClickLabel(
