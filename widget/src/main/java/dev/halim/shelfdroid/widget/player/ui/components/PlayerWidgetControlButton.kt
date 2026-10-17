@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.widget.player.components
+package dev.halim.shelfdroid.widget.player.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color

@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.widget.player
+package dev.halim.shelfdroid.widget.player.ui
 
 import android.content.Context
 import android.os.Build
@@ -8,6 +8,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.glance.material3.ColorProviders
 import dev.halim.shelfdroid.core.ui.theme.darkScheme
 import dev.halim.shelfdroid.core.ui.theme.lightScheme
+import dev.halim.shelfdroid.widget.player.playerWidgetDataStoreManager
 import kotlinx.coroutines.flow.first
 
 internal suspend fun playerWidgetColorProviders(context: Context) =

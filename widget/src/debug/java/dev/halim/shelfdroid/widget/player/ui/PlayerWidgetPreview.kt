@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.widget.player
+package dev.halim.shelfdroid.widget.player.ui
 
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceTheme
@@ -7,6 +7,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.halim.shelfdroid.core.ui.theme.darkScheme
 import dev.halim.shelfdroid.core.ui.theme.lightScheme
+import dev.halim.shelfdroid.widget.player.PlayerWidgetData
 
 private val previewPlayerWidgetData =
   PlayerWidgetData(

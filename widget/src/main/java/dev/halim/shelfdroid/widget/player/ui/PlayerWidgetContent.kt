@@ -1,4 +1,4 @@
-package dev.halim.shelfdroid.widget.player
+package dev.halim.shelfdroid.widget.player.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -23,8 +23,13 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.widget.R
-import dev.halim.shelfdroid.widget.player.components.PlayerWidgetControlButton
-import dev.halim.shelfdroid.widget.player.components.PlayerWidgetCover
+import dev.halim.shelfdroid.widget.player.PlayerWidgetData
+import dev.halim.shelfdroid.widget.player.WIDGET_ACTION_PLAY_PAUSE
+import dev.halim.shelfdroid.widget.player.WIDGET_ACTION_SEEK_BACK
+import dev.halim.shelfdroid.widget.player.WIDGET_ACTION_SEEK_FORWARD
+import dev.halim.shelfdroid.widget.player.ui.components.PlayerWidgetControlButton
+import dev.halim.shelfdroid.widget.player.ui.components.PlayerWidgetCover
+import dev.halim.shelfdroid.widget.player.widgetAction
 
 @Composable
 internal fun PlayerWidgetContent(content: PlayerWidgetData?) {

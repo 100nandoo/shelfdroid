@@ -8,6 +8,8 @@ import androidx.glance.GlanceTheme
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
+import dev.halim.shelfdroid.widget.player.ui.PlayerWidgetContent
+import dev.halim.shelfdroid.widget.player.ui.playerWidgetColorProviders
 
 class PlayerWidget : GlanceAppWidget() {
   override val sizeMode = SizeMode.Exact
