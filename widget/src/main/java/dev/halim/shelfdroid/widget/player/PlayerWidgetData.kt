@@ -30,7 +30,7 @@ internal val playerWidgetPreviewData =
     showPlayIcon = true,
     seekBackEnabled = true,
     seekForwardEnabled = true,
-    coverResource = R.drawable.sherlock_holmes_paget,
+    coverResource = R.drawable.sherlock_holmes_portrait_with_pipe,
   )
 
 internal fun PlayerUiState.toPlayerWidgetData(): PlayerWidgetData? =

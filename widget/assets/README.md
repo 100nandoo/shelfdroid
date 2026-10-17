@@ -1,7 +1,7 @@
 # Widget preview artwork
 
-`../src/main/res/drawable-nodpi/sherlock_holmes_paget.jpg` is Sidney Paget's 1904 public-domain portrait of Sherlock Holmes. The Wikimedia Commons file page identifies the artist, source, date, and public-domain status:
+`../src/main/res/drawable-nodpi/sherlock_holmes_portrait_with_pipe.jpg` is a public-domain portrait of Sherlock Holmes, dated 1907 and attributed to Alfred Roloff (1879–1951). Wikimedia Commons lists the work as public domain and records its dimensions as 950 × 996 pixels, close to square:
 
-- https://commons.wikimedia.org/wiki/File:Sherlock_Holmes_Portrait_Paget.jpg
+- https://commons.wikimedia.org/wiki/File:Sherlock_Holmes,_portrait_with_pipe.png
 
-`../src/main/res/drawable-nodpi/player_widget_preview.png` is a capture of the generated player widget preview shown in the Android 17 widget picker. It uses the artwork above. Re-capture it if the widget preview design changes.
+`../src/main/res/drawable-nodpi/player_widget_preview.png` is a capture of the generated player widget preview shown in the Android 17 widget picker. It uses the artwork above. Re-capture it if the widget preview design or artwork changes.
