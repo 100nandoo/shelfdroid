@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.Action
@@ -21,13 +22,13 @@ internal fun PlayerWidgetControlButton(
   icon: Int,
   contentDescription: String,
   enabled: Boolean,
-  tint: Color,
+  tint: ColorProvider,
   action: Action,
-  background: Color? = null,
+  background: ColorProvider? = null,
 ) {
   var modifier =
     GlanceModifier.size(48.dp)
-      .background(ColorProvider(background ?: Color.Transparent))
+      .background(background ?: ColorProvider(Color.Transparent))
       .cornerRadius(24.dp)
   if (enabled) modifier = modifier.clickable(action)
 
@@ -36,7 +37,7 @@ internal fun PlayerWidgetControlButton(
       provider = ImageProvider(icon),
       contentDescription = contentDescription,
       modifier = GlanceModifier.size(24.dp),
-      colorFilter = ColorFilter.tint(ColorProvider(tint.copy(alpha = if (enabled) 1f else 0.38f))),
+      colorFilter = ColorFilter.tint(if (enabled) tint else GlanceTheme.colors.outline),
     )
   }
 }

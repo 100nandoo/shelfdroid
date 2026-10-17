@@ -30,6 +30,8 @@ android {
 dependencies {
   // Project modules
   implementation(project(libs.versions.core.get()))
+  implementation(project(libs.versions.coreDatastore.get()))
+  implementation(project(libs.versions.coreUi.get()))
   implementation(project(libs.versions.media.get()))
 
   // Hilt
@@ -42,7 +44,11 @@ dependencies {
   // Compose and Glance
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.compose.ui)
+  implementation(libs.androidx.compose.material3)
+  implementation(libs.androidx.glance)
   implementation(libs.androidx.glance.appwidget)
+  debugImplementation(libs.androidx.glance.preview)
+  debugImplementation(libs.androidx.glance.appwidget.preview)
 
   // Coil
   implementation(libs.coil)

@@ -1,6 +1,6 @@
 # Player widget theme
 
-Status: Design decisions settled; implementation awaits shared-understanding confirmation.
+Status: Complete.
 
 ## Agreed behavior
 
