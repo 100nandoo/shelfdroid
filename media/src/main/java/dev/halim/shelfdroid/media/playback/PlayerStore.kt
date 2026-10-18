@@ -141,13 +141,30 @@ constructor(
 
   private fun chapterFromWidget(isPrevious: Boolean): Boolean {
     val currentUiState = uiState.value
-    val chapters = currentUiState.playerChapters
-    val chapterIndex = currentUiState.currentChapter?.let(chapters::indexOf) ?: -1
+    val isEpisode = currentUiState.episodeId.isNotBlank()
+    val chapters = if (isEpisode) currentUiState.episodeChapters else currentUiState.playerChapters
+    val currentChapter =
+      if (isEpisode) currentUiState.currentEpisodeChapter else currentUiState.currentChapter
+    val chapterIndex = currentChapter?.let(chapters::indexOf) ?: -1
     val canMove =
       chapters.size > 1 &&
         chapterIndex in chapters.indices &&
         if (isPrevious) chapterIndex > 0 else chapterIndex < chapters.lastIndex
     if (!canMove) return false
+
+    if (isEpisode) {
+      val player = playerManager.player.get()
+      if (!player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)) return false
+      val targetIndex = chapterIndex + if (isPrevious) -1 else 1
+      val targetChapter = chapters[targetIndex]
+      player.seekTo((targetChapter.startTimeSeconds * 1000).toLong())
+      uiState.value =
+        currentUiState.copy(
+          currentTime = targetChapter.startTimeSeconds,
+          currentEpisodeChapter = targetChapter,
+        )
+      return true
+    }
 
     return changeChapter(currentUiState, isPrevious)
   }

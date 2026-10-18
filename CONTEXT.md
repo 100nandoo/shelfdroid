@@ -87,8 +87,8 @@ The date and time after which the Audiobookshelf server should look for new **Ep
 _Avoid_: lastEpisodeCheck, last checked
 
 **Chapter**:
-A named segment inside a book.
-_Avoid_: Track, episode
+A named segment within a book or podcast episode.
+_Avoid_: Track
 
 **Series**:
 A named server-managed sequence that groups related **Books**, optionally with per-book ordering.

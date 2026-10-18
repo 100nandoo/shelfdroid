@@ -86,12 +86,32 @@ class PlayerWidgetContentTest {
         episodeId = "episode",
         title = "Episode title",
         author = "Podcast creator",
+        libraryItemTitle = "Podcast name",
       )
 
     assertEquals("Episode title", episode.toPlayerWidgetData()?.title)
-    assertEquals("Podcast creator", episode.toPlayerWidgetData()?.author)
+    assertEquals("Podcast name", episode.toPlayerWidgetData()?.author)
     assertNull(episode.copy(id = "").toPlayerWidgetData())
     assertEquals("", episode.copy(title = "").toPlayerWidgetData()?.title)
+  }
+
+  @Test
+  fun `book widget metadata keeps book title separate from current chapter`() {
+    val book =
+      PlayerUiState(
+        id = "book",
+        title = "Chapter title",
+        author = "Book author",
+        libraryItemTitle = "Book title",
+        playerChapters = listOf(PlayerChapter(id = 1, title = "Chapter title")),
+        currentChapter = PlayerChapter(id = 1, title = "Chapter title"),
+      )
+
+    val content = book.toPlayerWidgetData()!!
+
+    assertEquals("Book title", content.title)
+    assertEquals("Book author", content.author)
+    assertEquals("Chapter title", content.chapterTitle)
   }
 
   @Test
@@ -106,8 +126,8 @@ class PlayerWidgetContentTest {
       PlayerUiState(
         id = "podcast",
         episodeId = "episode",
-        playerChapters = chapters,
-        currentChapter = chapters[1],
+        episodeChapters = chapters,
+        currentEpisodeChapter = chapters[1],
       )
 
     val content = episode.toPlayerWidgetData()!!
@@ -116,10 +136,19 @@ class PlayerWidgetContentTest {
     assertTrue(content.showChapterNavigation)
     assertTrue(content.previousChapterEnabled)
     assertTrue(content.nextChapterEnabled)
-    assertFalse(episode.copy(currentChapter = chapters.first()).toPlayerWidgetData()!!.previousChapterEnabled)
-    assertFalse(episode.copy(currentChapter = chapters.last()).toPlayerWidgetData()!!.nextChapterEnabled)
     assertFalse(
-      episode.copy(playerChapters = chapters.take(1), currentChapter = chapters.first())
+      episode.copy(currentEpisodeChapter = chapters.first()).toPlayerWidgetData()!!
+        .previousChapterEnabled
+    )
+    assertFalse(
+      episode.copy(currentEpisodeChapter = chapters.last()).toPlayerWidgetData()!!
+        .nextChapterEnabled
+    )
+    assertFalse(
+      episode.copy(
+        episodeChapters = chapters.take(1),
+        currentEpisodeChapter = chapters.first(),
+      )
         .toPlayerWidgetData()!!
         .showChapterNavigation
     )

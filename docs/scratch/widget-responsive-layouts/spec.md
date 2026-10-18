@@ -40,6 +40,8 @@ Status: Implemented.
 
 - Use compact when available height is below 104dp or width is below 220dp; use medium from 104dp through 175dp; use large from 176dp upward when width is at least 220dp.
 - Glance unit tests verify content and click actions at 320×72dp, 320×128dp, and 320×180dp, including first/last chapter states and the empty state. Player data tests cover podcast chapter metadata and navigation visibility.
+- Playback state keeps the library item name available alongside the current chapter or episode title. Podcast audio-file chapters populate widget chapter metadata, and widget navigation seeks to an adjacent episode chapter while preserving playback state.
+- Media tests verify podcast chapter seek targets, first-chapter boundaries, and that chapter actions do not toggle play or pause.
 - The Glance tests inspect the emitted content/action tree; they do not render pixels for screenshot-based clipping checks.
 - `./gradlew test` passes.
 
@@ -50,4 +52,4 @@ Status: Implemented.
 - Notification chapter controls currently exclude podcasts and books with fewer than two chapters.
 - Current active widget artwork and metadata do not launch the player; the empty widget launches ShelfDroid.
 
-No glossary change is needed so far: Player widget, Current playback, Chapter, and Seek interval already have definitions in CONTEXT.md. These reversible presentation choices do not require an ADR.
+The Chapter definition in CONTEXT.md covers both books and podcast episodes. These reversible presentation choices do not require an ADR.
