@@ -45,32 +45,34 @@ internal fun PlayerWidgetContent(content: PlayerWidgetData?) {
         .padding(horizontal = 8.dp, vertical = 4.dp),
     contentAlignment = Alignment.Center,
   ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      content
-        ?.takeIf { size.width >= 280.dp }
-        ?.let { current ->
-          PlayerWidgetCover(
-            cover = current.cover,
-            size = coverSize,
-            previewCoverResource = current.coverResource,
-          )
-          Spacer(GlanceModifier.width(8.dp))
-        }
-      Column(modifier = GlanceModifier.defaultWeight()) {
-        Text(
-          text = content?.title ?: context.getString(R.string.player_widget_nothing_playing),
-          style =
-            TextStyle(
-              color = GlanceTheme.colors.onSurface,
-              fontFamily = FontFamily.Serif,
-              fontSize = 16.sp,
-              fontWeight = FontWeight.Medium,
-            ),
-          maxLines = if (size.height < 80.dp) 1 else 2,
-        )
-        content?.let { current ->
+    if (content == null) {
+      PlayerWidgetEmptyState()
+    } else {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        content
+          .takeIf { size.width >= 280.dp }
+          ?.let { current ->
+            PlayerWidgetCover(
+              cover = current.cover,
+              size = coverSize,
+              previewCoverResource = current.coverResource,
+            )
+            Spacer(GlanceModifier.width(8.dp))
+          }
+        Column(modifier = GlanceModifier.defaultWeight()) {
           Text(
-            text = current.author,
+            text = content.title,
+            style =
+              TextStyle(
+                color = GlanceTheme.colors.onSurface,
+                fontFamily = FontFamily.Serif,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+              ),
+            maxLines = if (size.height < 80.dp) 1 else 2,
+          )
+          Text(
+            text = content.author,
             style =
               TextStyle(
                 color = GlanceTheme.colors.onSurfaceVariant,
@@ -81,25 +83,23 @@ internal fun PlayerWidgetContent(content: PlayerWidgetData?) {
             maxLines = 1,
           )
         }
-      }
-      content?.let { current ->
         Spacer(GlanceModifier.width(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
           PlayerWidgetControlButton(
             icon = CoreR.drawable.fast_rewind,
             contentDescription = context.getString(CoreR.string.seek_back),
-            enabled = current.seekBackEnabled,
+            enabled = content.seekBackEnabled,
             tint = GlanceTheme.colors.onSurfaceVariant,
             action = widgetAction(WIDGET_ACTION_SEEK_BACK),
           )
           Spacer(GlanceModifier.width(2.dp))
           PlayerWidgetControlButton(
-            icon = if (current.showPlayIcon) CoreR.drawable.play_arrow else CoreR.drawable.pause,
+            icon = if (content.showPlayIcon) CoreR.drawable.play_arrow else CoreR.drawable.pause,
             contentDescription =
               context.getString(
-                if (current.showPlayIcon) CoreR.string.play else CoreR.string.pause
+                if (content.showPlayIcon) CoreR.string.play else CoreR.string.pause
               ),
-            enabled = current.playPauseEnabled,
+            enabled = content.playPauseEnabled,
             tint = GlanceTheme.colors.onPrimary,
             action = widgetAction(WIDGET_ACTION_PLAY_PAUSE),
             background = GlanceTheme.colors.primary,
@@ -108,7 +108,7 @@ internal fun PlayerWidgetContent(content: PlayerWidgetData?) {
           PlayerWidgetControlButton(
             icon = CoreR.drawable.fast_forward,
             contentDescription = context.getString(CoreR.string.seek_forward),
-            enabled = current.seekForwardEnabled,
+            enabled = content.seekForwardEnabled,
             tint = GlanceTheme.colors.onSurfaceVariant,
             action = widgetAction(WIDGET_ACTION_SEEK_FORWARD),
           )
