@@ -21,7 +21,9 @@ class PlayerWidget private constructor(private val pinRequestPreviewData: Player
 
   override val sizeMode = SizeMode.Exact
   override val previewSizeMode =
-    SizeMode.Responsive(setOf(DpSize(220.dp, 60.dp), DpSize(320.dp, 96.dp)))
+    SizeMode.Responsive(
+      setOf(DpSize(220.dp, 60.dp), DpSize(320.dp, 128.dp), DpSize(320.dp, 180.dp))
+    )
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
     val colors = playerWidgetColorProviders(context)

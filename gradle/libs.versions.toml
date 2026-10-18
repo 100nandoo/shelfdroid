@@ -46,6 +46,7 @@ coroutines = "1.11.0"
 hilt = "2.60.1"
 junit = "4.13.2"
 mockito = "5.24.0"
+robolectric = "4.16.1"
 kotlin = "2.3.21"
 ksp = "2.3.12"
 kotlinSerialization = "1.11.0"
@@ -80,6 +81,8 @@ androidx-glance = { module = "androidx.glance:glance-material3", version.ref = "
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "androidxGlance" }
 androidx-glance-preview = { module = "androidx.glance:glance-preview", version.ref = "androidxGlance" }
 androidx-glance-appwidget-preview = { module = "androidx.glance:glance-appwidget-preview", version.ref = "androidxGlance" }
+androidx-glance-testing = { module = "androidx.glance:glance-testing", version.ref = "androidxGlance" }
+androidx-glance-appwidget-testing = { module = "androidx.glance:glance-appwidget-testing", version.ref = "androidxGlance" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidxHilt" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
@@ -106,6 +109,7 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 junit = { module = "junit:junit", version.ref = "junit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutines" }

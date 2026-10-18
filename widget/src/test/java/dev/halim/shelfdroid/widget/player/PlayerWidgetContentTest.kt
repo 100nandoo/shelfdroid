@@ -1,6 +1,8 @@
 package dev.halim.shelfdroid.widget.player
 
 import dev.halim.shelfdroid.core.PlayPauseControlState
+import dev.halim.shelfdroid.core.ChapterPosition
+import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.SeekControlsState
@@ -9,6 +11,8 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PlayerWidgetContentTest {
@@ -88,5 +92,36 @@ class PlayerWidgetContentTest {
     assertEquals("Podcast creator", episode.toPlayerWidgetData()?.author)
     assertNull(episode.copy(id = "").toPlayerWidgetData())
     assertEquals("", episode.copy(title = "").toPlayerWidgetData()?.title)
+  }
+
+  @Test
+  fun `chapter metadata and navigation state are available for podcast episodes`() {
+    val chapters =
+      listOf(
+        PlayerChapter(id = 1, title = "First", chapterPosition = ChapterPosition.First),
+        PlayerChapter(id = 2, title = "Middle", chapterPosition = ChapterPosition.Middle),
+        PlayerChapter(id = 3, title = "Last", chapterPosition = ChapterPosition.Last),
+      )
+    val episode =
+      PlayerUiState(
+        id = "podcast",
+        episodeId = "episode",
+        playerChapters = chapters,
+        currentChapter = chapters[1],
+      )
+
+    val content = episode.toPlayerWidgetData()!!
+
+    assertEquals("Middle", content.chapterTitle)
+    assertTrue(content.showChapterNavigation)
+    assertTrue(content.previousChapterEnabled)
+    assertTrue(content.nextChapterEnabled)
+    assertFalse(episode.copy(currentChapter = chapters.first()).toPlayerWidgetData()!!.previousChapterEnabled)
+    assertFalse(episode.copy(currentChapter = chapters.last()).toPlayerWidgetData()!!.nextChapterEnabled)
+    assertFalse(
+      episode.copy(playerChapters = chapters.take(1), currentChapter = chapters.first())
+        .toPlayerWidgetData()!!
+        .showChapterNavigation
+    )
   }
 }

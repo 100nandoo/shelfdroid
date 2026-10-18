@@ -12,6 +12,8 @@ import kotlinx.coroutines.withContext
 internal const val WIDGET_ACTION_SEEK_BACK = "seek_back"
 internal const val WIDGET_ACTION_PLAY_PAUSE = "play_pause"
 internal const val WIDGET_ACTION_SEEK_FORWARD = "seek_forward"
+internal const val WIDGET_ACTION_PREVIOUS_CHAPTER = "previous_chapter"
+internal const val WIDGET_ACTION_NEXT_CHAPTER = "next_chapter"
 
 private val widgetActionKey = ActionParameters.Key<String>("playerWidgetAction")
 
@@ -31,6 +33,8 @@ internal class WidgetControlAction : ActionCallback {
         WIDGET_ACTION_SEEK_BACK -> playerStore.seekBack()
         WIDGET_ACTION_PLAY_PAUSE -> playerStore.playPause()
         WIDGET_ACTION_SEEK_FORWARD -> playerStore.seekForward()
+        WIDGET_ACTION_PREVIOUS_CHAPTER -> playerStore.previousChapterFromWidget()
+        WIDGET_ACTION_NEXT_CHAPTER -> playerStore.nextChapterFromWidget()
       }
     }
     PlayerWidget().update(context, glanceId)

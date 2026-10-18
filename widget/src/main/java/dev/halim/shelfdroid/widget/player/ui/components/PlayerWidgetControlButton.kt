@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.widget.player.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
@@ -15,6 +16,8 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.size
+import androidx.glance.semantics.contentDescription
+import androidx.glance.semantics.semantics
 import androidx.glance.unit.ColorProvider
 
 @Composable
@@ -25,17 +28,21 @@ internal fun PlayerWidgetControlButton(
   tint: ColorProvider,
   action: Action,
   background: ColorProvider? = null,
+  size: Dp = 48.dp,
 ) {
   var modifier =
-    GlanceModifier.size(48.dp)
+    GlanceModifier.size(size)
       .background(background ?: ColorProvider(Color.Transparent))
-      .cornerRadius(24.dp)
+      .cornerRadius(size / 2)
   if (enabled) modifier = modifier.clickable(action)
 
-  Box(modifier = modifier, contentAlignment = Alignment.Center) {
+  Box(
+    modifier = modifier.semantics { this.contentDescription = contentDescription },
+    contentAlignment = Alignment.Center,
+  ) {
     Image(
       provider = ImageProvider(icon),
-      contentDescription = contentDescription,
+      contentDescription = null,
       modifier = GlanceModifier.size(24.dp),
       colorFilter = ColorFilter.tint(if (enabled) tint else GlanceTheme.colors.outline),
     )

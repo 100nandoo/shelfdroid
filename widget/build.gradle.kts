@@ -11,6 +11,8 @@ android {
   namespace = "${libs.versions.namespace.get()}.widget"
   compileSdk = libs.versions.targetSdk.get().toInt()
 
+  testOptions { unitTests { isIncludeAndroidResources = true } }
+
   defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
 
   buildFeatures {
@@ -33,6 +35,7 @@ dependencies {
   implementation(project(libs.versions.coreDatastore.get()))
   implementation(project(libs.versions.coreUi.get()))
   implementation(project(libs.versions.media.get()))
+  implementation(project(libs.versions.helper.get()))
 
   // Hilt
   implementation(libs.hilt.android)
@@ -56,4 +59,8 @@ dependencies {
   // Unit testing
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.androidx.test.core)
+  testImplementation(libs.androidx.glance.testing)
+  testImplementation(libs.androidx.glance.appwidget.testing)
+  testImplementation(libs.robolectric)
 }

@@ -15,6 +15,8 @@ import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
+import androidx.glance.action.Action
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -31,9 +33,17 @@ import coil3.toBitmap
 import dev.halim.shelfdroid.widget.R
 
 @Composable
-internal fun PlayerWidgetCover(cover: String, size: Dp, previewCoverResource: Int? = null) {
+internal fun PlayerWidgetCover(
+  cover: String,
+  size: Dp,
+  previewCoverResource: Int? = null,
+  action: Action? = null,
+) {
   val context = LocalContext.current
-  val modifier = GlanceModifier.size(size).cornerRadius(4.dp)
+  val modifier =
+    GlanceModifier.size(size).cornerRadius(4.dp).let { base ->
+      action?.let(base::clickable) ?: base
+    }
   if (previewCoverResource != null) {
     Image(
       provider = ImageProvider(previewCoverResource),

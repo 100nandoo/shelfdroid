@@ -16,6 +16,10 @@ internal data class PlayerWidgetData(
   val showPlayIcon: Boolean,
   val seekBackEnabled: Boolean,
   val seekForwardEnabled: Boolean,
+  val chapterTitle: String? = null,
+  val showChapterNavigation: Boolean = false,
+  val previousChapterEnabled: Boolean = false,
+  val nextChapterEnabled: Boolean = false,
   val coverResource: Int? = null,
 )
 
@@ -30,6 +34,10 @@ internal val playerWidgetPreviewData =
     showPlayIcon = true,
     seekBackEnabled = true,
     seekForwardEnabled = true,
+    chapterTitle = "The Adventure of the Speckled Band",
+    showChapterNavigation = true,
+    previousChapterEnabled = false,
+    nextChapterEnabled = true,
     coverResource = R.drawable.sherlock_holmes_portrait_with_pipe,
   )
 
@@ -37,6 +45,9 @@ internal fun PlayerUiState.toPlayerWidgetData(): PlayerWidgetData? =
   if (id.isBlank()) {
     null
   } else {
+    val chapterIndex = currentChapter?.let(playerChapters::indexOf) ?: -1
+    val chapterIsAvailable = chapterIndex in playerChapters.indices
+    val showChapterNavigation = playerChapters.size > 1 && chapterIsAvailable
     PlayerWidgetData(
       id = id,
       episodeId = episodeId,
@@ -47,6 +58,11 @@ internal fun PlayerUiState.toPlayerWidgetData(): PlayerWidgetData? =
       showPlayIcon = playPause.showPlayIcon,
       seekBackEnabled = seekControls.seekBackEnabled,
       seekForwardEnabled = seekControls.seekForwardEnabled,
+      chapterTitle =
+        currentChapter?.title?.takeIf { chapterIsAvailable && it.isNotBlank() },
+      showChapterNavigation = showChapterNavigation,
+      previousChapterEnabled = showChapterNavigation && chapterIndex > 0,
+      nextChapterEnabled = showChapterNavigation && chapterIndex < playerChapters.lastIndex,
     )
   }
 

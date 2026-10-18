@@ -125,15 +125,35 @@ constructor(
     return chapterFromMediaNotification(isPrevious = true)
   }
 
+  fun nextChapterFromWidget(): Boolean = chapterFromWidget(isPrevious = false)
+
+  fun previousChapterFromWidget(): Boolean = chapterFromWidget(isPrevious = true)
+
   private fun chapterFromMediaNotification(isPrevious: Boolean): Boolean {
     val currentUiState = uiState.value
     val isEnabled =
       if (isPrevious) previousChapterControlState(currentUiState).enabled
       else nextChapterControlState(currentUiState).enabled
-    if (isChapterTransitioning.value || !isEnabled) {
-      return false
-    }
+    if (!isEnabled) return false
 
+    return changeChapter(currentUiState, isPrevious)
+  }
+
+  private fun chapterFromWidget(isPrevious: Boolean): Boolean {
+    val currentUiState = uiState.value
+    val chapters = currentUiState.playerChapters
+    val chapterIndex = currentUiState.currentChapter?.let(chapters::indexOf) ?: -1
+    val canMove =
+      chapters.size > 1 &&
+        chapterIndex in chapters.indices &&
+        if (isPrevious) chapterIndex > 0 else chapterIndex < chapters.lastIndex
+    if (!canMove) return false
+
+    return changeChapter(currentUiState, isPrevious)
+  }
+
+  private fun changeChapter(currentUiState: PlayerUiState, isPrevious: Boolean): Boolean {
+    if (isChapterTransitioning.value) return false
     isChapterTransitioning.value = true
     return try {
       val shouldPlay = playerManager.player.get().playWhenReady
