@@ -140,6 +140,7 @@ constructor(
         id = result.id,
         author = result.author,
         title = currentChapter?.title ?: result.title,
+        libraryItemTitle = result.title,
         cover = result.cover,
         currentTime = currentTime,
         playerChapters = chapters,
@@ -187,6 +188,12 @@ constructor(
 
       val currentTime =
         if (progress?.isFinished?.toBoolean() == true) 0.0 else progress?.currentTime ?: 0.0
+      val bookChapters = episode.audioFile.chapters.sortedBy { it.start }
+      val episodeChapters =
+        bookChapters.mapIndexed { index, chapter ->
+          mapper.toPlayerChapter(index, chapter, bookChapters.size)
+        }
+      val currentEpisodeChapter = finder.playerChapter(episodeChapters, currentTime)
 
       PlayerUiState(
         state = PlayerState.Small,
@@ -194,9 +201,12 @@ constructor(
         episodeId = episode.id,
         author = result.author,
         title = episode.title,
+        libraryItemTitle = result.title,
         cover = result.cover,
         playerTracks = listOf(playerTrack),
         currentTrack = playerTrack,
+        episodeChapters = episodeChapters,
+        currentEpisodeChapter = currentEpisodeChapter,
         currentTime = currentTime,
         downloadState = downloadState,
         advancedControl = advancedControl,
@@ -265,8 +275,15 @@ constructor(
 
   fun toPlayback(uiState: PlayerUiState, raw: RawPlaybackProgress): PlayerUiState {
     val playbackProgress = mapper.toPlaybackProgress(raw)
+    val currentTime =
+      if (uiState.episodeId.isNotBlank()) raw.positionMs / 1000.0 else uiState.currentTime
+    val currentEpisodeChapter = episodeChapterAt(uiState, currentTime)
 
-    return uiState.copy(playbackProgress = playbackProgress)
+    return uiState.copy(
+      playbackProgress = playbackProgress,
+      currentTime = currentTime,
+      currentEpisodeChapter = currentEpisodeChapter,
+    )
   }
 
   fun seekTo(uiState: PlayerUiState, target: Float): PlayerUiState {
@@ -276,8 +293,20 @@ constructor(
     val currentTime = (positionMs / 1000)
     val raw = RawPlaybackProgress(positionMs, 0)
     val playbackProgress = mapper.toPlaybackProgress(raw)
-    return uiState.copy(playbackProgress = playbackProgress, currentTime = currentTime.toDouble())
+    val currentEpisodeChapter = episodeChapterAt(uiState, currentTime.toDouble())
+    return uiState.copy(
+      playbackProgress = playbackProgress,
+      currentTime = currentTime.toDouble(),
+      currentEpisodeChapter = currentEpisodeChapter,
+    )
   }
+
+  private fun episodeChapterAt(uiState: PlayerUiState, currentTime: Double) =
+    if (uiState.episodeId.isNotBlank()) {
+      finder.playerChapter(uiState.episodeChapters, currentTime)
+    } else {
+      uiState.currentEpisodeChapter
+    }
 
   fun changeSpeed(uiState: PlayerUiState, speed: Float): PlayerUiState {
     val advancedControl = uiState.advancedControl.copy(speed = speed)

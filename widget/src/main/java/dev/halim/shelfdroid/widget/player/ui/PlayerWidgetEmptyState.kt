@@ -6,53 +6,56 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
+import androidx.glance.semantics.semantics
+import androidx.glance.semantics.testTag
 import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import dev.halim.shelfdroid.widget.R
+import dev.halim.shelfdroid.widget.player.widgetLaunchAction
 
 @Composable
 internal fun PlayerWidgetEmptyState() {
   val context = LocalContext.current
-  val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-  val modifier =
-    GlanceModifier.fillMaxSize().let { base ->
-      launchIntent?.let { base.clickable(actionStartActivity(it)) } ?: base
-    }
+  val size = LocalSize.current
+  val action = widgetLaunchAction(context)
 
   Column(
-    modifier = modifier,
+    modifier =
+      GlanceModifier.fillMaxSize().clickable(action).semantics {
+        testTag = "player_widget_empty_state"
+      },
     verticalAlignment = Alignment.CenterVertically,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     Text(
-      text = context.getString(R.string.player_widget_browse_library),
+      text = context.getString(R.string.player_widget_choose_something_to_play),
       style =
         TextStyle(
-          color = GlanceTheme.colors.primary,
+          color = GlanceTheme.colors.onSurface,
           fontFamily = FontFamily.SansSerif,
           fontSize = 16.sp,
           fontWeight = FontWeight.Medium,
         ),
       maxLines = 1,
     )
-    Spacer(GlanceModifier.height(2.dp))
+    Spacer(GlanceModifier.height(if (size.height >= 176.dp) 8.dp else 4.dp))
     Text(
-      text = context.getString(R.string.player_widget_browse_library_hint),
+      text = context.getString(R.string.player_widget_open_shelfdroid),
       style =
         TextStyle(
-          color = GlanceTheme.colors.onSurfaceVariant,
+          color = GlanceTheme.colors.primary,
           fontFamily = FontFamily.SansSerif,
           fontSize = 12.sp,
-          fontWeight = FontWeight.Normal,
+          fontWeight = FontWeight.Medium,
         ),
       maxLines = 1,
     )

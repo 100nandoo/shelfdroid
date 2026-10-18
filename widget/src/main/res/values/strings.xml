@@ -1,8 +1,10 @@
 <resources>
     <string name="player_widget_label">PlayerWidget</string>
     <string name="player_widget_description">Player widget</string>
-    <string name="player_widget_browse_library">Browse your library</string>
-    <string name="player_widget_browse_library_hint">Tap to choose something to play</string>
+    <string name="player_widget_choose_something_to_play">Choose something to play</string>
+    <string name="player_widget_open_shelfdroid">Open ShelfDroid</string>
+    <string name="player_widget_previous_chapter">Previous chapter</string>
+    <string name="player_widget_next_chapter">Next chapter</string>
     <string name="player_widget_no_cover">No cover</string>
     <string name="player_widget_cover_image">Library item cover image</string>
 </resources>
