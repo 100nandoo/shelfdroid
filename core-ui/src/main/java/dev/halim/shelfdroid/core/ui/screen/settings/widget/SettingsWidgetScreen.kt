@@ -7,16 +7,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.halim.shelfdroid.core.ui.R
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -32,12 +34,10 @@ fun SettingsWidgetScreen(
     modifier = Modifier.fillMaxSize().padding(16.dp),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    Text(text = stringResource(R.string.widget), style = MaterialTheme.typography.titleLarge)
-    Spacer(modifier = Modifier.height(8.dp))
     Text(text = stringResource(R.string.widget_settings_description))
     Spacer(modifier = Modifier.height(16.dp))
-    Button(
-      modifier = Modifier.fillMaxWidth(),
+    TextButton(
+      modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
       onClick = {
         coroutineScope.launch {
           val requestSent =
@@ -54,5 +54,16 @@ fun SettingsWidgetScreen(
     ) {
       Text(text = stringResource(R.string.add_widget))
     }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun SettingsWidgetScreenPreview() {
+  PreviewWrapper {
+    SettingsWidgetScreen(
+      snackbarHostState = remember { SnackbarHostState() },
+      onRequestPin = { false },
+    )
   }
 }

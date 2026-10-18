@@ -12,12 +12,11 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.widget.player.PlayerWidgetReceiver
 import dev.halim.shelfdroid.widget.player.ui.PlayerWidgetContent
 import dev.halim.shelfdroid.widget.player.ui.playerWidgetColorProviders
 
-class PlayerWidget
-private constructor(private val pinRequestPreviewData: PlayerWidgetData?) : GlanceAppWidget() {
+class PlayerWidget private constructor(private val pinRequestPreviewData: PlayerWidgetData?) :
+  GlanceAppWidget() {
   constructor() : this(null)
 
   override val sizeMode = SizeMode.Exact

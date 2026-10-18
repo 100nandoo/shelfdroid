@@ -22,8 +22,7 @@ import dev.halim.shelfdroid.widget.R
 @Composable
 internal fun PlayerWidgetEmptyState() {
   val context = LocalContext.current
-  val launchIntent =
-    context.packageManager.getLaunchIntentForPackage(context.packageName)
+  val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
   val modifier =
     GlanceModifier.fillMaxSize().let { base ->
       launchIntent?.let { base.clickable(actionStartActivity(it)) } ?: base
