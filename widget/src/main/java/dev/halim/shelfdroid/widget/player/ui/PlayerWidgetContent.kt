@@ -45,16 +45,18 @@ import dev.halim.shelfdroid.widget.player.ui.components.PlayerWidgetControlButto
 import dev.halim.shelfdroid.widget.player.ui.components.PlayerWidgetCover
 import dev.halim.shelfdroid.widget.player.widgetAction
 
-private val compactHeight = 104.dp
+private val compactHeight = 116.dp
 private val largeHeight = 176.dp
+private val largeAboveCoverHeight = 302.dp
 private val minimumWidgetWidth = 220.dp
 
 @Composable
 internal fun PlayerWidgetContent(content: PlayerWidgetData?) {
   val context = LocalContext.current
   val size = LocalSize.current
-  val layout = playerWidgetLayout(size.width, size.height)
-  val verticalPadding = if (layout == PlayerWidgetLayout.Large) 2.dp else 4.dp
+  val fontScale = context.resources.configuration.fontScale.coerceAtLeast(1f)
+  val layout = playerWidgetLayout(size.width, size.height, fontScale)
+  val verticalPadding = if (layout == PlayerWidgetLayout.Compact) 4.dp else 2.dp
 
   Box(
     modifier =
@@ -87,12 +89,14 @@ private enum class PlayerWidgetLayout {
   Large,
 }
 
-private fun playerWidgetLayout(width: Dp, height: Dp): PlayerWidgetLayout =
-  when {
-    width < minimumWidgetWidth || height < compactHeight -> PlayerWidgetLayout.Compact
+private fun playerWidgetLayout(width: Dp, height: Dp, fontScale: Float): PlayerWidgetLayout {
+  val mediumHeight = compactHeight + 48.dp * (fontScale - 1f)
+  return when {
+    width < minimumWidgetWidth || height < mediumHeight -> PlayerWidgetLayout.Compact
     height >= largeHeight -> PlayerWidgetLayout.Large
     else -> PlayerWidgetLayout.Medium
   }
+}
 
 @Composable
 private fun CompactPlayerWidget(
@@ -139,8 +143,10 @@ private fun MediumPlayerWidget(
   openPlayerAction: Action?,
 ) {
   val coverSize = minOf(72.dp, (height - 64.dp).coerceAtLeast(48.dp))
-  val titleLines = if (height >= 144.dp) 2 else 1
-  val chapterLines = if (height >= 160.dp) 2 else 1
+  val fontScale = LocalContext.current.resources.configuration.fontScale.coerceAtLeast(1f)
+  val metadataHeight = height - 56.dp
+  val titleLines = if (metadataHeight >= 66.dp * fontScale) 2 else 1
+  val chapterLines = if (metadataHeight >= 80.dp * fontScale) 2 else 1
 
   Column(
     modifier = GlanceModifier.fillMaxWidth(),
@@ -174,42 +180,90 @@ private fun LargePlayerWidget(
   height: Dp,
   openPlayerAction: Action?,
 ) {
-  val coverSize = minOf(96.dp, (height - 132.dp).coerceAtLeast(48.dp))
-  val textLines = if (height >= 288.dp) 2 else 1
+  val fontScale = LocalContext.current.resources.configuration.fontScale.coerceAtLeast(1f)
   val spacing = if (height >= 240.dp) 8.dp else 2.dp
+  // Keep art and two-line metadata from shrinking at the side-to-stacked transition.
+  val sideCover = height < largeAboveCoverHeight || fontScale > 1f
+  val coverSize =
+    if (sideCover) {
+      minOf(96.dp, (height - 108.dp).coerceAtLeast(48.dp))
+    } else {
+      minOf(96.dp, (height - 164.dp).coerceAtLeast(48.dp))
+    }
+  val metadataHeight =
+    if (sideCover) {
+      height - 100.dp - (spacing * 3)
+    } else {
+      height - coverSize - 100.dp - (spacing * 3)
+    }
+  val titleLines = if (metadataHeight >= 68.dp * fontScale) 2 else 1
+  val chapterLines = if (metadataHeight >= 82.dp * fontScale) 2 else 1
 
   Column(
     modifier = GlanceModifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    PlayerWidgetCover(
-      cover = content.cover,
-      size = coverSize,
-      previewCoverResource = content.coverResource,
-      action = openPlayerAction,
-    )
-    Spacer(GlanceModifier.height(spacing))
-    when {
-      content.title.isNotBlank() && content.author.isNotBlank() ->
-        Row(
-          modifier = GlanceModifier.fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          WidgetTitle(content.title, textLines, openPlayerAction, GlanceModifier.defaultWeight())
-          WidgetAuthor(content.author, GlanceModifier.defaultWeight())
+    if (sideCover) {
+      Row(
+        modifier = GlanceModifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        PlayerWidgetCover(
+          cover = content.cover,
+          size = coverSize,
+          previewCoverResource = content.coverResource,
+          action = openPlayerAction,
+        )
+        Spacer(GlanceModifier.width(8.dp))
+        Column(modifier = GlanceModifier.defaultWeight()) {
+          content.title.takeIf { it.isNotBlank() }?.let {
+            WidgetTitle(it, titleLines, openPlayerAction)
+          }
+          if (content.author.isNotBlank() || content.chapterTitle != null) {
+            Row(
+              modifier = GlanceModifier.fillMaxWidth(),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              content.author.takeIf { it.isNotBlank() }?.let {
+                WidgetAuthor(it, GlanceModifier.defaultWeight())
+              }
+              content.chapterTitle?.let {
+                WidgetChapterTitle(it, chapterLines, GlanceModifier.defaultWeight())
+              }
+            }
+          }
         }
-      content.title.isNotBlank() ->
-        WidgetTitle(content.title, textLines, openPlayerAction, GlanceModifier.fillMaxWidth())
-      content.author.isNotBlank() ->
-        WidgetAuthor(content.author, GlanceModifier.fillMaxWidth())
-    }
-    content.chapterTitle?.let {
-      WidgetChapterTitle(it, textLines, modifier = GlanceModifier.fillMaxWidth())
+      }
+    } else {
+      PlayerWidgetCover(
+        cover = content.cover,
+        size = coverSize,
+        previewCoverResource = content.coverResource,
+        action = openPlayerAction,
+      )
+      Spacer(GlanceModifier.height(spacing))
+      when {
+        content.title.isNotBlank() && content.author.isNotBlank() ->
+          Row(
+            modifier = GlanceModifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            WidgetTitle(content.title, titleLines, openPlayerAction, GlanceModifier.defaultWeight())
+            WidgetAuthor(content.author, GlanceModifier.defaultWeight())
+          }
+        content.title.isNotBlank() ->
+          WidgetTitle(content.title, titleLines, openPlayerAction, GlanceModifier.fillMaxWidth())
+        content.author.isNotBlank() ->
+          WidgetAuthor(content.author, GlanceModifier.fillMaxWidth())
+      }
+      content.chapterTitle?.let {
+        WidgetChapterTitle(it, chapterLines, modifier = GlanceModifier.fillMaxWidth())
+      }
     }
     Spacer(GlanceModifier.height(spacing))
     MainPlaybackControls(context, content)
     if (content.showChapterNavigation) {
-      Spacer(GlanceModifier.height(2.dp))
+      Spacer(GlanceModifier.height(spacing))
       ChapterNavigationControls(content)
     }
   }
@@ -328,7 +382,6 @@ private fun ChapterNavigationControls(content: PlayerWidgetData) {
       enabled = content.previousChapterEnabled,
       tint = GlanceTheme.colors.onSurfaceVariant,
       action = widgetAction(WIDGET_ACTION_PREVIOUS_CHAPTER),
-      size = 40.dp,
     )
     Spacer(GlanceModifier.width(8.dp))
     PlayerWidgetControlButton(
@@ -337,7 +390,6 @@ private fun ChapterNavigationControls(content: PlayerWidgetData) {
       enabled = content.nextChapterEnabled,
       tint = GlanceTheme.colors.onSurfaceVariant,
       action = widgetAction(WIDGET_ACTION_NEXT_CHAPTER),
-      size = 40.dp,
     )
   }
 }

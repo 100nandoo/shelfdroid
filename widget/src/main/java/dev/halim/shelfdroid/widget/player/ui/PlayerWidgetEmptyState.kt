@@ -15,6 +15,8 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
+import androidx.glance.semantics.semantics
+import androidx.glance.semantics.testTag
 import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -34,7 +36,10 @@ internal fun PlayerWidgetEmptyState() {
   val action = actionStartActivity(launchIntent)
 
   Column(
-    modifier = GlanceModifier.fillMaxSize(),
+    modifier =
+      GlanceModifier.fillMaxSize().clickable(action).semantics {
+        testTag = "player_widget_empty_state"
+      },
     verticalAlignment = Alignment.CenterVertically,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
@@ -52,7 +57,6 @@ internal fun PlayerWidgetEmptyState() {
     Spacer(GlanceModifier.height(if (size.height >= 176.dp) 8.dp else 4.dp))
     Text(
       text = context.getString(R.string.player_widget_open_shelfdroid),
-      modifier = GlanceModifier.clickable(action),
       style =
         TextStyle(
           color = GlanceTheme.colors.primary,

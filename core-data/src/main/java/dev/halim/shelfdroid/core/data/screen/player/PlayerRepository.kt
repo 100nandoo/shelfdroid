@@ -277,12 +277,7 @@ constructor(
     val playbackProgress = mapper.toPlaybackProgress(raw)
     val currentTime =
       if (uiState.episodeId.isNotBlank()) raw.positionMs / 1000.0 else uiState.currentTime
-    val currentEpisodeChapter =
-      if (uiState.episodeId.isNotBlank()) {
-        finder.playerChapter(uiState.episodeChapters, currentTime)
-      } else {
-        uiState.currentEpisodeChapter
-      }
+    val currentEpisodeChapter = episodeChapterAt(uiState, currentTime)
 
     return uiState.copy(
       playbackProgress = playbackProgress,
@@ -298,18 +293,20 @@ constructor(
     val currentTime = (positionMs / 1000)
     val raw = RawPlaybackProgress(positionMs, 0)
     val playbackProgress = mapper.toPlaybackProgress(raw)
-    val currentEpisodeChapter =
-      if (uiState.episodeId.isNotBlank()) {
-        finder.playerChapter(uiState.episodeChapters, currentTime.toDouble())
-      } else {
-        uiState.currentEpisodeChapter
-      }
+    val currentEpisodeChapter = episodeChapterAt(uiState, currentTime.toDouble())
     return uiState.copy(
       playbackProgress = playbackProgress,
       currentTime = currentTime.toDouble(),
       currentEpisodeChapter = currentEpisodeChapter,
     )
   }
+
+  private fun episodeChapterAt(uiState: PlayerUiState, currentTime: Double) =
+    if (uiState.episodeId.isNotBlank()) {
+      finder.playerChapter(uiState.episodeChapters, currentTime)
+    } else {
+      uiState.currentEpisodeChapter
+    }
 
   fun changeSpeed(uiState: PlayerUiState, speed: Float): PlayerUiState {
     val advancedControl = uiState.advancedControl.copy(speed = speed)
