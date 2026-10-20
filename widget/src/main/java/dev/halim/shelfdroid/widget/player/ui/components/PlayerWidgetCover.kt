@@ -8,12 +8,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
+import androidx.glance.LocalSize
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
@@ -39,10 +41,13 @@ internal fun PlayerWidgetCover(
   action: Action? = null,
 ) {
   val context = LocalContext.current
-  val modifier =
-    GlanceModifier.size(size).cornerRadius(R.dimen.player_widget_background_radius).let { base ->
-      action?.let(base::clickable) ?: base
+  val coverModifier =
+    if (LocalSize.current.height < 116.dp) {
+      GlanceModifier.size(size).cornerRadius(4.dp)
+    } else {
+      GlanceModifier.size(size).cornerRadius(R.dimen.player_widget_background_radius)
     }
+  val modifier = action?.let(coverModifier::clickable) ?: coverModifier
   if (previewCoverResource != null) {
     Image(
       provider = ImageProvider(previewCoverResource),

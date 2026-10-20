@@ -13,6 +13,7 @@ Status: Implemented.
 - Beyond the large layout, increase cover size up to a sensible limit and add breathing room; do not reveal further information or controls.
 - The empty state says “Choose something to play” with an “Open ShelfDroid” action, centered in the available space. Taller empty widgets add spacing without placeholder metadata or chapter controls.
 - Keep the existing colors and typography, with play-pause visually dominant.
+- Cover corners use a 4dp radius below 116dp available widget height. At 116dp and taller, retain the existing radius resource. This rule depends only on height, independently of width, font scale, or selected layout, and applies to artwork, picker previews, and the missing-cover placeholder. The widget background radius stays unchanged.
 - Select compact, medium, and large layouts from actual available width and height; grid spans describe the intended presentations, not universal device-independent dimensions.
 - Use available vertical space and the configured font scale to decide when title and chapter text can use a second line; keep the single-line fallback when space is tight.
 - At the largest font scales, keep the large layout's chapter controls and place the cover beside its metadata to preserve vertical room; increase the medium minimum height when its metadata and controls would not fit.
