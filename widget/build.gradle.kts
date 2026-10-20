@@ -11,7 +11,15 @@ android {
   namespace = "${libs.versions.namespace.get()}.widget"
   compileSdk = libs.versions.targetSdk.get().toInt()
 
-  testOptions { unitTests { isIncludeAndroidResources = true } }
+  testOptions {
+    unitTests {
+      isIncludeAndroidResources = true
+      all {
+        // Robolectric's FileDescriptor interceptor accesses SharedSecrets on modern JDKs.
+        it.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
+      }
+    }
+  }
 
   defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
 
@@ -52,6 +60,7 @@ dependencies {
   implementation(libs.androidx.glance.appwidget)
   debugImplementation(libs.androidx.glance.preview)
   debugImplementation(libs.androidx.glance.appwidget.preview)
+  debugImplementation(libs.androidx.compose.ui.tooling.preview)
 
   // Coil
   implementation(libs.coil)

@@ -189,10 +189,9 @@ constructor(
       val currentTime =
         if (progress?.isFinished?.toBoolean() == true) 0.0 else progress?.currentTime ?: 0.0
       val bookChapters = episode.audioFile.chapters.sortedBy { it.start }
-      val episodeChapters =
-        bookChapters.mapIndexed { index, chapter ->
-          mapper.toPlayerChapter(index, chapter, bookChapters.size)
-        }
+      val episodeChapters = bookChapters.mapIndexed { index, chapter ->
+        mapper.toPlayerChapter(index, chapter, bookChapters.size)
+      }
       val currentEpisodeChapter = finder.playerChapter(episodeChapters, currentTime)
 
       PlayerUiState(

@@ -1,6 +1,11 @@
 package dev.halim.shelfdroid.widget.player.ui
 
+import android.view.LayoutInflater
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview as ComposePreview
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.glance.GlanceTheme
 import androidx.glance.material3.ColorProviders
 import androidx.glance.preview.ExperimentalGlancePreviewApi
@@ -25,4 +30,16 @@ private fun PlayerWidgetDarkPreview() {
   GlanceTheme(colors = ColorProviders(light = darkScheme, dark = darkScheme)) {
     PlayerWidgetContent(content = playerWidgetPreviewData)
   }
+}
+
+@ComposePreview(name = "Widget loading", widthDp = 320, heightDp = 96)
+@Composable
+private fun PlayerWidgetLoadingPreview() {
+  AndroidView(
+    modifier = Modifier.fillMaxSize(),
+    factory = { context ->
+      LayoutInflater.from(context)
+        .inflate(androidx.glance.appwidget.R.layout.glance_default_loading_layout, null)
+    },
+  )
 }

@@ -1,25 +1,26 @@
 package dev.halim.shelfdroid.widget.player.ui
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceTheme
-import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
 import androidx.glance.appwidget.testing.unit.assertHasStartActivityClickAction
-import androidx.glance.testing.unit.assertHasNoClickAction
+import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
 import androidx.glance.testing.unit.assertHasClickAction
+import androidx.glance.testing.unit.assertHasNoClickAction
 import androidx.glance.testing.unit.hasContentDescriptionEqualTo
 import androidx.glance.testing.unit.hasTestTag
 import androidx.glance.testing.unit.hasText
 import androidx.test.core.app.ApplicationProvider
 import dev.halim.shelfdroid.core.R as CoreR
-import dev.halim.shelfdroid.widget.R
-import dev.halim.shelfdroid.widget.player.PlayerWidgetData
-import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.core.prefs.MediaNotificationOpeningScreen
 import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
+import dev.halim.shelfdroid.helper.Helper
+import dev.halim.shelfdroid.widget.R
+import dev.halim.shelfdroid.widget.player.PlayerWidgetData
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -41,14 +42,14 @@ class PlayerWidgetResponsiveLayoutTest {
       onNode(hasText("The Hobbit"))
         .assertHasStartActivityClickAction(openPlayerIntent("the-hobbit"))
       onNode(hasText("J. R. R. Tolkien")).assertExists()
-      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_back)))
-        .assertExists()
-      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.play)))
-        .assertExists()
+      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_back))).assertExists()
+      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.play))).assertExists()
       onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_forward)))
         .assertExists()
       onNode(hasText("An Unexpected Party")).assertDoesNotExist()
-      onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter)))
+      onNode(
+          hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter))
+        )
         .assertDoesNotExist()
     }
 
@@ -75,9 +76,10 @@ class PlayerWidgetResponsiveLayoutTest {
       onNode(hasText("The Hobbit")).assertExists()
       onNode(hasText("J. R. R. Tolkien")).assertExists()
       onNode(hasText("An Unexpected Party")).assertExists()
-      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.play)))
-        .assertExists()
-      onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter)))
+      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.play))).assertExists()
+      onNode(
+          hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter))
+        )
         .assertExists()
       onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_next_chapter)))
         .assertExists()
@@ -137,7 +139,9 @@ class PlayerWidgetResponsiveLayoutTest {
       onNode(hasText("The Hobbit")).assertDoesNotExist()
       onNode(hasText("An Unexpected Party")).assertHasClickAction()
       onNode(hasText("J. R. R. Tolkien")).assertExists()
-      onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter)))
+      onNode(
+          hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter))
+        )
         .assertExists()
       onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_next_chapter)))
         .assertExists()
@@ -200,7 +204,9 @@ class PlayerWidgetResponsiveLayoutTest {
       onNode(hasText("The Hobbit")).assertDoesNotExist()
       onNode(hasText("J. R. R. Tolkien")).assertExists()
       onNode(hasText("An Unexpected Party")).assertHasClickAction()
-      onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter)))
+      onNode(
+          hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter))
+        )
         .assertExists()
       onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_next_chapter)))
         .assertExists()
@@ -209,9 +215,10 @@ class PlayerWidgetResponsiveLayoutTest {
   @Test
   fun `large layout keeps chapter navigation with larger system text`() =
     runGlanceAppWidgetUnitTest {
-      val scaledConfiguration = Configuration(context.resources.configuration).apply {
-        fontScale = 2f
-      }
+      val scaledConfiguration =
+        Configuration(context.resources.configuration).apply {
+          fontScale = 2f
+        }
       setContext(context.createConfigurationContext(scaledConfiguration))
       setAppWidgetSize(DpSize(width = 320.dp, height = 176.dp))
       provideWidget()
@@ -219,7 +226,9 @@ class PlayerWidgetResponsiveLayoutTest {
       onNode(hasText("The Hobbit")).assertDoesNotExist()
       onNode(hasText("J. R. R. Tolkien")).assertExists()
       onNode(hasText("An Unexpected Party")).assertHasClickAction()
-      onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter)))
+      onNode(
+          hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter))
+        )
         .assertExists()
       onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_next_chapter)))
         .assertExists()
@@ -264,7 +273,9 @@ class PlayerWidgetResponsiveLayoutTest {
       )
 
       onNode(hasText("An Unexpected Party")).assertDoesNotExist()
-      onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter)))
+      onNode(
+          hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter))
+        )
         .assertDoesNotExist()
       onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_next_chapter)))
         .assertDoesNotExist()
@@ -279,8 +290,7 @@ class PlayerWidgetResponsiveLayoutTest {
     onNode(hasTestTag("player_widget_empty_state")).assertHasClickAction()
     onNode(hasText(context.getString(R.string.player_widget_choose_something_to_play)))
       .assertExists()
-    onNode(hasText(context.getString(R.string.player_widget_open_shelfdroid)))
-      .assertExists()
+    onNode(hasText(context.getString(R.string.player_widget_open_shelfdroid))).assertExists()
   }
 
   private val widgetData
@@ -302,7 +312,7 @@ class PlayerWidgetResponsiveLayoutTest {
       )
 
   private fun androidx.glance.appwidget.testing.unit.GlanceAppWidgetUnitTest.provideWidget(
-    content: PlayerWidgetData = widgetData,
+    content: PlayerWidgetData = widgetData
   ) {
     provideComposable {
       GlanceTheme { PlayerWidgetContent(content = content) }
@@ -311,7 +321,8 @@ class PlayerWidgetResponsiveLayoutTest {
 
   private fun openPlayerIntent(mediaId: String) =
     Intent(Helper.ACTION_OPEN_PLAYER).apply {
-      setPackage(context.packageName)
+      component =
+        ComponentName(context.packageName, "dev.halim.shelfdroid.core.ui.screen.MainActivity")
       putExtra(Helper.EXTRA_MEDIA_ID, mediaId)
       putExtra(
         Helper.EXTRA_MEDIA_NOTIFICATION_OPENING_SCREEN,

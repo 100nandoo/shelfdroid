@@ -77,22 +77,23 @@ class PlayerStoreWidgetChapterTest {
     }
 
   @Test
-  fun `podcast chapter navigation respects the first chapter boundary`() = runTest(dispatcher) {
-    val player = mock(ExoPlayer::class.java)
-    val store = createStore(player)
-    val chapters = podcastChapters()
-    store.uiState.value =
-      PlayerUiState(
-        id = "podcast",
-        episodeId = "episode",
-        episodeChapters = chapters,
-        currentEpisodeChapter = chapters.first(),
-      )
+  fun `podcast chapter navigation respects the first chapter boundary`() =
+    runTest(dispatcher) {
+      val player = mock(ExoPlayer::class.java)
+      val store = createStore(player)
+      val chapters = podcastChapters()
+      store.uiState.value =
+        PlayerUiState(
+          id = "podcast",
+          episodeId = "episode",
+          episodeChapters = chapters,
+          currentEpisodeChapter = chapters.first(),
+        )
 
-    assertFalse(store.previousChapterFromWidget())
+      assertFalse(store.previousChapterFromWidget())
 
-    verify(player, never()).seekTo(org.mockito.ArgumentMatchers.anyLong())
-  }
+      verify(player, never()).seekTo(org.mockito.ArgumentMatchers.anyLong())
+    }
 
   private fun createStore(player: ExoPlayer): PlayerStore {
     val playerManager = mock(ExoPlayerManager::class.java)
@@ -119,8 +120,23 @@ class PlayerStoreWidgetChapterTest {
 
   private fun podcastChapters() =
     listOf(
-      PlayerChapter(id = 1, title = "First", startTimeSeconds = 0.0, chapterPosition = ChapterPosition.First),
-      PlayerChapter(id = 2, title = "Middle", startTimeSeconds = 20.0, chapterPosition = ChapterPosition.Middle),
-      PlayerChapter(id = 3, title = "Last", startTimeSeconds = 40.0, chapterPosition = ChapterPosition.Last),
+      PlayerChapter(
+        id = 1,
+        title = "First",
+        startTimeSeconds = 0.0,
+        chapterPosition = ChapterPosition.First,
+      ),
+      PlayerChapter(
+        id = 2,
+        title = "Middle",
+        startTimeSeconds = 20.0,
+        chapterPosition = ChapterPosition.Middle,
+      ),
+      PlayerChapter(
+        id = 3,
+        title = "Last",
+        startTimeSeconds = 40.0,
+        chapterPosition = ChapterPosition.Last,
+      ),
     )
 }

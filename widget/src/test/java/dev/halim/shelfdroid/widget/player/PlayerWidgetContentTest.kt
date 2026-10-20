@@ -1,7 +1,7 @@
 package dev.halim.shelfdroid.widget.player
 
-import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.ChapterPosition
+import dev.halim.shelfdroid.core.PlayPauseControlState
 import dev.halim.shelfdroid.core.PlayerChapter
 import dev.halim.shelfdroid.core.PlayerState
 import dev.halim.shelfdroid.core.PlayerUiState
@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -137,18 +137,23 @@ class PlayerWidgetContentTest {
     assertTrue(content.previousChapterEnabled)
     assertTrue(content.nextChapterEnabled)
     assertFalse(
-      episode.copy(currentEpisodeChapter = chapters.first()).toPlayerWidgetData()!!
+      episode
+        .copy(currentEpisodeChapter = chapters.first())
+        .toPlayerWidgetData()!!
         .previousChapterEnabled
     )
     assertFalse(
-      episode.copy(currentEpisodeChapter = chapters.last()).toPlayerWidgetData()!!
+      episode
+        .copy(currentEpisodeChapter = chapters.last())
+        .toPlayerWidgetData()!!
         .nextChapterEnabled
     )
     assertFalse(
-      episode.copy(
-        episodeChapters = chapters.take(1),
-        currentEpisodeChapter = chapters.first(),
-      )
+      episode
+        .copy(
+          episodeChapters = chapters.take(1),
+          currentEpisodeChapter = chapters.first(),
+        )
         .toPlayerWidgetData()!!
         .showChapterNavigation
     )

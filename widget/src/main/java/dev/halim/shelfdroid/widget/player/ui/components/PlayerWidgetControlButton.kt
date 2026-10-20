@@ -40,7 +40,8 @@ internal fun PlayerWidgetControlButton(
       .let { if (enabled) it.clickable(action) else it }
 
   Box(
-    modifier = GlanceModifier.size(size).clickable(actionRunCallback<DisabledWidgetControlAction>()),
+    modifier =
+      GlanceModifier.size(size).clickable(actionRunCallback<DisabledWidgetControlAction>()),
     contentAlignment = Alignment.Center,
   ) {
     Box(

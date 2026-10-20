@@ -82,14 +82,11 @@ internal fun PlayerWidgetContent(content: PlayerWidgetData?) {
       PlayerWidgetEmptyState()
     } else {
       when (layout) {
-        PlayerWidgetLayout.Compact ->
-          CompactPlayerWidget(context, content, size.height, openAction)
+        PlayerWidgetLayout.Compact -> CompactPlayerWidget(context, content, size.height, openAction)
 
-        PlayerWidgetLayout.Medium ->
-          MediumPlayerWidget(context, content, size.height, openAction)
+        PlayerWidgetLayout.Medium -> MediumPlayerWidget(context, content, size.height, openAction)
 
-        PlayerWidgetLayout.Large ->
-          LargePlayerWidget(context, content, size.height, openAction)
+        PlayerWidgetLayout.Large -> LargePlayerWidget(context, content, size.height, openAction)
       }
     }
   }
@@ -133,13 +130,15 @@ private fun CompactPlayerWidget(
       Spacer(GlanceModifier.width(8.dp))
     }
     Column(modifier = GlanceModifier.defaultWeight()) {
-      content.title.takeIf { it.isNotBlank() }?.let {
-        WidgetTitle(
-          title = it,
-          maxLines = if (height < 80.dp) 1 else 2,
-          action = openPlayerAction,
-        )
-      }
+      content.title
+        .takeIf { it.isNotBlank() }
+        ?.let {
+          WidgetTitle(
+            title = it,
+            maxLines = if (height < 80.dp) 1 else 2,
+            action = openPlayerAction,
+          )
+        }
       content.author.takeIf { it.isNotBlank() }?.let { WidgetAuthor(it) }
     }
     Spacer(GlanceModifier.width(8.dp))
@@ -173,9 +172,11 @@ private fun MediumPlayerWidget(
       )
       Spacer(GlanceModifier.width(8.dp))
       Column(modifier = GlanceModifier.defaultWeight()) {
-        content.title.takeIf { it.isNotBlank() }?.let {
-          WidgetTitle(it, titleLines, openPlayerAction)
-        }
+        content.title
+          .takeIf { it.isNotBlank() }
+          ?.let {
+            WidgetTitle(it, titleLines, openPlayerAction)
+          }
         content.author.takeIf { it.isNotBlank() }?.let { WidgetAuthor(it) }
         content.chapterTitle?.let { WidgetChapterTitle(it, chapterLines) }
       }
@@ -275,9 +276,11 @@ private fun LargePlayerMetadata(
       textAlign = TextAlign.Center,
     )
   }
-  author.takeIf { it.isNotBlank() }?.let {
-    WidgetAuthor(it, GlanceModifier.fillMaxWidth(), TextAlign.Center)
-  }
+  author
+    .takeIf { it.isNotBlank() }
+    ?.let {
+      WidgetAuthor(it, GlanceModifier.fillMaxWidth(), TextAlign.Center)
+    }
 }
 
 @Composable
@@ -381,9 +384,7 @@ private fun MainPlaybackControls(
     PlayerWidgetControlButton(
       icon = if (content.showPlayIcon) CoreR.drawable.play_arrow else CoreR.drawable.pause,
       contentDescription =
-        context.getString(
-          if (content.showPlayIcon) CoreR.string.play else CoreR.string.pause,
-        ),
+        context.getString(if (content.showPlayIcon) CoreR.string.play else CoreR.string.pause),
       enabled = content.playPauseEnabled,
       tint = GlanceTheme.colors.onPrimary,
       action = widgetAction(WIDGET_ACTION_PLAY_PAUSE),
