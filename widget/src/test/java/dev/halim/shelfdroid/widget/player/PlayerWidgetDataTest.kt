@@ -15,7 +15,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class PlayerWidgetContentTest {
+class PlayerWidgetDataTest {
   @Test
   fun `cover changes refresh widget even when title and author stay the same`() = runTest {
     val current = PlayerUiState(id = "book", title = "Book", author = "Author", cover = "cover-a")

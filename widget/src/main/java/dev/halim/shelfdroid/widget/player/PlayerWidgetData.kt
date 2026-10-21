@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.widget.player
 
 import dev.halim.shelfdroid.core.PlayerUiState
-import dev.halim.shelfdroid.widget.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -23,25 +22,6 @@ internal data class PlayerWidgetData(
   val coverResource: Int? = null,
   val isPreview: Boolean = false,
 )
-
-internal val playerWidgetPreviewData =
-  PlayerWidgetData(
-    id = "preview",
-    episodeId = "preview",
-    title = "The Adventures of Sherlock Holmes",
-    author = "Arthur Conan Doyle",
-    cover = "",
-    playPauseEnabled = true,
-    showPlayIcon = true,
-    seekBackEnabled = true,
-    seekForwardEnabled = true,
-    chapterTitle = "The Adventure of the Speckled Band",
-    showChapterNavigation = true,
-    previousChapterEnabled = false,
-    nextChapterEnabled = true,
-    coverResource = R.drawable.sherlock_holmes_portrait_with_pipe,
-    isPreview = true,
-  )
 
 internal fun PlayerUiState.toPlayerWidgetData(): PlayerWidgetData? =
   if (id.isBlank()) {

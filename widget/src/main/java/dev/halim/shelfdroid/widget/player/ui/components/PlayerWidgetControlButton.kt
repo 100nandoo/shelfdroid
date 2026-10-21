@@ -21,7 +21,7 @@ import androidx.glance.layout.size
 import androidx.glance.semantics.contentDescription
 import androidx.glance.semantics.semantics
 import androidx.glance.unit.ColorProvider
-import dev.halim.shelfdroid.widget.player.DisabledWidgetControlAction
+import dev.halim.shelfdroid.widget.player.actions.DisabledWidgetControlAction
 
 @Composable
 internal fun PlayerWidgetControlButton(

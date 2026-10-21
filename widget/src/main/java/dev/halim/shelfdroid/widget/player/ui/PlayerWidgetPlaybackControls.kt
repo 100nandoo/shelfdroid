@@ -13,13 +13,13 @@ import androidx.glance.layout.width
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.widget.R
 import dev.halim.shelfdroid.widget.player.PlayerWidgetData
-import dev.halim.shelfdroid.widget.player.WIDGET_ACTION_NEXT_CHAPTER
-import dev.halim.shelfdroid.widget.player.WIDGET_ACTION_PLAY_PAUSE
-import dev.halim.shelfdroid.widget.player.WIDGET_ACTION_PREVIOUS_CHAPTER
-import dev.halim.shelfdroid.widget.player.WIDGET_ACTION_SEEK_BACK
-import dev.halim.shelfdroid.widget.player.WIDGET_ACTION_SEEK_FORWARD
+import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_NEXT_CHAPTER
+import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_PLAY_PAUSE
+import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_PREVIOUS_CHAPTER
+import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_SEEK_BACK
+import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_SEEK_FORWARD
 import dev.halim.shelfdroid.widget.player.ui.components.PlayerWidgetControlButton
-import dev.halim.shelfdroid.widget.player.widgetAction
+import dev.halim.shelfdroid.widget.player.actions.widgetAction
 
 @Composable
 internal fun MainPlaybackControls(

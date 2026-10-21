@@ -20,7 +20,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import dev.halim.shelfdroid.widget.R
-import dev.halim.shelfdroid.widget.player.widgetLaunchAction
+import dev.halim.shelfdroid.widget.player.actions.widgetLaunchAction
 
 @Composable
 internal fun PlayerWidgetEmptyState() {
