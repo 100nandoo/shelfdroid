@@ -21,6 +21,7 @@ internal data class PlayerWidgetData(
   val previousChapterEnabled: Boolean = false,
   val nextChapterEnabled: Boolean = false,
   val coverResource: Int? = null,
+  val isPreview: Boolean = false,
 )
 
 internal val playerWidgetPreviewData =
@@ -39,6 +40,7 @@ internal val playerWidgetPreviewData =
     previousChapterEnabled = false,
     nextChapterEnabled = true,
     coverResource = R.drawable.sherlock_holmes_portrait_with_pipe,
+    isPreview = true,
   )
 
 internal fun PlayerUiState.toPlayerWidgetData(): PlayerWidgetData? =

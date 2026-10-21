@@ -21,6 +21,7 @@ import dev.halim.shelfdroid.core.prefs.MediaNotificationPlayerPresentation
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.widget.R
 import dev.halim.shelfdroid.widget.player.PlayerWidgetData
+import dev.halim.shelfdroid.widget.player.playerWidgetPreviewData
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -52,6 +53,16 @@ class PlayerWidgetResponsiveLayoutTest {
         )
         .assertDoesNotExist()
     }
+
+  @Test
+  fun `picker preview opens ShelfDroid instead of preview media`() = runGlanceAppWidgetUnitTest {
+    setContext(context)
+    setAppWidgetSize(DpSize(width = 320.dp, height = 180.dp))
+    provideWidget(playerWidgetPreviewData)
+
+    onNode(hasText("The Adventure of the Speckled Band"))
+      .assertHasStartActivityClickAction(openAppIntent())
+  }
 
   @Test
   fun `compact layout is used just below the medium minimum height`() = runGlanceAppWidgetUnitTest {
@@ -334,4 +345,9 @@ class PlayerWidgetResponsiveLayoutTest {
       )
       flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
     }
+
+  private fun openAppIntent() =
+    Intent.makeMainActivity(
+      ComponentName(context.packageName, "dev.halim.shelfdroid.core.ui.screen.MainActivity")
+    )
 }
