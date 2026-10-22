@@ -113,28 +113,36 @@ private fun largeLayout(
   val contentSpacing =
     if (height >= LargeMetrics.spaciousLayoutMinimumHeight) LargeMetrics.spaciousContentSpacing
     else LargeMetrics.tightContentSpacing
-  // Keep art and two-line metadata from shrinking at the side-to-stacked transition.
   val sideCover = height < LargeMetrics.stackedCoverMinimumHeight || normalizedFontScale > 1f
-  val coverHeightBudget =
-    if (sideCover) LargeMetrics.sideCoverHeightBudget else LargeMetrics.stackedCoverHeightBudget
+  val headlineTwoLineHeight =
+    if (hasChapterTitle) LargeMetrics.chapterHeadlineTwoLineHeight
+    else LargeMetrics.bookHeadlineTwoLineHeight
+  val availableCoverHeight =
+    height -
+      LargeMetrics.verticalPaddingBudget -
+      SharedMetrics.controlButtonSize -
+      contentSpacing * (if (sideCover) 1 else 2) -
+      (if (sideCover) 0.dp else headlineTwoLineHeight * normalizedFontScale)
+  val availableCoverWidth =
+    width -
+      LargeMetrics.horizontalPaddingBudget -
+      (if (sideCover) {
+        LargeMetrics.sideCoverMetadataSpacing + LargeMetrics.minimumMetadataWidth
+      } else {
+        0.dp
+      })
   val coverSize =
-    minOf(
-      LargeMetrics.maximumCoverSize,
-      (height - coverHeightBudget).coerceAtLeast(LargeMetrics.minimumCoverSize),
-    )
+    minOf(availableCoverHeight, availableCoverWidth).coerceAtLeast(LargeMetrics.minimumCoverSize)
   val metadataHeightBudget =
     height -
       LargeMetrics.metadataHeightBudget -
       (contentSpacing * LargeMetrics.metadataSpacingSlots)
-  val metadataHeight = if (sideCover) metadataHeightBudget else metadataHeightBudget - coverSize
-  val headlineTwoLineHeight =
-    if (hasChapterTitle) LargeMetrics.chapterHeadlineTwoLineHeight
-    else LargeMetrics.bookHeadlineTwoLineHeight
 
   return PlayerWidgetLayoutSpec.Large(
     sideCover = sideCover,
     coverSize = coverSize,
-    headlineMaxLines = if (metadataHeight >= headlineTwoLineHeight * normalizedFontScale) 2 else 1,
+    headlineMaxLines =
+      if (!sideCover || metadataHeightBudget >= headlineTwoLineHeight * normalizedFontScale) 2 else 1,
     showChapterNavigation = showChapterNavigation,
     contentSpacing = contentSpacing,
     verticalPadding = SharedMetrics.verticalPadding,

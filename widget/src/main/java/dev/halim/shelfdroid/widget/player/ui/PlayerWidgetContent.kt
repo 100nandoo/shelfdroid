@@ -12,9 +12,7 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.layout.width
 import dev.halim.shelfdroid.widget.R
 import dev.halim.shelfdroid.widget.player.PlayerWidgetData
 import dev.halim.shelfdroid.widget.player.actions.playerWidgetOpenAction

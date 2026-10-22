@@ -35,16 +35,15 @@ internal object LargeMetrics {
   val spaciousLayoutMinimumHeight = 240.dp
   val tightContentSpacing = 2.dp
   val spaciousContentSpacing = 8.dp
-  // Tuned offsets used to leave room outside the cover for the rest of the layout.
-  // Stacked art needs a larger budget because metadata cannot share its row.
-  val sideCoverHeightBudget = 108.dp
-  val stackedCoverHeightBudget = 164.dp
-  // Conservative metadata budget for padding and controls; spacing is subtracted separately.
+  val horizontalPaddingBudget = 16.dp
+  val verticalPaddingBudget = SharedMetrics.verticalPadding * 2
+  val sideCoverMetadataSpacing = 8.dp
+  val minimumMetadataWidth = 160.dp
+  // Conservative side-layout budget for padding and controls; spacing is subtracted separately.
   val metadataHeightBudget = 100.dp
   // Reserve three gaps as headroom for both cover arrangements.
   val metadataSpacingSlots = 3
   val minimumCoverSize = 48.dp
-  val maximumCoverSize = 96.dp
   val bookHeadlineTwoLineHeight = 68.dp
   val chapterHeadlineTwoLineHeight = 82.dp
 }

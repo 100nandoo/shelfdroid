@@ -76,7 +76,23 @@ class PlayerWidgetLayoutTest {
 
     assertTrue((sideCoverSpec as PlayerWidgetLayoutSpec.Large).sideCover)
     assertFalse((stackedCoverSpec as PlayerWidgetLayoutSpec.Large).sideCover)
-    assertEquals(96.dp, stackedCoverSpec.coverSize)
+    assertEquals(136.dp, sideCoverSpec.coverSize)
+    assertEquals(140.dp, stackedCoverSpec.coverSize)
     assertEquals(2, stackedCoverSpec.headlineMaxLines)
+  }
+
+  @Test
+  fun `large cover uses remaining height without squeezing controls or metadata`() {
+    val shortSideCover =
+      resolvePlayerWidgetLayout(320.dp, 176.dp, 1f, true, true) as PlayerWidgetLayoutSpec.Large
+    val tallStackedCover =
+      resolvePlayerWidgetLayout(320.dp, 400.dp, 1f, true, true) as PlayerWidgetLayoutSpec.Large
+    val narrowSideCover =
+      resolvePlayerWidgetLayout(220.dp, 250.dp, 1f, true, true) as PlayerWidgetLayoutSpec.Large
+
+    assertEquals(110.dp, shortSideCover.coverSize)
+    assertEquals(238.dp, tallStackedCover.coverSize)
+    assertEquals(48.dp, narrowSideCover.coverSize)
+    assertEquals(2, tallStackedCover.headlineMaxLines)
   }
 }

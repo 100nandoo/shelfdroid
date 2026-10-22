@@ -64,11 +64,12 @@ internal fun LargePlayerWidget(
       Spacer(GlanceModifier.height(layout.contentSpacing))
       LargePlayerMetadata(headline, layout.headlineMaxLines, content.author, openPlayerAction)
     }
+    Spacer(GlanceModifier.defaultWeight())
     Spacer(GlanceModifier.height(layout.contentSpacing))
     MainPlaybackControls(
       context = context,
       content = content,
-      modifier = GlanceModifier.defaultWeight(),
+      modifier = GlanceModifier.fillMaxWidth().height(SharedMetrics.controlButtonSize),
       showChapterNavigation = layout.showChapterNavigation,
       buttonSize = layout.controlButtonSize,
     )
