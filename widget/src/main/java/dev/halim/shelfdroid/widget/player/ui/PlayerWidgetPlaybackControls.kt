@@ -9,6 +9,7 @@ import androidx.glance.GlanceTheme
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.height
 import androidx.glance.layout.width
 import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.widget.R
@@ -30,7 +31,7 @@ internal fun MainPlaybackControls(
   modifier: GlanceModifier = GlanceModifier,
 ) {
   Row(
-    modifier = modifier,
+    modifier = modifier.height(buttonSize),
     verticalAlignment = Alignment.CenterVertically,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
@@ -101,5 +102,5 @@ internal fun playerWidgetControlButtonSize(width: Dp, showChapterNavigation: Boo
 
 private val playbackControlsHorizontalPadding = 16.dp
 private val playbackControlButtonSpacing = 2.dp
-private val maximumPlaybackControlButtonSize = 48.dp
+private val maximumPlaybackControlButtonSize = 96.dp
 private val minimumPlaybackControlButtonSize = 1.dp

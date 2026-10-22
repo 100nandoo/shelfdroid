@@ -77,7 +77,7 @@ class PlayerWidgetLayoutTest {
     assertTrue((sideCoverSpec as PlayerWidgetLayoutSpec.Large).sideCover)
     assertFalse((stackedCoverSpec as PlayerWidgetLayoutSpec.Large).sideCover)
     assertEquals(136.dp, sideCoverSpec.coverSize)
-    assertEquals(140.dp, stackedCoverSpec.coverSize)
+    assertEquals(92.dp, stackedCoverSpec.coverSize)
     assertEquals(2, stackedCoverSpec.headlineMaxLines)
   }
 
@@ -90,8 +90,8 @@ class PlayerWidgetLayoutTest {
     val narrowSideCover =
       resolvePlayerWidgetLayout(220.dp, 250.dp, 1f, true, true) as PlayerWidgetLayoutSpec.Large
 
-    assertEquals(110.dp, shortSideCover.coverSize)
-    assertEquals(238.dp, tallStackedCover.coverSize)
+    assertEquals(98.8f, shortSideCover.coverSize.value, 0.01f)
+    assertEquals(226.8f, tallStackedCover.coverSize.value, 0.01f)
     assertEquals(48.dp, narrowSideCover.coverSize)
     assertEquals(2, tallStackedCover.headlineMaxLines)
   }

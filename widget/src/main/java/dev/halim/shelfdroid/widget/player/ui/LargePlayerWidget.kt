@@ -69,7 +69,7 @@ internal fun LargePlayerWidget(
     MainPlaybackControls(
       context = context,
       content = content,
-      modifier = GlanceModifier.fillMaxWidth().height(SharedMetrics.controlButtonSize),
+      modifier = GlanceModifier.fillMaxWidth().height(layout.controlButtonSize),
       showChapterNavigation = layout.showChapterNavigation,
       buttonSize = layout.controlButtonSize,
     )

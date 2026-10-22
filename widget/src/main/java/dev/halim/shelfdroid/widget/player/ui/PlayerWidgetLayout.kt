@@ -84,12 +84,15 @@ private fun mediumLayout(
   normalizedFontScale: Float,
   showChapterNavigation: Boolean,
 ): PlayerWidgetLayoutSpec.Medium {
+  val controlButtonSize = playerWidgetControlButtonSize(width, showChapterNavigation)
+  val coverHeightBudget =
+    MediumMetrics.coverHeightBudget - SharedMetrics.controlButtonSize + controlButtonSize
   val metadataHeight = height - MediumMetrics.metadataHeightBudget
   return PlayerWidgetLayoutSpec.Medium(
     coverSize =
       minOf(
         MediumMetrics.maximumCoverSize,
-        (height - MediumMetrics.coverHeightBudget).coerceAtLeast(MediumMetrics.minimumCoverSize),
+        (height - coverHeightBudget).coerceAtLeast(MediumMetrics.minimumCoverSize),
       ),
     titleMaxLines =
       if (metadataHeight >= MediumMetrics.twoLineTitleMinimumHeight * normalizedFontScale) 2 else 1,
@@ -99,7 +102,7 @@ private fun mediumLayout(
     showChapterNavigation = showChapterNavigation,
     contentSpacing = MediumMetrics.contentSpacing,
     verticalPadding = SharedMetrics.verticalPadding,
-    controlButtonSize = playerWidgetControlButtonSize(width, showChapterNavigation),
+    controlButtonSize = controlButtonSize,
   )
 }
 
@@ -110,6 +113,7 @@ private fun largeLayout(
   hasChapterTitle: Boolean,
   showChapterNavigation: Boolean,
 ): PlayerWidgetLayoutSpec.Large {
+  val controlButtonSize = playerWidgetControlButtonSize(width, showChapterNavigation)
   val contentSpacing =
     if (height >= LargeMetrics.spaciousLayoutMinimumHeight) LargeMetrics.spaciousContentSpacing
     else LargeMetrics.tightContentSpacing
@@ -120,7 +124,7 @@ private fun largeLayout(
   val availableCoverHeight =
     height -
       LargeMetrics.verticalPaddingBudget -
-      SharedMetrics.controlButtonSize -
+      controlButtonSize -
       contentSpacing * (if (sideCover) 1 else 2) -
       (if (sideCover) 0.dp else headlineTwoLineHeight * normalizedFontScale)
   val availableCoverWidth =
@@ -146,6 +150,6 @@ private fun largeLayout(
     showChapterNavigation = showChapterNavigation,
     contentSpacing = contentSpacing,
     verticalPadding = SharedMetrics.verticalPadding,
-    controlButtonSize = playerWidgetControlButtonSize(width, showChapterNavigation),
+    controlButtonSize = controlButtonSize,
   )
 }
