@@ -1,3 +1,14 @@
+## 0.6.2 (2026-10-28)
+
+### What's new
+
+- Add a player to your home screen to see and control your book.
+
+### Fixes
+
+- Improved playback controls and fixed app and notification crashes.
+- Fixed the player title not being centered.
+
 ## 0.6.1 (2026-09-29)
 
 ### What's new
