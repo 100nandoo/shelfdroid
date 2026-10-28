@@ -21,7 +21,7 @@ socketIO = ":socketio"
 testApp = ":test-app"
 widget = ":widget"
 
-androidGradlePlugin = "9.4.1"
+androidGradlePlugin = "9.5.0"
 androidxActivity = "1.13.0"
 androidxBrowser = "1.10.0"
 androidxComposeBom = "2026.09.00"
