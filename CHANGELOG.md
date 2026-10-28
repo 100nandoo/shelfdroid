@@ -2,7 +2,7 @@
 
 ### What's new
 
-- Add a player to your home screen to see and control your book.
+- Add a player widget to your home screen to see and control your playback.
 
 ### Fixes
 
