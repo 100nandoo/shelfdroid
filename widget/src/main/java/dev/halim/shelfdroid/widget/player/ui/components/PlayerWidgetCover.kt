@@ -45,7 +45,7 @@ internal fun PlayerWidgetCover(
     if (LocalSize.current.height < 116.dp) {
       GlanceModifier.size(size).cornerRadius(4.dp)
     } else {
-      GlanceModifier.size(size).cornerRadius(R.dimen.player_widget_background_radius)
+      GlanceModifier.size(size).cornerRadius(8.dp)
     }
   val modifier = action?.let(coverModifier::clickable) ?: coverModifier
   if (previewCoverResource != null) {

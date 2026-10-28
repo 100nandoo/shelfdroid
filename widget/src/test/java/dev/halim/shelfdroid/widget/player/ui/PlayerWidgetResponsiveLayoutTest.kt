@@ -34,20 +34,20 @@ class PlayerWidgetResponsiveLayoutTest {
     get() = ApplicationProvider.getApplicationContext()
 
   @Test
-  fun `compact layout keeps existing playback controls and opens player from title`() =
+  fun `compact layout shows chapter and opens player from chapter`() =
     runGlanceAppWidgetUnitTest {
       setContext(context)
       setAppWidgetSize(DpSize(width = 320.dp, height = 72.dp))
       provideWidget()
 
-      onNode(hasText("The Hobbit"))
+      onNode(hasText("An Unexpected Party"))
         .assertHasStartActivityClickAction(openPlayerIntent("the-hobbit"))
+      onNode(hasText("The Hobbit")).assertDoesNotExist()
       onNode(hasText("J. R. R. Tolkien")).assertExists()
       onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_back))).assertExists()
       onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.play))).assertExists()
       onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_forward)))
         .assertExists()
-      onNode(hasText("An Unexpected Party")).assertDoesNotExist()
       onNode(
           hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter))
         )
@@ -70,8 +70,8 @@ class PlayerWidgetResponsiveLayoutTest {
     setAppWidgetSize(DpSize(width = 320.dp, height = 104.dp))
     provideWidget()
 
-    onNode(hasText("The Hobbit")).assertExists()
-    onNode(hasText("An Unexpected Party")).assertDoesNotExist()
+    onNode(hasText("An Unexpected Party")).assertExists()
+    onNode(hasText("The Hobbit")).assertDoesNotExist()
     onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_back))).assertExists()
     onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter)))
       .assertDoesNotExist()
@@ -119,9 +119,21 @@ class PlayerWidgetResponsiveLayoutTest {
       setAppWidgetSize(DpSize(width = 320.dp, height = 163.dp))
       provideWidget()
 
-      onNode(hasText("The Hobbit")).assertExists()
-      onNode(hasText("An Unexpected Party")).assertDoesNotExist()
+      onNode(hasText("An Unexpected Party")).assertExists()
+      onNode(hasText("The Hobbit")).assertDoesNotExist()
       onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.play))).assertExists()
+    }
+
+  @Test
+  fun `compact layout uses book title when chapter is unavailable`() =
+    runGlanceAppWidgetUnitTest {
+      setContext(context)
+      setAppWidgetSize(DpSize(width = 320.dp, height = 72.dp))
+      provideWidget(widgetData.copy(chapterTitle = null))
+
+      onNode(hasText("The Hobbit"))
+        .assertHasStartActivityClickAction(openPlayerIntent("the-hobbit"))
+      onNode(hasText("An Unexpected Party")).assertDoesNotExist()
     }
 
   @Test

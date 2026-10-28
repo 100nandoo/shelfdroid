@@ -51,7 +51,7 @@ internal fun PlayerWidgetControlButton(
       Image(
         provider = ImageProvider(icon),
         contentDescription = null,
-        modifier = GlanceModifier.size(24.dp),
+        modifier = GlanceModifier.size(size / 2f),
         colorFilter = ColorFilter.tint(if (enabled) tint else GlanceTheme.colors.outline),
       )
     }

@@ -23,6 +23,9 @@ internal fun CompactPlayerWidget(
   layout: PlayerWidgetLayoutSpec.Compact,
   openPlayerAction: Action?,
 ) {
+  val headline =
+    content.chapterTitle?.takeIf { it.isNotBlank() } ?: content.title.takeIf { it.isNotBlank() }
+
   Row(
     modifier = GlanceModifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
@@ -37,15 +40,13 @@ internal fun CompactPlayerWidget(
       Spacer(GlanceModifier.width(8.dp))
     }
     Column(modifier = GlanceModifier.defaultWeight()) {
-      content.title
-        .takeIf { it.isNotBlank() }
-        ?.let {
-          WidgetTitle(
-            title = it,
-            maxLines = layout.titleMaxLines,
-            action = openPlayerAction,
-          )
-        }
+      headline?.let {
+        WidgetTitle(
+          title = it,
+          maxLines = layout.titleMaxLines,
+          action = openPlayerAction,
+        )
+      }
       content.author.takeIf { it.isNotBlank() }?.let { WidgetAuthor(it) }
     }
     Spacer(GlanceModifier.width(8.dp))
