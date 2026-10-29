@@ -59,7 +59,8 @@ internal fun PlayerWidgetCover(
     var bitmap by remember(cover, size) { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(cover, size) {
       if (cover.isNotBlank()) {
-        val imageSize = (size.value * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
+        val imageSize =
+          (size.value * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
         val request =
           ImageRequest.Builder(context).data(cover).size(imageSize).allowHardware(false).build()
         bitmap = SingletonImageLoader.get(context).execute(request).image?.toBitmap()

@@ -34,25 +34,22 @@ class PlayerWidgetResponsiveLayoutTest {
     get() = ApplicationProvider.getApplicationContext()
 
   @Test
-  fun `compact layout shows chapter and opens player from chapter`() =
-    runGlanceAppWidgetUnitTest {
-      setContext(context)
-      setAppWidgetSize(DpSize(width = 320.dp, height = 72.dp))
-      provideWidget()
+  fun `compact layout shows chapter and opens player from chapter`() = runGlanceAppWidgetUnitTest {
+    setContext(context)
+    setAppWidgetSize(DpSize(width = 320.dp, height = 72.dp))
+    provideWidget()
 
-      onNode(hasText("An Unexpected Party"))
-        .assertHasStartActivityClickAction(openPlayerIntent("the-hobbit"))
-      onNode(hasText("The Hobbit")).assertDoesNotExist()
-      onNode(hasText("J. R. R. Tolkien")).assertExists()
-      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_back))).assertExists()
-      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.play))).assertExists()
-      onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_forward)))
-        .assertExists()
-      onNode(
-          hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter))
-        )
-        .assertDoesNotExist()
-    }
+    onNode(hasText("An Unexpected Party"))
+      .assertHasStartActivityClickAction(openPlayerIntent("the-hobbit"))
+    onNode(hasText("The Hobbit")).assertDoesNotExist()
+    onNode(hasText("J. R. R. Tolkien")).assertExists()
+    onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_back))).assertExists()
+    onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.play))).assertExists()
+    onNode(hasContentDescriptionEqualTo(context.getString(CoreR.string.seek_forward)))
+      .assertExists()
+    onNode(hasContentDescriptionEqualTo(context.getString(R.string.player_widget_previous_chapter)))
+      .assertDoesNotExist()
+  }
 
   @Test
   fun `picker preview opens ShelfDroid instead of preview media`() = runGlanceAppWidgetUnitTest {
@@ -125,16 +122,14 @@ class PlayerWidgetResponsiveLayoutTest {
     }
 
   @Test
-  fun `compact layout uses book title when chapter is unavailable`() =
-    runGlanceAppWidgetUnitTest {
-      setContext(context)
-      setAppWidgetSize(DpSize(width = 320.dp, height = 72.dp))
-      provideWidget(widgetData.copy(chapterTitle = null))
+  fun `compact layout uses book title when chapter is unavailable`() = runGlanceAppWidgetUnitTest {
+    setContext(context)
+    setAppWidgetSize(DpSize(width = 320.dp, height = 72.dp))
+    provideWidget(widgetData.copy(chapterTitle = null))
 
-      onNode(hasText("The Hobbit"))
-        .assertHasStartActivityClickAction(openPlayerIntent("the-hobbit"))
-      onNode(hasText("An Unexpected Party")).assertDoesNotExist()
-    }
+    onNode(hasText("The Hobbit")).assertHasStartActivityClickAction(openPlayerIntent("the-hobbit"))
+    onNode(hasText("An Unexpected Party")).assertDoesNotExist()
+  }
 
   @Test
   fun `medium is selected at its larger font minimum height`() = runGlanceAppWidgetUnitTest {

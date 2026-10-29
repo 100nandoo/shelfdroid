@@ -19,8 +19,8 @@ import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_PLAY_PAUSE
 import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_PREVIOUS_CHAPTER
 import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_SEEK_BACK
 import dev.halim.shelfdroid.widget.player.actions.WIDGET_ACTION_SEEK_FORWARD
-import dev.halim.shelfdroid.widget.player.ui.components.PlayerWidgetControlButton
 import dev.halim.shelfdroid.widget.player.actions.widgetAction
+import dev.halim.shelfdroid.widget.player.ui.components.PlayerWidgetControlButton
 
 @Composable
 internal fun MainPlaybackControls(

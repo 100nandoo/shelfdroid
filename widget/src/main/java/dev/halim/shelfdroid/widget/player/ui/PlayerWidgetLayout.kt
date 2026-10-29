@@ -146,7 +146,8 @@ private fun largeLayout(
     sideCover = sideCover,
     coverSize = coverSize,
     headlineMaxLines =
-      if (!sideCover || metadataHeightBudget >= headlineTwoLineHeight * normalizedFontScale) 2 else 1,
+      if (!sideCover || metadataHeightBudget >= headlineTwoLineHeight * normalizedFontScale) 2
+      else 1,
     showChapterNavigation = showChapterNavigation,
     contentSpacing = contentSpacing,
     verticalPadding = SharedMetrics.verticalPadding,
