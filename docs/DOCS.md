@@ -283,14 +283,20 @@ history instead of domain ownership.
 
 ## 🎨 Code Style And Formatting
 
-ShelfDroid uses [ktfmt](https://github.com/facebook/ktfmt) with Google's Kotlin style.
+ShelfDroid uses [ktfmt 0.65](https://github.com/Kotlin/ktfmt) with Google's Kotlin style and the
+project's `.editorconfig` settings. Run this command from the repository root:
 
 ```bash
-find . \( -path './.idea' -o -path './build' \) -prune -o \
-  -name '*.kt' -print | xargs ktfmt --google-style
+find . -type d \( -name .git -o -name .idea -o -name build \) -prune -o \
+  -type f \( -name '*.kt' -o -name '*.kts' \) \
+  -exec ktfmt --google-style --enable-editorconfig {} +
 ```
 
-The command skips `.idea/` and `build/` so only real source files are formatted.
+The command formats Kotlin source files and Gradle Kotlin scripts, skipping `.git/`, `.idea/`,
+and `build/` directories at every level.
+
+To check formatting without changing files, add `--dry-run --set-exit-if-changed` after
+`--enable-editorconfig`.
 
 ## 🎨 UI Development
 

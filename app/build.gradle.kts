@@ -11,7 +11,8 @@ val appVersionProperties =
   }
 
 fun Properties.requiredInt(name: String): Int =
-  getProperty(name)?.toIntOrNull() ?: error("Missing integer property '$name' in app/version.properties")
+  getProperty(name)?.toIntOrNull()
+    ?: error("Missing integer property '$name' in app/version.properties")
 
 fun Properties.requiredString(name: String): String =
   getProperty(name)?.trim()?.takeIf(String::isNotBlank)
@@ -22,7 +23,11 @@ fun Project.findSigningPropertiesFile(): File? {
     providers.gradleProperty("shelfdroid.signingPropertiesFile").orNull
       ?: System.getenv("SHELFDROID_SIGNING_PROPERTIES_FILE")
 
-  return listOfNotNull(explicitPath, "../signing/keystore.properties", "../../signing/keystore.properties")
+  return listOfNotNull(
+      explicitPath,
+      "../signing/keystore.properties",
+      "../../signing/keystore.properties",
+    )
     .map(::file)
     .firstOrNull(File::exists)
 }
@@ -127,8 +132,8 @@ dependencies {
 
   // Hilt Dependency Injection
   implementation(libs.hilt.android)
-    debugImplementation(libs.leakcanary)
-    ksp(libs.hilt.compiler)
+  debugImplementation(libs.leakcanary)
+  ksp(libs.hilt.compiler)
 
   // Arch Components
   implementation(libs.androidx.lifecycle.runtime.compose)

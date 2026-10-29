@@ -15,6 +15,19 @@
 - For icons, fetch from Google Fonts icons in the Rounded
   style: https://fonts.google.com/icons?icon.style=Rounded
 
+## Before committing and pushing
+
+Whenever the user asks to commit and push, run this formatting command from the repository root
+before staging and committing changes:
+
+```bash
+find . -type d \( -name .git -o -name .idea -o -name build \) -prune -o \
+  -type f \( -name '*.kt' -o -name '*.kts' \) \
+  -exec ktfmt --google-style --enable-editorconfig {} +
+```
+
+Resolve any formatter errors before committing or pushing. Review the resulting diff before staging.
+
 ## Agent skills
 
 ### Android coding conventions
