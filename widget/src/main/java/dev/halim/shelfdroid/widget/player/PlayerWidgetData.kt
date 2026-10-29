@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.widget.player
 
+import android.graphics.Bitmap
 import dev.halim.shelfdroid.core.PlayerUiState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -21,6 +22,7 @@ internal data class PlayerWidgetData(
   val nextChapterEnabled: Boolean = false,
   val coverResource: Int? = null,
   val isPreview: Boolean = false,
+  val coverBitmap: Bitmap? = null,
 )
 
 internal fun PlayerUiState.toPlayerWidgetData(): PlayerWidgetData? =

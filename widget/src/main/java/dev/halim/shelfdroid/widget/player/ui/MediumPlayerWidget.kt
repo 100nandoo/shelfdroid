@@ -31,7 +31,7 @@ internal fun MediumPlayerWidget(
   ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
       PlayerWidgetCover(
-        cover = content.cover,
+        bitmap = content.coverBitmap,
         size = layout.coverSize,
         previewCoverResource = content.coverResource,
         action = openPlayerAction,

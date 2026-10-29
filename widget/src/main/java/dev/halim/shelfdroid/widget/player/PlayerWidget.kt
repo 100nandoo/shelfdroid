@@ -14,6 +14,8 @@ import androidx.glance.appwidget.provideContent
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.widget.player.ui.PlayerWidgetContent
 import dev.halim.shelfdroid.widget.player.ui.playerWidgetColorProviders
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 
 class PlayerWidget private constructor(private val pinRequestPreviewData: PlayerWidgetData?) :
   GlanceAppWidget() {
@@ -25,28 +27,56 @@ class PlayerWidget private constructor(private val pinRequestPreviewData: Player
       setOf(DpSize(220.dp, 60.dp), DpSize(320.dp, 128.dp), DpSize(320.dp, 180.dp))
     )
 
-  override suspend fun provideGlance(context: Context, id: GlanceId) {
+  override suspend fun provideGlance(context: Context, id: GlanceId) = coroutineScope {
     val colors = playerWidgetColorProviders(context)
+    val initialColors = colors.first()
+    val memoryCapBytes = widgetMemoryCapBytes(context)
     pinRequestPreviewData?.let { previewData ->
+      val targetSize =
+        widgetCoverTargetSize(
+          listOf(DpSize(220.dp, 60.dp)),
+          context.resources.displayMetrics.density,
+          memoryCapBytes,
+        )
+      val preview =
+        previewData.copy(
+          coverBitmap =
+            previewData.cover
+              .takeIf { it.isNotBlank() }
+              ?.let {
+                loadPlayerWidgetCover(context, it, targetSize, memoryCapBytes)
+              }
+        )
       provideContent {
-        GlanceTheme(colors = colors) { PlayerWidgetContent(content = previewData) }
+        val currentColors by colors.collectAsState(initialColors)
+        GlanceTheme(colors = currentColors) { PlayerWidgetContent(content = preview) }
       }
-      return
+      return@coroutineScope
     }
 
-    val playerState = playerWidgetStore(context).uiState
-    val contentFlow = playerState.playerWidgetData()
+    val sizes =
+      GlanceAppWidgetManager(context)
+        .getAppWidgetSizes(id)
+        .filter { it.width > 0.dp && it.height > 0.dp }
+        .ifEmpty { listOf(DpSize(220.dp, 60.dp)) }
+    val targetSize =
+      widgetCoverTargetSize(sizes, context.resources.displayMetrics.density, memoryCapBytes)
+    val contentFlow =
+      playerWidgetContentFlow(this, playerWidgetStore(context).uiState.playerWidgetData()) {
+        loadPlayerWidgetCover(context, it, targetSize, memoryCapBytes)
+      }
+    val initialContent = contentFlow.first()
     provideContent {
-      GlanceTheme(colors = colors) {
-        val content by
-          contentFlow.collectAsState(playerState.collectAsState().value.toPlayerWidgetData())
+      val currentColors by colors.collectAsState(initialColors)
+      GlanceTheme(colors = currentColors) {
+        val content by contentFlow.collectAsState(initialContent)
         PlayerWidgetContent(content = content)
       }
     }
   }
 
   override suspend fun providePreview(context: Context, widgetCategory: Int) {
-    val colors = playerWidgetColorProviders(context)
+    val colors = playerWidgetColorProviders(context).first()
     provideContent {
       GlanceTheme(colors = colors) { PlayerWidgetContent(content = playerWidgetPreviewData) }
     }

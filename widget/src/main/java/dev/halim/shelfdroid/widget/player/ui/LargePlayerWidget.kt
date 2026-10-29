@@ -39,7 +39,7 @@ internal fun LargePlayerWidget(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         PlayerWidgetCover(
-          cover = content.cover,
+          bitmap = content.coverBitmap,
           size = layout.coverSize,
           previewCoverResource = content.coverResource,
           action = openPlayerAction,
@@ -56,7 +56,7 @@ internal fun LargePlayerWidget(
       }
     } else {
       PlayerWidgetCover(
-        cover = content.cover,
+        bitmap = content.coverBitmap,
         size = layout.coverSize,
         previewCoverResource = content.coverResource,
         action = openPlayerAction,
