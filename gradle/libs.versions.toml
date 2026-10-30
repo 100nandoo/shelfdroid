@@ -48,7 +48,7 @@ junit = "4.13.2"
 mockito = "5.24.0"
 robolectric = "4.17"
 kotlin = "2.3.21"
-ksp = "2.3.12"
+ksp = "2.3.13"
 kotlinSerialization = "1.12.0"
 sqldelight = "2.4.1"
 
