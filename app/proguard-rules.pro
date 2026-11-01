@@ -21,3 +21,9 @@
 #-renamesourcefileattribute SourceFile
 
 -keep public class kotlin.Result { *; }
+
+# Room 2.2.5 keeps database classes but not the constructor used by reflection.
+# R8 full mode otherwise removes WorkManager's generated database constructor.
+-keep class androidx.work.impl.WorkDatabase_Impl {
+    public <init>();
+}
