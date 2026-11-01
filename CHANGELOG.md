@@ -1,3 +1,16 @@
+## 0.6.3 (2026-11-01)
+
+### What's new
+
+- Add a player widget to your home screen to see and control your playback.
+
+### Fixes
+
+- Fixed a startup crash in release builds.
+- Improved player widget layouts, theme updates, and cover image memory use.
+- Improved playback controls and fixed app and notification crashes.
+- Fixed the player title not being centered.
+
 ## 0.6.2 (2026-10-28)
 
 ### What's new

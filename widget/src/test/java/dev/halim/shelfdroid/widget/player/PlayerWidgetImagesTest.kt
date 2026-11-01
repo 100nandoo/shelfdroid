@@ -7,6 +7,8 @@ import dev.halim.shelfdroid.core.PlayerUiState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -25,6 +27,96 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class PlayerWidgetImagesTest {
+  @Test
+  fun `initial content and controls are available while the first cover loads`() = runTest {
+    val bitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
+    val data = PlayerUiState(id = "book", cover = "first").toPlayerWidgetData()!!
+    val content = MutableStateFlow(data)
+    val flow =
+      playerWidgetContentFlow(backgroundScope, content) {
+        delay(100)
+        bitmap
+      }
+    val received = mutableListOf<PlayerWidgetData?>()
+    backgroundScope.launch { received += flow.first() }
+    runCurrent()
+    assertEquals(listOf(data), received)
+
+    backgroundScope.launch { flow.collect { received += it } }
+    content.value = data.copy(showPlayIcon = false)
+    runCurrent()
+    assertFalse(received.last()!!.showPlayIcon)
+    assertNull(received.last()!!.coverBitmap)
+
+    advanceTimeBy(100)
+    runCurrent()
+    assertSame(bitmap, received.last()!!.coverBitmap)
+    assertFalse(received.last()!!.showPlayIcon)
+  }
+
+  @Test
+  fun `failed initial cover leaves content available and later covers can load`() = runTest {
+    val bitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
+    val data = PlayerUiState(id = "book", cover = "missing").toPlayerWidgetData()!!
+    val content = MutableStateFlow(data)
+    val flow =
+      playerWidgetContentFlow(backgroundScope, content) { cover ->
+        delay(100)
+        if (cover == "missing") null else bitmap
+      }
+    val received = mutableListOf<PlayerWidgetData?>()
+    backgroundScope.launch { flow.collect { received += it } }
+    runCurrent()
+    assertEquals(data, received.last())
+    advanceTimeBy(100)
+    runCurrent()
+    assertEquals(data, received.last())
+
+    content.value = data.copy(cover = "available")
+    runCurrent()
+    advanceTimeBy(100)
+    runCurrent()
+    assertSame(bitmap, received.last()!!.coverBitmap)
+  }
+
+  @Test
+  fun `multiple size collectors share one upstream subscription and cancel obsolete covers`() =
+    runTest {
+      val bitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
+      val content =
+        MutableStateFlow(PlayerUiState(id = "book", cover = "first").toPlayerWidgetData())
+      var subscriptions = 0
+      val upstream = flow {
+        subscriptions++
+        content.collect { emit(it) }
+      }
+      val completed = mutableListOf<String>()
+      val flow =
+        playerWidgetContentFlow(backgroundScope, upstream) { cover ->
+          delay(100)
+          completed += cover
+          bitmap
+        }
+      val portrait = mutableListOf<PlayerWidgetData?>()
+      val landscape = mutableListOf<PlayerWidgetData?>()
+      backgroundScope.launch { flow.collect { portrait += it } }
+      backgroundScope.launch { flow.collect { landscape += it } }
+      runCurrent()
+      assertEquals(1, subscriptions)
+      assertEquals("first", portrait.last()!!.cover)
+      assertNull(portrait.last()!!.coverBitmap)
+
+      advanceTimeBy(50)
+      content.value = content.value!!.copy(cover = "second")
+      runCurrent()
+      advanceTimeBy(100)
+      runCurrent()
+      assertEquals(listOf("second"), completed)
+      assertSame(bitmap, portrait.last()!!.coverBitmap)
+      assertSame(bitmap, landscape.last()!!.coverBitmap)
+      assertEquals(1, subscriptions)
+    }
+
   @Test
   fun `size compositions share covers and replace them without stale artwork`() = runTest {
     val firstBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
@@ -77,6 +169,12 @@ class PlayerWidgetImagesTest {
     val sizes = listOf(DpSize(200.dp, 100.dp), DpSize(100.dp, 300.dp))
     assertEquals(200, widgetCoverTargetSize(sizes, density = 2f, memoryCapBytes = 1_000_000))
     assertEquals(80, widgetCoverTargetSize(sizes, density = 2f, memoryCapBytes = 80L * 80 * 4))
+    val largePreview = listOf(DpSize(320.dp, 180.dp))
+    assertEquals(360, widgetCoverTargetSize(largePreview, density = 2f, memoryCapBytes = 1_000_000))
+    assertEquals(
+      80,
+      widgetCoverTargetSize(largePreview, density = 2f, memoryCapBytes = 80L * 80 * 4),
+    )
   }
 
   @Test

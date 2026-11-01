@@ -1,0 +1,8 @@
+What's new
+- Add a player widget to your home screen to see and control your playback.
+
+Fixes
+- Fixed a startup crash in release builds.
+- Improved player widget layouts, theme updates, and cover image memory use.
+- Improved playback controls and fixed app and notification crashes.
+- Fixed the player title not being centered.

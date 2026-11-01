@@ -17,14 +17,19 @@ import dev.halim.shelfdroid.widget.player.ui.playerWidgetColorProviders
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 
-class PlayerWidget private constructor(private val pinRequestPreviewData: PlayerWidgetData?) :
-  GlanceAppWidget() {
-  constructor() : this(null)
+private val defaultPlayerWidgetSize = DpSize(220.dp, 60.dp)
+
+class PlayerWidget
+private constructor(
+  private val pinRequestPreviewData: PlayerWidgetData?,
+  private val pinRequestPreviewSize: DpSize,
+) : GlanceAppWidget() {
+  constructor() : this(null, defaultPlayerWidgetSize)
 
   override val sizeMode = SizeMode.Exact
   override val previewSizeMode =
     SizeMode.Responsive(
-      setOf(DpSize(220.dp, 60.dp), DpSize(320.dp, 128.dp), DpSize(320.dp, 180.dp))
+      setOf(defaultPlayerWidgetSize, DpSize(320.dp, 128.dp), DpSize(320.dp, 180.dp))
     )
 
   override suspend fun provideGlance(context: Context, id: GlanceId) = coroutineScope {
@@ -34,7 +39,7 @@ class PlayerWidget private constructor(private val pinRequestPreviewData: Player
     pinRequestPreviewData?.let { previewData ->
       val targetSize =
         widgetCoverTargetSize(
-          listOf(DpSize(220.dp, 60.dp)),
+          listOf(pinRequestPreviewSize),
           context.resources.displayMetrics.density,
           memoryCapBytes,
         )
@@ -58,7 +63,7 @@ class PlayerWidget private constructor(private val pinRequestPreviewData: Player
       GlanceAppWidgetManager(context)
         .getAppWidgetSizes(id)
         .filter { it.width > 0.dp && it.height > 0.dp }
-        .ifEmpty { listOf(DpSize(220.dp, 60.dp)) }
+        .ifEmpty { listOf(defaultPlayerWidgetSize) }
     val targetSize =
       widgetCoverTargetSize(sizes, context.resources.displayMetrics.density, memoryCapBytes)
     val contentFlow =
@@ -83,15 +88,17 @@ class PlayerWidget private constructor(private val pinRequestPreviewData: Player
   }
 
   companion object {
-    internal fun forPinRequest(currentPlayback: PlayerUiState): PlayerWidget =
-      PlayerWidget(currentPlayback.toPlayerWidgetData() ?: playerWidgetPreviewData)
+    internal fun forPinRequest(currentPlayback: PlayerUiState, previewSize: DpSize): PlayerWidget =
+      PlayerWidget(currentPlayback.toPlayerWidgetData() ?: playerWidgetPreviewData, previewSize)
   }
 }
 
-suspend fun requestPinPlayerWidget(context: Context, currentPlayback: PlayerUiState): Boolean =
-  GlanceAppWidgetManager(context)
+suspend fun requestPinPlayerWidget(context: Context, currentPlayback: PlayerUiState): Boolean {
+  val previewSize = defaultPlayerWidgetSize
+  return GlanceAppWidgetManager(context)
     .requestPinGlanceAppWidget(
       receiver = PlayerWidgetReceiver::class.java,
-      preview = PlayerWidget.forPinRequest(currentPlayback),
-      previewSize = DpSize(220.dp, 60.dp),
+      preview = PlayerWidget.forPinRequest(currentPlayback, previewSize),
+      previewSize = previewSize,
     )
+}

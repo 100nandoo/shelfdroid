@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withContext
 
 // Share one loader and Bitmap across every SizeMode.Exact composition in this session.
@@ -31,19 +31,22 @@ internal fun playerWidgetContentFlow(
   scope: CoroutineScope,
   content: Flow<PlayerWidgetData?>,
   loadCover: suspend (String) -> Bitmap?,
-) =
-  combine(
-      content,
-      content
+): Flow<PlayerWidgetData?> {
+  val sharedContent = content.shareIn(scope, SharingStarted.Eagerly, replay = 1)
+  return combine(
+      sharedContent,
+      sharedContent
         .map { it?.cover.orEmpty() }
         .distinctUntilChanged()
-        .mapLatest { cover ->
-          cover to if (cover.isBlank()) null else loadCover(cover)
+        .transformLatest { cover ->
+          emit(cover to null)
+          if (cover.isNotBlank()) emit(cover to loadCover(cover))
         },
     ) { data, (cover, bitmap) ->
       data?.copy(coverBitmap = bitmap.takeIf { data.cover == cover })
     }
     .shareIn(scope, SharingStarted.Eagerly, replay = 1)
+}
 
 internal fun widgetMemoryCapBytes(context: Context): Long {
   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
