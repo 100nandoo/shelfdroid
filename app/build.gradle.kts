@@ -87,7 +87,6 @@ android {
       }
       ndk { debugSymbolLevel = "full" }
     }
-    // initWith copies release as configured so far, so this must stay below the release block.
     create("benchmark") {
       initWith(buildTypes.getByName("release"))
       signingConfig = signingConfigs.getByName("debug")
