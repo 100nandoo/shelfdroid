@@ -58,7 +58,7 @@ constructor(
           val formattedProgress = (progress * 100).roundToInt()
           val remaining = helper.calculateRemaining(it.duration ?: 0.0, progress)
 
-          val isEbook = it.ebookFile != null
+          val isEbook = it.ebookFile != null && it.audioTracks.isEmpty()
           val canManageGeneratedRss = userPrefs.isAdmin
           val isSingleTrack = it.audioTracks.size == 1
           val generatedRssFeed =
