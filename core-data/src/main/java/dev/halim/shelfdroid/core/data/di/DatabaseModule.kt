@@ -23,10 +23,18 @@ object DatabaseModule {
 
   const val DATABASE_NAME = "shelfdroid.db"
 
+  // A single BookEntity row can exceed Android's default 2 MB CursorWindow.
+  private const val CURSOR_WINDOW_SIZE_BYTES = 16L * 1024 * 1024
+
   @Provides
   @Singleton
   fun provideSqlDriver(@ApplicationContext appContext: Context): SqlDriver {
-    return AndroidSqliteDriver(MyDatabase.Schema, appContext, DATABASE_NAME)
+    return AndroidSqliteDriver(
+      MyDatabase.Schema,
+      appContext,
+      DATABASE_NAME,
+      windowSizeBytes = CURSOR_WINDOW_SIZE_BYTES,
+    )
   }
 
   @Provides
