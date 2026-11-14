@@ -1,5 +1,8 @@
 # Media notification opening screen
 
+Lifecycle: completed
+Updated: 2026-11-14
+
 Status: Implemented; notification presentation regression fixed and verified.
 
 Extends commit `653e62f557e611e0a724b68f5b0088d6c211a2b4`.

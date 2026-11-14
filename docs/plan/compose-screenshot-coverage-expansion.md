@@ -1,5 +1,8 @@
 # Compose Screenshot Coverage Expansion
 
+Lifecycle: proposed
+Updated: 2026-11-14
+
 ## Current State
 
 `core-ui` now has phase-one Compose Preview Screenshot Testing wired through `core-ui/src/screenshotTest/` with dedicated `@PreviewTest` wrappers instead of reusing every existing Studio preview.

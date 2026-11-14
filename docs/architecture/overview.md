@@ -1,22 +1,8 @@
-# 📖 Project Documentation
+# Architecture overview
 
-## Requirements
+## Module dependencies
 
-- An Audiobookshelf server you can sign in to
-- Android 10 or newer
-- JDK 17 for local builds
-
-## Contributing
-
-1. Fork the repository.
-2. Create a feature branch with `git checkout -b feature/YourFeatureName`.
-3. Make your changes, run formatting, and test the affected code.
-4. Commit your changes. If you use Commitizen, run `cz c`.
-5. Push your branch and open a pull request.
-
-## 🔗 Module Dependencies
-
-[View module dependencies diagram](./images/module_dependencies.svg)
+[View module dependencies diagram](../images/module_dependencies.svg)
 
 The diagram shows the runtime module dependencies in this project. An arrow points from a
 dependency to the module that depends on it. For example, **core-network** → **core-data** means
@@ -69,7 +55,7 @@ The test-only modules are outside the runtime graph: **core-testing** provides s
 infrastructure, **test-app** is the instrumentation target for **app**, and **benchmark** runs
 macrobenchmarks against **app**. **core-data** uses **core-testing** from its Android tests.
 
-## 📱 Screen Flow
+## Screen flow
 
 Back and save actions return to the previous navigation-stack entry and are omitted from the
 diagrams below for readability. Logging out from `Settings` returns to `Login`.
@@ -77,7 +63,7 @@ diagrams below for readability. Logging out from `Settings` returns to `Login`.
 <details>
 <summary>User</summary>
 
-[View user screen flow diagram](./images/screen_flow_user.svg)
+[View user screen flow diagram](../images/screen_flow_user.svg)
 
 The player is an overlay managed by `PlayerHandler`, not a navigation destination. The orange
 border marks the routes where it can be shown during ongoing playback: `Home`, `Book`, `Podcast`,
@@ -134,7 +120,7 @@ classDef primary stroke:#FFC981,stroke-width:2px;
 <details>
 <summary>Administrator</summary>
 
-[View administrator screen flow diagram](./images/screen_flow_admin.svg)
+[View administrator screen flow diagram](../images/screen_flow_admin.svg)
 
 The server section on `Home` is visible only to administrators. This flow is in addition to the
 user flow above; it shows the administrator-only server screens and entry points.
@@ -218,7 +204,7 @@ flowchart LR
 
 </details>
 
-## 🏷️ Naming & Coding Convention
+## Naming and data-layer conventions
 
 #### Each screen can have its own repository to retrieve and shape UI data.
 
@@ -281,37 +267,11 @@ For example:
 This is intentional. Avoid catch-all packages that group classes by legacy implementation
 history instead of domain ownership.
 
-## 🎨 Code Style And Formatting
-
-ShelfDroid uses [ktfmt 0.65](https://github.com/Kotlin/ktfmt) with Google's Kotlin style and the
-project's `.editorconfig` settings. Run this command from the repository root:
-
-```bash
-find . -type d \( -name .git -o -name .idea -o -name build \) -prune -o \
-  -type f \( -name '*.kt' -o -name '*.kts' \) \
-  -exec ktfmt --google-style --enable-editorconfig {} +
-```
-
-The command formats Kotlin source files and Gradle Kotlin scripts, skipping `.git/`, `.idea/`,
-and `build/` directories at every level.
-
-To check formatting without changing files, add `--dry-run --set-exit-if-changed` after
-`--enable-editorconfig`.
-
-## 🎨 UI Development
-
-- [Compose Preview Policy](./ui-previews.md)
-
-## 📦 Distribution
-
-- [F-Droid Asset Provenance](./fdroid/asset-provenance.md)
-- [F-Droid Release Procedure](./fdroid/release-procedure.md)
-
-## 🧱 Architecture
+## Architecture references
 
 ShelfDroid follows
 the [Android Architecture Templates (Multi-Module)](https://github.com/android/architecture-templates/tree/multimodule)
 to keep the codebase scalable and maintainable.
 
-- [Data Layer Seams ADR](./adr/0007-domain-oriented-data-layer-seams.md)
-- [Download Module](./architecture/download-module.md)
+- [Data Layer Seams ADR](../adr/0007-domain-oriented-data-layer-seams.md)
+- [Download Module](download-module.md)

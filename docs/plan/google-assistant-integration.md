@@ -1,5 +1,8 @@
 # Google Assistant Integration
 
+Lifecycle: proposed
+Updated: 2026-11-14
+
 ## Overview
 
 Enables Google Assistant voice control over ShelfDroid across four levels:

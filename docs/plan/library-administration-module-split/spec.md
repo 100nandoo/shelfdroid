@@ -1,10 +1,14 @@
 # Split Library Administration From Core UI
 
+Lifecycle: active
+Updated: 2026-11-14
+Status: Implemented; server-backed manual verification remains open. See [verification](verification.md) and [build timing](benchmark.md).
+
 ## Goal
 
 Move the Library administration screens and ViewModels from `:core-ui` into one Android library module, `:feature-library-admin`. Keep the shared Compose elements in `:core-ui`, the Library administration contracts and server task ownership in `:core-data`, and the root navigation host in `:app`. Measure whether edits to this feature stop recompiling `:core-ui` and improve incremental build time.
 
-This plan follows [Separate Navigation Contracts From Composition](navigation-contracts-and-composition.md). Its prerequisite is already present: `:navigation-api` owns the sealed destination keys and `:app` owns `MainNavigation` and `MainActivity`. This is a regular Android library included in the app, not a Play Feature Delivery module.
+This plan follows [Separate Navigation Contracts From Composition](../navigation-contracts-and-composition/spec.md). Its prerequisite is already present: `:navigation-api` owns the sealed destination keys and `:app` owns `MainNavigation` and `MainActivity`. This is a regular Android library included in the app, not a Play Feature Delivery module.
 
 ## Current state and seam
 
@@ -31,7 +35,7 @@ This plan follows [Separate Navigation Contracts From Composition](navigation-co
 
 1. With the current module layout, warm the Gradle daemon and dependency cache. Record `:app:assembleDebug` with an up-to-date tree, then with repeatable non-ABI edits to `LibraryAdminCreateViewModel.kt` and `LibraryAdminCreateScreen.kt`. Keep the same edits available to replay after the split and restore each file after measuring.
 2. Use the existing timing method in `navigation-contracts-and-composition-benchmark.md`: offline dependencies, configuration cache, `--profile`, one warm-up followed by five runs per scenario. Record wall time and the `:core-ui:compileDebugKotlin` and `:app:compileDebugKotlin` task times. Also record one clean build for an overhead check.
-3. Put the raw runs and medians in `docs/plan/library-administration-module-split-benchmark.md`. The earlier Book-screen benchmark is context, not a baseline for this feature.
+3. Put the raw runs and medians in `docs/plan/library-administration-module-split/benchmark.md`. The earlier Book-screen benchmark is context, not a baseline for this feature.
 
 ## Step 1: Create the feature module
 
@@ -86,5 +90,5 @@ This plan follows [Separate Navigation Contracts From Composition](navigation-co
 
 - [Android modularization patterns](https://developer.android.com/topic/modularization/patterns)
 - [Android Navigation 3 modularization](https://developer.android.com/guide/navigation/navigation-3/modularize)
-- [ADR 0002: screenshot testing in core UI](../adr/0002-compose-preview-screenshot-testing-in-core-ui.md)
-- [ADR 0014: shared socket lifecycle for server tasks](../adr/0014-shared-socket-lifecycle-for-server-tasks.md)
+- [ADR 0002: screenshot testing in core UI](../../adr/0002-compose-preview-screenshot-testing-in-core-ui.md)
+- [ADR 0014: shared socket lifecycle for server tasks](../../adr/0014-shared-socket-lifecycle-for-server-tasks.md)

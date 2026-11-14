@@ -1,5 +1,8 @@
 # Playback speed notification toggle
 
+Lifecycle: completed
+Updated: 2026-11-14
+
 Status: Implemented and reviewed.
 
 ## Behavior

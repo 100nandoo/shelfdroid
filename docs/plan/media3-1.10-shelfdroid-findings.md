@@ -1,5 +1,8 @@
 # Media3 1.10 ShelfDroid Findings
 
+Lifecycle: proposed
+Updated: 2026-11-14
+
 ## Overview
 
 Media3 1.10.0 contains several changes that directly affect ShelfDroid's audiobook and podcast

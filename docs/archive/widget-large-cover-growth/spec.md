@@ -1,5 +1,8 @@
 # Large player widget cover growth
 
+Lifecycle: completed
+Updated: 2026-11-14
+
 Status: Implemented.
 
 This updates the large presentation in [Responsive player widget layouts](../widget-responsive-layouts/spec.md) and keeps the single control row from [Player widget chapter controls in the playback row](../widget-unified-control-row/spec.md).

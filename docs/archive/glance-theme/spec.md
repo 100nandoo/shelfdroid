@@ -1,5 +1,8 @@
 # Player widget theme
 
+Lifecycle: completed
+Updated: 2026-11-14
+
 Status: Complete.
 
 ## Agreed behavior

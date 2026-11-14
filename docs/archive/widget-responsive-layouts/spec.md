@@ -1,5 +1,8 @@
 # Responsive player widget layouts
 
+Lifecycle: completed
+Updated: 2026-11-14
+
 Status: Implemented.
 
 ## Agreed presentation

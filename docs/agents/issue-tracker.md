@@ -19,3 +19,12 @@ Create `docs/scratch/<feature>/spec.md`. If publishing tickets for a feature, cr
 ## When a skill says "fetch the relevant ticket"
 
 Open the corresponding numbered file from `docs/scratch/`. If the request is about the feature spec, open `docs/scratch/<feature>/spec.md`.
+
+## Work lifecycle and archives
+
+- Future proposals and research live under `docs/plan/`. Published feature specs and implementation tickets use the `docs/scratch/` paths above. Link related plans from the feature spec rather than maintaining two copies.
+- Record feature lifecycle as `Lifecycle: proposed`, `active`, `blocked`, `completed`, or `abandoned` near the top of its spec, with an `Updated: YYYY-MM-DD` line. Keep implementation and verification details in the existing `Status:` text.
+- Ticket `Status:` values retain the triage vocabulary in `triage-labels.md`; feature lifecycle does not replace ticket triage.
+- Keep work with outstanding acceptance or verification checks open, even when implementation is present.
+- Before archiving, update current architecture or usage guidance for any enduring behavior, and record completion evidence or the reason for abandonment. Move the related spec, tickets, and reports together under `docs/archive/<feature>/`, preserving filenames and repairing links.
+- Read `docs/archive/README.md` when looking for completed work or historical specs. Archives are excluded from open-work scans; archived specifications may describe behavior superseded by later changes.

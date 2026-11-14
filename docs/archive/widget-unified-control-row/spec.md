@@ -1,6 +1,9 @@
 # Player widget chapter controls in the playback row
 
-Status: Implemented; validation pending.
+Lifecycle: completed
+Updated: 2026-11-14
+
+Status: Completed; closed at the maintainer's request on 2026-11-14.
 
 This revises the control placement in [Responsive player widget layouts](../widget-responsive-layouts/spec.md). Its existing implementation outcome remains the record of the prior layout.
 
@@ -34,6 +37,6 @@ This revises the control placement in [Responsive player widget layouts](../widg
 - Medium and large layouts now add previous and next chapter actions to the playback control row when chapter navigation is available. The compact layout keeps its existing three controls.
 - Control buttons remain 48dp where space allows and shrink to fit five controls at the widget's 220dp minimum width.
 - Responsive layout assertions now expect chapter actions in the medium layout, including its larger-font minimum height.
-- Tests have not been run for this change.
+- At the implementation handoff, tests had not been run for this change. The maintainer subsequently marked the feature done; this archival update does not record a new test run.
 
 These reversible layout choices use the existing **Player widget**, **Current playback**, and **Chapter** terms in `CONTEXT.md` and do not require an ADR.

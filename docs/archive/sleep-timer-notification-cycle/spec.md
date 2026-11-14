@@ -1,5 +1,8 @@
 # Sleep timer notification cycle
 
+Lifecycle: completed
+Updated: 2026-11-14
+
 Status: Implemented and reviewed; feature validation passes.
 
 ## Behavior

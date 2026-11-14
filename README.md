@@ -111,7 +111,7 @@ requests.
 
 ## Documentation
 
-Project documentation lives in [docs/DOCS.md](docs/DOCS.md), including requirements,
+Project documentation lives in [docs/README.md](docs/README.md), including requirements,
 contributing guidance, code style, and architecture notes. Recent release notes are tracked in
 [CHANGELOG.md](CHANGELOG.md).
 

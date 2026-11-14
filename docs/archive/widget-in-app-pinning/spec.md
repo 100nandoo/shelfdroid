@@ -1,5 +1,8 @@
 # In-app Player widget pinning
 
+Lifecycle: completed
+Updated: 2026-11-14
+
 Status: Implemented.
 
 ## Confirmed decisions

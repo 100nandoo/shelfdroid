@@ -1,6 +1,9 @@
 # Splash screen waveform animation
 
-Status: Implemented; debug build passes. Visual and runtime verification remains outstanding.
+Lifecycle: completed
+Updated: 2026-11-14
+
+Status: Completed; closed at the maintainer's request on 2026-11-14.
 
 ## Goal
 
@@ -55,7 +58,7 @@ The existing splash library is sufficient. Keep the launcher icon resource uncha
 - Matching and conflicting system/app light/dark settings and disabled animations produce a readable, stable splash. Record any existing background transition problem separately.
 - OpenID authentication returns still reach the expected screen; the callback uses a static icon. Check the return flow for repeated splash presentation.
 - Visual device/emulator verification is performed only when explicitly authorized. Record any verification that remains outstanding.
-- A successful build alone does not complete validation. Keep the feature marked as awaiting visual/runtime verification until appearance, interrupted launches, disabled animations, and OpenID return behavior have been checked.
+- The original acceptance plan required visual/runtime checks beyond a successful build. The maintainer subsequently marked this feature done; this archival update records that closure without asserting additional test execution.
 
 ## Reference
 

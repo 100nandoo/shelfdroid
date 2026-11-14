@@ -1,5 +1,8 @@
 # Player widget generated previews
 
+Lifecycle: completed
+Updated: 2026-11-14
+
 Status: Implemented; review complete.
 
 ## Purpose

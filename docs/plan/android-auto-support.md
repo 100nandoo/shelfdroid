@@ -1,5 +1,8 @@
 # Android Auto Support
 
+Lifecycle: proposed
+Updated: 2026-11-14
+
 ## Overview
 
 ShelfDroid already has most of the playback infrastructure required for Android Auto:

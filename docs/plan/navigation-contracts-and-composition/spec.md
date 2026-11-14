@@ -1,5 +1,9 @@
 # Separate Navigation Contracts From Composition
 
+Lifecycle: active
+Updated: 2026-11-14
+Status: Structural implementation recorded in [build timing](benchmark.md); completion of all device acceptance checks is not recorded. Keep open until those checks are confirmed.
+
 ## Goal
 
 Put serializable destination keys in a small module that future feature modules can depend on. Move the navigation host and Android entry activity to `:app`, so `:core-ui` can later become shared UI without depending on feature implementations. Preserve route types, saved back stacks, navigation results, deep links, and player launch behavior.
@@ -72,4 +76,4 @@ Before Step 1, record the current `:app:assembleDebug` timing for an up-to-date 
 
 - [Android Navigation 3 modularization](https://developer.android.com/guide/navigation/navigation-3/modularize)
 - [Android Navigation 3 modular Hilt recipe](https://developer.android.com/guide/navigation/navigation-3/recipes/modular-hilt)
-- [ADR 0002: Compose preview screenshot testing in core UI](../adr/0002-compose-preview-screenshot-testing-in-core-ui.md)
+- [ADR 0002: Compose preview screenshot testing in core UI](../../adr/0002-compose-preview-screenshot-testing-in-core-ui.md)
