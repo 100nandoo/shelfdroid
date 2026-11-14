@@ -27,7 +27,7 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:noHistory="true"
-            android:theme="@style/Theme.ShelfDroid.MySplash">
+            android:theme="@style/Theme.ShelfDroid.OpenIdSplash">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

@@ -63,9 +63,8 @@ class MainActivity : ComponentActivity() {
   private var navRequest by mutableStateOf<NavRequest>(NavRequest.None)
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-
     installSplashScreen()
+    super.onCreate(savedInstanceState)
     if (
       shouldHandleLaunchIntent(
         isFirstCreation = savedInstanceState == null,

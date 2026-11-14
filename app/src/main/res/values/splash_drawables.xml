@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="splash_screen_icon" type="drawable">@drawable/ic_splash_screen_waveform</item>
+</resources>
