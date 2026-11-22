@@ -17,6 +17,24 @@ data class Login(val reLogin: Boolean = false, val reason: AuthPromptReason? = n
 
 @Serializable data object Settings : ShelfNavKey
 
+@Serializable data object SettingsSearch : ShelfNavKey
+
+@Serializable
+data class SettingsSearchTarget(
+  val settingId: String,
+  val destination: SettingsSearchDestination,
+) : ShelfNavKey
+
+@Serializable
+enum class SettingsSearchDestination {
+  SETTINGS,
+  HOME,
+  PLAYER,
+  PLAYBACK,
+  NOTIFICATION,
+  PODCAST,
+}
+
 @Serializable data object SettingsHome : ShelfNavKey
 
 @Serializable data object SettingsPlayback : ShelfNavKey

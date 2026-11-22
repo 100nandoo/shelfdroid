@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,6 +39,8 @@ import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 @Composable
 fun SettingsScreen(
   viewModel: SettingsViewModel = hiltViewModel(),
+  onSettingsSearchClicked: () -> Unit = {},
+  searchTargetId: String? = null,
   onPlayerClicked: () -> Unit = {},
   onWidgetClicked: () -> Unit = {},
   onPlaybackClicked: () -> Unit = {},
@@ -69,6 +73,7 @@ fun SettingsScreen(
 
   SettingsScreenContent(
     uiState = uiState,
+    onSettingsSearchClicked = onSettingsSearchClicked,
     version = version,
     user = uiState.username,
     onPlayerClicked = onPlayerClicked,
@@ -80,6 +85,7 @@ fun SettingsScreen(
     onListeningSessionClicked = onListeningSessionClicked,
     changePassword = changePassword,
     onEvent = { settingsEvent -> viewModel.onEvent(settingsEvent) },
+    searchTargetId = searchTargetId,
   )
 
   MyAlertDialog(
@@ -107,19 +113,33 @@ fun SettingsScreenContent(
   changePassword: () -> Unit = {},
   onHomeClicked: () -> Unit = {},
   onEvent: (SettingsEvent) -> Unit = {},
+  onSettingsSearchClicked: () -> Unit = {},
+  searchTargetId: String? = null,
 ) {
   Column(
     modifier =
       Modifier.fillMaxSize().padding(vertical = 16.dp).verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      horizontalArrangement = Arrangement.End,
+    ) {
+      androidx.compose.material3.IconButton(onClick = onSettingsSearchClicked) {
+        androidx.compose.material3.Icon(
+          painter = androidx.compose.ui.res.painterResource(R.drawable.search),
+          contentDescription = stringResource(R.string.settings_search),
+          tint = MaterialTheme.colorScheme.onSurface,
+        )
+      }
+    }
     LogoutSection(onEvent, changePassword)
     Spacer(modifier = Modifier.height(16.dp))
 
     OthersSection(version, user, uiState)
     Spacer(modifier = Modifier.height(16.dp))
 
-    DisplaySection(uiState, onEvent)
+    DisplaySection(uiState, onEvent, searchTargetId)
     Spacer(modifier = Modifier.height(16.dp))
 
     SettingsClickLabel(
@@ -173,26 +193,54 @@ fun SettingsScreenContent(
 }
 
 @Composable
-private fun DisplaySection(uiState: SettingsUiState, onEvent: (SettingsEvent) -> Unit) {
+private fun DisplaySection(
+  uiState: SettingsUiState,
+  onEvent: (SettingsEvent) -> Unit,
+  searchTargetId: String?,
+) {
   TextTitleMedium(
     modifier = Modifier.padding(horizontal = 16.dp),
     text = stringResource(R.string.display),
   )
-  MySwitch(
-    modifier = Modifier.padding(start = 24.dp, end = 16.dp),
-    title = stringResource(R.string.dark_mode),
-    checked = uiState.isDarkMode,
-    contentDescription = stringResource(R.string.dark_mode),
-    onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
-  )
-  MySwitch(
-    modifier = Modifier.padding(start = 24.dp, end = 16.dp),
-    title = stringResource(R.string.dynamic_theme),
-    checked = uiState.isDynamicTheme,
-    contentDescription = stringResource(R.string.dynamic_theme),
-    enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
-    onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
-  )
+  dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchTarget(
+    settingId =
+      dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchSettingId.DARK_MODE,
+    label = stringResource(R.string.dark_mode),
+    targetSettingId = searchTargetId,
+  ) {
+    MySwitch(
+      modifier = Modifier.padding(start = 24.dp, end = 16.dp),
+      title = stringResource(R.string.dark_mode),
+      checked = uiState.isDarkMode,
+      contentDescription = stringResource(R.string.dark_mode),
+      onCheckedChange = { onEvent(SettingsEvent.SwitchDarkTheme(it)) },
+    )
+  }
+  dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchTarget(
+    settingId =
+      dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchSettingId.DYNAMIC_THEME,
+    label = stringResource(R.string.dynamic_theme),
+    targetSettingId = searchTargetId,
+  ) {
+    Column {
+      MySwitch(
+        modifier = Modifier.padding(start = 24.dp, end = 16.dp),
+        title = stringResource(R.string.dynamic_theme),
+        checked = uiState.isDynamicTheme,
+        contentDescription = stringResource(R.string.dynamic_theme),
+        enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+        onCheckedChange = { onEvent(SettingsEvent.SwitchDynamicTheme(it)) },
+      )
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+        Text(
+          text = stringResource(R.string.dynamic_theme_requires_android_12),
+          modifier = Modifier.padding(start = 48.dp, end = 16.dp, bottom = 8.dp),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
+  }
 }
 
 @Composable

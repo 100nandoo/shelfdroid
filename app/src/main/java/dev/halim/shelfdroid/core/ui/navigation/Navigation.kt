@@ -65,6 +65,7 @@ import dev.halim.shelfdroid.core.ui.screen.settings.listeningsession.SettingsLis
 import dev.halim.shelfdroid.core.ui.screen.settings.notification.SettingsNotificationScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.player.SettingsPlayerScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.podcast.SettingsPodcastScreen
+import dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchScreen
 import dev.halim.shelfdroid.core.ui.screen.settings.widget.SettingsWidgetScreen
 import dev.halim.shelfdroid.core.ui.screen.settingsplayback.SettingsPlaybackScreen
 import dev.halim.shelfdroid.core.ui.screen.userinfo.UserInfoScreen
@@ -274,6 +275,7 @@ private fun ColumnScope.NavHostContainer(
       entry<Settings> {
         Nav3ScreenWrapper(sharedTransitionScope) {
           SettingsScreen(
+            onSettingsSearchClicked = { navigator.navigate(SettingsSearch) },
             onHomeClicked = { navigator.navigate(SettingsHome) },
             onPlayerClicked = { navigator.navigate(SettingsPlayer) },
             onWidgetClicked = { navigator.navigate(SettingsWidget) },
@@ -286,7 +288,52 @@ private fun ColumnScope.NavHostContainer(
           )
         }
       }
-      entry<SettingsHome> { Nav3ScreenWrapper(sharedTransitionScope) { SettingsHomeScreen() } }
+      entry<SettingsSearch> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          SettingsSearchScreen(
+            onBackClicked = { navigator.pop() },
+            onSettingSelected = { setting ->
+              navigator.navigate(
+                SettingsSearchTarget(
+                  settingId = setting.id,
+                  destination = setting.destination,
+                )
+              )
+            },
+          )
+        }
+      }
+      entry<SettingsSearchTarget> { key ->
+        Nav3ScreenWrapper(sharedTransitionScope) {
+          when (key.destination) {
+            SettingsSearchDestination.SETTINGS ->
+              SettingsScreen(
+                onSettingsSearchClicked = { navigator.navigate(SettingsSearch) },
+                searchTargetId = key.settingId,
+                onHomeClicked = { navigator.navigate(SettingsHome) },
+                onPlayerClicked = { navigator.navigate(SettingsPlayer) },
+                onWidgetClicked = { navigator.navigate(SettingsWidget) },
+                onPlaybackClicked = { navigator.navigate(SettingsPlayback) },
+                onNotificationClicked = { navigator.navigate(SettingsNotification) },
+                onPodcastClicked = { navigator.navigate(SettingsPodcast) },
+                onListeningSessionClicked = { navigator.navigate(SettingsListeningSession) },
+                changePassword = { navigator.navigate(ChangePassword) },
+                onLoggedOut = onLoggedOut,
+              )
+            SettingsSearchDestination.HOME -> SettingsHomeScreen(searchTargetId = key.settingId)
+            SettingsSearchDestination.PLAYER -> SettingsPlayerScreen(searchTargetId = key.settingId)
+            SettingsSearchDestination.PLAYBACK ->
+              SettingsPlaybackScreen(searchTargetId = key.settingId)
+            SettingsSearchDestination.NOTIFICATION ->
+              SettingsNotificationScreen(searchTargetId = key.settingId)
+            SettingsSearchDestination.PODCAST ->
+              SettingsPodcastScreen(searchTargetId = key.settingId)
+          }
+        }
+      }
+      entry<SettingsHome> {
+        Nav3ScreenWrapper(sharedTransitionScope) { SettingsHomeScreen() }
+      }
       entry<SettingsPlayback> {
         Nav3ScreenWrapper(sharedTransitionScope) { SettingsPlaybackScreen() }
       }

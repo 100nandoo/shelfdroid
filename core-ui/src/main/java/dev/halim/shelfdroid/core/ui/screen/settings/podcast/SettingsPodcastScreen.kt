@@ -23,17 +23,23 @@ import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchSettingId
+import dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchTarget
 
 @Composable
-fun SettingsPodcastScreen(viewModel: SettingsPodcastViewModel = hiltViewModel()) {
+fun SettingsPodcastScreen(
+  viewModel: SettingsPodcastViewModel = hiltViewModel(),
+  searchTargetId: String? = null,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  SettingsPodcastScreenContent(uiState, viewModel::onEvent)
+  SettingsPodcastScreenContent(uiState, viewModel::onEvent, searchTargetId)
 }
 
 @Composable
 private fun SettingsPodcastScreenContent(
   uiState: SettingsPodcastUiState = SettingsPodcastUiState(),
   onEvent: (SettingsPodcastEvent) -> Unit = {},
+  searchTargetId: String? = null,
 ) {
   val canAdd by remember(uiState.userPrefs.isAdmin) { mutableStateOf(uiState.userPrefs.isAdmin) }
   val canDelete by
@@ -46,32 +52,50 @@ private fun SettingsPodcastScreenContent(
   ) {
     if (canDelete) {
       TextTitleMedium(text = stringResource(R.string.delete))
-      MySwitch(
-        modifier = Modifier.padding(start = 8.dp),
-        title = stringResource(R.string.user_permanent_deletion),
-        checked = uiState.crudPrefs.episodeHardDelete,
-        contentDescription = stringResource(R.string.user_permanent_deletion),
-        onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHardDelete(it)) },
-      )
-      MySwitch(
-        modifier = Modifier.padding(start = 8.dp),
-        title = stringResource(R.string.auto_select_finished_episodes),
-        checked = uiState.crudPrefs.episodeAutoSelectFinished,
-        contentDescription = stringResource(R.string.auto_select_finished_episodes),
-        onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchAutoSelectFinished(it)) },
-      )
+      SettingsSearchTarget(
+        settingId = SettingsSearchSettingId.PODCAST_PERMANENT_DELETE,
+        label = stringResource(R.string.user_permanent_deletion),
+        targetSettingId = searchTargetId,
+      ) {
+        MySwitch(
+          modifier = Modifier.padding(start = 8.dp),
+          title = stringResource(R.string.user_permanent_deletion),
+          checked = uiState.crudPrefs.episodeHardDelete,
+          contentDescription = stringResource(R.string.user_permanent_deletion),
+          onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHardDelete(it)) },
+        )
+      }
+      SettingsSearchTarget(
+        settingId = SettingsSearchSettingId.AUTO_SELECT_FINISHED_EPISODES,
+        label = stringResource(R.string.auto_select_finished_episodes),
+        targetSettingId = searchTargetId,
+      ) {
+        MySwitch(
+          modifier = Modifier.padding(start = 8.dp),
+          title = stringResource(R.string.auto_select_finished_episodes),
+          checked = uiState.crudPrefs.episodeAutoSelectFinished,
+          contentDescription = stringResource(R.string.auto_select_finished_episodes),
+          onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchAutoSelectFinished(it)) },
+        )
+      }
     }
     Spacer(modifier = Modifier.height(16.dp))
 
     if (canAdd) {
       TextTitleMedium(text = stringResource(R.string.add_episode))
-      MySwitch(
-        modifier = Modifier.padding(start = 8.dp),
-        title = stringResource(R.string.hide_downloaded_episodes),
-        checked = uiState.crudPrefs.addEpisodeHideDownloaded,
-        contentDescription = stringResource(R.string.hide_downloaded_episodes),
-        onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHideDownloaded(it)) },
-      )
+      SettingsSearchTarget(
+        settingId = SettingsSearchSettingId.HIDE_DOWNLOADED_EPISODES,
+        label = stringResource(R.string.hide_downloaded_episodes),
+        targetSettingId = searchTargetId,
+      ) {
+        MySwitch(
+          modifier = Modifier.padding(start = 8.dp),
+          title = stringResource(R.string.hide_downloaded_episodes),
+          checked = uiState.crudPrefs.addEpisodeHideDownloaded,
+          contentDescription = stringResource(R.string.hide_downloaded_episodes),
+          onCheckedChange = { onEvent(SettingsPodcastEvent.SwitchHideDownloaded(it)) },
+        )
+      }
     }
   }
 }
