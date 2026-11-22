@@ -7,7 +7,9 @@ plugins {
 
 android {
   namespace = "${libs.versions.namespace.get()}.test.navigation"
-  compileSdk = libs.versions.targetSdk.get().toInt()
+  compileSdk {
+    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
+  }
   targetProjectPath = ":app"
 
   defaultConfig {

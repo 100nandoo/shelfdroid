@@ -19,6 +19,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -200,6 +201,8 @@ fun PlayerProgress(
   var target by remember { mutableFloatStateOf(0f) }
 
   val sliderValue = if (isDragging) target else progress.progress
+  val sliderState = rememberSliderState()
+  sliderState.value = sliderValue
   val positionValue =
     if (isDragging) (target * progress.duration).toDouble().formatChapterTime()
     else progress.position.toDouble().formatChapterTime()
@@ -216,7 +219,7 @@ fun PlayerProgress(
     )
   }
   Slider(
-    value = sliderValue,
+    state = sliderState,
     onValueChange = {
       isDragging = true
       target = it

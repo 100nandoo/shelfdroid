@@ -46,7 +46,9 @@ plugins {
 
 android {
   namespace = libs.versions.namespace.get()
-  compileSdk = libs.versions.targetSdk.get().toInt()
+  compileSdk {
+    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
+  }
 
   signingConfigs {
     val keystorePropertiesFile = project.findSigningPropertiesFile()
