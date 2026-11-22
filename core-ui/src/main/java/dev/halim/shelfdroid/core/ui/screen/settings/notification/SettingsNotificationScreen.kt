@@ -30,6 +30,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -403,7 +404,7 @@ private fun MediaNotificationPreview(uiState: SettingsNotificationUiState) {
         )
         Spacer(modifier = Modifier.width(16.dp))
         Slider(
-          value = 0.5f,
+          state = rememberSliderState(value = 0.5f),
           onValueChange = {},
           modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
           thumb = {

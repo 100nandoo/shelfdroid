@@ -8,7 +8,9 @@ plugins {
 
 android {
   namespace = "${libs.versions.namespace.get()}.socketio"
-  compileSdk = libs.versions.targetSdk.get().toInt()
+  compileSdk {
+    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
+  }
 
   defaultConfig {
     minSdk = libs.versions.minSdk.get().toInt()

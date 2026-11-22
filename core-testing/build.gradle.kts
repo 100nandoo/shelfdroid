@@ -4,7 +4,9 @@ plugins { alias(libs.plugins.android.library) }
 
 android {
   namespace = "${libs.versions.namespace.get()}.core.testing"
-  compileSdk = libs.versions.targetSdk.get().toInt()
+  compileSdk {
+    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
+  }
 
   defaultConfig {
     minSdk = libs.versions.minSdk.get().toInt()
