@@ -6,11 +6,17 @@
   <a href="https://github.com/100nandoo/shelfdroid/releases/latest">
     <img src="https://img.shields.io/github/v/release/100nandoo/shelfdroid?style=flat-square&color=blue" alt="latest release">
   </a>
+  <a href="https://f-droid.org/en/packages/dev.halim.shelfdroid/">
+    <img src="https://img.shields.io/f-droid/v/dev.halim.shelfdroid?style=flat-square&amp;logo=fdroid&amp;label=F-Droid&amp;color=blue" alt="Latest F-Droid version">
+  </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/100nandoo/shelfdroid?style=flat-square&color=blue" alt="license">
   </a>
   <a href="https://github.com/100nandoo/shelfdroid/releases">
     <img src="https://img.shields.io/github/downloads/100nandoo/shelfdroid/total?style=flat-square&color=brightgreen" alt="downloads">
+  </a>
+  <a href="https://fdroid-metrics.streamlit.app/package_details?package=dev.halim.shelfdroid">
+    <img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fkitswas%2Ffdroid-metrics-dashboard%2Fmain%2Fprocessed%2Fmonthly%2Fdev.halim.shelfdroid.json&amp;query=%24.total_downloads&amp;style=flat-square&amp;logo=fdroid&amp;label=F-Droid%20downloads&amp;color=brightgreen" alt="F-Droid downloads">
   </a>
 </p>
 
