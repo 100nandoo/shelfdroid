@@ -38,23 +38,43 @@ class SettingsNotificationContentTest {
     composeRule.setContent { SettingsNotificationContent() }
 
     val openingScreenTop =
-      composeRule.onNodeWithText("Open notification in").fetchSemanticsNode().boundsInRoot.top
+      composeRule.onNodeWithText("Open notification in").fetchSemanticsNode().positionInRoot.y
     val presentationTop =
-      composeRule.onNodeWithText("Player presentation").fetchSemanticsNode().boundsInRoot.top
+      composeRule.onNodeWithText("Player presentation").fetchSemanticsNode().positionInRoot.y
     val mediaNotificationTop =
-      composeRule.onNodeWithText("Preview").fetchSemanticsNode().boundsInRoot.top
+      composeRule.onNodeWithText("Preview").fetchSemanticsNode().positionInRoot.y
     val sleepTimerTop =
-      composeRule.onNodeWithText("Sleep Timer").fetchSemanticsNode().boundsInRoot.top
+      composeRule.onNodeWithText("Sleep Timer").fetchSemanticsNode().positionInRoot.y
     val playbackSpeedTop =
-      composeRule.onNodeWithText("Playback speed cycle").fetchSemanticsNode().boundsInRoot.top
+      composeRule.onNodeWithText("Playback speed cycle").fetchSemanticsNode().positionInRoot.y
     val notificationButtonsTop =
-      composeRule.onNodeWithText("Notification buttons").fetchSemanticsNode().boundsInRoot.top
+      composeRule.onNodeWithText("Notification buttons").fetchSemanticsNode().positionInRoot.y
 
     assertTrue(openingScreenTop < presentationTop)
     assertTrue(presentationTop < mediaNotificationTop)
     assertTrue(mediaNotificationTop < sleepTimerTop)
     assertTrue(sleepTimerTop < playbackSpeedTop)
     assertTrue(playbackSpeedTop < notificationButtonsTop)
+  }
+
+  @Test
+  fun notificationTapSettingsPlaceHeadingsAboveTheirOptions() {
+    composeRule.setContent { SettingsNotificationContent() }
+
+    val sections =
+      listOf("Open notification in" to "Home", "Player presentation" to "Expanded player")
+    for ((heading, firstOption) in sections) {
+      val headingBounds =
+        composeRule.onNodeWithText(heading).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+      val optionBounds =
+        composeRule
+          .onNodeWithText(firstOption)
+          .assertIsDisplayed()
+          .fetchSemanticsNode()
+          .boundsInRoot
+
+      assertTrue("$heading overlaps $firstOption", headingBounds.bottom <= optionBounds.top)
+    }
   }
 
   @Test

@@ -1,9 +1,9 @@
 # Compose improvements inspired by Harmonic
 
-Lifecycle: proposed
-Updated: 2026-11-14
+Lifecycle: active
+Updated: 2026-11-16
 
-Status: Proposed; implementation has not started.
+Status: Settings search is implemented; its acceptance checks and the remaining planned work are still open.
 
 ## Goal
 
@@ -20,8 +20,8 @@ coordination alongside the UI work.
 
 ## Planned work and references
 
-- [ ] Add settings search with title/keyword matching, navigation to the matching page,
-  automatic scrolling to the control, and a brief highlight. Start here for user value.
+- [x] Add settings search with title/keyword matching, navigation to the matching page,
+  automatic scrolling to the control, and a brief highlight. Acceptance checks remain.
   Reference: [search index](https://github.com/SimonHalvdansson/Harmonic-HN/blob/main/core/src/commonMain/kotlin/com/simon/harmonichackernews/settings/SettingsSearch.kt)
   and [row focus](https://github.com/SimonHalvdansson/Harmonic-HN/blob/main/ui/src/commonMain/kotlin/com/simon/harmonichackernews/ui/settings/SettingsSearchFocus.kt).
 - [ ] Investigate concurrent cover-image request deduplication when the same cover appears in
@@ -119,7 +119,7 @@ and the repository's applicable build checks; device verification requires expli
 
 ## Settings search design decisions
 
-Agreed during design review; implementation remains pending.
+Agreed during design review; implementation is in place and acceptance verification remains.
 
 - Scope the first release to Local app preferences in client Settings. Exclude server
   administration, including Server settings, Email settings, and Authentication settings.
@@ -169,4 +169,4 @@ Agreed during design review; implementation remains pending.
 - Verify Back restores results and their position, keyboard dismissal precedes leaving the
   search screen, recreation restores active search, and closing search clears its state.
 
-Design interview complete; awaiting confirmation of shared understanding before implementation.
+Design interview complete. Settings search implementation is in place; acceptance verification remains.

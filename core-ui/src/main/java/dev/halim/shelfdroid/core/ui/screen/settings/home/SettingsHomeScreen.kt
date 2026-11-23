@@ -28,17 +28,27 @@ import dev.halim.shelfdroid.core.ui.event.DisplayPrefsEvent
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsSublabel
+import dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchSettingId
+import dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchTarget
 
 @Composable
-fun SettingsHomeScreen(viewModel: SettingsHomeViewModel = hiltViewModel()) {
+fun SettingsHomeScreen(
+  viewModel: SettingsHomeViewModel = hiltViewModel(),
+  searchTargetId: String? = null,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  SettingsHomeScreenContent(uiState = uiState, onEvent = viewModel::onEvent)
+  SettingsHomeScreenContent(
+    uiState = uiState,
+    onEvent = viewModel::onEvent,
+    searchTargetId = searchTargetId,
+  )
 }
 
 @Composable
 fun SettingsHomeScreenContent(
   uiState: SettingsHomeUiState = SettingsHomeUiState(),
   onEvent: (SettingsHomeEvent) -> Unit = {},
+  searchTargetId: String? = null,
 ) {
   Column(
     modifier =
@@ -50,80 +60,122 @@ fun SettingsHomeScreenContent(
       text = stringResource(R.string.home_screen),
     )
     val paddingStart = Modifier.padding(start = 24.dp, end = 16.dp)
-    MySwitch(
-      modifier = paddingStart,
-      title = stringResource(R.string.list_view),
-      checked = uiState.displayPrefs.listView,
-      contentDescription = stringResource(R.string.list_view),
-      onCheckedChange = { onEvent(SettingsHomeEvent.SwitchListView(it)) },
-    )
-    MySwitch(
-      modifier = paddingStart,
-      title = stringResource(R.string.show_only_downloaded),
-      checked = uiState.displayPrefs.filter.isDownloaded(),
-      contentDescription = stringResource(R.string.show_only_downloaded),
-      onCheckedChange = {
-        val filter = if (it) Filter.Downloaded else Filter.All
-        onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.Filter(filter.name)))
-      },
-    )
-    if (uiState.canDelete) {
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.LIST_VIEW,
+      label = stringResource(R.string.list_view),
+      targetSettingId = searchTargetId,
+    ) {
       MySwitch(
         modifier = paddingStart,
-        title = stringResource(R.string.user_permanent_delete),
-        checked = uiState.crudPrefs.hardDelete,
-        contentDescription = stringResource(R.string.user_permanent_delete),
-        onCheckedChange = { onEvent(SettingsHomeEvent.SwitchHardDelete(it)) },
+        title = stringResource(R.string.list_view),
+        checked = uiState.displayPrefs.listView,
+        contentDescription = stringResource(R.string.list_view),
+        onCheckedChange = { onEvent(SettingsHomeEvent.SwitchListView(it)) },
       )
+    }
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.SHOW_ONLY_DOWNLOADED,
+      label = stringResource(R.string.show_only_downloaded),
+      targetSettingId = searchTargetId,
+    ) {
+      MySwitch(
+        modifier = paddingStart,
+        title = stringResource(R.string.show_only_downloaded),
+        checked = uiState.displayPrefs.filter.isDownloaded(),
+        contentDescription = stringResource(R.string.show_only_downloaded),
+        onCheckedChange = {
+          val filter = if (it) Filter.Downloaded else Filter.All
+          onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.Filter(filter.name)))
+        },
+      )
+    }
+    if (uiState.canDelete) {
+      SettingsSearchTarget(
+        settingId = SettingsSearchSettingId.PERMANENT_DELETE,
+        label = stringResource(R.string.user_permanent_delete),
+        targetSettingId = searchTargetId,
+      ) {
+        MySwitch(
+          modifier = paddingStart,
+          title = stringResource(R.string.user_permanent_delete),
+          checked = uiState.crudPrefs.hardDelete,
+          contentDescription = stringResource(R.string.user_permanent_delete),
+          onCheckedChange = { onEvent(SettingsHomeEvent.SwitchHardDelete(it)) },
+        )
+      }
     }
     val paddingStartTwo = Modifier.padding(start = 24.dp, top = 4.dp, end = 16.dp)
     SettingsSublabel(
       Modifier.padding(start = 24.dp, top = 4.dp),
       text = stringResource(R.string.book_library),
     )
-    ChipDropdownMenu(
-      modifier = paddingStartTwo.fillMaxWidth(),
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.BOOK_SORT,
       label = stringResource(R.string.sort),
-      labelPosition = LabelPosition.Expand,
-      options = BookSort.entries.map { it.label },
-      initialValue = uiState.displayPrefs.bookSort.label,
-      onClick = {
-        onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.BookSort(it)))
-      },
-    )
-    ChipDropdownMenu(
-      modifier = paddingStartTwo.fillMaxWidth(),
+      targetSettingId = searchTargetId,
+    ) {
+      ChipDropdownMenu(
+        modifier = paddingStartTwo.fillMaxWidth(),
+        label = stringResource(R.string.sort),
+        labelPosition = LabelPosition.Expand,
+        options = BookSort.entries.map { it.label },
+        initialValue = uiState.displayPrefs.bookSort.label,
+        onClick = {
+          onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.BookSort(it)))
+        },
+      )
+    }
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.BOOK_ORDER,
       label = stringResource(R.string.order),
-      labelPosition = LabelPosition.Expand,
-      options = SortOrder.entries.map { it.name },
-      initialValue = uiState.displayPrefs.sortOrder.name,
-      onClick = { onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.SortOrder(it))) },
-    )
+      targetSettingId = searchTargetId,
+    ) {
+      ChipDropdownMenu(
+        modifier = paddingStartTwo.fillMaxWidth(),
+        label = stringResource(R.string.order),
+        labelPosition = LabelPosition.Expand,
+        options = SortOrder.entries.map { it.name },
+        initialValue = uiState.displayPrefs.sortOrder.name,
+        onClick = { onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.SortOrder(it))) },
+      )
+    }
 
     SettingsSublabel(
       Modifier.padding(start = 24.dp, top = 4.dp),
       text = stringResource(R.string.podcast_library),
     )
-    ChipDropdownMenu(
-      modifier = paddingStartTwo.fillMaxWidth(),
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.PODCAST_SORT,
       label = stringResource(R.string.sort),
-      labelPosition = LabelPosition.Expand,
-      options = PodcastSort.entries.map { it.label },
-      initialValue = uiState.displayPrefs.podcastSort.label,
-      onClick = {
-        onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.PodcastSort(it)))
-      },
-    )
-    ChipDropdownMenu(
-      modifier = paddingStartTwo.fillMaxWidth(),
+      targetSettingId = searchTargetId,
+    ) {
+      ChipDropdownMenu(
+        modifier = paddingStartTwo.fillMaxWidth(),
+        label = stringResource(R.string.sort),
+        labelPosition = LabelPosition.Expand,
+        options = PodcastSort.entries.map { it.label },
+        initialValue = uiState.displayPrefs.podcastSort.label,
+        onClick = {
+          onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.PodcastSort(it)))
+        },
+      )
+    }
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.PODCAST_ORDER,
       label = stringResource(R.string.order),
-      labelPosition = LabelPosition.Expand,
-      options = SortOrder.entries.map { it.name },
-      initialValue = uiState.displayPrefs.podcastSortOrder.name,
-      onClick = {
-        onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.PodcastSortOrder(it)))
-      },
-    )
+      targetSettingId = searchTargetId,
+    ) {
+      ChipDropdownMenu(
+        modifier = paddingStartTwo.fillMaxWidth(),
+        label = stringResource(R.string.order),
+        labelPosition = LabelPosition.Expand,
+        options = SortOrder.entries.map { it.name },
+        initialValue = uiState.displayPrefs.podcastSortOrder.name,
+        onClick = {
+          onEvent(SettingsHomeEvent.DisplayPrefs(DisplayPrefsEvent.PodcastSortOrder(it)))
+        },
+      )
+    }
   }
 }
 

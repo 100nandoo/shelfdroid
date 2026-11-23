@@ -875,4 +875,19 @@
     <string name="selected">selected</string>
 
     <!--Others-->
+    <string name="settings_search">Search settings</string>
+    <string name="settings_search_placeholder">Search by setting or keyword</string>
+    <string name="settings_search_guidance">Type a setting name or keyword to search.</string>
+    <string name="settings_search_no_results">No settings found.</string>
+    <string name="settings_search_result_count">Result count: %1$d</string>
+    <string name="settings_search_target_found">Found setting: %1$s</string>
+    <string name="settings_search_assign_sleep_timer_action">Choose Sleep Timer for a notification button first.</string>
+    <string name="settings_search_assign_playback_speed_action">Choose Playback Speed for a notification button first.</string>
+    <string name="settings_search_choose_sleep_timer_toggle">Choose Toggle mode to show the default timer duration.</string>
+    <string name="settings_search_choose_sleep_timer_cycle">Choose Cycle mode to show timer presets.</string>
+    <string name="settings_search_choose_playback_speed_toggle">Choose Toggle mode to show the speed target.</string>
+    <string name="settings_search_choose_playback_speed_cycle">Choose Cycle mode to show speed presets.</string>
+    <string name="dynamic_theme_requires_android_12">Available on Android 12 or later.</string>
+    <string name="clear_search">Clear search</string>
+    <string name="open_setting">Open setting</string>
 </resources>

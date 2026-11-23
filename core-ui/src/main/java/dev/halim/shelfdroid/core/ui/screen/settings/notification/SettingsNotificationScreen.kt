@@ -32,7 +32,10 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -69,18 +72,24 @@ import dev.halim.shelfdroid.core.ui.extensions.enableAlpha
 import dev.halim.shelfdroid.core.ui.extensions.toSpeedText
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
+import dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchSettingId
+import dev.halim.shelfdroid.core.ui.screen.settings.search.SettingsSearchTarget
 import dev.halim.shelfdroid.media.R as MediaR
 
 @Composable
-fun SettingsNotificationScreen(viewModel: SettingsNotificationViewModel = hiltViewModel()) {
+fun SettingsNotificationScreen(
+  viewModel: SettingsNotificationViewModel = hiltViewModel(),
+  searchTargetId: String? = null,
+) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-  SettingsNotificationContent(uiState) { event -> viewModel.onEvent(event) }
+  SettingsNotificationContent(uiState, searchTargetId, viewModel::onEvent)
 }
 
 @Composable
 internal fun SettingsNotificationContent(
   uiState: SettingsNotificationUiState = SettingsNotificationUiState(),
+  searchTargetId: String? = null,
   onEvent: (SettingsNotificationEvent) -> Unit = {},
 ) {
   val sleepTimerEnabled =
@@ -89,20 +98,169 @@ internal fun SettingsNotificationContent(
   val playbackSpeedEnabled =
     uiState.firstAction == MediaNotificationAction.PlaybackSpeed ||
       uiState.secondAction == MediaNotificationAction.PlaybackSpeed
+  val searchResolution =
+    resolveNotificationSearchTarget(
+      searchTargetId,
+      uiState,
+      sleepTimerEnabled,
+      playbackSpeedEnabled,
+    )
+  val resolvedSearchTargetId = searchResolution.targetSettingId
+  val searchGuidance = searchResolution.guidanceResId?.let { stringResource(it) }
+  val scrollConsumed = remember(searchTargetId) { mutableStateOf(false) }
 
   Column(
     modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.Bottom,
   ) {
-    MediaNotificationOpeningScreenSection(uiState, onEvent)
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.NOTIFICATION_OPENING_SCREEN,
+      label = stringResource(R.string.media_notification_opening_screen),
+      targetSettingId = resolvedSearchTargetId,
+      scrollConsumed = scrollConsumed,
+    ) {
+      Column { MediaNotificationOpeningScreenSection(uiState, onEvent) }
+    }
     Spacer(Modifier.height(12.dp))
-    MediaNotificationPlayerPresentationSection(uiState, onEvent)
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.NOTIFICATION_PLAYER_PRESENTATION,
+      label = stringResource(R.string.media_notification_player_presentation),
+      targetSettingId = resolvedSearchTargetId,
+      scrollConsumed = scrollConsumed,
+    ) {
+      Column { MediaNotificationPlayerPresentationSection(uiState, onEvent) }
+    }
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
     MediaNotificationPreviewSection(uiState)
-    SleepTimerSection(uiState, sleepTimerEnabled, onEvent)
-    PlaybackSpeedSection(uiState, playbackSpeedEnabled, onEvent)
+    SleepTimerSection(
+      uiState,
+      sleepTimerEnabled,
+      onEvent,
+      resolvedSearchTargetId,
+      searchGuidance.takeIf { resolvedSearchTargetId == SettingsSearchSettingId.SLEEP_TIMER_MODE },
+      scrollConsumed,
+    )
+    PlaybackSpeedSection(
+      uiState,
+      playbackSpeedEnabled,
+      onEvent,
+      resolvedSearchTargetId,
+      searchGuidance.takeIf {
+        resolvedSearchTargetId == SettingsSearchSettingId.PLAYBACK_SPEED_MODE
+      },
+      scrollConsumed,
+    )
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-    MediaNotificationSection(uiState, onEvent)
+    MediaNotificationSection(
+      uiState,
+      onEvent,
+      resolvedSearchTargetId,
+      searchGuidance,
+      scrollConsumed,
+    )
+  }
+}
+
+internal data class NotificationSearchTargetResolution(
+  val targetSettingId: String?,
+  val guidanceResId: Int? = null,
+)
+
+private data class NotificationModeSearchGroup(
+  val modeSettingId: String,
+  val toggleDependentSettingId: String,
+  val cycleDependentSettingId: String,
+  val enabled: Boolean,
+  val isToggleMode: Boolean,
+  val unavailableGuidanceResId: Int,
+  val chooseToggleGuidanceResId: Int,
+  val chooseCycleGuidanceResId: Int,
+)
+
+internal fun resolveNotificationSearchTarget(
+  settingId: String?,
+  uiState: SettingsNotificationUiState,
+  sleepTimerEnabled: Boolean,
+  playbackSpeedEnabled: Boolean,
+): NotificationSearchTargetResolution {
+  val emptyActionSlot =
+    when {
+      uiState.firstAction == MediaNotificationAction.None ->
+        SettingsSearchSettingId.NOTIFICATION_ACTION_ONE
+      uiState.secondAction == MediaNotificationAction.None ->
+        SettingsSearchSettingId.NOTIFICATION_ACTION_TWO
+      else -> SettingsSearchSettingId.NOTIFICATION_ACTION_ONE
+    }
+
+  val sleepTimerGroup =
+    NotificationModeSearchGroup(
+      modeSettingId = SettingsSearchSettingId.SLEEP_TIMER_MODE,
+      toggleDependentSettingId = SettingsSearchSettingId.DEFAULT_SLEEP_TIMER,
+      cycleDependentSettingId = SettingsSearchSettingId.SLEEP_TIMER_CYCLE,
+      enabled = sleepTimerEnabled,
+      isToggleMode = uiState.sleepTimerMode == SleepTimerNotificationMode.Toggle,
+      unavailableGuidanceResId = R.string.settings_search_assign_sleep_timer_action,
+      chooseToggleGuidanceResId = R.string.settings_search_choose_sleep_timer_toggle,
+      chooseCycleGuidanceResId = R.string.settings_search_choose_sleep_timer_cycle,
+    )
+  val playbackSpeedGroup =
+    NotificationModeSearchGroup(
+      modeSettingId = SettingsSearchSettingId.PLAYBACK_SPEED_MODE,
+      toggleDependentSettingId = SettingsSearchSettingId.PLAYBACK_SPEED_TARGET,
+      cycleDependentSettingId = SettingsSearchSettingId.PLAYBACK_SPEED_CYCLE,
+      enabled = playbackSpeedEnabled,
+      isToggleMode = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Toggle,
+      unavailableGuidanceResId = R.string.settings_search_assign_playback_speed_action,
+      chooseToggleGuidanceResId = R.string.settings_search_choose_playback_speed_toggle,
+      chooseCycleGuidanceResId = R.string.settings_search_choose_playback_speed_cycle,
+    )
+
+  return resolveNotificationModeSearchTarget(settingId, sleepTimerGroup, emptyActionSlot)
+    ?: resolveNotificationModeSearchTarget(settingId, playbackSpeedGroup, emptyActionSlot)
+    ?: NotificationSearchTargetResolution(settingId)
+}
+
+private fun resolveNotificationModeSearchTarget(
+  settingId: String?,
+  group: NotificationModeSearchGroup,
+  emptyActionSlot: String,
+): NotificationSearchTargetResolution? {
+  if (
+    settingId != group.modeSettingId &&
+      settingId != group.toggleDependentSettingId &&
+      settingId != group.cycleDependentSettingId
+  ) {
+    return null
+  }
+
+  val guidanceResId =
+    when {
+      !group.enabled -> group.unavailableGuidanceResId
+      settingId == group.toggleDependentSettingId && !group.isToggleMode ->
+        group.chooseToggleGuidanceResId
+      settingId == group.cycleDependentSettingId && group.isToggleMode ->
+        group.chooseCycleGuidanceResId
+      else -> null
+    }
+  val targetSettingId =
+    when {
+      !group.enabled -> emptyActionSlot
+      guidanceResId != null -> group.modeSettingId
+      else -> settingId
+    }
+
+  return NotificationSearchTargetResolution(targetSettingId, guidanceResId)
+}
+
+@Composable
+private fun SearchGuidance(text: String?) {
+  if (text != null) {
+    Text(
+      text = text,
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+    )
   }
 }
 
@@ -111,6 +269,9 @@ private fun SleepTimerSection(
   uiState: SettingsNotificationUiState,
   enabled: Boolean,
   onEvent: (SettingsNotificationEvent) -> Unit,
+  searchTargetId: String?,
+  searchGuidance: String?,
+  scrollConsumed: MutableState<Boolean>,
 ) {
   TextTitleMedium(
     modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
@@ -118,38 +279,62 @@ private fun SleepTimerSection(
   )
   val modeLabels =
     SleepTimerNotificationMode.entries.associateWith { stringResource(it.labelResId()) }
-  ChipDropdownMenu(
-    modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
+  SettingsSearchTarget(
+    settingId = SettingsSearchSettingId.SLEEP_TIMER_MODE,
     label = stringResource(R.string.sleep_timer_notification_mode),
-    labelPosition = LabelPosition.Expand,
-    options = SleepTimerNotificationMode.entries.map { it.name },
-    initialValue = uiState.sleepTimerMode.name,
-    optionLabel = { modeLabels.getValue(SleepTimerNotificationMode.valueOf(it)) },
-    enabled = enabled,
-    onClick = {
-      onEvent(
-        SettingsNotificationEvent.ChangeSleepTimerMode(SleepTimerNotificationMode.valueOf(it))
-      )
-    },
-  )
-  Column {
-    VisibilityVertical(visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Toggle) {
+    targetSettingId = searchTargetId,
+    scrollConsumed = scrollConsumed,
+  ) {
+    Column {
       ChipDropdownMenu(
         modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
-        label = stringResource(R.string.default_sleep_timer),
+        label = stringResource(R.string.sleep_timer_notification_mode),
         labelPosition = LabelPosition.Expand,
-        options = SLEEP_TIMER_PRESET_MINUTES.map { it.toString() },
-        initialValue = uiState.sleepTimerMinutes.toString(),
+        options = SleepTimerNotificationMode.entries.map { it.name },
+        initialValue = uiState.sleepTimerMode.name,
+        optionLabel = { modeLabels.getValue(SleepTimerNotificationMode.valueOf(it)) },
         enabled = enabled,
-        onClick = { selected ->
-          selected.toIntOrNull()?.let {
-            onEvent(SettingsNotificationEvent.ChangeSleepTimerMinutes(it))
-          }
+        onClick = {
+          onEvent(
+            SettingsNotificationEvent.ChangeSleepTimerMode(SleepTimerNotificationMode.valueOf(it))
+          )
         },
       )
+      SearchGuidance(searchGuidance)
+    }
+  }
+  Column {
+    VisibilityVertical(visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Toggle) {
+      SettingsSearchTarget(
+        settingId = SettingsSearchSettingId.DEFAULT_SLEEP_TIMER,
+        label = stringResource(R.string.default_sleep_timer),
+        targetSettingId = searchTargetId,
+        scrollConsumed = scrollConsumed,
+      ) {
+        ChipDropdownMenu(
+          modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
+          label = stringResource(R.string.default_sleep_timer),
+          labelPosition = LabelPosition.Expand,
+          options = SLEEP_TIMER_PRESET_MINUTES.map { it.toString() },
+          initialValue = uiState.sleepTimerMinutes.toString(),
+          enabled = enabled,
+          onClick = { selected ->
+            selected.toIntOrNull()?.let {
+              onEvent(SettingsNotificationEvent.ChangeSleepTimerMinutes(it))
+            }
+          },
+        )
+      }
     }
     VisibilityVertical(visible = uiState.sleepTimerMode == SleepTimerNotificationMode.Cyclical) {
-      Column { SleepTimerCycle(uiState.sleepTimerCycle, enabled, onEvent) }
+      SettingsSearchTarget(
+        settingId = SettingsSearchSettingId.SLEEP_TIMER_CYCLE,
+        label = stringResource(R.string.sleep_timer_cycle),
+        targetSettingId = searchTargetId,
+        scrollConsumed = scrollConsumed,
+      ) {
+        Column { SleepTimerCycle(uiState.sleepTimerCycle, enabled, onEvent) }
+      }
     }
   }
   Spacer(modifier = Modifier.height(24.dp))
@@ -287,25 +472,56 @@ private fun MediaNotificationPreviewSection(uiState: SettingsNotificationUiState
 private fun MediaNotificationSection(
   uiState: SettingsNotificationUiState,
   onEvent: (SettingsNotificationEvent) -> Unit,
+  searchTargetId: String?,
+  searchGuidance: String?,
+  scrollConsumed: MutableState<Boolean>,
 ) {
   TextTitleMedium(
     modifier = Modifier.padding(horizontal = 16.dp),
     text = stringResource(R.string.media_notification_buttons),
   )
   Spacer(modifier = Modifier.height(16.dp))
-  NotificationActionSlot(
+  SettingsSearchTarget(
+    settingId = SettingsSearchSettingId.NOTIFICATION_ACTION_ONE,
     label = stringResource(R.string.media_notification_button_1),
-    selected = uiState.firstAction,
-    other = uiState.secondAction,
-    onSelected = { onEvent(SettingsNotificationEvent.ChangeActionSlot(1, it)) },
-  )
+    targetSettingId = searchTargetId,
+    scrollConsumed = scrollConsumed,
+  ) {
+    Column {
+      NotificationActionSlot(
+        label = stringResource(R.string.media_notification_button_1),
+        selected = uiState.firstAction,
+        other = uiState.secondAction,
+        onSelected = { onEvent(SettingsNotificationEvent.ChangeActionSlot(1, it)) },
+      )
+      SearchGuidance(
+        searchGuidance.takeIf {
+          searchTargetId == SettingsSearchSettingId.NOTIFICATION_ACTION_ONE
+        }
+      )
+    }
+  }
   Spacer(modifier = Modifier.height(8.dp))
-  NotificationActionSlot(
+  SettingsSearchTarget(
+    settingId = SettingsSearchSettingId.NOTIFICATION_ACTION_TWO,
     label = stringResource(R.string.media_notification_button_2),
-    selected = uiState.secondAction,
-    other = uiState.firstAction,
-    onSelected = { onEvent(SettingsNotificationEvent.ChangeActionSlot(2, it)) },
-  )
+    targetSettingId = searchTargetId,
+    scrollConsumed = scrollConsumed,
+  ) {
+    Column {
+      NotificationActionSlot(
+        label = stringResource(R.string.media_notification_button_2),
+        selected = uiState.secondAction,
+        other = uiState.firstAction,
+        onSelected = { onEvent(SettingsNotificationEvent.ChangeActionSlot(2, it)) },
+      )
+      SearchGuidance(
+        searchGuidance.takeIf {
+          searchTargetId == SettingsSearchSettingId.NOTIFICATION_ACTION_TWO
+        }
+      )
+    }
+  }
   Spacer(modifier = Modifier.height(16.dp))
 }
 
@@ -514,6 +730,9 @@ private fun PlaybackSpeedSection(
   uiState: SettingsNotificationUiState,
   enabled: Boolean,
   onEvent: (SettingsNotificationEvent) -> Unit,
+  searchTargetId: String?,
+  searchGuidance: String?,
+  scrollConsumed: MutableState<Boolean>,
 ) {
   val modeLabels =
     PlaybackSpeedNotificationMode.entries.associateWith {
@@ -527,39 +746,65 @@ private fun PlaybackSpeedSection(
     text = stringResource(R.string.playback_speed),
     modifier = Modifier.padding(horizontal = 16.dp).alpha(enabled.enableAlpha()),
   )
-  ChipDropdownMenu(
-    modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
+  SettingsSearchTarget(
+    settingId = SettingsSearchSettingId.PLAYBACK_SPEED_MODE,
     label = stringResource(R.string.playback_speed_notification_mode),
-    labelPosition = LabelPosition.Expand,
-    options = PlaybackSpeedNotificationMode.entries.map { it.name },
-    initialValue = uiState.playbackSpeedMode.name,
-    optionLabel = { modeLabels.getValue(PlaybackSpeedNotificationMode.valueOf(it)) },
-    enabled = enabled,
-    onClick = {
-      onEvent(
-        SettingsNotificationEvent.ChangePlaybackSpeedMode(PlaybackSpeedNotificationMode.valueOf(it))
+    targetSettingId = searchTargetId,
+    scrollConsumed = scrollConsumed,
+  ) {
+    Column {
+      ChipDropdownMenu(
+        modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
+        label = stringResource(R.string.playback_speed_notification_mode),
+        labelPosition = LabelPosition.Expand,
+        options = PlaybackSpeedNotificationMode.entries.map { it.name },
+        initialValue = uiState.playbackSpeedMode.name,
+        optionLabel = { modeLabels.getValue(PlaybackSpeedNotificationMode.valueOf(it)) },
+        enabled = enabled,
+        onClick = {
+          onEvent(
+            SettingsNotificationEvent.ChangePlaybackSpeedMode(
+              PlaybackSpeedNotificationMode.valueOf(it)
+            )
+          )
+        },
       )
-    },
-  )
+      SearchGuidance(searchGuidance)
+    }
+  }
   VisibilityVertical(visible = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Toggle) {
-    ChipDropdownMenu(
-      modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.PLAYBACK_SPEED_TARGET,
       label = stringResource(R.string.playback_speed_toggle_target),
-      labelPosition = LabelPosition.Expand,
-      options = PLAYBACK_SPEED_PRESET_VALUES.filter { it != 1f }.map { it.toString() },
-      initialValue = uiState.playbackSpeedToggleTarget.toString(),
-      enabled = enabled,
-      onClick = { selected ->
-        selected.toFloatOrNull()?.let {
-          onEvent(SettingsNotificationEvent.ChangePlaybackSpeedToggleTarget(it))
-        }
-      },
-    )
+      targetSettingId = searchTargetId,
+      scrollConsumed = scrollConsumed,
+    ) {
+      ChipDropdownMenu(
+        modifier = Modifier.padding(horizontal = 16.dp).padding(start = 8.dp).fillMaxWidth(),
+        label = stringResource(R.string.playback_speed_toggle_target),
+        labelPosition = LabelPosition.Expand,
+        options = PLAYBACK_SPEED_PRESET_VALUES.filter { it != 1f }.map { it.toString() },
+        initialValue = uiState.playbackSpeedToggleTarget.toString(),
+        enabled = enabled,
+        onClick = { selected ->
+          selected.toFloatOrNull()?.let {
+            onEvent(SettingsNotificationEvent.ChangePlaybackSpeedToggleTarget(it))
+          }
+        },
+      )
+    }
   }
   VisibilityVertical(
     visible = uiState.playbackSpeedMode == PlaybackSpeedNotificationMode.Cyclical
   ) {
-    Column { PlaybackSpeedCycle(uiState, enabled, onEvent) }
+    SettingsSearchTarget(
+      settingId = SettingsSearchSettingId.PLAYBACK_SPEED_CYCLE,
+      label = stringResource(R.string.playback_speed_cycle),
+      targetSettingId = searchTargetId,
+      scrollConsumed = scrollConsumed,
+    ) {
+      Column { PlaybackSpeedCycle(uiState, enabled, onEvent) }
+    }
   }
 }
 
