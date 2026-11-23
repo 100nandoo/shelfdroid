@@ -2,15 +2,17 @@ package dev.halim.shelfdroid.core.ui.screen.settings
 
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,7 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -32,6 +36,7 @@ import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.components.MyAlertDialog
 import dev.halim.shelfdroid.core.ui.components.MySwitch
 import dev.halim.shelfdroid.core.ui.components.TextTitleMedium
+import dev.halim.shelfdroid.core.ui.components.VisibilityUp
 import dev.halim.shelfdroid.core.ui.preview.Defaults
 import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -116,79 +121,85 @@ fun SettingsScreenContent(
   onSettingsSearchClicked: () -> Unit = {},
   searchTargetId: String? = null,
 ) {
-  Column(
-    modifier =
-      Modifier.fillMaxSize().padding(vertical = 16.dp).verticalScroll(rememberScrollState()),
-    verticalArrangement = Arrangement.Bottom,
-  ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-      horizontalArrangement = Arrangement.End,
+  val scrollState = rememberScrollState()
+  Box(modifier = Modifier.fillMaxSize()) {
+    Column(
+      modifier =
+        Modifier.fillMaxSize()
+          .padding(vertical = 16.dp)
+          .verticalScroll(scrollState)
+          .padding(bottom = 72.dp),
+      verticalArrangement = Arrangement.Bottom,
     ) {
-      androidx.compose.material3.IconButton(onClick = onSettingsSearchClicked) {
-        androidx.compose.material3.Icon(
-          painter = androidx.compose.ui.res.painterResource(R.drawable.search),
-          contentDescription = stringResource(R.string.settings_search),
-          tint = MaterialTheme.colorScheme.onSurface,
+      LogoutSection(onEvent, changePassword)
+      Spacer(modifier = Modifier.height(16.dp))
+
+      OthersSection(version, user, uiState)
+      Spacer(modifier = Modifier.height(16.dp))
+
+      DisplaySection(uiState, onEvent, searchTargetId)
+      Spacer(modifier = Modifier.height(16.dp))
+
+      SettingsClickLabel(
+        text = stringResource(R.string.home_screen),
+        supportingText =
+          stringResource(R.string.settings_and_behaviour, stringResource(R.string.home_screen)),
+        onClick = onHomeClicked,
+      )
+
+      SettingsClickLabel(
+        text = stringResource(R.string.player),
+        supportingText =
+          stringResource(R.string.settings_and_behaviour, stringResource(R.string.player)),
+        onClick = onPlayerClicked,
+      )
+
+      SettingsClickLabel(
+        text = stringResource(R.string.widget),
+        supportingText =
+          stringResource(R.string.settings_and_behaviour, stringResource(R.string.widget)),
+        onClick = onWidgetClicked,
+      )
+
+      SettingsClickLabel(
+        text = stringResource(R.string.playback),
+        supportingText = stringResource(R.string.playback_settings_and_behaviour),
+        onClick = onPlaybackClicked,
+      )
+
+      SettingsClickLabel(
+        text = stringResource(R.string.notification),
+        supportingText = stringResource(R.string.notification_settings_supporting),
+        onClick = onNotificationClicked,
+      )
+
+      if (uiState.canDelete) {
+        SettingsClickLabel(
+          text = stringResource(R.string.podcast),
+          supportingText =
+            stringResource(R.string.screen_settings, stringResource(R.string.podcast)),
+          onClick = onPodcastClicked,
         )
       }
-    }
-    LogoutSection(onEvent, changePassword)
-    Spacer(modifier = Modifier.height(16.dp))
 
-    OthersSection(version, user, uiState)
-    Spacer(modifier = Modifier.height(16.dp))
-
-    DisplaySection(uiState, onEvent, searchTargetId)
-    Spacer(modifier = Modifier.height(16.dp))
-
-    SettingsClickLabel(
-      text = stringResource(R.string.home_screen),
-      supportingText =
-        stringResource(R.string.settings_and_behaviour, stringResource(R.string.home_screen)),
-      onClick = onHomeClicked,
-    )
-
-    SettingsClickLabel(
-      text = stringResource(R.string.player),
-      supportingText =
-        stringResource(R.string.settings_and_behaviour, stringResource(R.string.player)),
-      onClick = onPlayerClicked,
-    )
-
-    SettingsClickLabel(
-      text = stringResource(R.string.widget),
-      supportingText =
-        stringResource(R.string.settings_and_behaviour, stringResource(R.string.widget)),
-      onClick = onWidgetClicked,
-    )
-
-    SettingsClickLabel(
-      text = stringResource(R.string.playback),
-      supportingText = stringResource(R.string.playback_settings_and_behaviour),
-      onClick = onPlaybackClicked,
-    )
-
-    SettingsClickLabel(
-      text = stringResource(R.string.notification),
-      supportingText = stringResource(R.string.notification_settings_supporting),
-      onClick = onNotificationClicked,
-    )
-
-    if (uiState.canDelete) {
       SettingsClickLabel(
-        text = stringResource(R.string.podcast),
-        supportingText = stringResource(R.string.screen_settings, stringResource(R.string.podcast)),
-        onClick = onPodcastClicked,
+        text = stringResource(R.string.listening_sessions),
+        supportingText =
+          stringResource(R.string.screen_settings, stringResource(R.string.listening_sessions)),
+        onClick = onListeningSessionClicked,
       )
     }
 
-    SettingsClickLabel(
-      text = stringResource(R.string.listening_sessions),
-      supportingText =
-        stringResource(R.string.screen_settings, stringResource(R.string.listening_sessions)),
-      onClick = onListeningSessionClicked,
-    )
+    Box(modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 16.dp)) {
+      VisibilityUp(visible = !scrollState.isScrollInProgress) {
+        FloatingActionButton(onClick = onSettingsSearchClicked) {
+          Icon(
+            painter = painterResource(R.drawable.search),
+            contentDescription = stringResource(R.string.settings_search),
+          )
+        }
+      }
+    }
   }
 }
 

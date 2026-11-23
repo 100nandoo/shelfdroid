@@ -119,7 +119,7 @@ internal fun SettingsNotificationContent(
       targetSettingId = resolvedSearchTargetId,
       scrollConsumed = scrollConsumed,
     ) {
-      MediaNotificationOpeningScreenSection(uiState, onEvent)
+      Column { MediaNotificationOpeningScreenSection(uiState, onEvent) }
     }
     Spacer(Modifier.height(12.dp))
     SettingsSearchTarget(
@@ -128,7 +128,7 @@ internal fun SettingsNotificationContent(
       targetSettingId = resolvedSearchTargetId,
       scrollConsumed = scrollConsumed,
     ) {
-      MediaNotificationPlayerPresentationSection(uiState, onEvent)
+      Column { MediaNotificationPlayerPresentationSection(uiState, onEvent) }
     }
     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
     MediaNotificationPreviewSection(uiState)
