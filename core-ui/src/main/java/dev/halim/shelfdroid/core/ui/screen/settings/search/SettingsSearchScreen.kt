@@ -10,12 +10,12 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -38,21 +38,27 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.halim.shelfdroid.core.ui.R
 import dev.halim.shelfdroid.core.ui.navigation.SettingsSearchDestination
+import dev.halim.shelfdroid.core.ui.preview.PreviewWrapper
+import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
 import dev.halim.shelfdroid.core.ui.screen.settings.SettingsViewModel
 
 @Composable
 fun SettingsSearchScreen(
-  onBackClicked: () -> Unit,
   onSettingSelected: (SettingsSearchEntry) -> Unit,
   viewModel: SettingsViewModel = hiltViewModel(),
 ) {
   val settingsUiState by viewModel.uiState.collectAsStateWithLifecycle()
-  var query by rememberSaveable { mutableStateOf("") }
+  var textFieldValue by
+    rememberSaveable(stateSaver = TextFieldValue.Saver) {
+      mutableStateOf(TextFieldValue())
+    }
+  val query = textFieldValue.text
   val listState = rememberLazyListState()
   val focusRequester = remember { FocusRequester() }
   val focusManager = LocalFocusManager.current
@@ -67,21 +73,51 @@ fun SettingsSearchScreen(
 
   LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
+  SettingsSearchScreenContent(
+    textFieldValue = textFieldValue,
+    results = results,
+    searchTitle = searchTitle,
+    listState = listState,
+    focusRequester = focusRequester,
+    onQueryChanged = { textFieldValue = it },
+    onSearch = { keyboardController?.hide() },
+    onSettingSelected = { entry ->
+      if (
+        canSelectSettingsSearchEntry(
+          entry = entry,
+          canAccessPodcastSettings = settingsUiState.canDelete,
+          canManagePodcastSettings = settingsUiState.isAdmin,
+        )
+      ) {
+        keyboardController?.hide()
+        focusManager.clearFocus()
+        onSettingSelected(entry)
+      }
+    },
+  )
+}
+
+@Composable
+private fun SettingsSearchScreenContent(
+  textFieldValue: TextFieldValue,
+  results: List<SettingsSearchEntry>,
+  searchTitle: String,
+  listState: LazyListState,
+  focusRequester: FocusRequester,
+  onQueryChanged: (TextFieldValue) -> Unit,
+  onSearch: () -> Unit,
+  onSettingSelected: (SettingsSearchEntry) -> Unit,
+) {
+  val query = textFieldValue.text
+
   Column(
     modifier = Modifier.fillMaxSize().imePadding(),
     verticalArrangement = Arrangement.Bottom,
   ) {
     Row(
-      modifier = Modifier.fillMaxWidth().padding(end = 16.dp, top = 8.dp),
+      modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 8.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      IconButton(onClick = onBackClicked) {
-        Icon(
-          painter = painterResource(R.drawable.arrow_left),
-          contentDescription = stringResource(R.string.back),
-          tint = MaterialTheme.colorScheme.onSurface,
-        )
-      }
       Text(text = searchTitle, style = MaterialTheme.typography.titleLarge)
     }
 
@@ -108,28 +144,20 @@ fun SettingsSearchScreen(
           SettingsSearchResultItem(
             title = entry.title,
             path = entry.path.joinToString(" · "),
-            onClick = {
-              if (
-                canSelectSettingsSearchEntry(
-                  entry = entry,
-                  canAccessPodcastSettings = settingsUiState.canDelete,
-                  canManagePodcastSettings = settingsUiState.isAdmin,
-                )
-              ) {
-                keyboardController?.hide()
-                focusManager.clearFocus()
-                onSettingSelected(entry)
-              }
-            },
+            onClick = { onSettingSelected(entry) },
           )
         }
       }
     }
 
     OutlinedTextField(
-      value = query,
-      onValueChange = { query = it },
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).focusRequester(focusRequester),
+      value = textFieldValue,
+      onValueChange = onQueryChanged,
+      modifier =
+        Modifier.fillMaxWidth()
+          .padding(horizontal = 16.dp)
+          .padding(bottom = 16.dp)
+          .focusRequester(focusRequester),
       placeholder = { Text(stringResource(R.string.settings_search_placeholder)) },
       leadingIcon = {
         Icon(
@@ -143,13 +171,14 @@ fun SettingsSearchScreen(
           Icon(
             painter = painterResource(R.drawable.close),
             contentDescription = stringResource(R.string.clear_search),
-            modifier = Modifier.clickable { query = "" }.padding(8.dp).size(20.dp),
+            modifier =
+              Modifier.clickable { onQueryChanged(TextFieldValue()) }.padding(8.dp).size(20.dp),
           )
         }
       },
       singleLine = true,
       keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-      keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
+      keyboardActions = KeyboardActions(onSearch = { onSearch() }),
     )
   }
 }
@@ -179,6 +208,23 @@ private fun SearchMessage(text: String, modifier: Modifier = Modifier) {
       text = text,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
       style = MaterialTheme.typography.bodyLarge,
+    )
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun SettingsSearchScreenPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    SettingsSearchScreenContent(
+      textFieldValue = TextFieldValue(),
+      results = emptyList(),
+      searchTitle = stringResource(R.string.settings_search),
+      listState = rememberLazyListState(),
+      focusRequester = remember { FocusRequester() },
+      onQueryChanged = {},
+      onSearch = {},
+      onSettingSelected = {},
     )
   }
 }

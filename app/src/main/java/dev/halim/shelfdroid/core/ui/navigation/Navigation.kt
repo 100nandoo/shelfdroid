@@ -291,7 +291,6 @@ private fun ColumnScope.NavHostContainer(
       entry<SettingsSearch> { key ->
         Nav3ScreenWrapper(sharedTransitionScope) {
           SettingsSearchScreen(
-            onBackClicked = { navigator.pop() },
             onSettingSelected = { setting ->
               navigator.navigate(
                 SettingsSearchTarget(
@@ -299,7 +298,7 @@ private fun ColumnScope.NavHostContainer(
                   destination = setting.destination,
                 )
               )
-            },
+            }
           )
         }
       }
