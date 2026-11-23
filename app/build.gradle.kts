@@ -1,5 +1,4 @@
 import java.util.Properties
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val appVersionPropertiesFile = rootProject.file("app/version.properties")
 val appVersionProperties =
@@ -39,6 +38,7 @@ fun File.resolveFromParent(path: String): File {
 
 plugins {
   alias(libs.plugins.android.application)
+  id("shelfdroid.android-compile")
   alias(libs.plugins.hilt.gradle)
   alias(libs.plugins.ksp)
   alias(libs.plugins.compose.compiler)
@@ -46,9 +46,6 @@ plugins {
 
 android {
   namespace = libs.versions.namespace.get()
-  compileSdk {
-    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
-  }
 
   signingConfigs {
     val keystorePropertiesFile = project.findSigningPropertiesFile()
@@ -66,7 +63,6 @@ android {
 
   defaultConfig {
     applicationId = libs.versions.namespace.get()
-    minSdk = libs.versions.minSdk.get().toInt()
     targetSdk = libs.versions.targetSdk.get().toInt()
     versionCode = appVersionProperties.requiredInt("VERSION_CODE")
     versionName = appVersionProperties.requiredString("VERSION_NAME")
@@ -97,17 +93,9 @@ android {
     }
   }
 
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-
-  kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
-
   buildFeatures {
     compose = true
     buildConfig = true
-    shaders = false
   }
 
   packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
@@ -116,15 +104,15 @@ android {
 }
 
 dependencies {
-  implementation(project(libs.versions.core.get()))
-  implementation(project(libs.versions.coreUi.get()))
-  implementation(project(libs.versions.featureLibraryAdmin.get()))
-  implementation(project(libs.versions.coreData.get()))
-  implementation(project(libs.versions.download.get()))
-  implementation(project(libs.versions.helper.get()))
-  implementation(project(libs.versions.media.get()))
-  implementation(project(libs.versions.navigationApi.get()))
-  implementation(project(libs.versions.widget.get()))
+  implementation(project(":core"))
+  implementation(project(":core-ui"))
+  implementation(project(":feature-library-admin"))
+  implementation(project(":core-data"))
+  implementation(project(":download"))
+  implementation(project(":helper"))
+  implementation(project(":media"))
+  implementation(project(":navigation-api"))
+  implementation(project(":widget"))
 
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)

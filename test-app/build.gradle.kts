@@ -1,50 +1,32 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
   alias(libs.plugins.android.test)
+  id("shelfdroid.android-compile")
   alias(libs.plugins.ksp)
 }
 
 android {
   namespace = "${libs.versions.namespace.get()}.test.navigation"
-  compileSdk {
-    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
-  }
   targetProjectPath = ":app"
 
   defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
-
     testInstrumentationRunner = "dev.halim.shelfdroid.core.testing.HiltTestRunner"
   }
-
-  buildFeatures {
-    buildConfig = false
-    shaders = false
-  }
-
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-
-  kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 }
 
 dependencies {
-  implementation(project(libs.versions.app.get()))
-  implementation(project(libs.versions.core.get()))
-  implementation(project(libs.versions.coreData.get()))
-  implementation(project(libs.versions.coreDatabase.get()))
-  implementation(project(libs.versions.coreDatastore.get()))
-  implementation(project(libs.versions.coreNetwork.get()))
-  implementation(project(libs.versions.coreTesting.get()))
-  implementation(project(libs.versions.coreUi.get()))
-  implementation(project(libs.versions.download.get()))
-  implementation(project(libs.versions.helper.get()))
-  implementation(project(libs.versions.media.get()))
-  implementation(project(libs.versions.navigationApi.get()))
-  implementation(project(libs.versions.socketIO.get()))
+  implementation(project(":app"))
+  implementation(project(":core"))
+  implementation(project(":core-data"))
+  implementation(project(":core-database"))
+  implementation(project(":core-datastore"))
+  implementation(project(":core-network"))
+  implementation(project(":core-testing"))
+  implementation(project(":core-ui"))
+  implementation(project(":download"))
+  implementation(project(":helper"))
+  implementation(project(":media"))
+  implementation(project(":navigation-api"))
+  implementation(project(":socketio"))
   implementation(libs.androidx.datastore)
   implementation(libs.androidx.media3.datasource.okhttp)
   implementation(libs.androidx.media3.exoplayer)

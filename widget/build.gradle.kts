@@ -1,7 +1,6 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
   alias(libs.plugins.android.library)
+  id("shelfdroid.android-compile")
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.hilt.gradle)
   alias(libs.plugins.ksp)
@@ -9,9 +8,6 @@ plugins {
 
 android {
   namespace = "${libs.versions.namespace.get()}.widget"
-  compileSdk {
-    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
-  }
 
   testOptions {
     unitTests {
@@ -23,29 +19,18 @@ android {
     }
   }
 
-  defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
-
   buildFeatures {
     compose = true
-    buildConfig = false
-    shaders = false
   }
-
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-
-  kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 }
 
 dependencies {
   // Project modules
-  implementation(project(libs.versions.core.get()))
-  implementation(project(libs.versions.coreDatastore.get()))
-  implementation(project(libs.versions.coreUi.get()))
-  implementation(project(libs.versions.media.get()))
-  implementation(project(libs.versions.helper.get()))
+  implementation(project(":core"))
+  implementation(project(":core-datastore"))
+  implementation(project(":core-ui"))
+  implementation(project(":media"))
+  implementation(project(":helper"))
 
   // Hilt
   implementation(libs.hilt.android)

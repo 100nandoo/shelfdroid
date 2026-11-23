@@ -1,43 +1,21 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
   alias(libs.plugins.android.library)
+  id("shelfdroid.android-compile")
+  id("shelfdroid.android-test-runner")
   alias(libs.plugins.hilt.gradle)
   alias(libs.plugins.ksp)
 }
 
 android {
   namespace = "${libs.versions.namespace.get()}.media"
-  compileSdk {
-    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
-  }
-
-  defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles("consumer-rules.pro")
-  }
-
-  buildFeatures {
-    buildConfig = false
-    shaders = false
-  }
-
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-
-  kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 }
 
 dependencies {
-  implementation(project(libs.versions.core.get()))
-  implementation(project(libs.versions.coreNetwork.get()))
-  implementation(project(libs.versions.coreData.get()))
-  implementation(project(libs.versions.download.get()))
-  implementation(project(libs.versions.helper.get()))
+  implementation(project(":core"))
+  implementation(project(":core-network"))
+  implementation(project(":core-data"))
+  implementation(project(":download"))
+  implementation(project(":helper"))
 
   // Hilt Dependency Injection
   implementation(libs.hilt.android)

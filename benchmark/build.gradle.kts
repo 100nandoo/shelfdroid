@@ -1,18 +1,14 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
-plugins { alias(libs.plugins.android.test) }
+plugins {
+  alias(libs.plugins.android.test)
+  id("shelfdroid.android-compile")
+  id("shelfdroid.android-test-runner")
+}
 
 android {
   namespace = "dev.halim.benchmark"
-  compileSdk {
-    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
-  }
 
   defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
     targetSdk = libs.versions.targetSdk.get().toInt()
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
   buildTypes {
@@ -25,13 +21,6 @@ android {
       matchingFallbacks += listOf("release")
     }
   }
-
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-
-  kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 
   targetProjectPath = ":app"
   experimentalProperties["android.experimental.self-instrumenting"] = true

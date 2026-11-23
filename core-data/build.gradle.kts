@@ -1,45 +1,26 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
   alias(libs.plugins.android.library)
+  id("shelfdroid.android-compile")
   alias(libs.plugins.ksp)
   alias(libs.plugins.kotlin.serialization)
 }
 
 android {
   namespace = "${libs.versions.namespace.get()}.core.data"
-  compileSdk {
-    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
-  }
 
   defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
-
     testInstrumentationRunner = "dev.halim.shelfdroid.core.testing.HiltTestRunner"
-    consumerProguardFiles("consumer-rules.pro")
   }
-
-  buildFeatures {
-    buildConfig = false
-    shaders = false
-  }
-
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-
-  kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 }
 
 dependencies {
-  implementation(project(libs.versions.core.get()))
-  implementation(project(libs.versions.coreDatabase.get()))
-  implementation(project(libs.versions.coreDatastore.get()))
-  implementation(project(libs.versions.coreNetwork.get()))
-  implementation(project(libs.versions.socketIO.get()))
-  implementation(project(libs.versions.download.get()))
-  implementation(project(libs.versions.helper.get()))
+  implementation(project(":core"))
+  implementation(project(":core-database"))
+  implementation(project(":core-datastore"))
+  implementation(project(":core-network"))
+  implementation(project(":socketio"))
+  implementation(project(":download"))
+  implementation(project(":helper"))
 
   implementation(libs.kotlinx.serialization)
 
@@ -72,5 +53,5 @@ dependencies {
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.sqldelight.driver)
-  androidTestImplementation(project(libs.versions.coreTesting.get()))
+  androidTestImplementation(project(":core-testing"))
 }

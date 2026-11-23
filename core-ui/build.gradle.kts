@@ -1,7 +1,7 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
   alias(libs.plugins.android.library)
+  id("shelfdroid.android-compile")
+  id("shelfdroid.android-test-runner")
   alias(libs.plugins.compose.screenshot)
   alias(libs.plugins.hilt.gradle)
   alias(libs.plugins.ksp)
@@ -11,40 +11,22 @@ plugins {
 
 android {
   namespace = "${libs.versions.namespace.get()}.core.ui"
-  compileSdk {
-    version = release(libs.versions.targetSdk.get().toInt()) { minorApiLevel = 1 }
-  }
-
-  defaultConfig {
-    minSdk = libs.versions.minSdk.get().toInt()
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles("consumer-rules.pro")
-  }
 
   experimentalProperties["android.experimental.enableScreenshotTest"] = true
 
   buildFeatures {
     compose = true
-    buildConfig = false
-    shaders = false
   }
-
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-  kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 }
 
 dependencies {
-  implementation(project(libs.versions.core.get()))
-  implementation(project(libs.versions.coreData.get()))
-  implementation(project(libs.versions.download.get()))
-  implementation(project(libs.versions.helper.get()))
-  implementation(project(libs.versions.media.get()))
-  implementation(project(libs.versions.navigationApi.get()))
-  implementation(project(libs.versions.socketIO.get()))
+  implementation(project(":core"))
+  implementation(project(":core-data"))
+  implementation(project(":download"))
+  implementation(project(":helper"))
+  implementation(project(":media"))
+  implementation(project(":navigation-api"))
+  implementation(project(":socketio"))
 
   val composeBom = platform(libs.androidx.compose.bom)
   implementation(composeBom)
@@ -93,7 +75,7 @@ dependencies {
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.mockito)
-  testImplementation(project(libs.versions.coreDatastore.get()))
+  testImplementation(project(":core-datastore"))
   testImplementation(libs.androidx.datastore)
   androidTestImplementation(libs.androidx.compose.ui.test.junit4)
   androidTestImplementation(libs.androidx.test.core)
