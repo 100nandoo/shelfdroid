@@ -4,7 +4,7 @@
 
 - An Audiobookshelf server you can sign in to
 - Android 10 or newer
-- JDK 17 for local builds
+- JDK 25 for local builds
 
 ## Workflow
 
