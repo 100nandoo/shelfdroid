@@ -79,7 +79,8 @@ stream URLs or duplicating listening-session logic.
 
 ## Phase 1 — Android Auto Discovery
 
-Add the Android Auto capability declaration to the application manifest:
+Add the Android Auto capability declaration to `<application>` in
+`app/src/main/AndroidManifest.xml`:
 
 ```xml
 <meta-data
@@ -95,6 +96,10 @@ Create `app/src/main/res/xml/automotive_app_desc.xml`:
 </automotiveApp>
 ```
 
+All build variants, including public release builds, inherit this declaration. A build shipped after
+Phase 1 can advertise ShelfDroid to Android Auto before the host can open its Catalog or start
+playback from a browse selection.
+
 ### App branding
 
 - **Launcher icon and app label**. Reuse the existing application-level
@@ -103,11 +108,12 @@ Create `app/src/main/res/xml/automotive_app_desc.xml`:
   needs a different icon or label.
 - **Attribution icon**. Reuse the existing monochrome notification vector, `ic_notification`,
   for media cards.
-- **Accent color**. Android Auto reads `android:colorAccent` from the application theme by
-  default. Define an explicit car accent in a `Theme.ShelfDroid.Car` style and point Android Auto
-  to that style so playback controls use ShelfDroid's accent without changing the phone theme.
+- **Accent color**. Set the framework `android:colorAccent` in `Theme.ShelfDroid.Car` to a dedicated
+  color resource with the value `#FFC981`. This makes the car accent consistent across build
+  variants, including debug, where the launcher background color is overridden. Point Android Auto
+  to this style so the phone theme keeps its own accent.
 
-Add both branding metadata entries under `<application>`:
+Add both branding metadata entries under `<application>` in the same main manifest:
 
 ```xml
 <meta-data
@@ -118,21 +124,28 @@ Add both branding metadata entries under `<application>`:
     android:resource="@style/Theme.ShelfDroid.Car" />
 ```
 
-Verify the merged manifest rather than relying only on individual library manifests. In particular,
-confirm the foreground-service permissions and both `androidx.media3.session.MediaLibraryService`
-and `android.media.browse.MediaBrowserService` intent actions are present. The existing
-`MediaSessionService` action may remain for existing clients, but it does not replace the library
-service action for Media3 browser discovery. Confirm that the icon, label, attribution icon, and
-accent style references resolve in the merged app. Check the launcher, media card, and playback
-controls in the Desktop Head Unit once browsing and playback are available.
+### Phase 1 acceptance
+
+- Inspect the merged debug and release manifests for all three metadata entries and confirm the
+  packaged media descriptor, icon, label, attribution vector, and accent style resolve.
+- In both manifests, verify that `PlaybackService` is exported with `foregroundServiceType` set
+  to `mediaPlayback`, advertises `androidx.media3.session.MediaLibraryService`, and retains the
+  existing `androidx.media3.session.MediaSessionService` and
+  `android.media.browse.MediaBrowserService` actions. Verify both
+  `android.permission.FOREGROUND_SERVICE` and `android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK`
+  through their existing manifest declarations.
+- Install the debug build and connect a Media3 `MediaController` directly to `PlaybackService`.
+- If the Desktop Head Unit shows ShelfDroid at this stage, check the launcher icon and label. The
+  current callback rejects the library-root request, so verify that the host can open the Catalog
+  in Phase 3. Verify media-card attribution and the accent on playback controls once those surfaces
+  render.
 
 **Files:**
 
 - `app/src/main/AndroidManifest.xml`
 - `app/src/main/res/xml/automotive_app_desc.xml` (new)
-- `app/src/main/res/values/themes.xml` for the car accent style
-- `media/src/main/AndroidManifest.xml` for the library service action and, if needed, permission
-  ownership
+- `app/src/main/res/values/themes.xml` and `app/src/main/res/values/colors.xml` for the car accent
+- `media/src/main/AndroidManifest.xml` for the library service action
 
 ### Documentation
 
@@ -152,7 +165,6 @@ Example IDs:
 
 ```text
 car:root
-car:continue
 car:books
 car:podcasts
 car:downloads
@@ -471,6 +483,7 @@ Add tests for:
 - root child limits and ordering
 - browsable versus playable metadata
 - Book, Podcast, and Episode hierarchy mapping
+- Books and Podcasts tab routing with zero, one, and multiple matching Libraries
 - signed-out and offline results
 - playback resolution for Books and Episodes
 - local Download preference over remote playback
