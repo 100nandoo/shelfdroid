@@ -22,6 +22,16 @@
         tools:targetApi="35">
         <profileable android:shell="true" />
 
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+        <meta-data
+            android:name="androidx.car.app.TintableAttributionIcon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.android.gms.car.application.theme"
+            android:resource="@style/Theme.ShelfDroid.Car" />
+
         <activity
             android:name=".auth.OpenIdCallbackActivity"
             android:exported="true"

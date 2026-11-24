@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.ShelfDroid" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.ShelfDroid.Car" parent="Theme.ShelfDroid">
+        <item name="android:colorAccent">@color/car_accent</item>
+    </style>
 </resources>

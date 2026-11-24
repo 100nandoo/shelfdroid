@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="launcher">#FFC981</color>
+    <color name="car_accent">#FFC981</color>
 </resources>
