@@ -1,7 +1,7 @@
 # Android Auto Support
 
 Lifecycle: proposed
-Updated: 2026-11-14
+Updated: 2026-11-24
 
 ## Overview
 
@@ -95,18 +95,50 @@ Create `app/src/main/res/xml/automotive_app_desc.xml`:
 </automotiveApp>
 ```
 
+### App branding
+
+- **Launcher icon and app label**. Reuse the existing application-level
+  `android:icon="@mipmap/ic_launcher"` and `android:label="@string/app_name"`. Android Auto
+  uses these by default. Set the corresponding attributes on `PlaybackService` only if the car
+  needs a different icon or label.
+- **Attribution icon**. Reuse the existing monochrome notification vector, `ic_notification`,
+  for media cards.
+- **Accent color**. Android Auto reads `android:colorAccent` from the application theme by
+  default. Define an explicit car accent in a `Theme.ShelfDroid.Car` style and point Android Auto
+  to that style so playback controls use ShelfDroid's accent without changing the phone theme.
+
+Add both branding metadata entries under `<application>`:
+
+```xml
+<meta-data
+    android:name="androidx.car.app.TintableAttributionIcon"
+    android:resource="@drawable/ic_notification" />
+<meta-data
+    android:name="com.google.android.gms.car.application.theme"
+    android:resource="@style/Theme.ShelfDroid.Car" />
+```
+
 Verify the merged manifest rather than relying only on individual library manifests. In particular,
 confirm the foreground-service permissions and both `androidx.media3.session.MediaLibraryService`
 and `android.media.browse.MediaBrowserService` intent actions are present. The existing
 `MediaSessionService` action may remain for existing clients, but it does not replace the library
-service action for Media3 browser discovery.
+service action for Media3 browser discovery. Confirm that the icon, label, attribution icon, and
+accent style references resolve in the merged app. Check the launcher, media card, and playback
+controls in the Desktop Head Unit once browsing and playback are available.
 
 **Files:**
 
 - `app/src/main/AndroidManifest.xml`
 - `app/src/main/res/xml/automotive_app_desc.xml` (new)
+- `app/src/main/res/values/themes.xml` for the car accent style
 - `media/src/main/AndroidManifest.xml` for the library service action and, if needed, permission
   ownership
+
+### Documentation
+
+- [Add support for Android Auto to a media app](https://developer.android.com/training/cars/media/auto)
+- [Configure the manifest for app icons, label, and accent color](https://developer.android.com/training/cars/media/configure-manifest)
+- [Serve content with a MediaLibraryService](https://developer.android.com/media/media3/session/serve-content)
 
 ---
 
@@ -138,10 +170,12 @@ Create a mapper that converts ShelfDroid Catalog records into browser-facing `Me
 Each item must provide the applicable fields:
 
 - stable `mediaId`
-- `isBrowsable` or `isPlayable`
+- explicit values for both `isBrowsable` and `isPlayable` on every item returned in a
+  `LibraryResult`, including the root
 - `MediaMetadata.mediaType`
 - title and subtitle or artist
-- artwork URI with a safe fallback
+- local artwork URI in `MediaMetadata.artworkUri`. Serve server covers through a `content://` URI
+  and use an `android.resource://` URI for bundled icons and fallback artwork.
 - completion state or percentage where useful
 
 Browsable items must not expose playback URIs. Playable URIs should only be resolved when playback
@@ -152,6 +186,11 @@ is requested.
 - `media/src/main/java/dev/halim/shelfdroid/media/library/CarMediaId.kt` (new)
 - `media/src/main/java/dev/halim/shelfdroid/media/library/CarMediaItemMapper.kt` (new)
 - focused unit tests under `media/src/test/`
+
+### Documentation
+
+- [Media3 library callback contract](https://developer.android.com/reference/androidx/media3/session/MediaLibraryService.MediaLibrarySession.Callback)
+- [Display media artwork](https://developer.android.com/training/cars/media/create-media-browser/media-artwork)
 
 ---
 
@@ -165,7 +204,9 @@ the existing custom-command handling, but add the Media3 library contract.
 `onGetLibraryRoot` must return quickly, including when ShelfDroid is signed out. Do not perform
 network access, session recovery, or other slow authentication work before returning the root.
 
-Design for at most four browsable root children, as requested by Android Auto root hints. A useful
+Default to at most four browsable root children. Read
+`BROWSER_ROOT_HINTS_KEY_ROOT_CHILDREN_LIMIT` from `LibraryParams.extras`. Media3 converts the
+legacy supported-flags hint to `EXTRA_KEY_ROOT_CHILDREN_BROWSABLE_ONLY` in those extras. The
 initial hierarchy is:
 
 ```text
@@ -179,7 +220,7 @@ ShelfDroid
 ```
 
 If a root hint permits fewer than four children, prioritize Continue listening, Books, Podcasts,
-then Downloads. Root children should have short labels and monochrome tab icons.
+then Downloads. Use short labels and white tab icons that Android Auto can tint.
 
 ### Children and items
 
@@ -203,6 +244,12 @@ Audiobookshelf server may happen asynchronously, but browsing must not wait inde
   read facade is needed across the existing repositories)
 - `media/src/main/java/dev/halim/shelfdroid/media/di/PlayerModule.kt`
 - callback and hierarchy tests under `media/src/test/`
+
+### Documentation
+
+- [Create a content hierarchy for car media apps](https://developer.android.com/training/cars/media/create-media-browser/content-hierarchy)
+- [Media3 legacy root hint conversion](https://github.com/androidx/media/blob/1.11.1/libraries/session/src/main/java/androidx/media3/session/LegacyConversions.java)
+- [Media3 library callback contract](https://developer.android.com/reference/androidx/media3/session/MediaLibraryService.MediaLibrarySession.Callback)
 
 ---
 
@@ -247,6 +294,10 @@ Preserve existing behavior for:
   a narrower reusable interface is required
 - `media/src/main/java/dev/halim/shelfdroid/media/mediaitem/MediaItemMapper.kt`
 
+### Documentation
+
+- [Control playback with media sessions](https://developer.android.com/media/media3/session/control-playback)
+
 ---
 
 ## Phase 5 — Service Lifecycle and Error States
@@ -262,8 +313,9 @@ and support all of these states explicitly:
 - local-network server without the required permission
 - downloaded content available while offline
 
-When User action is required, expose a car-appropriate error such as "Sign in on your phone when it
-is safe." Never launch the phone UI automatically while driving.
+When User action is required on the phone, show a localized message on the head unit telling the
+User to look at their phone only when it is safe. Use this for sign-in and permission requests.
+Never launch the phone UI automatically while driving.
 
 Revisit two service lifecycle decisions in `PlaybackService`:
 
@@ -284,14 +336,19 @@ the media-notification controller separately when necessary.
 - `media/src/main/java/dev/halim/shelfdroid/media/library/ShelfMediaLibraryCallback.kt`
 - authentication/session state adapters as required
 
+### Documentation
+
+- [Media3 background playback and resumption](https://developer.android.com/media/media3/session/background-playback)
+- [Handle car media errors](https://developer.android.com/training/cars/media/errors)
+
 ---
 
 ## Phase 6 — Voice Playback, Browsable Search, and Playback Resumption
 
 ### Voice playback
 
-Handle voice-initiated playback separately from the browsable search-results UI. Android Auto and
-Google Assistant can send a play-from-search request that Media3 represents as an incoming
+Handle voice-initiated playback separately from the browsable search-results UI. Gemini and Google
+Assistant can send a play-from-search request that Media3 represents as an incoming
 `MediaItem` with `RequestMetadata.searchQuery`. Resolve that query through the playback coordinator
 in `onAddMediaItems` or `onSetMediaItems`, matching Books, Podcasts, and Episodes by title and, where
 useful, author. Handle an empty query as a general playback request by resuming the most recent
@@ -300,9 +357,12 @@ public release.
 
 ### Browsable search results
 
-Implement `onSearch` and `onGetSearchResult` so Android Auto can display selectable results. This is
-an additional browse experience and does not by itself handle voice-initiated playback. Advertise
-search-result support to compatible browsers when this behavior is implemented.
+Implement `onSearch` and `onGetSearchResult` so Android Auto can display selectable results. Once
+the results are ready, call `notifySearchResultChanged()` with the requesting browser, query,
+result count, and request parameters so the browser can fetch them through `onGetSearchResult`.
+Grant `COMMAND_CODE_LIBRARY_SEARCH` and `COMMAND_CODE_LIBRARY_GET_SEARCH_RESULT` to supported
+browsers when this flow is ready. Media3 uses the search command to advertise support to legacy
+browsers.
 
 Search work must be asynchronous and bounded. Prefer indexed local Catalog queries rather than
 scanning large in-memory collections or waiting for network search.
@@ -325,6 +385,12 @@ Add Media3 playback resumption after browse and playback are stable:
 
 Do not declare `MediaButtonReceiver` until `onPlaybackResumption()` is implemented; Media3 requires
 both parts together.
+
+### Documentation
+
+- [Support voice actions](https://developer.android.com/training/cars/media/voice-actions)
+- [Media3 library callback contract](https://developer.android.com/reference/androidx/media3/session/MediaLibraryService.MediaLibrarySession.Callback)
+- [Media3 background playback and resumption](https://developer.android.com/media/media3/session/background-playback)
 
 ---
 
@@ -358,17 +424,28 @@ Test at least:
 2. Force-stop ShelfDroid, then open it from Android Auto.
 3. Clear app data, then open it from Android Auto.
 4. Browse and play while signed in.
-5. Browse while signed out and receive an actionable error.
+5. Browse while signed out and try accessing a local server with the required phone permission
+   denied. Verify that the head unit tells the User to look at the phone only when it is safe.
 6. Browse and play Downloads with the server unreachable.
 7. Play, pause, seek back, seek forward, and use steering-wheel media buttons.
 8. Switch audio focus between Android Auto and another source.
-9. Start a Book, Podcast, and Episode by voice; also test an empty voice query.
+9. With both Gemini and Google Assistant, start a Book, Podcast, and Episode by voice and test a
+   general playback request with no search terms.
 10. Open and select browsable search results, when enabled.
 11. Exercise day/night mode, touch, rotary input, and driving restrictions.
-12. Verify artwork and text on small, wide, and high-resolution DHU configurations.
+12. Verify artwork, text, and system tinting of white car icons in day and night mode on small,
+    wide, and high-resolution DHU configurations.
 13. Swipe ShelfDroid from phone recents while Android Auto playback is active.
+14. Measure cold launch and content loading separately. Each must take no more than 10 seconds.
+    App-specific buttons must respond within 2 seconds.
 
 Run the existing relevant Gradle test suites and add the DHU result to the manual release checklist.
+
+### Documentation
+
+- [Test Android apps for cars](https://developer.android.com/training/cars/testing)
+- [Test using the Desktop Head Unit](https://developer.android.com/training/cars/testing/dhu)
+- [Car app quality](https://developer.android.com/docs/quality-guidelines/car-app-quality)
 
 ---
 
@@ -383,8 +460,16 @@ Before release:
    and User sign-in.
 5. Test through Internal App Sharing or an internal testing track before production review.
 
+Internal App Sharing and internal testing skip car form-factor review. Closed testing gives
+non-blocking review feedback. Car form-factor approval is required for open testing and production.
+
 Android Auto is delivered as part of the existing mobile app. A dedicated Android Automotive OS
 artifact and track are not required for this plan.
+
+### Documentation
+
+- [Distribute to cars](https://developer.android.com/training/cars/distribute)
+- [Car app quality](https://developer.android.com/docs/quality-guidelines/car-app-quality)
 
 ---
 
@@ -412,10 +497,14 @@ Android Auto support is ready for public release when:
 - Android Auto discovers ShelfDroid as a media app.
 - The root tabs render from the cached Catalog and honor the browser's root-child limit.
 - A User can browse and play a Book or Episode without opening the phone Activity.
-- A User can start a Book, Podcast, or Episode by voice, and an empty voice query starts appropriate
-  current or recent content.
+- A User can start a Book, Podcast, or Episode with Gemini and Google Assistant. A general playback
+  request starts appropriate current or recent content.
 - play, pause, seek back, and seek forward work from the car.
 - signed-out, offline, and unavailable-server states do not hang or crash the service.
+- when sign-in or a permission requires phone interaction, the head unit tells the User to look at
+  the phone only when it is safe.
+- launch and content loading each take no more than 10 seconds. App-specific buttons respond within
+  2 seconds. White car icons render with system tinting in day and night mode.
 - active playback survives dismissal of the phone task.
 - Media Controller Test and DHU verification pass.
 - the implementation meets the applicable Media car quality requirements.
@@ -423,16 +512,3 @@ Android Auto support is ready for public release when:
 Displayed, selectable search results and playback resumption may follow the first public release.
 Voice-initiated playback remains a public-release requirement even if displayed search results are
 deferred.
-
----
-
-## Official References
-
-- [Add support for Android Auto to a media app](https://developer.android.com/training/cars/media/auto)
-- [Serve content with a MediaLibraryService](https://developer.android.com/media/media3/session/serve-content)
-- [Create a content hierarchy for car media apps](https://developer.android.com/training/cars/media/create-media-browser/content-hierarchy)
-- [Media3 background playback and resumption](https://developer.android.com/media/media3/session/background-playback)
-- [Support voice actions](https://developer.android.com/training/cars/media/voice-actions)
-- [Test using the Desktop Head Unit](https://developer.android.com/training/cars/testing/dhu)
-- [Car app quality](https://developer.android.com/docs/quality-guidelines/car-app-quality)
-- [Distribute to cars](https://developer.android.com/training/cars/distribute)
