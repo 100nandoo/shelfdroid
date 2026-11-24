@@ -4,10 +4,12 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -17,6 +19,79 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryDataRepositoryTest {
+
+  @Test
+  fun sessionReset_waitsForTheOldRefreshAndStartsAFreshJob() = runTest {
+    val started = CompletableDeferred<Unit>()
+    val oldResponse = CompletableDeferred<Unit>()
+    var request = 0
+    val catalog = mutableListOf<String>()
+    val repository =
+      LibraryDataRepository(
+        refreshLibraries = {
+          if (++request == 1) {
+            started.complete(Unit)
+            withContext(NonCancellable) {
+              oldResponse.await()
+              catalog += "old"
+            }
+          } else {
+            catalog += "new"
+          }
+          Result.success(Unit)
+        },
+        refreshLibraryItems = { LibraryItemRefreshResult(emptySet(), emptyList()) },
+        scope = CoroutineScope(StandardTestDispatcher(testScheduler)),
+      )
+
+    val previous = async { repository.synchronize() }
+    started.await()
+    val reset = async { repository.resetSession { catalog.clear() } }
+    runCurrent()
+    val next = async { repository.synchronize() }
+    runCurrent()
+    assertFalse(next.isCompleted)
+    oldResponse.complete(Unit)
+    reset.await()
+
+    assertTrue(next.await().isSuccess)
+    assertTrue(previous.isCancelled)
+    assertEquals(listOf("new"), catalog)
+  }
+
+  @Test
+  fun carRefresh_skipsFreshResultsAndCoolsDownAfterFailure() = runTest {
+    var now = 10_000_000L
+    var success = 0L
+    var shouldFail = false
+    var requests = 0
+    val repository =
+      LibraryDataRepository(
+        refreshLibraries = {
+          requests++
+          if (shouldFail) Result.failure(IllegalStateException("Offline")) else Result.success(Unit)
+        },
+        refreshLibraryItems = { LibraryItemRefreshResult(emptySet(), emptyList()) },
+        scope = CoroutineScope(StandardTestDispatcher(testScheduler)),
+        lastSuccess = { success },
+        saveSuccess = { success = it },
+        now = { now },
+      )
+
+    assertTrue(repository.synchronizeIfStale()?.isSuccess == true)
+    assertEquals(now, success)
+    now += 899_999L
+    assertNull(repository.synchronizeIfStale())
+    now++
+    shouldFail = true
+    assertFalse(requireNotNull(repository.synchronizeIfStale()).isSuccess)
+    now += 59_999L
+    assertNull(repository.synchronizeIfStale())
+    now++
+    shouldFail = false
+    assertTrue(repository.synchronizeIfStale()?.isSuccess == true)
+    assertEquals(3, requests)
+  }
 
   @Test
   fun synchronize_reconcilesLibrariesBeforeTheirItems() = runTest {

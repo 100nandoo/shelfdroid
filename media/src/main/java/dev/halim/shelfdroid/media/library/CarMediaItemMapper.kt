@@ -12,6 +12,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.LibraryItemCatalog
+import dev.halim.shelfdroid.core.database.LibraryItemEntity
+import dev.halim.shelfdroid.core.database.PodcastEpisodeEntity
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import dev.halim.shelfdroid.media.R
 import javax.inject.Inject
@@ -21,10 +23,11 @@ internal class CarMediaItemMapper
 @Inject
 constructor(@ApplicationContext private val context: Context) {
 
-  private val fallbackArtwork: Uri by lazy {
+  private val fallbackArtwork: Uri by lazy { drawableUri(R.drawable.ic_notification) }
+
+  private fun drawableUri(icon: Int): Uri {
     val resources = context.resources
-    val icon = R.drawable.ic_notification
-    Uri.Builder()
+    return Uri.Builder()
       .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
       .authority(resources.getResourcePackageName(icon))
       .appendPath(resources.getResourceTypeName(icon))
@@ -41,9 +44,29 @@ constructor(@ApplicationContext private val context: Context) {
         CarMediaId.Books -> R.string.car_books to MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS
         CarMediaId.Podcasts -> R.string.car_podcasts to MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS
         CarMediaId.Downloads -> R.string.car_downloads to MediaMetadata.MEDIA_TYPE_FOLDER_MIXED
+        CarMediaId.DownloadedBooks ->
+          R.string.car_books to MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS
+        CarMediaId.DownloadedEpisodes ->
+          R.string.car_episodes to MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS
       }
-    return item(id, context.getString(title), mediaType, playable = false)
+    val tabIcon =
+      when (id) {
+        CarMediaId.Books -> R.drawable.car_tab_menu_book
+        CarMediaId.Podcasts -> R.drawable.car_tab_headphones
+        CarMediaId.Downloads -> R.drawable.car_tab_download
+        else -> null
+      }
+    return item(
+      id,
+      context.getString(title),
+      mediaType,
+      playable = false,
+      artwork = tabIcon?.let(::drawableUri) ?: fallbackArtwork,
+    )
   }
+
+  fun group(id: CarMediaId.Group, title: String): MediaItem =
+    item(id, title, MediaMetadata.MEDIA_TYPE_FOLDER_MIXED, playable = false)
 
   fun library(library: LibraryEntity): MediaItem =
     item(
@@ -55,16 +78,28 @@ constructor(@ApplicationContext private val context: Context) {
       playable = false,
     )
 
-  fun libraryItem(record: LibraryItemCatalog, progress: ProgressEntity? = null): MediaItem {
-    val isBook = record.isBook == 1L
+  fun libraryItem(record: LibraryItemCatalog, progress: ProgressEntity? = null): MediaItem =
+    libraryItem(record.id, record.title, record.author, record.cover, record.isBook == 1L, progress)
+
+  fun libraryItem(record: LibraryItemEntity, progress: ProgressEntity? = null): MediaItem =
+    libraryItem(record.id, record.title, record.author, record.cover, record.isBook == 1L, progress)
+
+  private fun libraryItem(
+    id: String,
+    title: String,
+    author: String,
+    cover: String,
+    isBook: Boolean,
+    progress: ProgressEntity?,
+  ): MediaItem {
     return item(
-      id = if (isBook) CarMediaId.Book(record.id) else CarMediaId.Podcast(record.id),
-      title = record.title,
+      id = if (isBook) CarMediaId.Book(id) else CarMediaId.Podcast(id),
+      title = title,
       mediaType =
         if (isBook) MediaMetadata.MEDIA_TYPE_AUDIO_BOOK else MediaMetadata.MEDIA_TYPE_PODCAST,
       playable = isBook,
-      artist = record.author,
-      artwork = artworkFor(record),
+      artist = author,
+      artwork = artworkFor(id, cover),
       progress = progress,
     )
   }
@@ -74,19 +109,53 @@ constructor(@ApplicationContext private val context: Context) {
     episode: PodcastEpisode,
     progress: ProgressEntity? = null,
   ): MediaItem =
-    item(
-      id = CarMediaId.Episode(podcast.id, episode.id),
+    episode(
+      podcastId = podcast.id,
+      podcastTitle = podcast.title,
+      author = podcast.author,
+      cover = podcast.cover,
+      episodeId = episode.id,
       title = episode.title,
-      mediaType = MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE,
-      playable = true,
-      artist = podcast.author,
-      subtitle = podcast.title,
-      artwork = artworkFor(podcast),
       progress = progress,
     )
 
-  private fun artworkFor(record: LibraryItemCatalog): Uri =
-    if (record.cover.isBlank()) fallbackArtwork else CarArtworkProvider.uriFor(context, record.id)
+  fun episode(
+    podcast: LibraryItemEntity,
+    episode: PodcastEpisodeEntity,
+    progress: ProgressEntity?,
+  ): MediaItem =
+    episode(
+      podcastId = podcast.id,
+      podcastTitle = podcast.title,
+      author = podcast.author,
+      cover = podcast.cover,
+      episodeId = episode.id,
+      title = episode.title,
+      progress = progress,
+    )
+
+  private fun episode(
+    podcastId: String,
+    podcastTitle: String,
+    author: String,
+    cover: String,
+    episodeId: String,
+    title: String,
+    progress: ProgressEntity?,
+  ): MediaItem =
+    item(
+      id = CarMediaId.Episode(podcastId, episodeId),
+      title = title,
+      mediaType = MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE,
+      playable = true,
+      artist = author,
+      subtitle = podcastTitle,
+      artwork = artworkFor(podcastId, cover),
+      progress = progress,
+    )
+
+  private fun artworkFor(id: String, cover: String): Uri =
+    if (cover.isBlank()) fallbackArtwork else CarArtworkProvider.uriFor(context, id, cover)
 
   private fun item(
     id: CarMediaId,
@@ -100,9 +169,9 @@ constructor(@ApplicationContext private val context: Context) {
   ): MediaItem {
     val metadata =
       MediaMetadata.Builder()
-        .setTitle(title)
-        .setArtist(artist?.takeUnless(String::isBlank))
-        .setSubtitle(subtitle?.takeUnless(String::isBlank))
+        .setTitle(title.take(MAX_TEXT_LENGTH))
+        .setArtist(artist?.take(MAX_TEXT_LENGTH)?.takeUnless(String::isBlank))
+        .setSubtitle(subtitle?.take(MAX_TEXT_LENGTH)?.takeUnless(String::isBlank))
         .setMediaType(mediaType)
         .setIsBrowsable(!playable)
         .setIsPlayable(playable)
@@ -127,5 +196,9 @@ constructor(@ApplicationContext private val context: Context) {
         putDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE, fraction)
       }
     }
+  }
+
+  private companion object {
+    const val MAX_TEXT_LENGTH = 256
   }
 }

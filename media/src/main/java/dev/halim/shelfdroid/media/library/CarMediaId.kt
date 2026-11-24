@@ -1,6 +1,7 @@
 package dev.halim.shelfdroid.media.library
 
 import dev.halim.shelfdroid.media.mediaitem.MediaIdWrapper
+import java.util.Base64
 
 internal sealed class CarMediaId(val value: String) {
   sealed class Folder(value: String) : CarMediaId(value)
@@ -14,6 +15,13 @@ internal sealed class CarMediaId(val value: String) {
   data object Podcasts : Folder("car:podcasts")
 
   data object Downloads : Folder("car:downloads")
+
+  data object DownloadedBooks : Folder("car:downloaded-books")
+
+  data object DownloadedEpisodes : Folder("car:downloaded-episodes")
+
+  data class Group(val parent: CarMediaId, val key: String) :
+    CarMediaId("car:group:${encodeParent(parent)}:$key")
 
   data class Library(val libraryId: String) : CarMediaId("car:library:$libraryId")
 
@@ -48,6 +56,8 @@ internal sealed class CarMediaId(val value: String) {
             "books" -> Books
             "podcasts" -> Podcasts
             "downloads" -> Downloads
+            "downloaded-books" -> DownloadedBooks
+            "downloaded-episodes" -> DownloadedEpisodes
             else -> null
           }
         1 ->
@@ -57,9 +67,36 @@ internal sealed class CarMediaId(val value: String) {
             "podcast" -> Podcast(ids.single())
             else -> null
           }
-        2 -> if (kind == "episode") Episode(ids[0], ids[1]) else null
+        2 ->
+          when (kind) {
+            "episode" -> Episode(ids[0], ids[1])
+            "group" -> decodeGroup(ids[0], ids[1])
+            else -> null
+          }
         else -> null
       }
+    }
+
+    private fun encodeParent(parent: CarMediaId): String =
+      Base64.getUrlEncoder().withoutPadding().encodeToString(parent.value.encodeToByteArray())
+
+    private fun decodeGroup(encodedParent: String, key: String): Group? {
+      val decoded =
+        runCatching { Base64.getUrlDecoder().decode(encodedParent).decodeToString() }.getOrNull()
+          ?: return null
+      // Groups refer to a Catalog list, never to another group.
+      if (!decoded.startsWith("car:") || decoded.startsWith("car:group:")) return null
+      val parent =
+        when (val parsed = parse(decoded)) {
+          Books,
+          Podcasts,
+          DownloadedBooks,
+          DownloadedEpisodes,
+          is Library,
+          is Podcast -> parsed
+          else -> return null
+        }
+      return Group(parent, key).takeIf { encodeParent(parent) == encodedParent }
     }
 
     private fun isIdComponent(value: String): Boolean =

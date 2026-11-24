@@ -8,6 +8,8 @@ import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminMutationRe
 import dev.halim.shelfdroid.core.data.screen.libraryadmin.LibraryAdminRepository
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.UserPrefs
 import dev.halim.shelfdroid.test.app.testdi.FakeApiService
 import javax.inject.Inject
 import kotlinx.coroutines.runBlocking
@@ -26,12 +28,14 @@ class LibraryAdminRepositoryTest {
   @Inject lateinit var repository: LibraryAdminRepository
   @Inject lateinit var database: MyDatabase
   @Inject lateinit var fakeApiService: FakeApiService
+  @Inject lateinit var authStore: DataStoreManager
 
   @Before
   fun setUp() {
     hiltRule.inject()
     clearDatabase()
     fakeApiService.reset()
+    runBlocking { authStore.updateUserPrefs(UserPrefs(id = "admin", accessToken = "test-token")) }
   }
 
   @Test

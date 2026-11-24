@@ -42,6 +42,9 @@ SELECT id
 FROM LibraryItemEntity
 WHERE libraryId = :libraryId;
 
+carBrowseItems:
+SELECT id, title, isBook FROM LibraryItemEntity WHERE libraryId = :libraryId;
+
 byLibraryId:
 SELECT *
 FROM LibraryItemEntity

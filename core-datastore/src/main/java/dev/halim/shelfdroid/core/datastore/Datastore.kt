@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
@@ -38,6 +39,7 @@ private object Keys {
   val DEVICE_ID = stringPreferencesKey("device_id")
   val USER_PREFS = stringPreferencesKey("user_prefs")
   val AUTH_PROMPT_REASON = stringPreferencesKey("auth_prompt_reason")
+  val CATALOG_SYNC_TIME = longPreferencesKey("catalog_sync_time")
   val SERVER_PREFS = stringPreferencesKey("server_prefs")
   val DISPLAY_PREFS = stringPreferencesKey("display_prefs")
   val PLAYBACK_PREFS = stringPreferencesKey("playback_prefs")
@@ -122,6 +124,11 @@ class DataStoreManager @Inject constructor(private val dataStore: DataStore<Pref
         AuthPromptReason.entries.firstOrNull { it.name == stored }
       }
     }
+
+  val catalogSyncTime: Flow<Long> = dataStore.preferenceFlow(Keys.CATALOG_SYNC_TIME, 0L)
+
+  suspend fun updateCatalogSyncTime(time: Long) =
+    dataStore.updatePreference(Keys.CATALOG_SYNC_TIME, time)
 
   fun accessToken(): String = runBlocking { userPrefs.firstOrNull()?.accessToken ?: "" }
 

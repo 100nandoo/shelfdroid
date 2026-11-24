@@ -15,6 +15,7 @@ import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.core.prefs.NotificationPrefs
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.media.exoplayer.ExoPlayerManager
+import dev.halim.shelfdroid.media.library.ShelfMediaLibraryCallback
 import dev.halim.shelfdroid.media.notification.CustomMediaNotificationProvider
 import dev.halim.shelfdroid.media.notification.MediaNotificationButtonState
 import dev.halim.shelfdroid.media.notification.mediaNotificationButtons
@@ -27,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -39,7 +41,7 @@ class PlaybackService : MediaLibraryService() {
   private lateinit var mediaLibrarySession: MediaLibrarySession
   @Inject lateinit var playerManager: Lazy<ExoPlayerManager>
   @Inject lateinit var mediaNotificationProvider: Lazy<CustomMediaNotificationProvider>
-  @Inject lateinit var mediaLibrarySessionCallback: Lazy<MediaLibrarySession.Callback>
+  @Inject internal lateinit var mediaLibrarySessionCallback: Lazy<ShelfMediaLibraryCallback>
   @Inject lateinit var helper: Lazy<Helper>
   @Inject lateinit var playerStore: Lazy<PlayerStore>
 
@@ -58,7 +60,7 @@ class PlaybackService : MediaLibraryService() {
       MediaLibrarySession.Builder(
           this,
           playerManager.get().player.get(),
-          mediaLibrarySessionCallback.get(),
+          mediaLibrarySessionCallback.get().also { it.attach(serviceScope) },
         )
         .build()
 
@@ -157,7 +159,7 @@ class PlaybackService : MediaLibraryService() {
   }
 
   override fun onDestroy() {
-    mediaButtonObserverJob?.cancel()
+    serviceScope.cancel()
     stopAndClear()
     mediaLibrarySession.release()
     stopForeground(STOP_FOREGROUND_REMOVE)

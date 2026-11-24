@@ -6,7 +6,9 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Binder
 import android.os.ParcelFileDescriptor
+import android.os.Process
 import coil3.ImageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -14,9 +16,11 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
 import java.io.FileNotFoundException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -29,6 +33,8 @@ class CarArtworkProvider : ContentProvider() {
     fun libraryItems(): LibraryItemRepository
 
     fun imageLoader(): ImageLoader
+
+    fun authState(): AuthStateRepository
   }
 
   override fun onCreate(): Boolean = true
@@ -36,14 +42,23 @@ class CarArtworkProvider : ContentProvider() {
   override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
     val context = requireNotNull(context)
     val itemId = uri.pathSegments.singleOrNull()
-    if (mode != "r" || itemId == null || uri != uriFor(context, itemId)) {
+    if (mode != "r" || itemId == null) {
       throw FileNotFoundException("Invalid cover request")
     }
 
     val dependencies = EntryPointAccessors.fromApplication<Dependencies>(context)
+    if (
+      Binder.getCallingUid() != Process.myUid() &&
+        runBlocking(Dispatchers.IO) { dependencies.authState().token.first().isBlank() }
+    ) {
+      throw FileNotFoundException("Cover is unavailable")
+    }
     val cover =
       dependencies.libraryItems().byId(itemId)?.cover?.takeUnless(String::isBlank)
         ?: throw FileNotFoundException("Cover is unavailable")
+    if (uri != uriFor(context, itemId) && uri != uriFor(context, itemId, cover)) {
+      throw FileNotFoundException("Invalid cover request")
+    }
     val imageLoader = dependencies.imageLoader()
     openCachedCover(imageLoader, cover)?.let {
       return it
@@ -96,11 +111,14 @@ class CarArtworkProvider : ContentProvider() {
   companion object {
     private const val ARTWORK_TIMEOUT_MS = 3_000L
 
-    internal fun uriFor(context: Context, itemId: String): Uri =
+    internal fun uriFor(context: Context, itemId: String, cover: String? = null): Uri =
       Uri.Builder()
         .scheme(ContentResolver.SCHEME_CONTENT)
         .authority("${context.packageName}.car-artwork")
         .appendPath(itemId)
+        .apply {
+          if (cover != null) appendQueryParameter("v", cover.hashCode().toUInt().toString(16))
+        }
         .build()
   }
 }

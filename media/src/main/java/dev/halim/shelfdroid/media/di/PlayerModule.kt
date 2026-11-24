@@ -1,7 +1,6 @@
 package dev.halim.shelfdroid.media.di
 
 import android.content.Context
-import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import androidx.annotation.OptIn
@@ -24,34 +23,13 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.text.TextOutput
 import androidx.media3.exoplayer.video.VideoRendererEventListener
-import androidx.media3.session.MediaLibraryService.MediaLibrarySession
-import androidx.media3.session.MediaSession
-import androidx.media3.session.SessionCommand
-import androidx.media3.session.SessionResult
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
-import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.halim.shelfdroid.core.R as CoreR
 import dev.halim.shelfdroid.media.notification.CustomMediaNotificationProvider
-import dev.halim.shelfdroid.media.notification.MediaNotificationButtons.BACK_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.notification.MediaNotificationButtons.FORWARD_COMMAND_BUTTON
-import dev.halim.shelfdroid.media.notification.MediaNotificationButtons.PLAYBACK_SPEED_BUTTON
-import dev.halim.shelfdroid.media.notification.MediaNotificationButtons.SLEEP_TIMER_OFF_BUTTON
-import dev.halim.shelfdroid.media.notification.mediaNotificationButtons
-import dev.halim.shelfdroid.media.playback.PlayerStore
-import dev.halim.shelfdroid.media.session.CUSTOM_BACK
-import dev.halim.shelfdroid.media.session.CUSTOM_FORWARD
-import dev.halim.shelfdroid.media.session.CUSTOM_NEXT_CHAPTER
-import dev.halim.shelfdroid.media.session.CUSTOM_PLAYBACK_SPEED
-import dev.halim.shelfdroid.media.session.CUSTOM_PREVIOUS_CHAPTER
-import dev.halim.shelfdroid.media.session.CUSTOM_SLEEP_TIMER
 import javax.inject.Singleton
-import kotlin.time.Duration
 
 @OptIn(UnstableApi::class)
 @Module
@@ -133,103 +111,5 @@ object PlayerModule {
     @ApplicationContext context: Context
   ): CustomMediaNotificationProvider {
     return CustomMediaNotificationProvider(context)
-  }
-
-  @Singleton
-  @Provides
-  fun provideMediaLibrarySessionCallback(
-    @ApplicationContext context: Context,
-    playerStore: Lazy<PlayerStore>,
-  ): MediaLibrarySession.Callback {
-
-    val sessionCommands =
-      MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
-        .apply {
-          listOf(
-              BACK_COMMAND_BUTTON,
-              FORWARD_COMMAND_BUTTON,
-              SLEEP_TIMER_OFF_BUTTON,
-              PLAYBACK_SPEED_BUTTON,
-            )
-            .forEach { commandButton ->
-              commandButton.sessionCommand?.let { add(it) }
-            }
-          add(SessionCommand(CUSTOM_NEXT_CHAPTER, Bundle()))
-          add(SessionCommand(CUSTOM_PREVIOUS_CHAPTER, Bundle()))
-        }
-        .build()
-    return object : MediaLibrarySession.Callback {
-
-      override fun onConnectAsync(
-        session: MediaSession,
-        controller: MediaSession.ControllerInfo,
-      ): ListenableFuture<MediaSession.ConnectionResult> {
-        val store = playerStore.get()
-        val commandButtons =
-          mediaNotificationButtons(
-            context.getString(CoreR.string.next_chapter),
-            store.uiState.value,
-            store.isChapterTransitioning.value,
-            store.uiState.value.advancedControl.sleepTimerLeft > Duration.ZERO,
-            store.notificationPrefs.value,
-            seekBackSeconds = store.playerPrefs.value.seekBackSeconds,
-            seekForwardSeconds = store.playerPrefs.value.seekForwardSeconds,
-            previousChapterDisplayName = context.getString(CoreR.string.previous_chapter),
-          )
-        return Futures.immediateFuture(
-          MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
-            .setAvailableSessionCommands(sessionCommands)
-            .setCustomLayout(commandButtons)
-            .setMediaButtonPreferences(commandButtons)
-            .build()
-        )
-      }
-
-      override fun onCustomCommand(
-        session: MediaSession,
-        controller: MediaSession.ControllerInfo,
-        customCommand: SessionCommand,
-        args: Bundle,
-      ): ListenableFuture<SessionResult> {
-        val resultCode =
-          when (customCommand.customAction) {
-            CUSTOM_BACK -> {
-              session.player.seekBack()
-              SessionResult.RESULT_SUCCESS
-            }
-            CUSTOM_FORWARD -> {
-              session.player.seekForward()
-              SessionResult.RESULT_SUCCESS
-            }
-            CUSTOM_SLEEP_TIMER -> {
-              playerStore.get().sleepTimerFromMediaNotification()
-              SessionResult.RESULT_SUCCESS
-            }
-            CUSTOM_NEXT_CHAPTER -> {
-              if (playerStore.get().nextChapterFromMediaNotification()) {
-                SessionResult.RESULT_SUCCESS
-              } else {
-                SessionResult.RESULT_ERROR_INVALID_STATE
-              }
-            }
-            CUSTOM_PREVIOUS_CHAPTER -> {
-              if (playerStore.get().previousChapterFromMediaNotification()) {
-                SessionResult.RESULT_SUCCESS
-              } else {
-                SessionResult.RESULT_ERROR_INVALID_STATE
-              }
-            }
-            CUSTOM_PLAYBACK_SPEED -> {
-              if (playerStore.get().changeSpeedFromMediaNotification()) {
-                SessionResult.RESULT_SUCCESS
-              } else {
-                SessionResult.RESULT_ERROR_INVALID_STATE
-              }
-            }
-            else -> SessionResult.RESULT_ERROR_NOT_SUPPORTED
-          }
-        return Futures.immediateFuture(SessionResult(resultCode))
-      }
-    }
   }
 }

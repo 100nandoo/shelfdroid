@@ -8,7 +8,6 @@ import dev.halim.core.network.request.BatchLibraryItemsRequest
 import dev.halim.core.network.request.OpenItemRssFeedMetadataDetails
 import dev.halim.core.network.request.OpenItemRssFeedRequest
 import dev.halim.core.network.request.UpdateLibraryItemChaptersRequest
-import dev.halim.core.network.response.BatchLibraryItemsResponse
 import dev.halim.core.network.response.LibraryItem
 import dev.halim.core.network.response.RssFeed
 import dev.halim.core.network.response.UpdateLibraryItemChaptersResponse
@@ -94,7 +93,12 @@ constructor(
         remoteIdsByLibraryId(libraryId).getOrElse {
           return Result.failure(it)
         }
-      if (ids.isEmpty()) return Result.success(Unit)
+      if (ids.isEmpty()) {
+        queries.transaction {
+          queries.idsByLibraryId(libraryId).executeAsList().forEach(::deleteInTransaction)
+        }
+        return Result.success(Unit)
+      }
 
       val result =
         fetchLibraryItemsInBatches(ids) { chunk ->
@@ -103,13 +107,15 @@ constructor(
       if (result.isFailure) return Result.failure(requireNotNull(result.exceptionOrNull()))
 
       val items = result.getOrThrow()
-      val entities = convert(libraryId, BatchLibraryItemsResponse(items))
+      val newIds = items.map { it.id }.toSet()
       cleanupPodcasts(libraryId, items)
-      val booksToDelete = cleanupBooks(libraryId, entities)
+      cleanupBooks(libraryId, newIds)
       queries.transaction {
-        booksToDelete.forEach { entity ->
-          deleteInTransaction(entity.id)
-        }
+        queries
+          .idsByLibraryId(libraryId)
+          .executeAsList()
+          .filterNot { it in newIds }
+          .forEach(::deleteInTransaction)
         items.forEach { item -> insertInTransaction(item, libraryId) }
       }
       Result.success(Unit)
@@ -289,22 +295,10 @@ constructor(
     downloadRepo.cleanupEpisode(episodeIds.toList())
   }
 
-  private fun convert(
-    libraryId: String,
-    response: BatchLibraryItemsResponse,
-  ): List<LibraryItemEntity> {
-    val entities = response.libraryItems.map { toEntity(it, libraryId) }
-    return entities
-  }
-
-  private suspend fun cleanupBooks(
-    libraryId: String,
-    entities: List<LibraryItemEntity>,
-  ): List<LibraryItemEntity> {
+  private suspend fun cleanupBooks(libraryId: String, newIds: Set<String>) {
     val existingEntities = queries.byLibraryId(libraryId).executeAsList().filter { it.isBook == 1L }
-    val newIds = entities.map { it.id }.toSet()
     val toDelete = existingEntities.filter { it.id !in newIds }
-    if (toDelete.isEmpty()) return emptyList()
+    if (toDelete.isEmpty()) return
 
     downloadRepo.cleanupBooks(
       toDelete.mapNotNull { entity ->
@@ -317,8 +311,6 @@ constructor(
         )
       }
     )
-
-    return toDelete
   }
 
   private fun cleanupPodcasts(libraryId: String, items: List<LibraryItem>) {

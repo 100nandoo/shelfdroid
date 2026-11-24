@@ -2,15 +2,23 @@ package dev.halim.shelfdroid.test.app
 
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import dev.halim.core.network.response.login.LoginResponse
+import dev.halim.core.network.response.login.User
+import dev.halim.shelfdroid.core.AuthPromptReason
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.screen.login.LoginSuccessHandler
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
+import dev.halim.shelfdroid.core.datastore.DataStoreManager
+import dev.halim.shelfdroid.core.prefs.ServerAccessMode
 import dev.halim.shelfdroid.test.app.testdi.FakeApiService
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -26,6 +34,9 @@ class LibraryItemRefreshTest {
   @Inject lateinit var repository: LibraryItemRepository
   @Inject lateinit var database: MyDatabase
   @Inject lateinit var fakeApiService: FakeApiService
+  @Inject lateinit var authStore: DataStoreManager
+  @Inject lateinit var login: LoginSuccessHandler
+  private val originalBaseUrl = DataStoreManager.BASE_URL
 
   @Before
   fun setUp() {
@@ -37,6 +48,8 @@ class LibraryItemRefreshTest {
   @After
   fun tearDown() {
     clearDatabase()
+    runBlocking { authStore.clear() }
+    DataStoreManager.BASE_URL = originalBaseUrl
   }
 
   @Test
@@ -63,6 +76,41 @@ class LibraryItemRefreshTest {
     assertNotNull(
       database.libraryItemEntityQueries.byId(FakeApiService.BOOK_ITEM_ID).executeAsOneOrNull()
     )
+  }
+
+  @Test
+  fun refreshLibraryItems_clearsAnEmptyLibrary() = runBlocking {
+    val libraryId = FakeApiService.BOOK_LIBRARY_ID
+    database.libraryEntityQueries.insert(LibraryEntity(libraryId, "Books", "[]", 1, 0, "books-2"))
+    database.libraryItemEntityQueries.insert(item(FakeApiService.BOOK_ITEM_ID, libraryId))
+    fakeApiService.deleteItem(FakeApiService.BOOK_ITEM_ID, hard = 1).getOrThrow()
+
+    assertTrue(repository.refreshLibraryItems().isSuccess)
+    assertEquals(
+      emptyList<String>(),
+      database.libraryItemEntityQueries.idsByLibraryId(libraryId).executeAsList(),
+    )
+  }
+
+  @Test
+  fun reLoginPreservesTheCatalogForTheSameUserAndClearsItForADifferentUser() = runBlocking {
+    val server = "https://audiobooks.example"
+    val first = LoginResponse(user = User(id = "first", accessToken = "first-token"))
+    login.onLoginSuccess(server, ServerAccessMode.Internet, first)
+    authStore.updateCatalogSyncTime(123)
+    database.libraryItemEntityQueries.insert(item("private-book", FakeApiService.BOOK_LIBRARY_ID))
+
+    authStore.beginForcedReLogin(AuthPromptReason.ManualReLogin)
+    login.onLoginSuccess(server, ServerAccessMode.Internet, first)
+    assertNotNull(database.libraryItemEntityQueries.byId("private-book").executeAsOneOrNull())
+    assertEquals(123L, authStore.catalogSyncTime.first())
+
+    authStore.beginForcedReLogin(AuthPromptReason.ManualReLogin)
+    val second = LoginResponse(user = User(id = "second", accessToken = "second-token"))
+    login.onLoginSuccess(server, ServerAccessMode.Internet, second)
+    assertNull(database.libraryItemEntityQueries.byId("private-book").executeAsOneOrNull())
+    assertEquals(0L, authStore.catalogSyncTime.first())
+    assertEquals("second", authStore.userPrefs.first().id)
   }
 
   private fun item(id: String, libraryId: String): LibraryItemEntity =

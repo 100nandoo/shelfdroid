@@ -204,38 +204,102 @@ the existing custom-command handling, but add the Media3 library contract.
 `onGetLibraryRoot` must return quickly, including when ShelfDroid is signed out. Do not perform
 network access, session recovery, or other slow authentication work before returning the root.
 
-Default to at most four browsable root children. Read
+Expose up to three browsable root children. Read
 `BROWSER_ROOT_HINTS_KEY_ROOT_CHILDREN_LIMIT` from `LibraryParams.extras`. Media3 converts the
 legacy supported-flags hint to `EXTRA_KEY_ROOT_CHILDREN_BROWSABLE_ONLY` in those extras. The
 initial hierarchy is:
 
 ```text
 ShelfDroid
-├── Continue listening
 ├── Books
-│   └── Library → Books
+│   └── [Book library] → Books
 ├── Podcasts
-│   └── Library → Podcast → Episodes
+│   └── [Podcast library] → Podcast → Episodes
 └── Downloads
+    ├── Books → Downloaded Books
+    └── Episodes → Downloaded Episodes
 ```
 
-If a root hint permits fewer than four children, prioritize Continue listening, Books, Podcasts,
-then Downloads. Use short labels and white tab icons that Android Auto can tint.
+If a root hint permits fewer than three children, prioritize Books, Podcasts, then Downloads.
+Use short labels and white tab icons that Android Auto can tint.
+
+Resolve the library step independently for each tab using the locally cached Libraries:
+
+- With multiple matching Libraries, show each as a browsable row using its Audiobookshelf name.
+  Open the selected Library to show its Books or Podcasts.
+- With one matching Library, open its Books or Podcasts directly from the tab.
+- With no matching Libraries, return an empty list for the tab.
+
+Books and Episodes are playable rows. Podcasts are browsable rows that open their Episodes.
+
+### Downloads
+
+Show Books and Episodes as separate browsable groups under Downloads whenever the User is signed
+in, even if either group is empty. Use the existing local download checks against the current
+Catalog. A Book appears when all its audio Tracks are available locally. An Episode appears when its
+audio file is available locally. Apply the same list limits and grouping rules as the Catalog tabs.
 
 ### Children and items
 
-Implement:
+Read `onGetChildren` and `onGetItem` from local data. Support direct lookup of the root, tabs,
+Libraries, Podcasts, browse groups, Books, and Episodes so browser subscriptions and controller
+restoration work. Validate a requested Episode against its Podcast and return a library error for
+malformed, stale, or inaccessible IDs.
 
-- `onGetChildren` from the locally cached Catalog
-- `onGetItem` for direct lookup and controller restoration
-- library-change notifications when Catalog synchronization materially changes a visible node
+Android Auto and Android Automotive OS media browsers do not support pagination. Cap browse lists
+at 50 rows before applying any page requested by another Media3 browser. Keep lists flat when they
+fit. Group overflowing Books and Podcasts by title range and Episodes by publication year, newest
+year first. Put undated Episodes in an “Unknown date” group. Subdivide any group that still exceeds
+the limit, including groups with identical titles or dates, using a deterministic order and stable
+tie-breakers. Apply
+the same cap to Library rows and intermediate groups. Keep every cached entry reachable and add
+depth only where the cap requires it. Give browse groups stable, typed IDs and short labels.
 
-Do not rely on `page` and `pageSize`; Android Auto and Android Automotive OS media browsers do not
-support pagination. Bound large child lists deliberately and provide meaningful, shallow routes so
-drivers do not have to traverse the full Catalog.
+Notify browsers subscribed to an affected parent when its visible rows, order, or display metadata
+change. This includes Catalog updates, changes in tab routing when Libraries are added or removed,
+Download availability, and changes in access. Update the affected tabs, groups, and child lists so
+a browser can reload the list it currently displays.
 
-The first implementation should remain useful without a network connection. Refreshing from the
-Audiobookshelf server may happen asynchronously, but browsing must not wait indefinitely for it.
+### Local access and synchronization
+
+- Keep the root tabs available when signed out or during Forced re-login. Return empty tab contents
+  and withhold direct lookup of protected content, including Downloads, until sign-in succeeds. A
+  signed-in User can browse the cached Catalog and Downloads while offline. Phase 5 covers messages
+  that prompt the User to act on the phone.
+- Opening Books or Podcasts can start the existing `LibraryDataRepository` synchronization in the
+  background without a phone Activity. Do so when the current User and server have no successful
+  sync or the last successful sync was at least 15 minutes ago. Share the in-flight work across both
+  tabs and other callers in the same session. After a failed attempt, wait at least one minute
+  before another car-triggered attempt.
+- Return available cached rows immediately. When the first tab request has no cached rows and a
+  sync is in flight, give it up to three seconds, then return whatever is available. Notify the
+  browser if rows arrive after that deadline. A successful sync with zero rows counts as fresh.
+- Reconcile a successful empty Library response by removing its outdated cached rows. Preserve
+  the last known rows for a Library whose request fails. Reuse the existing per-Library
+  reconciliation described in ADR 0012.
+- Make session isolation a prerequisite for car-triggered refresh. Scope freshness, retry state,
+  and shared in-flight work to the current session. When Full logout or an Account switch clears
+  the Catalog, a response from the prior session must never repopulate it. Requests for the new
+  session must never join the prior session's in-flight job. This scopes ADR 0012's coalescing rule
+  to callers in the same session. If OpenID returns a different User during Forced re-login, clear
+  the previous session's Catalog and sync timestamp before making the new User's Catalog available.
+
+### Phase 3 acceptance
+
+- Verify that the root opens without an Activity or a network request, honors host tab limits, and
+  retains the existing playback custom commands.
+- Verify zero, one, and multiple Libraries independently for Books and Podcasts. Verify direct
+  lookup of browsable and playable rows and errors for stale IDs and mismatched Podcast/Episode IDs.
+- Exercise more than 50 Libraries, Books, Podcasts, and Episodes, including repeated titles and
+  undated Episodes. Verify every entry is reachable and no response exceeds 50 rows. Use the Desktop
+  Head Unit with long titles to check that Media3's response size limit does not hide rows.
+- Verify both Downloads groups are present while signed in. Cover a partially downloaded Book, a
+  completed multi-Track Book, and an Episode whose audio file is removed while its list is open.
+- Exercise a warm Catalog offline, a cold request with a slow server, a successful empty response,
+  and a failed refresh. Verify the three-second wait, 15-minute freshness window, one-minute retry
+  cooldown, deduplication, and updates to subscribed parents.
+- Switch accounts while a refresh is in flight and verify the old response cannot repopulate the
+  Catalog. Verify signed-out and Forced re-login states retain the tabs while withholding content.
 
 **Recommended files:**
 
@@ -248,7 +312,9 @@ Audiobookshelf server may happen asynchronously, but browsing must not wait inde
 ### Documentation
 
 - [Create a content hierarchy for car media apps](https://developer.android.com/training/cars/media/create-media-browser/content-hierarchy)
+- [Browse design guidelines](https://developers.google.com/cars/design/create-apps/media-apps/browsing-views#browsing_view_guidelines)
 - [Media3 legacy root hint conversion](https://github.com/androidx/media/blob/1.11.1/libraries/session/src/main/java/androidx/media3/session/LegacyConversions.java)
+- [Media3 legacy response size limit](https://github.com/androidx/media/blob/1.11.1/libraries/session/src/main/java/androidx/media3/session/MediaUtils.java#L44)
 - [Media3 library callback contract](https://developer.android.com/reference/androidx/media3/session/MediaLibraryService.MediaLibrarySession.Callback)
 
 ---

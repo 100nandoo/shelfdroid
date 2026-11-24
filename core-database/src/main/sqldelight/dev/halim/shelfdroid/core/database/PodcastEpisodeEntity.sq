@@ -32,6 +32,12 @@ SELECT *
 FROM PodcastEpisodeEntity
 WHERE libraryItemId = :libraryItemId;
 
+carBrowseEpisodes:
+SELECT id, title, publishedAt FROM PodcastEpisodeEntity WHERE libraryItemId = :libraryItemId;
+
+allIds:
+SELECT id FROM PodcastEpisodeEntity;
+
 insert:
 INSERT OR REPLACE INTO PodcastEpisodeEntity VALUES ?;
 

@@ -32,6 +32,7 @@ dependencies {
   ksp(libs.hilt.compiler)
 
   implementation(libs.kotlinx.coroutines.guava)
+  implementation(libs.sqldelight.coroutines)
 
   // Media3
   implementation(libs.androidx.media3.datasource.okhttp)
@@ -45,6 +46,7 @@ dependencies {
 
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.kotlinx.serialization)
   testImplementation(libs.mockito)
   testImplementation(libs.robolectric)
   androidTestImplementation(libs.androidx.test.core)

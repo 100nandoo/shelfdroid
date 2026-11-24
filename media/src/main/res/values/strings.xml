@@ -5,4 +5,6 @@
     <string name="car_books">Books</string>
     <string name="car_podcasts">Podcasts</string>
     <string name="car_downloads">Downloads</string>
+    <string name="car_episodes">Episodes</string>
+    <string name="car_unknown_episode_date">Unknown date</string>
 </resources>

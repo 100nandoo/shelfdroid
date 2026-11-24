@@ -32,6 +32,8 @@ class CarArtworkProviderTest {
   init {
     app.dependencies =
       object : CarArtworkProvider.Dependencies, GeneratedComponent {
+        override fun authState() = error("In-process requests do not need auth state")
+
         override fun libraryItems() = repository
 
         override fun imageLoader() = ImageLoader.Builder(app).diskCache(cache).build()
