@@ -53,6 +53,7 @@ dependencies {
   implementation(libs.coil)
 
   // Unit testing
+  testImplementation(libs.androidx.datastore)
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.androidx.test.core)

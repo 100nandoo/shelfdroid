@@ -1,5 +1,6 @@
 package dev.halim.shelfdroid.core.ui.components
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -31,8 +32,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.BitmapImage
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.R
@@ -77,8 +80,7 @@ fun CoverNoAnimation(
   shape: Shape = RoundedCornerShape(8.dp),
   showFallback: Boolean = false,
 ) {
-  var imageLoadFailed by remember { mutableStateOf(coverUrl.isBlank()) }
-  LaunchedEffect(coverUrl) { imageLoadFailed = coverUrl.isBlank() }
+  var imageLoadFailed by remember(coverUrl) { mutableStateOf(coverUrl.isBlank()) }
   if (imageLoadFailed) {
     Box(
       modifier = modifier.aspectRatio(1f).background(background, shape = shape),
@@ -92,34 +94,26 @@ fun CoverNoAnimation(
       )
     }
   } else {
+    val context = LocalContext.current
+    val request =
+      remember(context, coverUrl) {
+        ImageRequest.Builder(context).data(coverUrl).allowHardware(false).build()
+      }
+    var paddingBitmap by remember(coverUrl) { mutableStateOf<Bitmap?>(null) }
     AsyncImage(
-      modifier = modifier.clip(shape).background(background).aspectRatio(1f),
-      model = ImageRequest.Builder(LocalContext.current).data(coverUrl).build(),
+      modifier =
+        modifier
+          .clip(shape)
+          .background(background)
+          .aspectRatio(1f)
+          .coverPaddingTint(coverUrl, paddingBitmap, background),
+      model = request,
       contentDescription = stringResource(R.string.library_item_cover_image),
+      contentScale = ContentScale.Fit,
+      onSuccess = { state ->
+        paddingBitmap = (state.result.image as? BitmapImage)?.bitmap
+      },
       onError = { imageLoadFailed = true },
-    )
-  }
-}
-
-@ShelfDroidPreview
-@Composable
-private fun CoverNoAnimationFallbackPreview() {
-  PreviewWrapper(dynamicColor = false) {
-    CoverNoAnimation(modifier = Modifier.padding(16.dp), coverUrl = "", showFallback = true)
-  }
-}
-
-@ShelfDroidPreview
-@Composable
-private fun CoverWithTitlePreview() {
-  AnimatedPreviewWrapper(dynamicColor = false) {
-    CoverWithTitle(
-      cover = "",
-      coverAnimationKey = "preview-cover",
-      title = "The Fellowship of the Ring",
-      titleAnimationKey = "preview-title",
-      subtitle = "J. R. R. Tolkien",
-      subtitleAnimationKey = "preview-subtitle",
     )
   }
 }
@@ -162,5 +156,28 @@ fun CoverWithTitle(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun CoverNoAnimationFallbackPreview() {
+  PreviewWrapper(dynamicColor = false) {
+    CoverNoAnimation(modifier = Modifier.padding(16.dp), coverUrl = "", showFallback = true)
+  }
+}
+
+@ShelfDroidPreview
+@Composable
+private fun CoverWithTitlePreview() {
+  AnimatedPreviewWrapper(dynamicColor = false) {
+    CoverWithTitle(
+      cover = "",
+      coverAnimationKey = "preview-cover",
+      title = "The Fellowship of the Ring",
+      titleAnimationKey = "preview-title",
+      subtitle = "J. R. R. Tolkien",
+      subtitleAnimationKey = "preview-subtitle",
+    )
   }
 }

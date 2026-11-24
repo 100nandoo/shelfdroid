@@ -39,9 +39,9 @@ internal fun LargePlayerWidget(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         PlayerWidgetCover(
-          bitmap = content.coverBitmap,
+          artwork = content.coverArtwork,
+          resource = content.coverResource,
           size = layout.coverSize,
-          previewCoverResource = content.coverResource,
           action = openPlayerAction,
         )
         Spacer(GlanceModifier.width(8.dp))
@@ -56,9 +56,9 @@ internal fun LargePlayerWidget(
       }
     } else {
       PlayerWidgetCover(
-        bitmap = content.coverBitmap,
+        artwork = content.coverArtwork,
+        resource = content.coverResource,
         size = layout.coverSize,
-        previewCoverResource = content.coverResource,
         action = openPlayerAction,
       )
       Spacer(GlanceModifier.height(layout.contentSpacing))

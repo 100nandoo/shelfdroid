@@ -11,6 +11,7 @@ import coil3.request.allowHardware
 import coil3.request.allowRgb565
 import coil3.size.Precision
 import coil3.toBitmap
+import dev.halim.shelfdroid.core.ui.components.loadCoverPaddingSwatch
 import kotlin.math.max
 import kotlin.math.sqrt
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withContext
+
+private data class LoadedWidgetCover(
+  val url: String,
+  val artwork: WidgetCoverArtwork? = null,
+)
 
 // Share one loader and Bitmap across every SizeMode.Exact composition in this session.
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,11 +45,17 @@ internal fun playerWidgetContentFlow(
         .map { it?.cover.orEmpty() }
         .distinctUntilChanged()
         .transformLatest { cover ->
-          emit(cover to null)
-          if (cover.isNotBlank()) emit(cover to loadCover(cover))
+          emit(LoadedWidgetCover(cover))
+          if (cover.isNotBlank()) {
+            val artwork =
+              loadCover(cover)?.let { WidgetCoverArtwork(it, loadCoverPaddingSwatch(it)) }
+            emit(LoadedWidgetCover(cover, artwork))
+          }
         },
-    ) { data, (cover, bitmap) ->
-      data?.copy(coverBitmap = bitmap.takeIf { data.cover == cover })
+    ) { data, loaded ->
+      data?.let {
+        data.copy(coverArtwork = loaded.artwork.takeIf { loaded.url == data.cover })
+      }
     }
     .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 }
@@ -72,7 +84,7 @@ internal fun widgetCoverTargetSize(
 
 internal suspend fun loadPlayerWidgetCover(
   context: Context,
-  cover: String,
+  cover: Any,
   targetSize: Int,
   memoryCapBytes: Long,
 ): Bitmap? =

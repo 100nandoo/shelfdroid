@@ -2,6 +2,7 @@ package dev.halim.shelfdroid.widget.player
 
 import android.graphics.Bitmap
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.ui.components.CoverPaddingSwatch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -22,8 +23,10 @@ internal data class PlayerWidgetData(
   val nextChapterEnabled: Boolean = false,
   val coverResource: Int? = null,
   val isPreview: Boolean = false,
-  val coverBitmap: Bitmap? = null,
+  val coverArtwork: WidgetCoverArtwork? = null,
 )
+
+internal data class WidgetCoverArtwork(val bitmap: Bitmap, val paddingSwatch: CoverPaddingSwatch?)
 
 internal fun PlayerUiState.toPlayerWidgetData(): PlayerWidgetData? =
   if (id.isBlank()) {

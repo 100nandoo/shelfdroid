@@ -12,12 +12,15 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import dev.halim.shelfdroid.core.PlayerUiState
+import dev.halim.shelfdroid.core.ui.components.loadCoverPaddingSwatch
 import dev.halim.shelfdroid.widget.player.ui.PlayerWidgetContent
 import dev.halim.shelfdroid.widget.player.ui.playerWidgetColorProviders
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 
 private val defaultPlayerWidgetSize = DpSize(220.dp, 60.dp)
+private val playerWidgetPreviewSizes =
+  setOf(defaultPlayerWidgetSize, DpSize(320.dp, 128.dp), DpSize(320.dp, 180.dp))
 
 class PlayerWidget
 private constructor(
@@ -27,10 +30,7 @@ private constructor(
   constructor() : this(null, defaultPlayerWidgetSize)
 
   override val sizeMode = SizeMode.Exact
-  override val previewSizeMode =
-    SizeMode.Responsive(
-      setOf(defaultPlayerWidgetSize, DpSize(320.dp, 128.dp), DpSize(320.dp, 180.dp))
-    )
+  override val previewSizeMode = SizeMode.Responsive(playerWidgetPreviewSizes)
 
   override suspend fun provideGlance(context: Context, id: GlanceId) = coroutineScope {
     val colors = playerWidgetColorProviders(context)
@@ -43,15 +43,7 @@ private constructor(
           context.resources.displayMetrics.density,
           memoryCapBytes,
         )
-      val preview =
-        previewData.copy(
-          coverBitmap =
-            previewData.cover
-              .takeIf { it.isNotBlank() }
-              ?.let {
-                loadPlayerWidgetCover(context, it, targetSize, memoryCapBytes)
-              }
-        )
+      val preview = previewData.withPreviewCover(context, targetSize, memoryCapBytes)
       provideContent {
         val currentColors by colors.collectAsState(initialColors)
         GlanceTheme(colors = currentColors) { PlayerWidgetContent(content = preview) }
@@ -82,8 +74,16 @@ private constructor(
 
   override suspend fun providePreview(context: Context, widgetCategory: Int) {
     val colors = playerWidgetColorProviders(context).first()
+    val memoryCapBytes = widgetMemoryCapBytes(context)
+    val targetSize =
+      widgetCoverTargetSize(
+        playerWidgetPreviewSizes.toList(),
+        context.resources.displayMetrics.density,
+        memoryCapBytes,
+      )
+    val preview = playerWidgetPreviewData.withPreviewCover(context, targetSize, memoryCapBytes)
     provideContent {
-      GlanceTheme(colors = colors) { PlayerWidgetContent(content = playerWidgetPreviewData) }
+      GlanceTheme(colors = colors) { PlayerWidgetContent(content = preview) }
     }
   }
 
@@ -91,6 +91,16 @@ private constructor(
     internal fun forPinRequest(currentPlayback: PlayerUiState, previewSize: DpSize): PlayerWidget =
       PlayerWidget(currentPlayback.toPlayerWidgetData() ?: playerWidgetPreviewData, previewSize)
   }
+}
+
+private suspend fun PlayerWidgetData.withPreviewCover(
+  context: Context,
+  targetSize: Int,
+  memoryCapBytes: Long,
+): PlayerWidgetData {
+  val model = cover.takeIf { it.isNotBlank() } ?: coverResource ?: return this
+  val bitmap = loadPlayerWidgetCover(context, model, targetSize, memoryCapBytes) ?: return this
+  return copy(coverArtwork = WidgetCoverArtwork(bitmap, loadCoverPaddingSwatch(bitmap)))
 }
 
 suspend fun requestPinPlayerWidget(context: Context, currentPlayback: PlayerUiState): Boolean {

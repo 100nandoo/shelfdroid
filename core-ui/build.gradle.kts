@@ -38,6 +38,7 @@ dependencies {
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.browser)
+  implementation(libs.androidx.palette)
 
   // Arch Components
   implementation(libs.androidx.hilt.navigation.compose)

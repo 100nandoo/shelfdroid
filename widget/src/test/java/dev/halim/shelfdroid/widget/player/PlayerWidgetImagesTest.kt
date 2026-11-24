@@ -46,11 +46,11 @@ class PlayerWidgetImagesTest {
     content.value = data.copy(showPlayIcon = false)
     runCurrent()
     assertFalse(received.last()!!.showPlayIcon)
-    assertNull(received.last()!!.coverBitmap)
+    assertNull(received.last()!!.coverArtwork?.bitmap)
 
     advanceTimeBy(100)
     runCurrent()
-    assertSame(bitmap, received.last()!!.coverBitmap)
+    assertSame(bitmap, received.last()!!.coverArtwork?.bitmap)
     assertFalse(received.last()!!.showPlayIcon)
   }
 
@@ -76,7 +76,7 @@ class PlayerWidgetImagesTest {
     runCurrent()
     advanceTimeBy(100)
     runCurrent()
-    assertSame(bitmap, received.last()!!.coverBitmap)
+    assertSame(bitmap, received.last()!!.coverArtwork?.bitmap)
   }
 
   @Test
@@ -104,7 +104,7 @@ class PlayerWidgetImagesTest {
       runCurrent()
       assertEquals(1, subscriptions)
       assertEquals("first", portrait.last()!!.cover)
-      assertNull(portrait.last()!!.coverBitmap)
+      assertNull(portrait.last()!!.coverArtwork?.bitmap)
 
       advanceTimeBy(50)
       content.value = content.value!!.copy(cover = "second")
@@ -112,8 +112,8 @@ class PlayerWidgetImagesTest {
       advanceTimeBy(100)
       runCurrent()
       assertEquals(listOf("second"), completed)
-      assertSame(bitmap, portrait.last()!!.coverBitmap)
-      assertSame(bitmap, landscape.last()!!.coverBitmap)
+      assertSame(bitmap, portrait.last()!!.coverArtwork?.bitmap)
+      assertSame(bitmap, landscape.last()!!.coverArtwork?.bitmap)
       assertEquals(1, subscriptions)
     }
 
@@ -139,28 +139,28 @@ class PlayerWidgetImagesTest {
     runCurrent()
 
     assertEquals(listOf("first"), loads)
-    assertSame(firstBitmap, portrait.last()?.coverBitmap)
-    assertSame(firstBitmap, landscape.last()?.coverBitmap)
+    assertSame(firstBitmap, portrait.last()?.coverArtwork?.bitmap)
+    assertSame(firstBitmap, landscape.last()?.coverArtwork?.bitmap)
 
     content.value = content.value!!.copy(showPlayIcon = false)
     runCurrent()
     assertEquals(listOf("first"), loads)
     assertFalse(portrait.last()!!.showPlayIcon)
-    assertSame(firstBitmap, portrait.last()?.coverBitmap)
+    assertSame(firstBitmap, portrait.last()?.coverArtwork?.bitmap)
 
     content.value = content.value!!.copy(cover = "second")
     runCurrent()
     assertEquals("second", portrait.last()?.cover)
-    assertNull(portrait.last()?.coverBitmap)
+    assertNull(portrait.last()?.coverArtwork?.bitmap)
     advanceTimeBy(100)
     runCurrent()
-    assertSame(secondBitmap, portrait.last()?.coverBitmap)
-    assertSame(secondBitmap, landscape.last()?.coverBitmap)
+    assertSame(secondBitmap, portrait.last()?.coverArtwork?.bitmap)
+    assertSame(secondBitmap, landscape.last()?.coverArtwork?.bitmap)
     assertEquals(listOf("first", "second"), loads)
 
     content.value = content.value!!.copy(cover = "")
     runCurrent()
-    assertNull(portrait.last()?.coverBitmap)
+    assertNull(portrait.last()?.coverArtwork?.bitmap)
     assertEquals(listOf("first", "second"), loads)
   }
 
