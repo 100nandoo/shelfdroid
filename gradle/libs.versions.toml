@@ -29,14 +29,14 @@ hilt = "2.60.1"
 junit = "4.13.2"
 mockito = "5.24.0"
 robolectric = "4.18.1"
-kotlin = "2.3.21"
+kotlin = "2.4.21"
 ksp = "2.3.14"
 kotlinSerialization = "1.13.0"
 sqldelight = "2.4.1"
 
 # 3rd party
 accompanist = "0.37.3"
-coil = "3.4.0"
+coil = "3.6.3"
 retrofit = "3.0.0"
 retrofit-result = "1.2.0"
 socketioClient = "2.1.2"
@@ -95,6 +95,7 @@ hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hil
 junit = { module = "junit:junit", version.ref = "junit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }

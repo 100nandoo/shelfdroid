@@ -28,7 +28,6 @@ import dev.halim.shelfdroid.core.ui.Animations
 import dev.halim.shelfdroid.core.ui.LocalSharedTransitionScope
 import dev.halim.shelfdroid.core.ui.components.Cover
 import dev.halim.shelfdroid.core.ui.mySharedBound
-import dev.halim.shelfdroid.core.ui.mySharedElement
 import dev.halim.shelfdroid.core.ui.preview.AnimatedPreviewWrapper
 import dev.halim.shelfdroid.core.ui.preview.Defaults.HOME_BOOKS
 import dev.halim.shelfdroid.core.ui.preview.ShelfDroidPreview
@@ -122,7 +121,7 @@ fun ItemDetail(
       Spacer(modifier = Modifier.height(16.dp))
 
       Text(
-        modifier = Modifier.mySharedElement(Animations.titleKey(id, title)).skipToLookaheadSize(),
+        modifier = Modifier.mySharedBound(Animations.titleKey(id, title)),
         text = title,
         style = MaterialTheme.typography.headlineLarge,
         textAlign = TextAlign.Center,
@@ -140,7 +139,7 @@ fun ItemDetail(
 
       Text(
         modifier =
-          Modifier.mySharedElement(Animations.authorKey(id, authorName)).skipToLookaheadSize(),
+          Modifier.mySharedBound(Animations.authorKey(id, authorName)).skipToLookaheadSize(),
         text = authorName,
         style = MaterialTheme.typography.bodyMedium,
         color = Color.Gray,
