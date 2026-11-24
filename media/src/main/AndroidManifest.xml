@@ -7,6 +7,12 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application>
+        <provider
+            android:name=".library.CarArtworkProvider"
+            android:authorities="${applicationId}.car-artwork"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
         <service
             android:name=".service.PlaybackService"
             android:exported="true"

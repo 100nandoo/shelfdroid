@@ -8,12 +8,22 @@ plugins {
 
 android {
   namespace = "${libs.versions.namespace.get()}.media"
+
+  testOptions {
+    unitTests {
+      isIncludeAndroidResources = true
+      all {
+        it.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
+      }
+    }
+  }
 }
 
 dependencies {
   implementation(project(":core"))
   implementation(project(":core-network"))
   implementation(project(":core-data"))
+  implementation(project(":core-database"))
   implementation(project(":download"))
   implementation(project(":helper"))
 
@@ -36,6 +46,7 @@ dependencies {
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.mockito)
+  testImplementation(libs.robolectric)
   androidTestImplementation(libs.androidx.test.core)
   androidTestImplementation(libs.androidx.test.ext.junit)
   androidTestImplementation(libs.androidx.test.runner)

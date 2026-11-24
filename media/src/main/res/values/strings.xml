@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="car_catalog_root" translatable="false">ShelfDroid</string>
+    <string name="car_continue_listening">Continue listening</string>
+    <string name="car_books">Books</string>
+    <string name="car_podcasts">Podcasts</string>
+    <string name="car_downloads">Downloads</string>
+</resources>
