@@ -1,23 +1,21 @@
 package dev.halim.shelfdroid.media.mediaitem
 
 import android.annotation.SuppressLint
-import androidx.core.net.toUri
+import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.MediaMetadata.PICTURE_TYPE_FRONT_COVER
-import coil3.ImageLoader
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.PlayerTrack
 import dev.halim.shelfdroid.core.PlayerUiState
 import dev.halim.shelfdroid.core.data.screen.player.PlayerFinder
+import dev.halim.shelfdroid.media.library.MediaArtworkProvider
 import javax.inject.Inject
-import okio.FileSystem
-import okio.IOException
 
 @SuppressLint("UnsafeOptInUsageError")
 class MediaItemMapper
 @Inject
-constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoader) {
+constructor(private val finder: PlayerFinder, @ApplicationContext private val context: Context) {
 
   fun toMediaItem(uiState: PlayerUiState, state: PlayerInternalStateHolder): MediaItem {
     val isBook = state.isBook()
@@ -41,14 +39,11 @@ constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoad
         MediaItem.ClippingConfiguration.UNSET
       }
 
-    val artworkData: ByteArray? = readDiskCachedImage(uiState.cover)
-
     val mediaMetadata =
       MediaMetadata.Builder()
         .setTitle(uiState.title)
         .setArtist(uiState.author)
-        .setArtworkUri(uiState.cover.toUri())
-        .setArtworkData(artworkData, PICTURE_TYPE_FRONT_COVER)
+        .setArtworkUri(MediaArtworkProvider.uriFor(context, uiState.id, uiState.cover))
         .setMediaType(mediaType)
         .build()
     return MediaItem.Builder()
@@ -64,14 +59,11 @@ constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoad
     val currentChapter = uiState.currentChapter
     val tracks = finder.tracksFromChapter(uiState.playerTracks, currentChapter!!)
 
-    val artworkData: ByteArray? = readDiskCachedImage(uiState.cover)
-
     val mediaMetadata =
       MediaMetadata.Builder()
         .setTitle(uiState.title)
         .setArtist(uiState.author)
-        .setArtworkUri(uiState.cover.toUri())
-        .setArtworkData(artworkData, PICTURE_TYPE_FRONT_COVER)
+        .setArtworkUri(MediaArtworkProvider.uriFor(context, uiState.id, uiState.cover))
         .setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK)
         .build()
 
@@ -100,16 +92,5 @@ constructor(private val finder: PlayerFinder, private val imageLoader: ImageLoad
     }
 
     return mediaItems
-  }
-
-  private fun readDiskCachedImage(cover: String): ByteArray? {
-    val snapshot = imageLoader.diskCache?.openSnapshot(cover) ?: return null
-    return try {
-      FileSystem.SYSTEM.read(snapshot.data) { readByteArray() }
-    } catch (_: IOException) {
-      null
-    } finally {
-      snapshot.close()
-    }
   }
 }

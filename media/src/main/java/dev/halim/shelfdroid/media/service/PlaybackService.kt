@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Process
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -120,6 +121,12 @@ class PlaybackService : MediaLibraryService() {
       .get()
       .addListener(
         object : Player.Listener {
+          override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            mediaLibrarySessionCallback
+              .get()
+              .grantCurrentArtwork(mediaLibrarySession, mediaMetadata.artworkUri)
+          }
+
           override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
             if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {

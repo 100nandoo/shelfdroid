@@ -193,6 +193,16 @@ Each item must provide the applicable fields:
 Browsable items must not expose playback URIs. Playable URIs should only be resolved when playback
 is requested.
 
+Current playback also publishes a local cover URI for Books and Episodes, including playback
+started from the phone. Episodes use their Podcast's cover. Both the car and the phone media
+notification can load the cover through ShelfDroid's artwork provider.
+
+The provider uses cached cover art when available and tries a bounded fetch on a cache miss.
+A missing or unavailable cover falls back to bundled art, including when playing Downloads offline.
+Previously published artwork URIs also return bundled art if a Catalog refresh changes the cover.
+Artwork requests use the current credentials and a failed cover fetch leaves the sign-in state
+alone.
+
 **Recommended files:**
 
 - `media/src/main/java/dev/halim/shelfdroid/media/library/CarMediaId.kt` (new)
@@ -560,7 +570,9 @@ Test at least:
 10. Open and select browsable search results, when enabled.
 11. Exercise day/night mode, touch, rotary input, and driving restrictions.
 12. Verify artwork, text, and system tinting of white car icons in day and night mode on small,
-    wide, and high-resolution DHU configurations.
+    wide, and high-resolution DHU configurations. Start a Book and an Episode on the phone and
+    confirm that both Android Auto's Now Playing screen and the phone media notification show the
+    cover. Repeat offline with an uncached cover to verify the bundled fallback.
 13. Swipe ShelfDroid from phone recents while Android Auto playback is active.
 14. Measure cold launch and content loading separately. Each must take no more than 10 seconds.
     App-specific buttons must respond within 2 seconds.

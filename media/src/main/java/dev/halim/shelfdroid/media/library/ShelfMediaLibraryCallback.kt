@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.media3.common.MediaItem
@@ -85,6 +86,9 @@ constructor(
     session: MediaSession,
     controller: MediaSession.ControllerInfo,
   ): ListenableFuture<MediaSession.ConnectionResult> {
+    if (canGrantArtwork(controller)) {
+      grantArtwork(controller, session.player.mediaMetadata.artworkUri)
+    }
     val store = playerStore.get()
     val commandButtons =
       mediaNotificationButtons(
@@ -158,6 +162,9 @@ constructor(
     params: LibraryParams?,
   ): ListenableFuture<LibraryResult<MediaItem>> {
     rootLimits[browser] = rootLimit(params) ?: ROOT_TABS.size
+    if (canGrantArtwork(browser)) {
+      grantArtwork(browser, session.player.mediaMetadata.artworkUri)
+    }
     val extras =
       Bundle(params?.extras ?: Bundle.EMPTY).apply {
         putInt(
@@ -318,12 +325,21 @@ constructor(
       null
     }
 
-  private fun grantArtwork(browser: MediaSession.ControllerInfo, item: MediaItem) {
-    val uri = item.mediaMetadata.artworkUri ?: return
+  fun grantCurrentArtwork(session: MediaSession, uri: Uri?) {
+    (session.connectedControllers + rootLimits.keys).distinct().forEach { grantArtwork(it, uri) }
+  }
+
+  private fun grantArtwork(browser: MediaSession.ControllerInfo, item: MediaItem) =
+    grantArtwork(browser, item.mediaMetadata.artworkUri)
+
+  private fun canGrantArtwork(browser: MediaSession.ControllerInfo): Boolean =
+    browser.isPackageNameVerified && browser.packageName != context.packageName
+
+  private fun grantArtwork(browser: MediaSession.ControllerInfo, uri: Uri?) {
     if (
-      uri.scheme != ContentResolver.SCHEME_CONTENT ||
-        !browser.isPackageNameVerified ||
-        browser.packageName == context.packageName
+      uri?.scheme != ContentResolver.SCHEME_CONTENT ||
+        uri.authority != MediaArtworkProvider.authority(context) ||
+        !canGrantArtwork(browser)
     )
       return
     try {

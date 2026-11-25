@@ -8,7 +8,7 @@
 
     <application>
         <provider
-            android:name=".library.CarArtworkProvider"
+            android:name=".library.MediaArtworkProvider"
             android:authorities="${applicationId}.car-artwork"
             android:exported="false"
             android:grantUriPermissions="true" />

@@ -114,7 +114,7 @@ constructor(@ApplicationContext private val context: Context) {
     )
 
   private fun artworkFor(id: String, cover: String): Uri =
-    if (cover.isBlank()) fallbackArtwork else CarArtworkProvider.uriFor(context, id, cover)
+    if (cover.isBlank()) fallbackArtwork else MediaArtworkProvider.uriFor(context, id, cover)
 
   private fun item(
     id: CarMediaId,
