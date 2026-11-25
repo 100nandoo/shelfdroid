@@ -1,7 +1,7 @@
 pluginManagement {
   includeBuild("build-logic")
 
-  plugins { id("com.android.settings") version "9.5.2" apply false }
+  plugins { id("com.android.settings") version "9.5.3" apply false }
 
   repositories {
     google()
