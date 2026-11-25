@@ -71,6 +71,10 @@ class CarMediaItemMapperTest {
       metadata.extras?.getInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS),
     )
     assertEquals(.42, metadata.extras?.getDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE))
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED,
+      metadata.extras?.getLong(MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS),
+    )
   }
 
   @Test
@@ -99,7 +103,7 @@ class CarMediaItemMapperTest {
       )
     val progress = ProgressEntity("progress", podcast.id, episode.id, "", .2, 100.0, 20.0, 1, 0)
     val folder = mapper.libraryItem(podcast)
-    val item = mapper.episode(podcast, episode, progress)
+    val item = mapper.episode(podcast, episode, progress, downloaded = true)
 
     assertItem(folder, "car:podcast:podcast", MediaMetadata.MEDIA_TYPE_PODCAST, playable = false)
     assertItem(
@@ -111,9 +115,14 @@ class CarMediaItemMapperTest {
     assertEquals("An Episode", item.mediaMetadata.title)
     assertEquals("A Title", item.mediaMetadata.subtitle)
     assertEquals(folder.mediaMetadata.artworkUri, item.mediaMetadata.artworkUri)
+    assertNull(folder.mediaMetadata.extras)
     assertEquals(
       MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_FULLY_PLAYED,
       item.mediaMetadata.extras?.getInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS),
+    )
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED,
+      item.mediaMetadata.extras?.getLong(MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS),
     )
   }
 
@@ -123,6 +132,10 @@ class CarMediaItemMapperTest {
     val item = mapper.libraryItem(book)
     assertEquals("android.resource", item.mediaMetadata.artworkUri?.scheme)
     assertEquals(listOf("drawable", "ic_notification"), item.mediaMetadata.artworkUri?.pathSegments)
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_NOT_PLAYED,
+      item.mediaMetadata.extras?.getInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS),
+    )
   }
 
   private fun assertItem(item: MediaItem, id: String, mediaType: Int, playable: Boolean) {

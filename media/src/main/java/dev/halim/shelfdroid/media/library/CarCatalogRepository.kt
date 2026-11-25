@@ -3,6 +3,7 @@ package dev.halim.shelfdroid.media.library
 import android.content.Context
 import android.database.ContentObserver
 import android.provider.MediaStore
+import android.util.Log
 import androidx.media3.common.MediaItem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
@@ -16,6 +17,7 @@ import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.R
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
@@ -56,15 +58,26 @@ constructor(
               mapper.folder(CarMediaId.DownloadedEpisodes),
             )
           else -> {
-            val tree =
-              tree(if (parent is CarMediaId.Group) parent.parent else parent)
-                ?: return@withContext null
+            val treeParent = if (parent is CarMediaId.Group) parent.parent else parent
+            // A browse request can arrive while no storage observer is registered.
+            when (treeParent) {
+              CarMediaId.Books,
+              CarMediaId.DownloadedBooks,
+              CarMediaId.DownloadedEpisodes,
+              is CarMediaId.Library,
+              is CarMediaId.Podcast -> downloads.invalidateDurableDownloadSnapshots()
+              else -> Unit
+            }
+            val tree = tree(treeParent) ?: return@withContext null
             val rows =
               if (parent is CarMediaId.Group) tree.children(parent) ?: return@withContext null
               else tree.rows
+            val downloaded =
+              treeParent == CarMediaId.DownloadedBooks ||
+                treeParent == CarMediaId.DownloadedEpisodes
             rows.mapNotNull { row ->
               val id = row.id
-              if (id is CarMediaId.Group) mapper.group(id, row.title) else localItem(id)
+              if (id is CarMediaId.Group) mapper.group(id, row.title) else localItem(id, downloaded)
             }
           }
         }
@@ -75,6 +88,12 @@ constructor(
     withContext(Dispatchers.IO) {
       val token = auth.token.first()
       if (token.isBlank()) return@withContext null
+      when (id) {
+        is CarMediaId.Book,
+        is CarMediaId.Episode,
+        is CarMediaId.LegacyPlayable -> downloads.invalidateDurableDownloadSnapshots()
+        else -> Unit
+      }
       val item = localItem(id)
       item.takeIf { auth.token.first() == token }
     }
@@ -91,11 +110,9 @@ constructor(
         Unit
       }
     return when (if (parent is CarMediaId.Group) parent.parent else parent) {
-      CarMediaId.Downloads,
-      CarMediaId.DownloadedBooks,
-      CarMediaId.DownloadedEpisodes ->
+      CarMediaId.Podcasts -> catalogChanges.conflate()
+      else ->
         merge(catalogChanges, downloads.durableDownloads.map { Unit }, storageChanges()).conflate()
-      else -> catalogChanges.conflate()
     }
   }
 
@@ -122,7 +139,7 @@ constructor(
       else -> null
     }
 
-  private suspend fun localItem(id: CarMediaId): MediaItem? =
+  private suspend fun localItem(id: CarMediaId, knownDownloaded: Boolean = false): MediaItem? =
     when (id) {
       CarMediaId.ContinueListening -> null
       is CarMediaId.Folder -> mapper.folder(id)
@@ -130,7 +147,7 @@ constructor(
       is CarMediaId.Group -> tree(id.parent)?.item(id)?.let { mapper.group(id, it.title) }
       is CarMediaId.Book ->
         catalogItem(id.bookId, isBook = true)?.let {
-          mapper.libraryItem(it, progress.bookById(it.id))
+          mapper.libraryItem(it, progress.bookById(it.id), knownDownloaded || isBookDownloaded(it))
         }
       is CarMediaId.Podcast ->
         catalogItem(id.podcastId, isBook = false)?.let { mapper.libraryItem(it) }
@@ -138,7 +155,18 @@ constructor(
         val parent = catalogItem(id.podcastId, isBook = false)
         val episode = podcastEpisodes.findCachedEpisode(id.episodeId)
         if (parent != null && episode?.libraryItemId == parent.id) {
-          mapper.episode(parent, episode, progress.episodeById(id.episodeId))
+          mapper.episode(
+            parent,
+            episode,
+            progress.episodeById(id.episodeId),
+            knownDownloaded ||
+              downloadStatusOrFalse {
+                downloads.isPodcastEpisodeDownloaded(
+                  parent.title,
+                  podcastEpisodes.audioFilename(episode),
+                )
+              },
+          )
         } else null
       }
       is CarMediaId.LegacyPlayable -> legacyItem(id)
@@ -218,9 +246,22 @@ constructor(
   private suspend fun downloadedBooks(): List<CarBrowseRow> =
     rowsByLibraryType(1L).filter { row ->
       val id = (row.id as CarMediaId.Book).bookId
-      val book = libraryItems.bookById(id) ?: return@filter false
       val record = catalogItem(id, isBook = true) ?: return@filter false
-      downloads.isBookDownloaded(record.title, record.author, book.audioTracks)
+      isBookDownloaded(record)
+    }
+
+  private suspend fun isBookDownloaded(book: LibraryItemEntity): Boolean = downloadStatusOrFalse {
+    val tracks = libraryItems.bookById(book.id)?.audioTracks ?: return@downloadStatusOrFalse false
+    downloads.isBookDownloaded(book.title, book.author, tracks)
+  }
+
+  private suspend fun downloadStatusOrFalse(check: suspend () -> Boolean): Boolean =
+    try {
+      check()
+    } catch (error: Exception) {
+      if (error is CancellationException) throw error
+      Log.w("CarCatalogRepository", "Unable to check local download status", error)
+      false
     }
 
   private suspend fun downloadedEpisodes(): List<CarBrowseRow> =

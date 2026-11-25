@@ -158,7 +158,25 @@ constructor(
     params: LibraryParams?,
   ): ListenableFuture<LibraryResult<MediaItem>> {
     rootLimits[browser] = rootLimit(params) ?: ROOT_TABS.size
-    return Futures.immediateFuture(LibraryResult.ofItem(mapper.folder(CarMediaId.Root), params))
+    val extras =
+      Bundle(params?.extras ?: Bundle.EMPTY).apply {
+        putInt(
+          MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
+          MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+        )
+        putInt(
+          MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE,
+          MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+        )
+      }
+    val rootParams =
+      LibraryParams.Builder()
+        .setExtras(extras)
+        .setRecent(params?.isRecent == true)
+        .setOffline(params?.isOffline == true)
+        .setSuggested(params?.isSuggested == true)
+        .build()
+    return Futures.immediateFuture(LibraryResult.ofItem(mapper.folder(CarMediaId.Root), rootParams))
   }
 
   override fun onGetChildren(
@@ -323,7 +341,9 @@ constructor(
         oldExtras?.getInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS) ==
           newExtras?.getInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS) &&
           oldExtras?.getDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE) ==
-            newExtras?.getDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE)
+            newExtras?.getDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE) &&
+          oldExtras?.getLong(MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS) ==
+            newExtras?.getLong(MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS)
       }
 
   private fun rootLimit(params: LibraryParams?): Int? =

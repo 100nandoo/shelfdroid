@@ -104,6 +104,13 @@ constructor(
     return tracks.all { track -> track.metadata.filename in localTrackUris }
   }
 
+  suspend fun isPodcastEpisodeDownloaded(
+    podcastTitle: String,
+    filename: String,
+  ): Boolean {
+    return podcastDurableDownloadCatalog.findEpisodeUri(podcastTitle, filename) != null
+  }
+
   suspend fun podcastDownloadedEpisodeIds(
     podcastTitle: String,
     episodes: List<PodcastEpisode>,
@@ -320,6 +327,11 @@ constructor(
     refreshDurableDownloads()
   }
 
+  fun invalidateDurableDownloadSnapshots() {
+    bookDurableDownloadCatalog.invalidateSnapshot()
+    podcastDurableDownloadCatalog.invalidateSnapshot()
+  }
+
   fun refreshDurableDownloads() {
     bookDurableDownloadCatalog.refresh()
     podcastDurableDownloadCatalog.refresh()
@@ -402,13 +414,6 @@ constructor(
     return bookDurableDownloadCatalog.trackUris(title, author, filenames).mapValues { (_, uri) ->
       uri.toString()
     }
-  }
-
-  private suspend fun isPodcastEpisodeDownloaded(
-    podcastTitle: String,
-    filename: String,
-  ): Boolean {
-    return podcastDurableDownloadCatalog.findEpisodeUri(podcastTitle, filename) != null
   }
 
   private fun trackDownloadState(download: Download?, durableUriExists: Boolean): DownloadState {

@@ -76,6 +76,11 @@ constructor(
     bumpChanges()
   }
 
+  @Synchronized
+  internal fun invalidateSnapshot() {
+    cachedSnapshot = null
+  }
+
   private fun trackUrisInternal(
     bookTitle: String,
     author: String?,
@@ -196,7 +201,7 @@ constructor(
   }
 
   private fun bumpChanges() {
-    cachedSnapshot = null
+    invalidateSnapshot()
     _changes.value += 1
   }
 

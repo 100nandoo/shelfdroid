@@ -5,6 +5,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import dev.halim.core.network.response.libraryitem.Enclosure
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
+import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.database.CarBrowseEpisodes
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.PodcastEpisodeEntity
@@ -31,6 +32,9 @@ constructor(
     queries.carBrowseEpisodes(podcastId).executeAsList()
 
   fun observeEpisodeChanges(): Flow<Unit> = queries.allIds().asFlow().map { Unit }
+
+  fun audioFilename(episode: PodcastEpisodeEntity): String =
+    json.decodeFromString<AudioTrack>(episode.audioTrack).metadata.filename
 
   fun byId(id: String): PodcastEpisode? = findCachedEpisode(id)?.let(::toPodcastEpisode)
 

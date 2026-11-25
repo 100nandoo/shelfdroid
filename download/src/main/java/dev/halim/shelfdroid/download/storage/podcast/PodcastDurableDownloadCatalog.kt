@@ -44,6 +44,11 @@ constructor(
     bumpChanges()
   }
 
+  @Synchronized
+  internal fun invalidateSnapshot() {
+    cachedSnapshot = null
+  }
+
   suspend fun findEpisodeUri(podcastTitle: String, filename: String): Uri? {
     return withContext(ioDispatcher) { findEpisodeUriInternal(podcastTitle, filename) }
   }
@@ -137,7 +142,7 @@ constructor(
   }
 
   private fun bumpChanges() {
-    cachedSnapshot = null
+    invalidateSnapshot()
     _changes.value += 1
   }
 

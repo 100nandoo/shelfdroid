@@ -1,7 +1,7 @@
 # Android Auto Support
 
 Lifecycle: proposed
-Updated: 2026-11-24
+Updated: 2026-11-25
 
 ## Overview
 
@@ -276,7 +276,7 @@ a browser can reload the list it currently displays.
 
 - Keep the root tabs available when signed out or during Forced re-login. Return empty tab contents
   and withhold direct lookup of protected content, including Downloads, until sign-in succeeds. A
-  signed-in User can browse the cached Catalog and Downloads while offline. Phase 5 covers messages
+  signed-in User can browse the cached Catalog and Downloads while offline. Phase 6 covers messages
   that prompt the User to act on the phone.
 - Opening Books or Podcasts can start the existing `LibraryDataRepository` synchronization in the
   background without a phone Activity. Do so when the current User and server have no successful
@@ -331,7 +331,54 @@ a browser can reload the list it currently displays.
 
 ---
 
-## Phase 4 — Resolve Car Playback Requests
+## Phase 4 — Android Auto Browse Content Styles
+
+Apply Android Auto's content-style hints to the Catalog from Phase 3. Set separate root defaults
+for browsable and playable items in `LibraryParams.extras` on the `LibraryResult` returned by
+`onGetLibraryRoot`. Use Media3's `MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE` and
+`MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE`. Set both defaults to list so long Book,
+Podcast, and Episode titles have room on the head unit. Category list styles are available for
+browsable folders with tintable vector icons.
+
+When a parent needs a different presentation, put the browsable or playable override in its
+`MediaMetadata.extras`. A parent override applies to its immediate children. Use a single-item
+override only when a row needs its own style, since it takes precedence over the parent and root
+hints. Keep the media IDs, order, and browse limits from Phase 3.
+
+Keep the title-range and publication-year browse folders from Phase 3. Defer inline group
+headings until a browse screen needs them.
+
+### Saved Progress and Download indicators
+
+Add the saved indicators to `MediaMetadata.extras` for each Book and Episode, including entries
+under Downloads. Media3 forwards these extras to the legacy browser item description.
+
+- Map saved Progress to the host's unplayed, partially played, and fully played states. Include
+  the saved completion fraction as a `Double` between `0.0` and `1.0` for partially played items.
+- Derive Download status from the Phase 3 local availability checks. Mark a Book as downloaded
+  once all its audio Tracks are available and an Episode once its audio file is available.
+- Defer live progress-bar updates until after Phase 5 wires up playback. Live updates require the
+  same media ID in the browse item, now-playing metadata, and playback state.
+
+### Phase 4 acceptance
+
+- Verify that the root defaults and any item overrides reach Android Auto through Media3's legacy
+  browser bridge. Cover Books, Podcasts, Episodes, and both Downloads groups.
+- Check lists in the Android Auto Desktop Head Unit with long titles, missing cover artwork, and
+  folders with small icons. Check day and night modes and narrow and wide displays.
+- Verify the saved indicators for unplayed, partially played, and finished content, a fully
+  downloaded Book, a Book with missing Tracks, and an Episode whose audio file was removed.
+- Verify that the title-range and publication-year folders still open and their children remain
+  reachable.
+
+### Documentation
+
+- [Apply content styles](https://developer.android.com/training/cars/media/create-media-browser/content-styles)
+- [Media3 1.11.1 content-style constants](https://github.com/androidx/media/blob/1.11.1/libraries/session/src/main/java/androidx/media3/session/MediaConstants.java#L142-L364)
+
+---
+
+## Phase 5 — Resolve Car Playback Requests
 
 Selecting an Android Auto browse result generally sends ShelfDroid a media ID without a playable
 URI. Media3 also conveys some voice playback requests through
@@ -378,7 +425,7 @@ Preserve existing behavior for:
 
 ---
 
-## Phase 5 — Service Lifecycle and Error States
+## Phase 6 — Service Lifecycle and Error States
 
 Android Auto can instantiate `PlaybackService` before ShelfDroid's Activity has ever opened. Test
 and support all of these states explicitly:
@@ -421,7 +468,7 @@ the media-notification controller separately when necessary.
 
 ---
 
-## Phase 6 — Voice Playback, Browsable Search, and Playback Resumption
+## Phase 7 — Voice Playback, Browsable Search, and Playback Resumption
 
 ### Voice playback
 
@@ -472,7 +519,7 @@ both parts together.
 
 ---
 
-## Phase 7 — Verification
+## Phase 8 — Verification
 
 ### Automated tests
 
@@ -528,7 +575,7 @@ Run the existing relevant Gradle test suites and add the DHU result to the manua
 
 ---
 
-## Phase 8 — Distribution
+## Phase 9 — Distribution
 
 Before release:
 
@@ -559,11 +606,12 @@ Use Conventional Commit titles in Commitizen format.
 1. `feat(auto): declare Android Auto media capability`
 2. `feat(auto): add typed car media identifiers`
 3. `feat(auto): expose the cached catalog to media browsers`
-4. `feat(auto): resolve browser selections into playback`
-5. `fix(media): support playback without an active phone task`
-6. `feat(auto): support voice-initiated playback`
-7. `feat(auto): add browsable search and playback resumption`
-8. `test(auto): cover media browsing and playback flows`
+4. `feat(auto): apply Android Auto browse content styles`
+5. `feat(auto): resolve browser selections into playback`
+6. `fix(media): support playback without an active phone task`
+7. `feat(auto): support voice-initiated playback`
+8. `feat(auto): add browsable search and playback resumption`
+9. `test(auto): cover media browsing and playback flows`
 
 Each commit should build and keep existing phone playback tests passing.
 

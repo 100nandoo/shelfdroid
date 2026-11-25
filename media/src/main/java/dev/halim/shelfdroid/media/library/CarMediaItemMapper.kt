@@ -76,7 +76,11 @@ constructor(@ApplicationContext private val context: Context) {
       playable = false,
     )
 
-  fun libraryItem(record: LibraryItemEntity, progress: ProgressEntity? = null): MediaItem {
+  fun libraryItem(
+    record: LibraryItemEntity,
+    progress: ProgressEntity? = null,
+    downloaded: Boolean = false,
+  ): MediaItem {
     val isBook = record.isBook == 1L
     return item(
       id = if (isBook) CarMediaId.Book(record.id) else CarMediaId.Podcast(record.id),
@@ -87,6 +91,7 @@ constructor(@ApplicationContext private val context: Context) {
       artist = record.author,
       artwork = artworkFor(record.id, record.cover),
       progress = progress,
+      downloaded = downloaded,
     )
   }
 
@@ -94,6 +99,7 @@ constructor(@ApplicationContext private val context: Context) {
     podcast: LibraryItemEntity,
     episode: PodcastEpisodeEntity,
     progress: ProgressEntity?,
+    downloaded: Boolean = false,
   ): MediaItem =
     item(
       id = CarMediaId.Episode(podcast.id, episode.id),
@@ -104,6 +110,7 @@ constructor(@ApplicationContext private val context: Context) {
       subtitle = podcast.title,
       artwork = artworkFor(podcast.id, podcast.cover),
       progress = progress,
+      downloaded = downloaded,
     )
 
   private fun artworkFor(id: String, cover: String): Uri =
@@ -118,6 +125,7 @@ constructor(@ApplicationContext private val context: Context) {
     subtitle: String? = null,
     artwork: Uri = fallbackArtwork,
     progress: ProgressEntity? = null,
+    downloaded: Boolean = false,
   ): MediaItem {
     val metadata =
       MediaMetadata.Builder()
@@ -128,12 +136,12 @@ constructor(@ApplicationContext private val context: Context) {
         .setIsBrowsable(!playable)
         .setIsPlayable(playable)
         .setArtworkUri(artwork)
-        .setExtras(if (playable) completionExtras(progress) else null)
+        .setExtras(if (playable) listeningExtras(progress, downloaded) else null)
         .build()
     return MediaItem.Builder().setMediaId(id.value).setMediaMetadata(metadata).build()
   }
 
-  private fun completionExtras(progress: ProgressEntity?): Bundle {
+  private fun listeningExtras(progress: ProgressEntity?, downloaded: Boolean): Bundle {
     val fraction = progress?.progress?.takeIf(Double::isFinite)?.coerceIn(0.0, 1.0) ?: 0.0
     val status =
       when {
@@ -143,6 +151,11 @@ constructor(@ApplicationContext private val context: Context) {
         else -> MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_NOT_PLAYED
       }
     return Bundle().apply {
+      putLong(
+        MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS,
+        if (downloaded) MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED
+        else MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED,
+      )
       putInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS, status)
       if (status == MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_PARTIALLY_PLAYED) {
         putDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE, fraction)

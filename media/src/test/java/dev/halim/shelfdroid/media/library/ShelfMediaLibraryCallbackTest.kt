@@ -1,20 +1,31 @@
 package dev.halim.shelfdroid.media.library
 
+import android.annotation.SuppressLint
+import android.content.ContentProvider
+import android.content.ContentValues
+import android.content.Context
+import android.database.MatrixCursor
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.os.Parcel
-import android.os.Parcelable
+import android.provider.MediaStore
 import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaConstants
 import androidx.media3.session.MediaLibraryService.LibraryParams
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
+import androidx.media3.session.legacy.MediaBrowserCompat
 import dagger.Lazy
 import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.FileMetadata
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.core.network.response.play.AudioTrack
+import dev.halim.shelfdroid.core.PlayPauseControlStateHolder
+import dev.halim.shelfdroid.core.PlayerInternalStateHolder
 import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
 import dev.halim.shelfdroid.core.data.di.DatabaseModule
 import dev.halim.shelfdroid.core.data.library.BookLocalDataSource
@@ -26,7 +37,12 @@ import dev.halim.shelfdroid.core.data.library.PodcastLocalDataSource
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
+import dev.halim.shelfdroid.core.database.ProgressEntity
+import dev.halim.shelfdroid.download.DownloadMapper
 import dev.halim.shelfdroid.download.DownloadRepo
+import dev.halim.shelfdroid.download.storage.ReadableStoragePolicy
+import dev.halim.shelfdroid.download.storage.book.BookDurableDownloadCatalog
+import dev.halim.shelfdroid.download.storage.podcast.PodcastDurableDownloadCatalog
 import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.media.playback.PlayerStore
 import java.time.Instant
@@ -51,6 +67,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyList
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.timeout
@@ -60,6 +78,7 @@ import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowContentResolver
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
@@ -87,10 +106,26 @@ class ShelfMediaLibraryCallbackTest {
         )
         .build()
 
+    val root = callback.onGetLibraryRoot(session, browser, params).get()
+    assertEquals("car:root", root.value?.mediaId)
+    val rootExtras =
+      Class.forName("androidx.media3.session.LegacyConversions")
+        .getDeclaredMethod("convertToRootHints", LibraryParams::class.java)
+        .apply { isAccessible = true }
+        .invoke(null, root.params) as Bundle
     assertEquals(
-      "car:root",
-      callback.onGetLibraryRoot(session, browser, params).get().value?.mediaId,
+      MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+      rootExtras.getInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE),
     )
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+      rootExtras.getInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE),
+    )
+    assertEquals(
+      2,
+      rootExtras.getInt("androidx.media.MediaBrowserCompat.Extras.KEY_ROOT_CHILDREN_LIMIT"),
+    )
+    assertFalse(params.extras.containsKey(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE))
     val tabs =
       callback.onGetChildren(session, browser, "car:root", 0, Int.MAX_VALUE, null).get().value
     assertEquals(listOf("car:books", "car:podcasts"), tabs?.map { it.mediaId })
@@ -253,15 +288,26 @@ class ShelfMediaLibraryCallbackTest {
   }
 
   @Test
+  @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
   fun fiftyLongEpisodeRowsFitTheLegacyBrowserParcel() = withCatalog {
     val longText = "Long metadata for a car browser ".repeat(40)
     library("podcasts", isBook = false)
     item("podcasts", "podcast", longText, isBook = false, author = longText, cover = "cover")
-    episodes.replace(
-      "podcast",
+    val cached =
       (1..50).map {
-        PodcastEpisode(libraryItemId = "podcast", id = "episode-$it", title = longText)
-      },
+        PodcastEpisode(
+          libraryItemId = "podcast",
+          id = "episode-$it",
+          title = longText,
+          audioTrack = AudioTrack(metadata = FileMetadata(filename = "episode-$it.mp3")),
+        )
+      }
+    episodes.replace("podcast", cached)
+    runBlocking {
+      `when`(downloads.isPodcastEpisodeDownloaded(longText, "episode-1.mp3")).thenReturn(true)
+    }
+    db.progressEntityQueries.insert(
+      ProgressEntity("progress", "podcast", "episode-1", "", .42, 100.0, 42.0, 0, 0)
     )
 
     val rows = children("car:podcast:podcast")
@@ -277,7 +323,25 @@ class ShelfMediaLibraryCallbackTest {
         .apply { isAccessible = true }
     val parcel = Parcel.obtain()
     try {
-      rows.forEach { parcel.writeParcelable(convert.invoke(null, it, null) as Parcelable, 0) }
+      val legacyRows = rows.map { convert.invoke(null, it, null) as MediaBrowserCompat.MediaItem }
+      val legacyExtras =
+        requireNotNull(
+          legacyRows.single { it.mediaId == "car:episode:podcast:episode-1" }.description.extras
+        )
+      assertEquals(
+        MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_PARTIALLY_PLAYED,
+        legacyExtras.getInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS),
+      )
+      assertEquals(
+        .42,
+        legacyExtras.getDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE),
+        0.0,
+      )
+      assertEquals(
+        MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED,
+        legacyExtras.getLong(MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS),
+      )
+      legacyRows.forEach { parcel.writeParcelable(it, 0) }
       assertTrue("Legacy payload was ${parcel.dataSize()} bytes", parcel.dataSize() < 256 * 1024)
     } finally {
       parcel.recycle()
@@ -398,14 +462,31 @@ class ShelfMediaLibraryCallbackTest {
       `when`(downloads.isBookDownloaded("Partial", "", tracks)).thenReturn(false)
     }
     assertEquals(listOf("car:book:full"), children("car:downloaded-books").map { it.mediaId })
+    val bookStatuses = children("car:books").associate { it.mediaId to it.downloadStatus() }
+    assertEquals(MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED, bookStatuses["car:book:full"])
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED,
+      bookStatuses["car:book:partial"],
+    )
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED,
+      children("car:downloaded-books").single().downloadStatus(),
+    )
 
     library("podcasts", isBook = false)
     item("podcasts", "podcast", "Podcast", isBook = false)
-    val saved = PodcastEpisode(libraryItemId = "podcast", id = "saved", title = "Saved")
+    val saved =
+      PodcastEpisode(
+        libraryItemId = "podcast",
+        id = "saved",
+        title = "Saved",
+        audioTrack = AudioTrack(metadata = FileMetadata(filename = "saved.mp3")),
+      )
     episodes.replace("podcast", listOf(saved))
     runBlocking {
       `when`(downloads.podcastDownloadedEpisodeIds("Podcast", listOf(saved)))
         .thenReturn(setOf("saved"))
+      `when`(downloads.isPodcastEpisodeDownloaded("Podcast", "saved.mp3")).thenReturn(true)
     }
     assertEquals(
       LibraryResult.RESULT_SUCCESS,
@@ -418,14 +499,37 @@ class ShelfMediaLibraryCallbackTest {
       listOf("car:episode:podcast:saved"),
       children("car:downloaded-episodes").map { it.mediaId },
     )
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED,
+      getItem("car:episode:podcast:saved").value?.downloadStatus(),
+    )
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED,
+      children("car:downloaded-episodes").single().downloadStatus(),
+    )
+    `when`(browser.controllerVersion)
+      .thenReturn(MediaSession.ControllerInfo.LEGACY_CONTROLLER_VERSION)
+    assertEquals(
+      LibraryResult.RESULT_SUCCESS,
+      callback
+        .onSubscribe(session, browser, "car:podcast:podcast", null)
+        .get(5, TimeUnit.SECONDS)
+        .resultCode,
+    )
 
     runBlocking {
       `when`(downloads.podcastDownloadedEpisodeIds("Podcast", listOf(saved))).thenReturn(emptySet())
+      `when`(downloads.isPodcastEpisodeDownloaded("Podcast", "saved.mp3")).thenReturn(false)
     }
     downloadChanges.value++
     verify(session, timeout(5_000))
       .notifyChildrenChanged(browser, "car:downloaded-episodes", 0, null)
+    verify(session, timeout(5_000)).notifyChildrenChanged(browser, "car:podcast:podcast", 1, null)
     assertTrue(children("car:downloaded-episodes").isEmpty())
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED,
+      children("car:podcast:podcast").single().downloadStatus(),
+    )
   }
 
   @Test
@@ -447,6 +551,128 @@ class ShelfMediaLibraryCallbackTest {
     assertEquals("car:books", getItem("car:books").value?.mediaId)
   }
 
+  @Test
+  fun browseRowsAndDirectLookupSurviveDownloadStatusFailures() = withCatalog {
+    library("books", isBook = true)
+    item("books", "book", "Book", isBook = true)
+    `when`(books.byId("book")).thenThrow(IllegalStateException("Unable to read audio details"))
+    val notDownloaded = MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED
+    assertEquals(notDownloaded, children("car:books").single().downloadStatus())
+    assertEquals(notDownloaded, getItem("car:book:book").value?.downloadStatus())
+
+    library("podcasts", isBook = false)
+    item("podcasts", "podcast", "Podcast", isBook = false)
+    val cached =
+      listOf("unavailable", "saved").map { id ->
+        PodcastEpisode(
+          libraryItemId = "podcast",
+          id = id,
+          title = id,
+          audioTrack = AudioTrack(metadata = FileMetadata(filename = "$id.mp3")),
+        )
+      }
+    episodes.replace("podcast", cached)
+    runBlocking {
+      `when`(downloads.isPodcastEpisodeDownloaded("Podcast", "unavailable.mp3"))
+        .thenThrow(SecurityException("Unable to read MediaStore"))
+      `when`(downloads.isPodcastEpisodeDownloaded("Podcast", "saved.mp3")).thenReturn(true)
+    }
+
+    val statuses = children("car:podcast:podcast").associate { it.mediaId to it.downloadStatus() }
+    assertEquals(notDownloaded, statuses["car:episode:podcast:unavailable"])
+    assertEquals(
+      MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED,
+      statuses["car:episode:podcast:saved"],
+    )
+    assertEquals(notDownloaded, getItem("car:episode:podcast:unavailable").value?.downloadStatus())
+  }
+
+  @Test
+  fun directLookupRefreshesMediaStoreAfterAnUnsubscribedRemoval() {
+    val context = RuntimeEnvironment.getApplication()
+    val storagePolicy = ReadableStoragePolicy()
+    val audioUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+    val provider = EpisodeMediaProvider(storagePolicy.podcastRelativePath("Podcast"))
+    ShadowContentResolver.registerProviderInternal(audioUri.authority, provider)
+
+    withCatalog(downloadRepoForMediaStore(context, storagePolicy)) {
+      library("podcasts", isBook = false)
+      item("podcasts", "podcast", "Podcast", isBook = false)
+      episodes.replace(
+        "podcast",
+        listOf(
+          PodcastEpisode(
+            libraryItemId = "podcast",
+            id = "saved",
+            title = "Saved",
+            audioTrack = AudioTrack(metadata = FileMetadata(filename = "saved.mp3")),
+          )
+        ),
+      )
+      val episodeId = "car:episode:podcast:saved"
+      assertEquals(
+        MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED,
+        getItem(episodeId).value?.downloadStatus(),
+      )
+      assertEquals(1, context.contentResolver.delete(audioUri, null, null))
+      assertEquals(
+        MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED,
+        getItem(episodeId).value?.downloadStatus(),
+      )
+      assertTrue(children("car:downloaded-episodes").isEmpty())
+    }
+  }
+
+  @SuppressLint("UnsafeOptInUsageError")
+  private fun downloadRepoForMediaStore(context: Context, storagePolicy: ReadableStoragePolicy) =
+    DownloadRepo(
+      mock(DownloadManager::class.java),
+      mock(Helper::class.java),
+      mock(DownloadMapper::class.java),
+      BookDurableDownloadCatalog(context, storagePolicy, Dispatchers.IO),
+      PodcastDurableDownloadCatalog(context, storagePolicy, Dispatchers.IO),
+      mock(PlayPauseControlStateHolder::class.java),
+      mock(PlayerInternalStateHolder::class.java),
+      context,
+    )
+
+  private class EpisodeMediaProvider(private val relativePath: String) : ContentProvider() {
+    private var hasEpisode = true
+
+    override fun onCreate() = true
+
+    override fun query(
+      uri: Uri,
+      projection: Array<out String>?,
+      selection: String?,
+      selectionArgs: Array<out String>?,
+      sortOrder: String?,
+    ): MatrixCursor =
+      MatrixCursor(requireNotNull(projection)).apply {
+        if (hasEpisode) addRow(arrayOf<Any>(1L, relativePath, "saved.mp3"))
+      }
+
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {
+      if (!hasEpisode) return 0
+      hasEpisode = false
+      return 1
+    }
+
+    override fun getType(uri: Uri): String? = null
+
+    override fun insert(uri: Uri, values: ContentValues?): Uri? = null
+
+    override fun update(
+      uri: Uri,
+      values: ContentValues?,
+      selection: String?,
+      selectionArgs: Array<out String>?,
+    ) = 0
+  }
+
+  private fun MediaItem.downloadStatus(): Long =
+    requireNotNull(mediaMetadata.extras).getLong(MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS, -1)
+
   private class BrowseCallbackFixture(scope: CoroutineScope) {
     private val context = RuntimeEnvironment.getApplication()
     val repository = mock(CarCatalogRepository::class.java)
@@ -465,17 +691,24 @@ class ShelfMediaLibraryCallbackTest {
     fun children(id: String) = callback.onGetChildren(session, browser, id, 0, Int.MAX_VALUE, null)
   }
 
-  private fun withCatalog(test: Fixture.() -> Unit) {
-    Fixture().use(test)
+  private fun withCatalog(downloadRepo: DownloadRepo? = null, test: Fixture.() -> Unit) {
+    Fixture(downloadRepo).use(test)
   }
 
-  private class Fixture : AutoCloseable {
+  private class Fixture(downloadRepo: DownloadRepo?) : AutoCloseable {
     val context = RuntimeEnvironment.getApplication()
     private val driver = DatabaseModule.provideSqlDriver(context)
     val db = DatabaseModule.provideSqlDelightAppDatabase(driver, DatabaseModule.provideMapAdapter())
     val episodes = PodcastEpisodeRepository(db, Json)
-    val downloads = mock(DownloadRepo::class.java)
     val downloadChanges = MutableStateFlow(0)
+    val downloads =
+      downloadRepo
+        ?: mock(DownloadRepo::class.java).also {
+          `when`(it.durableDownloads).thenReturn(downloadChanges)
+          runBlocking {
+            `when`(it.podcastDownloadedEpisodeIds(anyString(), anyList())).thenReturn(emptySet())
+          }
+        }
     val books = mock(BookLocalDataSource::class.java)
     val token = MutableStateFlow("test-user")
     val session = mock(MediaLibrarySession::class.java)
@@ -507,7 +740,7 @@ class ShelfMediaLibraryCallbackTest {
         ),
         episodes,
         progress,
-        downloads.also { `when`(it.durableDownloads).thenReturn(downloadChanges) },
+        downloads,
         mapper,
       )
     val callback =
