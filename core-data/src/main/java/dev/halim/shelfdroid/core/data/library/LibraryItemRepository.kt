@@ -215,10 +215,10 @@ constructor(
     return queries.byId(id).asFlow().mapToOneOrNull(Dispatchers.IO)
   }
 
-  fun listBrowseItems(libraryId: String): List<CarBrowseItems> =
+  fun listBrowsableLibraryItems(libraryId: String): List<CarBrowseItems> =
     queries.carBrowseItems(libraryId).executeAsList()
 
-  fun observeItemChanges(): Flow<Unit> = queries.all().asFlow().map { Unit }
+  fun observeLibraryItemChanges(): Flow<Unit> = queries.all().asFlow().map { Unit }
 
   fun bookById(id: String): Book? {
     return bookLocalDataSource.byId(id)

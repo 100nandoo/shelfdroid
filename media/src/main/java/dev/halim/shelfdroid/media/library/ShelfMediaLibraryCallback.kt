@@ -38,6 +38,7 @@ import kotlin.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -55,7 +56,7 @@ constructor(
   private lateinit var scope: CoroutineScope
   private val rootLimits = mutableMapOf<MediaSession.ControllerInfo, Int>()
   private val subscriptions = mutableMapOf<Subscription, BrowseSubscription>()
-  private val coldWaits = mutableMapOf<Subscription, Job>()
+  private val lastColdRefreshByTab = mutableMapOf<Subscription, Job>()
 
   fun attach(serviceScope: CoroutineScope) {
     scope = serviceScope
@@ -181,15 +182,17 @@ constructor(
       var rows = repository.listChildren(parent)
       if (parent == CarMediaId.Books || parent == CarMediaId.Podcasts) {
         if (rows.isNullOrEmpty()) {
-          var waited = false
-          withTimeoutOrNull(COLD_WAIT_MS) {
-            val refresh = startRefresh(repository) ?: return@withTimeoutOrNull
-            if (coldWaits.put(Subscription(browser, parentId), refresh) !== refresh) {
-              waited = true
+          val scheduledRefresh = scope.async { startRefresh(repository) }
+          val shouldReloadRows =
+            withTimeoutOrNull(COLD_WAIT_MS) {
+              // A shared refresh may have finished since the first cache read.
+              val refresh = scheduledRefresh.await() ?: return@withTimeoutOrNull true
+              val tab = Subscription(browser, parentId)
+              if (lastColdRefreshByTab.put(tab, refresh) === refresh) return@withTimeoutOrNull false
               refresh.join()
-            }
-          }
-          if (waited) rows = repository.listChildren(parent)
+              true
+            } ?: true
+          if (shouldReloadRows) rows = repository.listChildren(parent)
         } else {
           scope.launch { startRefresh(repository) }
         }
@@ -280,7 +283,7 @@ constructor(
 
   override fun onDisconnected(session: MediaSession, controller: MediaSession.ControllerInfo) {
     rootLimits.remove(controller)
-    coldWaits.keys.removeAll { it.browser == controller }
+    lastColdRefreshByTab.keys.removeAll { it.browser == controller }
     subscriptions.keys
       .filter { it.browser == controller }
       .forEach {

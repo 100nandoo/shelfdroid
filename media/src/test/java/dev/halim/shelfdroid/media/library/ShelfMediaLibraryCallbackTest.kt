@@ -31,12 +31,15 @@ import dev.halim.shelfdroid.helper.Helper
 import dev.halim.shelfdroid.media.playback.PlayerStore
 import java.time.Instant
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.Continuation
 import kotlin.coroutines.intrinsics.startCoroutineUninterceptedOrReturn
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceTimeBy
@@ -99,28 +102,22 @@ class ShelfMediaLibraryCallbackTest {
   @Test
   @OptIn(ExperimentalCoroutinesApi::class)
   fun onlyAnEmptyTabWaitsAndReturnsAfterThreeSeconds() = runTest {
-    val context = RuntimeEnvironment.getApplication()
-    val repository = mock(CarCatalogRepository::class.java)
-    val mapper = CarMediaItemMapper(context)
-    val row = mapper.folder(CarMediaId.Podcasts)
+    val fixture = BrowseCallbackFixture(backgroundScope)
+    val row = fixture.mapper.folder(CarMediaId.Podcasts)
     val refresh = CompletableDeferred<Unit>()
-    `when`(repository.listChildren(CarMediaId.Books)).thenReturn(emptyList())
-    `when`(repository.listChildren(CarMediaId.Podcasts)).thenReturn(listOf(row))
-    `when`(repository.startRefreshIfStale()).thenReturn(refresh)
-    val callback =
-      ShelfMediaLibraryCallback(
-          context,
-          Lazy<PlayerStore> { error("Browse does not need the player store") },
-          Lazy { repository },
-          mapper,
-        )
-        .also { it.attach(backgroundScope) }
-    val session = mock(MediaLibrarySession::class.java)
-    val browser = mock(MediaSession.ControllerInfo::class.java)
-    val cold = callback.onGetChildren(session, browser, "car:books", 0, Int.MAX_VALUE, null)
-    val warm = callback.onGetChildren(session, browser, "car:podcasts", 0, Int.MAX_VALUE, null)
+    `when`(fixture.repository.listChildren(CarMediaId.Books)).thenReturn(emptyList())
+    `when`(fixture.repository.listChildren(CarMediaId.Podcasts)).thenReturn(listOf(row))
+    `when`(fixture.repository.startRefreshIfStale()).thenReturn(refresh)
+
+    val cold = fixture.children("car:books")
+    val warm = fixture.children("car:podcasts")
     runCurrent()
     assertEquals(listOf(row), warm.get().value)
+    val repeat = fixture.children("car:books")
+    runCurrent()
+    assertTrue(repeat.isDone)
+    assertEquals(emptyList<MediaItem>(), repeat.get().value)
+
     advanceTimeBy(2_999)
     assertFalse(cold.isDone)
     advanceTimeBy(1)
@@ -131,31 +128,70 @@ class ShelfMediaLibraryCallbackTest {
 
   @Test
   @OptIn(ExperimentalCoroutinesApi::class)
+  fun coldTabReloadsRowsWhenAnotherRefreshHasJustCompleted() = runTest {
+    val fixture = BrowseCallbackFixture(backgroundScope)
+    val row = fixture.mapper.folder(CarMediaId.Podcasts)
+    `when`(fixture.repository.listChildren(CarMediaId.Podcasts))
+      .thenReturn(emptyList(), listOf(row))
+    `when`(fixture.repository.startRefreshIfStale()).thenReturn(null)
+
+    val result = fixture.children("car:podcasts")
+    runCurrent()
+
+    assertTrue(result.isDone)
+    assertEquals(listOf(row), result.get().value)
+  }
+
+  @Test
+  @OptIn(ExperimentalCoroutinesApi::class)
+  fun coldTabDeadlineDoesNotCancelRefreshScheduling() = runTest {
+    val fixture = BrowseCallbackFixture(backgroundScope)
+    val row = fixture.mapper.folder(CarMediaId.Podcasts)
+    val refreshStarted = CompletableDeferred<Unit>()
+    `when`(fixture.repository.listChildren(CarMediaId.Podcasts)).thenReturn(emptyList())
+    `when`(fixture.repository.startRefreshIfStale()).thenAnswer { invocation ->
+      @Suppress("UNCHECKED_CAST")
+      val continuation = invocation.rawArguments.last() as Continuation<Job>
+      val startRefresh: suspend () -> Job = {
+        delay(3_001)
+        `when`(fixture.repository.listChildren(CarMediaId.Podcasts)).thenReturn(listOf(row))
+        refreshStarted.complete(Unit)
+        refreshStarted
+      }
+      startRefresh.startCoroutineUninterceptedOrReturn(continuation)
+    }
+
+    val result = fixture.children("car:podcasts")
+    runCurrent()
+    advanceTimeBy(3_000)
+    runCurrent()
+    assertTrue(result.isDone)
+    assertEquals(emptyList<MediaItem>(), result.get().value)
+    assertFalse(refreshStarted.isCompleted)
+
+    advanceTimeBy(1)
+    runCurrent()
+    assertTrue(refreshStarted.isCompleted)
+    val next = fixture.children("car:podcasts")
+    runCurrent()
+    assertEquals(listOf(row), next.get().value)
+  }
+
+  @Test
+  @OptIn(ExperimentalCoroutinesApi::class)
   fun newSessionTabWaitsForItsOwnRefresh() = runTest {
-    val context = RuntimeEnvironment.getApplication()
-    val repository = mock(CarCatalogRepository::class.java)
-    val mapper = CarMediaItemMapper(context)
+    val fixture = BrowseCallbackFixture(backgroundScope)
     val previousRefresh = CompletableDeferred<Unit>()
     val newRefresh = CompletableDeferred<Unit>()
-    val newRow = mapper.folder(CarMediaId.DownloadedBooks)
-    `when`(repository.listChildren(CarMediaId.Books))
+    val newRow = fixture.mapper.folder(CarMediaId.DownloadedBooks)
+    `when`(fixture.repository.listChildren(CarMediaId.Books))
       .thenReturn(emptyList(), emptyList(), listOf(newRow))
-    `when`(repository.startRefreshIfStale()).thenReturn(previousRefresh, newRefresh)
-    val callback =
-      ShelfMediaLibraryCallback(
-          context,
-          Lazy<PlayerStore> { error("Browse does not need the player store") },
-          Lazy { repository },
-          mapper,
-        )
-        .also { it.attach(backgroundScope) }
-    val session = mock(MediaLibrarySession::class.java)
-    val browser = mock(MediaSession.ControllerInfo::class.java)
-    val previous = callback.onGetChildren(session, browser, "car:books", 0, Int.MAX_VALUE, null)
+    `when`(fixture.repository.startRefreshIfStale()).thenReturn(previousRefresh, newRefresh)
+    val previous = fixture.children("car:books")
     runCurrent()
     assertFalse(previous.isDone)
 
-    val current = callback.onGetChildren(session, browser, "car:books", 0, Int.MAX_VALUE, null)
+    val current = fixture.children("car:books")
     runCurrent()
     assertFalse(current.isDone)
     newRefresh.complete(Unit)
@@ -169,36 +205,25 @@ class ShelfMediaLibraryCallbackTest {
   @Test
   @OptIn(ExperimentalCoroutinesApi::class)
   fun unsubscribeDuringInitialLoadPreventsObservation() = runTest {
-    val context = RuntimeEnvironment.getApplication()
-    val repository = mock(CarCatalogRepository::class.java)
+    val fixture = BrowseCallbackFixture(backgroundScope)
     val initial = CompletableDeferred<List<MediaItem>>()
-    `when`(repository.listChildren(CarMediaId.Books)).thenAnswer { invocation ->
+    `when`(fixture.repository.listChildren(CarMediaId.Books)).thenAnswer { invocation ->
       @Suppress("UNCHECKED_CAST")
-      val continuation =
-        invocation.rawArguments.last() as kotlin.coroutines.Continuation<List<MediaItem>>
+      val continuation = invocation.rawArguments.last() as Continuation<List<MediaItem>>
       val load: suspend () -> List<MediaItem> = { initial.await() }
       load.startCoroutineUninterceptedOrReturn(continuation)
     }
-    val callback =
-      ShelfMediaLibraryCallback(
-          context,
-          Lazy<PlayerStore> { error("Browse does not need the player store") },
-          Lazy { repository },
-          CarMediaItemMapper(context),
-        )
-        .also { it.attach(backgroundScope) }
-    val session = mock(MediaLibrarySession::class.java)
-    val browser = mock(MediaSession.ControllerInfo::class.java)
-    val subscribe = callback.onSubscribe(session, browser, "car:books", null)
+    val subscribe =
+      fixture.callback.onSubscribe(fixture.session, fixture.browser, "car:books", null)
     runCurrent()
     assertFalse(subscribe.isDone)
 
-    callback.onUnsubscribe(session, browser, "car:books").get()
+    fixture.callback.onUnsubscribe(fixture.session, fixture.browser, "car:books").get()
     initial.complete(emptyList())
     runCurrent()
     assertEquals(LibraryResult.RESULT_SUCCESS, subscribe.get().resultCode)
-    verify(repository, never()).observeChanges(CarMediaId.Books)
-    verifyNoInteractions(session)
+    verify(fixture.repository, never()).observeChanges(CarMediaId.Books)
+    verifyNoInteractions(fixture.session)
   }
 
   @Test
@@ -278,6 +303,13 @@ class ShelfMediaLibraryCallbackTest {
     )
     assertEquals(listOf("car:book:book"), children("car:library:books").map { it.mediaId })
     assertEquals(listOf("car:podcast:podcast"), children("car:podcasts").map { it.mediaId })
+
+    library("second-podcasts", isBook = false, order = 1)
+    assertEquals(
+      listOf("car:library:podcasts", "car:library:second-podcasts"),
+      children("car:podcasts").map { it.mediaId },
+    )
+    assertEquals(listOf("car:podcast:podcast"), children("car:library:podcasts").map { it.mediaId })
   }
 
   @Test
@@ -413,6 +445,24 @@ class ShelfMediaLibraryCallbackTest {
     assertEquals(emptyList<String>(), children("car:downloads").map { it.mediaId })
     assertEquals(LibraryResult.RESULT_ERROR_BAD_VALUE, getItem("car:book:book").resultCode)
     assertEquals("car:books", getItem("car:books").value?.mediaId)
+  }
+
+  private class BrowseCallbackFixture(scope: CoroutineScope) {
+    private val context = RuntimeEnvironment.getApplication()
+    val repository = mock(CarCatalogRepository::class.java)
+    val mapper = CarMediaItemMapper(context)
+    val session = mock(MediaLibrarySession::class.java)
+    val browser = mock(MediaSession.ControllerInfo::class.java)
+    val callback =
+      ShelfMediaLibraryCallback(
+          context,
+          Lazy<PlayerStore> { error("Browse does not need the player store") },
+          Lazy { repository },
+          mapper,
+        )
+        .also { it.attach(scope) }
+
+    fun children(id: String) = callback.onGetChildren(session, browser, id, 0, Int.MAX_VALUE, null)
   }
 
   private fun withCatalog(test: Fixture.() -> Unit) {

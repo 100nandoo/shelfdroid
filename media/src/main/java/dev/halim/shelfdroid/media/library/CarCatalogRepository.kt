@@ -84,7 +84,7 @@ constructor(
       combine(
         auth.token.distinctUntilChanged(),
         libraries.observeLibraries(),
-        libraryItems.observeItemChanges(),
+        libraryItems.observeLibraryItemChanges(),
         podcastEpisodes.observeEpisodeChanges(),
         progress.observeProgressChanges(),
       ) { _, _, _, _, _ ->
@@ -199,7 +199,7 @@ constructor(
 
   private fun libraryRows(library: LibraryEntity): List<CarBrowseRow> =
     libraryItems
-      .listBrowseItems(library.id)
+      .listBrowsableLibraryItems(library.id)
       .filter { it.isBook == library.isBookLibrary }
       .map { record ->
         val id =
