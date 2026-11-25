@@ -58,9 +58,9 @@ internal constructor(
     return awaitRefresh(refresh)
   }
 
-  suspend fun synchronizeIfStale(): LibraryDataSyncResult? {
-    val refresh = mutex.withLock {
-      if (!isSignedIn()) return null
+  suspend fun startSynchronizationIfStale(): Deferred<LibraryDataSyncResult>? = mutex.withLock {
+    if (!isSignedIn()) return null
+    val refresh =
       activeRefresh()
         ?: run {
           val current = now()
@@ -69,8 +69,8 @@ internal constructor(
           if (lastFailure?.let { current - it in 0 until 60_000L } == true) return null
           startRefresh()
         }
-    }
-    return awaitRefresh(refresh)
+    refresh.start()
+    refresh
   }
 
   internal suspend fun resetSession(clear: suspend () -> Unit) = mutex.withLock {

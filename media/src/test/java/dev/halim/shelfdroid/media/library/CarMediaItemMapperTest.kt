@@ -5,9 +5,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaConstants
-import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.core.database.LibraryEntity
-import dev.halim.shelfdroid.core.database.LibraryItemCatalog
+import dev.halim.shelfdroid.core.database.LibraryItemEntity
+import dev.halim.shelfdroid.core.database.PodcastEpisodeEntity
 import dev.halim.shelfdroid.core.database.ProgressEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -76,7 +76,27 @@ class CarMediaItemMapperTest {
   @Test
   fun episodesArePlayableAndUseTheirPodcastArtwork() {
     val podcast = catalogItem("podcast", isBook = false)
-    val episode = PodcastEpisode(libraryItemId = podcast.id, id = "episode", title = "An Episode")
+    val episode =
+      PodcastEpisodeEntity(
+        id = "episode",
+        libraryItemId = podcast.id,
+        episodeIndex = null,
+        season = null,
+        episode = null,
+        episodeType = null,
+        title = "An Episode",
+        subtitle = null,
+        description = null,
+        enclosureUrl = null,
+        enclosureType = null,
+        enclosureLength = null,
+        pubDate = null,
+        audioFile = "{}",
+        audioTrack = "{}",
+        publishedAt = null,
+        addedAt = 0,
+        updatedAt = 0,
+      )
     val progress = ProgressEntity("progress", podcast.id, episode.id, "", .2, 100.0, 20.0, 1, 0)
     val folder = mapper.libraryItem(podcast)
     val item = mapper.episode(podcast, episode, progress)
@@ -115,17 +135,20 @@ class CarMediaItemMapperTest {
   }
 
   private fun catalogItem(id: String, isBook: Boolean) =
-    LibraryItemCatalog(
+    LibraryItemEntity(
       id = id,
       libraryId = "lib",
       author = "An Author",
       authorFirstLast = "An Author",
       authorLastFirst = "Author, An",
       title = "A Title",
+      description = "",
       cover = "https://example.invalid/api/items/$id/cover",
+      updatedAt = 0,
+      rssFeed = null,
+      inoId = "",
       duration = 100.0,
       isBook = if (isBook) 1 else 0,
       addedAt = 0,
-      episodeCount = if (isBook) 0 else 1,
     )
 }

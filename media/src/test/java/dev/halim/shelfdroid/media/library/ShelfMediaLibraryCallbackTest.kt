@@ -10,15 +10,19 @@ import androidx.media3.session.MediaLibraryService.LibraryParams
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import dagger.Lazy
+import dev.halim.core.network.ApiService
 import dev.halim.core.network.response.libraryitem.Book
 import dev.halim.core.network.response.libraryitem.FileMetadata
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.core.network.response.play.AudioTrack
 import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
 import dev.halim.shelfdroid.core.data.di.DatabaseModule
+import dev.halim.shelfdroid.core.data.library.BookLocalDataSource
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
+import dev.halim.shelfdroid.core.data.library.PodcastLocalDataSource
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
@@ -45,6 +49,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
@@ -99,14 +104,9 @@ class ShelfMediaLibraryCallbackTest {
     val mapper = CarMediaItemMapper(context)
     val row = mapper.folder(CarMediaId.Podcasts)
     val refresh = CompletableDeferred<Unit>()
-    `when`(repository.children(CarMediaId.Books)).thenReturn(emptyList())
-    `when`(repository.children(CarMediaId.Podcasts)).thenReturn(listOf(row))
-    `when`(repository.refreshIfStale()).thenAnswer { invocation ->
-      @Suppress("UNCHECKED_CAST")
-      val continuation = invocation.rawArguments.last() as kotlin.coroutines.Continuation<Unit>
-      val awaitRefresh: suspend () -> Unit = { refresh.await() }
-      awaitRefresh.startCoroutineUninterceptedOrReturn(continuation)
-    }
+    `when`(repository.listChildren(CarMediaId.Books)).thenReturn(emptyList())
+    `when`(repository.listChildren(CarMediaId.Podcasts)).thenReturn(listOf(row))
+    `when`(repository.startRefreshIfStale()).thenReturn(refresh)
     val callback =
       ShelfMediaLibraryCallback(
           context,
@@ -127,6 +127,78 @@ class ShelfMediaLibraryCallbackTest {
     runCurrent()
     assertEquals(emptyList<MediaItem>(), cold.get().value)
     refresh.complete(Unit)
+  }
+
+  @Test
+  @OptIn(ExperimentalCoroutinesApi::class)
+  fun newSessionTabWaitsForItsOwnRefresh() = runTest {
+    val context = RuntimeEnvironment.getApplication()
+    val repository = mock(CarCatalogRepository::class.java)
+    val mapper = CarMediaItemMapper(context)
+    val previousRefresh = CompletableDeferred<Unit>()
+    val newRefresh = CompletableDeferred<Unit>()
+    val newRow = mapper.folder(CarMediaId.DownloadedBooks)
+    `when`(repository.listChildren(CarMediaId.Books))
+      .thenReturn(emptyList(), emptyList(), listOf(newRow))
+    `when`(repository.startRefreshIfStale()).thenReturn(previousRefresh, newRefresh)
+    val callback =
+      ShelfMediaLibraryCallback(
+          context,
+          Lazy<PlayerStore> { error("Browse does not need the player store") },
+          Lazy { repository },
+          mapper,
+        )
+        .also { it.attach(backgroundScope) }
+    val session = mock(MediaLibrarySession::class.java)
+    val browser = mock(MediaSession.ControllerInfo::class.java)
+    val previous = callback.onGetChildren(session, browser, "car:books", 0, Int.MAX_VALUE, null)
+    runCurrent()
+    assertFalse(previous.isDone)
+
+    val current = callback.onGetChildren(session, browser, "car:books", 0, Int.MAX_VALUE, null)
+    runCurrent()
+    assertFalse(current.isDone)
+    newRefresh.complete(Unit)
+    runCurrent()
+    assertTrue(current.isDone)
+    assertEquals(listOf(newRow), current.get().value)
+    assertFalse(previous.isDone)
+    previousRefresh.cancel()
+  }
+
+  @Test
+  @OptIn(ExperimentalCoroutinesApi::class)
+  fun unsubscribeDuringInitialLoadPreventsObservation() = runTest {
+    val context = RuntimeEnvironment.getApplication()
+    val repository = mock(CarCatalogRepository::class.java)
+    val initial = CompletableDeferred<List<MediaItem>>()
+    `when`(repository.listChildren(CarMediaId.Books)).thenAnswer { invocation ->
+      @Suppress("UNCHECKED_CAST")
+      val continuation =
+        invocation.rawArguments.last() as kotlin.coroutines.Continuation<List<MediaItem>>
+      val load: suspend () -> List<MediaItem> = { initial.await() }
+      load.startCoroutineUninterceptedOrReturn(continuation)
+    }
+    val callback =
+      ShelfMediaLibraryCallback(
+          context,
+          Lazy<PlayerStore> { error("Browse does not need the player store") },
+          Lazy { repository },
+          CarMediaItemMapper(context),
+        )
+        .also { it.attach(backgroundScope) }
+    val session = mock(MediaLibrarySession::class.java)
+    val browser = mock(MediaSession.ControllerInfo::class.java)
+    val subscribe = callback.onSubscribe(session, browser, "car:books", null)
+    runCurrent()
+    assertFalse(subscribe.isDone)
+
+    callback.onUnsubscribe(session, browser, "car:books").get()
+    initial.complete(emptyList())
+    runCurrent()
+    assertEquals(LibraryResult.RESULT_SUCCESS, subscribe.get().resultCode)
+    verify(repository, never()).observeChanges(CarMediaId.Books)
+    verifyNoInteractions(session)
   }
 
   @Test
@@ -287,8 +359,8 @@ class ShelfMediaLibraryCallbackTest {
       listOf("one.mp3", "two.mp3").mapIndexed { index, name ->
         AudioTrack(index = index, metadata = FileMetadata(filename = name))
       }
-    `when`(libraryItems.bookById("full")).thenReturn(Book(audioTracks = tracks))
-    `when`(libraryItems.bookById("partial")).thenReturn(Book(audioTracks = tracks))
+    `when`(books.byId("full")).thenReturn(Book(audioTracks = tracks))
+    `when`(books.byId("partial")).thenReturn(Book(audioTracks = tracks))
     runBlocking {
       `when`(downloads.isBookDownloaded("Full", "", tracks)).thenReturn(true)
       `when`(downloads.isBookDownloaded("Partial", "", tracks)).thenReturn(false)
@@ -354,7 +426,7 @@ class ShelfMediaLibraryCallbackTest {
     val episodes = PodcastEpisodeRepository(db, Json)
     val downloads = mock(DownloadRepo::class.java)
     val downloadChanges = MutableStateFlow(0)
-    val libraryItems = mock(LibraryItemRepository::class.java)
+    val books = mock(BookLocalDataSource::class.java)
     val token = MutableStateFlow("test-user")
     val session = mock(MediaLibrarySession::class.java)
     val browser =
@@ -363,15 +435,28 @@ class ShelfMediaLibraryCallbackTest {
       }
     private val scope = CoroutineScope(Dispatchers.Unconfined)
     private val mapper = CarMediaItemMapper(context)
+    private val api = mock(ApiService::class.java)
+    private val helper = mock(Helper::class.java)
+    private val progress = ProgressRepository(db, helper)
     private val repository =
       CarCatalogRepository(
         context,
-        db,
+        LibraryRepository(api, db, Json),
         mock(AuthStateRepository::class.java).also { `when`(it.token).thenReturn(token) },
         mock(LibraryDataRepository::class.java),
-        libraryItems,
+        LibraryItemRepository(
+          api,
+          db,
+          helper,
+          Json,
+          downloads,
+          progress,
+          books,
+          mock(PodcastLocalDataSource::class.java),
+          episodes,
+        ),
         episodes,
-        ProgressRepository(db, mock(Helper::class.java)),
+        progress,
         downloads.also { `when`(it.durableDownloads).thenReturn(downloadChanges) },
         mapper,
       )

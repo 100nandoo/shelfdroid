@@ -4,20 +4,20 @@ import android.content.Context
 import android.database.ContentObserver
 import android.provider.MediaStore
 import androidx.media3.common.MediaItem
-import app.cash.sqldelight.coroutines.asFlow
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.halim.shelfdroid.core.data.auth.AuthStateRepository
 import dev.halim.shelfdroid.core.data.library.LibraryDataRepository
 import dev.halim.shelfdroid.core.data.library.LibraryItemRepository
+import dev.halim.shelfdroid.core.data.library.LibraryRepository
 import dev.halim.shelfdroid.core.data.library.PodcastEpisodeRepository
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.database.LibraryEntity
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
-import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.download.DownloadRepo
 import dev.halim.shelfdroid.media.R
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -33,7 +33,7 @@ internal class CarCatalogRepository
 @Inject
 constructor(
   @ApplicationContext private val context: Context,
-  db: MyDatabase,
+  private val libraries: LibraryRepository,
   private val auth: AuthStateRepository,
   private val sync: LibraryDataRepository,
   private val libraryItems: LibraryItemRepository,
@@ -42,16 +42,9 @@ constructor(
   private val downloads: DownloadRepo,
   private val mapper: CarMediaItemMapper,
 ) {
-  private val libraries = db.libraryEntityQueries
-  private val items = db.libraryItemEntityQueries
-  private val episodes = db.podcastEpisodeEntityQueries
-  private val progressQueries = db.progressEntityQueries
+  suspend fun startRefreshIfStale(): Job? = sync.startSynchronizationIfStale()
 
-  suspend fun refreshIfStale() {
-    sync.synchronizeIfStale()
-  }
-
-  suspend fun children(parent: CarMediaId): List<MediaItem>? =
+  suspend fun listChildren(parent: CarMediaId): List<MediaItem>? =
     withContext(Dispatchers.IO) {
       val token = auth.token.first()
       if (token.isBlank()) return@withContext emptyPublicTab(parent)
@@ -78,7 +71,7 @@ constructor(
       if (auth.token.first() == token) children else emptyPublicTab(parent)
     }
 
-  suspend fun item(id: CarMediaId): MediaItem? =
+  suspend fun findItem(id: CarMediaId): MediaItem? =
     withContext(Dispatchers.IO) {
       val token = auth.token.first()
       if (token.isBlank()) return@withContext null
@@ -86,14 +79,14 @@ constructor(
       item.takeIf { auth.token.first() == token }
     }
 
-  fun changes(parent: CarMediaId): Flow<Unit> {
+  fun observeChanges(parent: CarMediaId): Flow<Unit> {
     val catalogChanges =
       combine(
         auth.token.distinctUntilChanged(),
-        libraries.all().asFlow(),
-        items.all().asFlow(),
-        episodes.allIds().asFlow(),
-        progressQueries.allIds().asFlow(),
+        libraries.observeLibraries(),
+        libraryItems.observeItemChanges(),
+        podcastEpisodes.observeEpisodeChanges(),
+        progress.observeProgressChanges(),
       ) { _, _, _, _, _ ->
         Unit
       }
@@ -133,8 +126,7 @@ constructor(
     when (id) {
       CarMediaId.ContinueListening -> null
       is CarMediaId.Folder -> mapper.folder(id)
-      is CarMediaId.Library ->
-        libraries.byId(id.libraryId).executeAsOneOrNull()?.let(mapper::library)
+      is CarMediaId.Library -> libraries.byId(id.libraryId)?.let(mapper::library)
       is CarMediaId.Group -> tree(id.parent)?.item(id)?.let { mapper.group(id, it.title) }
       is CarMediaId.Book ->
         catalogItem(id.bookId, isBook = true)?.let {
@@ -144,7 +136,7 @@ constructor(
         catalogItem(id.podcastId, isBook = false)?.let { mapper.libraryItem(it) }
       is CarMediaId.Episode -> {
         val parent = catalogItem(id.podcastId, isBook = false)
-        val episode = episodes.byId(id.episodeId).executeAsOneOrNull()
+        val episode = podcastEpisodes.findCachedEpisode(id.episodeId)
         if (parent != null && episode?.libraryItemId == parent.id) {
           mapper.episode(parent, episode, progress.episodeById(id.episodeId))
         } else null
@@ -154,7 +146,7 @@ constructor(
 
   private suspend fun legacyItem(id: CarMediaId.LegacyPlayable): MediaItem? {
     val (libraryItemId, secondaryId) = id.id
-    val record = items.byId(libraryItemId).executeAsOneOrNull() ?: return null
+    val record = libraryItems.byId(libraryItemId) ?: return null
     val canonicalId =
       if (record.isBook == 1L) {
         if (
@@ -177,7 +169,7 @@ constructor(
         CarMediaId.Books,
         CarMediaId.Podcasts -> {
           val matching =
-            libraries.all().executeAsList().filter {
+            libraries.listLibraries().filter {
               it.isBookLibrary == if (parent == CarMediaId.Books) 1L else 0L
             }
           when (matching.size) {
@@ -189,12 +181,12 @@ constructor(
           }
         }
         is CarMediaId.Library -> {
-          val library = libraries.byId(parent.libraryId).executeAsOneOrNull() ?: return null
+          val library = libraries.byId(parent.libraryId) ?: return null
           libraryRows(library) to CarBrowseTree.Order.TITLE
         }
         is CarMediaId.Podcast -> {
           catalogItem(parent.podcastId, isBook = false) ?: return null
-          episodes.carBrowseEpisodes(parent.podcastId).executeAsList().map {
+          podcastEpisodes.listBrowseEpisodes(parent.podcastId).map {
             CarBrowseRow(CarMediaId.Episode(parent.podcastId, it.id), it.title, it.publishedAt)
           } to CarBrowseTree.Order.EPISODE_DATE
         }
@@ -206,9 +198,8 @@ constructor(
   }
 
   private fun libraryRows(library: LibraryEntity): List<CarBrowseRow> =
-    items
-      .carBrowseItems(library.id)
-      .executeAsList()
+    libraryItems
+      .listBrowseItems(library.id)
       .filter { it.isBook == library.isBookLibrary }
       .map { record ->
         val id =
@@ -217,10 +208,10 @@ constructor(
       }
 
   private fun catalogItem(id: String, isBook: Boolean): LibraryItemEntity? {
-    val record = items.byId(id).executeAsOneOrNull() ?: return null
+    val record = libraryItems.byId(id) ?: return null
     val type = if (isBook) 1L else 0L
     if (record.isBook != type) return null
-    val library = libraries.byId(record.libraryId).executeAsOneOrNull()
+    val library = libraries.byId(record.libraryId)
     return record.takeIf { library?.isBookLibrary == type }
   }
 
@@ -245,5 +236,5 @@ constructor(
     }
 
   private fun rowsByLibraryType(type: Long): List<CarBrowseRow> =
-    libraries.all().executeAsList().filter { it.isBookLibrary == type }.flatMap(::libraryRows)
+    libraries.listLibraries().filter { it.isBookLibrary == type }.flatMap(::libraryRows)
 }

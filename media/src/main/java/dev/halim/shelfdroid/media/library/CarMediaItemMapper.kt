@@ -9,9 +9,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.halim.core.network.response.libraryitem.PodcastEpisode
 import dev.halim.shelfdroid.core.database.LibraryEntity
-import dev.halim.shelfdroid.core.database.LibraryItemCatalog
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.PodcastEpisodeEntity
 import dev.halim.shelfdroid.core.database.ProgressEntity
@@ -78,79 +76,33 @@ constructor(@ApplicationContext private val context: Context) {
       playable = false,
     )
 
-  fun libraryItem(record: LibraryItemCatalog, progress: ProgressEntity? = null): MediaItem =
-    libraryItem(record.id, record.title, record.author, record.cover, record.isBook == 1L, progress)
-
-  fun libraryItem(record: LibraryItemEntity, progress: ProgressEntity? = null): MediaItem =
-    libraryItem(record.id, record.title, record.author, record.cover, record.isBook == 1L, progress)
-
-  private fun libraryItem(
-    id: String,
-    title: String,
-    author: String,
-    cover: String,
-    isBook: Boolean,
-    progress: ProgressEntity?,
-  ): MediaItem {
+  fun libraryItem(record: LibraryItemEntity, progress: ProgressEntity? = null): MediaItem {
+    val isBook = record.isBook == 1L
     return item(
-      id = if (isBook) CarMediaId.Book(id) else CarMediaId.Podcast(id),
-      title = title,
+      id = if (isBook) CarMediaId.Book(record.id) else CarMediaId.Podcast(record.id),
+      title = record.title,
       mediaType =
         if (isBook) MediaMetadata.MEDIA_TYPE_AUDIO_BOOK else MediaMetadata.MEDIA_TYPE_PODCAST,
       playable = isBook,
-      artist = author,
-      artwork = artworkFor(id, cover),
+      artist = record.author,
+      artwork = artworkFor(record.id, record.cover),
       progress = progress,
     )
   }
-
-  fun episode(
-    podcast: LibraryItemCatalog,
-    episode: PodcastEpisode,
-    progress: ProgressEntity? = null,
-  ): MediaItem =
-    episode(
-      podcastId = podcast.id,
-      podcastTitle = podcast.title,
-      author = podcast.author,
-      cover = podcast.cover,
-      episodeId = episode.id,
-      title = episode.title,
-      progress = progress,
-    )
 
   fun episode(
     podcast: LibraryItemEntity,
     episode: PodcastEpisodeEntity,
     progress: ProgressEntity?,
   ): MediaItem =
-    episode(
-      podcastId = podcast.id,
-      podcastTitle = podcast.title,
-      author = podcast.author,
-      cover = podcast.cover,
-      episodeId = episode.id,
-      title = episode.title,
-      progress = progress,
-    )
-
-  private fun episode(
-    podcastId: String,
-    podcastTitle: String,
-    author: String,
-    cover: String,
-    episodeId: String,
-    title: String,
-    progress: ProgressEntity?,
-  ): MediaItem =
     item(
-      id = CarMediaId.Episode(podcastId, episodeId),
-      title = title,
+      id = CarMediaId.Episode(podcast.id, episode.id),
+      title = episode.title,
       mediaType = MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE,
       playable = true,
-      artist = author,
-      subtitle = podcastTitle,
-      artwork = artworkFor(podcastId, cover),
+      artist = podcast.author,
+      subtitle = podcast.title,
+      artwork = artworkFor(podcast.id, podcast.cover),
       progress = progress,
     )
 

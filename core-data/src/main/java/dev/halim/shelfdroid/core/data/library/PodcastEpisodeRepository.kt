@@ -5,6 +5,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import dev.halim.core.network.response.libraryitem.Enclosure
 import dev.halim.core.network.response.libraryitem.PodcastEpisode
+import dev.halim.shelfdroid.core.database.CarBrowseEpisodes
 import dev.halim.shelfdroid.core.database.MyDatabase
 import dev.halim.shelfdroid.core.database.PodcastEpisodeEntity
 import javax.inject.Inject
@@ -24,8 +25,14 @@ constructor(
 
   private val queries = db.podcastEpisodeEntityQueries
 
-  fun byId(id: String): PodcastEpisode? =
-    queries.byId(id).executeAsOneOrNull()?.let(::toPodcastEpisode)
+  fun findCachedEpisode(id: String): PodcastEpisodeEntity? = queries.byId(id).executeAsOneOrNull()
+
+  fun listBrowseEpisodes(podcastId: String): List<CarBrowseEpisodes> =
+    queries.carBrowseEpisodes(podcastId).executeAsList()
+
+  fun observeEpisodeChanges(): Flow<Unit> = queries.allIds().asFlow().map { Unit }
+
+  fun byId(id: String): PodcastEpisode? = findCachedEpisode(id)?.let(::toPodcastEpisode)
 
   fun flowById(id: String): Flow<PodcastEpisode?> =
     queries.byId(id).asFlow().mapToOneOrNull(Dispatchers.IO).map { entity ->

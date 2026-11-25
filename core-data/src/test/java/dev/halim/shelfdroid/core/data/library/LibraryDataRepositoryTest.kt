@@ -46,9 +46,10 @@ class LibraryDataRepositoryTest {
 
     val previous = async { repository.synchronize() }
     started.await()
+    val carRefresh = requireNotNull(repository.startSynchronizationIfStale())
     val reset = async { repository.resetSession { catalog.clear() } }
     runCurrent()
-    val next = async { repository.synchronize() }
+    val next = async { requireNotNull(repository.startSynchronizationIfStale()).await() }
     runCurrent()
     assertFalse(next.isCompleted)
     oldResponse.complete(Unit)
@@ -56,6 +57,7 @@ class LibraryDataRepositoryTest {
 
     assertTrue(next.await().isSuccess)
     assertTrue(previous.isCancelled)
+    assertTrue(carRefresh.isCancelled)
     assertEquals(listOf("new"), catalog)
   }
 
@@ -78,18 +80,18 @@ class LibraryDataRepositoryTest {
         now = { now },
       )
 
-    assertTrue(repository.synchronizeIfStale()?.isSuccess == true)
+    assertTrue(repository.startSynchronizationIfStale()?.await()?.isSuccess == true)
     assertEquals(now, success)
     now += 899_999L
-    assertNull(repository.synchronizeIfStale())
+    assertNull(repository.startSynchronizationIfStale())
     now++
     shouldFail = true
-    assertFalse(requireNotNull(repository.synchronizeIfStale()).isSuccess)
+    assertFalse(requireNotNull(repository.startSynchronizationIfStale()).await().isSuccess)
     now += 59_999L
-    assertNull(repository.synchronizeIfStale())
+    assertNull(repository.startSynchronizationIfStale())
     now++
     shouldFail = false
-    assertTrue(repository.synchronizeIfStale()?.isSuccess == true)
+    assertTrue(repository.startSynchronizationIfStale()?.await()?.isSuccess == true)
     assertEquals(3, requests)
   }
 

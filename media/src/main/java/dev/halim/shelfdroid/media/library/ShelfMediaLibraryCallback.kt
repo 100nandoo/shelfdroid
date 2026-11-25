@@ -54,7 +54,8 @@ constructor(
 
   private lateinit var scope: CoroutineScope
   private val rootLimits = mutableMapOf<MediaSession.ControllerInfo, Int>()
-  private val subscriptions = mutableMapOf<Subscription, Job>()
+  private val subscriptions = mutableMapOf<Subscription, BrowseSubscription>()
+  private val coldWaits = mutableMapOf<Subscription, Job>()
 
   fun attach(serviceScope: CoroutineScope) {
     scope = serviceScope
@@ -177,12 +178,20 @@ constructor(
 
     return libraryFuture {
       val repository = catalog.get()
-      var rows = repository.children(parent)
+      var rows = repository.listChildren(parent)
       if (parent == CarMediaId.Books || parent == CarMediaId.Podcasts) {
-        val refresh = refreshCatalog(repository)
-        if (rows.isNullOrEmpty() && coldWaits.add(Subscription(browser, parentId))) {
-          withTimeoutOrNull(COLD_WAIT_MS) { refresh.join() }
-          rows = repository.children(parent)
+        if (rows.isNullOrEmpty()) {
+          var waited = false
+          withTimeoutOrNull(COLD_WAIT_MS) {
+            val refresh = startRefresh(repository) ?: return@withTimeoutOrNull
+            if (coldWaits.put(Subscription(browser, parentId), refresh) !== refresh) {
+              waited = true
+              refresh.join()
+            }
+          }
+          if (waited) rows = repository.listChildren(parent)
+        } else {
+          scope.launch { startRefresh(repository) }
         }
       }
       if (rows == null) LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
@@ -206,7 +215,7 @@ constructor(
       )
     }
     return libraryFuture {
-      val item = catalog.get().item(id)
+      val item = catalog.get().findItem(id)
       if (item == null) LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
       else LibraryResult.ofItem(item.also { grantArtwork(browser, it) }, null)
     }
@@ -221,32 +230,42 @@ constructor(
     val parent = CarMediaId.parse(parentId) ?: return badId()
     if (parent == CarMediaId.Root) return super.onSubscribe(session, browser, parentId, params)
 
+    val key = Subscription(browser, parentId)
+    val subscription = BrowseSubscription()
+    subscriptions.put(key, subscription)?.observer?.cancel()
     return libraryFuture {
-      val repository = catalog.get()
-      val initial =
-        repository.children(parent)
-          ?: return@libraryFuture LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
-      val subscription = Subscription(browser, parentId)
-      subscriptions.remove(subscription)?.cancel()
-      subscriptions[subscription] = scope.launch {
-        var previous = initial
-        try {
-          repository.changes(parent).collect {
-            val rows = repository.children(parent).orEmpty()
-            if (!sameRows(previous, rows)) {
-              previous = rows
-              session.notifyChildrenChanged(browser, parentId, rows.size, params)
+      try {
+        if (subscriptions[key] !== subscription) return@libraryFuture LibraryResult.ofVoid(params)
+        val repository = catalog.get()
+        val loaded = runCatching { repository.listChildren(parent) }
+        if (subscriptions[key] !== subscription) return@libraryFuture LibraryResult.ofVoid(params)
+        val initial =
+          loaded.getOrThrow()
+            ?: return@libraryFuture LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
+        subscription.observer = scope.launch {
+          var previous = initial
+          try {
+            repository.observeChanges(parent).collect {
+              val rows = repository.listChildren(parent).orEmpty()
+              if (!sameRows(previous, rows)) {
+                previous = rows
+                session.notifyChildrenChanged(browser, parentId, rows.size, params)
+              }
             }
+          } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            Log.w(TAG, "Unable to observe browse list", error)
           }
-        } catch (error: Exception) {
-          if (error is CancellationException) throw error
-          Log.w(TAG, "Unable to observe browse list", error)
+        }
+        if (browser.controllerVersion != MediaSession.ControllerInfo.LEGACY_CONTROLLER_VERSION) {
+          session.notifyChildrenChanged(browser, parentId, initial.size, params)
+        }
+        LibraryResult.ofVoid(params)
+      } finally {
+        if (subscriptions[key] === subscription && subscription.observer == null) {
+          subscriptions.remove(key)
         }
       }
-      if (browser.controllerVersion != MediaSession.ControllerInfo.LEGACY_CONTROLLER_VERSION) {
-        session.notifyChildrenChanged(browser, parentId, initial.size, params)
-      }
-      LibraryResult.ofVoid(params)
     }
   }
 
@@ -255,41 +274,28 @@ constructor(
     browser: MediaSession.ControllerInfo,
     parentId: String,
   ): ListenableFuture<LibraryResult<Void>> {
-    subscriptions.remove(Subscription(browser, parentId))?.cancel()
+    subscriptions.remove(Subscription(browser, parentId))?.observer?.cancel()
     return Futures.immediateFuture(LibraryResult.ofVoid())
   }
 
   override fun onDisconnected(session: MediaSession, controller: MediaSession.ControllerInfo) {
     rootLimits.remove(controller)
-    coldWaits.removeAll { it.browser == controller }
+    coldWaits.keys.removeAll { it.browser == controller }
     subscriptions.keys
       .filter { it.browser == controller }
       .forEach {
-        subscriptions.remove(it)?.cancel()
+        subscriptions.remove(it)?.observer?.cancel()
       }
   }
 
-  private var refreshJob: Job? = null
-  private val coldWaits = mutableSetOf<Subscription>()
-
-  private fun refreshCatalog(repository: CarCatalogRepository): Job {
-    refreshJob
-      ?.takeUnless { it.isCompleted }
-      ?.let {
-        return it
-      }
-    coldWaits.clear()
-    return scope
-      .launch {
-        try {
-          repository.refreshIfStale()
-        } catch (error: Exception) {
-          if (error is CancellationException) throw error
-          Log.w(TAG, "Unable to refresh the Catalog", error)
-        }
-      }
-      .also { refreshJob = it }
-  }
+  private suspend fun startRefresh(repository: CarCatalogRepository): Job? =
+    try {
+      repository.startRefreshIfStale()
+    } catch (error: Exception) {
+      if (error is CancellationException) throw error
+      Log.w(TAG, "Unable to refresh the Catalog", error)
+      null
+    }
 
   private fun grantArtwork(browser: MediaSession.ControllerInfo, item: MediaItem) {
     val uri = item.mediaMetadata.artworkUri ?: return
@@ -347,6 +353,8 @@ constructor(
     Futures.immediateFuture(LibraryResult.ofError<T>(SessionError.ERROR_BAD_VALUE))
 
   private data class Subscription(val browser: MediaSession.ControllerInfo, val parent: String)
+
+  private class BrowseSubscription(var observer: Job? = null)
 
   private companion object {
     const val TAG = "ShelfMediaLibrary"

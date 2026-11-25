@@ -16,6 +16,7 @@ import dev.halim.core.network.response.libraryitem.Podcast
 import dev.halim.shelfdroid.core.AudiobookshelfBaseUrl
 import dev.halim.shelfdroid.core.data.listening.ProgressRepository
 import dev.halim.shelfdroid.core.data.screen.rssfeeds.GeneratedRssFeedDetails
+import dev.halim.shelfdroid.core.database.CarBrowseItems
 import dev.halim.shelfdroid.core.database.LibraryItemCatalog
 import dev.halim.shelfdroid.core.database.LibraryItemEntity
 import dev.halim.shelfdroid.core.database.MyDatabase
@@ -213,6 +214,11 @@ constructor(
   fun flowById(id: String): Flow<LibraryItemEntity?> {
     return queries.byId(id).asFlow().mapToOneOrNull(Dispatchers.IO)
   }
+
+  fun listBrowseItems(libraryId: String): List<CarBrowseItems> =
+    queries.carBrowseItems(libraryId).executeAsList()
+
+  fun observeItemChanges(): Flow<Unit> = queries.all().asFlow().map { Unit }
 
   fun bookById(id: String): Book? {
     return bookLocalDataSource.byId(id)

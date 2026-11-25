@@ -21,6 +21,8 @@ class ProgressRepository @Inject constructor(db: MyDatabase, val helper: Helper)
   fun observeAllProgress(): Flow<List<ProgressEntity>> =
     queries.all().asFlow().mapToList(Dispatchers.IO)
 
+  fun observeProgressChanges(): Flow<Unit> = queries.allIds().asFlow().map { Unit }
+
   fun byLibraryItemId(id: String): List<ProgressEntity> =
     queries.byLibraryItemId(id).executeAsList()
 
