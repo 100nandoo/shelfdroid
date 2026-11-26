@@ -2,7 +2,7 @@
 namespace = "dev.halim.shelfdroid"
 targetSdk = "37"
 
-androidGradlePlugin = "9.5.2"
+androidGradlePlugin = "9.5.3"
 androidxActivity = "1.13.0"
 androidxBrowser = "1.10.0"
 androidxComposeBom = "2026.11.01"
