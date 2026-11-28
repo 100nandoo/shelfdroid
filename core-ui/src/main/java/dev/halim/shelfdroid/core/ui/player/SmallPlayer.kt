@@ -107,8 +107,7 @@ private fun SmallPlayerInfo(
       maxLines = 2,
     )
     AutoSizeText(
-      modifier =
-        Modifier.mySharedBound(Animations.Companion.Player.authorKey(Defaults.BOOK_AUTHOR)),
+      modifier = Modifier.mySharedBound(Animations.Companion.Player.authorKey(author)),
       text = author,
       style = MaterialTheme.typography.bodySmall,
       textAlign = TextAlign.Start,
